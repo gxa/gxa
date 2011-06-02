@@ -15,7 +15,6 @@ public class BioEntity {
     private BioEntityType type;
     private List<BEPropertyValue> properties = new ArrayList<BEPropertyValue>();
 
-    private String species;
     private Organism organism;
 
     public static final String NAME_PROPERTY_SYMBOL = "Symbol";
@@ -62,14 +61,6 @@ public class BioEntity {
         this.organism = organism;
     }
 
-    public String getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(String species) {
-        this.species = species;
-    }
-
     public String getName() {
         if (StringUtils.isEmpty(name)){
             name = identifier;
@@ -97,8 +88,10 @@ public class BioEntity {
 
         BioEntity bioEntity = (BioEntity) o;
 
-        if (!identifier.equals(bioEntity.identifier)) return false;
-        if (species != null ? !species.equals(bioEntity.species) : bioEntity.species != null) return false;
+        if (identifier != null ? !identifier.equals(bioEntity.identifier) : bioEntity.identifier != null) return false;
+        if (name != null ? !name.equals(bioEntity.name) : bioEntity.name != null) return false;
+        if (organism != null ? !organism.equals(bioEntity.organism) : bioEntity.organism != null) return false;
+        if (properties != null ? !properties.equals(bioEntity.properties) : bioEntity.properties != null) return false;
         if (type != null ? !type.equals(bioEntity.type) : bioEntity.type != null) return false;
 
         return true;
@@ -106,9 +99,11 @@ public class BioEntity {
 
     @Override
     public int hashCode() {
-        int result = identifier.hashCode();
+        int result = identifier != null ? identifier.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (species != null ? species.hashCode() : 0);
+        result = 31 * result + (properties != null ? properties.hashCode() : 0);
+        result = 31 * result + (organism != null ? organism.hashCode() : 0);
         return result;
     }
 }

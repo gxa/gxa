@@ -89,7 +89,7 @@ public class NetCDFProxy implements Closeable {
         this.pathToNetCDF = file.getAbsoluteFile();
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
         if (isOutOfDate())
-            log.error("ncdf " + getId() + " for experiment: " + getExperiment() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+            log.error("ncdf " + getId() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
     }
 
     /**
@@ -109,7 +109,7 @@ public class NetCDFProxy implements Closeable {
         return pathToNetCDF.getName();
     }
 
-    public String getExperiment() {
+    public String getExperimentAccession() {
         return netCDF.findGlobalAttribute("experiment_accession").getStringValue();
     }
 
@@ -178,6 +178,7 @@ public class NetCDFProxy implements Closeable {
         return new FloatMatrixProxy(variable, result);
     }
 
+    /*
     public long[] getAssays() throws IOException {
         return getLongArray1("AS");
     }
@@ -185,6 +186,7 @@ public class NetCDFProxy implements Closeable {
     public long[] getSamples() throws IOException {
         return getLongArray1("BS");
     }
+    */
 
     public int[][] getSamplesToAssays() throws IOException {
         // read BS2AS
@@ -213,10 +215,6 @@ public class NetCDFProxy implements Closeable {
         return result;
     }
 
-    public long[] getDesignElements() throws IOException {
-        return getLongArray1("DE");
-    }
-
     private String getGlobalAttribute(String attribute) {
         ucar.nc2.Attribute a = netCDF.findGlobalAttribute(attribute);
         return null == a ? null : a.getStringValue();
@@ -238,7 +236,7 @@ public class NetCDFProxy implements Closeable {
         return getGlobalAttribute("experiment_pmid");
     }
 
-    public String getArticleAbstract() {
+    public String getAbstract() {
         return getGlobalAttribute("experiment_abstract");
     }
 
@@ -451,6 +449,34 @@ public class NetCDFProxy implements Closeable {
         return readFloatValuesForRowIndices(deIndices, "BDC");
     }
 
+    public TwoDFloatArray getAllExpressionData() throws IOException {
+        return readFloatValuesForAllRows("BDC");
+    }
+
+    public static class TwoDFloatArray {
+        private final Array array;
+        private final int[] shape;
+
+        TwoDFloatArray(Array array) {
+            this.array = array;
+            this.shape = new int[] {1, array.getShape()[1]};
+        }
+
+        public float[] getRow(int index) {
+            final int[] origin = {index, 0};
+            try {
+                return (float[])array.section(origin, shape).get1DJavaArray(float.class);
+            } catch (InvalidRangeException e) {
+                return new float[0];
+            }
+        }
+    }
+
+    private TwoDFloatArray readFloatValuesForAllRows(String varName) throws IOException {
+        final Variable variable = netCDF.findVariable(varName);
+        return new TwoDFloatArray(variable.read());
+    }
+
     public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
         return readFloatValuesForRowIndex(designElementIndex, "PVAL", "p-value");
     }
@@ -632,7 +658,7 @@ public class NetCDFProxy implements Closeable {
     public class ExpressionAnalysisHelper {
 
         private List<String[]> uniquePropertyValues = new ArrayList<String[]>();
-        private long[] designElementIds;
+        private String[] designElementAccessions;
 
         private ExpressionAnalysisHelper() {
         }
@@ -645,7 +671,7 @@ public class NetCDFProxy implements Closeable {
                 uniquePropertyValues.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
             }
 
-            designElementIds = getDesignElements();
+            designElementAccessions = getDesignElementAccessions();
             return this;
         }
 
@@ -665,7 +691,7 @@ public class NetCDFProxy implements Closeable {
                     ExpressionAnalysis ea = new ExpressionAnalysis();
                     ea.setEfName(ef);
                     ea.setEfvName(efv);
-                    ea.setDesignElementID(designElementIds[deIndex]);
+                    ea.setDesignElementAccession(designElementAccessions[deIndex]);
                     ea.setExperimentID(getExperimentId());
                     ea.setDesignElementIndex(deIndex);
                     ea.setProxyId(getId());

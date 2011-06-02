@@ -3,8 +3,8 @@ package uk.ac.ebi.gxa.dao.hibernate;
 import org.hibernate.cfg.DefaultNamingStrategy;
 
 /**
-* A NamingStrategy reflecting Atlas DB prefixes, sequences, etc.
-*/
+ * A NamingStrategy reflecting Atlas DB prefixes, sequences, etc.
+ */
 
 public class AtlasNamingStrategy extends DefaultNamingStrategy {
     @Override

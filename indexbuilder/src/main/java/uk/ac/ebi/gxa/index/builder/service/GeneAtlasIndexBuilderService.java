@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.dao.BioEntityDAOInterface;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -33,7 +33,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.io.IOException;
 import java.util.*;
@@ -58,11 +57,9 @@ import static java.util.Collections.shuffle;
  * @author Tony Burdett
  */
 public class GeneAtlasIndexBuilderService extends IndexBuilderService {
-    private Map<String, Collection<String>> ontomap =
-            new HashMap<String, Collection<String>>();
     private AtlasProperties atlasProperties;
 
-    private BioEntityDAOInterface bioEntityDAOInterface;
+    private BioEntityDAO bioEntityDAO;
     private ExecutorService executor;
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -78,7 +75,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         getLog().info("Indexing all genes...");
-        indexGenes(progressUpdater, bioEntityDAOInterface.getAllGenesFast());
+        indexGenes(progressUpdater, bioEntityDAO.getAllGenesFast());
     }
 
     @Override
@@ -93,10 +90,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
-        final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAOInterface.getAllDesignElementsForGene();
+        final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAO.getAllDesignElementsForGene();
         getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
-
-        loadEfoMapping();
 
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
@@ -116,7 +111,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         StringBuilder sblog = new StringBuilder();
                         long start = System.currentTimeMillis();
 
-                        bioEntityDAOInterface.getPropertiesForGenes(genelist);
+                        bioEntityDAO.getPropertiesForGenes(genelist);
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         for (BioEntity gene : genelist) {
@@ -124,7 +119,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
                             Set<String> designElements = new HashSet<String>();
                             for (DesignElement de : allDesignElementsForGene.get(gene.getId())) {
-// for (DesignElement de : bioEntityDAOInterface.getDesignElementsByGeneID(gene.getId())) {
+// for (DesignElement de : bioEntityDAO.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
                             }
@@ -203,7 +198,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
 
         solrInputDoc.addField("id", bioEntityId);
-        solrInputDoc.addField("species", bioEntity.getSpecies());
+        solrInputDoc.addField("species", bioEntity.getOrganism().getName());
         solrInputDoc.addField("name", bioEntity.getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
@@ -229,33 +224,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return solrInputDoc;
     }
 
-
-    private void loadEfoMapping() {
-        getLog().info("Fetching ontology mappings...");
-
-        // we don't support enything else yet
-        List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
-        for (OntologyMapping mapping : mappings) {
-            String mapKey = mapping.getExperimentId() + "_" +
-                    mapping.getProperty() + "_" +
-                    mapping.getPropertyValue();
-
-            if (ontomap.containsKey(mapKey)) {
-                // fetch the existing array and add this term
-                // fixme: should actually add ontology term accession
-                ontomap.get(mapKey).add(mapping.getOntologyTerm());
-            } else {
-                // add a new array
-                Collection<String> values = new HashSet<String>();
-                // fixme: should actually add ontology term accession
-                values.add(mapping.getOntologyTerm());
-                ontomap.put(mapKey, values);
-            }
-        }
-
-        getLog().info("Ontology mappings loaded");
-    }
-
     @Override
     public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         commit(); // do not optimize
@@ -265,7 +233,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         return "genes";
     }
 
-    public void setBioEntityDAO(BioEntityDAOInterface bioEntityDAOInterface) {
-        this.bioEntityDAOInterface = bioEntityDAOInterface;
+    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
+        this.bioEntityDAO = bioEntityDAO;
     }
 }

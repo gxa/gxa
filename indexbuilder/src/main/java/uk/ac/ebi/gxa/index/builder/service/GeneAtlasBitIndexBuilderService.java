@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -9,7 +8,7 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -25,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.Math.round;
 
@@ -131,12 +131,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final Integer total = ncdfs.size();
         getLog().info("Found total ncdfs to index: " + total);
 
-        // fetch experiments
-        final Collection<Long> publicExperimentIds = Collections2.transform(
-                getAtlasDAO().getAllExperiments()
-                , new Function<uk.ac.ebi.microarray.atlas.model.Experiment, Long>() {
-                    public Long apply(@Nonnull uk.ac.ebi.microarray.atlas.model.Experiment input) {
-                        return input.getExperimentID();
+        // fetch experiments - we want to include public experiments only in the index
+        final Collection<Long> allExperimentIds = transform(
+                getAtlasDAO().getAllExperiments(),
+                new Function<Experiment, Long>() {
+                    public Long apply(@Nonnull Experiment input) {
+                        return input.getId();
                     }
                 });
 
@@ -157,14 +157,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         if (ncdf.isOutOfDate()) {
                             // Fail index build if a given ncdf is out of date
                             return false;
-                        } else if (!publicExperimentIds.contains(ncdf.getExperimentId())) {
+                        } else if (!allExperimentIds.contains(ncdf.getExperimentId())) {
                             processedNcdfsCount.incrementAndGet();
-                            getLog().info("Excluding from index private experiment: " + ncdf.getExperiment());
+                            getLog().info("Excluding from index private experiment: " + ncdf.getExperimentAccession());
                             // TODO: returning true-false-null is a bug prone approach.
                             return null;
                         }
 
-                        ExperimentInfo experiment = new ExperimentInfo(ncdf.getExperiment(), ncdf.getExperimentId());
+                        ExperimentInfo experiment = new ExperimentInfo(ncdf.getExperimentAccession(), ncdf.getExperimentId());
                         Integer expIdx = experimentIndex.addObject(experiment);
 
                         // TODO when we switch on inclusion of sc-scv stats in bit index, the call below

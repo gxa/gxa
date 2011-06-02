@@ -43,8 +43,8 @@ public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCas
         atlasProperties.setStorage(storage);
 
         gaibs = new GeneAtlasIndexBuilderService();
-        gaibs.setAtlasDAO(getAtlasDAO());
-        gaibs.setBioEntityDAO(getBioEntityDAO());
+        gaibs.setAtlasDAO(atlasDAO);
+        gaibs.setBioEntityDAO(bioEntityDAO);
         gaibs.setSolrServer(getAtlasSolrServer());
         gaibs.setAtlasProperties(atlasProperties);
         gaibs.setExecutor(Executors.newSingleThreadExecutor());

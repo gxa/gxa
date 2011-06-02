@@ -74,7 +74,7 @@
     </ul>
     <ul style="padding-left:15px">
         <c:if test="${empty experimentDesign}">
-            <c:forEach var="a" items="${exp.assets}" varStatus="status">
+            <c:forEach var="a" items="${exp.experiment.assets}" varStatus="status">
                 <li>
                     <a href="${pageContext.request.contextPath}/assets/${exp.accession}/${a.fileName}" rel="lightbox"
                        class="lightbox" title="${a.description}" alt="${a.description}">

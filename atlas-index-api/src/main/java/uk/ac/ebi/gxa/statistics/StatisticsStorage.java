@@ -29,8 +29,8 @@ public class StatisticsStorage implements Serializable {
     private ObjectIndex<ExperimentInfo> experimentIndex;
     // Index mapping Attributes to unique Integer values - to reduce space consumption by each Statistics object
     private ObjectIndex<EfvAttribute> attributeIndex;
-    // Map efo term -> Experiment index -> Set<Attribute Index>
-    // Map Attribute index -> Experiment Index -> efo term
+    // Map efo term -> ExperimentInfo index -> Set<Attribute Index>
+    // Map Attribute index -> ExperimentInfo Index -> efo term
     private EfoIndex efoIndex;
 
 
@@ -56,7 +56,7 @@ public class StatisticsStorage implements Serializable {
 
     /**
      * @param index
-     * @return A clone of Experiment object stored in experimentIndex
+     * @return A clone of ExperimentInfo object stored in experimentIndex
      */
     public ExperimentInfo getExperimentForIndex(Integer index) {
         ExperimentInfo experiment = experimentIndex.getObjectForIndex(index);
@@ -143,7 +143,7 @@ public class StatisticsStorage implements Serializable {
 
     /**
      * @param efoTerm
-     * @return Map: Experiment -> Set<EfvAttribute>, corresponding to efoterm
+     * @return Map: ExperimentInfo -> Set<EfvAttribute>, corresponding to efoterm
      */
     public Map<ExperimentInfo, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
         Map<ExperimentInfo, Set<EfvAttribute>> result = new HashMap<ExperimentInfo, Set<EfvAttribute>>();

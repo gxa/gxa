@@ -408,11 +408,11 @@
                         </td>
                         <td class="padded">
                             <select id="updownFilter" style="width:100%;">
-                                <option value="ANY">All expressions</option>
-                                <option value="UP_DOWN">up or down</option>
-                                <option value="UP">up</option>
-                                <option value="DOWN">down</option>
-                                <option value="NON_D_E">non d.e.</option>
+                                <option value="CONDITION_ANY">All expressions</option>
+                                <option value="CONDITION_UP_OR_DOWN">up or down</option>
+                                <option value="CONDITION_UP">up</option>
+                                <option value="CONDITION_DOWN">down</option>
+                                <option value="CONDITION_NONDE">non d.e.</option>
                             </select>
                         </td>
                         <td class="padded" colspan="2">

@@ -10,20 +10,15 @@ import uk.ac.ebi.gxa.dao.BEPropertyDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.mail.search.OrTerm;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
@@ -38,7 +33,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
     private String transcriptField;
     private String geneField;
 
-    private List<BEProperty> properties;
+    private List<BioEntityProperty> properties;
 
     private BEPropertyDAO propertyDAO;
 
@@ -67,7 +62,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
             int geneColumnIndex = -1;
 
             for (int i = 0; i < headers.length; i++) {
-                properties.add(i, new BEProperty(null, headers[i]));
+                properties.add(i, new BioEntityProperty(null, headers[i]));
                 if (headers[i].equals(geneField)) {
                     geneColumnIndex = i;
                 }
@@ -95,7 +90,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
                     for (int i = 1; i < line.length; i++) {
                         String[] values = StringUtils.split(line[i], "|");
 
-                        BEProperty property = properties.get(i);
+                        BioEntityProperty property = properties.get(i);
                         if (values != null) {
                             for (String value : values) {
                                 addPropertyValue(beIdentifier, geneIdentifier, property, value);
@@ -150,8 +145,8 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
         geneField = readValue("gene", url, csvReader);
 
         Software software = new Software(null, sourceName, version);
-        FileAnnotationSource annSrc = new FileAnnotationSource(software, targetOrganism, url.getFile());
-        this.annotationSource = annSrcDAO.save(annSrc);
+        this.annotationSource = new FileAnnotationSource(software, targetOrganism, url.getFile());
+        annSrcDAO.save(annotationSource);
     }
 
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
@@ -163,11 +158,11 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
         return line[1];
     }
 
-     protected void saveProperies(final List<BEProperty> properties) {
+     protected void saveProperies(final List<BioEntityProperty> properties) {
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                for (BEProperty property : properties) {
+                for (BioEntityProperty property : properties) {
                     propertyDAO.save(property);
                 }
             }

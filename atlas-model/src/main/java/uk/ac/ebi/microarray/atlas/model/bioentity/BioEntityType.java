@@ -1,5 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
@@ -20,25 +21,29 @@ public class BioEntityType {
     public static final String DE_ATL = "designelement_atl";
 
     @Id
-    private Long id;
+    private Long bioentitytypeid;
     private String name;
-    private boolean useForIndex;
+    @Column(name = "ID_FOR_INDEX")
+    private int useForIndex;
 
-    public BioEntityType(Long id, String name, boolean useForIndex) {
-        this.id = id;
+    BioEntityType() {
+    }
+
+    public BioEntityType(Long id, String name, int useForIndex) {
+        this.bioentitytypeid = id;
         this.name = name;
         this.useForIndex = useForIndex;
     }
 
     public Long getId() {
-        return id;
+        return bioentitytypeid;
     }
 
     public String getName() {
         return name;
     }
 
-    public boolean isUseForIndex() {
+    public int isUseForIndex() {
         return useForIndex;
     }
 
@@ -50,17 +55,15 @@ public class BioEntityType {
         BioEntityType that = (BioEntityType) o;
 
         if (useForIndex != that.useForIndex) return false;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (!name.equals(that.name)) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + name.hashCode();
-        result = 31 * result + (useForIndex ? 1 : 0);
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + useForIndex;
         return result;
     }
 }

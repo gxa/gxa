@@ -21,7 +21,7 @@
   --%>
 <%@include file="../includes/global-inc.jsp" %>
 
-<jsp:useBean id="exps" type="java.util.List<ae3.model.AtlasExperiment>" scope="request"/>
+<jsp:useBean id="exps" type="java.util.List<uk.ac.ebi.gxa.web.controller.GenePageExperiment>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 
 <script type="text/javascript">
@@ -90,7 +90,7 @@
                                            href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}"
                                            style="border:none;text-decoration:none;outline:none;">
                                             <div id="${exp.accession}_${atlasGene.geneId}_plot" class="plot"
-                                                 name="${exp.highestRankEF}"
+                                                 name="${exp.highestRankAttribute.ef}"
                                                  style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;">
                                             </div>
                                         </a>

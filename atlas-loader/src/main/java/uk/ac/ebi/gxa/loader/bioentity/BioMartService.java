@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
@@ -54,9 +55,8 @@ public class BioMartService {
 
     public List<BioMartAnnotationSourceView> getBioMartAnnSrcs() {
         List<BioMartAnnotationSourceView> viewSources = new ArrayList<BioMartAnnotationSourceView>();
-        Collection<CurrentAnnotationSource<BioMartAnnotationSource>> currentAnnSrcs = annSrcDAO.getCurrentAnnotationSourcesOfType(BioMartAnnotationSource.class);
-        for (CurrentAnnotationSource<BioMartAnnotationSource> currentAnnSrc : currentAnnSrcs) {
-            BioMartAnnotationSource annSrc = currentAnnSrc.getSource();
+        Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getCurrentAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
             try {
                 String newVersion = getDataSetVersion(annSrc.getUrl(), annSrc.getDatasetName());
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
@@ -72,7 +72,7 @@ public class BioMartService {
                     //create and Save new AnnotationSource
                     if (newAnnSrc == null) {
                         newAnnSrc = annSrc.createCopy(newSoftware);
-                        newAnnSrc = annSrcDAO.save(newAnnSrc);
+                        annSrcDAO.save(newAnnSrc);
                     }
                     ValidationReport validationReport = validateAnnotationSource(newAnnSrc);
                     BioMartAnnotationSourceView annSrcView = new BioMartAnnotationSourceView(newAnnSrc, annSrc.getDisplayName());
@@ -134,7 +134,7 @@ public class BioMartService {
             }
 
             for (BioMartProperty attribute : attributes) {
-                if (!martAttributes.contains(attribute.getBiomartPropertyName())) {
+                if (!martAttributes.contains(attribute.getName())) {
                     missingAttrs.add(attribute);
                 }
             }

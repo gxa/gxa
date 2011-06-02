@@ -2,7 +2,6 @@ package ae3.service;
 
 import ae3.model.AtlasGene;
 import com.google.common.collect.Multiset;
-import it.uniroma3.mat.extendedset.ConciseSet;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +14,7 @@ import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class AtlasStatisticsQueryServiceTest {
 
@@ -37,7 +36,7 @@ public class AtlasStatisticsQueryServiceTest {
             atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
             atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
         } catch (Exception e) {
-            throw logUnexpected("Cannot init tests", e);
+            throw createUnexpected("Cannot init tests", e);
         }
     }
 

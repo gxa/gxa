@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * REST renderer utility class
@@ -241,9 +241,9 @@ class RestResultRendererUtil {
                                                 }
                                             }
                                         } catch (IllegalAccessException e) {
-                                            throw logUnexpected("Access problems", e);
+                                            throw createUnexpected("Access problems", e);
                                         } catch (InvocationTargetException e) {
-                                            throw logUnexpected(e.getMessage(), e.getTargetException());
+                                            throw createUnexpected(e.getMessage(), e.getTargetException());
                                         }
 
                                     }
@@ -261,9 +261,9 @@ class RestResultRendererUtil {
                                             return;
                                         }
                                     } catch (IllegalAccessException e) {
-                                        throw logUnexpected("Access problems", e);
+                                        throw createUnexpected("Access problems", e);
                                     } catch (InvocationTargetException e) {
-                                        throw logUnexpected(e.getMessage(), e.getTargetException());
+                                        throw createUnexpected(e.getMessage(), e.getTargetException());
                                     }
                                 }
                             }

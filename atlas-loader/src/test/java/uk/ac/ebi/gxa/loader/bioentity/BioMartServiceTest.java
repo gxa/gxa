@@ -6,7 +6,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -53,7 +52,7 @@ public class BioMartServiceTest extends TestCase {
                 properties);
 
         assertEquals(1, missing.size());
-        assertEquals("ddd", missing.get(0).getBiomartPropertyName());
+        assertEquals("ddd", missing.get(0).getName());
     }
 
     @Test

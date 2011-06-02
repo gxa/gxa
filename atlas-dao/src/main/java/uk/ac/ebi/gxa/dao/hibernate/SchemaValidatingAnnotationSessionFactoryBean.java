@@ -14,8 +14,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
-* as from http://stackoverflow.com/questions/2327423/how-to-validate-database-schema-programmatically-in-hibernate-with-annotations
-*/
+ * as from http://stackoverflow.com/questions/2327423/how-to-validate-database-schema-programmatically-in-hibernate-with-annotations
+ */
 public class SchemaValidatingAnnotationSessionFactoryBean extends AnnotationSessionFactoryBean {
     public void validateDatabaseSchema() throws DataAccessException {
         logger.info("Validating database schema for Hibernate SessionFactory");
@@ -35,6 +35,3 @@ public class SchemaValidatingAnnotationSessionFactoryBean extends AnnotationSess
         });
     }
 }
-
-
-

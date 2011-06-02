@@ -27,4 +27,3 @@ abstract class AbstractDAO<T> {
         template.saveOrUpdate(object);
     }
 }
-

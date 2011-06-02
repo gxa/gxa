@@ -22,13 +22,11 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.dbunit.dataset.IDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -37,43 +35,12 @@ import java.util.List;
  * @author Tony Burdett
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
-
-    private static final String ATLAS_GENE_DATA_RESOURCE = "atlas-db.xml";
-
-    protected IDataSet getDataSet() throws Exception {
-         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_GENE_DATA_RESOURCE);
-
-         return new FlatXmlDataSetBuilder().build(in);
-     }
-
-    protected void setUp() throws Exception {
-
-        // do dbunit setup
-        super.setUp();
-
-        // do our setup
-
-        atlasDataSource = new SingleConnectionDataSource(
-                getConnection().getConnection(), false);
-        atlasDAO = new AtlasDAO();
-        JdbcTemplate template = new JdbcTemplate(atlasDataSource);
-        atlasDAO.setJdbcTemplate(template);
-        bioEntityDAO = new BioEntityDAO();
-        bioEntityDAO.setJdbcTemplate(template);
-
-        ArrayDesignDAO arrayDesignDAO = new ArrayDesignDAO();
-        arrayDesignDAO.setJdbcTemplate(template);
-
-        atlasDAO.setBioEntityDAO(bioEntityDAO);
-        atlasDAO.setArrayDesignDAO(arrayDesignDAO);
-    }
-
     public void testGetAllExperiments() throws Exception {
         // get row count of experiments in the dataset
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
 
         // get number of experiments from the DAO
-        int actual = getAtlasDAO().getAllExperiments().size();
+        int actual = atlasDAO.getAllExperiments().size();
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of experiments", expected, actual);
@@ -91,12 +58,12 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 .getValue(0, "experimentid").toString());
 
         // fetch the experiment using the DAO
-        Experiment exp = getAtlasDAO().getExperimentByAccession(accession);
+        Experiment exp = atlasDAO.getExperimentByAccession(accession);
 
         // check the returned data
         assertNotNull(exp);
         assertEquals("Accessions don't match", exp.getAccession(), accession);
-        assertEquals("IDs don't match", exp.getExperimentID(), id);
+        assertEquals("IDs don't match", exp.getId(), Long.valueOf(id));
 
         System.out.println(
                 "Fetched expected experiment id: " + id + " by accession: " +
@@ -109,13 +76,12 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                 getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
                         .toString();
 
-        List<Assay> assays =
-                getAtlasDAO().getAssaysByExperimentAccession(accession);
+        List<Assay> assays = atlasDAO.getExperimentByAccession(accession).getAssays();
 
         for (Assay assay : assays) {
             // check the returned data
             assertNotNull(assay);
-            assertEquals("Accessions don't match", assay.getExperimentAccession(),
+            assertEquals("Accessions don't match", assay.getExperiment().getAccession(),
                     accession);
 
             System.out.println(
@@ -125,57 +91,10 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
-    public void testGetSamplesByAssayAccession() throws Exception {
-        String accession =
-                getDataSet().getTable("A2_ASSAY").getValue(0, "accession")
-                        .toString();
-
-        //TODO:
-        List<Sample> samples =
-                getAtlasDAO().getSamplesByAssayAccession("experimentAccession", accession);
-
-        for (Sample sample : samples) {
-            // check the returned data
-            assertNotNull(sample);
-            assertNotNull(sample.getAssayAccessions());
-            assertNotSame("Sample has zero assay accessions",
-                    sample.getAssayAccessions().size(), 0);
-            for (String acc : sample.getAssayAccessions()) {
-                assertEquals("Accessions don't match", acc, accession);
-            }
-
-            System.out.println(
-                    "Fetched expected sample id: " + sample.getSampleID() +
-                            " by accession: " +
-                            accession + " successfully");
-        }
-    }
-
-    public void testOneSampleToManyAssays() {
-        // use the accession of the assay that tests one to many
-        String accession = "one:ToMany:TestAssay1";
-
-        //TODO:
-        List<Sample> samples = getAtlasDAO().getSamplesByAssayAccession("experimentAccession", accession);
-
-        for (Sample sample : samples) {
-            if (sample.getAccession().equals("one:ToMany:TestSample1")) {
-                // check the returned data
-                assertNotNull(sample);
-                assertNotNull(sample.getAssayAccessions());
-                assertNotSame("Sample has zero assay accessions",
-                        sample.getAssayAccessions().size(), 0);
-                assertTrue("Not enough assays - sample " + sample.getAccession() +
-                        " should be related to more than 1 assay",
-                        sample.getAssayAccessions().size() > 1);
-            }
-        }
-    }
-
     public void testGetAllArrayDesigns() throws Exception {
         int expected = getDataSet().getTable("A2_ARRAYDESIGN").getRowCount();
 
-        int actual = getAtlasDAO().getAllArrayDesigns().size();
+        int actual = arrayDesignDAO.getAllArrayDesigns().size();
 
         assertEquals("Wrong number of array designs", expected, actual);
 
@@ -194,7 +113,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                         .toString());
 
         ArrayDesign arrayDesign =
-                getAtlasDAO().getArrayDesignByAccession(accession);
+                arrayDesignDAO.getArrayDesignByAccession(accession);
 
         // check the returned data
         assertNotNull(arrayDesign);
@@ -212,7 +131,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         String ontologyName = "EFO";
 
         List<OntologyMapping> ontologyMappings =
-                getAtlasDAO().getOntologyMappingsByOntology(ontologyName);
+                atlasDAO.getOntologyMappingsByOntology(ontologyName);
 
         assertNotSame("Got zero ontology mappings", ontologyMappings.size(), 0);
 

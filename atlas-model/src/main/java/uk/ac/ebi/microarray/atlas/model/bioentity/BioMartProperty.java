@@ -17,27 +17,30 @@ public class BioMartProperty {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
     @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_BIOMARTPROPERTY_SEQ")
     private Long biomartpropertyId;
-    private String biomartPropertyName;
+    private String name;
 
     @ManyToOne
-    private BEProperty property;
+    private BioEntityProperty bioEntityProperty;
 
-    public BioMartProperty(Long id, String biomartPropertyName, BEProperty property) {
+    BioMartProperty() {
+    }
+
+    public BioMartProperty(Long id, String biomartPropertyName, BioEntityProperty bioEntityProperty) {
         this.biomartpropertyId = id;
-        this.biomartPropertyName = biomartPropertyName;
-        this.property = property;
+        this.name = biomartPropertyName;
+        this.bioEntityProperty = bioEntityProperty;
     }
 
     public Long getId() {
         return biomartpropertyId;
     }
 
-    public String getBiomartPropertyName() {
-        return biomartPropertyName;
+    public String getName() {
+        return name;
     }
 
-    public BEProperty getProperty() {
-        return property;
+    public BioEntityProperty getBioEntityProperty() {
+        return bioEntityProperty;
     }
 
     @Override
@@ -47,17 +50,17 @@ public class BioMartProperty {
 
         BioMartProperty that = (BioMartProperty) o;
 
-        if (biomartPropertyName != null ? !biomartPropertyName.equals(that.biomartPropertyName) : that.biomartPropertyName != null)
+        if (name != null ? !name.equals(that.name) : that.name != null)
             return false;
-        if (property != null ? !property.equals(that.property) : that.property != null) return false;
+        if (bioEntityProperty != null ? !bioEntityProperty.equals(that.bioEntityProperty) : that.bioEntityProperty != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = biomartPropertyName != null ? biomartPropertyName.hashCode() : 0;
-        result = 31 * result + (property != null ? property.hashCode() : 0);
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (bioEntityProperty != null ? bioEntityProperty.hashCode() : 0);
         return result;
     }
 }

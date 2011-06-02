@@ -1,10 +1,16 @@
 package uk.ac.ebi.microarray.atlas.model;
 
-/**
- * User: nsklyar
- * Date: 04/05/2011
- */
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import javax.persistence.*;
+
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 public class Organism {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organismSeq")
+    @SequenceGenerator(name = "organismSeq", sequenceName = "A2_ORGANISM_SEQ")
     private Long organismid;
     private String name;
 
@@ -16,21 +22,11 @@ public class Organism {
         this.name = name;
     }
 
-    public Organism(String name) {
-        this.name = name;
-    }
-
     public Long getId() {
         return organismid;
-    }
-
-    public void setId(long organismid) {
-        this.organismid = organismid;
     }
 
     public String getName() {
         return name;
     }
-
-
 }

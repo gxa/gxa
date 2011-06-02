@@ -32,11 +32,11 @@
     <url>http://www.ebi.ac.uk/gxa/</url>
 
     <properties>
-            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-            <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
-            <spring.version>3.0.5.RELEASE</spring.version>
-        </properties>
-    
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
+        <spring.version>3.0.5.RELEASE</spring.version>
+    </properties>
+
     <scm>
         <url>https://github.com/gxa/gxa</url>
         <connection>scm:git:git://github.com/gxa/gxa.git</connection>
@@ -99,6 +99,14 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <locales>en</locales>
+                </configuration>
+            </plugin>
         </plugins>
         <extensions>
             <extension>
@@ -120,6 +128,24 @@
                     <findbugsXmlOutput>true</findbugsXmlOutput>
                     <failOnError>false</failOnError>
                     <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <aggregate>false</aggregate>
+                    <showSuccess>true</showSuccess>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                 </configuration>
             </plugin>
         </plugins>
@@ -318,7 +344,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>3.0.5.RELEASE</version>
+            <version>${spring.version}</version>
         </dependency>
     </dependencies>
 
@@ -339,13 +365,27 @@
             <url>http://download.java.net/maven/2/</url>
         </repository>
         <repository>
+            <id>apache.releases</id>
+            <url>https://repository.apache.org/content/repositories/releases/</url>
+            <releases><enabled>true</enabled></releases>
+        </repository>
+        <repository>
+            <id>apache.snapshots</id>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>jboss-public</id>
+            <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+        </repository>
+        <repository>
             <id>MyDAS</id>
             <url>http://mydas.googlecode.com/svn/repository/</url>
         </repository>
-        <repository>
-            <id>ulisse</id>
-            <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
-        </repository>
+        <!--<repository>-->
+            <!--<id>ulisse</id>-->
+            <!--<url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>-->
+        <!--</repository>-->
         <repository>
             <!--
              A repository for opensource/public JARs not found in any public repositories.

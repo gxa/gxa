@@ -28,47 +28,11 @@ package uk.ac.ebi.gxa.loader;
  * @author pashky
  */
 public interface AtlasLoaderCommandVisitor {
-    /**
-     * Process command
-     *
-     * @param cmd command
-     * @throws AtlasLoaderException if error
-     */
     void process(LoadExperimentCommand cmd) throws AtlasLoaderException;
 
-    /**
-     * Process command
-     *
-     * @param cmd command
-     * @throws AtlasLoaderException if error
-     * @deprecated
-     */
-    void process(LoadArrayDesignCommand cmd) throws AtlasLoaderException;
-
-    /**
-     * Process command
-     *
-     * @param cmd command
-     * @throws AtlasLoaderException if error
-     */
     void process(UnloadExperimentCommand cmd) throws AtlasLoaderException;
 
-    /**
-     * Process command
-     *
-     * @param cmd command
-     * @throws AtlasLoaderException if error
-     */
     void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException;
-
-    /**
-     * Process command
-     *
-     * @param cmd command
-     * @throws AtlasLoaderException if error
-     * @deprecated
-     */
-    void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException;
 
     void process(LoadBioentityCommand cmd) throws AtlasLoaderException;
 

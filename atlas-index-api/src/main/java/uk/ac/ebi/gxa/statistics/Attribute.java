@@ -21,7 +21,7 @@ public abstract class Attribute {
 
     /**
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     * @param allExpsToAttrs    Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
     public abstract void getEfvExperimentMappings(
             final StatisticsStorage statisticsStorage,

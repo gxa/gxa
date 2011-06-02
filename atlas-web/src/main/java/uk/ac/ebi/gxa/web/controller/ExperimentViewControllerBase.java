@@ -6,8 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,24 +32,9 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
         return new ExperimentPage(
                 exp,
-                isRNASeq(exp),
-                getSpecies(exp)
+                exp.getExperiment().isRNASeq(),
+                exp.getExperiment().getSpecies()
         );
-    }
-
-    protected List<String> getSpecies(AtlasExperiment exp) {
-        return atlasDAO.getSpeciesForExperiment(exp.getId());
-    }
-
-    protected boolean isRNASeq(AtlasExperiment exp) {
-        // TODO: see ticket #2706
-        boolean isRNASeq = Boolean.FALSE;
-        for (String adAcc : exp.getArrayDesigns()) {
-            ArrayDesign design = atlasDAO.getArrayDesignShallowByAccession(adAcc);
-            String designType = design == null ? "" : design.getType();
-            isRNASeq = isRNASeq || (designType != null && designType.indexOf("virtual") >= 0);
-        }
-        return isRNASeq;
     }
 
     protected AtlasExperiment getExperimentByAccession(String accession) throws ResourceNotFoundException {
@@ -73,10 +57,6 @@ class ExperimentViewControllerBase extends AtlasViewController {
             this.species.addAll(species);
         }
 
-        public AtlasExperiment getExp() {
-            return exp;
-        }
-
         public void enhance(Model model) {
             model.addAttribute("exp", exp)
                     .addAttribute("expSpecies", species)
@@ -85,6 +65,10 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
         public boolean isExperimentInCuration() {
             return exp.getExperimentFactors().isEmpty();
+        }
+
+        Experiment getExperiment() {
+            return exp.getExperiment();
         }
     }
 }

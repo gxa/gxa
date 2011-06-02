@@ -17,6 +17,9 @@ public class FileAnnotationSource extends AnnotationSource{
     @Column(name = "url")
     private String fileName;
 
+    FileAnnotationSource() {
+    }
+
     public FileAnnotationSource(Software software, Organism organism, String fileName) {
         super(software, organism);
         this.fileName = fileName;
@@ -33,6 +36,6 @@ public class FileAnnotationSource extends AnnotationSource{
 
     @Override
     protected CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType) {
-        return new CurrentAnnotationSource<FileAnnotationSource>(this, bioEntityType);
+        return new FileCurrentAnnotationSource(this, bioEntityType);
     }
 }

@@ -22,18 +22,19 @@
 
 package uk.ac.ebi.gxa.requesthandlers.query;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -41,7 +42,6 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
@@ -50,7 +50,7 @@ import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
     private GeneSolrDAO geneSolrDAO;
-    private ExperimentSolrDAO experimentSolrDAO;
+    private ExperimentDAO experimentDAO;
     private Efo efo;
     private AtlasProperties atlasProperties;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -60,8 +60,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         this.geneSolrDAO = geneSolrDAO;
     }
 
-    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void setEfo(Efo efo) {
@@ -81,9 +81,6 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     }
 
     public Object process(HttpServletRequest request) {
-
-        final Map<Long, AtlasExperiment> expsCache = new HashMap<Long, AtlasExperiment>();
-
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
         String bioEntityIdKey = request.getParameter("gene");
@@ -151,7 +148,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } else {
                     // We know that gene is non-differentially expressed in exp for attr, and yet we cannot find exp
                     // in attr's efv-experiment mappings - report an error
-                    throw logUnexpected(
+                    throw LogUtil.createUnexpected(
                             gene.getGeneName() + " is non-differentially expressed in " + exp + " for " + attr +
                                     " but this experiment cannot be found in efv-experiment mappings for this Attribute");
                 }
@@ -163,8 +160,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
                 for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                    ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
-                            exp.getAccession(), (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                    ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(experimentDAO.getExperimentByAccession(exp.getAccession()),
+                            (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                     if (ea != null) {
                         exp.setHighestRankAttribute(attrCandidate);
                         break;
@@ -175,7 +172,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
                     allExperiments.add(exp); // Add nonDE expression statistic to allExperiments
                 } else {
-                    throw logUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
+                    throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
                             " and any attribute in: " + allExpsToAttrs.get(key));
                 }
@@ -214,7 +211,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     new ArrayList<Map.Entry<Long, Map<String, List<ExperimentInfo>>>>(exmap.entrySet());
             List<Map> jsExps = new ArrayList<Map>();
             for (Map.Entry<Long, Map<String, List<ExperimentInfo>>> e : exps) {
-                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
+                Experiment aexp = experimentDAO.getById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());

@@ -1,7 +1,9 @@
 package ae3.service;
 
-import com.google.common.collect.*;
-import it.uniroma3.mat.extendedset.ConciseSet;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -16,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * This class provides bioentity expression statistics query service:
@@ -70,7 +72,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         } catch (IOException ioe) {
             String errMsg = "Failed to create statisticsStorage from " + new File(atlasIndexDir.getAbsolutePath(), indexFileName);
             log.error(errMsg, ioe);
-            throw logUnexpected(errMsg, ioe);
+            throw createUnexpected(errMsg, ioe);
         }
     }
 
@@ -496,7 +498,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param attribute
-     * @param allExpsToAttrs Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     * @param allExpsToAttrs Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
     public void getEfvExperimentMappings(
             final Attribute attribute,

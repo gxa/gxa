@@ -1,8 +1,12 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import org.hibernate.annotations.*;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +19,7 @@ import java.util.Set;
  * Date: 09/05/2011
  */
 @Entity
+@Table(name="A2_ANNOTATIONSRC")
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(
         name = "annsrctype",
@@ -28,13 +33,24 @@ public abstract class AnnotationSource{
     @ManyToOne
     protected Organism organism;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = {CascadeType.ALL})
+    @Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
     protected Software software;
+
     @ManyToMany
-    @JoinTable(name = "A2_ANNSRCBETYPE",
-            joinColumns = @JoinColumn(name = "annoationsrcid", referencedColumnName = "annoationsrcid"),
+    @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
+            joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
+
+    protected AnnotationSource() {
+    }
+
+    protected AnnotationSource(Long annotationSrcId, Software software, Organism organism) {
+        this.annotationSrcId = annotationSrcId;
+        this.organism = organism;
+        this.software = software;
+    }
 
     public AnnotationSource(Software software, Organism organism) {
         this.software = software;

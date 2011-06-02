@@ -11,10 +11,9 @@ import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
 
 import java.util.ArrayList;
@@ -87,16 +86,13 @@ public abstract class AtlasBioentityAnnotationLoader{
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Updating current annotation sources for " + annotationSource.getDisplayName());
-                Collection<CurrentAnnotationSource<? extends AnnotationSource>> currentAnnotationSources = annotationSource.generateCurrentAnnSrcs();
-                for (CurrentAnnotationSource currentAnnotationSource : currentAnnotationSources) {
-                    annSrcDAO.saveCurrentAnnotationSource(currentAnnotationSource);
-                }
+                annSrcDAO.saveAsCurrentAnnotationSource(annotationSource);
             }
         });
 
     }
 
-    protected void addPropertyValue(String beIdentifier, String geneName, BEProperty property, String value) {
+    protected void addPropertyValue(String beIdentifier, String geneName, BioEntityProperty property, String value) {
         if (StringUtils.isNotBlank(value) && value.length() < 1000 && !"NA".equals(value)) {
             List<String> tnsProperty = new ArrayList<String>(3);
             tnsProperty.add(beIdentifier);

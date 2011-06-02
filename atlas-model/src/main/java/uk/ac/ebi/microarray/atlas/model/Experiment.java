@@ -22,37 +22,81 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Predicate;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
+import uk.ac.ebi.gxa.Temporary;
 
-import static java.util.Collections.unmodifiableList;
+import javax.annotation.Nullable;
+import javax.persistence.*;
+import java.util.*;
 
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newTreeSet;
+import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
+
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Experiment {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "experimentSeq")
+    @SequenceGenerator(name = "experimentSeq", sequenceName = "A2_EXPERIMENT_SEQ")
+    private Long experimentid;
     private String accession;
+
     private String description;
+
+    @Column(name = "ABSTRACT")
+    private String articleAbstract;
     private String performer;
     private String lab;
+
     private Date loadDate;
     private Date releaseDate;
+    private String pmid;
 
-    private String pubmedID;
-
-    private long experimentID;
+    @OneToMany(targetEntity = Asset.class, mappedBy = "experiment")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<Asset> assets = new ArrayList<Asset>();
-    private String articleAbstract;
 
+    @OneToMany(targetEntity = Assay.class, mappedBy = "experiment")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    private List<Assay> assays = new ArrayList<Assay>();
+
+    @OneToMany(targetEntity = Sample.class, mappedBy = "experiment")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    private List<Sample> samples = new ArrayList<Sample>();
+
+    @Column(name = "PRIVATE")
     private boolean isprivate;
+
     private boolean curated;
 
+    Experiment() {
+    }
+
+    @Deprecated
+    @Temporary
+    public Experiment(Long id, String accession) {
+        this.accession = accession;
+        this.experimentid = id;
+    }
+
+    public Experiment(String accession) {
+        if (accession == null)
+            throw new IllegalArgumentException("Cannot add experiment with null accession!");
+
+        this.accession = accession;
+    }
 
     public String getAccession() {
         return accession;
     }
 
-    public void setAccession(String accession) {
-        this.accession = accession;
+    public Long getId() {
+        return experimentid;
     }
 
     public String getDescription() {
@@ -61,6 +105,14 @@ public class Experiment {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getAbstract() {
+        return articleAbstract;
+    }
+
+    public void setAbstract(String articleAbstract) {
+        this.articleAbstract = articleAbstract;
     }
 
     public String getPerformer() {
@@ -79,52 +131,67 @@ public class Experiment {
         this.lab = lab;
     }
 
-    public long getExperimentID() {
-        return experimentID;
-    }
-
-    public void setExperimentID(long experimentID) {
-        this.experimentID = experimentID;
-    }
-
     public Date getLoadDate() {
-        return loadDate;
+        return copyOf(loadDate);
     }
 
     public void setLoadDate(Date loadDate) {
-        this.loadDate = loadDate;
+        this.loadDate = copyOf(loadDate);
     }
 
     public Date getReleaseDate() {
-        return releaseDate;
+        return copyOf(releaseDate);
     }
 
     public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
+        this.releaseDate = copyOf(releaseDate);
     }
 
-    public String getPubmedID() {
-        return pubmedID;
+    public String getPubmedId() {
+        return pmid;
     }
 
-    public void setPubmedID(String pubmedID) {
-        this.pubmedID = pubmedID;
-    }
-
-    public void addAssets(List<Asset> assets) {
-        this.assets.addAll(assets);
+    public void setPubmedId(String pubmedId) {
+        this.pmid = pubmedId;
     }
 
     public List<Asset> getAssets() {
-        return unmodifiableList(assets);
+        return Collections.unmodifiableList(assets);
     }
 
-    public String getArticleAbstract() {
-        return articleAbstract;
+    public void setAssets(List<Asset> assets) {
+        this.assets = assets;
     }
 
-    public void setArticleAbstract(String articleAbstract) {
-        this.articleAbstract = articleAbstract;
+    public List<Assay> getAssays() {
+        return Collections.unmodifiableList(assays);
+    }
+
+    public void setAssays(List<Assay> assays) {
+        this.assays = assays;
+    }
+
+    public List<Sample> getSamples() {
+        return samples;
+    }
+
+    public List<String> getSpecies() {
+        Set<String> species = new HashSet<String>();
+        for (Sample sample : samples) {
+            species.add(sample.getOrganism().getName());
+        }
+        return new ArrayList<String>(species);
+    }
+
+    @Temporary
+    public ArrayDesign getArrayDesign(String accession) {
+        for (Assay assay : assays) {
+            ArrayDesign arrayDesign = assay.getArrayDesign();
+            if (arrayDesign.getAccession().equals(accession)) {
+                return arrayDesign;
+            }
+        }
+        return null;
     }
 
     public boolean isPrivate() {
@@ -146,11 +213,65 @@ public class Experiment {
     @Override
     public String toString() {
         return "Experiment{" +
-                "accession='" + accession + '\'' +
-                ", description='" + description + '\'' +
-                ", performer='" + performer + '\'' +
-                ", lab='" + lab + '\'' +
+                "accession='" + getAccession() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", performer='" + getPerformer() + '\'' +
+                ", lab='" + getLab() + '\'' +
                 '}';
+    }
+
+    public Assay getAssay(String accession) {
+        for (Assay assay : assays) {
+            if (assay.getAccession().equals(accession))
+                return assay;
+        }
+        return null;
+    }
+
+    public boolean isRNASeq() {
+        // TODO: see ticket #2706
+        for (Assay assay : assays) {
+            ArrayDesign design = assay.getArrayDesign();
+            String designType = design == null ? "" : design.getType();
+            if (designType != null && designType.contains("virtual")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Set<String> getExperimentFactors() {
+        Set<String> result = newTreeSet();
+        for (Assay assay : assays) {
+            result.addAll(assay.getPropertyNames());
+        }
+        return result;
+    }
+
+    public void addAssay(Assay assay) {
+        final Assay oldAssay = getAssay(assay.getAccession());
+        if (oldAssay != null && oldAssay != assay) {
+            throw new IllegalArgumentException("Attempting to store a new assay with a non-unique accession");
+        }
+        assays.add(assay);
+        assay.setExperiment(this);
+    }
+
+    public Sample getSample(String accession) {
+        for (Sample sample : samples) {
+            if (sample.getAccession().equals(accession))
+                return sample;
+        }
+        return null;
+    }
+
+    public void addSample(Sample sample) {
+        final Sample oldSample = getSample(sample.getAccession());
+        if (oldSample != null && oldSample != sample) {
+            throw new IllegalArgumentException("Attempting to store a new sample with a non-unique accession");
+        }
+        sample.setExperiment(this);
+        samples.add(sample);
     }
 
     @Override
@@ -160,37 +281,32 @@ public class Experiment {
 
         Experiment that = (Experiment) o;
 
-        if (curated != that.curated) return false;
-        if (experimentID != that.experimentID) return false;
-        if (isprivate != that.isprivate) return false;
-        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
-        if (articleAbstract != null ? !articleAbstract.equals(that.articleAbstract) : that.articleAbstract != null)
-            return false;
-        if (assets != null ? !assets.equals(that.assets) : that.assets != null) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (lab != null ? !lab.equals(that.lab) : that.lab != null) return false;
-        if (loadDate != null ? !loadDate.equals(that.loadDate) : that.loadDate != null) return false;
-        if (performer != null ? !performer.equals(that.performer) : that.performer != null) return false;
-        if (pubmedID != null ? !pubmedID.equals(that.pubmedID) : that.pubmedID != null) return false;
-        if (releaseDate != null ? !releaseDate.equals(that.releaseDate) : that.releaseDate != null) return false;
+        return !(accession != null ? !accession.equals(that.accession) : that.accession != null) &&
+                !(experimentid != null ? !experimentid.equals(that.experimentid) : that.experimentid != null);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = accession != null ? accession.hashCode() : 0;
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (performer != null ? performer.hashCode() : 0);
-        result = 31 * result + (lab != null ? lab.hashCode() : 0);
-        result = 31 * result + (loadDate != null ? loadDate.hashCode() : 0);
-        result = 31 * result + (releaseDate != null ? releaseDate.hashCode() : 0);
-        result = 31 * result + (pubmedID != null ? pubmedID.hashCode() : 0);
-        result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
-        result = 31 * result + (assets != null ? assets.hashCode() : 0);
-        result = 31 * result + (articleAbstract != null ? articleAbstract.hashCode() : 0);
-        result = 31 * result + (isprivate ? 1 : 0);
-        result = 31 * result + (curated ? 1 : 0);
+        int result = experimentid != null ? experimentid.hashCode() : 0;
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
         return result;
+    }
+
+    public Collection<ArrayDesign> getArrayDesigns() {
+        Set<ArrayDesign> result = newHashSet();
+        for (Assay assay : assays) {
+            result.add(assay.getArrayDesign());
+        }
+        return result;
+    }
+
+    public Collection<Assay> getAssaysForDesign(final ArrayDesign arrayDesign) {
+        return filter(getAssays(), new Predicate<Assay>() {
+            @Override
+            public boolean apply(@Nullable Assay input) {
+                return input != null && input.getArrayDesign().equals(arrayDesign);
+            }
+        });
     }
 }

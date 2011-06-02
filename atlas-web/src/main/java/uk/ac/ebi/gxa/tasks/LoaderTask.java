@@ -61,10 +61,6 @@ public class LoaderTask extends AbstractWorkingTask {
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), getTaskSpec().getUserData());
 
-        else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
-            return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
-                    taskMan.getAtlasProperties().getLoaderGeneIdPriority());
-
         else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
             return new LoadBioentityCommand(getTaskSpec().getAccession());
 
@@ -140,13 +136,13 @@ public class LoaderTask extends AbstractWorkingTask {
                     } else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
 
-                        for (Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                        for (Experiment experiment : taskMan.getAtlasDAO().getExperimentsByArrayDesignAccession(accession)) {
                             taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, experiment.getAccession());
                             taskMan.updateTaskStage(LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()), TaskStatus.INCOMPLETE);
                         }
 
                         if (!stop && isRunningAutoDependencies()) {
-                            for (Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                            for (Experiment experiment : taskMan.getAtlasDAO().getExperimentsByArrayDesignAccession(accession)) {
                                 taskMan.scheduleTask(LoaderTask.this, LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()),
                                         TaskRunMode.CONTINUE, getUser(), true,
                                         "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");

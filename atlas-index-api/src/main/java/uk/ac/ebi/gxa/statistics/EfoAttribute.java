@@ -50,7 +50,7 @@ public class EfoAttribute extends Attribute {
 
     /**
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
+     * @param allExpsToAttrs    Map: ExperimentInfo -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
      *                          This map groups ef-efv conditions for a given efo term per experiment.
      *                          This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
      */

@@ -4,6 +4,7 @@ import com.google.common.io.Resources;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 
@@ -28,19 +29,9 @@ public class RCommand {
     public RCommandResult execute(final RCommandStatement call) throws ComputeException {
         return new RCommandResult(computeService.computeTask(new ComputeTask<RDataFrame>() {
             public RDataFrame compute(RServices rs) throws RemoteException {
-                rs.sourceFromBuffer(
-                        getRCodeFromResource(rCodeResourcePath)
-                );
+                rs.sourceFromBuffer(RUtil.getRCodeFromResource(rCodeResourcePath));
                 return (RDataFrame) rs.getObject(call.toString());
             }
         }));
-    }
-
-    private String getRCodeFromResource(String resourcePath) throws ComputeException {
-        try {
-            return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-        }
     }
 }

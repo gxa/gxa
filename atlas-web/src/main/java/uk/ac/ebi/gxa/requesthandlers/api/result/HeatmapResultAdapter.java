@@ -28,7 +28,7 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterators;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.statistics.*;
@@ -52,15 +52,15 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  */
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
-    private final AtlasDAO atlasDAO;
+    private final ExperimentDAO experimentDAO;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
-    private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private Map<Long, Experiment> experimentsCache = new HashMap<Long, Experiment>();
+    private final AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private final Map<String, Experiment> experimentsCache = new HashMap<String, Experiment>();
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, AtlasDAO atlasDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
-        this.atlasDAO = atlasDAO;
+        this.experimentDAO = experimentDAO;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
@@ -111,10 +111,10 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentInfo, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
-                                        Experiment exp = getExperiment(e.getExperimentId());
+                                        Experiment exp = getExperiment(e.getAccession());
                                         if (exp == null) return null;
-                                        return new ListResultRowExperiment(e.getExperimentId(), exp.getAccession(),
-                                                exp.getDescription(), e.getpValTStatRank().getPValue(),
+                                        return new ListResultRowExperiment(exp,
+                                                e.getpValTStatRank().getPValue(),
                                                 toExpression(e.getpValTStatRank()));
                                     }
                                 }),
@@ -125,7 +125,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         }
 
         public class EfvExp extends ResultRow.Expression {
-            private EfvTree.EfEfv<? extends ColumnInfo> efefv;
+            private final EfvTree.EfEfv<? extends ColumnInfo> efefv;
 
             public EfvExp(EfvTree.EfEfv<? extends ColumnInfo> efefv) {
                 this.efefv = efefv;
@@ -147,7 +147,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         }
 
         public class EfoExp extends ResultRow.Expression {
-            private EfoTree.EfoItem<? extends ColumnInfo> efoItem;
+            private final EfoTree.EfoItem<? extends ColumnInfo> efoItem;
 
             public EfoExp(EfoTree.EfoItem<? extends ColumnInfo> efoItem) {
                 this.efoItem = efoItem;
@@ -222,19 +222,19 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 });
     }
 
-    static UpDownExpression toExpression(PvalTstatRank pvalTstatRank) {
+    private static UpDownExpression toExpression(PvalTstatRank pvalTstatRank) {
         return UpDownExpression.valueOf(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank());
     }
 
     /**
-     *
-     * @param experimentId
-     * @return Experiment corresponding to experimentId; if not already in cache, get it from Oracle and add it to the cache
+     * @param accession experiment accession
+     * @return Experiment corresponding to the accession
      */
-    private Experiment getExperiment(long experimentId) {
-        if (!experimentsCache.containsKey(experimentId)) {
-            experimentsCache.put(experimentId, atlasDAO.getShallowExperimentById(experimentId));
+    private Experiment getExperiment(String accession) {
+        Experiment experiment = experimentsCache.get(accession);
+        if (experiment == null) {
+            experimentsCache.put(accession, experiment = experimentDAO.getExperimentByAccession(accession));
         }
-        return experimentsCache.get(experimentId);
+        return experiment;
     }
 }

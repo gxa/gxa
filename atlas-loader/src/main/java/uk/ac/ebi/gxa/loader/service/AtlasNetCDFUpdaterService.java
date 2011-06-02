@@ -33,41 +33,37 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService {
-
     private static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        Experiment experiment = getAtlasDAO().getExperimentByAccession(cmd.getAccession());
-        String experimentAccession = experiment.getAccession();
+        final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
 
-        listener.setAccession(experimentAccession);
+        listener.setAccession(experiment.getAccession());
 
-        List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
-
-        Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
-        for (Assay assay : allAssays) {
-            Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
+        Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
+        for (Assay assay : experiment.getAssays()) {
+            Map<String, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
             if (assays == null) {
-                assaysByArrayDesign.put(assay.getArrayDesignAccession(), assays = new HashMap<Long, Assay>());
+                assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = new HashMap<String, Assay>());
             }
-            assays.put(assay.getAssayID(), assay);
+            assays.put(assay.getAccession(), assay);
         }
 
-        for (Map.Entry<String, Map<Long, Assay>> entry : assaysByArrayDesign.entrySet()) {
-            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(entry.getKey());
+        for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
+            ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
 
-            final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
+            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
             listener.setProgress("Reading existing NetCDF");
 
-            final Map<Long, Assay> assayMap = entry.getValue();
-            log.info("Starting NetCDF for " + experimentAccession +
+            final Map<String, Assay> assayMap = entry.getValue();
+            log.info("Starting NetCDF for " + experiment.getAccession() +
                     " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
-            NetCDFData data = readNetCDF(getAtlasDAO(), netCDFLocation, assayMap);
+            NetCDFData data = readNetCDF(atlasDAO, netCDFLocation, assayMap);
 
             listener.setProgress("Writing updated NetCDF");
-            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, arrayDesign);
+            writeNetCDF(atlasDAO, netCDFLocation, data, experiment, arrayDesign);
 
             if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
@@ -75,39 +71,38 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
-        NetCDFProxy reader = null;
+    private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<String, Assay> knownAssays) throws AtlasLoaderException {
+        NetCDFProxy proxy = null;
         try {
-            reader = new NetCDFProxy(source);
+            proxy = new NetCDFProxy(source);
 
             NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
-            final long[] assays = reader.getAssays();
-            for (int i = 0; i < assays.length; ++i) {
-                Assay assay = knownAssays.get(assays[i]);
+            final String[] assayAccessions = proxy.getAssayAccessions();
+            for (int i = 0; i < assayAccessions.length; ++i) {
+                Assay assay = knownAssays.get(assayAccessions[i]);
                 if (assay != null) {
-                    List<Sample> samples = dao.getSamplesByAssayAccession(reader.getExperiment(), assay.getAccession());
-                    data.addAssay(assay, samples);
+                    data.addAssay(assay);
                     usedAssays.add(i);
                 }
             }
 
-            if (assays.length == data.getAssays().size()) {
-                data.matchValuePatterns(getValuePatterns(reader));
+            if (assayAccessions.length == data.getAssays().size()) {
+                data.matchValuePatterns(getValuePatterns(proxy));
             }
 
             // Get unique values
-            List<String> uniqueValues = reader.getUniqueValues();
+            List<String> uniqueValues = proxy.getUniqueValues();
             data.setUniqueValues(uniqueValues);
 
-            String[] deAccessions = reader.getDesignElementAccessions();
+            String[] deAccessions = proxy.getDesignElementAccessions();
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
             for (int i = 0; i < deAccessions.length; ++i) {
-                final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
-                final float[] pval = reader.getPValuesForDesignElement(i);
-                final float[] tstat = reader.getTStatisticsForDesignElement(i);
-                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than reader.getUniqueFactorValues()
+                final float[] values = proxy.getExpressionDataForDesignElementAtIndex(i);
+                final float[] pval = proxy.getPValuesForDesignElement(i);
+                final float[] tstat = proxy.getTStatisticsForDesignElement(i);
+                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than proxy.getUniqueFactorValues()
                 // i.e. we are in the process of enlarging the uniqueValues set from just efvs to efvs+scvs
                 List<Float> pVals = new ArrayList<Float>(asList(pval));
                 while (pVals.size() < uniqueValues.size())
@@ -126,7 +121,7 @@ public class AtlasNetCDFUpdaterService {
             log.error("Error reading NetCDF file: " + source, e);
             throw new AtlasLoaderException(e);
         } finally {
-            closeQuietly(reader);
+            closeQuietly(proxy);
         }
     }
 
@@ -134,11 +129,11 @@ public class AtlasNetCDFUpdaterService {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
+            // TODO: 4alf: we cannot use experiment.getAssays() as we're bound by the ArrayDesign
             netCdfCreator.setAssays(data.getAssays());
 
             for (Assay assay : data.getAssays()) {
-                List<Sample> samples = dao.getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
-                for (Sample sample : samples) {
+                for (Sample sample : assay.getSamples()) {
                     netCdfCreator.setSample(assay, sample);
                 }
             }
@@ -196,14 +191,6 @@ public class AtlasNetCDFUpdaterService {
             }
         }
         return patterns;
-    }
-
-    AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    AtlasNetCDFDAO getNetCDFDAO() {
-        return atlasNetCDFDAO;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {

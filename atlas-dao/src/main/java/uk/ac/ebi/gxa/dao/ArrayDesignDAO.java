@@ -1,8 +1,10 @@
 package uk.ac.ebi.gxa.dao;
 
+import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -13,21 +15,21 @@ import java.util.List;
 import static com.google.common.collect.Iterables.getFirst;
 
 /**
- * TODO: Rename me to JdbcArrayDesignDAO
- *
  * @author Nataliya Sklyar
  */
-public class ArrayDesignDAO implements ArrayDesignDAOInterface {
-    public static final String ARRAY_DESIGN_SELECT =
+public class ArrayDesignDAO {
+    private static final String ARRAY_DESIGN_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad ORDER BY ad.accession";
 
-    public static final String ARRAY_DESIGN_BY_ACC_SELECT =
+    private static final String ARRAY_DESIGN_BY_ACC_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad WHERE ad.accession=?";
 
     private JdbcTemplate template;
+    private HibernateTemplate ht;
 
-    public void setJdbcTemplate(JdbcTemplate template) {
+    public ArrayDesignDAO(JdbcTemplate template,  SessionFactory sessionFactory) {
         this.template = template;
+        this.ht = new HibernateTemplate(sessionFactory);
     }
 
     /**
@@ -61,9 +63,9 @@ public class ArrayDesignDAO implements ArrayDesignDAOInterface {
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        return template.queryForObject(ARRAY_DESIGN_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ArrayDesignMapper());
+        @SuppressWarnings("unchecked")
+        List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
+        return getFirst(results, null);
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {

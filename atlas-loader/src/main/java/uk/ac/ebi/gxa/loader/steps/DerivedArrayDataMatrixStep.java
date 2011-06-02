@@ -22,8 +22,9 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
@@ -31,9 +32,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
@@ -48,30 +47,15 @@ import java.util.List;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
+public class DerivedArrayDataMatrixStep {
+    private final static Logger log = LoggerFactory.getLogger(DerivedArrayDataMatrixStep.class);
 
-
-public class DerivedArrayDataMatrixStep implements Step {
-    private final MAGETABInvestigationExt investigation;
-    private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
-
-    public DerivedArrayDataMatrixStep(MAGETABInvestigationExt investigation) {
-        this.investigation = investigation;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing derived data matrix";
     }
 
-    public void run() throws AtlasLoaderException {
-        if (investigation.userData.get(ArrayDataStep.SUCCESS_KEY) == ArrayDataStep.SUCCESS_KEY) {
-            log.info("Raw data are used; processed data will not be processed");
-            return;
-        }
-
+    public void readProcessedData(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
         for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
             log.info("Writing expression values from data file referenced by " +
                     "derived array data matrix node '" + node.getNodeName() + "'");
@@ -179,7 +163,7 @@ public class DerivedArrayDataMatrixStep implements Step {
                         log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
                                 "must be stored first...");
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                        cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
+                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     } else {
                         // generate error item and throw exception
                         throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");

@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Properties;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
 /**
@@ -85,9 +85,9 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             response.getWriter().write("SEND OK");
             success = true;
         } catch (AddressException e) {
-            throw logUnexpected(e.getMessage(), e);
+            throw createUnexpected(e.getMessage(), e);
         } catch (MessagingException e) {
-            throw logUnexpected(e.getMessage(), e);
+            throw createUnexpected(e.getMessage(), e);
         } finally {
             if (!success)
                 response.getWriter().write("SEND FAIL");

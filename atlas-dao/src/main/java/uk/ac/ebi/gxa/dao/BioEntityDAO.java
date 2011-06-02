@@ -1,8 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.*;
@@ -10,7 +8,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.*;
 import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BEProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -25,19 +23,9 @@ import java.util.*;
 import static com.google.common.collect.Iterables.partition;
 
 /**
- * TODO: Rename me to JdbcBioEntityDAO
- *
  * @author Nataliya Sklyar
  */
-public class BioEntityDAO implements BioEntityDAOInterface {
-//    public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
-//            "  FROM a2_designelement de\n" +
-//            "          join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
-//            "          join a2_designeltbioentity debe on debe.designelementid = de.designelementid and debe.softwareid = ad.mappingswid\n" +
-//            "          join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = debe.bioentityid and be2be.softwareid = ?\n" +
-//            "          join a2_bioentity be on be.bioentityid = be2be.bioentityidto\n" +
-//            "          join a2_bioentitytype betype on betype.bioentitytypeid = be.bioentitytypeid and betype.ID_FOR_INDEX = 1";
-
+public class BioEntityDAO {
     public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
             "  FROM a2_designelement de\n" +
             "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
@@ -64,6 +52,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
+    }
+
+    public BioEntityDAO(AnnotationSourceDAO annSrcDAO, JdbcTemplate template) {
+        this.annSrcDAO = annSrcDAO;
+        this.template = template;
     }
 
     /**
@@ -176,7 +169,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
                 new RowMapper<BioEntityType>() {
                     @Override
                     public BioEntityType mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return new BioEntityType(rs.getLong(1), name, rs.getInt(2) != 0);
+                        return new BioEntityType(rs.getLong(1), name, rs.getInt(2));
                     }
                 }, name);
 
@@ -501,10 +494,10 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         //find all recent software
-        Collection<CurrentAnnotationSource> currAnnSrcs = annSrcDAO.getAllCurrentAnnotationSources();
+        Collection<AnnotationSource> currAnnSrcs = annSrcDAO.getAllCurrentAnnotationSources();
         Set<Long> currAnnSrcIds = new HashSet<Long>(currAnnSrcs.size());
-        for (CurrentAnnotationSource currAnnSrc : currAnnSrcs) {
-            currAnnSrcIds.add(currAnnSrc.getSource().getAnnotationSrcId());
+        for (AnnotationSource currAnnSrc : currAnnSrcs) {
+            currAnnSrcIds.add(currAnnSrc.getAnnotationSrcId());
         }
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
@@ -539,7 +532,7 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         }
 
         public BEPropertyValue mapRow(ResultSet resultSet, int i) throws SQLException {
-            BEProperty property = new BEProperty(resultSet.getLong(3), resultSet.getString(2));
+            BioEntityProperty property = new BioEntityProperty(resultSet.getLong(3), resultSet.getString(2));
             BEPropertyValue propertyValue = new BEPropertyValue(resultSet.getLong(5), property, resultSet.getString(4));
 
             long geneID = resultSet.getLong(1);
@@ -573,13 +566,17 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         public static final String FIELDS_CLEAN = "bioentityid, identifier, name, species, speciesid, typename";
         public static final String FIELDS = "be.bioentityid, be.identifier, be.name, o.name AS species, o.organismid AS speciesid, bet.name as typename";
 
+        private  String intern(String str) {
+            return str != null ? str.intern() : null;
+        }
+
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntityType type = findOrCreateBioEntityType(resultSet.getString(6));
             BioEntity gene = new BioEntity(resultSet.getString(2), type);
 
             gene.setId(resultSet.getLong(1));
             gene.setName(resultSet.getString(3));
-            Organism organism = new Organism(resultSet.getLong(5), resultSet.getString(4));
+            Organism organism = new Organism(resultSet.getLong(5), intern(resultSet.getString(4)));
             gene.setOrganism(organism);
 
             return gene;

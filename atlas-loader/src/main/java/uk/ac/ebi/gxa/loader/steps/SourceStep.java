@@ -22,15 +22,17 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.utils.SDRFWritingUtils;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 /**
  * Experiment loading step that stores source nodes information from
@@ -38,37 +40,73 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
+public class SourceStep {
+    private final static Logger log = LoggerFactory.getLogger(SourceStep.class);
 
-public class SourceStep implements Step {
-    private final MAGETABInvestigation investigation;
-
-    public SourceStep(MAGETABInvestigation investigation) {
-        this.investigation = investigation;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing source nodes";
     }
 
-    public void run() throws AtlasLoaderException {
-        final Log log = LogFactory.getLog(getClass());
-        final AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
-
+    public void readSamples(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
         for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {
             log.debug("Writing sample from source node '" + node.getNodeName() + "'");
+            Sample sample = cache.fetchOrCreateSample(node.getNodeName());
+            // write the characteristic values as properties
+            readSampleProperties(sample, node, dao);
+        }
+    }
 
-            Sample sample = cache.fetchSample(node.getNodeName());
-            if (sample == null) {
-                // create a new sample and add it to the cache
-                sample = new Sample();
-                sample.setAccession(node.getNodeName());
-                cache.addSample(sample);
+    /**
+     * Write out the properties associated with a {@link uk.ac.ebi.microarray.atlas.model.Sample} in the SDRF graph.  These properties are obtained by
+     * looking at the "characteristic" column in the SDRF graph, extracting the type and linking this type (the
+     * property) to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode} provided (the property value).
+     *
+     *
+     * @param sample     the sample you want to attach properties to
+     * @param sourceNode the sourceNode being read
+     * @param dao
+     * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
+     *          if there is a problem creating the property object
+     */
+    public void readSampleProperties(Sample sample, SourceNode sourceNode, LoaderDAO dao) throws AtlasLoaderException {
+        // fetch characteristics of this sourceNode
+        for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
+            // create Property for this attribute
+            if (characteristicsAttribute.type.contains("||") || characteristicsAttribute.getNodeName().contains("||")) {
+                // generate error item and throw exception
+                throw new AtlasLoaderException(
+                        "Characteristics and their values must NOT contain '||' - " +
+                                "this is a special reserved character used as a delimiter in the database");
             }
 
-            // write the characteristic values as properties
-            SDRFWritingUtils.writeSampleProperties(sample, node);
+            // does this sample already contain this property/property value pair?
+            boolean existing = false;
+            for (SampleProperty sp : sample.getProperties()) {
+                if (sp.getName().equals(characteristicsAttribute.type)) {
+                    existing = true;
+                    if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
+                        // generate error item and throw exception
+                        throw new AtlasLoaderException(
+                                "Inconsistent characteristic values for sample " + sample.getAccession() +
+                                        ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
+                                        characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
+                                        characteristicsAttribute + ") will be ignored"
+                        );
+                    }
+                }
+            }
+
+            if (!existing) {
+                final PropertyValue property = dao.getOrCreateProperty(characteristicsAttribute.type, characteristicsAttribute.getNodeName());
+                sample.addProperty(property);
+
+                if ("organism".equals(property.getDefinition().getName().toLowerCase())) {
+                    sample.setOrganism(dao.getOrCreateOrganism(property.getValue()));
+                }
+
+                // TODO: 4alf: todo - characteristics can have ontology entries, and units (which can also have ontology entries) - set these values
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     @ManyToMany
     @JoinTable(name = "A2_ANNSRC_BIOMARTPROPERTY",
-            joinColumns = @JoinColumn(name = "annoationsrcid", referencedColumnName = "annoationsrcid"),
+            joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "BIOMARTPROPERTYID", referencedColumnName = "BIOMARTPROPERTYID"))
     private List<BioMartProperty> bioMartProperties = new ArrayList<BioMartProperty>();
 
@@ -47,7 +48,9 @@ public class BioMartAnnotationSource extends AnnotationSource {
     /**
      * Those properties are read from biomart registry
      */
+    @Transient
     private String bioMartName;
+    @Transient
     private String serverVirtualSchema;
 
     private static final String DATA_SET_PH = "$DATA_SET";
@@ -65,8 +68,15 @@ public class BioMartAnnotationSource extends AnnotationSource {
                     "</Query>";
 
 
+    BioMartAnnotationSource() {
+    }
+
     public BioMartAnnotationSource(Software software, Organism organism) {
         super(software, organism);
+    }
+
+    public BioMartAnnotationSource(Long annotationSrcId, Software software, Organism organism) {
+        super(annotationSrcId, software, organism);
     }
 
     public String getUrl() {
@@ -116,7 +126,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     @Override
     protected CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType) {
-        return new CurrentAnnotationSource<BioMartAnnotationSource>(this, bioEntityType);
+        return new BioMartCurrentAnnotationSource(this, bioEntityType);
     }
 
     /////////////////////////

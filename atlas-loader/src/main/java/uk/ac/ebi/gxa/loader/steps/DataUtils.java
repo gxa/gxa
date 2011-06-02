@@ -29,17 +29,19 @@ import java.util.regex.Pattern;
  * utils for data processing steps
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
-
-
-class DataUtils {
+public class DataUtils {
     private static final String AE_PREFIX =
-        "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/";
+            "ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/";
+    // HACK: fix bad ArrayExpress URLs like
+    // ftp://ftp.ebi.ac.uk/pub/databases/microarray/data/experiment/TABM/E-TABM-733/TABM/E-TABM-733/E-TABM-733.processed.1.zip
     private static final Pattern AE_HACK_PATTERN =
-        Pattern.compile(AE_PREFIX + "(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
+            Pattern.compile(AE_PREFIX + "(.*)/(.*)/\\1/\\2/\\2\\.(.*zip)");
 
-    static String fixZipURL(String original) {
+    public static String fixZipURL(String original) {
+        if (original == null) {
+            return null;
+        }
         Matcher m = AE_HACK_PATTERN.matcher(original);
         if (m.matches()) {
             return AE_PREFIX + m.group(1) + "/" + m.group(2) + "/" + m.group(2) + "." + m.group(3);

@@ -181,12 +181,14 @@
             SOFTWAREID="1"
             NAME="Ensembl"
             VERSION="60"
+            ISACTIVE="1"
             />
 
     <A2_SOFTWARE
             SOFTWAREID="2"
             NAME="BioConductor"
             VERSION="4"
+            ISACTIVE="0"
             />
 
     <A2_BIOENTITY2BIOENTITY
@@ -509,4 +511,58 @@
             organismid="1"
             />
 
+    <A2_ANNOTATIONSRC
+            annotationsrcid="1000"
+            SOFTWAREID="1"
+            ORGANISMID="1"
+            url="http://www.ensembl.org/biomart/martservice?"
+            biomartorganismname="hsapiens_gene_ensembl"
+            annsrctype="biomart"
+            />
+    <A2_ANNSRC_BIOENTITYTYPE
+            annotationsrcid="1000"
+            BIOENTITYTYPEID="1"
+            />
+
+    <A2_ANNSRC_BIOENTITYTYPE
+            annotationsrcid="1000"
+            BIOENTITYTYPEID="2"
+            />
+
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="1"
+            BIOENTITYPROPERTYID="1"
+            NAME="name_1006"
+            />
+
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="2"
+            BIOENTITYPROPERTYID="1"
+            NAME="go_cellular_component__dm_name_1006"
+            />
+    <A2_ANNSRC_BIOMARTPROPERTY
+            annotationsrcid="1000"
+            BIOMARTPROPERTYID="1" />
+
+    <A2_ANNSRC_BIOMARTPROPERTY
+            annotationsrcid="1000"
+            BIOMARTPROPERTYID="2" />
+
+    <A2_CURRENTANNOTATIONSRC
+            CURRENTANNOTATIONSRCID="1001"
+            annotationsrcid="1000"
+            ORGANISMID="1"
+            BIOENTITYTYPEID="1"
+            annsrctype="biomart"
+            LOADDATE="2011-01-06"
+    />
+
+    <A2_CURRENTANNOTATIONSRC
+            CURRENTANNOTATIONSRCID="1002"
+            annotationsrcid="1000"
+            ORGANISMID="1"
+            BIOENTITYTYPEID="2"
+            annsrctype="biomart"
+            LOADDATE="2011-01-06"
+    />
 </dataset>

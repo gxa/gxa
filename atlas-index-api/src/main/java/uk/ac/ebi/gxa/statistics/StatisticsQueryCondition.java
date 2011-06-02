@@ -1,7 +1,5 @@
 package uk.ac.ebi.gxa.statistics;
 
-import it.uniroma3.mat.extendedset.ConciseSet;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;

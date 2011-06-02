@@ -30,7 +30,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -84,7 +84,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
         final String factorValue = param3.substring(0, param3.length() - 4);
 
-        final File dataDir = atlasNetCDFDAO.getDataDirectory(accession);
+        final File dataDir = atlasNetCDFDAO.getDataDirectory(atlasDAO.getExperimentByAccession(accession));
         final GeneAnnotation anno =
                 new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
         final String chromosomeId = anno.chromosomeId();
@@ -97,8 +97,8 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         }
 
         final ArrayList<Assay> assaysToGet = new ArrayList<Assay>();
-        for (Assay assay : atlasDAO.getAssaysByExperimentAccession(accession)) {
-            for (Property p : assay.getProperties(factorName)) {
+        for (Assay assay : atlasDAO.getExperimentByAccession(accession).getAssays()) {
+            for (AssayProperty p : assay.getProperties(factorName)) {
                 if (factorValue.equals(p.getValue())) {
                     assaysToGet.add(assay);
                     break;

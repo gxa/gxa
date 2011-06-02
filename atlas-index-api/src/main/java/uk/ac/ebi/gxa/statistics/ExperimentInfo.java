@@ -2,6 +2,9 @@ package uk.ac.ebi.gxa.statistics;
 
 import java.io.Serializable;
 
+/**
+ * Serializable representation of an Atlas Experiment for the purpose of ConciseSet storage
+ */
 public class ExperimentInfo implements Serializable {
 
     private static final long serialVersionUID = 7789968215270452137L;

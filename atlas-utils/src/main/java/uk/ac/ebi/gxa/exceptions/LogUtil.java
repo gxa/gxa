@@ -15,12 +15,12 @@ public final class LogUtil {
         // utility class
     }
 
-    public static UnexpectedException logUnexpected(String message, Throwable e) {
+    public static UnexpectedException createUnexpected(String message, Throwable e) {
         log.error(message, e);
         return new UnexpectedException(message, e);
     }
 
-    public static UnexpectedException logUnexpected(String message) {
+    public static UnexpectedException createUnexpected(String message) {
         final UnexpectedException exception = new UnexpectedException(message);
         final StackTraceElement caller = exception.getStackTrace()[1];
         log.error(format("%s\n%s: %s\n\tat %s.%s (%s:%d)", message,

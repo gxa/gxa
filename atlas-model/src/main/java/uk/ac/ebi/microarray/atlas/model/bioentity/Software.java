@@ -19,6 +19,10 @@ public class Software {
     private Long softwareid;
     private String name;
     private String version;
+    private boolean isActive = false;
+
+    Software() {
+    }
 
     public Software(Long softwareid, String name, String version) {
         this.softwareid = softwareid;
@@ -35,12 +39,24 @@ public class Software {
         return softwareid;
     }
 
+    private void setSoftwareid(Long softwareid) {
+        this.softwareid = softwareid;
+    }
+
     public String getName() {
         return name;
     }
 
     public String getVersion() {
         return version;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public String getDisplayName() {

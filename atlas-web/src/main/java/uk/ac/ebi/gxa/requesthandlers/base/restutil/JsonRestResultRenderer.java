@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
+import uk.ac.ebi.gxa.utils.FloatFormatter;
+
 /**
  * JSON format (http://www.json.org) REST result renderer.
  * This renderer is pretty simple in terms of mapping. All objects and maps are written as JS objects (in {})
@@ -70,13 +72,17 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     }
 
     public void render(Object o, Appendable where, final Class profile) throws RestResultRenderException, IOException {
+        render(o, where, profile, null);
+    }
+
+    public void render(Object o, Appendable where, final Class profile, FieldFilter filter) throws RestResultRenderException, IOException {
         this.where = where;
         this.profile = profile;
         if (callback != null) {
             where.append(callback).append('(');
         }
         try {
-            process(o);
+            process(o, null, filter);
         } catch (IOException e) {
             throw e;
         } catch (RestResultRenderException e) {
@@ -85,7 +91,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
             log.error("Error rendering JSON", e);
             if (errorWrapper != null) {
                 where.append(",");
-                process(errorWrapper.wrapError(e));
+                process(errorWrapper.wrapError(e), null, null);
             } else
                 throw new RestResultRenderException(e);
         } finally {
@@ -99,35 +105,26 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         this.errorWrapper = wrapper;
     }
 
-    private void process(Object o) throws IOException, RestResultRenderException {
-        if (o == null)
-            where.append("null");
-        else
-            process(o, null);
-    }
-
-    private void process(Object o, RestOut outProp) throws IOException, RestResultRenderException {
+    private void process(Object o, RestOut outProp, FieldFilter filter) throws IOException, RestResultRenderException {
         if (o == null) {
             where.append("null");
             return;
         }
         outProp = RestResultRendererUtil.mergeAnno(outProp, o.getClass(), getClass(), profile);
         if (o instanceof Double) {
-            Double d = (Double) o;
-            where.append(toJSON(d));
+            where.append(FloatFormatter.formatDouble((Double)o, 5));
         } else if (o instanceof Float) {
-            Float f = (Float) o;
-            where.append(toJSON(f.doubleValue()));
+            where.append(FloatFormatter.formatFloat((Float)o, 3));
         } else if (o instanceof Number || o instanceof Boolean) {
             where.append(o.toString());
         } else if (o instanceof String || (outProp != null && outProp.asString()) || o instanceof Enum) {
             appendQuotedString(o.toString());
         } else if (o instanceof Iterable || o instanceof Iterator) {
-            processIterable(o);
+            processIterable(o, filter);
         } else if (o.getClass().isArray()) {
-            processArray(o);
+            processArray(o, filter);
         } else {
-            processMap(o);
+            processMap(o, filter);
         }
     }
 
@@ -148,7 +145,17 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         return Double.toString(v);
     }
 
-    private void processMap(Object o) throws IOException, RestResultRenderException {
+    private CharSequence toJSON(float v) {
+        if (Float.isInfinite(v)) {
+            return "null";
+        }
+        if (Float.isNaN(v)) {
+            return "null";
+        }
+        return Float.toString(v);
+    }
+
+    private void processMap(Object o, FieldFilter filter) throws IOException, RestResultRenderException {
         if (o == null)
             return;
 
@@ -161,6 +168,13 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         try {
             boolean first = true;
             for (RestResultRendererUtil.Prop p : RestResultRendererUtil.iterableProperties(o, profile, this)) {
+                FieldFilter childFilter = null;
+                if (filter != null) {
+                    if (!filter.accepts(p.name)) {
+                        continue;
+                    }
+                    childFilter = filter.getSubFilter(p.name);
+                }
                 if (first)
                     first = false;
                 else {
@@ -177,7 +191,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 if (indent)
                     where.append(' ');
 
-                process(p.value, p.outProp);
+                process(p.value, p.outProp, childFilter);
             }
 
             if (indent) {
@@ -191,7 +205,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
     }
 
 
-    private void processIterable(Object oi) throws RestResultRenderException, IOException {
+    private void processIterable(Object oi, FieldFilter filter) throws RestResultRenderException, IOException {
         where.append('[');
         if (indent) {
             currentIndent += indentAmount;
@@ -212,7 +226,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                 }
                 appendIndent();
                 if (object != null)
-                    process(object, null);
+                    process(object, null, filter);
                 else
                     where.append("null");
             }
@@ -228,7 +242,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
         }
     }
 
-    private void processArray(Object o) throws RestResultRenderException, IOException {
+    private void processArray(Object o, FieldFilter filter) throws RestResultRenderException, IOException {
         final boolean primitive = o.getClass().getComponentType().isPrimitive();
 
         where.append('[');
@@ -252,7 +266,7 @@ public class JsonRestResultRenderer implements RestResultRenderer {
                     appendIndent();
                 }
                 if (object != null)
-                    process(object, null);
+                    process(object, null, filter);
                 else
                     where.append("null");
             }

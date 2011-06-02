@@ -22,17 +22,67 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static java.util.Collections.unmodifiableSet;
+import javax.annotation.Nonnull;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-public class Sample extends ObjectWithProperties {
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Collections2.transform;
+
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+public class Sample {
+    public static final Logger log = LoggerFactory.getLogger(Sample.class);
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sampleSeq")
+    @SequenceGenerator(name = "sampleSeq", sequenceName = "A2_SAMPLE_SEQ")
+    private Long sampleid;
     private String accession;
-    private Set<String> assayAccessions = new HashSet<String>();
-    private String species;
+    @ManyToOne
+    private Organism organism;
     private String channel;
-    private Long sampleID;
+    @ManyToOne
+    private Experiment experiment;
+    @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
+    private List<Assay> assays = new ArrayList<Assay>();
+    @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample")
+    @Fetch(FetchMode.SUBSELECT)
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    private List<SampleProperty> properties = new ArrayList<SampleProperty>();
+
+    Sample() {
+    }
+
+    public Sample(Long id, String accession, Organism organism, String channel) {
+        if (accession == null)
+            throw new IllegalArgumentException("Cannot add sample with null accession!");
+        this.sampleid = id;
+        this.accession = accession;
+        this.organism = organism;
+        this.channel = channel;
+    }
+
+    public Sample(String accession) {
+        this(null, accession, null, null);
+    }
+
+    public Long getId() {
+        return sampleid;
+    }
 
     public String getAccession() {
         return accession;
@@ -42,61 +92,128 @@ public class Sample extends ObjectWithProperties {
         this.accession = accession;
     }
 
-    public String getSpecies() {
-        return species;
-    }
-
-    public void setSpecies(String species) {
-        this.species = species;
+    public Organism getOrganism() {
+        return organism;
     }
 
     public String getChannel() {
         return channel;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
-    }
-
     public long getSampleID() {
-        return sampleID;
+        return getId();
     }
 
-    public void setSampleID(long sampleID) {
-        this.sampleID = sampleID;
-    }
-
-    /**
-     * Convenience method for adding assay accession numbers to this sample,
-     * creating links between the two node types.
-     *
-     * @param assayAccession the assay, listed by accession, this sample links to
-     */
-    public void addAssayAccession(String assayAccession) {
-        assayAccessions.add(assayAccession);
-    }
-
-    public Set<String> getAssayAccessions() {
-        return unmodifiableSet(assayAccessions);
+    public Collection<String> getAssayAccessions() {
+        return Collections2.transform(assays, new Function<Assay, String>() {
+            @Override
+            public String apply(@Nonnull Assay assay) {
+                return assay.getAccession();
+            }
+        });
     }
 
     @Override
     public String toString() {
         return "Sample{" +
                 "accession='" + accession + '\'' +
-                ", assayAccessions=" + assayAccessions +
-                ", species='" + species + '\'' +
+                ", organism='" + organism + '\'' +
                 ", channel='" + channel + '\'' +
                 '}';
     }
 
     @Override
     public int hashCode() {
-        return sampleID.hashCode();
+        return sampleid == null ? 0 : sampleid.hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Sample && ((Sample) o).sampleID.equals(sampleID);
+        return o instanceof Sample && ((Sample) o).sampleid.equals(sampleid);
+    }
+
+    public void addAssay(Assay assay) {
+        if (assays.contains(assay))
+            return;
+
+        log.trace("Updating {} with assay accession {}", accession, assay.getAccession());
+        assays.add(assay);
+        assay.addSample(this);
+    }
+
+    public List<Assay> getAssays() {
+        return assays;
+    }
+
+    public List<SampleProperty> getProperties() {
+        return properties;
+    }
+
+    public String getPropertySummary(final String propName) {
+        return on(",").join(transform(
+                filter(properties,
+                        new Predicate<SampleProperty>() {
+                            @Override
+                            public boolean apply(@Nonnull SampleProperty input) {
+                                return input.getName().equals(propName);
+                            }
+                        }),
+                new Function<SampleProperty, String>() {
+                    @Override
+                    public String apply(@Nonnull SampleProperty input) {
+                        return input.getValue();
+                    }
+                }
+        ));
+    }
+
+
+    public Collection<String> getPropertyNames() {
+        return transform(properties,
+                new Function<SampleProperty, String>() {
+                    @Override
+                    public String apply(@Nonnull SampleProperty input) {
+                        return input.getName();
+                    }
+                });
+    }
+
+    public String getEfoSummary(final String name) {
+        return on(",").join(transform(
+                filter(properties,
+                        new Predicate<SampleProperty>() {
+                            @Override
+                            public boolean apply(@Nonnull SampleProperty input) {
+                                return input.getName().equals(name);
+                            }
+                        }),
+                new Function<SampleProperty, String>() {
+                    @Override
+                    public String apply(@Nonnull SampleProperty input) {
+                        return input.getEfoTerms();
+                    }
+                }
+        ));
+    }
+
+    public boolean hasNoProperties() {
+        return properties.isEmpty();
+    }
+
+    public void addProperty(PropertyValue pv) {
+        properties.add(new SampleProperty(this, pv));
+    }
+
+    public void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
+        properties.add(new SampleProperty(this, pv, efoTerms));
+    }
+
+    public void setOrganism(Organism organism) {
+        this.organism = organism;
+    }
+
+    void setExperiment(Experiment experiment) {
+        this.experiment = experiment;
     }
 }
+

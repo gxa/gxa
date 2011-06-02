@@ -22,9 +22,12 @@
 
 package uk.ac.ebi.gxa.loader.handler.idf;
 
+import com.google.common.collect.HashMultimap;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
@@ -32,26 +35,21 @@ import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
-import uk.ac.ebi.gxa.loader.steps.Step;
 
 import java.net.URL;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
+
 public class TestAtlasLoadingAccessionHandler extends TestCase {
-    private MAGETABInvestigation investigation;
-    private AtlasLoadCache cache;
+    public static final Logger log = LoggerFactory.getLogger(TestAtlasLoadingAccessionHandler.class);
+
+    private ExperimentBuilder cache;
 
     private URL parseURL;
 
-    public static void createParser(AtlasLoadCache cache, MAGETABInvestigation investigation, URL parseURL) throws AtlasLoaderException {
+    public static MAGETABInvestigation createParser(ExperimentBuilder cache, URL parseURL) throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
@@ -79,21 +77,13 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
             }
         });
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation);
-        step0.run();
-        step1.run();
-
-        // parsing finished, look in our cache...
-        assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
+        return investigation;
     }
 
     public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigation();
         cache = new AtlasLoadCache();
-
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
@@ -103,13 +93,47 @@ public class TestAtlasLoadingAccessionHandler extends TestCase {
     }
 
     public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
-        investigation = null;
         cache = null;
     }
 
-    public void testWriteValues() throws AtlasLoaderException {
+    public void testExperimentExists() throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
-        createParser(cache, investigation, parseURL);
+        createParser(cache, parseURL);
+
+        // parsing finished, look in our cache...
+        assertNotNull("Local cache doesn't contain an experiment", cache.fetchExperiment());
+    }
+
+
+    public void testLoadingInvestigationTitle() throws AtlasLoaderException {
+        createParser(cache, parseURL);
+        // get the title of the experiment
+        String expected =
+                "Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment";
+        String actual = cache.fetchExperiment().getDescription();
+
+        assertEquals("Titles don't match", expected, actual);
+    }
+
+
+    public void testPersonAffiliation() throws AtlasLoaderException {
+        createParser(cache, parseURL);
+
+        // get the title of the experiment
+        String expected = "Cardiff University School of Medicine";
+        String actual = cache.fetchExperiment().getLab();
+
+        assertEquals("Labs don't match", expected, actual);
+    }
+
+
+    public void testPersonLastName() throws AtlasLoaderException {
+        createParser(cache, parseURL);
+
+        // get the title of the experiment
+        String expected = "Lesley Jones Angela Hodges";
+        String actual = cache.fetchExperiment().getPerformer();
+
+        assertEquals("Names don't match", expected, actual);
     }
 }

@@ -53,7 +53,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * A {@link ServletContextListener} for the Atlas web application.  To use the atlas codebase, a listener should be
@@ -133,7 +133,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             atlasDatasourceUser = dmd.getUserName();
             DataSourceUtils.releaseConnection(c, atlasDataSource);
         } catch (SQLException e) {
-            throw logUnexpected("Unable to obtain connection to the datasource, or failed to read URL", e);
+            throw createUnexpected("Unable to obtain connection to the datasource, or failed to read URL", e);
         }
 
         // read versioning info

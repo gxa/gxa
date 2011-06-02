@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.tasks;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.loader.bioentity.BioMartService;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -59,7 +59,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static final Map<Object, Object> EMPTY = Collections.emptyMap();
 
     private TaskManager taskManager;
-    private AtlasDAO dao;
+    private ArrayDesignDAO arrayDesignDAO;
     private DbStorage taskManagerDbStorage;
     private AtlasProperties atlasProperties;
     private static final String WEB_REQ_MESSAGE = "By web request from ";
@@ -82,8 +82,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         this.atlasProperties = atlasProperties;
     }
 
-    public void setDao(AtlasDAO dao) {
-        this.dao = dao;
+    public void setArrayDesignDAO(ArrayDesignDAO arrayDesignDAO) {
+        this.arrayDesignDAO = arrayDesignDAO;
     }
 
     public void setAtlasManager(AtlasManager manager) {
@@ -201,7 +201,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         boolean wasRunning = taskManager.isRunning();
         if (wasRunning)
             taskManager.pause();
-        for (Experiment experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
+        for (ExperimentLine experiment : taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, 0, -1)) {
             long id = taskManager.scheduleTask(new TaskSpec(type, experiment.getAccession(), HashMultimap.<String, String>create()),
                     TaskRunMode.valueOf(runMode),
                     user,
@@ -217,15 +217,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                                             DbStorage.ExperimentIncompleteness incompleteness,
                                             int page, int num) {
         int from = page * num;
-        DbStorage.ExperimentList experiments = taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, from, num);
+        ExperimentList experiments = taskManagerDbStorage.findExperiments(searchText, fromDate, toDate, incompleteness, from, num);
 
         return makeMap(
-                "experiments", new MappingIterator<DbStorage.ExperimentWithStatus, Map>(experiments.iterator()) {
-                    public Map map(DbStorage.ExperimentWithStatus e) {
+                "experiments", new MappingIterator<ExperimentLine, Map>(experiments.iterator()) {
+                    public Map map(ExperimentLine e) {
                         return makeMap(
                                 "accession", e.getAccession(),
                                 "description", e.getDescription(),
-                                "numassays", dao.getCountAssaysForExperimentID(e.getExperimentID()),
+                                "numassays", e.getAssays().size(),
                                 "analytics", e.isAnalyticsComplete(),
                                 "netcdf", e.isNetcdfComplete(),
                                 "index", e.isIndexComplete(),
@@ -251,7 +251,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         int from = page * num;
         int total = 0;
-        for (ArrayDesign arrayDesign : dao.getAllArrayDesigns())
+        for (ArrayDesign arrayDesign : arrayDesignDAO.getAllArrayDesigns())
             if ("".equals(search)
                     || arrayDesign.getAccession().toLowerCase().contains(search)
                     || StringUtils.trimToEmpty(arrayDesign.getName()).toLowerCase().contains(search)
@@ -497,5 +497,4 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
-
 }
