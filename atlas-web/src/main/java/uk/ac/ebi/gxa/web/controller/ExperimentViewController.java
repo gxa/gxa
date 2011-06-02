@@ -39,10 +39,20 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.plot.AssayProperties;
 import uk.ac.ebi.gxa.plot.ExperimentPlot;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.microarray.atlas.model.Asset;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static com.google.common.io.ByteStreams.copy;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
 
 /**
@@ -146,5 +156,85 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
         }
         return "unsupported-html-view";
+    }
+
+    /**
+     * This method HTTP GET's assetFileName's content for a given experiment provided that
+     * 1. assetFileName is listed against that experiment in DB
+     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ExperimentAssetPattern)
+     *
+     * @param accession     experiment accession
+     * @param assetFileName asset file name
+     * @param response      HttpServletResponse
+     * @throws IOException
+     * @throws ResourceNotFoundException
+     */
+    @RequestMapping(value = "/experimentAssets", method = RequestMethod.GET)
+    public void getExperimentAsset(
+            @RequestParam("eid") String accession,
+            @RequestParam("asset") String assetFileName,
+            HttpServletResponse response
+    ) throws IOException, ResourceNotFoundException {
+
+        if (accession != null && !accession.isEmpty() &&
+                assetFileName != null && !assetFileName.isEmpty()) {
+
+            Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+
+            for (Asset asset : experiment.getAssets()) {
+                if (assetFileName.equals(asset.getFileName())) {
+                    for (ExperimentAssetPattern eap : ExperimentAssetPattern.values()) {
+                        if (eap.handle(new File(netCDFDAO.getDataDirectory(accession), "assets"), assetFileName, response)) {
+                            return;
+                        }
+                    }
+                    break;
+                }
+
+            }
+        }
+        throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
+    }
+
+
+    /**
+     * Its handle() method returns the requested experiment asset provided that its mime type matches one of the
+     * mime types enumerated in this class.
+     */
+    private static enum ExperimentAssetPattern {
+        PNG("image/png", "png"),
+        GIF("image/gif", "gif");
+
+        private String contentType;
+        private Pattern pattern;
+
+        private ExperimentAssetPattern(String contentType, String extension) {
+            this.contentType = contentType;
+            this.pattern = Pattern.compile("(:?[^\\.]+)\\." + extension);
+        }
+
+        public boolean handle(File dir, String assetFileName, HttpServletResponse response) throws ResourceNotFoundException, IOException {
+            Matcher m = pattern.matcher(assetFileName);
+            if (!m.matches()) {
+                return false;
+            }
+
+            File f = new File(dir, assetFileName);
+            if (!f.exists()) {
+                return false;
+            }
+
+            BufferedInputStream in = null;
+            try {
+                response.setContentType(contentType);
+                in = new BufferedInputStream(new FileInputStream(f));
+                copy(in, response.getOutputStream());
+                response.getOutputStream().flush();
+            } finally {
+                closeQuietly(in);
+            }
+
+            return true;
+        }
     }
 }

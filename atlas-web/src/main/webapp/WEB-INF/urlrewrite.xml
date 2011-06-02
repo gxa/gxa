@@ -128,6 +128,15 @@
 
     <rule>
         <note>
+            experiment asset accessible by /assets/[ExperimentIdentifier]/[AssetFileName]
+            rewritten with experimentAsset?eid=E-MTAB_62&amp;asset=...
+        </note>
+        <from>/assets/([a-zA-Z0-9-]+)/([^/\?]+)(.*)</from>
+        <to>/experimentAsset?eid=$1&amp;asset=$2</to>
+    </rule>
+
+    <rule>
+        <note>
             experiment page accessible by /experiment/[ExperimentIdentifier]
             rewritten with experiment?eid=E-GEOD-5258
         </note>
