@@ -69,7 +69,7 @@ public class NetCDFReader {
         for (File file : atlasNetCDFDAO.listNetCDFs(experiment)) {
             if (experimentalData == null)
                 experimentalData = new ExperimentalData(experiment);
-            loadArrayDesign(file.getAbsolutePath(), experimentalData);
+            loadArrayDesign(file, experimentalData);
         }
         return experimentalData;
     }
@@ -77,226 +77,221 @@ public class NetCDFReader {
     /**
      * Load one array design from file
      *
-     * @param filename file name to load from
-     * @param data     experimental data object, to add data to
-     * @throws IOException if i/o error occurs
+     * @param file            file to load from
+     * @param data            experimental data object, to add data to
+     * @throws IOException    if i/o error occurs
      */
-    private void loadArrayDesign(String filename, ExperimentalData data) throws IOException {
-        final NetcdfFile ncfile = NetcdfFile.open(filename);
-        ResourceWatchdogFilter.register(new Closeable() {
-            public void close() throws IOException {
-                ncfile.close();
-            }
-        });
+    private void loadArrayDesign(File file, ExperimentalData data) throws IOException {
+        log.info("loadArrayDesign from " + file.getAbsolutePath());
 
-        final Variable varBDC = ncfile.findVariable("BDC");
-        final Variable varGN = ncfile.findVariable("GN");
-        final Variable varEFV = ncfile.findVariable("EFV");
-        final Variable varEF = ncfile.findVariable("EF");
-        final Variable varSC = ncfile.findVariable("SC");
-        Variable varEFSC = ncfile.findVariable("EFSC");
-        if (varEFSC == null) {
-            // Ensure backwards compatibility
-            varEFSC = varEF;
-        }
-        final Variable varSCV = ncfile.findVariable("SCV");
-        final Variable varBS2AS = ncfile.findVariable("BS2AS");
-        final Variable varBSacc = ncfile.findVariable("BSacc");
+        final NetCDFProxy proxy = new NetCDFProxy(file);
 
-        final String arrayDesignAccession = ncfile.findGlobalAttributeIgnoreCase("ADaccession").getStringValue();
-        final ArrayDesign arrayDesign = new ArrayDesign(data.getExperiment().getArrayDesign(arrayDesignAccession));
-
-        final int numSamples = varBSacc.getDimension(0).getLength();
-        final int numAssays = varEFV != null ? varEFV.getDimension(1).getLength() : 0;
-
-        final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
-
-        final ArrayChar efscData = varEFSC != null ? (ArrayChar) varEFSC.read() : new ArrayChar.D2(0, 0);
-        final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0, 0);
-
-        if (varEF != null && varEFV != null) {
-            ArrayChar.StringIterator efvi = ((ArrayChar) varEFV.read()).getStringIterator();
-            for (ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext();) {
-                String efStr = i.next();
-                String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
-                ef = EscapeUtil.encode(ef);
-                List<String> efvList = new ArrayList<String>(numAssays);
-                efvs.put(ef, efvList);
-                for (int j = 0; j < numAssays; ++j) {
-                    efvi.hasNext();
-                    efvList.add(efvi.next());
+        try {
+            final NetcdfFile ncfile = NetcdfFile.open(file.getAbsolutePath());
+            ResourceWatchdogFilter.register(new Closeable() {
+                public void close() throws IOException {
+                    ncfile.close();
                 }
-                efvs.put(ef, efvList);
+            });
+        
+            final Variable varBDC = ncfile.findVariable("BDC");
+            final Variable varEFV = ncfile.findVariable("EFV");
+            final Variable varEF = ncfile.findVariable("EF");
+            final Variable varSC = ncfile.findVariable("SC");
+            Variable varEFSC = ncfile.findVariable("EFSC");
+            if (varEFSC == null) {
+                // Ensure backwards compatibility
+                varEFSC = varEF;
             }
-        }
+            final Variable varSCV = ncfile.findVariable("SCV");
+        
+            final String arrayDesignAccession = ncfile.findGlobalAttributeIgnoreCase("ADaccession").getStringValue();
+            final ArrayDesign arrayDesign = new ArrayDesign(data.getExperiment().getArrayDesign(arrayDesignAccession));
+        
+            final String[] assayAccessions = proxy.getAssayAccessions();
+            final String[] sampleAccessions = proxy.getSampleAccessions();
 
-        final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
-        if (varSCV != null && varSC != null) {
-
-            ArrayChar.StringIterator scvi = ((ArrayChar) varSCV.read()).getStringIterator();
-            for (ArrayChar.StringIterator i = ((ArrayChar) varSC.read()).getStringIterator(); i.hasNext();) {
-                String scStr = i.next();
-                String sc = scStr.startsWith("bs_") ? scStr.substring("bs_".length()) : scStr;
-                sc = EscapeUtil.encode(sc);
-                List<String> scvList = new ArrayList<String>(numSamples);
-                scvs.put(sc, scvList);
-                for (int j = 0; j < numSamples; ++j) {
-                    scvi.hasNext();
-                    scvList.add(scvi.next());
+            final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
+        
+            final ArrayChar efscData = varEFSC != null ? (ArrayChar) varEFSC.read() : new ArrayChar.D2(0, 0);
+            final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0, 0);
+        
+            if (varEF != null && varEFV != null) {
+                ArrayChar.StringIterator efvi = ((ArrayChar) varEFV.read()).getStringIterator();
+                for (ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext();) {
+                    String efStr = i.next();
+                    String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
+                    ef = EscapeUtil.encode(ef);
+                    List<String> efvList = new ArrayList<String>(assayAccessions.length);
+                    efvs.put(ef, efvList);
+                    for (int j = 0; j < assayAccessions.length; ++j) {
+                        efvi.hasNext();
+                        efvList.add(efvi.next());
+                    }
+                    efvs.put(ef, efvList);
                 }
             }
-        }
-
-        Sample[] samples = new Sample[numSamples];
-
-        final ArrayChar.StringIterator BSAccIter = ((ArrayChar) varBSacc.read()).getStringIterator();
-        for (int i = 0; i < numSamples; ++i) {
-            Map<String, String> scvMap = new HashMap<String, String>();
-            for (Map.Entry<String, List<String>> sc : scvs.entrySet())
-                scvMap.put(sc.getKey(), sc.getValue().get(i));
-            samples[i] = data.addSample(scvMap, BSAccIter.next());
-        }
-
-        final Variable ASAcc = ncfile.findVariable("ASacc");
-        final ArrayChar.StringIterator ASAccIter = ((ArrayChar) ASAcc.read()).getStringIterator();
-
-        Assay[] assays = new Assay[numAssays];
-        for (int i = 0; i < numAssays; ++i) {
-            if (!ASAccIter.hasNext()) {
-                throw createUnexpected("Assay accession array is too short in " + filename);
+        
+            final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
+            if (varSCV != null && varSC != null) {
+        
+                ArrayChar.StringIterator scvi = ((ArrayChar) varSCV.read()).getStringIterator();
+                for (ArrayChar.StringIterator i = ((ArrayChar) varSC.read()).getStringIterator(); i.hasNext();) {
+                    String scStr = i.next();
+                    String sc = scStr.startsWith("bs_") ? scStr.substring("bs_".length()) : scStr;
+                    sc = EscapeUtil.encode(sc);
+                    List<String> scvList = new ArrayList<String>(sampleAccessions.length);
+                    scvs.put(sc, scvList);
+                    for (int j = 0; j < sampleAccessions.length; ++j) {
+                        scvi.hasNext();
+                        scvList.add(scvi.next());
+                    }
+                }
             }
-            Map<String, String> efvMap = new HashMap<String, String>();
-            for (Map.Entry<String, List<String>> ef : efvs.entrySet())
-                efvMap.put(ef.getKey(), ef.getValue().get(i));
-            String accession = ASAccIter.next();
-            assays[i] = data.addAssay(data.getExperiment().getAssay(accession), efvMap, i);
-        }
-        if (ASAccIter.hasNext()) {
-            throw createUnexpected("Assay accession array is too long in " + filename);
-        }
-
-        /*
-         * Lazy loading of data, matrix is read only for required elements
-         */
-        data.setExpressionMatrix(arrayDesign, new ExpressionMatrix() {
-            int lastDesignElement = -1;
-            float[] lastData = null;
-
-            public float getExpression(int designElementIndex, int assayId) {
-                if (lastData != null && designElementIndex == lastDesignElement)
+        
+            final Sample[] samples = new Sample[sampleAccessions.length];
+            for (int i = 0; i < sampleAccessions.length; ++i) {
+                Map<String, String> scvMap = new HashMap<String, String>();
+                for (Map.Entry<String, List<String>> sc : scvs.entrySet()) {
+                    scvMap.put(sc.getKey(), sc.getValue().get(i));
+                }
+                samples[i] = data.addSample(scvMap, sampleAccessions[i]);
+            }
+        
+            final Assay[] assays = new Assay[assayAccessions.length];
+            for (int i = 0; i < assayAccessions.length; ++i) {
+                final Map<String, String> efvMap = new HashMap<String, String>();
+                for (Map.Entry<String, List<String>> ef : efvs.entrySet()) {
+                    efvMap.put(ef.getKey(), ef.getValue().get(i));
+                }
+                assays[i] = data.addAssay(data.getExperiment().getAssay(assayAccessions[i]), efvMap, i);
+            }
+        
+            /*
+             * Lazy loading of data, matrix is read only for required elements
+             */
+            data.setExpressionMatrix(arrayDesign, new ExpressionMatrix() {
+                int lastDesignElement = -1;
+                float[] lastData = null;
+        
+                public float getExpression(int designElementIndex, int assayId) {
+                    if (lastData != null && designElementIndex == lastDesignElement)
+                        return lastData[assayId];
+        
+                    int[] shapeBDC = varBDC.getShape();
+                    int[] originBDC = new int[varBDC.getRank()];
+                    originBDC[0] = designElementIndex;
+                    shapeBDC[0] = 1;
+                    try {
+                        lastData = (float[]) varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+                    } catch (IOException e) {
+                        throw createUnexpected("Exception during matrix load", e);
+                    } catch (InvalidRangeException e) {
+                        throw createUnexpected("Exception during matrix load", e);
+                    }
+                    lastDesignElement = designElementIndex;
                     return lastData[assayId];
-
-                int[] shapeBDC = varBDC.getShape();
-                int[] originBDC = new int[varBDC.getRank()];
-                originBDC[0] = designElementIndex;
-                shapeBDC[0] = 1;
-                try {
-                    lastData = (float[]) varBDC.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
-                } catch (IOException e) {
-                    throw createUnexpected("Exception during matrix load", e);
-                } catch (InvalidRangeException e) {
-                    throw createUnexpected("Exception during matrix load", e);
                 }
-                lastDesignElement = designElementIndex;
-                return lastData[assayId];
+            });
+        
+            Variable varUVAL = ncfile.findVariable("uVAL");
+            Variable varUVALNUM = ncfile.findVariable("uVALnum");
+            if (varUVAL == null) {
+                // Ensure backwards compatibility
+                varUVAL = ncfile.findVariable("uEFV");
+                varUVALNUM = ncfile.findVariable("uEFVnum");
+                log.error("ncdf " + file.getAbsolutePath() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
             }
-        });
-
-        Variable varUVAL = ncfile.findVariable("uVAL");
-        Variable varUVALNUM = ncfile.findVariable("uVALnum");
-        if (varUVAL == null) {
-            // Ensure backwards compatibility
-            varUVAL = ncfile.findVariable("uEFV");
-            varUVALNUM = ncfile.findVariable("uEFVnum");
-            log.error("ncdf " + filename + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
-        }
-
-        final Variable varUValue = varUVAL;
-        final Variable varUValueNum = varUVALNUM;
-        final Variable varPVAL = ncfile.findVariable("PVAL");
-        final Variable varTSTAT = ncfile.findVariable("TSTAT");
-
-        /*
-         * Lazy loading of data, matrix is read only for required elements
-         */
-        if (varUValue != null && varUValueNum != null && varPVAL != null && varTSTAT != null) {
-            data.setExpressionStats(arrayDesign, new ExpressionStats() {
-                private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
-
-                private EfvTree<Stat> lastData;
-                long lastDesignElement = -1;
-
-                {
-                    int k = 0;
-                    ArrayChar.StringIterator efvi = ((ArrayChar) varUValue.read()).getStringIterator();
-                    IndexIterator valNumi = varUValueNum.read().getIndexIterator();
-                    for (ArrayChar.StringIterator propi = efscData.getStringIterator(); propi.hasNext() && valNumi.hasNext();) {
-                        String propStr = propi.next();
-                        String prop = propStr.startsWith("ba_") ? propStr.substring("ba_".length()) : propStr;
-                        prop = EscapeUtil.encode(prop);
-                        int valNum = valNumi.getIntNext();
-                        for (; valNum > 0 && efvi.hasNext(); --valNum) {
-                            String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
-                            efvTree.put(prop, efv, k++);
+        
+            final Variable varUValue = varUVAL;
+            final Variable varUValueNum = varUVALNUM;
+            final Variable varPVAL = ncfile.findVariable("PVAL");
+            final Variable varTSTAT = ncfile.findVariable("TSTAT");
+        
+            /*
+             * Lazy loading of data, matrix is read only for required elements
+             */
+            if (varUValue != null && varUValueNum != null && varPVAL != null && varTSTAT != null) {
+                data.setExpressionStats(arrayDesign, new ExpressionStats() {
+                    private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
+        
+                    private EfvTree<Stat> lastData;
+                    long lastDesignElement = -1;
+        
+                    {
+                        int k = 0;
+                        ArrayChar.StringIterator efvi = ((ArrayChar) varUValue.read()).getStringIterator();
+                        IndexIterator valNumi = varUValueNum.read().getIndexIterator();
+                        for (ArrayChar.StringIterator propi = efscData.getStringIterator(); propi.hasNext() && valNumi.hasNext();) {
+                            String propStr = propi.next();
+                            String prop = propStr.startsWith("ba_") ? propStr.substring("ba_".length()) : propStr;
+                            prop = EscapeUtil.encode(prop);
+                            int valNum = valNumi.getIntNext();
+                            for (; valNum > 0 && efvi.hasNext(); --valNum) {
+                                String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
+                                efvTree.put(prop, efv, k++);
+                            }
                         }
                     }
-                }
-
-                public EfvTree<Stat> getExpressionStats(int designElementId) {
-                    if (lastData != null && designElementId == lastDesignElement)
-                        return lastData;
-
-                    try {
-                        int[] shapeBDC = varPVAL.getShape();
-                        int[] originBDC = new int[varPVAL.getRank()];
-                        originBDC[0] = designElementId;
-                        shapeBDC[0] = 1;
-                        float[] pvals = (float[]) varPVAL.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
-                        float[] tstats = (float[]) varTSTAT.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
-
-                        EfvTree<Stat> result = new EfvTree<Stat>();
-                        for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                            float pvalue = pvals[efefv.getPayload()];
-                            float tstat = tstats[efefv.getPayload()];
-                            if (tstat > 1e-8 || tstat < -1e-8)
-                                result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
+        
+                    public EfvTree<Stat> getExpressionStats(int designElementId) {
+                        if (lastData != null && designElementId == lastDesignElement)
+                            return lastData;
+        
+                        try {
+                            int[] shapeBDC = varPVAL.getShape();
+                            int[] originBDC = new int[varPVAL.getRank()];
+                            originBDC[0] = designElementId;
+                            shapeBDC[0] = 1;
+                            float[] pvals = (float[]) varPVAL.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+                            float[] tstats = (float[]) varTSTAT.read(originBDC, shapeBDC).reduce().get1DJavaArray(float.class);
+        
+                            EfvTree<Stat> result = new EfvTree<Stat>();
+                            for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
+                                float pvalue = pvals[efefv.getPayload()];
+                                float tstat = tstats[efefv.getPayload()];
+                                if (tstat > 1e-8 || tstat < -1e-8)
+                                    result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
+                            }
+                            lastDesignElement = designElementId;
+                            lastData = result;
+                            return result;
+                        } catch (IOException e) {
+                            throw createUnexpected("Exception during pvalue/tstat load", e);
+                        } catch (InvalidRangeException e) {
+                            throw createUnexpected("Exception during pvalue/tstat load", e);
                         }
-                        lastDesignElement = designElementId;
-                        lastData = result;
-                        return result;
-                    } catch (IOException e) {
-                        throw createUnexpected("Exception during pvalue/tstat load", e);
-                    } catch (InvalidRangeException e) {
-                        throw createUnexpected("Exception during pvalue/tstat load", e);
+                    }
+                });
+            }
+        
+            final String[] designElementAccessions = proxy.getDesignElementAccessions();
+            if (designElementAccessions != null) {
+                data.setDesignElementAccessions(arrayDesign, new DesignElementAccessions() {
+                    public String getDesignElementAccession(final int designElementIndex) {
+                        try {
+                            return designElementAccessions[designElementIndex];
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            throw createUnexpected("Exception reading design element accessions", e);
+                        }
+                    }
+                });
+            }
+        
+            final int[][] samplesToAssays = proxy.getSamplesToAssays();
+            for (int sampleI = 0; sampleI < sampleAccessions.length; ++sampleI) {
+                for (int assayI = 0; assayI < assayAccessions.length; ++assayI) {
+                    if (samplesToAssays[sampleI][assayI] > 0) {
+                        data.addSampleAssayMapping(samples[sampleI], assays[assayI]);
                     }
                 }
-            });
+            }
+        
+            final long[] geneIds = proxy.getGenes();
+        
+            data.setGeneIds(arrayDesign, geneIds);
+        } finally {
+            proxy.close();
         }
-
-        final Variable DEAcc = ncfile.findVariable("DEacc");
-        if (DEAcc != null) {
-            data.setDesignElementAccessions(arrayDesign, new DesignElementAccessions() {
-                public String getDesignElementAccession(final int designElementIndex) {
-                    try {
-                        return ((ArrayChar.D2) DEAcc.read(String.valueOf(designElementIndex) + ",:")).getString(0);
-                    } catch (IOException e) {
-                        throw createUnexpected("Exception reading design element accessions", e);
-                    } catch (InvalidRangeException e) {
-                        throw createUnexpected("Exception reading design element accessions", e);
-                    }
-                }
-            });
-        }
-
-        IndexIterator mappingI = varBS2AS.read().getIndexIterator();
-        for (int sampleI = 0; sampleI < numSamples; ++sampleI)
-            for (int assayI = 0; assayI < numAssays; ++assayI)
-                if (mappingI.hasNext() && mappingI.getIntNext() > 0) {
-                    data.addSampleAssayMapping(samples[sampleI], assays[assayI]);
-                }
-
-        final long[] geneIds = (long[]) varGN.read().get1DJavaArray(long.class);
-
-        data.setGeneIds(arrayDesign, geneIds);
     }
 }
