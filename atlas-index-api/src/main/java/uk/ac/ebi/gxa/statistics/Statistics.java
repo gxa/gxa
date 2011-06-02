@@ -89,6 +89,45 @@ public class Statistics implements Serializable, StatisticsBuilder {
     // Set of all Experiment ids with expression represented by this object
     private Set<Integer> scoringExperiments = new HashSet<Integer>();
 
+    public void addAll(Statistics other) {
+        mergeMMC(statistics, other.statistics);
+        scoresAcrossAllEfos.addAll(other.scoresAcrossAllEfos);
+        mergeMMMC(pValuesTStatRanks, other.pValuesTStatRanks);
+        mergeMC(efAttributeToBioEntities, other.efAttributeToBioEntities);
+        mergeMC(efvAttributeToBioEntities, other.efvAttributeToBioEntities);
+        scoringExperiments.addAll(other.scoringExperiments);
+    }
+
+    private <T, V, D, M extends Map<V, Map<D, ConciseSet>>> void mergeMMMC(Map<T, M> a, Map<T, M> b) {
+        for (Map.Entry<T, M> entry : b.entrySet()) {
+            if (a.containsKey(entry.getKey())) {
+                mergeMMC(a.get(entry.getKey()), entry.getValue());
+            } else {
+                a.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private <T, V> void mergeMMC(Map<T, Map<V, ConciseSet>> a, Map<T, Map<V, ConciseSet>> b) {
+        for (Map.Entry<T, Map<V, ConciseSet>> entry : b.entrySet()) {
+            if (a.containsKey(entry.getKey())) {
+                mergeMC(a.get(entry.getKey()), entry.getValue());
+            } else {
+                a.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private <T> void mergeMC(Map<T, ConciseSet> a, Map<T, ConciseSet> b) {
+        for (Map.Entry<T, ConciseSet> entry : b.entrySet()) {
+            if (a.containsKey(entry.getKey())) {
+                a.get(entry.getKey()).addAll(entry.getValue());
+            } else {
+                a.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     @Override
     public void addStatistics(final Integer attributeIndex,
                               final Integer experimentIndex,
