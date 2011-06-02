@@ -161,7 +161,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     /**
      * This method HTTP GET's assetFileName's content for a given experiment provided that
      * 1. assetFileName is listed against that experiment in DB
-     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ExperimentAssetPattern)
+     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourcePattern)
      *
      * @param accession     experiment accession
      * @param assetFileName asset file name
@@ -169,7 +169,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @throws IOException
      * @throws ResourceNotFoundException
      */
-    @RequestMapping(value = "/experimentAssets", method = RequestMethod.GET)
+    @RequestMapping(value = "/assets", method = RequestMethod.GET)
     public void getExperimentAsset(
             @RequestParam("eid") String accession,
             @RequestParam("asset") String assetFileName,
@@ -183,8 +183,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
             for (Asset asset : experiment.getAssets()) {
                 if (assetFileName.equals(asset.getFileName())) {
-                    for (ExperimentAssetPattern eap : ExperimentAssetPattern.values()) {
-                        if (eap.handle(new File(netCDFDAO.getDataDirectory(accession), "assets"), assetFileName, response)) {
+                    for (ResourcePattern rp : ResourcePattern.values()) {
+                        if (rp.handle(new File(netCDFDAO.getDataDirectory(accession), "assets"), assetFileName, response)) {
                             return;
                         }
                     }
@@ -194,47 +194,5 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             }
         }
         throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
-    }
-
-
-    /**
-     * Its handle() method returns the requested experiment asset provided that its mime type matches one of the
-     * mime types enumerated in this class.
-     */
-    private static enum ExperimentAssetPattern {
-        PNG("image/png", "png"),
-        GIF("image/gif", "gif");
-
-        private String contentType;
-        private Pattern pattern;
-
-        private ExperimentAssetPattern(String contentType, String extension) {
-            this.contentType = contentType;
-            this.pattern = Pattern.compile("(:?[^\\.]+)\\." + extension);
-        }
-
-        public boolean handle(File dir, String assetFileName, HttpServletResponse response) throws ResourceNotFoundException, IOException {
-            Matcher m = pattern.matcher(assetFileName);
-            if (!m.matches()) {
-                return false;
-            }
-
-            File f = new File(dir, assetFileName);
-            if (!f.exists()) {
-                return false;
-            }
-
-            BufferedInputStream in = null;
-            try {
-                response.setContentType(contentType);
-                in = new BufferedInputStream(new FileInputStream(f));
-                copy(in, response.getOutputStream());
-                response.getOutputStream().flush();
-            } finally {
-                closeQuietly(in);
-            }
-
-            return true;
-        }
     }
 }
