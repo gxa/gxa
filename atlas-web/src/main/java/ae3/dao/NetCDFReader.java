@@ -101,7 +101,6 @@ public class NetCDFReader {
             // Ensure backwards compatibility
             varEFSC = varEF;
         }
-        final Variable varSCV = ncfile.findVariable("SCV");
         
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         
@@ -130,19 +129,15 @@ public class NetCDFReader {
         }
         
         final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
-        if (varSCV != null) {
-            ArrayChar.StringIterator scvi = ((ArrayChar) varSCV.read()).getStringIterator();
-            for (String characteristic : proxy.getCharacteristics()) {
-                if (characteristic.startsWith("bs_")) {
-                    characteristic = characteristic.substring("bs_".length());
-                }
-                characteristic = EscapeUtil.encode(characteristic);
-                List<String> scvList = new ArrayList<String>(sampleAccessions.length);
-                scvs.put(characteristic, scvList);
-                for (int j = 0; j < sampleAccessions.length; ++j) {
-                    scvi.hasNext();
-                    scvList.add(scvi.next());
-                }
+        for (String characteristic : proxy.getCharacteristics()) {
+            if (characteristic.startsWith("bs_")) {
+                characteristic = characteristic.substring("bs_".length());
+            }
+            characteristic = EscapeUtil.encode(characteristic);
+            final List<String> valuesList = new ArrayList<String>(sampleAccessions.length);
+            scvs.put(characteristic, valuesList);
+            for (String value : proxy.getCharacteristicValues(characteristic)) {
+                valuesList.add(value);
             }
         }
         
