@@ -24,4 +24,8 @@ sqlplus -S $ATLAS_CONNECTION @ncdfs-to-export.sql | \
   awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" $2 }'  | \
   xargs tar rvf $ATLAS_RELEASE-ncdf.tar
 
+sqlplus -S $ATLAS_CONNECTION @experiment-assets-to-export.sql | \
+  awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/assets/" $2 }'  | \
+  xargs tar rvf $ATLAS_RELEASE-ncdf.tar
+
 rm ncdf
