@@ -4,6 +4,7 @@ import com.google.common.collect.Multiset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +14,7 @@ import java.util.List;
 public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     private static final Logger log = LoggerFactory.getLogger(ThreadSafeStatisticsBuilder.class);
 
+    @GuardedBy("threadLocals")
     private final List<Statistics[]> threadLocals = new ArrayList<Statistics[]>();
 
     private final ThreadLocal<Statistics[]> statistics = new ThreadLocal<Statistics[]>() {
