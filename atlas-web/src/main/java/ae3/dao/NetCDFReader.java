@@ -25,33 +25,20 @@ package ae3.dao;
 import ae3.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.IndexIterator;
-import ucar.ma2.InvalidRangeException;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
- * NetCDF file reader. The first one. Is used only in API data display code and should be replaced with
- * newer one once someone has time to do it.
- *
- * @author pashky
+ * NetCDF file reader. Now it is rewritten in terms of NetCDFProxy
+ * the code should be moved into ExperimentalData class
  */
 public class NetCDFReader {
     private static final Logger log = LoggerFactory.getLogger(NetCDFReader.class);
@@ -87,21 +74,6 @@ public class NetCDFReader {
         final NetCDFProxy proxy = new NetCDFProxy(file);
         data.addProxy(proxy);
 
-        final NetcdfFile ncfile = NetcdfFile.open(file.getAbsolutePath());
-        ResourceWatchdogFilter.register(new Closeable() {
-            public void close() throws IOException {
-                ncfile.close();
-            }
-        });
-        
-        final Variable varEFV = ncfile.findVariable("EFV");
-        final Variable varEF = ncfile.findVariable("EF");
-        Variable varEFSC = ncfile.findVariable("EFSC");
-        if (varEFSC == null) {
-            // Ensure backwards compatibility
-            varEFSC = varEF;
-        }
-        
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         
         final String[] assayAccessions = proxy.getAssayAccessions();
@@ -109,22 +81,23 @@ public class NetCDFReader {
 
         final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
         
-        final ArrayChar efscData = varEFSC != null ? (ArrayChar) varEFSC.read() : new ArrayChar.D2(0, 0);
-        final ArrayChar efData = varEF != null ? (ArrayChar) varEF.read() : new ArrayChar.D2(0, 0);
+        final String[] factors = proxy.getFactors();
+        final String[] factorsAndCharacteristics;
+        {
+            final String[] tmp = proxy.getFactorsAndCharacteristics();
+            // Ensure backwards compatibility
+            factorsAndCharacteristics = tmp.length != 0 ? tmp : factors;
+        }
         
-        if (varEF != null && varEFV != null) {
-            ArrayChar.StringIterator efvi = ((ArrayChar) varEFV.read()).getStringIterator();
-            for (ArrayChar.StringIterator i = efData.getStringIterator(); i.hasNext();) {
-                String efStr = i.next();
-                String ef = efStr.startsWith("ba_") ? efStr.substring("ba_".length()) : efStr;
-                ef = EscapeUtil.encode(ef);
-                List<String> efvList = new ArrayList<String>(assayAccessions.length);
-                efvs.put(ef, efvList);
-                for (int j = 0; j < assayAccessions.length; ++j) {
-                    efvi.hasNext();
-                    efvList.add(efvi.next());
-                }
-                efvs.put(ef, efvList);
+        for (String ef : factors) {
+            if (ef.startsWith("ba_")) {
+                ef = ef.substring("ba_".length());
+            }
+            ef = EscapeUtil.encode(ef);
+            final List<String> efvList = new ArrayList<String>(assayAccessions.length);
+            efvs.put(ef, efvList);
+            for (String value : proxy.getFactorValues(ef)) {
+                efvList.add(value);
             }
         }
         
@@ -181,24 +154,13 @@ public class NetCDFReader {
             }
         });
         
-        Variable varUVAL = ncfile.findVariable("uVAL");
-        Variable varUVALNUM = ncfile.findVariable("uVALnum");
-        if (varUVAL == null) {
-            // Ensure backwards compatibility
-            varUVAL = ncfile.findVariable("uEFV");
-            varUVALNUM = ncfile.findVariable("uEFVnum");
-            log.error("ncdf " + file.getAbsolutePath() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
-        }
-        
-        final Variable varUValue = varUVAL;
-        final Variable varUValueNum = varUVALNUM;
-        final Variable varPVAL = ncfile.findVariable("PVAL");
-        final Variable varTSTAT = ncfile.findVariable("TSTAT");
+        final List<String> uvals = proxy.getUniqueValues();
+        final int[] uvalIndexes = proxy.getUniqueValueIndexes();
         
         /*
          * Lazy loading of data, matrix is read only for required elements
          */
-        if (varUValue != null && varUValueNum != null && varPVAL != null && varTSTAT != null) {
+        if (uvals.size() > 0 && uvalIndexes.length > 0) {
             data.setExpressionStats(arrayDesign, new ExpressionStats() {
                 private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
         
@@ -206,16 +168,15 @@ public class NetCDFReader {
                 long lastDesignElement = -1;
         
                 {
+                    int index = 0;
                     int k = 0;
-                    ArrayChar.StringIterator efvi = ((ArrayChar) varUValue.read()).getStringIterator();
-                    IndexIterator valNumi = varUValueNum.read().getIndexIterator();
-                    for (ArrayChar.StringIterator propi = efscData.getStringIterator(); propi.hasNext() && valNumi.hasNext();) {
-                        String propStr = propi.next();
+                    for (int propIndex = 0; propIndex < factorsAndCharacteristics.length && index < uvalIndexes.length; ++propIndex) {
+                        String propStr = factorsAndCharacteristics[propIndex];
                         String prop = propStr.startsWith("ba_") ? propStr.substring("ba_".length()) : propStr;
                         prop = EscapeUtil.encode(prop);
-                        int valNum = valNumi.getIntNext();
-                        for (; valNum > 0 && efvi.hasNext(); --valNum) {
-                            String efv = efvi.next().replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
+                        int valNum = uvalIndexes[index];
+                        for (; valNum > 0 && k < uvals.size(); --valNum) {
+                            final String efv = uvals.get(k).replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
                             efvTree.put(prop, efv, k++);
                         }
                     }
