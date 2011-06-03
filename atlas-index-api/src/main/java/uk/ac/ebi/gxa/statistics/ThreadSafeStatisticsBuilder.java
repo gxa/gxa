@@ -59,13 +59,17 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
 
     @Override
     public Statistics getStatistics() {
-        Statistics result = new Statistics();
         synchronized (threadLocals) {
-            for (Statistics[] s : threadLocals) {
+            if (threadLocals.isEmpty())
+                return new Statistics();
+
+            Statistics result = threadLocals.get(0)[0];
+            for (int i = 1; i < threadLocals.size(); i++) {
+                final Statistics[] s = threadLocals.get(i);
                 result.addAll(s[0]);
                 s[0] = null;
             }
+            return result;
         }
-        return result;
     }
 }
