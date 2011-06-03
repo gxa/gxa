@@ -104,8 +104,7 @@ public class NetCDFReader {
         }
         final Variable varSCV = ncfile.findVariable("SCV");
         
-        final String arrayDesignAccession = ncfile.findGlobalAttributeIgnoreCase("ADaccession").getStringValue();
-        final ArrayDesign arrayDesign = new ArrayDesign(data.getExperiment().getArrayDesign(arrayDesignAccession));
+        final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         
         final String[] assayAccessions = proxy.getAssayAccessions();
         final String[] sampleAccessions = proxy.getSampleAccessions();
@@ -233,26 +232,22 @@ public class NetCDFReader {
                         return lastData;
         
                     try {
-                        int[] shapePVAL = varPVAL.getShape();
-                        int[] originPVAL = new int[varPVAL.getRank()];
-                        originPVAL[0] = designElementId;
-                        shapePVAL[0] = 1;
-                        float[] pvals = (float[]) varPVAL.read(originPVAL, shapePVAL).reduce().get1DJavaArray(float.class);
-                        float[] tstats = (float[]) varTSTAT.read(originPVAL, shapePVAL).reduce().get1DJavaArray(float.class);
-        
-                        EfvTree<Stat> result = new EfvTree<Stat>();
+                        final float[] pvals = proxy.getPValuesForDesignElement(designElementId);
+                        final float[] tstats = proxy.getTStatisticsForDesignElement(designElementId);
+                        final EfvTree<Stat> result = new EfvTree<Stat>();
                         for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
                             float pvalue = pvals[efefv.getPayload()];
                             float tstat = tstats[efefv.getPayload()];
-                            if (tstat > 1e-8 || tstat < -1e-8)
+                            if (tstat > 1e-8 || tstat < -1e-8) {
                                 result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
+                            }
                         }
                         lastDesignElement = designElementId;
                         lastData = result;
                         return result;
                     } catch (IOException e) {
                         throw createUnexpected("Exception during pvalue/tstat load", e);
-                    } catch (InvalidRangeException e) {
+                    } catch (ArrayIndexOutOfBoundsException e) {
                         throw createUnexpected("Exception during pvalue/tstat load", e);
                     }
                 }
