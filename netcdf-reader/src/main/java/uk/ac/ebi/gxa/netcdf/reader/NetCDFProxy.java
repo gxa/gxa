@@ -55,10 +55,10 @@ import static java.lang.Float.isNaN;
  * <p/>
  * The NetCDFs for Atlas are structured as follows:
  * <pre>
- *    long  AS(AS) ;
- *    long  BS(BS) ;
+ *    char  ASacc(AS) ;
+ *    char  BSacc(BS) ;
  *    int   BS2AS(BS, AS) ;
- *    long  DE(DE) ;
+ *    char  DEacc(DE) ;
  *    long  GN(GN) ;
  *    int DE2GN(DE, GN) ;
  *    char EF(EF, EFlen) ;
@@ -380,6 +380,21 @@ public class NetCDFProxy implements Closeable {
         // convert to a string array and return
         Object[] uValArray = (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class);
         return Arrays.asList(Arrays.copyOf(uValArray, uValArray.length, String[].class));
+    }
+
+    public int[] getUniqueValueIndexes() throws IOException {
+        Variable uVALnumVar = netCDF.findVariable("uVALnum");
+
+        if (uVALnumVar == null) {
+            // This is to allow for backwards compatibility
+            uVALnumVar = netCDF.findVariable("uEFVnum");
+        }
+
+        if (uVALnumVar == null) {
+            return new int[0];
+        }
+
+        return (int[])uVALnumVar.read().get1DJavaArray(int.class);
     }
 
 
