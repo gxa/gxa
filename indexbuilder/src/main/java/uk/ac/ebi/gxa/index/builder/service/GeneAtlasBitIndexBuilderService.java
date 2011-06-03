@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import com.google.common.base.Function;
+import it.uniroma3.mat.extendedset.FastSet;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -202,9 +203,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             final Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
                             final Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));
 
-                            final SortedSet<Integer> upBioEntityIds = new TreeSet<Integer>();
-                            final SortedSet<Integer> dnBioEntityIds = new TreeSet<Integer>();
-                            final SortedSet<Integer> noBioEntityIds = new TreeSet<Integer>();
+                            final Set<Integer> upBioEntityIds = new FastSet();
+                            final Set<Integer> dnBioEntityIds = new FastSet();
+                            final Set<Integer> noBioEntityIds = new FastSet();
 
                             // Initialise if necessary pval/tstat storage for ef
                             MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttributeIndex);
