@@ -143,7 +143,7 @@ padding: 0;
 
 .errorMessage {
     color:red;
-    visibility:hidden; 
+    visibility:hidden;
 }
 
 /* api links styles */
@@ -238,6 +238,52 @@ padding: 0;
     display: inline;
 }
 
+/* experiment page */
+
+.zoomin-btn {
+    cursor: pointer;
+    background: url(images/zoomin.gif) no-repeat;
+    width: 21px;
+    height: 21px;
+}
+
+.zoomout-btn {
+    cursor: pointer;
+    background: url(images/zoomout.gif) no-repeat;
+    width: 21px;
+    height: 23px;
+}
+
+.panright-btn {
+    cursor: pointer;
+    background: url(images/panright.gif) no-repeat;
+    width: 15px;
+    height: 34px;
+}
+
+.panleft-btn {
+    cursor: pointer;
+    background: url(images/panleft.gif) no-repeat;
+    width: 15px;
+    height: 34px;
+}
+
+.chartIcon.add-btn {
+    cursor: pointer;
+    background: url(images/chart_line_add.png) no-repeat;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+}
+
+.chartIcon.delete-btn {
+    cursor: pointer;
+    background: url(images/chart_line_delete.png) no-repeat;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+}
+
 /* unsorted */
 
 .clean {
@@ -246,10 +292,16 @@ padding: 0;
 }
 
 .waiter2 {
-    border:none;
-    position:absolute;
-    background-color:#F0F0F0;
-    opacity:0.5;
-    text-align:center;
-    z-index:2000;
+    border: none;
+    position: absolute;
+    opacity: 0.5;
+    text-align: center;
+    z-index: 2000;
+    background-color: #F0F0F0;
+}
+
+.waiter2 span {
+    background: url(images/indicator.gif) no-repeat;
+    padding-left: 16px;
+    display: inline-block;
 }
