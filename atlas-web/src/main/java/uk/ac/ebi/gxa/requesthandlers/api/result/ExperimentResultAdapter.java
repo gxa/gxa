@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
 import java.util.*;
+import java.io.Closeable;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -47,7 +48,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  * @author Pavel Kurnosov
  */
 @RestOut(xmlItemName = "result")
-public class ExperimentResultAdapter {
+public class ExperimentResultAdapter implements Closeable {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes = new HashSet<AtlasGene>();
@@ -59,6 +60,10 @@ public class ExperimentResultAdapter {
         this.experiment = experiment;
         this.expData = expData;
         this.genes.addAll(genes);
+    }
+
+    public void close() {
+        expData.close();
     }
 
     @RestOut(name = "experimentInfo")

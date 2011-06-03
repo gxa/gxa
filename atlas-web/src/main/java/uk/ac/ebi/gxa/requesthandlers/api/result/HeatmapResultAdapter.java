@@ -28,6 +28,7 @@ import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Collections2;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -213,8 +214,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         }
     }
 
-    public Iterator<ResultRow> getResults() {
-        return Iterators.transform(r.getResults().iterator(),
+    public Collection<ResultRow> getResults() {
+        return Collections2.transform(r.getResults(),
                 new Function<StructuredResultRow, ResultRow>() {
                     public ResultRow apply(@Nullable StructuredResultRow input) {
                         return new ResultRow(input);

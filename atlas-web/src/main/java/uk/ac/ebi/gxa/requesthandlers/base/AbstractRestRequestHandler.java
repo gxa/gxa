@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -77,8 +78,8 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Format format = null;
+        Object o = null;
         try {
-            Object o;
             try {
                 o = process(request);
             } catch (final RuntimeException e) {
@@ -125,6 +126,13 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
             log.error("I/O exception", e);
         } catch (RestResultRenderException e) {
             fatal(format, "Response render exception", e, response.getWriter());
+        } finally {
+            if (o instanceof Closeable) {
+                try {
+                    ((Closeable)o).close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
 
