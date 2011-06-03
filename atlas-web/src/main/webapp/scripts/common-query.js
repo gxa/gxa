@@ -236,7 +236,7 @@ var atlas = atlas || {};
 
     atlas.newWaiter2 = function(target) {
         var t = $(target);
-        var waiter = $('<div class="waiter2" />').append($('<img/>').attr('src', 'images/indicator.gif')).append("&nbsp;Loading...")
+        var waiter = $('<div class="waiter2"/>').append($("<span/>").append("&nbsp;Loading..."))
                 .css({
                          left: t.offset().left + "px",
                          top: t.offset().top + "px",
