@@ -379,7 +379,7 @@ $(document).ready(function() {
                                         </c:forEach>
                                     </c:when>
                                     <c:otherwise>
-                                        ${u:limitedJoin(atlasGene.geneProperties[prop], 5, ", ", "...")}
+                                        ${u:join(atlasGene.geneProperties[prop], ", ")}
                                     </c:otherwise>
                                 </c:choose>
                             </td>
