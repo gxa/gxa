@@ -39,6 +39,10 @@ http://www.springframework.org/schema/util/spring-util.xsd">
           destroy-method="shutdown">
         <constructor-arg type="int" value="12"/>
     </bean>
+    <bean id="bitp" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
+          destroy-method="shutdown">
+        <constructor-arg type="int" value="2"/>
+    </bean>
     <!-- Spring config for Atlas -->
 
     <!-- SOLR index -->
@@ -166,7 +170,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="executor" ref="threadPool"/>
+        <property name="executor" ref="bitp"/>
         <constructor-arg value="bitstats"/>
     </bean>
 
@@ -183,9 +187,9 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="includeIndexes">
             <util:list>
                 <value>bitstats</value>
-                <value>experiments</value>
-                <value>properties</value>
-                <value>genes</value>
+                <!--<value>experiments</value>-->
+                <!--<value>properties</value>-->
+                <!--<value>genes</value>-->
             </util:list>
         </property>
         <property name="executor" ref="threadPool"/>
