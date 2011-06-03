@@ -51,6 +51,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
+import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -58,9 +59,7 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -185,7 +184,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         return UNSUPPORTED_HTML_VIEW;
     }
 
-      /**
+    /**
      * This method HTTP GET's assetFileName's content for a given experiment provided that
      * 1. assetFileName is listed against that experiment in DB
      * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourcePattern)
@@ -210,7 +209,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 for (Asset asset : experiment.getAssets()) {
                     if (assetFileName.equals(asset.getFileName())) {
                         for (ResourcePattern rp : ResourcePattern.values()) {
-                            if (rp.handle(new File(netCDFDAO.getDataDirectory(accession), "assets"), assetFileName, response)) {
+                            if (rp.handle(new File(netCDFDAO.getDataDirectory(experiment), "assets"), assetFileName, response)) {
                                 return;
                             }
                         }
@@ -222,7 +221,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
         throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
-    
+
     /**
      * Returns experiment table data for given search parameters.
      * (JSON view only supported)
