@@ -30,6 +30,7 @@ import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.annotation.Nullable;
+import javax.persistence.*;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
