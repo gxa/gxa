@@ -32,10 +32,12 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
 
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -58,15 +60,14 @@ public class ExperimentalData implements Closeable {
      * @throws IOException if i/o error occurs
      */
     public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException {
+        log.info("loading data for experiment" + experiment.getAccession());
+
         ExperimentalData experimentalData = null;
-        for (File file : atlasNetCDFDAO.listNetCDFs(experiment)) {
-            if (experimentalData == null)
+        for (NetCDFDescriptor descriptor : atlasNetCDFDAO.getNetCDFDescriptors(experiment)) {
+            if (experimentalData == null) {
                 experimentalData = new ExperimentalData(experiment);
-
-            log.info("loadArrayDesign from " + file.getAbsolutePath());
-
-            final NetCDFProxy proxy = new NetCDFProxy(file);
-            experimentalData.addProxy(proxy);
+            }
+            experimentalData.addProxy(descriptor.createProxy());
         }
         return experimentalData;
     }
