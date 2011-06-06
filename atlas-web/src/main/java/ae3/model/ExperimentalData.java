@@ -381,7 +381,7 @@ public class ExperimentalData implements Closeable {
      * @return array of design element id's to be used in expression/statistics retrieval functions
      */
     public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
-        final Map<Long, int[]> geneMap = geneIdMap.get(arrayDesign);
+        Map<Long, int[]> geneMap = geneIdMap.get(arrayDesign);
         if (geneMap == null) {
             final NetCDFProxy proxy = proxies.get(arrayDesign);
             if (proxy == null) {
