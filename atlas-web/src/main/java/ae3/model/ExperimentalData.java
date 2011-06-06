@@ -78,7 +78,32 @@ public class ExperimentalData implements Closeable {
         return EscapeUtil.encode(name);
     }
 
-    private void loadArrayDesign(final NetCDFProxy proxy) throws IOException {
+    private final Experiment experiment;
+    private final List<Sample> samples = new ArrayList<Sample>();
+    private final List<Assay> assays = new ArrayList<Assay>();
+
+    private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
+
+    private final Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign, ExpressionMatrix>();
+    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
+    private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
+
+    private Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
+    private Set<String> experimentalFactors = new HashSet<String>();
+    private Set<String> sampleCharacteristics = new HashSet<String>();
+    private Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
+
+    /**
+     * Empty class from the start, one should fill it with addXX and setXX methods
+     * @param experiment
+     */
+    public ExperimentalData(Experiment experiment) {
+        this.experiment = experiment;
+    }
+
+    public void addProxy(NetCDFProxy proxy) throws IOException {
+        ResourceWatchdogFilter.register(proxy);
+
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         proxies.put(arrayDesign, proxy);
         
@@ -134,34 +159,6 @@ public class ExperimentalData implements Closeable {
                 }
             }
         }
-    }
-
-    private final Experiment experiment;
-    private final List<Sample> samples = new ArrayList<Sample>();
-    private final List<Assay> assays = new ArrayList<Assay>();
-
-    private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
-
-    private final Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign, ExpressionMatrix>();
-    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
-    private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
-
-    private Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
-    private Set<String> experimentalFactors = new HashSet<String>();
-    private Set<String> sampleCharacteristics = new HashSet<String>();
-    private Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
-
-    /**
-     * Empty class from the start, one should fill it with addXX and setXX methods
-     * @param experiment
-     */
-    public ExperimentalData(Experiment experiment) {
-        this.experiment = experiment;
-    }
-
-    public void addProxy(NetCDFProxy proxy) throws IOException {
-        ResourceWatchdogFilter.register(proxy);
-        loadArrayDesign(proxy);
     }
 
     public void close() {
