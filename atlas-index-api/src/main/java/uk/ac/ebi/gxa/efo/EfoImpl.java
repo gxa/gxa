@@ -59,9 +59,9 @@ public class EfoImpl implements Efo {
     private File cache;
     private URI uri;
 
-    Map<String, EfoNode> efomap;
-    String version;
-    String versionInfo;
+    private Map<String, EfoNode> efomap;
+    private String version;
+    private String versionInfo;
 
     public void setUri(URI uri) {
         this.uri = uri;
