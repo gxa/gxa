@@ -9,6 +9,7 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -131,8 +132,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     throw new IndexBuilderException("NetCDF " + f.getCanonicalPath() + " is out of date");
                 }
 
-                ExperimentInfo experiment = new ExperimentInfo(ncdf.getExperimentAccession(), ncdf.getExperimentId());
-                final Integer expIdx = experimentIndex.addObject(experiment);
+                final Integer expIdx = experimentIndex.addObject(obtainExperimentInfo(ncdf));
 
                 // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
                 // TODO should change to ncdf.getUniqueValues()
@@ -303,6 +303,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
+    }
+
+    private ExperimentInfo obtainExperimentInfo(NetCDFProxy ncdf) {
+        final Experiment exp = getAtlasDAO().getExperimentByAccession(ncdf.getExperimentAccession());
+        return new ExperimentInfo(exp.getAccession(), exp.getId());
     }
 
     private List<File> ncdfsToProcess() {
