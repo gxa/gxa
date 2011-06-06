@@ -4,7 +4,7 @@ set recsep off
 set echo off
 set serveroutput off
 set tab off
-set line 500
+set line 5000
 set wrap off
 set feedback off
 set verify off
