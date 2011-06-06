@@ -31,10 +31,10 @@ import static com.google.common.base.Joiner.on;
  * Internal node representation structure
  */
 class EfoNode implements Serializable {
-    String id;
-    String term;
+    final String id;
+    final String term;
     final List<String> alternativeTerms;
-    boolean branchRoot;
+    final boolean branchRoot;
 
     private static class TermComparator implements Comparator<EfoNode>, Serializable {
         public int compare(EfoNode o1, EfoNode o2) {
@@ -42,10 +42,10 @@ class EfoNode implements Serializable {
         }
     }
 
-    static Comparator<EfoNode> termAlphaComp = new TermComparator();
+    final static Comparator<EfoNode> termAlphaComp = new TermComparator();
 
-    SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
-    SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
+    final SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
+    final SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
 
     public EfoNode(String id, String term, boolean branchRoot, List<String> alternativeTerms) {
         this.id = id;
