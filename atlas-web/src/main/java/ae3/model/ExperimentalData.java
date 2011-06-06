@@ -28,18 +28,23 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+
 import javax.annotation.Nullable;
 import java.util.*;
+import java.io.Closeable;
+import java.io.IOException;
 
 /**
  * NetCDF experiment data representation class
  *
  * @author pashky
  */
-public class ExperimentalData {
+public class ExperimentalData implements Closeable {
     private final Experiment experiment;
-    private List<Sample> samples = new ArrayList<Sample>();
-    private List<Assay> assays = new ArrayList<Assay>();
+    private final List<Sample> samples = new ArrayList<Sample>();
+    private final List<Assay> assays = new ArrayList<Assay>();
+    private final List<NetCDFProxy> proxies = new ArrayList<NetCDFProxy>();
 
     private Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign, ExpressionMatrix>();
     private Map<ArrayDesign, DesignElementAccessions> designElementAccessions = new HashMap<ArrayDesign, DesignElementAccessions>();
@@ -56,6 +61,19 @@ public class ExperimentalData {
      */
     public ExperimentalData(Experiment experiment) {
         this.experiment = experiment;
+    }
+
+    public void addProxy(NetCDFProxy proxy) {
+        proxies.add(proxy);
+    }
+
+    public void close() {
+        for (NetCDFProxy p : proxies) {
+            try {
+                p.close();
+            } catch (IOException e) {
+            }
+        }
     }
 
     public Experiment getExperiment() {

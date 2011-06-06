@@ -28,43 +28,6 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class ExternalResourceController extends AtlasViewController {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static enum ResourcePattern {
-        CSS("text/css", "css"),
-        PNG("image/png", "png");
-
-        private String contentType;
-        private Pattern pattern;
-
-        private ResourcePattern(String contentType, String extension) {
-            this.contentType = contentType;
-            this.pattern = Pattern.compile("(:?[^\\.]+)\\." + extension);
-        }
-
-        public boolean handle(File dir, String resourceName, HttpServletResponse response) throws ResourceNotFoundException, IOException {
-            Matcher m = pattern.matcher(resourceName);
-            if (!m.matches()) {
-                return false;
-            }
-
-            File f = new File(dir, resourceName);
-            if (!f.exists()) {
-                throw new ResourceNotFoundException("Resource doesn't exist: " + f.getAbsolutePath());
-            }
-
-            BufferedInputStream in = null;
-            try {
-                response.setContentType(contentType);
-                in = new BufferedInputStream(new FileInputStream(f));
-                copy(in, response.getOutputStream());
-                response.getOutputStream().flush();
-            } finally {
-                closeQuietly(in);
-            }
-
-            return true;
-        }
-    }
-
     private AtlasProperties atlasProperties;
 
     @Autowired

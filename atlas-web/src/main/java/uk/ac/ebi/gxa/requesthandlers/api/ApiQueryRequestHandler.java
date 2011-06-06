@@ -50,6 +50,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
@@ -78,15 +79,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     volatile boolean disableQueries = false;
-    private NetCDFReader netCDFReader;
-
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
-    }
-
-    public void setNetCDFReader(NetCDFReader netCDFReader) {
-        this.netCDFReader = netCDFReader;
     }
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
@@ -120,6 +115,38 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter>, Closeable {
+        private final ExperimentSolrDAO.AtlasExperimentsResult experiments;
+        private final Collection<ExperimentResultAdapter> results;
+
+        ExperimentResults(ExperimentSolrDAO.AtlasExperimentsResult experiments, Collection<ExperimentResultAdapter> results) {
+            this.experiments = experiments;
+            this.results = results;
+        }
+
+        public long getTotalResults() {
+            return experiments.getTotalResults();
+        }
+
+        public long getNumberOfResults() {
+            return experiments.getNumberOfResults();
+        }
+
+        public long getStartingFrom() {
+            return experiments.getStartingFrom();
+        }
+
+        public Collection<ExperimentResultAdapter> getResults() {
+            return results;
+        }
+
+        public void close() {
+            for (ExperimentResultAdapter adapter : results) {
+                adapter.close();
+            }
+        }
     }
 
     @Override
@@ -170,67 +197,54 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final Predicate<NetCDFProxy> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
                     hasArrayDesign(arrayDesignAccession) : genePredicate;
 
-            return new ApiQueryResults<ExperimentResultAdapter>() {
-                public long getTotalResults() {
-                    return experiments.getTotalResults();
-                }
+            return new ExperimentResults(
+                experiments,
+                transform(experiments.getAtlasExperiments(),
+                    new Function<AtlasExperiment, ExperimentResultAdapter>() {
+                        public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
 
-                public long getNumberOfResults() {
-                    return experiments.getNumberOfResults();
-                }
+                            Collection<AtlasGene> genes = Collections.emptyList();
 
-                public long getStartingFrom() {
-                    return experiments.getStartingFrom();
-                }
+                            ExperimentalData expData = null;
 
-                public Iterator<ExperimentResultAdapter> getResults() {
-                    return transform(experiments.getAtlasExperiments(),
-                            new Function<AtlasExperiment, ExperimentResultAdapter>() {
-                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
+                            if (!experimentInfoOnly) {
 
-                                    Collection<AtlasGene> genes = Collections.emptyList();
+                                NetCDFDescriptor ncdfDescr =
+                                        atlasNetCDFDAO.getNetCdfFile(experiment.getExperiment(), netCDFProxyPredicate);
 
-                                    ExperimentalData expData = null;
-
-                                    if (!experimentInfoOnly) {
-
-                                        NetCDFDescriptor ncdfDescr =
-                                                atlasNetCDFDAO.getNetCdfFile(experiment.getExperiment(), netCDFProxyPredicate);
-
-                                        if (ncdfDescr != null) {
-                                            //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                            Collection<String> factors = Collections.emptyList();
-                                            Collection<String> factorValues = Collections.emptyList();
-                                            if (!conditions.isEmpty()) {
-                                                factors = Arrays.asList(conditions.iterator().next().getFactor());
-                                                factorValues = conditions.iterator().next().getFactorValues();
-                                            }
-
-                                            BestDesignElementsResult geneResults =
-                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            ncdfDescr,
-                                                            geneIds,
-                                                            factors,
-                                                            factorValues,
-                                                            statFilter.asUpDownCondition(),
-                                                            0,
-                                                            10);
-
-                                            genes = geneResults.getGenes();
-                                        }
-
-                                        try {
-                                            expData = netCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
-                                        } catch (IOException e) {
-                                            throw createUnexpected("Failed to read experimental data", e);
-                                        }
+                                if (ncdfDescr != null) {
+                                    //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
+                                    Collection<String> factors = Collections.emptyList();
+                                    Collection<String> factorValues = Collections.emptyList();
+                                    if (!conditions.isEmpty()) {
+                                        factors = Arrays.asList(conditions.iterator().next().getFactor());
+                                        factorValues = conditions.iterator().next().getFactorValues();
                                     }
 
-                                    return new ExperimentResultAdapter(experiment, genes, expData);
+                                    BestDesignElementsResult geneResults =
+                                            atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                    ncdfDescr,
+                                                    geneIds,
+                                                    factors,
+                                                    factorValues,
+                                                    statFilter.asUpDownCondition(),
+                                                    0,
+                                                    10);
+
+                                    genes = geneResults.getGenes();
                                 }
-                            }).iterator();
-                }
-            };
+
+                                try {
+                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
+                                } catch (IOException e) {
+                                    throw createUnexpected("Failed to read experimental data", e);
+                                }
+                            }
+
+                            return new ExperimentResultAdapter(experiment, genes, expData);
+                        }
+                    })
+            );
             //Heatmap page
         } else {
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(

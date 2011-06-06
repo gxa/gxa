@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import java.util.Iterator;
+import java.util.Collection;
 
 /**
  * Base interface for API results providing generic property names for consistency
@@ -36,6 +36,6 @@ public interface ApiQueryResults<ResultItem> {
 
     public long getStartingFrom();
 
-    public Iterator<ResultItem> getResults();
+    public Collection<ResultItem> getResults();
 
 }

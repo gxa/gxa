@@ -32,7 +32,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
 
     private String efName;
     private String efvName;
-    private long experimentID;
+    //private long experimentID;
     private String designElementAccession;  // we don't care about it
     private float tStatistic;
     private float pValAdjusted;
@@ -75,6 +75,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         this.efvName = efvName;
     }
 
+    /*
     public long getExperimentID() {
         return experimentID;
     }
@@ -82,6 +83,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     public void setExperimentID(long experimentID) {
         this.experimentID = experimentID;
     }
+    */
 
     public String getDesignElementAccession() {
         return designElementAccession;
@@ -136,7 +138,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return "ExpressionAnalysis{" +
                 "efName='" + efName + '\'' +
                 ", efvName='" + efvName + '\'' +
-                ", experimentID=" + experimentID +
+                //", experimentID=" + experimentID +
                 ", designElementAccession=" + designElementAccession +
                 ", tStatistic=" + tStatistic +
                 ", pValAdjusted=" + pValAdjusted +
@@ -157,7 +159,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         if (!designElementAccession.equals(that.designElementAccession)) return false;
         if (efId != that.efId) return false;
         if (efvId != that.efvId) return false;
-        if (experimentID != that.experimentID) return false;
+        //if (experimentID != that.experimentID) return false;
         if (Float.compare(that.pValAdjusted, pValAdjusted) != 0) return false;
         if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
         if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
@@ -173,7 +175,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     public int hashCode() {
         int result = efName != null ? efName.hashCode() : 0;
         result = 31 * result + (efvName != null ? efvName.hashCode() : 0);
-        result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
+        //result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
         result = 31 * result + designElementAccession.hashCode();
         result = 31 * result + (tStatistic != +0.0f ? Float.floatToIntBits(tStatistic) : 0);
         result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
