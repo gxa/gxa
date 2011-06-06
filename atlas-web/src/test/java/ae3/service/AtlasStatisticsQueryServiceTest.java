@@ -13,7 +13,8 @@ import java.io.File;
 import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class AtlasStatisticsQueryServiceTest {
@@ -165,15 +166,6 @@ public class AtlasStatisticsQueryServiceTest {
 
 
     @Test
-    public void test_getAttributeForIndex() {
-        assertEquals(hematopoieticStemCellEfv,
-                atlasStatisticsQueryService.getAttributeForIndex(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)));
-        // Test that objects returned from the index are in fact cloned
-        assertFalse(atlasStatisticsQueryService.getAttributeForIndex(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)) ==
-                atlasStatisticsQueryService.getAttributeForIndex(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)));
-    }
-
-    @Test
     public void test_getSortedGenes() {
         List<Integer> sortedGenesChunk = new ArrayList<Integer>();
 
@@ -194,14 +186,14 @@ public class AtlasStatisticsQueryServiceTest {
     @Test
     public void test_getScoringAttributesForGenes() {
 
-        List<Multiset.Entry<Integer>> scoringAttrCounts = atlasStatisticsQueryService.getScoringAttributesForBioEntities(
+        List<Multiset.Entry<EfvAttribute>> scoringAttrCounts = atlasStatisticsQueryService.getScoringAttributesForBioEntities(
                 Collections.singleton(bioEntityId),
                 StatisticsType.UP_DOWN,
                 Collections.singleton(hematopoieticStemCellEfv.getEf()));
         assertNotNull(scoringAttrCounts);
         assertTrue(scoringAttrCounts.size() > 0);
-        for (Multiset.Entry<Integer> attrCount : scoringAttrCounts) {
-            if (attrCount.getElement().equals(atlasStatisticsQueryService.getIndexForAttribute(hematopoieticStemCellEfv)))
+        for (Multiset.Entry<EfvAttribute> attrCount : scoringAttrCounts) {
+            if (attrCount.getElement().equals(hematopoieticStemCellEfv))
                 assertEquals(1, attrCount.getCount());
         }
     }

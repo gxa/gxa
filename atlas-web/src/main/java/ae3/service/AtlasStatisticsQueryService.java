@@ -56,19 +56,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             int minExperiments);
 
     /**
-     * @param attribute
-     * @return Index of Attribute within bit index
-     */
-    public Integer getIndexForAttribute(EfvAttribute attribute);
-
-    /**
-     * @param attributeIndex
-     * @return Attribute corresponding to attributeIndex bit index
-     */
-    public EfvAttribute getAttributeForIndex(Integer attributeIndex);
-
-
-    /**
      * @param statsQuery
      * @param minPos
      * @param rows
@@ -85,12 +72,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             List<Integer> sortedBioEntitiesChunk);
 
     /**
+     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
      * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
      */
-    public List<Multiset.Entry<Integer>> getScoringAttributesForBioEntities(
+    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(
             Set<Integer> bioEntityIds,
             StatisticsType statType,
             Collection<String> autoFactors);

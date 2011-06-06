@@ -1204,14 +1204,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             StatisticsType statisticType,
             boolean isFullHeatMap
     ) {
-        List<Multiset.Entry<Integer>> attrCountsSortedDescByExperimentCounts =
+        List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
 
-        Multiset<Integer> efAttrCounts = HashMultiset.create();
-        for (Multiset.Entry<Integer> attrCount : attrCountsSortedDescByExperimentCounts) {
-            EfvAttribute attr = atlasStatisticsQueryService.getAttributeForIndex(attrCount.getElement());
+        Multiset<EfvAttribute> efAttrCounts = HashMultiset.create();
+        for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {
+            EfvAttribute attr = attrCount.getElement();
             if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
-                Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new EfvAttribute(attr.getEf(), null));
+                EfvAttribute efAttrIndex = new EfvAttribute(attr.getEf(), null);
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
                 if (isFullHeatMap || efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
                     qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
