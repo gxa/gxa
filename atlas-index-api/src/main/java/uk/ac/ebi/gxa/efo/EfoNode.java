@@ -50,8 +50,11 @@ class EfoNode implements Serializable {
     public EfoNode(String id, String term, boolean branchRoot, List<String> alternativeTerms) {
         this.id = id;
         this.term = term;
-        this.alternativeTerms = Collections.unmodifiableList(alternativeTerms);
         this.branchRoot = branchRoot;
+
+        List<String> list = new ArrayList<String>();
+        list.addAll(alternativeTerms);
+        this.alternativeTerms = Collections.unmodifiableList(list);
     }
 
     @Override
