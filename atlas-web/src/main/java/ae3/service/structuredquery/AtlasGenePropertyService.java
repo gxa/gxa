@@ -59,41 +59,28 @@ public class AtlasGenePropertyService implements AutoCompleter,
         DisposableBean {
 
 
-    private static class GeneAutoCompleteItemRank {
+    static class GeneAutoCompleteItemRank {
         /**
          * Stores user-specified ordering of autocomplete items by Species. An autocomplete item associated with a Species
          * which occurs earlier in speciesOrderProperties list will appear earlier in the autocomplete list.
          */
-        private final List<String> speciesOrderProperties = new ArrayList<String>();
+        private final List<String> speciesOrderProperties = new ArrayList<String>();;
 
-        private GeneAutoCompleteItemRank(List<String> speciesOrderProperties) {
+        GeneAutoCompleteItemRank(List<String> speciesOrderProperties) {
             this.speciesOrderProperties.addAll(speciesOrderProperties);
         }
 
-        public Rank getGeneIdRank(GeneAutoCompleteItem item) {
-            return getRank(item, 1.0);
-        }
-
-        public Rank getGeneDescRank(GeneAutoCompleteItem item) {
-            return getRank(item, 0.33);
-        }
-
-        public Rank getGeneNameRank(GeneAutoCompleteItem item) {
-            return getRank(item, 0.66);
-        }
-
-        private Rank getRank(GeneAutoCompleteItem item, double minRank) {
+        public Rank getRank(GeneAutoCompleteItem item) {
             if (item.hasSpecies() && !speciesOrderProperties.isEmpty()) {
-                return getRankBySpecies(item.getSpecies());
+                String species = item.getSpecies();
+                String speciesSearchKey = species.split(" ")[0].toLowerCase();
+                int pos = speciesOrderProperties.indexOf(speciesSearchKey);
+                if (pos >= 0) {
+                    int size = speciesOrderProperties.size();
+                    return new Rank(1.0 * (size - pos) / size);
+                }
             }
-            return new Rank(0.5 * minRank);
-        }
-
-        private Rank getRankBySpecies(String species) {
-            String speciesSearchKey = species.split(" ")[0].toLowerCase();
-            int pos = speciesOrderProperties.indexOf(speciesSearchKey);
-            pos = pos < 0 ? 0 : pos;
-            return new Rank(0.5 + (1.0 * pos) / (speciesOrderProperties.size()));
+            return Rank.maxRank();
         }
     }
 
@@ -228,11 +215,16 @@ public class AtlasGenePropertyService implements AutoCompleter,
             for (String p : idProperties) {
                 searchInGeneIdProperty(p, prefix, atlasProperties.getGeneAutocompleteIdLimit(), result);
             }
+            Collections.sort(result);
+            if (result.size() > atlasProperties.getGeneAutocompleteIdLimit()) {
+                result = result.subList(0, atlasProperties.getGeneAutocompleteIdLimit());
+            }
+
+            searchInGeneNames(prefix, speciesFilter, atlasProperties.getGeneAutocompleteNameLimit(), result);
 
             for (String p : descProperties) {
-                searchInGeneDescProperty(p, prefix, limit, result);
+                searchInGeneDescProperty(p, prefix, limit > 0 ? limit - result.size() : -1, result);
             }
-            searchInGeneNames(prefix, speciesFilter, atlasProperties.getGeneAutocompleteNameLimit(), result);
         } else if (GENE_PROPERTY_NAME.equals(property)) {
             searchInGeneNames(prefix, -1, limit, result);
         } else if (idProperties.contains(property)) {
@@ -247,21 +239,21 @@ public class AtlasGenePropertyService implements AutoCompleter,
     private void searchInGeneIdProperty(String property, String prefix, int limit, List<AutoCompleteItem> result) {
         Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, prefix, limit);
         for (GeneAutoCompleteItem item : items) {
-            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getGeneIdRank(item)));
+            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getRank(item)));
         }
     }
 
     private void searchInGeneDescProperty(String property, String prefix, int limit, List<AutoCompleteItem> result) {
         Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, prefix, limit);
         for (GeneAutoCompleteItem item : items) {
-            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getGeneDescRank(item)));
+            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getRank(item)));
         }
     }
 
     private void searchInGeneNames(String prefix, int speciesFilter, int limit, List<AutoCompleteItem> result) {
         Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, speciesFilter, limit);
         for (GeneAutoCompleteItem item : items) {
-            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getGeneNameRank(item)));
+            result.add(new GeneAutoCompleteItem(item, autoCompleteGeneRank.getRank(item)));
         }
     }
 
