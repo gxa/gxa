@@ -89,10 +89,10 @@ public class ExperimentalData implements Closeable {
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
     private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
 
-    private Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
-    private Set<String> experimentalFactors = new HashSet<String>();
-    private Set<String> sampleCharacteristics = new HashSet<String>();
-    private Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
+    private final Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
+    private final Set<String> experimentalFactors = new HashSet<String>();
+    private final Set<String> sampleCharacteristics = new HashSet<String>();
+    private final Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
@@ -183,9 +183,11 @@ public class ExperimentalData implements Closeable {
      * @return created sample reference
      */
     public Sample addSample(Map<String, String> scvMap, String accession) {
-        for (Sample s : samples)
-            if (accession.equals(s.getAccession()))
+        for (Sample s : samples) {
+            if (accession.equals(s.getAccession())) {
                 return s;
+            }
+        }
         sampleCharacteristics.addAll(scvMap.keySet());
         final Sample sample = new Sample(samples.size(), scvMap, accession);
         samples.add(sample);
@@ -211,6 +213,14 @@ public class ExperimentalData implements Closeable {
         final Assay assay = new Assay(dbAssay, assays.size(), arrayDesign, positionInMatrix);
         assays.add(assay);
         return assay;
+    }
+
+    private NetCDFProxy getProxy(ArrayDesign arrayDesign) {
+        final NetCDFProxy proxy = proxies.get(arrayDesign);
+        if (proxy == null) {
+            throw LogUtil.createUnexpected("NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession() + "is not found");
+        }
+        return proxy;
     }
 
     /**
@@ -248,14 +258,6 @@ public class ExperimentalData implements Closeable {
             expressionMatrix.put(arrayDesign, matrix);
         }
         return matrix;
-    }
-
-    private NetCDFProxy getProxy(ArrayDesign arrayDesign) {
-        final NetCDFProxy proxy = proxies.get(arrayDesign);
-        if (proxy == null) {
-            throw LogUtil.createUnexpected("NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession() + "is not found");
-        }
-        return proxy;
     }
 
     /**
