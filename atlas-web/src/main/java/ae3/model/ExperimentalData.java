@@ -88,12 +88,6 @@ public class ExperimentalData implements Closeable {
         final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
         
         final String[] factors = proxy.getFactors();
-        final String[] factorsAndCharacteristics;
-        {
-            final String[] tmp = proxy.getFactorsAndCharacteristics();
-            // Ensure backwards compatibility
-            factorsAndCharacteristics = tmp.length != 0 ? tmp : factors;
-        }
         
         for (String ef : factors) {
             ef = normalized(ef, "ba_");
@@ -132,72 +126,6 @@ public class ExperimentalData implements Closeable {
             assays[i] = addAssay(getExperiment().getAssay(assayAccessions[i]), efvMap, i);
         }
         
-        final List<String> uvals = proxy.getUniqueValues();
-        final int[] uvalIndexes = proxy.getUniqueValueIndexes();
-        
-        /*
-         * Lazy loading of data, matrix is read only for required elements
-         */
-        if (uvals.size() > 0 && uvalIndexes.length > 0) {
-            setExpressionStats(arrayDesign, new ExpressionStats() {
-                private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
-        
-                private EfvTree<Stat> lastData;
-                long lastDesignElement = -1;
-        
-                {
-                    int index = 0;
-                    int k = 0;
-                    for (int propIndex = 0; propIndex < factorsAndCharacteristics.length && index < uvalIndexes.length; ++propIndex) {
-                        final String prop = normalized(factorsAndCharacteristics[propIndex], "ba_");
-                        int valNum = uvalIndexes[index];
-                        for (; valNum > 0 && k < uvals.size(); --valNum) {
-                            final String efv = uvals.get(k).replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
-                            efvTree.put(prop, efv, k++);
-                        }
-                    }
-                }
-        
-                public EfvTree<Stat> getExpressionStats(int designElementId) {
-                    if (lastData != null && designElementId == lastDesignElement)
-                        return lastData;
-        
-                    try {
-                        final float[] pvals = proxy.getPValuesForDesignElement(designElementId);
-                        final float[] tstats = proxy.getTStatisticsForDesignElement(designElementId);
-                        final EfvTree<Stat> result = new EfvTree<Stat>();
-                        for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                            float pvalue = pvals[efefv.getPayload()];
-                            float tstat = tstats[efefv.getPayload()];
-                            if (tstat > 1e-8 || tstat < -1e-8) {
-                                result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
-                            }
-                        }
-                        lastDesignElement = designElementId;
-                        lastData = result;
-                        return result;
-                    } catch (IOException e) {
-                        throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
-                    }
-                }
-            });
-        }
-        
-        final String[] designElementAccessions = proxy.getDesignElementAccessions();
-        if (designElementAccessions != null) {
-            setDesignElementAccessions(arrayDesign, new DesignElementAccessions() {
-                public String getDesignElementAccession(final int designElementIndex) {
-                    try {
-                        return designElementAccessions[designElementIndex];
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        throw LogUtil.createUnexpected("Exception reading design element accessions", e);
-                    }
-                }
-            });
-        }
-        
         final int[][] samplesToAssays = proxy.getSamplesToAssays();
         for (int sampleI = 0; sampleI < sampleAccessions.length; ++sampleI) {
             for (int assayI = 0; assayI < assayAccessions.length; ++assayI) {
@@ -215,7 +143,7 @@ public class ExperimentalData implements Closeable {
     private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
 
     private final Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign, ExpressionMatrix>();
-    private final Map<ArrayDesign, DesignElementAccessions> designElementAccessions = new HashMap<ArrayDesign, DesignElementAccessions>();
+    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
     private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
 
     private Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
@@ -296,10 +224,7 @@ public class ExperimentalData implements Closeable {
     private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
         ExpressionMatrix matrix = expressionMatrix.get(arrayDesign);
         if (matrix == null) {
-            final NetCDFProxy proxy = proxies.get(arrayDesign);
-            if (proxy == null) {
-                return null;
-            }
+            final NetCDFProxy proxy = getProxy(arrayDesign);
 
             /*
              * Lazy loading of data, matrix is read only for required elements
@@ -327,14 +252,92 @@ public class ExperimentalData implements Closeable {
         return matrix;
     }
 
+    private NetCDFProxy getProxy(ArrayDesign arrayDesign) {
+        final NetCDFProxy proxy = proxies.get(arrayDesign);
+        if (proxy == null) {
+            throw LogUtil.createUnexpected("NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession() + "is not found");
+        }
+        return proxy;
+    }
+
     /**
      * Set expression statistics object for array design
      *
      * @param arrayDesign array design, this data apply to
-     * @param stats       object, implementing expression statistics interface
      */
-    public void setExpressionStats(ArrayDesign arrayDesign, ExpressionStats stats) {
-        this.expressionStats.put(arrayDesign, stats);
+    private ExpressionStats getExpressionStats(ArrayDesign arrayDesign) {
+        ExpressionStats stats = expressionStats.get(arrayDesign);
+
+        if (stats == null) {
+            try {
+                final NetCDFProxy proxy = getProxy(arrayDesign);
+            
+                final List<String> uvals = proxy.getUniqueValues();
+                final int[] uvalIndexes = proxy.getUniqueValueIndexes();
+                
+                if (uvals.size() == 0 || uvalIndexes.length == 0) {
+                    return null;
+                }
+                /*
+                 * Lazy loading of data, matrix is read only for required elements
+                 */
+                final String[] factorsAndCharacteristics;
+                {
+                    final String[] tmp = proxy.getFactorsAndCharacteristics();
+                    // Ensure backwards compatibility
+                    factorsAndCharacteristics = tmp.length != 0 ? tmp : proxy.getFactors();
+                }
+
+                stats = new ExpressionStats() {
+                    private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
+        
+                    private EfvTree<Stat> lastData;
+                    long lastDesignElement = -1;
+        
+                    {
+                        int index = 0;
+                        int k = 0;
+                        for (int propIndex = 0; propIndex < factorsAndCharacteristics.length && index < uvalIndexes.length; ++propIndex) {
+                            final String prop = normalized(factorsAndCharacteristics[propIndex], "ba_");
+                            int valNum = uvalIndexes[index];
+                            for (; valNum > 0 && k < uvals.size(); --valNum) {
+                                final String efv = uvals.get(k).replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
+                                efvTree.put(prop, efv, k++);
+                            }
+                        }
+                    }
+        
+                    public EfvTree<Stat> getExpressionStats(int designElementId) {
+                        if (lastData != null && designElementId == lastDesignElement)
+                            return lastData;
+        
+                        try {
+                            final float[] pvals = proxy.getPValuesForDesignElement(designElementId);
+                            final float[] tstats = proxy.getTStatisticsForDesignElement(designElementId);
+                            final EfvTree<Stat> result = new EfvTree<Stat>();
+                            for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
+                                float pvalue = pvals[efefv.getPayload()];
+                                float tstat = tstats[efefv.getPayload()];
+                                if (tstat > 1e-8 || tstat < -1e-8) {
+                                    result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
+                                }
+                            }
+                            lastDesignElement = designElementId;
+                            lastData = result;
+                            return result;
+                        } catch (IOException e) {
+                            throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
+                        }
+                    }
+                };
+                expressionStats.put(arrayDesign, stats);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        return stats;
     }
 
     /**
@@ -369,7 +372,7 @@ public class ExperimentalData implements Closeable {
      * @return map of statstics
      */
     public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
-        ExpressionStats stats = expressionStats.get(ad);
+        final ExpressionStats stats = getExpressionStats(ad);
         return stats != null ? stats.getExpressionStats(designElement) : new EfvTree<ExpressionStats.Stat>();
     }
 
@@ -383,16 +386,13 @@ public class ExperimentalData implements Closeable {
     public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
         Map<Long, int[]> geneMap = geneIdMap.get(arrayDesign);
         if (geneMap == null) {
-            final NetCDFProxy proxy = proxies.get(arrayDesign);
-            if (proxy == null) {
-                return new int[0];
-            }
+            final NetCDFProxy proxy = getProxy(arrayDesign);
 
             final long[] geneIds;
             try {
                 geneIds = proxy.getGenes();
             } catch (IOException e) {
-                return new int[0];
+                throw LogUtil.createUnexpected("Error during reading gene ids", e);
             }
             geneMap = new HashMap<Long, int[]>();
             for (int i = 0; i < geneIds.length; ++i) {
@@ -478,17 +478,16 @@ public class ExperimentalData implements Closeable {
         return sampleCharacteristics;
     }
 
-    public String getDesignElementAccession(final ArrayDesign arrayDesign, final int designElementId) {
-        return designElementAccessions.get(arrayDesign).getDesignElementAccession(designElementId);
-    }
-
-    /**
-     * Set design element accessions for array design
-     *
-     * @param arrayDesign             array design, this matrix applies to
-     * @param designElementAccessions object, implementing expression matrix interface
-     */
-    public void setDesignElementAccessions(ArrayDesign arrayDesign, DesignElementAccessions designElementAccessions) {
-        this.designElementAccessions.put(arrayDesign, designElementAccessions);
+    public String getDesignElementAccession(ArrayDesign arrayDesign, int designElementId) {
+        String[] array = designElementAccessions.get(arrayDesign);
+        if (array == null) {
+            try {
+                array = getProxy(arrayDesign).getDesignElementAccessions();
+            } catch (IOException e) {
+                throw LogUtil.createUnexpected("Exception during access to designElements", e);
+            }
+            designElementAccessions.put(arrayDesign, array);
+        }
+        return array[designElementId];
     }
 }
