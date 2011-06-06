@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 import it.uniroma3.mat.extendedset.FastSet;
 import ucar.ma2.ArrayFloat;
@@ -10,11 +9,9 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,9 +20,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.Math.round;
 import static java.util.Collections.sort;
@@ -34,8 +29,6 @@ import static java.util.Collections.sort;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
-    private static final double GiB = 1024.0 * 1024.0 * 1024.0;
-
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private final String indexFileName;
     private File atlasIndex;
@@ -123,44 +116,19 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final StatisticsBuilder updnStats = new ThreadSafeStatisticsBuilder();
         final StatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
 
-        List<File> ncdfs = ncdfsToProcess();
+        BitIndexTask task = new BitIndexTask(ncdfsToProcess());
 
-        final AtomicInteger totalStatCount = new AtomicInteger();
-        final int total = ncdfs.size();
-        final long totalSize = size(ncdfs);
-        getLog().info("Found total ncdfs to index: " + total);
-
-        // fetch experiments - we want to include public experiments only in the index
-        final Collection<Long> allExperimentIds = transform(
-                getAtlasDAO().getAllExperiments(),
-                new Function<Experiment, Long>() {
-                    public Long apply(@Nonnull Experiment input) {
-                        return input.getId();
-                    }
-                });
-
-        int processedNcdfsCount = 0;
-        long processedNcdfsSize = 0;
-        // Count of ncdfs in which no efvs were found
-        final AtomicInteger noEfvsNcdfCount = new AtomicInteger(0);
-
-        final long timeStart = System.currentTimeMillis();
+        getLog().info("Found total ncdfs to index: " + task.getTotalFiles());
 
         final ExecutorService summarizer = Executors.newFixedThreadPool(10);
 
-        for (final File nc : ncdfs) {
+        for (final File f : task.getFiles()) {
             NetCDFProxy ncdf = null;
-            getLog().debug("Processing {}", nc);
+            getLog().debug("Processing {}", f);
             try {
-                ncdf = new NetCDFProxy(nc);
+                ncdf = new NetCDFProxy(f);
                 if (ncdf.isOutOfDate()) {
-                    throw new IndexBuilderException("NetCDF " + nc.getCanonicalPath() + " is out of date");
-                }
-
-                if (!allExperimentIds.contains(ncdf.getExperimentId())) {
-                    processedNcdfsCount++;
-                    getLog().info("Excluding from index private experiment: " + ncdf.getExperimentAccession());
-                    continue;
+                    throw new IndexBuilderException("NetCDF " + f.getCanonicalPath() + " is out of date");
                 }
 
                 ExperimentInfo experiment = new ExperimentInfo(ncdf.getExperimentAccession(), ncdf.getExperimentId());
@@ -172,9 +140,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 int car = 0; // count of all Statistics records added for this ncdf
 
                 if (uVals.size() == 0) {
-                    processedNcdfsCount++;
-                    noEfvsNcdfCount.incrementAndGet();
-                    getLog().info("Skipping empty " + nc.getCanonicalPath());
+                    task.skipEmpty(f);
+                    getLog().info("Skipping empty " + f.getCanonicalPath());
                     continue;
                 }
 
@@ -290,15 +257,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     }
                 });
 
-                totalStatCount.addAndGet(car);
+                task.processedStats(car);
                 if (car == 0) {
-                    getLog().debug(nc.getName() + " num uVals : " + uVals.size() + " [" + car + "]");
+                    getLog().debug(f.getName() + " num uVals : " + uVals.size() + " [" + car + "]");
                 }
 
-                processedNcdfsCount++;
-                processedNcdfsSize += nc.length();
-                progressUpdater.update(String.format("%d/%d(%.1f/%.1fG)", processedNcdfsCount, total,
-                        processedNcdfsSize / GiB, totalSize / GiB));
+                task.done(f);
+                progressUpdater.update(task.progress());
             } catch (IOException e) {
                 throw new IndexBuilderException(e.getMessage(), e);
             } finally {
@@ -317,7 +282,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             summarizer.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
             getLog().info("Background jobs done");
 
-            getLog().info("Total statistics data set " + (totalStatCount.get() * 8L) / 1024 + " kB");
+            getLog().info("Total statistics data set " + (task.getTotalStatCount() * 8L) / 1024 + " kB");
 
             // Set statistics
             statisticsStorage.addStatistics(StatisticsType.UP, upStats.getStatistics());
@@ -338,14 +303,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
-    }
-
-    private long size(List<File> files) {
-        long result = 0;
-        for (File f : files) {
-            result += f.length();
-        }
-        return result;
     }
 
     private List<File> ncdfsToProcess() {
