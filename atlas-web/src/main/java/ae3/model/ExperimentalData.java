@@ -35,6 +35,8 @@ import java.util.*;
 import java.io.Closeable;
 import java.io.IOException;
 
+import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
+
 /**
  * NetCDF experiment data representation class
  *
@@ -65,6 +67,7 @@ public class ExperimentalData implements Closeable {
 
     public void addProxy(NetCDFProxy proxy) {
         proxies.add(proxy);
+        ResourceWatchdogFilter.register(proxy);
     }
 
     public void close() {
