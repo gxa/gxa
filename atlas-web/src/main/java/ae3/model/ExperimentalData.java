@@ -206,8 +206,6 @@ public class ExperimentalData implements Closeable {
                 }
             }
         }
-        
-        setGeneIds(arrayDesign, proxy.getGenes());
     }
 
     private final Experiment experiment;
@@ -383,7 +381,30 @@ public class ExperimentalData implements Closeable {
      * @return array of design element id's to be used in expression/statistics retrieval functions
      */
     public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
-        return geneIdMap.get(arrayDesign).get(geneId);
+        final Map<Long, int[]> geneMap = geneIdMap.get(arrayDesign);
+        if (geneMap == null) {
+            final NetCDFProxy proxy = proxies.get(arrayDesign);
+            if (proxy == null) {
+                return new int[0];
+            }
+
+            final long[] geneIds = proxy.getGenes();
+            geneMap = new HashMap<Long, int[]>();
+            for (int i = 0; i < geneIds.length; ++i) {
+                int[] olda = geneMap.get(geneIds[i]);
+                int[] newa;
+                if (olda != null) {
+                    newa = new int[olda.length + 1];
+                    System.arraycopy(olda, 0, newa, 0, olda.length);
+                } else {
+                    newa = new int[1];
+                }
+                newa[newa.length - 1] = i;
+                geneMap.put(geneIds[i], newa);
+            }
+            geneIdMap.put(arrayDesign, geneMap);
+        }
+        return geneMap.get(geneId);
     }
 
     /**
@@ -450,29 +471,6 @@ public class ExperimentalData implements Closeable {
     @RestOut(name = "sampleCharacteristics")
     public Set<String> getSampleCharacteristics() {
         return sampleCharacteristics;
-    }
-
-    /**
-     * Initializes gene to design element mapping
-     *
-     * @param arrayDesign array design, this map applies to
-     * @param geneIds     array of gene ids corresponding to rows of expression matrix (and thus, design elements)
-     */
-    public void setGeneIds(ArrayDesign arrayDesign, long[] geneIds) {
-        Map<Long, int[]> geneMap = new HashMap<Long, int[]>();
-        for (int i = 0; i < geneIds.length; ++i) {
-            int[] olda = geneMap.get(geneIds[i]);
-            int[] newa;
-            if (olda != null) {
-                newa = new int[olda.length + 1];
-                System.arraycopy(olda, 0, newa, 0, olda.length);
-            } else {
-                newa = new int[1];
-            }
-            newa[newa.length - 1] = i;
-            geneMap.put(geneIds[i], newa);
-        }
-        geneIdMap.put(arrayDesign, geneMap);
     }
 
     public String getDesignElementAccession(final ArrayDesign arrayDesign, final int designElementId) {
