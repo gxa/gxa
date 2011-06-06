@@ -34,6 +34,8 @@ import static java.util.Collections.sort;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
+    private static final double GiB = 1024.0 * 1024.0 * 1024.0;
+
     private AtlasNetCDFDAO atlasNetCDFDAO;
     private final String indexFileName;
     private File atlasIndex;
@@ -124,7 +126,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         List<File> ncdfs = ncdfsToProcess();
 
         final AtomicInteger totalStatCount = new AtomicInteger();
-        getLog().info("Found total ncdfs to index: " + ncdfs.size());
+        final int total = ncdfs.size();
+        final long totalSize = size(ncdfs);
+        getLog().info("Found total ncdfs to index: " + total);
 
         // fetch experiments - we want to include public experiments only in the index
         final Collection<Long> allExperimentIds = transform(
@@ -136,6 +140,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 });
 
         int processedNcdfsCount = 0;
+        long processedNcdfsSize = 0;
         // Count of ncdfs in which no efvs were found
         final AtomicInteger noEfvsNcdfCount = new AtomicInteger(0);
 
@@ -291,7 +296,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 }
 
                 processedNcdfsCount++;
-                progressUpdater.update(processedNcdfsCount + "/" + ncdfs.size());
+                processedNcdfsSize += nc.length();
+                progressUpdater.update(String.format("%d/%d(%.1f/%.1fG)", processedNcdfsCount, total,
+                        processedNcdfsSize / GiB, totalSize / GiB));
             } catch (IOException e) {
                 throw new IndexBuilderException(e.getMessage(), e);
             } finally {
@@ -331,6 +338,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
+    }
+
+    private long size(List<File> files) {
+        long result = 0;
+        for (File f : files) {
+            result += f.length();
+        }
+        return result;
     }
 
     private List<File> ncdfsToProcess() {
