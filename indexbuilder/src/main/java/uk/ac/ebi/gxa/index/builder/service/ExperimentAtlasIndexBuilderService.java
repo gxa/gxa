@@ -34,12 +34,10 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.transform;
@@ -53,12 +51,7 @@ import static com.google.common.collect.Collections2.transform;
  * @author Tony Burdett
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
-    private ExecutorService executor;
     private ExperimentDAO experimentDAO;
-
-    public void setExecutor(ExecutorService executor) {
-        this.executor = executor;
-    }
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
@@ -68,53 +61,23 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        // fetch all experiments - check if we want all or only the pending ones
-        final List<Experiment> experiments = experimentDAO.getAll();
-
-        final int total = experiments.size();
-        final AtomicInteger num = new AtomicInteger(0);
-        Collection<Callable<Boolean>> tasks = transform(experiments, new Function<Experiment, Callable<Boolean>>() {
-            @Override
-            public Callable<Boolean> apply(@Nonnull final Experiment experiment) {
-                return new Callable<Boolean>() {
-                    public Boolean call() throws IOException, SolrServerException {
-                        boolean result = processExperiment(experiment.getId());
-                        int processed = num.incrementAndGet();
-                        progressUpdater.update(processed + "/" + total);
-                        return result;
-                    }
-                };
-            }
-        });
-
-        // the first error encountered whilst building the index, if any
-        Exception firstError = null;
-
+        getAtlasDAO().startSession();
         try {
-            final List<Future<Boolean>> results = executor.invokeAll(tasks);
+            // fetch all experiments - check if we want all or only the pending ones
+            final List<Experiment> experiments = experimentDAO.getAll();
 
-            // block until completion, and throw the first error we see
-            for (Future<Boolean> task : results) {
-                try {
-                    task.get();
-                } catch (ExecutionException e) {
-                    // print the stacktrace, but swallow this exception to rethrow at the very end
-                    getLog().error("An error occurred whilst building the Experiments index:\n" + e.getMessage(), e.getCause());
-                    if (firstError == null) {
-                        firstError = e;
-                    }
-                }
+            final int total = experiments.size();
+            int num = 0;
+            for (Experiment experiment : experiments) {
+                processExperiment(experiment);
+                progressUpdater.update(++num + "/" + total);
             }
-
-            // if we have encountered an exception, throw the first error
-            if (firstError != null) {
-                throw new IndexBuilderException("An error occurred whilst building the Experiments index", firstError);
-            }
-        } catch (InterruptedException e) {
-            throw new IndexBuilderException("Interrupted while building the Experiments index", e);
+        } catch (IOException e) {
+            throw new IndexBuilderException(e);
+        } catch (SolrServerException e) {
+            throw new IndexBuilderException(e);
         } finally {
-            // shutdown the service
-            getLog().info("Experiment index building tasks finished, cleaning up resources and exiting");
+            getAtlasDAO().finishSession();
         }
     }
 
@@ -124,48 +87,44 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         String accession = cmd.getAccession();
 
         getLog().info("Updating index for experiment " + accession);
+
+        getAtlasDAO().startSession();
         try {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
             Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
-            processExperiment(experiment.getId());
+            processExperiment(experiment);
             progressUpdater.update("1/1");
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
         } catch (IOException e) {
             throw new IndexBuilderException(e);
+        } finally {
+            getAtlasDAO().finishSession();
         }
     }
 
     //changed scope to public to make test case
-    public boolean processExperiment(long id) throws SolrServerException, IOException {
-        getAtlasDAO().startSession();
-        try {
-            final Experiment experiment = experimentDAO.getById(id);
-            // Create a new solr document
-            SolrInputDocument solrInputDoc = new SolrInputDocument();
+    public void processExperiment(Experiment experiment) throws SolrServerException, IOException {
+        // Create a new solr document
+        SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-            getLog().info("Updating index - adding experiment {}", experiment.getAccession());
+        getLog().info("Updating index - adding experiment {}", experiment.getAccession());
 
-            solrInputDoc.addField("id", experiment.getId());
-            solrInputDoc.addField("accession", experiment.getAccession());
-            solrInputDoc.addField("description", experiment.getDescription());
-            solrInputDoc.addField("pmid", experiment.getPubmedId());
-            solrInputDoc.addField("abstract", experiment.getAbstract());
-            solrInputDoc.addField("loaddate", experiment.getLoadDate());
-            solrInputDoc.addField("releasedate", experiment.getReleaseDate());
+        solrInputDoc.addField("id", experiment.getId());
+        solrInputDoc.addField("accession", experiment.getAccession());
+        solrInputDoc.addField("description", experiment.getDescription());
+        solrInputDoc.addField("pmid", experiment.getPubmedId());
+        solrInputDoc.addField("abstract", experiment.getAbstract());
+        solrInputDoc.addField("loaddate", experiment.getLoadDate());
+        solrInputDoc.addField("releasedate", experiment.getReleaseDate());
 
-            addAssayInformation(solrInputDoc, experiment);
-            addSampleInformation(solrInputDoc, experiment);
-            addAssetInformation(solrInputDoc, experiment);
+        addAssayInformation(solrInputDoc, experiment);
+        addSampleInformation(solrInputDoc, experiment);
+        addAssetInformation(solrInputDoc, experiment);
 
-            getLog().info("Finalising changes for {}", experiment);
-            getSolrServer().add(solrInputDoc);
-
-            return true;
-        } finally {
-            getAtlasDAO().finishSession();
-        }
+        getLog().info("Finalising changes for {}", experiment);
+        getSolrServer().add(solrInputDoc);
     }
 
     private void addAssayInformation(SolrInputDocument solrInputDoc, Experiment experiment) {

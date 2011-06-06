@@ -37,7 +37,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
-        <constructor-arg type="int" value="12"/>
+        <constructor-arg type="int" value="6"/>
     </bean>
     <!-- Spring config for Atlas -->
 
@@ -150,7 +150,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="experimentDAO" ref="experimentDAO"/>
         <property name="solrServer" ref="solrServerExpt"/>
-        <property name="executor" ref="threadPool"/>
     </bean>
 
     <bean name="indexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService">
@@ -166,26 +165,25 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <property name="executor" ref="threadPool"/>
         <constructor-arg value="bitstats"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <property name="services">
             <util:list>
-                <ref bean="bitIndexBuilderServiceGenes"/>
-                <ref bean="indexBuilderServiceExperiments"/>
                 <ref bean="indexBuilderServiceProperties"/>
+                <ref bean="indexBuilderServiceExperiments"/>
                 <ref bean="indexBuilderServiceGenes"/>
+                <ref bean="bitIndexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <value>bitstats</value>
-                <value>experiments</value>
                 <value>properties</value>
+                <value>experiments</value>
                 <value>genes</value>
+                <value>bitstats</value>
             </util:list>
         </property>
         <property name="executor" ref="threadPool"/>
