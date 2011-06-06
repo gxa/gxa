@@ -98,6 +98,21 @@ public class Statistics implements Serializable, StatisticsBuilder {
         scoringExperiments.addAll(other.scoringExperiments);
     }
 
+    /**
+     * the weird "MMMC" name stands for "merge (Map of Map of Map of ConciseSet)".
+     * The only reason we need such a name is Java's type erasure:
+     * <code>merge(Map<T, M> a, Map<T, M> b)</code>,
+     * <code>merge(Map<T, Map<V, ConciseSet>> a, Map<T, Map<V, ConciseSet>> b)</code>,
+     * and <code>merge(Map<T, ConciseSet> a, Map<T, ConciseSet> b)</code>
+     * as we'd all prefer to call these would all be just <code>merge(Map, Map)</code>.
+     *
+     * @param a   map to merge data into
+     * @param b   data to merge into a
+     * @param <T> Type of a first level key
+     * @param <V> Type of a second level key
+     * @param <D> Type of a third level key
+     * @param <M> Technical parameter, not used externally.
+     */
     private <T, V, D, M extends Map<V, Map<D, ConciseSet>>> void mergeMMMC(Map<T, M> a, Map<T, M> b) {
         for (Map.Entry<T, M> entry : b.entrySet()) {
             if (a.containsKey(entry.getKey())) {
