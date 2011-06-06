@@ -23,39 +23,31 @@
 package uk.ac.ebi.gxa.efo;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * External view for node class
  */
 public class EfoTerm implements Serializable {
-    private String id;
-    private String term;
-    private List<String> alternativeTerms;
+    private final String id;
+    private final String term;
+    private final List<String> alternativeTerms;
+    private final boolean branchRoot;
+    private final boolean root;
+    private final int depth;
     private boolean expandable;
-    private boolean branchRoot;
-    private boolean root;
-    private int depth;
 
-    EfoTerm(EfoNode node, boolean root) {
-        this(node, 0, root);
-    }
-
-    /**
-     * Constructor to create a term from another one and custom depth
-     *
-     * @param other original node to clone
-     * @param depth depth to set (we can have depth relative to something, not from real root all the time)
-     */
-    public EfoTerm(EfoTerm other, int depth) {
-        this.id = other.getId();
-        this.term = other.getTerm();
-        this.expandable = other.isExpandable();
-        this.branchRoot = other.isBranchRoot();
-        this.alternativeTerms = other.alternativeTerms;
+    public EfoTerm(String id, String term, Collection<String> alternativeTerms, boolean expandable, boolean branchRoot, boolean root, int depth) {
+        this.id = id;
+        this.term = term;
+        this.expandable = expandable;
+        this.branchRoot = branchRoot;
+        this.alternativeTerms = new ArrayList<String>();
+        this.alternativeTerms.addAll(alternativeTerms);
         this.depth = depth;
-        this.root = other.isRoot();
+        this.root = root;
     }
 
     /**
@@ -66,17 +58,21 @@ public class EfoTerm implements Serializable {
      * @param root  true if this node is root
      */
     public EfoTerm(EfoNode node, int depth, boolean root) {
-        this.id = node.id;
-        this.term = node.term;
-        this.expandable = node.hasChildren();
-        this.branchRoot = node.branchRoot;
-        this.alternativeTerms = node.alternativeTerms;
-        this.depth = depth;
-        this.root = root;
+        this(node.id, node.term, node.alternativeTerms, node.hasChildren(), node.branchRoot, root, depth);
     }
 
-    public EfoTerm(String efoTermStr) {
-        this(new EfoNode(efoTermStr, efoTermStr, false, Collections.<String>emptyList()), 0, false);
+    public EfoTerm(EfoNode node, boolean root) {
+        this(node, 0, root);
+    }
+
+    /**
+     * Constructor to create a term from another one and custom depth
+     *
+     * @param other original node to clone
+     * @param depth depth to set (we can have depth relative to something, not from real root all the time)
+     */
+    public EfoTerm(EfoTerm other, int depth) {
+        this(other.id, other.term, other.alternativeTerms, other.expandable, other.branchRoot, other.root, depth);
     }
 
     /**

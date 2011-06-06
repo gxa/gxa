@@ -92,7 +92,7 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         // Mock Efo object
         Efo efo = EasyMock.createMock(Efo.class);
         for (String efoTermStr : efoTerms) {
-            EfoTerm efoTerm = new EfoTerm(efoTermStr);
+            EfoTerm efoTerm = new EfoTerm(efoTermStr, efoTermStr, Collections.<String>emptyList(), false, false, false, 0);
             EasyMock.expect(efo.getTermById(EasyMock.eq(efoTermStr))).andReturn(efoTerm);
         }
         EasyMock.replay(efo);
