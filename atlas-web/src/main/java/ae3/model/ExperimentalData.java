@@ -388,7 +388,12 @@ public class ExperimentalData implements Closeable {
                 return new int[0];
             }
 
-            final long[] geneIds = proxy.getGenes();
+            final long[] geneIds;
+            try {
+                geneIds = proxy.getGenes();
+            } catch (IOException e) {
+                return new int[0];
+            }
             geneMap = new HashMap<Long, int[]>();
             for (int i = 0; i < geneIds.length; ++i) {
                 int[] olda = geneMap.get(geneIds[i]);
