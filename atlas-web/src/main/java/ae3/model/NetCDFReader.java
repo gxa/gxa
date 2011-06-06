@@ -20,18 +20,14 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.dao;
+package ae3.model;
 
-import ae3.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
@@ -40,27 +36,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  * NetCDF file reader. Now it is rewritten in terms of NetCDFProxy
  * the code should be moved into ExperimentalData class
  */
-public class NetCDFReader {
-    private static final Logger log = LoggerFactory.getLogger(NetCDFReader.class);
-
-    /**
-     * Load experimental data using default path
-     *
-     * @param atlasNetCDFDAO      netCDF DAO
-     * @param experiment data accession
-     * @return either constructed object or null, if no data files was found for this accession
-     * @throws IOException if i/o error occurs
-     */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException {
-        ExperimentalData experimentalData = null;
-        for (File file : atlasNetCDFDAO.listNetCDFs(experiment)) {
-            if (experimentalData == null)
-                experimentalData = new ExperimentalData(experiment);
-            loadArrayDesign(file, experimentalData);
-        }
-        return experimentalData;
-    }
-
+class NetCDFReader {
     /**
      * Load one array design from file
      *
@@ -68,12 +44,7 @@ public class NetCDFReader {
      * @param data            experimental data object, to add data to
      * @throws IOException    if i/o error occurs
      */
-    private static void loadArrayDesign(File file, ExperimentalData data) throws IOException {
-        log.info("loadArrayDesign from " + file.getAbsolutePath());
-
-        final NetCDFProxy proxy = new NetCDFProxy(file);
-        data.addProxy(proxy);
-
+    static void loadArrayDesign(final NetCDFProxy proxy, ExperimentalData data) throws IOException {
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         
         final String[] assayAccessions = proxy.getAssayAccessions();

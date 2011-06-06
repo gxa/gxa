@@ -22,18 +22,20 @@
 
 package ae3.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.*;
 
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 
@@ -43,6 +45,32 @@ import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
  * @author pashky
  */
 public class ExperimentalData implements Closeable {
+    private static final Logger log = LoggerFactory.getLogger(ExperimentalData.class);
+
+    /**
+     * Load experimental data using default path
+     *
+     * @param atlasNetCDFDAO      netCDF DAO
+     * @param experiment data accession
+     * @return either constructed object or null, if no data files was found for this accession
+     * @throws IOException if i/o error occurs
+     */
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException {
+        ExperimentalData experimentalData = null;
+        for (File file : atlasNetCDFDAO.listNetCDFs(experiment)) {
+            if (experimentalData == null)
+                experimentalData = new ExperimentalData(experiment);
+
+            log.info("loadArrayDesign from " + file.getAbsolutePath());
+
+            final NetCDFProxy proxy = new NetCDFProxy(file);
+            experimentalData.addProxy(proxy);
+
+            NetCDFReader.loadArrayDesign(proxy, experimentalData);
+        }
+        return experimentalData;
+    }
+
     private final Experiment experiment;
     private final List<Sample> samples = new ArrayList<Sample>();
     private final List<Assay> assays = new ArrayList<Assay>();
