@@ -40,4 +40,18 @@ public class ExperimentResult {
     public ExperimentInfo getExperimentInfo() {
         return experiment;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExperimentResult that = (ExperimentResult) o;
+        return experiment == null ? that.experiment == null : experiment.equals(that.experiment);
+    }
+
+    @Override
+    public int hashCode() {
+        return experiment != null ? experiment.hashCode() : 0;
+    }
 }
