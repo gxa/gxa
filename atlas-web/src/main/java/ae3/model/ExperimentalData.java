@@ -40,6 +40,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * NetCDF experiment data representation class
  *
@@ -140,12 +142,8 @@ public class ExperimentalData implements Closeable {
     }
 
     public void close() {
-        for (NetCDFProxy p : proxies.values()) {
-            try {
-                p.close();
-            } catch (IOException e) {
-            }
-        }
+        for (NetCDFProxy p : proxies.values())
+            closeQuietly(p);
     }
 
     public Experiment getExperiment() {
