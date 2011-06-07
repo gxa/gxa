@@ -136,6 +136,11 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
 
             if (rank != null) {
                 AutoCompleteItem tmp = result.get(item.getId());
+                /**
+                 * Getting the shorter path makes the trees in the auto-complete drop-down
+                 * list shorter and easier to observe. Any other way of choosing
+                 * preferable efo path is welcome here.
+                 */
                 if (tmp == null || stack.size() < tmp.getPath().size()) {
                     result.put(item.getId(), new EfoAutoCompleteItem(item, stack, rank));
                 }
