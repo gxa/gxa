@@ -31,8 +31,8 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.*;
 import java.io.Closeable;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -158,7 +158,7 @@ public class ExperimentResultAdapter implements Closeable {
         public Map<String, DesignElementExpMap> getGeneExpressions() {
             Map<String, DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
             for (AtlasGene gene : experimentResultAdapter.genes) {
-                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElements(arrayDesign, gene.getGeneId());
+                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
                 if (designElements != null) {
                     DesignElementExpMap deMap = new DesignElementExpMap();
                     for (final int designElementId : designElements) {
@@ -203,7 +203,7 @@ public class ExperimentResultAdapter implements Closeable {
         public Map<String, DesignElementStatMap> getGeneExpressions() {
             Map<String, DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
             for (AtlasGene gene : genes) {
-                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElements(arrayDesign, gene.getGeneId());
+                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
                 if (designElements != null) {
                     DesignElementStatMap deMap = new DesignElementStatMap();
                     for (final int designElementId : designElements) {

@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static java.lang.System.arraycopy;
 
 /**
  * NetCDF experiment data representation class
@@ -77,9 +78,9 @@ public class ExperimentalData implements Closeable {
 
     private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
 
-    private final Map<ArrayDesign, ExpressionMatrix> expressionMatrix = new HashMap<ArrayDesign, ExpressionMatrix>();
+    private final Map<ArrayDesign, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesign, ExpressionMatrix>();
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
-    private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
+    private final Map<ArrayDesign, Map<Long, int[]>> geneIdMaps = new HashMap<ArrayDesign, Map<Long, int[]>>();
 
     private final Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
@@ -164,10 +165,10 @@ public class ExperimentalData implements Closeable {
      * @param arrayDesign array design, this matrix applies to
      */
     private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
-        ExpressionMatrix matrix = expressionMatrix.get(arrayDesign);
+        ExpressionMatrix matrix = expressionMatrices.get(arrayDesign);
         if (matrix == null) {
             matrix = new ExpressionMatrix(getProxy(arrayDesign));
-            expressionMatrix.put(arrayDesign, matrix);
+            expressionMatrices.put(arrayDesign, matrix);
         }
         return matrix;
     }
@@ -234,8 +235,8 @@ public class ExperimentalData implements Closeable {
      * @param geneId      gene id (the Atlas/DW one)
      * @return array of design element id's to be used in expression/statistics retrieval functions
      */
-    public int[] getDesignElements(ArrayDesign arrayDesign, long geneId) {
-        Map<Long, int[]> geneMap = geneIdMap.get(arrayDesign);
+    public int[] getDesignElementIndexes(ArrayDesign arrayDesign, long geneId) {
+        Map<Long, int[]> geneMap = geneIdMaps.get(arrayDesign);
         if (geneMap == null) {
             final NetCDFProxy proxy = getProxy(arrayDesign);
 
@@ -246,21 +247,23 @@ public class ExperimentalData implements Closeable {
                 throw LogUtil.createUnexpected("Error during reading gene ids", e);
             }
             geneMap = new HashMap<Long, int[]>();
-            for (int i = 0; i < geneIds.length; ++i) {
-                int[] olda = geneMap.get(geneIds[i]);
-                int[] newa;
-                if (olda != null) {
-                    newa = new int[olda.length + 1];
-                    System.arraycopy(olda, 0, newa, 0, olda.length);
-                } else {
-                    newa = new int[1];
-                }
-                newa[newa.length - 1] = i;
-                geneMap.put(geneIds[i], newa);
+            for (int currentIndex = 0; currentIndex < geneIds.length; ++currentIndex) {
+                int[] deIndexes = geneMap.get(geneIds[currentIndex]);
+                geneMap.put(geneIds[currentIndex], append(deIndexes, currentIndex));
             }
-            geneIdMap.put(arrayDesign, geneMap);
+            geneIdMaps.put(arrayDesign, geneMap);
         }
         return geneMap.get(geneId);
+    }
+
+    private int[] append(int[] array, int a) {
+        if (array == null) {
+            return new int[]{a};
+        }
+        int[] result = new int[array.length + 1];
+        arraycopy(array, 0, result, 0, array.length);
+        result[result.length - 1] = a;
+        return result;
     }
 
     /**
