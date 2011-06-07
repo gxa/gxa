@@ -72,13 +72,6 @@ public class ExperimentalData implements Closeable {
         return experimentalData;
     }
 
-    private static String normalized(String name, String prefix) {
-        if (name.startsWith(prefix)) {
-            name = name.substring(prefix.length());
-        }
-        return EscapeUtil.encode(name);
-    }
-
     private final Experiment experiment;
     private final List<SampleDecorator> samples = new ArrayList<SampleDecorator>();
     private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
@@ -89,8 +82,6 @@ public class ExperimentalData implements Closeable {
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
     private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
 
-    private final Set<String> experimentalFactors = new HashSet<String>();
-    private final Set<String> sampleCharacteristics = new HashSet<String>();
     private final Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
     /**
@@ -101,19 +92,18 @@ public class ExperimentalData implements Closeable {
         this.experiment = experiment;
     }
 
+    private static String normalized(String name, String prefix) {
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length());
+        }
+        return EscapeUtil.encode(name);
+    }
+
     public void addProxy(NetCDFProxy proxy) throws IOException {
         ResourceWatchdogFilter.register(proxy);
 
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         proxies.put(arrayDesign, proxy);
-        
-        for (String factor : proxy.getFactors()) {
-            experimentalFactors.add(normalized(factor, "ba_"));
-        }
-        
-        for (String characteristic : proxy.getCharacteristics()) {
-            sampleCharacteristics.add(normalized(characteristic, "bs_"));
-        }
         
         final String[] sampleAccessions = proxy.getSampleAccessions();
         final SampleDecorator[] sampleDecorators = new SampleDecorator[sampleAccessions.length];
@@ -421,7 +411,7 @@ public class ExperimentalData implements Closeable {
      */
     @RestOut(name = "experimentalFactors")
     public Set<String> getExperimentalFactors() {
-        return experimentalFactors;
+        return experiment.getExperimentFactors();
     }
 
     /**
@@ -431,7 +421,7 @@ public class ExperimentalData implements Closeable {
      */
     @RestOut(name = "sampleCharacteristics")
     public Set<String> getSampleCharacteristics() {
-        return sampleCharacteristics;
+        return experiment.getExperimentCharacteristics();
     }
 
     public String getDesignElementAccession(ArrayDesign arrayDesign, int designElementId) {
