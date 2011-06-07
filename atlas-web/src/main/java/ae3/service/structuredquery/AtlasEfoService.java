@@ -122,7 +122,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         Map<String, AutoCompleteItem> result = new HashMap<String, AutoCompleteItem>();
 
         for (EfoTerm term : subTree) {
-            while (stack.size() > term.getDepth() + 1) {
+            while (stack.size() > term.getDepth()) {
                 stack.pop();
             }
 
