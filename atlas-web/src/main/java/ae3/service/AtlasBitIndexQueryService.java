@@ -282,7 +282,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             int toRow) {
 
         List<Attribute> attrs;
-        if (attribute.getValue() == null) { // Empty attribute
+        if (attribute.isEmpty()) { // Empty attribute
             List<String> efs = getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
             attrs = new ArrayList<Attribute>();
             for (String expFactor : efs) {

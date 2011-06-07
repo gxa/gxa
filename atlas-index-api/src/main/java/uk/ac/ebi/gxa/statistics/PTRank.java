@@ -5,15 +5,15 @@ import java.io.Serializable;
 /**
  * This class is used as a key in SortedMaps to achieve sorting (by pval/tstat rank) of experiments for an OR list attributes (c.f. Statistics class)
  */
-public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
+public class PTRank implements Serializable, Comparable<PTRank> {
 
-    private static final long serialVersionUID = -1725289896518124374L;
+    private static final long serialVersionUID = 201106071155L;
     // pValue rounded off to 3 decimal places - c.f. GeneAtlasBitIndexBuilderService.bitIndexNetCDFs()
     private Float pValue;
     // For the definition of tStat rank see GeneAtlasBitIndexBuilderService.getTStatRank()
     private Short tStatRank;
 
-    public PvalTstatRank(Float pValue, Short tStatRank) {
+    public PTRank(Float pValue, Short tStatRank) {
         this.pValue = pValue;
         this.tStatRank = tStatRank;
     }
@@ -31,7 +31,7 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        PvalTstatRank that = (PvalTstatRank) o;
+        PTRank that = (PTRank) o;
 
         if (pValue != null ? !pValue.equals(that.pValue) : that.pValue != null) return false;
         if (tStatRank != null ? !tStatRank.equals(that.tStatRank) : that.tStatRank != null) return false;
@@ -57,7 +57,7 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
      * method, so two elements that are deemed equal by this method are, from the standpoint of the set, equal.
      * <p/>
      * 2c. serves to ensure that contract between compareTo() and equal() is preserved, but also ensures that two PvalTstatRanks (pVal=0 tStatRank=3) and (pVal=0 tStatRank=-3)
-     * sre stored as two distinct objects in a TreeSet. This is because PvalTstatRank class serves a dual function:
+     * sre stored as two distinct objects in a TreeSet. This is because PTRank class serves a dual function:
      * - from UP/DOWN Atlas data ordering point of view, (pVal=0 tStatRank=3) and (pVal=0 tStatRank=-3) are equivalent
      * - from UP vs DOWN point of view they are not.
      * Hence, the only way I could think of for supporting both requirements in Statistics.pValuesTStatRanks was to store both PvalTstatRanks as distinct from each other,
@@ -69,16 +69,16 @@ public class PvalTstatRank implements Serializable, Comparable<PvalTstatRank> {
      * @throws ClassCastException if the specified object's type prevents it
      *                            from being compared to this object.
      */
-    public int compareTo(PvalTstatRank o) {
+    public int compareTo(PTRank o) {
         if (getTStatRank() != null && o.getTStatRank() != null && Math.abs(getTStatRank()) != Math.abs(o.getTStatRank())) {
             return Math.abs(o.getTStatRank()) - Math.abs(getTStatRank()); // higher absolute value of tStatRank comes first
         }
 
         if (getPValue() == null || getPValue() > 1) // NA pVal for this experiment
-            return 1; // the other PvalTstatRank comes first
+            return 1; // the other PTRank comes first
 
         if (o.getPValue() == null || o.getPValue() > 1) // NA pVal for the compared experiment
-            return -1; // this PvalTstatRank comes first
+            return -1; // this PTRank comes first
 
         if (getPValue().equals(o.getPValue()))
             if (getTStatRank() != null && o.getTStatRank() != null)

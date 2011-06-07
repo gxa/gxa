@@ -4,7 +4,7 @@ public class ExperimentResult {
     private ExperimentInfo experiment;
 
     // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
-    private PvalTstatRank pValTstatRank;
+    private PTRank pValTstatRank;
 
     // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
     private EfvAttribute highestRankAttribute;
@@ -21,11 +21,11 @@ public class ExperimentResult {
         return experiment.getExperimentId();
     }
 
-    public PvalTstatRank getPValTStatRank() {
+    public PTRank getPValTStatRank() {
         return pValTstatRank;
     }
 
-    public void setPValTstatRank(PvalTstatRank pValTstatRank) {
+    public void setPValTstatRank(PTRank pValTstatRank) {
         this.pValTstatRank = pValTstatRank;
     }
 

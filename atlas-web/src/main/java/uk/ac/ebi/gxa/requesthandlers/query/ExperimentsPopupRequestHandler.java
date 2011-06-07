@@ -135,7 +135,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             });
 
-            // Now retrieve (from ncdfs) PvalTstatRank for each exp in nonDEExps and then add to allExperiments
+            // Now retrieve (from ncdfs) PTRank for each exp in nonDEExps and then add to allExperiments
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = newHashMap();
             // Gather all experiment-efefv mappings for attr and all its children (if efo)
             Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
@@ -172,7 +172,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
 
                 if (ea != null) {
-                    exp.setPValTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
+                    exp.setPValTstatRank(new PTRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
                     allExperiments.add(exp); // Add nonDE expression statistic to allExperiments
                 } else {
                     throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +

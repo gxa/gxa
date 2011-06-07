@@ -76,7 +76,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * more information). Note that at the level of pValue/tStat ranks the map is sorted in best first order - this will
      * help in ranking experiments w.r.t. to a bioentity-ef-efv triple by lowest pValue/highest absolute value of tStat rank first.
      */
-    private Map<EfvAttribute, SortedMap<PvalTstatRank, Map<ExperimentInfo, ConciseSet>>> pValuesTStatRanks = newHashMap();
+    private Map<EfvAttribute, SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>>> pValuesTStatRanks = newHashMap();
 
     // ef-only Attribute -> ConciseSet of BioEntity ids (See class description D. for more information)
     // LinkedHashMap is used to always return ef keySet() in the same order - important for maintaining consistent ordering of experiment lists
@@ -273,7 +273,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * @param attribute
      * @return pValue/tStat rank -> Experiment -> ConciseSet of bioEntityId, corresponding to attribute
      */
-    public SortedMap<PvalTstatRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attribute) {
+    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attribute) {
         return pValuesTStatRanks.get(attribute);
     }
 
@@ -312,15 +312,15 @@ public class Statistics implements Serializable, StatisticsBuilder {
                                    final Short tStatRank,
                                    final ExperimentInfo experiment,
                                    final Integer bioEntityId) {
-        SortedMap<PvalTstatRank, Map<ExperimentInfo, ConciseSet>> pValTStatRankToExpToBioEntities = pValuesTStatRanks.get(attribute);
+        SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValTStatRankToExpToBioEntities = pValuesTStatRanks.get(attribute);
         if (pValTStatRankToExpToBioEntities == null) {
             pValuesTStatRanks.put(attribute, pValTStatRankToExpToBioEntities = newTreeMap());
         }
 
-        PvalTstatRank pvalTstatRank = new PvalTstatRank(pValue, tStatRank);
-        Map<ExperimentInfo, ConciseSet> experimentToBioEntities = pValTStatRankToExpToBioEntities.get(pvalTstatRank);
+        PTRank ptRank = new PTRank(pValue, tStatRank);
+        Map<ExperimentInfo, ConciseSet> experimentToBioEntities = pValTStatRankToExpToBioEntities.get(ptRank);
         if (experimentToBioEntities == null) {
-            pValTStatRankToExpToBioEntities.put(pvalTstatRank, experimentToBioEntities = newHashMap());
+            pValTStatRankToExpToBioEntities.put(ptRank, experimentToBioEntities = newHashMap());
         }
         ConciseSet bioEntities = experimentToBioEntities.get(experiment);
         if (bioEntities == null) {

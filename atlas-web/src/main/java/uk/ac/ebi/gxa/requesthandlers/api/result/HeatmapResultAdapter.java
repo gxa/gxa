@@ -223,8 +223,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 });
     }
 
-    private static UpDownExpression toExpression(PvalTstatRank pvalTstatRank) {
-        return UpDownExpression.valueOf(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank());
+    private static UpDownExpression toExpression(PTRank ptRank) {
+        return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
     }
 
     /**

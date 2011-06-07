@@ -61,4 +61,7 @@ public abstract class Attribute {
     }
 
 
+    public boolean isEmpty() {
+        return getValue() == null;
+    }
 }

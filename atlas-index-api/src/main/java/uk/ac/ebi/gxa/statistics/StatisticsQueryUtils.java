@@ -231,11 +231,11 @@ public class StatisticsQueryUtils {
 
             for (EfvAttribute attr : attributes) {
 
-                SortedMap<PvalTstatRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenes =
+                SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenes =
                         statisticsStorage.getPvalsTStatRanksForAttribute(attr, statisticsQuery.getStatisticsType());
 
                 if (pValToExpToGenes != null) {
-                    for (Map.Entry<PvalTstatRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
+                    for (Map.Entry<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
                         Map<ExperimentInfo, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
                         if (expToGenes != null) {
                             for (Map.Entry<ExperimentInfo, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {

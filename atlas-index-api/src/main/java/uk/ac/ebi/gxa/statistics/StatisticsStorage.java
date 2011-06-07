@@ -120,7 +120,7 @@ public class StatisticsStorage implements Serializable {
      * @param statType
      * @return pValue/tStat rank -> Experiment index -> ConciseSet of BioEntity ids, corresponding to attributeIndex and statType
      */
-    public SortedMap<PvalTstatRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attributeIndex, StatisticsType statType) {
+    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attributeIndex, StatisticsType statType) {
         return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
     }
 

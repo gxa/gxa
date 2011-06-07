@@ -9,10 +9,10 @@ public class ObjectPool<T> {
     private ConcurrentMap<T, T> pool = new ConcurrentHashMap<T, T>();
 
     /**
-     * Obtain canonical (i.e. least recently used) version of the requested object
+     * Obtain canonical (i.e. already known) version of the requested object
      *
      * @param o the object to intern
-     * @return canonical (i.e. least recently used) version of the requested object
+     * @return canonical (i.e. already known) version of the requested object
      */
     public T intern(T o) {
         return pool.putIfAbsent(o, o);
