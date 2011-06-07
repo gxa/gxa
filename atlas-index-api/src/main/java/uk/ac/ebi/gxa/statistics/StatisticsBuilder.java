@@ -13,7 +13,7 @@ public interface StatisticsBuilder {
 
     void setScoresAcrossAllEfos(Multiset<Integer> scores);
 
-    void addPvalueTstatRank(EfvAttribute attributeIndex, Float pValue, Short tStatRank, ExperimentInfo experimentIndex, Integer bioEntityId);
+    void addPvalueTstatRank(EfvAttribute attributeIndex, PTRank ptRank, ExperimentInfo experimentIndex, Integer bioEntityId);
 
     Statistics getStatistics();
 }

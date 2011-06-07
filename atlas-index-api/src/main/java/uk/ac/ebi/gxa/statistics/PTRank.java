@@ -1,28 +1,39 @@
 package uk.ac.ebi.gxa.statistics;
 
+import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
+
+import static java.lang.Float.compare;
+import static java.lang.Float.isNaN;
+import static java.lang.Math.abs;
+import static java.lang.Math.round;
 
 /**
  * This class is used as a key in SortedMaps to achieve sorting (by pval/tstat rank) of experiments for an OR list attributes (c.f. Statistics class)
  */
-public class PTRank implements Serializable, Comparable<PTRank> {
+@Immutable
+public final class PTRank implements Serializable, Comparable<PTRank> {
+    private static final long serialVersionUID = 201106071204L;
+    public static final float PRECISION = 1e-3F;
+    // pValue rounded off to 3 decimal places - c.f. PRECISION
+    private final float pValue;
+    // For the definition of tStat rank see #getTStatRank()
+    private final short tStatRank;
 
-    private static final long serialVersionUID = 201106071155L;
-    // pValue rounded off to 3 decimal places - c.f. GeneAtlasBitIndexBuilderService.bitIndexNetCDFs()
-    private Float pValue;
-    // For the definition of tStat rank see GeneAtlasBitIndexBuilderService.getTStatRank()
-    private Short tStatRank;
-
-    public PTRank(Float pValue, Short tStatRank) {
+    private PTRank(float pValue, short tStatRank) {
         this.pValue = pValue;
         this.tStatRank = tStatRank;
     }
 
-    public Float getPValue() {
+    public static PTRank of(float p, float t) {
+        return new PTRank(roundToPrecision(p), getTStatRank(t));
+    }
+
+    public float getPValue() {
         return pValue;
     }
 
-    public Short getTStatRank() {
+    public short getTStatRank() {
         return tStatRank;
     }
 
@@ -31,18 +42,14 @@ public class PTRank implements Serializable, Comparable<PTRank> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        PTRank that = (PTRank) o;
-
-        if (pValue != null ? !pValue.equals(that.pValue) : that.pValue != null) return false;
-        if (tStatRank != null ? !tStatRank.equals(that.tStatRank) : that.tStatRank != null) return false;
-
-        return true;
+        PTRank ptRank = (PTRank) o;
+        return compare(ptRank.pValue, pValue) == 0 && tStatRank == ptRank.tStatRank;
     }
 
     @Override
     public int hashCode() {
-        int result = pValue != null ? pValue.hashCode() : 0;
-        result = 31 * result + (tStatRank != null ? tStatRank.hashCode() : 0);
+        int result = (pValue != +0.0f ? Float.floatToIntBits(pValue) : 0);
+        result = 31 * result + (int) tStatRank;
         return result;
     }
 
@@ -70,23 +77,63 @@ public class PTRank implements Serializable, Comparable<PTRank> {
      *                            from being compared to this object.
      */
     public int compareTo(PTRank o) {
-        if (getTStatRank() != null && o.getTStatRank() != null && Math.abs(getTStatRank()) != Math.abs(o.getTStatRank())) {
-            return Math.abs(o.getTStatRank()) - Math.abs(getTStatRank()); // higher absolute value of tStatRank comes first
+        if (abs(getTStatRank()) != abs(o.getTStatRank())) {
+            return abs(o.getTStatRank()) - abs(getTStatRank()); // higher absolute value of tStatRank comes first
         }
 
-        if (getPValue() == null || getPValue() > 1) // NA pVal for this experiment
+        if (isNaN(getPValue()) || getPValue() > 1) // NA pVal for this experiment
             return 1; // the other PTRank comes first
 
-        if (o.getPValue() == null || o.getPValue() > 1) // NA pVal for the compared experiment
+        if (isNaN(o.getPValue()) || o.getPValue() > 1) // NA pVal for the compared experiment
             return -1; // this PTRank comes first
 
-        if (getPValue().equals(o.getPValue()))
-            if (getTStatRank() != null && o.getTStatRank() != null)
-                // if pvals are different, return the lower actual value of tStatRank
-                // (arbitrary if it's lower or higher here - it's just that one of them has to come first)
-                return getTStatRank() - o.getTStatRank();
+        if (compare(getPValue(), o.getPValue()) == 0)
+            // if pvals are different, return the lower actual value of tStatRank
+            // (arbitrary if it's lower or higher here - it's just that one of them has to come first)
+            return getTStatRank() - o.getTStatRank();
+
+        return compare(getPValue(), o.getPValue()); // lower pVals come first
+    }
 
 
-        return getPValue().compareTo(o.getPValue()); // lower pVals come first
+    /**
+     * @param t thr T statistic value to convert into a roughly resembling it <code>short</code>
+     * @return tStat ranks as follows:
+     *         t =<  -9       -> rank: -10
+     *         t in <-6, -9)  -> rank: -7
+     *         t in <-3, -6)  -> rank: -4
+     *         t in (-3,  0)  -> rank: -1
+     *         t == 0         -> rank:  0
+     *         t in ( 0,  3)  -> rank:  1
+     *         t in < 3,  6)  -> rank:  4
+     *         t in < 6,  9)  -> rank:  7
+     *         t >=   9       -> rank:  10
+     *         Note that the higher the absolute value of tStat (rank) the better the tStat.
+     */
+    private static short getTStatRank(float t) {
+        // TODO: 4alf: what about NaN?
+        if (t <= -9) {
+            return -10;
+        } else if (t <= -6) {
+            return -7;
+        } else if (t <= -3) {
+            return -4;
+        } else if (t < 0) {
+            return -1;
+        } else if (t == 0) {
+            return 0;
+        } else if (t < 3) {
+            return 1;
+        } else if (t < 6) {
+            return 4;
+        } else if (t < 9) {
+            return 7;
+        } else {
+            return 10;
+        }
+    }
+
+    private static float roundToPrecision(float value) {
+        return round(value / PRECISION) * PRECISION;
     }
 }

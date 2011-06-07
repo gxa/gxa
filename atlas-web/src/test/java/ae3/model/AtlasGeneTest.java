@@ -100,7 +100,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         EfvAttribute attr = new EfvAttribute("cell_type", "B220+ b cell", StatisticsType.UP_DOWN);
         ExperimentInfo ei = new ExperimentInfo("E-MTAB-25", 411512559l);
         ExperimentResult exp = new ExperimentResult(ei);
-        exp.setPValTstatRank(new PTRank(0.007f, (short) 0));
+        exp.setPValTstatRank(PTRank.of(0.007f, 0));
         EasyMock.expect(atlasStatisticsQueryService.getScoringEfvsForBioEntity(gene.getGeneId(), StatisticsType.UP_DOWN)).andReturn(Collections.<EfvAttribute>singletonList(attr));
 
         EasyMock.expect(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1)).andReturn(Collections.<ExperimentResult>singletonList(exp));

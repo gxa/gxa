@@ -49,8 +49,8 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     }
 
     @Override
-    public void addPvalueTstatRank(final EfvAttribute attributeIndex, final Float pValue, final Short tStatRank, final ExperimentInfo experimentIndex, final Integer bioEntityId) {
-        get().addPvalueTstatRank(attributeIndex, pValue, tStatRank, experimentIndex, bioEntityId);
+    public void addPvalueTstatRank(final EfvAttribute attributeIndex, final PTRank ptRank, final ExperimentInfo experimentIndex, final Integer bioEntityId) {
+        get().addPvalueTstatRank(attributeIndex, ptRank, experimentIndex, bioEntityId);
     }
 
     private Statistics get() {

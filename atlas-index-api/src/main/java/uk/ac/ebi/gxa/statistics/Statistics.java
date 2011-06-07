@@ -299,25 +299,16 @@ public class Statistics implements Serializable, StatisticsBuilder {
 
     /**
      * Add pValue/tstat ranks for attribute-experiment-bioentity combination
-     *
-     * @param attribute
-     * @param pValue
-     * @param tStatRank
-     * @param experiment
-     * @param bioEntityId
      */
     @Override
     public void addPvalueTstatRank(final EfvAttribute attribute,
-                                   final Float pValue,
-                                   final Short tStatRank,
+                                   final PTRank ptRank,
                                    final ExperimentInfo experiment,
                                    final Integer bioEntityId) {
         SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValTStatRankToExpToBioEntities = pValuesTStatRanks.get(attribute);
         if (pValTStatRankToExpToBioEntities == null) {
             pValuesTStatRanks.put(attribute, pValTStatRankToExpToBioEntities = newTreeMap());
         }
-
-        PTRank ptRank = new PTRank(pValue, tStatRank);
         Map<ExperimentInfo, ConciseSet> experimentToBioEntities = pValTStatRankToExpToBioEntities.get(ptRank);
         if (experimentToBioEntities == null) {
             pValTStatRankToExpToBioEntities.put(ptRank, experimentToBioEntities = newHashMap());

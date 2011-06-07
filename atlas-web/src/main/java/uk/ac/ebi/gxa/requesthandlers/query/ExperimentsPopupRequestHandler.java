@@ -51,7 +51,6 @@ import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
  * @author pashky
  */
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
-
     private GeneSolrDAO geneSolrDAO;
     private ExperimentDAO experimentDAO;
     private Efo efo;
@@ -172,7 +171,9 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
 
                 if (ea != null) {
-                    exp.setPValTstatRank(new PTRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
+                    final float p = ea.getPValAdjusted();
+                    final float t = ea.getTStatistic();
+                    exp.setPValTstatRank(PTRank.of(p, t));
                     allExperiments.add(exp); // Add nonDE expression statistic to allExperiments
                 } else {
                     throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +

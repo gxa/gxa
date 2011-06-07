@@ -23,7 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.io.Closeables.closeQuietly;
-import static java.lang.Math.round;
 import static java.util.Collections.sort;
 
 /**
@@ -362,8 +361,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     static class MinPMaxT {
-        private static final float PRECISION = 1e-3F;
-
         private Map<Integer, Float> geneToMinP = new HashMap<Integer, Float>();
         private Map<Integer, Float> geneToMaxT = new HashMap<Integer, Float>();
 
@@ -380,13 +377,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttributeIndex) {
             for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxT.get(entry.getKey()));
-                stats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx, entry.getKey());
+                stats.addPvalueTstatRank(efvAttributeIndex,
+                        PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
+                        expIdx, entry.getKey());
             }
-        }
-
-        private Float roundToDesiredPrecision(float value) {
-            return round(value / PRECISION) * PRECISION;
         }
     }
 }
