@@ -1,0 +1,43 @@
+package uk.ac.ebi.gxa.statistics;
+
+public class ExperimentResult {
+    private ExperimentInfo experiment;
+
+    // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
+    private PvalTstatRank pValTstatRank;
+
+    // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
+    private EfvAttribute highestRankAttribute;
+
+    public ExperimentResult(ExperimentInfo experiment) {
+        this.experiment = experiment;
+    }
+
+    public String getAccession() {
+        return experiment.getAccession();
+    }
+
+    public long getExperimentId() {
+        return experiment.getExperimentId();
+    }
+
+    public PvalTstatRank getPValTStatRank() {
+        return pValTstatRank;
+    }
+
+    public void setPValTstatRank(PvalTstatRank pValTstatRank) {
+        this.pValTstatRank = pValTstatRank;
+    }
+
+    public EfvAttribute getHighestRankAttribute() {
+        return highestRankAttribute;
+    }
+
+    public void setHighestRankAttribute(EfvAttribute highestRankAttribute) {
+        this.highestRankAttribute = highestRankAttribute;
+    }
+
+    public ExperimentInfo getExperimentInfo() {
+        return experiment;
+    }
+}

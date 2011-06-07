@@ -107,13 +107,14 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public Set<EfvAttribute> getAttributesForEfo(String efoTerm);
 
     /**
+     *
      * @param bioEntityId BioEntity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
-    public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
+    public List<ExperimentResult> getExperimentsSortedByPvalueTRank(
             final Integer bioEntityId,
             final Attribute attribute,
             final int fromRow,

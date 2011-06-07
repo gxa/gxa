@@ -222,13 +222,13 @@ public class AtlasStatisticsQueryServiceTest {
      * @param list
      * @return true if list is sorted in ASC order by experiments' pVal/tStatRanks
      */
-    private boolean isSortedByPValTStatRank(List<ExperimentInfo> list) {
+    private boolean isSortedByPValTStatRank(List<ExperimentResult> list) {
         boolean sorted = true;
-        ExperimentInfo earlierExperiment = null;
-        for (ExperimentInfo experiment : list) {
-            assertNotNull(experiment.getpValTStatRank());
+        ExperimentResult earlierExperiment = null;
+        for (ExperimentResult experiment : list) {
+            assertNotNull(experiment.getPValTStatRank());
             if (earlierExperiment != null) {
-                if (earlierExperiment.getpValTStatRank().compareTo(experiment.getpValTStatRank()) > 0) {
+                if (earlierExperiment.getPValTStatRank().compareTo(experiment.getPValTStatRank()) > 0) {
                     sorted = false;
                 }
             }
@@ -243,21 +243,21 @@ public class AtlasStatisticsQueryServiceTest {
         EfvAttribute attr = new EfvAttribute(null, null);
         attr.setStatType(StatisticsType.UP_DOWN);
 
-        List<ExperimentInfo> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1);
+        List<ExperimentResult> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1);
         assertNotNull(list);
         assertTrue(list.size() > 0);
-        ExperimentInfo bestExperiment = list.get(0);
+        ExperimentResult bestExperiment = list.get(0);
         assertNotNull(bestExperiment.getHighestRankAttribute());
         assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
         assertTrue(isSortedByPValTStatRank(list));
 
-        List<ExperimentInfo> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, 0, 5);
+        List<ExperimentResult> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, 0, 5);
         assertNotNull(list2);
         assertEquals(5, list2.size());
         assertTrue(isSortedByPValTStatRank(list2));
 
         attr = new EfvAttribute("organism_part", "liver", StatisticsType.UP_DOWN);
-        List<ExperimentInfo> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1);
+        List<ExperimentResult> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1);
         assertNotNull(list3);
         assertTrue(list3.size() > 0);
         assertTrue(isSortedByPValTStatRank(list3));

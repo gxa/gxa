@@ -1,25 +1,20 @@
 package uk.ac.ebi.gxa.statistics;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
 
 /**
  * Serializable representation of an Atlas Experiment for the purpose of ConciseSet storage
  */
+@Immutable
 public class ExperimentInfo implements Serializable {
+    private static final long serialVersionUID = 201106071035L;
 
-    private static final long serialVersionUID = 7789968215270452137L;
+    private final String accession;
+    private final long experimentId;
 
-    private String accession;
-    private long experimentId;
-
-    // Used to store minimum pVal when retrieving ranked lists of experiments sorted (ASC) by pValue/tStat ranks wrt to a specific ef(-efv) combination
-    private PvalTstatRank pValTstatRank;
-
-    // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
-    private transient EfvAttribute highestRankAttribute;
-
-
-    public ExperimentInfo(final String accession, final long experimentId) {
+    public ExperimentInfo(@Nonnull final String accession, final long experimentId) {
         this.accession = accession.intern();
         this.experimentId = experimentId;
     }
@@ -32,25 +27,9 @@ public class ExperimentInfo implements Serializable {
         return experimentId;
     }
 
-    public PvalTstatRank getpValTStatRank() {
-        return pValTstatRank;
-    }
-
-    public void setPvalTstatRank(PvalTstatRank pValTstatRank) {
-        this.pValTstatRank = pValTstatRank;
-    }
-
-    public EfvAttribute getHighestRankAttribute() {
-        return highestRankAttribute;
-    }
-
-    public void setHighestRankAttribute(EfvAttribute highestRankAttribute) {
-         this.highestRankAttribute = highestRankAttribute;
-    }
-
     @Override
     public String toString() {
-        return "experimentId: " + experimentId + "; accession: " + accession +  "; highestRankAttribute: " + highestRankAttribute;
+        return "{experimentId: " + experimentId + "; accession: " + accession + "}";
     }
 
 
@@ -60,11 +39,7 @@ public class ExperimentInfo implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
 
         ExperimentInfo that = (ExperimentInfo) o;
-
-        if (accession == null || !accession.equals(that.accession) || experimentId != that.experimentId) {
-            return false;
-        }
-        return true;
+        return accession != null && accession.equals(that.accession) && experimentId == that.experimentId;
     }
 
     @Override

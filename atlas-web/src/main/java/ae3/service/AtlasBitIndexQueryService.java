@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.collect.HashMultiset.create;
+import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -267,13 +268,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     *
      * @param bioEntityId Bioentity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
-    public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
+    public List<ExperimentResult> getExperimentsSortedByPvalueTRank(
             final Integer bioEntityId,
             final Attribute attribute,
             int fromRow,
@@ -297,14 +299,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
-        Map<Long, ExperimentInfo> bestExperimentsMap = new HashMap<Long, ExperimentInfo>();
+        Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
         StatisticsQueryUtils.getBestExperiments(statsQuery, statisticsStorage, bestExperimentsMap);
 
-        List<ExperimentInfo> bestExperiments = new ArrayList<ExperimentInfo>(bestExperimentsMap.values());
+        List<ExperimentResult> bestExperiments = new ArrayList<ExperimentResult>(bestExperimentsMap.values());
         // Sort bestExperiments by best pVal/tStat ranks first
-        Collections.sort(bestExperiments, new Comparator<ExperimentInfo>() {
-            public int compare(ExperimentInfo e1, ExperimentInfo e2) {
-                return e1.getpValTStatRank().compareTo(e2.getpValTStatRank());
+        Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
+            public int compare(ExperimentResult e1, ExperimentResult e2) {
+                return e1.getPValTStatRank().compareTo(e2.getPValTStatRank());
             }
         });
 
@@ -314,12 +316,12 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             fromRow = 0;
         if (toRow == -1 || toRow > maxSize)
             toRow = maxSize;
-        List<ExperimentInfo> exps = bestExperiments.subList(fromRow, toRow);
+        List<ExperimentResult> exps = bestExperiments.subList(fromRow, toRow);
 
         log.debug("Sorted experiments: ");
-        for (ExperimentInfo exp : exps) {
-            log.debug(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
-                    "; tStat rank: " + exp.getpValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute());
+        for (ExperimentResult exp : exps) {
+            log.debug(exp.getAccession() + ": pval=" + exp.getPValTStatRank().getPValue() +
+                    "; tStat rank: " + exp.getPValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute());
         }
         return exps;
     }

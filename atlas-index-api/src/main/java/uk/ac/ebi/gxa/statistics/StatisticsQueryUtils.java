@@ -219,7 +219,7 @@ public class StatisticsQueryUtils {
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
-            Map<Long, ExperimentInfo> bestExperimentsSoFar) {
+            Map<Long, ExperimentResult> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
 
@@ -243,10 +243,9 @@ public class StatisticsQueryUtils {
                                     if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
-                                        ExperimentInfo exp = expToGenesEntry.getKey();
-                                        ExperimentInfo expCandidate = new ExperimentInfo(exp.getAccession(), exp.getExperimentId());
+                                        ExperimentResult expCandidate = new ExperimentResult(expToGenesEntry.getKey());
                                         // TODO: 4alf: mutability strikes here!
-                                        expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
+                                        expCandidate.setPValTstatRank(pValToExpToGenesEntry.getKey());
                                         expCandidate.setHighestRankAttribute(attr);
                                         tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
                                     }
@@ -391,11 +390,11 @@ public class StatisticsQueryUtils {
      * @param exp
      * @param exps
      */
-    private static void tryAddOrReplaceExperiment(ExperimentInfo exp, Map<Long, ExperimentInfo> exps) {
+    private static void tryAddOrReplaceExperiment(ExperimentResult exp, Map<Long, ExperimentResult> exps) {
         long expId = exp.getExperimentId();
-        ExperimentInfo existingExp = exps.get(expId);
+        ExperimentResult existingExp = exps.get(expId);
         if (existingExp != null) {
-            if (exp.getpValTStatRank().compareTo(existingExp.getpValTStatRank()) < 0) {
+            if (exp.getPValTStatRank().compareTo(existingExp.getPValTStatRank()) < 0) {
                 exps.put(expId, exp);
             }
         } else {

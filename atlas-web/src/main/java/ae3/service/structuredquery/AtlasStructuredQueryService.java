@@ -1275,21 +1275,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (upCnt > 0) {
                 // Get best up pValue
                 attribute.setStatType(StatisticsType.UP);
-                List<ExperimentInfo> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                List<ExperimentResult> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
                 if (bestUpExperimentsForAttribute.isEmpty()) {
                     throw LogUtil.createUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
                 }
-                minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+                minPValUp = bestUpExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
             }
 
             if (downCnt > 0) {
                 // Get best down pValue
                 attribute.setStatType(StatisticsType.DOWN);
-                List<ExperimentInfo> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                List<ExperimentResult> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
                 if (bestDownExperimentsForAttribute.isEmpty()) {
                     throw LogUtil.createUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
                 }
-                minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+                minPValDown = bestDownExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
             }
 
             if (minPValUp != 1 || minPValDown != 1)
