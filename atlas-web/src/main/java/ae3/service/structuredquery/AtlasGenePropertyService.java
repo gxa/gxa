@@ -64,7 +64,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
          * Stores user-specified ordering of autocomplete items by Species. An autocomplete item associated with a Species
          * which occurs earlier in speciesOrderProperties list will appear earlier in the autocomplete list.
          */
-        private final List<String> speciesOrderProperties = new ArrayList<String>();;
+        private final List<String> speciesOrderProperties = new ArrayList<String>();
 
         GeneAutoCompleteItemRank(List<String> speciesOrderProperties) {
             this.speciesOrderProperties.addAll(speciesOrderProperties);
