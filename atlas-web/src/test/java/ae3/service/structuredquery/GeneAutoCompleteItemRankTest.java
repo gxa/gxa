@@ -43,12 +43,14 @@ public class GeneAutoCompleteItemRankTest {
         Rank r1 = geneRank.getRank(newGeneItem("gene1", null));
         Rank r2 = geneRank.getRank(newGeneItem("gene2", null));
         assertEquals(r1, r2);
-        assertTrue(r1.isMax());
+        assertTrue(r1.isMin());
 
         Rank r3 = geneRank.getRank(newGeneItem("gene1", "human"));
         Rank r4 = geneRank.getRank(newGeneItem("gene1", "mus rattus"));
         assertGreater(r3, r4);
         assertTrue(r3.isMax());
+
+        assertGreater(r4, r1);
     }
 
     private static void assertGreater(Rank r1, Rank r2) {

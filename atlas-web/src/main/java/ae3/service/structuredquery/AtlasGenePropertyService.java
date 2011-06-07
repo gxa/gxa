@@ -70,6 +70,14 @@ public class AtlasGenePropertyService implements AutoCompleter,
             this.speciesOrderProperties.addAll(speciesOrderProperties);
         }
 
+        /**
+         * Calculates the rank for gene auto-complete item.
+         * If an item doesn't have species property or has some unknown species than
+         * it goes last in the auto-complete list.
+         *
+         * @param item an gene auto-complete item
+         * @return calculated rank
+         */
         public Rank getRank(GeneAutoCompleteItem item) {
             if (item.hasSpecies() && !speciesOrderProperties.isEmpty()) {
                 String species = item.getSpecies();
@@ -80,7 +88,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                     return new Rank(1.0 * (size - pos) / size);
                 }
             }
-            return Rank.maxRank();
+            return Rank.minRank();
         }
     }
 
