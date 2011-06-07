@@ -34,15 +34,24 @@ class EfoTermPrefixRank {
         this.prefix = prefix.toLowerCase();
     }
 
-    public Rank getRank(EfoTerm n) {
+    /**
+     * Calculates rank for an EFO term (to order auto-complete drop-down list).
+     * The terms with the highest rank are an the top of the list.
+     * Matching term's id or value are much more important than matching in alternatives.
+     *
+     * @param term an EFO term to return the rank for
+     * @return calculated rank
+     */
+    public Rank getRank(EfoTerm term) {
         double ratio = 0;
-        ratio = Math.max(ratio, 0.5 * startsWith(n.getTerm(), prefix));
-        ratio = Math.max(ratio, 0.5 * startsWith(n.getId(), prefix));
+        ratio = Math.max(ratio, 0.5 * startsWith(term.getTerm(), prefix));
+        ratio = Math.max(ratio, 0.5 * startsWith(term.getId(), prefix));
         if (ratio > 0) {
             ratio += 0.5;
-        }
-        for (String alt : n.getAlternativeTerms()) {
-            ratio = Math.max(ratio, 0.5 * startsWith(alt, prefix));
+        } else {
+            for (String alt : term.getAlternativeTerms()) {
+                ratio = Math.max(ratio, 0.5 * startsWith(alt, prefix));
+            }
         }
         return new Rank(ratio);
     }
