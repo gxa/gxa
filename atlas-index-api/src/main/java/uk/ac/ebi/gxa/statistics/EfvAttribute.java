@@ -4,6 +4,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,10 +17,11 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
 /**
  * Serializable representation of ef-efv for the purpose of ConciseSet storage.
  * This class also represents ef-efvs at bit index query time.
+ * <p/>
+ * TODO: this is generally a bad idea to use the class in three different ways, and is extremely bug-prone one
  */
 public class EfvAttribute extends Attribute implements Serializable {
-
-    private static final long serialVersionUID = 4484057956622518618L;
+    private static final long serialVersionUID = 201106071345L;
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
     // experiments (c.f. same method in EfoAttribute)
@@ -28,7 +30,7 @@ public class EfvAttribute extends Attribute implements Serializable {
 
     private String ef;
     private String efv;
-    private String value;
+    private transient String value;
 
     /**
      * Constructor used for ef object stored in bit index
@@ -97,5 +99,16 @@ public class EfvAttribute extends Attribute implements Serializable {
             return null;
         final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
         return encode(pair).intern();
+    }
+
+    /**
+     * Restores the transient fields on deserialization
+     *
+     * @return <code>this</code>
+     * @throws ObjectStreamException in case of I/O errors during deserialization
+     */
+    private Object readResolve() throws ObjectStreamException {
+        this.value = encodePair(ef, efv);
+        return this;
     }
 }

@@ -29,17 +29,17 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     };
 
     @Override
-    public void addStatistics(final Integer attributeIndex, final Integer experimentIndex, final Collection<Integer> bioEntityIds) {
+    public void addStatistics(final EfvAttribute attributeIndex, final ExperimentInfo experimentIndex, final Collection<Integer> bioEntityIds) {
         get().addStatistics(attributeIndex, experimentIndex, bioEntityIds);
     }
 
     @Override
-    public void addBioEntitiesForEfAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
+    public void addBioEntitiesForEfAttribute(final EfvAttribute attributeIndex, final Collection<Integer> bioEntityIds) {
         get().addBioEntitiesForEfAttribute(attributeIndex, bioEntityIds);
     }
 
     @Override
-    public void addBioEntitiesForEfvAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
+    public void addBioEntitiesForEfvAttribute(final EfvAttribute attributeIndex, final Collection<Integer> bioEntityIds) {
         get().addBioEntitiesForEfvAttribute(attributeIndex, bioEntityIds);
     }
 
@@ -49,8 +49,8 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     }
 
     @Override
-    public void addPvalueTstatRank(final Integer attributeIndex, final Float pValue, final Short tStatRank, final Integer experimentIndex, final Integer bioEntityId) {
-        get().addPvalueTstatRank(attributeIndex, pValue, tStatRank, experimentIndex, bioEntityId);
+    public void addPvalueTstatRank(final EfvAttribute attributeIndex, final PTRank ptRank, final ExperimentInfo experimentIndex, final Integer bioEntityId) {
+        get().addPvalueTstatRank(attributeIndex, ptRank, experimentIndex, bioEntityId);
     }
 
     private Statistics get() {

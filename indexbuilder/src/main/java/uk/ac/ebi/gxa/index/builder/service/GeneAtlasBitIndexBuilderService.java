@@ -23,7 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.io.Closeables.closeQuietly;
-import static java.lang.Math.round;
 import static java.util.Collections.sort;
 
 /**
@@ -109,8 +108,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
-        final ObjectIndex<ExperimentInfo> experimentIndex = new ObjectIndex<ExperimentInfo>();
-        final ObjectIndex<EfvAttribute> attributeIndex = new ObjectIndex<EfvAttribute>();
+        final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
+        final ObjectPool<EfvAttribute> attributePool = new ObjectPool<EfvAttribute>();
+        final ObjectPool<String> stringPool = new ObjectPool<String>();
 
         final StatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
         final StatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
@@ -132,7 +132,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     throw new IndexBuilderException("NetCDF " + f.getCanonicalPath() + " is out of date");
                 }
 
-                final Integer expIdx = experimentIndex.addObject(obtainExperimentInfo(ncdf));
+                final Experiment exp = getAtlasDAO().getExperimentByAccession(ncdf.getExperimentAccession());
+                final ExperimentInfo experiment = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
                 // TODO should change to ncdf.getUniqueValues()
@@ -146,36 +147,27 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 }
 
                 long[] bioEntityIdsArr = ncdf.getGenes();
-                List<Integer> bioEntityIds = new ArrayList<Integer>(bioEntityIdsArr.length);
-                for (long bioEntityId : bioEntityIdsArr) {
-                    if (bioEntityId <= Integer.MAX_VALUE) {
-                        bioEntityIds.add((int) bioEntityId);
-                    } else {
-                        throw new IndexBuilderException("bioEntityId: " + bioEntityId + " too large to be cast to int safely- unable to build bit index");
-                    }
-                }
-
                 ArrayFloat.D2 tstat = ncdf.getTStatistics();
                 ArrayFloat.D2 pvals = ncdf.getPValues();
                 int[] shape = tstat.getShape();
 
-                final Map<Integer, MinPMaxT> efToPTUpDown = new HashMap<Integer, MinPMaxT>();
+                final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
                 for (int j = 0; j < uVals.size(); j++) {
                     String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-                    String ef = arr[0];
-                    String efv = arr.length == 1 ? "" : arr[1];
+                    String ef = internedCopy(stringPool, arr[0]);
+                    String efv = arr.length == 1 ? "" : internedCopy(stringPool, arr[1]);
 
-                    final Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
-                    final Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));
+                    final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(ef, efv, null));
+                    final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(ef, null));
 
                     final Set<Integer> upBioEntityIds = new FastSet();
                     final Set<Integer> dnBioEntityIds = new FastSet();
                     final Set<Integer> noBioEntityIds = new FastSet();
 
                     // Initialise if necessary pval/tstat storage for ef
-                    MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttributeIndex);
+                    MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttribute);
                     if (ptUpDownForEf == null) {
-                        efToPTUpDown.put(efAttributeIndex, ptUpDownForEf = new MinPMaxT());
+                        efToPTUpDown.put(efAttribute, ptUpDownForEf = new MinPMaxT());
                     }
 
                     // Initialise pval/tstat storage for ef-efv/sc-scv
@@ -184,7 +176,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final MinPMaxT ptDown = new MinPMaxT();
 
                     for (int i = 0; i < shape[0]; i++) {
-                        int bioEntityId = bioEntityIds.get(i);
+                        int bioEntityId = safelyCastToInt(bioEntityIdsArr[i]);
+
+                        // in order to create a resource used for unit tests,
+                        // use <code>|| (bioEntityId != 516248 && bioEntityId != 838592)</code>
+                        // so that you would only index the bio entities used in tests
                         if (bioEntityId == 0) continue;
 
                         float t = tstat.get(i, j);
@@ -215,44 +211,44 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         @Override
                         public void run() {
                             // Store rounded minimum up pVals per gene for ef-efv/sc-scv
-                            ptUp.storeStats(upStats, expIdx, efvAttributeIndex);
+                            ptUp.storeStats(upStats, experiment, efvAttribute);
                             // Store rounded minimum down pVals per gene for ef-efv/sc-scv
-                            ptDown.storeStats(dnStats, expIdx, efvAttributeIndex);
+                            ptDown.storeStats(dnStats, experiment, efvAttribute);
                             // Store rounded minimum up/down pVals per gene for ef-efv/sc-scv
-                            ptUpDown.storeStats(updnStats, expIdx, efvAttributeIndex);
+                            ptUpDown.storeStats(updnStats, experiment, efvAttribute);
                         }
                     });
 
                     // Store stats for ef-efv/sc-scv
-                    upStats.addStatistics(efvAttributeIndex, expIdx, upBioEntityIds);
-                    dnStats.addStatistics(efvAttributeIndex, expIdx, dnBioEntityIds);
-                    updnStats.addStatistics(efvAttributeIndex, expIdx, upBioEntityIds);
-                    updnStats.addStatistics(efvAttributeIndex, expIdx, dnBioEntityIds);
-                    noStats.addStatistics(efvAttributeIndex, expIdx, noBioEntityIds);
+                    upStats.addStatistics(efvAttribute, experiment, upBioEntityIds);
+                    dnStats.addStatistics(efvAttribute, experiment, dnBioEntityIds);
+                    updnStats.addStatistics(efvAttribute, experiment, upBioEntityIds);
+                    updnStats.addStatistics(efvAttribute, experiment, dnBioEntityIds);
+                    noStats.addStatistics(efvAttribute, experiment, noBioEntityIds);
 
                     // Store stats for ef/sc
-                    upStats.addStatistics(efAttributeIndex, expIdx, upBioEntityIds);
-                    dnStats.addStatistics(efAttributeIndex, expIdx, dnBioEntityIds);
-                    updnStats.addStatistics(efAttributeIndex, expIdx, upBioEntityIds);
-                    updnStats.addStatistics(efAttributeIndex, expIdx, dnBioEntityIds);
-                    noStats.addStatistics(efAttributeIndex, expIdx, noBioEntityIds);
+                    upStats.addStatistics(efAttribute, experiment, upBioEntityIds);
+                    dnStats.addStatistics(efAttribute, experiment, dnBioEntityIds);
+                    updnStats.addStatistics(efAttribute, experiment, upBioEntityIds);
+                    updnStats.addStatistics(efAttribute, experiment, dnBioEntityIds);
+                    noStats.addStatistics(efAttribute, experiment, noBioEntityIds);
 
                     // Add genes for ef/sc attributes across all experiments
-                    updnStats.addBioEntitiesForEfAttribute(efAttributeIndex, upBioEntityIds);
-                    updnStats.addBioEntitiesForEfAttribute(efAttributeIndex, dnBioEntityIds);
+                    updnStats.addBioEntitiesForEfAttribute(efAttribute, upBioEntityIds);
+                    updnStats.addBioEntitiesForEfAttribute(efAttribute, dnBioEntityIds);
 
                     // Add genes for ef-efv/sc-scv attributes across all experiments
-                    updnStats.addBioEntitiesForEfvAttribute(efvAttributeIndex, upBioEntityIds);
-                    updnStats.addBioEntitiesForEfvAttribute(efvAttributeIndex, dnBioEntityIds);
+                    updnStats.addBioEntitiesForEfvAttribute(efvAttribute, upBioEntityIds);
+                    updnStats.addBioEntitiesForEfvAttribute(efvAttribute, dnBioEntityIds);
                 }
 
                 summarizer.submit(new Runnable() {
                     @Override
                     public void run() {
                         // Store rounded minimum up/down pVals per gene for all efs/scs
-                        for (Map.Entry<Integer, MinPMaxT> entry : efToPTUpDown.entrySet()) {
+                        for (Map.Entry<EfvAttribute, MinPMaxT> entry : efToPTUpDown.entrySet()) {
                             // Store min up/down pVal for efv
-                            entry.getValue().storeStats(updnStats, expIdx, entry.getKey());
+                            entry.getValue().storeStats(updnStats, experiment, entry.getKey());
                         }
                     }
                 });
@@ -273,7 +269,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         try {
             // Load efo index
-            EfoIndex efoIndex = loadEfoMapping(attributeIndex, experimentIndex);
+            EfoIndex efoIndex = loadEfoMapping(attributePool, experimentPool);
             statisticsStorage.setEfoIndex(efoIndex);
 
             // wait for statistics updates to finish
@@ -290,10 +286,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             statisticsStorage.addStatistics(StatisticsType.UP_DOWN, updnStats.getStatistics());
             statisticsStorage.addStatistics(StatisticsType.NON_D_E, noStats.getStatistics());
 
-            // Set indexes for experiments and attributes
-            statisticsStorage.setExperimentIndex(experimentIndex);
-            statisticsStorage.setAttributeIndex(attributeIndex);
-
             // Pre-compute scores for all genes across all efo's. These scores are used to score and then sort
             // genes in user queries with no efv/efo conditions specified.
             statisticsStorage.computeScoresAcrossAllEfos();
@@ -305,9 +297,17 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         return statisticsStorage;
     }
 
-    private ExperimentInfo obtainExperimentInfo(NetCDFProxy ncdf) {
-        final Experiment exp = getAtlasDAO().getExperimentByAccession(ncdf.getExperimentAccession());
-        return new ExperimentInfo(exp.getAccession(), exp.getId());
+    private int safelyCastToInt(long l) {
+        int i = (int) l;
+        if ((long) i != l)
+            throw new IndexBuilderException("bioEntityId: " + i + " is too large to be cast to int safely- unable to build bit index");
+        return i;
+    }
+
+    private String internedCopy(ObjectPool<String> stringPool, String s) {
+        // Please keep <code>new String(s)</code> intact - substrings have internal references to the underlying String,
+        // hence memory footprint might be much bigger than expected.
+        return stringPool.intern(new String(s));
     }
 
     private List<File> ncdfsToProcess() {
@@ -325,7 +325,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         return indexFileName;
     }
 
-    private EfoIndex loadEfoMapping(ObjectIndex<EfvAttribute> attributeIndex, ObjectIndex<ExperimentInfo> experimentIndex) {
+    private EfoIndex loadEfoMapping(ObjectPool<EfvAttribute> attributeIndex, ObjectPool<ExperimentInfo> experimentIndex) {
 
         EfoIndex efoIndex = new EfoIndex();
         getLog().info("Fetching ontology mappings...");
@@ -336,11 +336,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         for (OntologyMapping mapping : mappings) {
             ExperimentInfo exp = new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId());
             EfvAttribute attr = new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null);
-            Integer attributeIdx = attributeIndex.getIndexForObject(attr);
-            Integer experimentIdx = experimentIndex.getIndexForObject(exp);
+            EfvAttribute attributeIdx = attributeIndex.intern(attr);
+            ExperimentInfo experimentIdx = experimentIndex.intern(exp);
 
             if (attributeIdx == null) {
-                attributeIdx = attributeIndex.addObject(attr);
+                attributeIdx = attributeIndex.intern(attr);
                 getLog().debug(
                         "BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
             }
@@ -370,8 +370,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     static class MinPMaxT {
-        private static final float PRECISION = 1e-3F;
-
         private Map<Integer, Float> geneToMinP = new HashMap<Integer, Float>();
         private Map<Integer, Float> geneToMaxT = new HashMap<Integer, Float>();
 
@@ -386,15 +384,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             }
         }
 
-        public void storeStats(StatisticsBuilder stats, int expIdx, int efvAttributeIndex) {
+        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttributeIndex) {
             for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                Short tStatRank = StatisticsQueryUtils.getTStatRank(geneToMaxT.get(entry.getKey()));
-                stats.addPvalueTstatRank(efvAttributeIndex, roundToDesiredPrecision(entry.getValue()), tStatRank, expIdx, entry.getKey());
+                stats.addPvalueTstatRank(efvAttributeIndex,
+                        PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
+                        expIdx, entry.getKey());
             }
-        }
-
-        private Float roundToDesiredPrecision(float value) {
-            return round(value / PRECISION) * PRECISION;
         }
     }
 }
