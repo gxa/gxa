@@ -19,7 +19,7 @@ public class ExperimentInfo implements Serializable {
     private transient EfvAttribute highestRankAttribute;
 
 
-    public ExperimentInfo(final String accession, final Long experimentId) {
+    public ExperimentInfo(final String accession, final long experimentId) {
         this.accession = accession.intern();
         this.experimentId = experimentId;
     }

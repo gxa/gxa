@@ -22,7 +22,7 @@ public class StatisticsQueryUtils {
     /**
      * @param orAttributes
      * @param minExperiments    minimum experiment count restriction for this clause
-     * @param statisticsStorage - used to retrieve indexes of orAttributes, needed finding experiment counts in bit index
+     * @param statisticsStorage - used to retrieve orAttributes, needed finding experiment counts in bit index
      * @return StatisticsQueryOrConditions representing orAttributes
      */
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
@@ -115,10 +115,9 @@ public class StatisticsQueryUtils {
                 // add ConciseSet to Multiset results
                 for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
                     ConciseSet statsForExperiment = new ConciseSet();
-                    for (Attribute attr : attributes) {
-                        EfvAttribute attrIdx = (EfvAttribute) attr;
-                        if (attrIdx != null) {
-                            Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
+                    for (EfvAttribute attr : attributes) {
+                        Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                        if (expsToStats != null) {
                             if (expsToStats.isEmpty()) {
                                 log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " and attr: " + attr);
                             } else {
@@ -133,9 +132,6 @@ public class StatisticsQueryUtils {
                                     log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " exp: " + exp.getAccession() + " and attr: " + attr);
                                 }
                             }
-                        } else {
-                            // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-                            log.debug("Attribute " + attr + " was not found in Attribute Index");
                         }
                     }
                     if (!gatherScoringExpsOnly) {
@@ -231,7 +227,7 @@ public class StatisticsQueryUtils {
             Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
-            Set<ExperimentInfo> experimentIdxs = statisticsQuery.getExperiments();
+            Set<ExperimentInfo> experiments = statisticsQuery.getExperiments();
 
             for (EfvAttribute attr : attributes) {
 
@@ -243,7 +239,7 @@ public class StatisticsQueryUtils {
                         Map<ExperimentInfo, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
                         if (expToGenes != null) {
                             for (Map.Entry<ExperimentInfo, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
-                                if (experimentIdxs.isEmpty() || experimentIdxs.contains(expToGenesEntry.getKey())) {
+                                if (experiments.isEmpty() || experiments.contains(expToGenesEntry.getKey())) {
                                     if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
@@ -283,13 +279,9 @@ public class StatisticsQueryUtils {
         Set<ExperimentInfo> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (EfvAttribute attr : statisticsQuery.getAttributes()) {
-                if (attr != null) {
-                    Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                if (expsToStats != null)
                     exps.addAll(expsToStats.keySet());
-                } else {
-                    // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-                    log.debug("Attribute " + attr + " was not found in Attribute Index");
-                }
             }
             statisticsQuery.inExperiments(exps);
         }
@@ -315,17 +307,17 @@ public class StatisticsQueryUtils {
 
     /**
      * @param statType
-     * @param attrIndex
+     * @param attribute
      * @param statisticsStorage
-     * @return Map: experiment index -> bit stats corresponding to statType and attrIndex
+     * @return Map: experiment -> bit stats corresponding to statType and attr
      */
     private static Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(
             final StatisticsType statType,
-            final EfvAttribute attrIndex,
+            final EfvAttribute attribute,
             final StatisticsStorage statisticsStorage) {
-        Map<ExperimentInfo, ConciseSet> expIndexToBits = statisticsStorage.getStatisticsForAttribute(attrIndex, statType);
-        if (expIndexToBits != null) {
-            return expIndexToBits;
+        Map<ExperimentInfo, ConciseSet> expToBits = statisticsStorage.getStatisticsForAttribute(attribute, statType);
+        if (expToBits != null) {
+            return expToBits;
         }
         return emptyMap();
     }
@@ -367,7 +359,7 @@ public class StatisticsQueryUtils {
      * @param statisticsStorage
      * @param scoringExps       Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
      *                          to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
-     * @return Multiset<Integer> containing experiment counts corresponding to all attribute indexes in each StatisticsQueryCondition in orConditions
+     * @return Multiset<Integer> containing experiment counts corresponding to all attributes in each StatisticsQueryCondition in orConditions
      */
     private static Multiset<Integer> getScoresForOrConditions(
             final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
