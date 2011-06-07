@@ -25,6 +25,8 @@ package ae3.model;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.*;
 
@@ -38,22 +40,18 @@ import static java.util.Collections.unmodifiableSet;
  * @author pashky
  */
 class SampleDecorator {
-    private int number;
-    private String accession;
-    private Map<String, String> sampleCharacteristics = new HashMap<String, String>();
-    private Set<AssayDecorator> assays = new HashSet<AssayDecorator>();
+    private final Sample sample;
+    private final int number;
+    private final Set<AssayDecorator> assays = new HashSet<AssayDecorator>();
 
     /**
      * Constructor
      *
      * @param number                sample number
-     * @param sampleCharacteristics sample characteristics values map
-     * @param accession             sample DW accession
      */
-    SampleDecorator(int number, Map<String, String> sampleCharacteristics, String accession) {
+    SampleDecorator(Sample sample, int number) {
+        this.sample = sample;
         this.number = number;
-        this.sampleCharacteristics.putAll(sampleCharacteristics);
-        this.accession = accession;
     }
 
     /**
@@ -63,7 +61,11 @@ class SampleDecorator {
      */
     @RestOut(name = "sampleCharacteristics")
     public Map<String, String> getSampleCharacteristics() {
-        return unmodifiableMap(sampleCharacteristics);
+        final Map<String, String> result = new HashMap<String, String>();
+        for (SampleProperty property : sample.getProperties()) {
+            result.put(property.getName(), property.getValue());
+        }
+        return result;
     }
 
     /**
@@ -105,7 +107,7 @@ class SampleDecorator {
      * @return sample accession
      */
     String getAccession() {
-        return accession;
+        return sample.getAccession();
     }
 
     /**
@@ -138,8 +140,8 @@ class SampleDecorator {
     public String toString() {
         return "Sample{" +
                 "number=" + number +
-                ", accession=" + accession +
-                ", sampleCharacteristics=" + sampleCharacteristics +
+                ", accession=" + getAccession() +
+                ", sampleCharacteristics=" + getSampleCharacteristics() +
                 ", assays=" + assays +
                 '}';
     }

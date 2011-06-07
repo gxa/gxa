@@ -107,27 +107,17 @@ public class ExperimentalData implements Closeable {
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         proxies.put(arrayDesign, proxy);
         
-        for (String ef : proxy.getFactors()) {
-            experimentalFactors.add(normalized(ef, "ba_"));
+        for (String factor : proxy.getFactors()) {
+            experimentalFactors.add(normalized(factor, "ba_"));
+        }
+        
+        for (String characteristic : proxy.getCharacteristics()) {
+            sampleCharacteristics.add(normalized(characteristic, "bs_"));
         }
         
         final String[] sampleAccessions = proxy.getSampleAccessions();
-        final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
-        for (String characteristic : proxy.getCharacteristics()) {
-            characteristic = normalized(characteristic, "bs_");
-            final List<String> valuesList = new ArrayList<String>(sampleAccessions.length);
-            scvs.put(characteristic, valuesList);
-            for (String value : proxy.getCharacteristicValues(characteristic)) {
-                valuesList.add(value);
-            }
-        }
-        
         final SampleDecorator[] sampleDecorators = new SampleDecorator[sampleAccessions.length];
         for (int i = 0; i < sampleAccessions.length; ++i) {
-            Map<String, String> scvMap = new HashMap<String, String>();
-            for (Map.Entry<String, List<String>> sc : scvs.entrySet()) {
-                scvMap.put(sc.getKey(), sc.getValue().get(i));
-            }
             final String accession = sampleAccessions[i];
             SampleDecorator sample = null;
             for (SampleDecorator s : this.samples) {
@@ -136,12 +126,10 @@ public class ExperimentalData implements Closeable {
                     break;
                 }
             }
-            sampleCharacteristics.addAll(scvMap.keySet());
             if (sample == null) {
                 sample = new SampleDecorator(
-                    this.samples.size(),
-                    scvMap,
-                    accession
+                    getExperiment().getSample(accession),
+                    this.samples.size()
                 );
                 this.samples.add(sample);
             }

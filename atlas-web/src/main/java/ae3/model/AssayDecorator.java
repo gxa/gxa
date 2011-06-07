@@ -37,11 +37,11 @@ import java.util.*;
  * @author pashky
  */
 public class AssayDecorator {
-    private Assay assay;
-    private int number;
-    private ArrayDesign arrayDesign;
-    private Set<SampleDecorator> samples = new HashSet<SampleDecorator>();
-    private int positionInMatrix;
+    private final Assay assay;
+    private final int number;
+    private final ArrayDesign arrayDesign;
+    private final int positionInMatrix;
+    private final Set<SampleDecorator> samples = new HashSet<SampleDecorator>();
 
     /**
      * Constructor
