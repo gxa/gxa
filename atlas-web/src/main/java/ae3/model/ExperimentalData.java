@@ -80,8 +80,8 @@ public class ExperimentalData implements Closeable {
     }
 
     private final Experiment experiment;
-    private final List<Sample> samples = new ArrayList<Sample>();
-    private final List<Assay> assays = new ArrayList<Assay>();
+    private final List<SampleDecorator> samples = new ArrayList<SampleDecorator>();
+    private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
 
     private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
 
@@ -89,7 +89,6 @@ public class ExperimentalData implements Closeable {
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
     private final Map<ArrayDesign, Map<Long, int[]>> geneIdMap = new HashMap<ArrayDesign, Map<Long, int[]>>();
 
-    private final Set<ArrayDesign> arrayDesigns = new HashSet<ArrayDesign>();
     private final Set<String> experimentalFactors = new HashSet<String>();
     private final Set<String> sampleCharacteristics = new HashSet<String>();
     private final Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
@@ -108,22 +107,11 @@ public class ExperimentalData implements Closeable {
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         proxies.put(arrayDesign, proxy);
         
-        final String[] assayAccessions = proxy.getAssayAccessions();
-        final String[] sampleAccessions = proxy.getSampleAccessions();
-
-        final Map<String, List<String>> efvs = new HashMap<String, List<String>>();
-        
-        final String[] factors = proxy.getFactors();
-        
-        for (String ef : factors) {
-            ef = normalized(ef, "ba_");
-            final List<String> efvList = new ArrayList<String>(assayAccessions.length);
-            efvs.put(ef, efvList);
-            for (String value : proxy.getFactorValues(ef)) {
-                efvList.add(value);
-            }
+        for (String ef : proxy.getFactors()) {
+            experimentalFactors.add(normalized(ef, "ba_"));
         }
         
+        final String[] sampleAccessions = proxy.getSampleAccessions();
         final Map<String, List<String>> scvs = new HashMap<String, List<String>>();
         for (String characteristic : proxy.getCharacteristics()) {
             characteristic = normalized(characteristic, "bs_");
@@ -134,29 +122,49 @@ public class ExperimentalData implements Closeable {
             }
         }
         
-        final Sample[] samples = new Sample[sampleAccessions.length];
+        final SampleDecorator[] sampleDecorators = new SampleDecorator[sampleAccessions.length];
         for (int i = 0; i < sampleAccessions.length; ++i) {
             Map<String, String> scvMap = new HashMap<String, String>();
             for (Map.Entry<String, List<String>> sc : scvs.entrySet()) {
                 scvMap.put(sc.getKey(), sc.getValue().get(i));
             }
-            samples[i] = addSample(scvMap, sampleAccessions[i]);
+            final String accession = sampleAccessions[i];
+            SampleDecorator sample = null;
+            for (SampleDecorator s : this.samples) {
+                if (accession.equals(s.getAccession())) {
+                    sample = s;
+                    break;
+                }
+            }
+            sampleCharacteristics.addAll(scvMap.keySet());
+            if (sample == null) {
+                sample = new SampleDecorator(
+                    this.samples.size(),
+                    scvMap,
+                    accession
+                );
+                this.samples.add(sample);
+            }
+            sampleDecorators[i] = sample;
         }
         
-        final Assay[] assays = new Assay[assayAccessions.length];
+        final String[] assayAccessions = proxy.getAssayAccessions();
+        final AssayDecorator[] assayDecorators = new AssayDecorator[assayAccessions.length];
         for (int i = 0; i < assayAccessions.length; ++i) {
-            final Map<String, String> efvMap = new HashMap<String, String>();
-            for (Map.Entry<String, List<String>> ef : efvs.entrySet()) {
-                efvMap.put(ef.getKey(), ef.getValue().get(i));
-            }
-            assays[i] = addAssay(getExperiment().getAssay(assayAccessions[i]), efvMap, i);
+            assayDecorators[i] = new AssayDecorator(
+                getExperiment().getAssay(assayAccessions[i]),
+                this.assays.size(),
+                arrayDesign,
+                i // position in matrix
+            );
+            this.assays.add(assayDecorators[i]);
         }
         
         final int[][] samplesToAssays = proxy.getSamplesToAssays();
-        for (int sampleI = 0; sampleI < sampleAccessions.length; ++sampleI) {
-            for (int assayI = 0; assayI < assayAccessions.length; ++assayI) {
+        for (int sampleI = 0; sampleI < sampleDecorators.length; ++sampleI) {
+            for (int assayI = 0; assayI < assayDecorators.length; ++assayI) {
                 if (samplesToAssays[sampleI][assayI] > 0) {
-                    addSampleAssayMapping(samples[sampleI], assays[assayI]);
+                    addSampleAssayMapping(sampleDecorators[sampleI], assayDecorators[assayI]);
                 }
             }
         }
@@ -173,46 +181,6 @@ public class ExperimentalData implements Closeable {
 
     public Experiment getExperiment() {
         return experiment;
-    }
-
-    /**
-     * Add sample to experiment
-     *
-     * @param scvMap      map of sample charactristic values for sample
-     * @param accession   sample accession
-     * @return created sample reference
-     */
-    public Sample addSample(Map<String, String> scvMap, String accession) {
-        for (Sample s : samples) {
-            if (accession.equals(s.getAccession())) {
-                return s;
-            }
-        }
-        sampleCharacteristics.addAll(scvMap.keySet());
-        final Sample sample = new Sample(samples.size(), scvMap, accession);
-        samples.add(sample);
-        return sample;
-    }
-
-    /**
-     * Add assay to experiment
-     *
-     *
-     *
-     *
-     *
-     * @param efvMap           factor values map for all experimental factors
-     * @param positionInMatrix assay's column position in expression matrix
-     * @return created assay reference
-     */
-    public Assay addAssay(uk.ac.ebi.microarray.atlas.model.Assay dbAssay, Map<String, String> efvMap, int positionInMatrix) {
-        ArrayDesign arrayDesign = new ArrayDesign(dbAssay.getArrayDesign());
-        arrayDesigns.add(arrayDesign);
-        experimentalFactors.addAll(efvMap.keySet());
-
-        final Assay assay = new Assay(dbAssay, assays.size(), arrayDesign, positionInMatrix);
-        assays.add(assay);
-        return assay;
     }
 
     private NetCDFProxy getProxy(ArrayDesign arrayDesign) {
@@ -346,7 +314,7 @@ public class ExperimentalData implements Closeable {
      * @param sample sample to link with specified assay
      * @param assay  assay to link with specified sample
      */
-    public void addSampleAssayMapping(Sample sample, Assay assay) {
+    public void addSampleAssayMapping(SampleDecorator sample, AssayDecorator assay) {
         assay.addSample(sample);
         sample.addAssay(assay);
     }
@@ -358,7 +326,7 @@ public class ExperimentalData implements Closeable {
      * @param designElementIndex design element index
      * @return expression value
      */
-    public float getExpression(Assay assay, int designElementIndex) {
+    public float getExpression(AssayDecorator assay, int designElementIndex) {
         final ExpressionMatrix matrix = getExpressionMatrix(assay.getArrayDesign());
         return matrix != null
             ? matrix.getExpression(designElementIndex, assay.getPositionInMatrix()) : Float.NaN;
@@ -418,7 +386,7 @@ public class ExperimentalData implements Closeable {
      * @return list of all samples
      */
     @RestOut(name = "samples")
-    public List<Sample> getSamples() {
+    public List<SampleDecorator> getSamples() {
         return samples;
     }
 
@@ -428,7 +396,7 @@ public class ExperimentalData implements Closeable {
      * @return list of assays
      */
     @RestOut(name = "assays")
-    public List<Assay> getAssays() {
+    public List<AssayDecorator> getAssays() {
         return assays;
     }
 
@@ -438,11 +406,11 @@ public class ExperimentalData implements Closeable {
      * @param arrayDesign array design
      * @return iterable of assays
      */
-    public Iterable<Assay> getAssays(final ArrayDesign arrayDesign) {
+    public Iterable<AssayDecorator> getAssays(final ArrayDesign arrayDesign) {
         return Collections2.filter(
                 assays,
-                new Predicate<Assay>() {
-                    public boolean apply(@Nullable Assay input) {
+                new Predicate<AssayDecorator>() {
+                    public boolean apply(@Nullable AssayDecorator input) {
                         return input != null && arrayDesign.equals(input.getArrayDesign());
                     }
                 });
@@ -455,7 +423,7 @@ public class ExperimentalData implements Closeable {
      */
     @RestOut(name = "arrayDesigns")
     public Set<ArrayDesign> getArrayDesigns() {
-        return arrayDesigns;
+        return proxies.keySet();
     }
 
     /**

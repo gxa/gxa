@@ -37,11 +37,11 @@ import static java.util.Collections.unmodifiableSet;
  *
  * @author pashky
  */
-public class Sample {
+class SampleDecorator {
     private int number;
     private String accession;
     private Map<String, String> sampleCharacteristics = new HashMap<String, String>();
-    private Set<Assay> assays = new HashSet<Assay>();
+    private Set<AssayDecorator> assays = new HashSet<AssayDecorator>();
 
     /**
      * Constructor
@@ -50,7 +50,7 @@ public class Sample {
      * @param sampleCharacteristics sample characteristics values map
      * @param accession             sample DW accession
      */
-    Sample(int number, Map<String, String> sampleCharacteristics, String accession) {
+    SampleDecorator(int number, Map<String, String> sampleCharacteristics, String accession) {
         this.number = number;
         this.sampleCharacteristics.putAll(sampleCharacteristics);
         this.accession = accession;
@@ -73,8 +73,8 @@ public class Sample {
      */
     @RestOut(name = "relatedAssays", xmlItemName = "assayId")
     public Iterator<Integer> getAssayNumbers() {
-        return new MappingIterator<Assay, Integer>(getAssays().iterator()) {
-            public Integer map(Assay assay) {
+        return new MappingIterator<AssayDecorator, Integer>(getAssays().iterator()) {
+            public Integer map(AssayDecorator assay) {
                 return assay.getNumber();
             }
         };
@@ -95,7 +95,7 @@ public class Sample {
      *
      * @return set of assays
      */
-    public Set<Assay> getAssays() {
+    public Set<AssayDecorator> getAssays() {
         return unmodifiableSet(assays);
     }
 
@@ -113,7 +113,7 @@ public class Sample {
      *
      * @param assay assay to link
      */
-    void addAssay(Assay assay) {
+    void addAssay(AssayDecorator assay) {
         assays.add(assay);
     }
 
@@ -122,7 +122,7 @@ public class Sample {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Sample sample = (Sample) o;
+        SampleDecorator sample = (SampleDecorator) o;
 
         if (number != sample.number) return false;
 

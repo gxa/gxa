@@ -25,6 +25,7 @@ package ae3.model;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
 import java.util.*;
@@ -35,23 +36,23 @@ import java.util.*;
  *
  * @author pashky
  */
-public class Assay {
-    private uk.ac.ebi.microarray.atlas.model.Assay assay;
+public class AssayDecorator {
+    private Assay assay;
     private int number;
     private ArrayDesign arrayDesign;
-    private Set<Sample> samples = new HashSet<Sample>();
+    private Set<SampleDecorator> samples = new HashSet<SampleDecorator>();
     private int positionInMatrix;
 
     /**
      * Constructor
      *
-     * @param dbAssay
+     * @param assay
      * @param number           assay number
      * @param arrayDesign      array design of this assay
      * @param positionInMatrix position in expression matrix (for specified array design)
      */
-    Assay(uk.ac.ebi.microarray.atlas.model.Assay dbAssay, int number, ArrayDesign arrayDesign, int positionInMatrix) {
-        assay = dbAssay;
+    AssayDecorator(Assay assay, int number, ArrayDesign arrayDesign, int positionInMatrix) {
+        this.assay = assay;
         this.number = number;
         this.arrayDesign = arrayDesign;
         this.positionInMatrix = positionInMatrix;
@@ -95,7 +96,7 @@ public class Assay {
      *
      * @param sample sample to link
      */
-    void addSample(Sample sample) {
+    void addSample(SampleDecorator sample) {
         samples.add(sample);
     }
 
@@ -125,8 +126,8 @@ public class Assay {
      */
     @RestOut(name = "relatedSamples", xmlItemName = "sampleId")
     public Iterator<Integer> getSampleNumbers() {
-        return new MappingIterator<Sample, Integer>(getSamples().iterator()) {
-            public Integer map(Sample s) {
+        return new MappingIterator<SampleDecorator, Integer>(getSamples().iterator()) {
+            public Integer map(SampleDecorator s) {
                 return s.getNumber();
             }
         };
@@ -137,7 +138,7 @@ public class Assay {
      *
      * @return set of related samples
      */
-    public Set<Sample> getSamples() {
+    public Set<SampleDecorator> getSamples() {
         return samples;
     }
 
@@ -146,7 +147,7 @@ public class Assay {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Assay assay = (Assay) o;
+        AssayDecorator assay = (AssayDecorator) o;
         return number == assay.number;
     }
 

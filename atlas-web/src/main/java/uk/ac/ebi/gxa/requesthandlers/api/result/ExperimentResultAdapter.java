@@ -95,8 +95,8 @@ public class ExperimentResultAdapter implements Closeable {
                 @RestOut(forRenderer = JsonRestResultRenderer.class, name = "assays", asString = false)
         })
         public Iterator<Integer> getAssayIds() {
-            return new MappingIterator<Assay, Integer>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
-                public Integer map(Assay assay) {
+            return new MappingIterator<AssayDecorator, Integer>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
+                public Integer map(AssayDecorator assay) {
                     return assay.getNumber();
                 }
 
@@ -122,8 +122,8 @@ public class ExperimentResultAdapter implements Closeable {
             }
 
             public Iterator<Float> iterator() {
-                return new MappingIterator<Assay, Float>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
-                    public Float map(Assay assay) {
+                return new MappingIterator<AssayDecorator, Float>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
+                    public Float map(AssayDecorator assay) {
                         return experimentResultAdapter.getExperimentalData().getExpression(assay, deIndex);
                     }
                 };
