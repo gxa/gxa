@@ -22,26 +22,24 @@
 
 package ae3.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 
 import javax.annotation.Nullable;
-import java.util.*;
 import java.io.Closeable;
 import java.io.IOException;
-
-import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import java.util.*;
 
 /**
  * NetCDF experiment data representation class
@@ -54,8 +52,8 @@ public class ExperimentalData implements Closeable {
     /**
      * Load experimental data using default path
      *
-     * @param atlasNetCDFDAO      netCDF DAO
-     * @param experiment data accession
+     * @param atlasNetCDFDAO netCDF DAO
+     * @param experiment     data accession
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
@@ -86,6 +84,7 @@ public class ExperimentalData implements Closeable {
 
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
+     *
      * @param experiment
      */
     public ExperimentalData(Experiment experiment) {
@@ -104,7 +103,7 @@ public class ExperimentalData implements Closeable {
 
         final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         proxies.put(arrayDesign, proxy);
-        
+
         final String[] sampleAccessions = proxy.getSampleAccessions();
         final SampleDecorator[] sampleDecorators = new SampleDecorator[sampleAccessions.length];
         for (int i = 0; i < sampleAccessions.length; ++i) {
@@ -118,26 +117,26 @@ public class ExperimentalData implements Closeable {
             }
             if (sample == null) {
                 sample = new SampleDecorator(
-                    getExperiment().getSample(accession),
-                    this.samples.size()
+                        getExperiment().getSample(accession),
+                        this.samples.size()
                 );
                 this.samples.add(sample);
             }
             sampleDecorators[i] = sample;
         }
-        
+
         final String[] assayAccessions = proxy.getAssayAccessions();
         final AssayDecorator[] assayDecorators = new AssayDecorator[assayAccessions.length];
         for (int i = 0; i < assayAccessions.length; ++i) {
             assayDecorators[i] = new AssayDecorator(
-                getExperiment().getAssay(assayAccessions[i]),
-                this.assays.size(),
-                arrayDesign,
-                i // position in matrix
+                    getExperiment().getAssay(assayAccessions[i]),
+                    this.assays.size(),
+                    arrayDesign,
+                    i // position in matrix
             );
             this.assays.add(assayDecorators[i]);
         }
-        
+
         final int[][] samplesToAssays = proxy.getSamplesToAssays();
         for (int sampleI = 0; sampleI < sampleDecorators.length; ++sampleI) {
             for (int assayI = 0; assayI < assayDecorators.length; ++assayI) {
@@ -222,8 +221,9 @@ public class ExperimentalData implements Closeable {
      */
     public float getExpression(AssayDecorator assay, int designElementIndex) {
         final ExpressionMatrix matrix = getExpressionMatrix(assay.getArrayDesign());
-        return matrix != null
-            ? matrix.getExpression(designElementIndex, assay.getPositionInMatrix()) : Float.NaN;
+        if (matrix == null)
+            throw LogUtil.createUnexpected("Cannot find expression matrix for " + assay);
+        return matrix.getExpression(designElementIndex, assay.getPositionInMatrix());
     }
 
     /**
