@@ -172,7 +172,6 @@ public class ExperimentalData implements Closeable {
      * Get expression matrix for array design
      *
      * @param arrayDesign array design, this matrix applies to
-     * @param matrix      object, implementing expression matrix interface
      */
     private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
         ExpressionMatrix matrix = expressionMatrix.get(arrayDesign);
