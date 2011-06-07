@@ -92,7 +92,7 @@ public class ExperimentalData implements Closeable {
         this.experiment = experiment;
     }
 
-    private static String normalized(String name, String prefix) {
+    static String normalized(String name, String prefix) {
         if (name.startsWith(prefix)) {
             name = name.substring(prefix.length());
         }
@@ -191,75 +191,13 @@ public class ExperimentalData implements Closeable {
      */
     private ExpressionStats getExpressionStats(ArrayDesign arrayDesign) {
         ExpressionStats stats = expressionStats.get(arrayDesign);
-
         if (stats == null) {
             try {
-                final NetCDFProxy proxy = getProxy(arrayDesign);
-            
-                final List<String> uvals = proxy.getUniqueValues();
-                final int[] uvalIndexes = proxy.getUniqueValueIndexes();
-                
-                if (uvals.size() == 0 || uvalIndexes.length == 0) {
-                    return null;
-                }
-                /*
-                 * Lazy loading of data, matrix is read only for required elements
-                 */
-                final String[] factorsAndCharacteristics;
-                {
-                    final String[] tmp = proxy.getFactorsAndCharacteristics();
-                    // Ensure backwards compatibility
-                    factorsAndCharacteristics = tmp.length != 0 ? tmp : proxy.getFactors();
-                }
-
-                stats = new ExpressionStats() {
-                    private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
-        
-                    private EfvTree<Stat> lastData;
-                    long lastDesignElement = -1;
-        
-                    {
-                        int index = 0;
-                        int k = 0;
-                        for (int propIndex = 0; propIndex < factorsAndCharacteristics.length && index < uvalIndexes.length; ++propIndex) {
-                            final String prop = normalized(factorsAndCharacteristics[propIndex], "ba_");
-                            int valNum = uvalIndexes[index];
-                            for (; valNum > 0 && k < uvals.size(); --valNum) {
-                                final String efv = uvals.get(k).replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
-                                efvTree.put(prop, efv, k++);
-                            }
-                        }
-                    }
-        
-                    public EfvTree<Stat> getExpressionStats(int designElementId) {
-                        if (lastData != null && designElementId == lastDesignElement)
-                            return lastData;
-        
-                        try {
-                            final float[] pvals = proxy.getPValuesForDesignElement(designElementId);
-                            final float[] tstats = proxy.getTStatisticsForDesignElement(designElementId);
-                            final EfvTree<Stat> result = new EfvTree<Stat>();
-                            for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                                float pvalue = pvals[efefv.getPayload()];
-                                float tstat = tstats[efefv.getPayload()];
-                                if (tstat > 1e-8 || tstat < -1e-8) {
-                                    result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
-                                }
-                            }
-                            lastDesignElement = designElementId;
-                            lastData = result;
-                            return result;
-                        } catch (IOException e) {
-                            throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
-                        } catch (ArrayIndexOutOfBoundsException e) {
-                            throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
-                        }
-                    }
-                };
-                expressionStats.put(arrayDesign, stats);
+                stats = new ExpressionStats(getProxy(arrayDesign));
             } catch (IOException e) {
                 return null;
             }
+            expressionStats.put(arrayDesign, stats);
         }
         return stats;
     }
