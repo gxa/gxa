@@ -22,13 +22,13 @@
 
 package ae3.model;
 
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
-import java.util.*;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Lazy expression statistics class
@@ -40,7 +40,7 @@ public class ExpressionStats {
     private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
     
     private EfvTree<Stat> lastData;
-    long lastDesignElement = -1;
+    private long lastDesignElement = -1;
         
     ExpressionStats(NetCDFProxy proxy) throws IOException {
         this.proxy = proxy;
