@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
 import com.google.common.collect.Multiset;
+import com.sun.istack.internal.NotNull;
 import it.uniroma3.mat.extendedset.ConciseSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -145,7 +146,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
     }
 
     @Override
-    public void addStatistics(final EfvAttribute attribute,
+    public void addStatistics(@NotNull final EfvAttribute attribute,
                               final ExperimentInfo experiment,
                               final Collection<Integer> bioEntityIds) {
 

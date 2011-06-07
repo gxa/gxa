@@ -15,6 +15,7 @@ public class ObjectPool<T> {
      * @return canonical (i.e. already known) version of the requested object
      */
     public T intern(T o) {
-        return pool.putIfAbsent(o, o);
+        final T old = pool.putIfAbsent(o, o);
+        return old == null ? o : old;
     }
 }

@@ -147,15 +147,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 }
 
                 long[] bioEntityIdsArr = ncdf.getGenes();
-                List<Integer> bioEntityIds = new ArrayList<Integer>(bioEntityIdsArr.length);
-                for (long bioEntityId : bioEntityIdsArr) {
-                    if (bioEntityId <= Integer.MAX_VALUE) {
-                        bioEntityIds.add((int) bioEntityId);
-                    } else {
-                        throw new IndexBuilderException("bioEntityId: " + bioEntityId + " too large to be cast to int safely- unable to build bit index");
-                    }
-                }
-
                 ArrayFloat.D2 tstat = ncdf.getTStatistics();
                 ArrayFloat.D2 pvals = ncdf.getPValues();
                 int[] shape = tstat.getShape();
@@ -185,7 +176,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final MinPMaxT ptDown = new MinPMaxT();
 
                     for (int i = 0; i < shape[0]; i++) {
-                        int bioEntityId = bioEntityIds.get(i);
+                        int bioEntityId = safelyCastToInt(bioEntityIdsArr[i]);
+
+                        // in order to create a resource used for unit tests,
+                        // use <code>|| (bioEntityId != 516248 && bioEntityId != 838592)</code>
+                        // so that you would only index the bio entities used in tests
                         if (bioEntityId == 0) continue;
 
                         float t = tstat.get(i, j);
@@ -300,6 +295,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
+    }
+
+    private int safelyCastToInt(long l) {
+        int i = (int) l;
+        if ((long) i != l)
+            throw new IndexBuilderException("bioEntityId: " + i + " is too large to be cast to int safely- unable to build bit index");
+        return i;
     }
 
     private String internedCopy(ObjectPool<String> stringPool, String s) {
