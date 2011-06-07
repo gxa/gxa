@@ -178,29 +178,7 @@ public class ExperimentalData implements Closeable {
     private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
         ExpressionMatrix matrix = expressionMatrix.get(arrayDesign);
         if (matrix == null) {
-            final NetCDFProxy proxy = getProxy(arrayDesign);
-
-            /*
-             * Lazy loading of data, matrix is read only for required elements
-             */
-            matrix = new ExpressionMatrix() {
-                int lastDesignElement = -1;
-                float[] lastData = null;
-        
-                public float getExpression(int designElementIndex, int assayId) {
-                    try {
-                        if (lastData == null || lastDesignElement != designElementIndex) {
-                            lastDesignElement = designElementIndex;
-                            lastData = proxy.getExpressionDataForDesignElementAtIndex(designElementIndex);
-                        }
-                        return lastData[assayId];
-                    } catch (IOException e) {
-                        throw LogUtil.createUnexpected("Exception during matrix load", e);
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        throw LogUtil.createUnexpected("Exception during matrix load", e);
-                    }
-                }
-            };
+            matrix = new ExpressionMatrix(getProxy(arrayDesign));
             expressionMatrix.put(arrayDesign, matrix);
         }
         return matrix;
