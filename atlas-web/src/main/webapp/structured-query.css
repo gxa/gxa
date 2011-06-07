@@ -265,6 +265,9 @@ fieldset, #drill {
     padding: 3px;
     background-color: white;
     z-index:2000;
+    background: url(images/indicator.gif) no-repeat;
+    width: 16px;
+    padding-left: 16px;
 }
 
 #expopup .exptable {
