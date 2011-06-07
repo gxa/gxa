@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -89,13 +88,6 @@ public class ExperimentalData implements Closeable {
      */
     public ExperimentalData(Experiment experiment) {
         this.experiment = experiment;
-    }
-
-    static String normalized(String name, String prefix) {
-        if (name.startsWith(prefix)) {
-            name = name.substring(prefix.length());
-        }
-        return EscapeUtil.encode(name);
     }
 
     public void addProxy(NetCDFProxy proxy) throws IOException {

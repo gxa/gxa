@@ -25,6 +25,7 @@ package ae3.model;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.io.IOException;
@@ -38,34 +39,45 @@ import java.util.List;
 public class ExpressionStats {
     private final NetCDFProxy proxy;
     private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
-    
+
     private EfvTree<Stat> lastData;
     private long lastDesignElement = -1;
-        
+
     ExpressionStats(NetCDFProxy proxy) throws IOException {
         this.proxy = proxy;
 
-        final String[] factorsAndCharacteristics;
-        {
-            final String[] tmp = proxy.getFactorsAndCharacteristics();
-            // Ensure backwards compatibility
-            factorsAndCharacteristics = tmp.length != 0 ? tmp : proxy.getFactors();
-        }
+        final String[] factorsAndCharacteristics = getFactorsAndCharacteristics(proxy);
         final List<String> uvals = proxy.getUniqueValues();
-        final int[] uvalIndexes = proxy.getUniqueValueIndexes();
-        
+        final int[] uvalCounts = proxy.getUniqueValueCounts();
 
-        int index = 0;
-        int k = 0;
-        for (int propIndex = 0; propIndex < factorsAndCharacteristics.length && index < uvalIndexes.length; ++propIndex) {
-            final String prop = ExperimentalData.normalized(factorsAndCharacteristics[propIndex], "ba_");
-            for (int valNum = uvalIndexes[index++]; valNum > 0 && k < uvals.size(); --valNum) {
-                final String efv = uvals.get(k).replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
-                efvTree.put(prop, efv, k++);
+        int valueIndex = 0;
+        for (int propIndex = 0; propIndex < factorsAndCharacteristics.length; propIndex++) {
+            final String ef = normalized(factorsAndCharacteristics[propIndex], "ba_");
+            final int count = uvalCounts[propIndex];
+            for (int i = 0; i < count; i++) {
+                efvTree.put(ef, getEfv(uvals.get(valueIndex)), valueIndex);
+                valueIndex++;
             }
         }
     }
-        
+
+    private String[] getFactorsAndCharacteristics(NetCDFProxy proxy) throws IOException {
+        final String[] result = proxy.getFactorsAndCharacteristics();
+        // Ensure backwards compatibility
+        return result.length != 0 ? result : proxy.getFactors();
+    }
+
+    private static String getEfv(String value) {
+        return value.replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
+    }
+
+    private static String normalized(String name, String prefix) {
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length());
+        }
+        return EscapeUtil.encode(name);
+    }
+
     /**
      * Gets {@link uk.ac.ebi.gxa.utils.EfvTree} of expression statistics structures
      *
@@ -75,7 +87,7 @@ public class ExpressionStats {
     EfvTree<Stat> getExpressionStats(int designElementId) {
         if (lastData != null && designElementId == lastDesignElement)
             return lastData;
-    
+
         try {
             final float[] pvals = proxy.getPValuesForDesignElement(designElementId);
             final float[] tstats = proxy.getTStatisticsForDesignElement(designElementId);
