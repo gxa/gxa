@@ -108,8 +108,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
-        final ObjectPool<ExperimentInfo> experimentIndex = new ObjectPool<ExperimentInfo>();
-        final ObjectPool<EfvAttribute> attributeIndex = new ObjectPool<EfvAttribute>();
+        final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
+        final ObjectPool<EfvAttribute> attributePool = new ObjectPool<EfvAttribute>();
+        final ObjectPool<String> stringPool = new ObjectPool<String>();
 
         final StatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
         final StatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
@@ -132,7 +133,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 }
 
                 final Experiment exp = getAtlasDAO().getExperimentByAccession(ncdf.getExperimentAccession());
-                final ExperimentInfo experiment = experimentIndex.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
+                final ExperimentInfo experiment = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
                 // TODO should change to ncdf.getUniqueValues()
@@ -162,11 +163,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
                 for (int j = 0; j < uVals.size(); j++) {
                     String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-                    String ef = arr[0];
-                    String efv = arr.length == 1 ? "" : arr[1];
+                    String ef = internedCopy(stringPool, arr[0]);
+                    String efv = arr.length == 1 ? "" : internedCopy(stringPool, arr[1]);
 
-                    final EfvAttribute efvAttribute = attributeIndex.intern(new EfvAttribute(ef, efv, null));
-                    final EfvAttribute efAttribute = attributeIndex.intern(new EfvAttribute(ef, null));
+                    final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(ef, efv, null));
+                    final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(ef, null));
 
                     final Set<Integer> upBioEntityIds = new FastSet();
                     final Set<Integer> dnBioEntityIds = new FastSet();
@@ -273,7 +274,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         try {
             // Load efo index
-            EfoIndex efoIndex = loadEfoMapping(attributeIndex, experimentIndex);
+            EfoIndex efoIndex = loadEfoMapping(attributePool, experimentPool);
             statisticsStorage.setEfoIndex(efoIndex);
 
             // wait for statistics updates to finish
@@ -299,6 +300,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
+    }
+
+    private String internedCopy(ObjectPool<String> stringPool, String s) {
+        // Please keep <code>new String(s)</code> intact - substrings have internal references to the underlying String,
+        // hence memory footprint might be much bigger than expected.
+        return stringPool.intern(new String(s));
     }
 
     private List<File> ncdfsToProcess() {
