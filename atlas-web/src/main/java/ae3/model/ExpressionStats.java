@@ -59,8 +59,7 @@ public class ExpressionStats {
         int k = 0;
         for (int propIndex = 0; propIndex < factorsAndCharacteristics.length && index < uvalIndexes.length; ++propIndex) {
             final String prop = ExperimentalData.normalized(factorsAndCharacteristics[propIndex], "ba_");
-            int valNum = uvalIndexes[index];
-            for (; valNum > 0 && k < uvals.size(); --valNum) {
+            for (int valNum = uvalIndexes[index++]; valNum > 0 && k < uvals.size(); --valNum) {
                 final String efv = uvals.get(k).replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
                 efvTree.put(prop, efv, k++);
             }
