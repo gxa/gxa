@@ -24,7 +24,7 @@
     //TODO: move this code to atlas.js (logDebug, logError ?)
 
     window.atlasLog = function(msg) {
-        if (window.console) {
+        if (window.console && false) {
             window.console.log("atlas: " + msg);
         }
     }

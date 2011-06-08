@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.EfoAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
@@ -87,44 +88,68 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         return counts.get(id);
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
-        return autoCompleteValues(property, query, limit, null);
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit) {
+        return autoCompleteValues(property, prefix, limit, null);
     }
 
     /**
      * Autocomplete by EFO
      *
      * @param property factor or property to autocomplete values for, can be empty for any factor
-     * @param query    prefix
+     * @param prefix   prefix
      * @param limit    maximum number of values to find
-     * @param filters  query filters. Unused here.
+     * @param filters  prefix filters. Unused here.
      * @return collection of AutoCompleteItem's
      */
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit, Map<String, String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit, Map<String, String> filters) {
 
-        Efo efo = this.efo;
-
-        List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
-        Set<String> found = efo.searchTermPrefix(query);
-        for (Iterator<String> i = found.iterator(); i.hasNext();) {
-            if (getCount(i.next()) == null)
-                i.remove();
+        EfoTermRanking efoTermRanking = new EfoTermRanking(prefix);
+        Map<String, Rank> found = new HashMap<String, Rank>();
+        for (EfoTerm efoTerm : efo.searchTermPrefix(prefix)) {
+            if (getCount(efoTerm.getId()) != null) {
+                found.put(efoTerm.getId(), efoTermRanking.getRank(efoTerm));
+            }
         }
-        Set<String> all = new HashSet<String>(found);
-        for (String id : found) {
+
+        Set<String> all = new HashSet<String>(found.keySet());
+        for (String id : found.keySet()) {
             all.addAll(efo.getTermParents(id, true));
         }
-        for (EfoTerm term : efo.getSubTree(all)) {
-            if (limit >= 0 && limit-- <= 0)
-                break;
+
+        List<EfoTerm> subTree = efo.getSubTree(all);
+
+        Stack<EfoAutoCompleteItem> stack = new Stack<EfoAutoCompleteItem>();
+        Map<String, AutoCompleteItem> result = new HashMap<String, AutoCompleteItem>();
+
+        for (EfoTerm term : subTree) {
+            while (stack.size() > term.getDepth()) {
+                stack.pop();
+            }
 
             Long pcount = getCount(term.getId());
-            if (pcount != null)
-                result.add(new EfoAutoCompleteItem(Constants.EFO_FACTOR_NAME,
-                        term.getId(), term.getTerm(), pcount, term.getDepth(),
-                        term.getAlternativeTerms()));
+
+            Rank rank = found.get(term.getId());
+
+            EfoAutoCompleteItem item = new EfoAutoCompleteItem(Constants.EFO_FACTOR_NAME,
+                    term.getId(), term.getTerm(), pcount,
+                    term.getAlternativeTerms());
+
+            if (rank != null) {
+                AutoCompleteItem tmp = result.get(item.getId());
+                /**
+                 * Getting the shorter path makes the trees in the auto-complete drop-down
+                 * list shorter and easier to observe. Any other way of choosing
+                 * preferable efo path is welcome here.
+                 */
+                if (tmp == null || stack.size() < tmp.getPath().size()) {
+                    result.put(item.getId(), new EfoAutoCompleteItem(item, stack, rank));
+                }
+            }
+
+            stack.push(item);
         }
-        return result;
+
+        return result.values();
     }
 
     /**

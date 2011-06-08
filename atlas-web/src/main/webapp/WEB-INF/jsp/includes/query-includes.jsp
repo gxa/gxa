@@ -26,7 +26,7 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tooltip.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.dimensions.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.token.autocomplete.js"></script>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-token-autocomplete/jquery.token.autocomplete.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
 
 <script type="text/javascript" language="javascript">
@@ -35,6 +35,7 @@
 </script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 
+<link rel="stylesheet" href="${pageContext.request.contextPath}/scripts/jquery-token-autocomplete/css/jquery.token.autocomplete.css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />
 
