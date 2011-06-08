@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.utils;
 
 import static java.lang.Math.*;
 
-public abstract class FloatFormatter {
+public final class FloatFormatter {
     private FloatFormatter() {
     }
 
