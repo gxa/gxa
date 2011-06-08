@@ -23,7 +23,6 @@
 package ae3.service.structuredquery;
 
 import ae3.service.AtlasStatisticsQueryService;
-import com.sun.istack.internal.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -157,7 +156,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return result;
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, @NotNull String query, int limit) {
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String query, int limit) {
         return autoCompleteValues(property, query, limit, null);
     }
 
