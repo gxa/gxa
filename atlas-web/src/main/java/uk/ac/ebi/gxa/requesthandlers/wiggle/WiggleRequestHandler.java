@@ -64,6 +64,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final PrintWriter out = response.getWriter();
 
         String uri = request.getRequestURI();
+        log.info("handling request " + uri);
         uri = uri.substring(uri.lastIndexOf('/') + 1);
 
         final String[] allParams = uri.split("_");
@@ -105,6 +106,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
                 }
             }
         }
+        log.info("getting info for " + assaysToGet.size() + " assays");
 
         final long delta = (geneEnd - geneStart) / 5;
         geneStart -= delta;
