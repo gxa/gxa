@@ -27,24 +27,21 @@ package ae3.service.structuredquery;
  */
 public class Rank implements Comparable<Rank>{
 
-    public static final int MAX = 100;
-    public static final int MIN = 1;
-
-    private final int rank;
+    private final double rank;
 
     public Rank(double ratio) {
         if (ratio < 0 || ratio > 1) {
-            throw new IllegalArgumentException("Argument value is out of bounds [0..1]: " + ratio);
+            throw new IllegalArgumentException("Rank value is out of bounds [0.0 : 1.0]: " + ratio);
         }
-        this.rank = MIN + (int) Math.round((MAX - MIN) * ratio);
+        this.rank = ratio;
     }
 
     public boolean isMax() {
-        return rank == MAX;
+        return rank == 1.0;
     }
 
     public boolean isMin() {
-        return rank == MIN;
+        return rank == 0.0;
     }
 
     public Rank max(Rank o) {
@@ -56,7 +53,7 @@ public class Rank implements Comparable<Rank>{
 
     @Override
     public int compareTo(Rank o) {
-        return rank - o.rank;
+        return Double.compare(rank, o.rank);
     }
 
     @Override
@@ -66,14 +63,15 @@ public class Rank implements Comparable<Rank>{
 
         Rank rank1 = (Rank) o;
 
-        if (rank != rank1.rank) return false;
+        if (Double.compare(rank1.rank, rank) != 0) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return rank;
+        long temp = rank != +0.0d ? Double.doubleToLongBits(rank) : 0L;
+        return (int) (temp ^ (temp >>> 32));
     }
 
     @Override
