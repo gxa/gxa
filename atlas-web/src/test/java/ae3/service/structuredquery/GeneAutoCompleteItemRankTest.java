@@ -37,7 +37,7 @@ public class GeneAutoCompleteItemRankTest {
     @Test
     public void rankTest() {
         AtlasGenePropertyService.GeneAutoCompleteItemRank geneRank =
-                new AtlasGenePropertyService.GeneAutoCompleteItemRank(Arrays.asList("human", "homo", "mus", "rattus"), 1);
+                new AtlasGenePropertyService.GeneAutoCompleteItemRank(Arrays.asList("human", "homo", "mus", "rattus"), Arrays.asList("property"));
 
         Rank r1 = geneRank.getRank(newGeneItem("property", "gene1", null));
         Rank r2 = geneRank.getRank(newGeneItem("property", "gene2", null));
@@ -54,7 +54,7 @@ public class GeneAutoCompleteItemRankTest {
         try {
             geneRank.getRank(newGeneItem("property 1", "gene", null));
             fail();
-        } catch (IllegalStateException e) {
+        } catch (IllegalArgumentException e) {
             //OK
         }
     }
