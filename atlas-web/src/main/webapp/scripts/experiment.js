@@ -1245,10 +1245,10 @@
                     geneIdentifier: ea.geneIdentifier,
                     de: ea.designElementAccession,
                     ef: curatedEFs[ea.ef] || ea.ef,
-                    ef_enc: encodeURIComponent(encodeURIComponent(ea.ef)).replace(/_/g, '%5F'),
+                    ef_enc: encodeURIComponent(encodeURIComponent(ea.ef)).replace(/_/g, '__'),
                     rawef: ea.ef,
                     efv: ea.efv,
-                    efv_enc: encodeURIComponent(encodeURIComponent(ea.efv)).replace(/_/g, '%5F'),
+                    efv_enc: encodeURIComponent(encodeURIComponent(ea.efv)).replace(/_/g, '__'),
                     pvalue: ea.pvalPretty,
                     tstat: ea.tstatPretty,
                     expr: ea.expression
