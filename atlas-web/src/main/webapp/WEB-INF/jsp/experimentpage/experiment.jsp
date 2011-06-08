@@ -151,6 +151,8 @@
 </script>
 
 <script id="source" type="text/javascript">
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '${u:escapeJS(atlasProperties.curatedEfs[ef])}';
+    </c:forEach>
 
     $(document).ready(function() {
 
