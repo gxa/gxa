@@ -265,7 +265,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
             }
         }
         Collections.sort(result);
-        if (result.size() > limit) {
+        if (limit > 0 && result.size() > limit) {
             result = result.subList(0, limit);
         }
         return result;
