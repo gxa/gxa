@@ -22,32 +22,12 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.text.DecimalFormat;
+import static java.lang.Math.*;
 
 public abstract class FloatFormatter {
     private FloatFormatter() {
     }
 
-    private static DecimalFormat[] formatsCache = new DecimalFormat[10];
-
-    private static DecimalFormat decimalFormat(int numberOfDigits) {
-        DecimalFormat format = null;
-        if (numberOfDigits < 10) {
-            format = formatsCache[numberOfDigits];
-        }
-        if (format == null) {
-            final StringBuilder s = new StringBuilder("#.");
-            for (int i = 0; i < numberOfDigits; ++i) {
-                s.append("#");
-            }
-            format = new DecimalFormat(s.toString());
-            if (numberOfDigits < 10) {
-                formatsCache[numberOfDigits] = format;
-            }
-        }
-        return format;
-    }
- 
     public static String formatFloat(float value, int significantDigits) {
         if (Float.isInfinite(value)) {
             return "null";
@@ -55,9 +35,7 @@ public abstract class FloatFormatter {
         if (Float.isNaN(value)) {
             return "null";
         }
-        return decimalFormat(
-            Math.max(0, significantDigits - (int)Math.ceil(Math.log10(Math.abs(value))))
-        ).format(value);
+        return Double.toString(trimSignificantDigits(value, significantDigits));
     }
 
     public static String formatDouble(double value, int significantDigits) {
@@ -67,8 +45,12 @@ public abstract class FloatFormatter {
         if (Double.isNaN(value)) {
             return "null";
         }
-        return decimalFormat(
-            Math.max(0, significantDigits - (int)Math.ceil(Math.log10(Math.abs(value))))
-        ).format(value);
+        return Double.toString(trimSignificantDigits(value, significantDigits));
+    }
+
+    private static double trimSignificantDigits(double value, int significantDigits) {
+        int order = (int) ceil(log10(abs(value)));
+        final double precision = pow(10.0, order - significantDigits);
+        return round(value / precision) * precision;
     }
 }
