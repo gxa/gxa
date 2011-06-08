@@ -1245,7 +1245,7 @@
                     geneIdentifier: ea.geneIdentifier,
                     de: ea.designElementAccession,
                     ef: curatedEFs[ea.ef] || ea.ef,
-                    ef_enc: encodeURIComponent(encodeURIComponent(curatedEFs[ea.ef])).replace(/_/g, '%5F'),
+                    ef_enc: encodeURIComponent(encodeURIComponent(ea.ef)).replace(/_/g, '%5F'),
                     rawef: ea.ef,
                     efv: ea.efv,
                     efv_enc: encodeURIComponent(encodeURIComponent(ea.efv)).replace(/_/g, '%5F'),
