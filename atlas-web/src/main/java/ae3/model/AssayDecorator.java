@@ -31,8 +31,7 @@ import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import java.util.*;
 
 /**
- * A class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
- * Is used only in NetCDFReader and should be replaced with newer model class.
+ * A decorator class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
  *
  * @author pashky
  */
@@ -56,6 +55,10 @@ public class AssayDecorator {
         this.number = number;
         this.arrayDesign = arrayDesign;
         this.positionInMatrix = positionInMatrix;
+    }
+
+    Assay getAssay() {
+        return assay;
     }
 
     /**

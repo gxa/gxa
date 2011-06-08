@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -69,6 +70,9 @@ public class ExperimentalData implements Closeable {
             }
             experimentalData.addProxy(descriptor.createProxy());
         }
+        if (experimentalData != null) {
+            experimentalData.createAssaySampleMappings();
+        }
         return experimentalData;
     }
 
@@ -100,7 +104,6 @@ public class ExperimentalData implements Closeable {
         proxies.put(arrayDesign, proxy);
 
         final String[] sampleAccessions = proxy.getSampleAccessions();
-        final SampleDecorator[] sampleDecorators = new SampleDecorator[sampleAccessions.length];
         for (int i = 0; i < sampleAccessions.length; ++i) {
             final String accession = sampleAccessions[i];
             SampleDecorator sample = null;
@@ -111,40 +114,40 @@ public class ExperimentalData implements Closeable {
                 }
             }
             if (sample == null) {
-                sample = new SampleDecorator(
-                        getExperiment().getSample(accession),
-                        this.samples.size()
-                );
-                this.samples.add(sample);
+                this.samples.add(new SampleDecorator(
+                    getExperiment().getSample(accession),
+                    this.samples.size()
+                ));
             }
-            sampleDecorators[i] = sample;
         }
 
         final String[] assayAccessions = proxy.getAssayAccessions();
-        final AssayDecorator[] assayDecorators = new AssayDecorator[assayAccessions.length];
         for (int i = 0; i < assayAccessions.length; ++i) {
-            assayDecorators[i] = new AssayDecorator(
-                    getExperiment().getAssay(assayAccessions[i]),
-                    this.assays.size(),
-                    arrayDesign,
-                    i // position in matrix
-            );
-            this.assays.add(assayDecorators[i]);
+            this.assays.add(new AssayDecorator(
+                getExperiment().getAssay(assayAccessions[i]),
+                this.assays.size(),
+                arrayDesign,
+                i // position in matrix
+            ));
         }
+    }
 
-        final int[][] samplesToAssays = proxy.getSamplesToAssays();
-        for (int sampleI = 0; sampleI < sampleDecorators.length; ++sampleI) {
-            for (int assayI = 0; assayI < assayDecorators.length; ++assayI) {
-                if (samplesToAssays[sampleI][assayI] > 0) {
-                    addSampleAssayMapping(sampleDecorators[sampleI], assayDecorators[assayI]);
-                }
-            }
+    private void createAssaySampleMappings() {
+        final Map<Sample, SampleDecorator> sampleMap = new HashMap<Sample, SampleDecorator>();
+        for (SampleDecorator sd : samples) {
+            sampleMap.put(sd.getSample(), sd);
+        }
+        for (AssayDecorator ad : assays) {
+            for (Sample sample: ad.getAssay().getSamples()) {
+                addSampleAssayMapping(sampleMap.get(sample), ad);
+            } 
         }
     }
 
     public void close() {
-        for (NetCDFProxy p : proxies.values())
+        for (NetCDFProxy p : proxies.values()) {
             closeQuietly(p);
+        }
     }
 
     public Experiment getExperiment() {
