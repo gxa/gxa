@@ -32,27 +32,27 @@ import static org.junit.Assert.*;
 /**
  * @author Olga Melnichuk
  */
-public class GeneAutoCompleteItemRankTest {
+public class GeneAutoCompleteItemRankingTest {
 
     @Test
     public void rankTest() {
-        AtlasGenePropertyService.GeneAutoCompleteItemRank geneRank =
-                new AtlasGenePropertyService.GeneAutoCompleteItemRank(Arrays.asList("human", "homo", "mus", "rattus"), Arrays.asList("property"));
+        AtlasGenePropertyService.GeneAutoCompleteItemRanking geneRanking =
+                new AtlasGenePropertyService.GeneAutoCompleteItemRanking(Arrays.asList("human", "homo", "mus", "rattus"), Arrays.asList("property"));
 
-        Rank r1 = geneRank.getRank(newGeneItem("property", "gene1", null));
-        Rank r2 = geneRank.getRank(newGeneItem("property", "gene2", null));
+        Rank r1 = geneRanking.getRank(newGeneItem("property", "gene1", null));
+        Rank r2 = geneRanking.getRank(newGeneItem("property", "gene2", null));
         assertEquals(r1, r2);
         assertTrue(r1.isMin());
 
-        Rank r3 = geneRank.getRank(newGeneItem("property", "gene1", "human"));
-        Rank r4 = geneRank.getRank(newGeneItem("property", "gene1", "mus rattus"));
+        Rank r3 = geneRanking.getRank(newGeneItem("property", "gene1", "human"));
+        Rank r4 = geneRanking.getRank(newGeneItem("property", "gene1", "mus rattus"));
         assertGreater(r3, r4);
         assertTrue(r3.isMax());
 
         assertGreater(r4, r1);
 
         try {
-            geneRank.getRank(newGeneItem("property 1", "gene", null));
+            geneRanking.getRank(newGeneItem("property 1", "gene", null));
             fail();
         } catch (IllegalArgumentException e) {
             //OK

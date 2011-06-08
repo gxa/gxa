@@ -27,10 +27,10 @@ import uk.ac.ebi.gxa.efo.EfoTerm;
 /**
  * @author Olga Melnichuk
  */
-class EfoTermPrefixRank {
+class EfoTermRanking {
     private final String prefix;
 
-    public EfoTermPrefixRank(String prefix) {
+    public EfoTermRanking(String prefix) {
         this.prefix = prefix.toLowerCase();
     }
 

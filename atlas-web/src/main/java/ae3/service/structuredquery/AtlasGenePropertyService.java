@@ -59,7 +59,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         DisposableBean {
 
 
-    static class GeneAutoCompleteItemRank {
+    static class GeneAutoCompleteItemRanking {
         /**
          * Stores user-specified ordering of autocomplete items by Species. An autocomplete item associated with a Species
          * which occurs earlier in speciesOrderProperties list will appear earlier in the autocomplete list.
@@ -67,7 +67,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         private final List<String> speciesOrder = new ArrayList<String>();
         private final List<String> propertiesOrder = new ArrayList<String>();
 
-        GeneAutoCompleteItemRank(List<String> speciesOrder, List<String> propertiesOrder) {
+        GeneAutoCompleteItemRanking(List<String> speciesOrder, List<String> propertiesOrder) {
             this.speciesOrder.addAll(speciesOrder);
             this.propertiesOrder.addAll(propertiesOrder);
         }
@@ -122,7 +122,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
     private Set<String> nameProperties;
     private List<String> nameFields;
 
-    private GeneAutoCompleteItemRank geneRank;
+    private GeneAutoCompleteItemRanking geneRanking;
 
     private final Map<String, PrefixNode> prefixTrees = new HashMap<String, PrefixNode>();
 
@@ -163,7 +163,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         geneProperties.addAll(idProperties);
         geneProperties.addAll(descProperties);
 
-        this.geneRank = new GeneAutoCompleteItemRank(atlasProperties.getGeneAutocompleteSpeciesOrder(),
+        this.geneRanking = new GeneAutoCompleteItemRanking(atlasProperties.getGeneAutocompleteSpeciesOrder(),
                 geneProperties);
 
         this.nameFields = new ArrayList<String>();
@@ -261,7 +261,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         for (String property : properties) {
             Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, prefix, limit);
             for (GeneAutoCompleteItem item : items) {
-                result.add(new GeneAutoCompleteItem(item, geneRank.getRank(item)));
+                result.add(new GeneAutoCompleteItem(item, geneRanking.getRank(item)));
             }
         }
         Collections.sort(result);
@@ -275,7 +275,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
         Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, speciesFilter, limit);
         for (GeneAutoCompleteItem item : items) {
-            result.add(new GeneAutoCompleteItem(item, geneRank.getRank(item)));
+            result.add(new GeneAutoCompleteItem(item, geneRanking.getRank(item)));
         }
         return result;
     }

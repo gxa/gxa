@@ -103,11 +103,11 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
      */
     public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit, Map<String, String> filters) {
 
-        EfoTermPrefixRank prefixRank = new EfoTermPrefixRank(prefix);
+        EfoTermRanking efoTermRanking = new EfoTermRanking(prefix);
         Map<String, Rank> found = new HashMap<String, Rank>();
         for (EfoTerm efoTerm : efo.searchTermPrefix(prefix)) {
             if (getCount(efoTerm.getId()) != null) {
-                found.put(efoTerm.getId(), prefixRank.getRank(efoTerm));
+                found.put(efoTerm.getId(), efoTermRanking.getRank(efoTerm));
             }
         }
 

@@ -32,11 +32,11 @@ import static org.junit.Assert.*;
 /**
  * @author Olga Melnichuk
  */
-public class EfoTermPrefixRankTest {
+public class EfoTermRankingTest {
 
     @Test
     public void rankTest() {
-        EfoTermPrefixRank efoRank = new EfoTermPrefixRank("test");
+        EfoTermRanking efoRank = new EfoTermRanking("test");
 
         Rank noPrefix = efoRank.getRank(newEfoTerm("a test", "a test", "a test"));
         assertTrue(noPrefix.isMin());
