@@ -59,9 +59,9 @@ public class EfoImpl implements Efo {
     private File cache;
     private URI uri;
 
-    Map<String, EfoNode> efomap;
-    String version;
-    String versionInfo;
+    private Map<String, EfoNode> efomap;
+    private String version;
+    private String versionInfo;
 
     public void setUri(URI uri) {
         this.uri = uri;
@@ -267,7 +267,7 @@ public class EfoImpl implements Efo {
     /**
      * Returns collection of all term IDs
      *
-     * @return set of all term IDs
+     * @return collection of EFO terms
      */
     public Set<String> getAllTermIds() {
         return new HashSet<String>(getMap().keySet());
@@ -277,20 +277,29 @@ public class EfoImpl implements Efo {
      * Searches for prefix in ontology
      *
      * @param prefix prefix to search
-     * @return set of string IDs
+     * @return collection of efoTerms
      */
-    public Set<String> searchTermPrefix(String prefix) {
+    public Collection<EfoTerm> searchTermPrefix(String prefix) {
         String lprefix = prefix.toLowerCase();
-        Set<String> result = new HashSet<String>();
+        Set<EfoNode> set = new HashSet<EfoNode>();
+        List<EfoTerm> result = new ArrayList<EfoTerm>();
         for (EfoNode n : getMap().values()) {
+            boolean added = false;
             if (n.term.toLowerCase().startsWith(lprefix) || n.id.toLowerCase().startsWith(lprefix)) {
-                result.add(n.id);
-            } else for (String alt : n.alternativeTerms)
-                if (alt.toLowerCase().startsWith(lprefix)) {
-                    result.add(n.id);
-                    break;
-                }
+                added = set.add(n);
+            } else {
+                for (String alt : n.alternativeTerms)
+                    if (alt.toLowerCase().startsWith(lprefix)) {
+                        added = set.add(n);
+                        break;
+                    }
+            }
+
+            if (added) {
+                result.add(newTerm(n));
+            }
         }
+
         return result;
     }
 

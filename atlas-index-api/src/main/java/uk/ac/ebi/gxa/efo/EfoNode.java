@@ -30,11 +30,11 @@ import static com.google.common.base.Joiner.on;
 /**
  * Internal node representation structure
  */
-public class EfoNode implements Serializable {
-    String id;
-    String term;
+class EfoNode implements Serializable {
+    final String id;
+    final String term;
     final List<String> alternativeTerms;
-    boolean branchRoot;
+    final boolean branchRoot;
 
     private static class TermComparator implements Comparator<EfoNode>, Serializable {
         public int compare(EfoNode o1, EfoNode o2) {
@@ -42,22 +42,25 @@ public class EfoNode implements Serializable {
         }
     }
 
-    static Comparator<EfoNode> termAlphaComp = new TermComparator();
+    final static Comparator<EfoNode> termAlphaComp = new TermComparator();
 
-    SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
-    SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
+    final SortedSet<EfoNode> children = new TreeSet<EfoNode>(termAlphaComp);
+    final SortedSet<EfoNode> parents = new TreeSet<EfoNode>(termAlphaComp);
 
     public EfoNode(String id, String term, boolean branchRoot, List<String> alternativeTerms) {
         this.id = id;
         this.term = term;
-        this.alternativeTerms = Collections.unmodifiableList(alternativeTerms);
         this.branchRoot = branchRoot;
+
+        List<String> list = new ArrayList<String>();
+        list.addAll(alternativeTerms);
+        this.alternativeTerms = Collections.unmodifiableList(list);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof EfoNode)) return false;
 
         EfoNode efoNode = (EfoNode) o;
 
@@ -68,10 +71,7 @@ public class EfoNode implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (term != null ? term.hashCode() : 0);
-        result = 31 * result + (children != null ? children.hashCode() : 0);
-        return result;
+        return id != null ? id.hashCode() : 0;
     }
 
     @Override
