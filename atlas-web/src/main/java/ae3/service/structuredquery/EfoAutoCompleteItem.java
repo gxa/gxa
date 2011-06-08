@@ -22,39 +22,45 @@
 
 package ae3.service.structuredquery;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Auto complete item class extended to represent EFO attributes
+ * Auto-complete item class extended to represent EFO attributes
+ *
  * @author pashky
  */
 public class EfoAutoCompleteItem extends AutoCompleteItem {
-    private int depth;
-    private List<String> alternativeTerms;
 
-    public EfoAutoCompleteItem(String property, String id, String value, Long count, final int depth, List<String> alternativeTerms) {
-        super(property, id, value, count);
-        this.depth = depth;
-        this.alternativeTerms = alternativeTerms;
+    private final List<String> alternativeTerms = new ArrayList<String>();
+
+    public EfoAutoCompleteItem(String property, String id, String value, Long count, Collection<String> alternativeTerms, Rank rank, Collection<EfoAutoCompleteItem> path) {
+        super(property, id, value, count, rank, path);
+        this.alternativeTerms.addAll(alternativeTerms);
     }
 
-    public int getDepth() {
-        return depth;
+    public EfoAutoCompleteItem(String property, String id, String value, Long count, Collection<String> alternativeTerms) {
+        this(property, id, value, count, alternativeTerms, null, Collections.<EfoAutoCompleteItem>emptyList());
+    }
+
+    public EfoAutoCompleteItem(EfoAutoCompleteItem item, Collection<EfoAutoCompleteItem> path, Rank rank) {
+        this(item.getProperty(), item.getId(), item.getValue(), item.getCount(), item.getAlternativeTerms(), rank, path);
     }
 
     public List<String> getAlternativeTerms() {
-        return alternativeTerms;
+        return Collections.unmodifiableList(alternativeTerms);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof EfoAutoCompleteItem)) return false;
         if (!super.equals(o)) return false;
 
         EfoAutoCompleteItem that = (EfoAutoCompleteItem) o;
 
-        if (depth != that.depth) return false;
         if (alternativeTerms != null ? !alternativeTerms.equals(that.alternativeTerms) : that.alternativeTerms != null)
             return false;
 
@@ -64,7 +70,6 @@ public class EfoAutoCompleteItem extends AutoCompleteItem {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + depth;
         result = 31 * result + (alternativeTerms != null ? alternativeTerms.hashCode() : 0);
         return result;
     }
