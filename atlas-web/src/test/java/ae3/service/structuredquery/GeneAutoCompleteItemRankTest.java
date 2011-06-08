@@ -27,8 +27,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Olga Melnichuk
@@ -38,26 +37,33 @@ public class GeneAutoCompleteItemRankTest {
     @Test
     public void rankTest() {
         AtlasGenePropertyService.GeneAutoCompleteItemRank geneRank =
-                new AtlasGenePropertyService.GeneAutoCompleteItemRank(Arrays.asList("human", "homo", "mus", "rattus"));
+                new AtlasGenePropertyService.GeneAutoCompleteItemRank(Arrays.asList("human", "homo", "mus", "rattus"), 1);
 
-        Rank r1 = geneRank.getRank(newGeneItem("gene1", null));
-        Rank r2 = geneRank.getRank(newGeneItem("gene2", null));
+        Rank r1 = geneRank.getRank(newGeneItem("property", "gene1", null));
+        Rank r2 = geneRank.getRank(newGeneItem("property", "gene2", null));
         assertEquals(r1, r2);
         assertTrue(r1.isMin());
 
-        Rank r3 = geneRank.getRank(newGeneItem("gene1", "human"));
-        Rank r4 = geneRank.getRank(newGeneItem("gene1", "mus rattus"));
+        Rank r3 = geneRank.getRank(newGeneItem("property", "gene1", "human"));
+        Rank r4 = geneRank.getRank(newGeneItem("property", "gene1", "mus rattus"));
         assertGreater(r3, r4);
         assertTrue(r3.isMax());
 
         assertGreater(r4, r1);
+
+        try {
+            geneRank.getRank(newGeneItem("property 1", "gene", null));
+            fail();
+        } catch (IllegalStateException e) {
+            //OK
+        }
     }
 
     private static void assertGreater(Rank r1, Rank r2) {
         assertTrue(r1.compareTo(r2) > 0);
     }
 
-    private static GeneAutoCompleteItem newGeneItem(String value, String species) {
-        return new GeneAutoCompleteItem("property", value, 0L, species, value, Collections.<String>emptyList());
+    private static GeneAutoCompleteItem newGeneItem(String property, String value, String species) {
+        return new GeneAutoCompleteItem(property, value, 0L, species, value, Collections.<String>emptyList());
     }
 }
