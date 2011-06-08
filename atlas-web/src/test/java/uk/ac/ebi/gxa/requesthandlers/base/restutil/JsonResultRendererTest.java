@@ -86,7 +86,7 @@ public class JsonResultRendererTest {
 
             @RestOut
             public int[] getArray() {
-                return new int[] {1, 2, 3, 4};
+                return new int[]{1, 2, 3, 4};
             }
         };
 

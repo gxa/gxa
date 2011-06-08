@@ -49,6 +49,9 @@ public abstract class FloatFormatter {
     }
 
     private static double trimSignificantDigits(double value, int significantDigits) {
+        if (abs(value) < pow(10.0, -significantDigits))
+            return 0;
+
         int order = (int) ceil(log10(abs(value)));
         final double precision = pow(10.0, order - significantDigits);
         return round(value / precision) * precision;
