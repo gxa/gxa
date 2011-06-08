@@ -39,6 +39,8 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import static com.google.common.io.CharStreams.readLines;
 import static com.google.common.io.Closeables.closeQuietly;
@@ -58,6 +60,20 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
 
+    public static String[] splitRequest(String request) {
+        final Pattern p = Pattern.compile("(.*[^_])_([^_].*[^_]|[^_])_([^_].*[^_]|[^_])_([^_].*)");
+        final Matcher m = p.matcher(request);
+        if (!m.matches()) {
+            return new String[0];
+        }
+        return new String[] {
+            m.group(1).replaceAll("__", "_"),
+            m.group(2).replaceAll("__", "_"),
+            m.group(3).replaceAll("__", "_"),
+            m.group(4).replaceAll("__", "_")
+        };
+    }
+
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain; charset=UTF-8");
 
@@ -66,7 +82,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         String uri = request.getRequestURI();
         uri = uri.substring(uri.lastIndexOf('/') + 1);
 
-        final String[] allParams = uri.split("_");
+        final String[] allParams = splitRequest(uri);
         if (allParams.length < 4) {
             log.error("Parameter number is invalid (" + allParams.length + ") for URL " + uri);
             return;
