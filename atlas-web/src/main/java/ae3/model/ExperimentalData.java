@@ -93,7 +93,7 @@ public class ExperimentalData implements Closeable {
      *
      * @param experiment
      */
-    public ExperimentalData(Experiment experiment) {
+    private ExperimentalData(Experiment experiment) {
         this.experiment = experiment;
     }
 
