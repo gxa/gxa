@@ -23,7 +23,6 @@
 package ae3.service.structuredquery;
 
 import ae3.service.AtlasStatisticsQueryService;
-import com.google.common.base.Strings;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -42,8 +41,10 @@ import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
@@ -155,44 +156,45 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return result;
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String query, int limit) {
         return autoCompleteValues(property, query, limit, null);
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(final String property, String query, final int limit, Map<String, String> filters) {
+    public Collection<AutoCompleteItem> autoCompleteValues(final String property, @Nonnull String prefix, final int limit, Map<String, String> filters) {
+        prefix = prefix.toLowerCase();
 
-        boolean hasPrefix = query != null && !"".equals(query);
-        if (hasPrefix)
-            query = query.toLowerCase();
+        boolean everywhere = isNullOrEmpty(property);
 
-        boolean anyProp = Strings.isNullOrEmpty(property);
-
-        Collection<AutoCompleteItem> result;
-        if (anyProp) {
-            result = new TreeSet<AutoCompleteItem>();
-            for (final String prop : getOptionsFactors())
-                treeAutocomplete(prop, query, limit, result);
-        } else {
-            result = new ArrayList<AutoCompleteItem>();
-            if (getOptionsFactors().contains(property))
-                treeAutocomplete(property, query, limit, result);
-        }
-        return result;
+        Collection<String> properties = everywhere ? getOptionsFactors() :
+                (getOptionsFactors().contains(property) ? Arrays.asList(property) : Collections.<String>emptyList());
+        return treeAutocomplete(properties, prefix, limit);
     }
 
-    private void treeAutocomplete(final String property, String query, final int limit, final Collection<AutoCompleteItem> result) {
-        PrefixNode root = treeGetOrLoad(property);
-        if (root != null) {
-            root.walk(query, 0, "", new PrefixNode.WalkResult() {
-                public void put(String name, int count) {
-                    result.add(new AutoCompleteItem(property, name, name, (long) count));
-                }
+    private Collection<AutoCompleteItem> treeAutocomplete(Collection<String> properties, final @Nonnull String prefix, final int limit) {
+        final Map<String, AutoCompleteItem> result = new HashMap<String, AutoCompleteItem>();
 
-                public boolean enough() {
-                    return limit >= 0 && result.size() >= limit;
-                }
-            });
+        for (final String property : properties) {
+            PrefixNode root = treeGetOrLoad(property);
+            if (root != null) {
+                root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
+                    public void put(String name, int count) {
+                        AutoCompleteItem item = result.get(name);
+                        Rank rank = new Rank(1.0 * prefix.length() / name.length());
+                        if (item != null) {
+                            item = new AutoCompleteItem("efv", name, name, count + item.getCount(), rank);
+                        } else {
+                            item = new AutoCompleteItem(property, name, name, (long) count, rank);
+                        }
+                        result.put(name, item);
+                    }
+
+                    public boolean enough() {
+                        return limit >= 0 && result.size() >= limit;
+                    }
+                });
+            }
         }
+        return result.values();
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {

@@ -76,7 +76,7 @@
         <c:if test="${empty experimentDesign}">
             <c:forEach var="a" items="${exp.experiment.assets}" varStatus="status">
                 <li>
-                    <a href="${pageContext.request.contextPath}/assets/${exp.accession}/${a.fileName}" rel="lightbox"
+                    <a href="${pageContext.request.contextPath}/assets?eid=${exp.accession}&amp;asset=${a.fileName}" rel="lightbox"
                        class="lightbox" title="${a.description}" alt="${a.description}">
                             ${a.name}
                     </a>

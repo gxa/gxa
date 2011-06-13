@@ -41,19 +41,11 @@
         <to type="redirect">%{context-path}/rewrite-status</to>
     </rule>
 
-
-    <rule>
-        <note>all images - root images</note>
-        <from>(.+)/images/(.+)</from>
-        <to>/images/$2</to>
-    </rule>
-
     <rule>
         <note>Gene Index</note>
         <from>/gene/index.htm(.*)</from>
         <to>/geneIndex</to>
     </rule>
-
 
     <rule>
         <note>

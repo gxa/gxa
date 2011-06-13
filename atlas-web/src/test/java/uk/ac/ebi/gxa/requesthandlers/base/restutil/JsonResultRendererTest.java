@@ -86,7 +86,7 @@ public class JsonResultRendererTest {
 
             @RestOut
             public int[] getArray() {
-                return new int[] {1, 2, 3, 4};
+                return new int[]{1, 2, 3, 4};
             }
         };
 
@@ -94,7 +94,7 @@ public class JsonResultRendererTest {
         r.render(o, sb, Object.class);
         Assert.assertEquals("Wrong format!", "atlas({\n" +
                 "    \"int\" : 123,\n" +
-                "    \"double\" : 1.23464E15,\n" +
+                "    \"double\" : 1.2346E15,\n" +
                 "    \"array\" : [1, 2, 3, 4],\n" +
                 "    \"mapas\" : {\n" +
                 "        \"e\" : [\n" +

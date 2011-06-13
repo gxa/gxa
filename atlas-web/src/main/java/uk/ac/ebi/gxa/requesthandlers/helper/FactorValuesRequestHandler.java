@@ -22,17 +22,14 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.AutoCompleter;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author pashky
@@ -84,18 +81,17 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
                 filters.put(filter, request.getStr(filter));
             }
 
-            List<AutoCompleteItem> resultList = new ACList();
-            if (listers != null)
+            List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
+            if (listers != null) {
                 for (AutoCompleter lister : listers) {
-                    if (resultList.size() < nlimit) {
-                        resultList.addAll(lister.autoCompleteValues(
-                                factor,
-                                q,
-                                nlimit - resultList.size(),
-                                filters
-                        ));
-                    }
+                    res.addAll(lister.autoCompleteValues(factor, q, nlimit, filters));
                 }
+            }
+
+            Collections.sort(res);
+
+            List<AutoCompleteItem> resultList = new ACList();
+            resultList.addAll(res.subList(0, Math.min(nlimit, res.size())));
             values.put(q != null ? q : "", resultList);
         }
 

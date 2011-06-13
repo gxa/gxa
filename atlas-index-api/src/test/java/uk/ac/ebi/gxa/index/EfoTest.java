@@ -219,10 +219,10 @@ public class EfoTest {
 
     @Test
     public void testSearchPrefix() {
-        assertTrue(efo.searchTermPrefix("organ").contains("EFO_0000635"));
-        assertFalse(efo.searchTermPrefix("organ").contains("EFO_0000298"));
-        assertTrue(efo.searchTermPrefix("organ").contains("EFO_0000634"));
-        assertTrue(efo.searchTermPrefix("cell").contains("EFO_0000321"));
+        assertTrue(isTermInCollection(efo.searchTermPrefix("organ"), "EFO_0000635"));
+        assertFalse(isTermInCollection(efo.searchTermPrefix("organ"), "EFO_0000298"));
+        assertTrue(isTermInCollection(efo.searchTermPrefix("organ"), "EFO_0000634"));
+        assertTrue(isTermInCollection(efo.searchTermPrefix("cell"), "EFO_0000321"));
     }
 
     @Test

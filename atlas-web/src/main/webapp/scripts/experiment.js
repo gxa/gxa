@@ -24,7 +24,7 @@
     //TODO: move this code to atlas.js (logDebug, logError ?)
 
     window.atlasLog = function(msg) {
-        if (window.console) {
+        if (window.console && false) {
             window.console.log("atlas: " + msg);
         }
     }
@@ -643,10 +643,10 @@
 
         function drawZoomControls() {
             var contents = [
-                '<div id="' + zoomin + '"  style="z-index:1; position:relative; left: 0; top: 5px;cursor:pointer;display:none;"><img style="cursor:pointer" src="images/zoomin.gif" title="Zoom in"></div>',
-                '<div id="' + zoomout + '" style="z-index:1; position: relative; left: 0; top: 5px;cursor:pointer;display:none;"><img src="images/zoomout.gif" title="Zoom out"></div>',
-                '<div id="' + panright + '" style="z-index:2;position: relative; left: 20px; top: -35px;cursor:pointer;display:none;"><img src="images/panright.gif" title="pan right"></div>',
-                '<div id="' + panleft + '" style="z-index:2;position: relative; left: -15px; top: -69px;cursor:pointer;display:none;"><img src="images/panleft.gif" title="pan left"></div>'];
+                '<div id="' + zoomin + '"  class="zoomin-btn" style="z-index:1; position:relative; left: 0; top: 5px;display:none;" title="Zoom in"></div>',
+                '<div id="' + zoomout + '" class="zoomout-btn" style="z-index:1; position: relative; left: 0; top: 5px;display:none;" title="Zoom out"></div>',
+                '<div id="' + panright + '" class="panright-btn" style="z-index:2;position: relative; left: 20px; top: -35px;display:none;" title="pan right"></div>',
+                '<div id="' + panleft + '" class="panleft-btn" style="z-index:2;position: relative; left: -15px; top: -69px;display:none;" title="pan left"></div>'];
 
             $("#" + target).css({paddingLeft: 15});
             $("#" + target).html(contents.join(""));
@@ -1876,14 +1876,16 @@
                 var color = deColors[deIndex];
                 if (color) {
                     $("#results_" + deIndex).css({backgroundColor: color});
-                    var img = $("#results_" + deIndex + " img")[0];
-                    img.src = "images/chart_line_delete.png";
-                    img.title = "remove from plot";
+                    var ico = $("#results_" + deIndex + " .chartIcon");
+                    ico.removeClass("add-btn");
+                    ico.addClass("delete-btn");
+                    ico.attr("title", "remove from plot");
                 } else {
                     $("#results_" + deIndex).css({backgroundColor: "white"});
-                    var img = $("#results_" + deIndex + " img")[0];
-                    img.src = "images/chart_line_add.png";
-                    img.title = "add to plot";
+                    var ico = $("#results_" + deIndex + " .chartIcon");
+                    ico.removeClass("delete-btn");
+                    ico.addClass("add-btn");
+                    ico.attr("title", "add to plot");
                 }
             });
         }
