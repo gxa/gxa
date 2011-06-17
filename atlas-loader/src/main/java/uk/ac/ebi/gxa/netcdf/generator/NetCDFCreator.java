@@ -410,7 +410,6 @@ public class NetCDFCreator {
 
             Dimension uValLenDimension = netCdf.addDimension("uVALlen", maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
             netCdf.addVariable("uVAL", DataType.CHAR, new Dimension[]{uvalDimension, uValLenDimension});
-            netCdf.addVariable("uVALnum", DataType.INT, new Dimension[]{efscDimension});
 
             netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uvalDimension});
             netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uvalDimension});
@@ -779,19 +778,16 @@ public class NetCDFCreator {
      */
     private void writeUVals() throws IOException, InvalidRangeException {
         ArrayChar uval = new ArrayChar.D2(totalUniqueValues, maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
-        ArrayInt uvalNum = new ArrayInt.D1(propertyToSortedUniqueValues.keySet().size());
         // Now populate unique scvs/efvs
         int ei = 0;
         int uvali = 0;
         for (Map.Entry<String, List<String>> entry : propertyToSortedUniqueValues.entrySet()) {
             List<String> values = entry.getValue();
-            uvalNum.setInt(ei, values.size());
             for (String value : values)
                 uval.setString(uvali++, entry.getKey() + "||" + value);
             ++ei;
         }
         netCdf.write("uVAL", uval);
-        netCdf.write("uVALnum", uvalNum);
     }
 
     private void writeEfvs() throws IOException, InvalidRangeException {
