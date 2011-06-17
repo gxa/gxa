@@ -46,18 +46,16 @@ public class ExpressionStats {
     ExpressionStats(NetCDFProxy proxy) throws IOException {
         this.proxy = proxy;
 
-        final String[] factorsAndCharacteristics = getFactorsAndCharacteristics(proxy);
         final List<String> uvals = proxy.getUniqueValues();
-        final int[] uvalCounts = proxy.getUniqueValueCounts();
 
         int valueIndex = 0;
-        for (int propIndex = 0; propIndex < factorsAndCharacteristics.length; propIndex++) {
-            final String ef = normalized(factorsAndCharacteristics[propIndex], "ba_");
-            final int count = uvalCounts[propIndex];
-            for (int i = 0; i < count; i++) {
-                efvTree.put(ef, getEfv(uvals.get(valueIndex)), valueIndex);
-                valueIndex++;
+        for (String uval : proxy.getUniqueValues()) {
+            final String[] pair = uval.split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
+            if (pair.length != 2) {
+                throw LogUtil.createUnexpected("uVAL '" + uval + "'" + " does not match '.*||.*'");
             }
+            efvTree.put(normalized(pair[0], "ba_"), pair[1], valueIndex);
+            ++valueIndex;
         }
     }
 
@@ -65,10 +63,6 @@ public class ExpressionStats {
         final String[] result = proxy.getFactorsAndCharacteristics();
         // Ensure backwards compatibility
         return result.length != 0 ? result : proxy.getFactors();
-    }
-
-    private static String getEfv(String value) {
-        return value.replaceAll("^.*" + NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, "");
     }
 
     private static String normalized(String name, String prefix) {

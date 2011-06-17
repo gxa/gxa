@@ -382,22 +382,6 @@ public class NetCDFProxy implements Closeable {
         return Arrays.asList(Arrays.copyOf(uValArray, uValArray.length, String[].class));
     }
 
-    public int[] getUniqueValueCounts() throws IOException {
-        Variable uVALnumVar = netCDF.findVariable("uVALnum");
-
-        if (uVALnumVar == null) {
-            // This is to allow for backwards compatibility
-            uVALnumVar = netCDF.findVariable("uEFVnum");
-        }
-
-        if (uVALnumVar == null) {
-            return new int[0];
-        }
-
-        return (int[])uVALnumVar.read().get1DJavaArray(int.class);
-    }
-
-
     public List<String> getUniqueFactorValues() throws IOException {
         List<String> uniqueEFVs = new ArrayList<String>();
         List<String> factors = Arrays.asList(getFactors());
