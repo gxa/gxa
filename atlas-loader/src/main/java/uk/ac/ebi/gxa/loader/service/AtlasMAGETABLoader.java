@@ -50,7 +50,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
@@ -111,10 +110,7 @@ public class AtlasMAGETABLoader {
                         throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
                     }
                     if (idfs.length == 0) {
-                        // No IDFs found - perhaps, a NetCDF pack for "incremental" updates, give it a try
-                        loadNetCDFs(cache, tempDirectory);
-                        write(listener, cache);
-                        return;
+                        throw new AtlasLoaderException("No IDFs to import!");
                     }
                     idfFileLocation = new URL("file:" + idfs[0]);
                 } catch (IOException ex) {
@@ -199,28 +195,6 @@ public class AtlasMAGETABLoader {
             throw e;
         } catch (Exception e) {
             throw new AtlasLoaderException(e);
-        }
-    }
-
-    private void loadNetCDFs(AtlasLoadCache cache, File target) throws AtlasLoaderException {
-        File[] netcdfs = target.listFiles(extension("nc", false));
-        if (netcdfs == null) {
-            throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
-        }
-        if (netcdfs.length == 0)
-            throw new AtlasLoaderException("No IDF or NetCDF files found - nothing to import");
-
-        for (File file : netcdfs) {
-            NetCDFProxy proxy = null;
-            try {
-                proxy = new NetCDFProxy(file);
-                AtlasNcdfLoaderUtil.loadNcdfToCache(cache, proxy, dao);
-            } catch (IOException e) {
-                log.error("Cannot load NCDF: " + e.getMessage(), e);
-                throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
-            } finally {
-                closeQuietly(proxy);
-            }
         }
     }
 
