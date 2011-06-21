@@ -59,12 +59,6 @@ public class ExpressionStats {
         }
     }
 
-    private String[] getFactorsAndCharacteristics(NetCDFProxy proxy) throws IOException {
-        final String[] result = proxy.getFactorsAndCharacteristics();
-        // Ensure backwards compatibility
-        return result.length != 0 ? result : proxy.getFactors();
-    }
-
     private static String normalized(String name, String prefix) {
         if (name.startsWith(prefix)) {
             name = name.substring(prefix.length());
