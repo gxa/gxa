@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.collect.Maps;
-import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.io.IOException;
@@ -46,7 +45,7 @@ public class ExpressionStatistics {
     private ExpressionStatistics() {
     }
 
-    private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException, InvalidRangeException {
+    private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
         List<String> values = proxy.getUniqueValues();
@@ -60,7 +59,7 @@ public class ExpressionStatistics {
         return this;
     }
 
-    public static ExpressionStatistics create(int[] deIndices, NetCDFProxy proxy) throws IOException, InvalidRangeException {
+    public static ExpressionStatistics create(int[] deIndices, NetCDFProxy proxy) throws IOException {
         return (new ExpressionStatistics()).load(deIndices, proxy);
     }
 

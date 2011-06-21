@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.web.ui.plot;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
 import uk.ac.ebi.gxa.netcdf.reader.FloatMatrixProxy;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -86,7 +85,7 @@ public class ExperimentPlot {
         return efEfvAssays;
     }
 
-    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
+    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException {
         NetCDFProxy proxy = null;
 
         try {
@@ -99,7 +98,7 @@ public class ExperimentPlot {
         }
     }
 
-    private void load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
+    private void load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException {
 
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 

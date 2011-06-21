@@ -42,7 +42,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
@@ -158,8 +157,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param model                   a model for the view to render
      * @return the view path
      * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws IOException                    if any netCDF file reading error happened
-     * @throws ucar.ma2.InvalidRangeException if given design element indexes are out of range
+     * @throws IOException                    if any netCDF file reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -168,7 +166,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, IOException, InvalidRangeException {
+    ) throws ResourceNotFoundException, IOException {
 
         ExperimentPage page = createExperimentPage(accession);
         if (page.getExperiment().getArrayDesign(adAcc) == null) {

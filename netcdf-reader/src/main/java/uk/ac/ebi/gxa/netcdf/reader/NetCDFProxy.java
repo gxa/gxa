@@ -159,18 +159,22 @@ public final class NetCDFProxy implements Closeable {
         }
     }
 
-    private FloatMatrixProxy readFloatValuesForRowIndices(int[] rowIndices, String varName) throws IOException, InvalidRangeException {
-        Variable variable = netCDF.findVariable(varName);
-        int[] shape = variable.getShape();
-
-        float[][] result = new float[rowIndices.length][shape[1]];
-
-        for (int i = 0; i < rowIndices.length; i++) {
-            int[] origin = {rowIndices[i], 0};
-            int[] size = new int[]{1, shape[1]};
-            result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
+    private FloatMatrixProxy readFloatValuesForRowIndices(int[] rowIndices, String varName) throws IOException {
+        try {
+            Variable variable = netCDF.findVariable(varName);
+            int[] shape = variable.getShape();
+        
+            float[][] result = new float[rowIndices.length][shape[1]];
+        
+            for (int i = 0; i < rowIndices.length; i++) {
+                int[] origin = {rowIndices[i], 0};
+                int[] size = new int[]{1, shape[1]};
+                result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
+            }
+            return new FloatMatrixProxy(variable, result);
+        } catch (InvalidRangeException e) {
+            throw new IOException(e);
         }
-        return new FloatMatrixProxy(variable, result);
     }
 
     public int[][] getSamplesToAssays() throws IOException {
@@ -429,7 +433,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException if the expression data could not be read from the netCDF file
      * @throws InvalidRangeException if the file doesn't contain given deIndices
      */
-    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException, InvalidRangeException {
+    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException {
         return readFloatValuesForRowIndices(deIndices, "BDC");
     }
 
@@ -718,7 +722,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException, InvalidRangeException {
+    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException {
         return readFloatValuesForRowIndices(deIndices, "TSTAT");
     }
 
@@ -730,7 +734,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    FloatMatrixProxy getPValues(int[] deIndices) throws IOException, InvalidRangeException {
+    FloatMatrixProxy getPValues(int[] deIndices) throws IOException {
         return readFloatValuesForRowIndices(deIndices, "PVAL");
     }
 
@@ -742,7 +746,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    public ExpressionStatistics getExpressionStatistics(int[] deIndices) throws IOException, InvalidRangeException {
+    public ExpressionStatistics getExpressionStatistics(int[] deIndices) throws IOException {
         return ExpressionStatistics.create(deIndices, this);
     }
 
