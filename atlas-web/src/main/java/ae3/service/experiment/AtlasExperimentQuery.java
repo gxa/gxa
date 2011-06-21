@@ -142,9 +142,6 @@ public class AtlasExperimentQuery {
     //not in melting pot of stringbuider
     private String notSerializedYetPartOfTheQuery() {
         StringBuilder result = new StringBuilder();
-        if ((!isNullOrEmpty(this.dateReleaseFrom)) || (!isNullOrEmpty(this.dateReleaseTo))) {
-            result.append(" AND releasedate:[").append(DateToSolrQueryParam(this.dateReleaseFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateReleaseTo)).append("]");
-        }
         if ((!isNullOrEmpty(this.dateLoadFrom)) || (!isNullOrEmpty(this.dateLoadTo))) {
             result.append(" AND loaddate:[").append(DateToSolrQueryParam(this.dateLoadFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateLoadTo)).append("]");
         }

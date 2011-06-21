@@ -47,7 +47,6 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_LOADMAPPING = "loadmapping";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
-    public static final String TYPE_DATARELEASE = "datarelease";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -71,9 +70,6 @@ public class LoaderTask extends AbstractWorkingTask {
 
         else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());
-
-        else if (TYPE_DATARELEASE.equals(getTaskSpec().getType()))
-            return new DataReleaseCommand(getTaskSpec().getAccession());
 
         throw new IllegalStateException();
     }
@@ -210,10 +206,8 @@ public class LoaderTask extends AbstractWorkingTask {
                     || TYPE_LOADANNOTATIONS.equals(taskSpec.getType())
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_DATARELEASE.equals(taskSpec.getType());
+                    || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType());
         }
-
     };
 
 }
