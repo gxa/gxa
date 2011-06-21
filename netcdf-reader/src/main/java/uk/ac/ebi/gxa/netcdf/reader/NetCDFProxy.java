@@ -75,7 +75,7 @@ import static java.lang.Float.isNaN;
  *
  * @author Tony Burdett
  */
-public class NetCDFProxy implements Closeable {
+public final class NetCDFProxy implements Closeable {
     public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
     // Default
     public static final float NA_PVAL_TSTAT = 1e+30f;
@@ -718,7 +718,7 @@ public class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    protected FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException, InvalidRangeException {
+    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException, InvalidRangeException {
         return readFloatValuesForRowIndices(deIndices, "TSTAT");
     }
 
@@ -730,7 +730,7 @@ public class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    protected FloatMatrixProxy getPValues(int[] deIndices) throws IOException, InvalidRangeException {
+    FloatMatrixProxy getPValues(int[] deIndices) throws IOException, InvalidRangeException {
         return readFloatValuesForRowIndices(deIndices, "PVAL");
     }
 
