@@ -38,7 +38,7 @@ public class FloatMatrixProxy {
 
     private final float[][] matrix;
 
-    public FloatMatrixProxy(Variable variable, float[][] result) {
+    FloatMatrixProxy(Variable variable, float[][] result) {
         this.missVal = NetCDFMissingVal.forVariable(variable);
         this.matrix = result;
     }
