@@ -235,7 +235,9 @@ public class ExperimentAnalyticsGeneratorService {
         NetCDFProxy proxy = null;
         try {
             proxy = netCDF.createProxy();
-            return proxy.getFactorsAndCharacteristics().length > 0;
+            return
+                proxy.getFactors().length > 0 ||
+                proxy.getCharacteristics().length > 0;
         } catch (IOException e) {
             throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
         } finally {

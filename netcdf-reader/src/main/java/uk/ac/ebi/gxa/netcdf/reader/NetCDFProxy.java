@@ -271,10 +271,6 @@ public final class NetCDFProxy implements Closeable {
         return getFactorsCharacteristics("SC");
     }
 
-    public String[] getFactorsAndCharacteristics() throws IOException {
-        return getFactorsCharacteristics("EFSC");
-    }
-
     private String[] getFactorsCharacteristics(String varName) throws IOException {
         if (netCDF.findVariable(varName) == null) {
             return new String[0];
