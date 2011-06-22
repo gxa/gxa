@@ -66,8 +66,10 @@ public class Software {
     @Override
     public String toString() {
         return "Software{" +
+                "softwareid=" + softwareid +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
+                ", isActive=" + isActive +
                 '}';
     }
 

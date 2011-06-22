@@ -248,12 +248,17 @@
 
     <A2_ORGANISM
             organismid="1"
-            name="Homo Sapiens"
+            name="homo sapiens"
             />
 
     <A2_ORGANISM
             organismid="2"
-            name="Mus Musculus"
+            name="mus musculus"
+            />
+
+    <A2_ORGANISM
+            organismid="3"
+            name="arabidopsis thaliana"
             />
 
     <A2_ASSAY
@@ -518,6 +523,7 @@
             url="http://www.ensembl.org/biomart/martservice?"
             biomartorganismname="hsapiens_gene_ensembl"
             annsrctype="biomart"
+            LOADDATE="2011-01-06"
             />
     <A2_ANNSRC_BIOENTITYTYPE
             annotationsrcid="1000"
@@ -530,39 +536,17 @@
             />
 
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="1"
+            BIOMARTPROPERTYID="1000"
+            annotationsrcid="1000"
             BIOENTITYPROPERTYID="1"
             NAME="name_1006"
             />
 
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="2"
+            BIOMARTPROPERTYID="2000"
+            annotationsrcid="1000"
             BIOENTITYPROPERTYID="1"
             NAME="go_cellular_component__dm_name_1006"
             />
-    <A2_ANNSRC_BIOMARTPROPERTY
-            annotationsrcid="1000"
-            BIOMARTPROPERTYID="1" />
 
-    <A2_ANNSRC_BIOMARTPROPERTY
-            annotationsrcid="1000"
-            BIOMARTPROPERTYID="2" />
-
-    <A2_CURRENTANNOTATIONSRC
-            CURRENTANNOTATIONSRCID="1001"
-            annotationsrcid="1000"
-            ORGANISMID="1"
-            BIOENTITYTYPEID="1"
-            annsrctype="biomart"
-            LOADDATE="2011-01-06"
-    />
-
-    <A2_CURRENTANNOTATIONSRC
-            CURRENTANNOTATIONSRCID="1002"
-            annotationsrcid="1000"
-            ORGANISMID="1"
-            BIOENTITYTYPEID="2"
-            annsrctype="biomart"
-            LOADDATE="2011-01-06"
-    />
 </dataset>

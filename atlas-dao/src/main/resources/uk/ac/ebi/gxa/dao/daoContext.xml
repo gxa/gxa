@@ -25,13 +25,12 @@
                 <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
                 <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource</value>
 
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource</value>
-                <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource</value>
-                <value>uk.ac.ebi.microarray.atlas.model.bioentity.FileAnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType</value>
 
@@ -69,7 +68,7 @@
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
-         <constructor-arg ref="annSrcDAO"/>
+         <constructor-arg ref="softwareDAO"/>
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
@@ -89,6 +88,10 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
+    <bean name="bioEntityPropertyDAO" class="uk.ac.ebi.gxa.dao.BioEntityPropertyDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -99,5 +102,8 @@
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
         <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="softwareDAO"/>
+        <constructor-arg ref="organismDAO"/>
+        <constructor-arg ref="bioEntityPropertyDAO"/>
     </bean>
 </beans>

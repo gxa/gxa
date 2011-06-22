@@ -10,14 +10,12 @@ import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

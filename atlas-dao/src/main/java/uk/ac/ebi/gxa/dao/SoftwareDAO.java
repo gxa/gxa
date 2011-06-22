@@ -1,16 +1,8 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.wiring.BeanWiringInfo;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 public class SoftwareDAO extends AbstractDAO<Software> {
@@ -27,9 +19,19 @@ public class SoftwareDAO extends AbstractDAO<Software> {
         return software;
     }
 
-//    @Override
-//    public void save(Software object) {
-//        super.save(object);
-//        template.flush();
-//    }
+    public Software findOrCreate(String name, String newVersion) {
+        List<Software> softwareList = template.find("from Software where name = ? and version = ?", name, newVersion);
+        if (softwareList.size() == 1) {
+            return softwareList.get(0);
+        } else {
+            Software software = new Software(name, newVersion);
+            save(software);
+            return software;
+        }
+    }
+
+    public List<Software> getActiveSoftwares() {
+        return template.find("from Software where isActive = 1");
+    }
+
 }

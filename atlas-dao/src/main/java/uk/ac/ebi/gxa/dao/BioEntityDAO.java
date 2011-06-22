@@ -3,22 +3,35 @@ package uk.ac.ebi.gxa.dao;
 import com.google.common.collect.ArrayListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.DesignElement;
+import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.MappingSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
-import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.MappingSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.collect.Iterables.partition;
 
@@ -44,19 +57,20 @@ public class BioEntityDAO {
     public static final int SUB_BATCH_SIZE = 50;
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
-    private AnnotationSourceDAO annSrcDAO;
+    //    private AnnotationSourceDAO annSrcDAO;
+    private SoftwareDAO softwareDAO;
     protected JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
     private static Map<String, Organism> organismCache = new HashMap<String, Organism>();
 
-    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
-        this.annSrcDAO = annSrcDAO;
-    }
+//    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
+//        this.annSrcDAO = annSrcDAO;
+//    }
 
-    public BioEntityDAO(AnnotationSourceDAO annSrcDAO, JdbcTemplate template) {
-        this.annSrcDAO = annSrcDAO;
+    public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template) {
         this.template = template;
+        this.softwareDAO = softwareDAO;
     }
 
     /**
@@ -212,7 +226,7 @@ public class BioEntityDAO {
         long id = template.queryForLong("select o.organismid from a2_organism o where o.name = ?", name);
         Organism organism = new Organism(id, name);
         organismCache.put(name, organism);
-        
+
         return organism;
     }
 
@@ -494,10 +508,10 @@ public class BioEntityDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         //find all recent software
-        Collection<AnnotationSource> currAnnSrcs = annSrcDAO.getAllCurrentAnnotationSources();
-        Set<Long> currAnnSrcIds = new HashSet<Long>(currAnnSrcs.size());
-        for (AnnotationSource currAnnSrc : currAnnSrcs) {
-            currAnnSrcIds.add(currAnnSrc.getAnnotationSrcId());
+        List<Software> softwares = softwareDAO.getActiveSoftwares();
+        Set<Long> swIds = new HashSet<Long>(softwares.size());
+        for (Software software : softwares) {
+            swIds.add(software.getSoftwareid());
         }
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
@@ -505,7 +519,7 @@ public class BioEntityDAO {
         for (List<Long> geneIDsChunk : partition(geneIDs, MAX_QUERY_PARAMS)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("swid", currAnnSrcIds);
+            propertyParams.addValue("swid", swIds);
             propertyParams.addValue("geneids", geneIDsChunk);
 
             //ToDo: now gets only properties which are directly linked with the queried bioentities, we might need also to get properties of connected bioentities
@@ -566,7 +580,7 @@ public class BioEntityDAO {
         public static final String FIELDS_CLEAN = "bioentityid, identifier, name, species, speciesid, typename";
         public static final String FIELDS = "be.bioentityid, be.identifier, be.name, o.name AS species, o.organismid AS speciesid, bet.name as typename";
 
-        private  String intern(String str) {
+        private String intern(String str) {
             return str != null ? str.intern() : null;
         }
 

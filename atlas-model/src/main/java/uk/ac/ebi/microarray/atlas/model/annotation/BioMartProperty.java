@@ -1,4 +1,6 @@
-package uk.ac.ebi.microarray.atlas.model.bioentity;
+package uk.ac.ebi.microarray.atlas.model.annotation;
+
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,11 +24,19 @@ public class BioMartProperty {
     @ManyToOne
     private BioEntityProperty bioEntityProperty;
 
+    @ManyToOne
+    private BioMartAnnotationSource annotationSrc;
+
     BioMartProperty() {
     }
 
-    public BioMartProperty(Long id, String biomartPropertyName, BioEntityProperty bioEntityProperty) {
+    BioMartProperty(Long id, String biomartPropertyName, BioEntityProperty bioEntityProperty) {
         this.biomartpropertyId = id;
+        this.name = biomartPropertyName;
+        this.bioEntityProperty = bioEntityProperty;
+    }
+
+    BioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty) {
         this.name = biomartPropertyName;
         this.bioEntityProperty = bioEntityProperty;
     }
@@ -41,6 +51,22 @@ public class BioMartProperty {
 
     public BioEntityProperty getBioEntityProperty() {
         return bioEntityProperty;
+    }
+
+    public Long getBiomartpropertyId() {
+        return biomartpropertyId;
+    }
+
+    public void setBiomartpropertyId(Long biomartpropertyId) {
+        this.biomartpropertyId = biomartpropertyId;
+    }
+
+    public BioMartAnnotationSource getAnnotationSrc() {
+        return annotationSrc;
+    }
+
+    public void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
+        this.annotationSrc = annotationSrc;
     }
 
     @Override

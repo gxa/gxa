@@ -1,6 +1,7 @@
-package uk.ac.ebi.microarray.atlas.model.bioentity;
+package uk.ac.ebi.microarray.atlas.model.annotation;
 
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 /**
  * User: nsklyar

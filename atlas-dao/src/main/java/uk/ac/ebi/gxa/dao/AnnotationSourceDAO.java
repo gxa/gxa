@@ -1,15 +1,13 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,13 +15,22 @@ import java.util.List;
  * User: nsklyar
  * Date: 10/05/2011
  */
-public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource>{
+public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
     private SoftwareDAO softwareDAO;
+    private OrganismDAO organismDAO;
+    private BioEntityPropertyDAO bioEntityPropertyDAO;
 
     AnnotationSourceDAO(SessionFactory sessionFactory, SoftwareDAO softwareDAO) {
         super(sessionFactory, AnnotationSource.class);
         this.softwareDAO = softwareDAO;
+    }
+
+    public AnnotationSourceDAO(SessionFactory sessionFactory,  SoftwareDAO softwareDAO, OrganismDAO organismDAO, BioEntityPropertyDAO bioEntityPropertyDAO) {
+        super(sessionFactory, AnnotationSource.class);
+        this.softwareDAO = softwareDAO;
+        this.organismDAO = organismDAO;
+        this.bioEntityPropertyDAO = bioEntityPropertyDAO;
     }
 
     @Override
@@ -33,26 +40,29 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource>{
     }
 
     public void saveAsCurrentAnnotationSource(AnnotationSource currentAnnotationSource) {
-
-    }
-
-//    public Collection<CurrentAnnotationSource> getAllCurrentAnnotationSources() {
-//        Collection<CurrentAnnotationSource> annotationSources = new ArrayList<CurrentAnnotationSource>();
-//
-//        return annotationSources;
-//    }
-
-    public Collection<AnnotationSource> getAllCurrentAnnotationSources() {
-        Collection<AnnotationSource> annotationSources = new ArrayList<AnnotationSource>();
-
-        return annotationSources;
+        Software software = currentAnnotationSource.getSoftware();
+        software.setActive(true);
+        softwareDAO.save(software);
     }
 
     public <T extends AnnotationSource> Collection<T> getCurrentAnnotationSourcesOfType(Class<T> type) {
-        return null;
+
+        //ToDo: this is just for test, write real method!
+        Software software = new Software(null, "plants", "8");
+        Organism organism = organismDAO.getByName("arabidopsis thaliana");
+
+        BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
+        annotationSource.setDatabaseName("plant");
+        annotationSource.setDatasetName("athaliana_eg_gene");
+        annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
+
+        BioEntityProperty goterm = bioEntityPropertyDAO.getByName("goterm");
+        annotationSource.addBioMartProperty("name_1006", goterm);
+
+        return (Collection<T>) Arrays.asList(annotationSource);
     }
 
-    public <T extends AnnotationSource> T findAnnotationSource(Software software, Organism organism, Class<T> type){
+    public <T extends AnnotationSource> T findAnnotationSource(Software software, Organism organism, Class<T> type) {
         String queryString = "from " + type.getSimpleName() + " where software = ? and organism = ?";
         final List results = template.find(queryString, software, organism);
         return results.isEmpty() ? null : (T) results.get(0);

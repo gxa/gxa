@@ -7,12 +7,12 @@ import uk.ac.ebi.gxa.loader.UpdateAnnotationCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,16 +29,17 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private BioMartService bioMartService;
+//    private BioMartService bioMartService;
 
-    public void setBioMartService(BioMartService bioMartService) {
-        this.bioMartService = bioMartService;
-    }
+//    public void setBioMartService(BioMartService bioMartService) {
+//        this.bioMartService = bioMartService;
+//    }
 
     private void updateAnnotations(BioMartAnnotationSource annSrc) throws AtlasLoaderException {
 
         CSVReader csvReader = null;
         try {
+            BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
 
             boolean beExist = false;
 
@@ -46,7 +47,7 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
             reportProgress("Reading Ensembl annotations for organism " + targetOrganism);
 
             for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
-               URL url = bioMartService.getPropertyURL(annSrc.getPropertyURLLocation(bioMartProperty.getName()));
+                URL url = martConnection.getPropertyURL(bioMartProperty.getName());
                 if (url != null) {
                     reportProgress("Reading " + bioMartProperty.getBioEntityProperty().getName() + " for " + targetOrganism);
                     csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
@@ -86,7 +87,7 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
             //ToDo: add BE.name
             if (property.getName().equalsIgnoreCase(BioEntity.NAME_PROPERTY_SYMBOL)) {
-                
+
             }
 
             if (!beExist) {
@@ -107,10 +108,10 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
             throw new AtlasLoaderException("No annotation source with id " + annotationSrcId);
         }
         //ToDo: find better way for this check, or avoid this, by having a reference to the service in AnnSrc object itself
-        if (! (annotationSource instanceof BioMartAnnotationSource)) {
+        if (!(annotationSource instanceof BioMartAnnotationSource)) {
             throw new AtlasLoaderException("Wrong type of annotation source " + annotationSource.getDisplayName());
         }
 
-        updateAnnotations((BioMartAnnotationSource)annotationSource);
+        updateAnnotations((BioMartAnnotationSource) annotationSource);
     }
 }

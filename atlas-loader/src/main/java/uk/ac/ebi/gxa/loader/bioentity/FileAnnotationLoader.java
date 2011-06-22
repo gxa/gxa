@@ -6,13 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import uk.ac.ebi.gxa.dao.BEPropertyDAO;
+import uk.ac.ebi.gxa.dao.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;
@@ -35,9 +35,9 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
     private List<BioEntityProperty> properties;
 
-    private BEPropertyDAO propertyDAO;
+    private BioEntityPropertyDAO propertyDAO;
 
-    public void setPropertyDAO(BEPropertyDAO propertyDAO) {
+    public void setPropertyDAO(BioEntityPropertyDAO propertyDAO) {
         this.propertyDAO = propertyDAO;
     }
 

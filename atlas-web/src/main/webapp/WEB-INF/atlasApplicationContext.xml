@@ -455,7 +455,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
-        <property name="bioMartService" ref="biomartService"/>
+        <property name="annSrcController" ref="annSrcController"/>
     </bean>
 
     <bean name="stringTemplateLoader" class="ae3.util.StringTemplateLoader">
@@ -498,8 +498,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
 
 
-    <bean name="biomartService" class="uk.ac.ebi.gxa.loader.bioentity.BioMartService">
+    <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
         <property name="annSrcDAO" ref="annSrcDAO"/>
+        <property name="softwareDAO" ref="softwareDAO"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

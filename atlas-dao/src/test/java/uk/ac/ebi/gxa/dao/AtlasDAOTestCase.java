@@ -35,14 +35,11 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
 import uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean;
 import uk.ac.ebi.microarray.atlas.model.*;
-import uk.ac.ebi.microarray.atlas.model.bioentity.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty;
+import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartCurrentAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioMartProperty;
-import uk.ac.ebi.microarray.atlas.model.bioentity.CurrentAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.sql.DataSource;
@@ -123,7 +120,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 BioMartAnnotationSource.class,
                 BioMartProperty.class,
                 BioEntityType.class,
-                BioMartCurrentAnnotationSource.class,
                 FileAnnotationSource.class,
                 Software.class
         });
@@ -143,11 +139,11 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         softwareDAO = new SoftwareDAO(sessionFactory);
         arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, sessionFactory);
         annotationSourceDAO = new AnnotationSourceDAO(sessionFactory, softwareDAO);
-        bioEntityDAO = new BioEntityDAO(annotationSourceDAO, jdbcTemplate);
+        bioEntityDAO = new BioEntityDAO(softwareDAO, jdbcTemplate);
 
         atlasDAO = new AtlasDAO(
                 arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, sessionFactory),
-                bioEntityDAO = new BioEntityDAO(annotationSourceDAO, jdbcTemplate), jdbcTemplate,
+                bioEntityDAO = new BioEntityDAO(softwareDAO, jdbcTemplate), jdbcTemplate,
                 experimentDAO = new ExperimentDAO(sessionFactory),
                 new AssayDAO(sessionFactory),
                 sessionFactory);
@@ -406,7 +402,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "  , ORGANISMID bigint NOT NULL\n" +
                         "  , url VARCHAR(512)\n" +
                         "  , biomartorganismname VARCHAR(255)\n" +
+                        "  , databaseName VARCHAR(255)\n" +
                         "  , annsrctype VARCHAR(255) NOT NULL\n" +
+                        "  , LOADDATE DATE\n" +
                         ");");
 
         runStatement(conn,
@@ -418,25 +416,16 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn,
                 "CREATE TABLE A2_BIOMARTPROPERTY (\n" +
                         "  BIOMARTPROPERTYID bigint NOT NULL\n" +
+                        ", annotationsrcid bigint NOT NULL\n" +
                         ", BIOENTITYPROPERTYID bigint NOT NULL\n" +
                         ", NAME VARCHAR(255) NOT NULL\n" +
                         ");");
 
-        runStatement(conn,
-                "CREATE TABLE A2_ANNSRC_BIOMARTPROPERTY (\n" +
-                        "  annotationsrcid bigint NOT NULL\n" +
-                        "  , BIOMARTPROPERTYID bigint NOT NULL\n" +
-                        "  );");
-
-        runStatement(conn,
-                "CREATE TABLE A2_CURRENTANNOTATIONSRC(\n" +
-                        "  CURRENTANNOTATIONSRCID bigint NOT NULL\n" +
-                        "  , annotationsrcid bigint NOT NULL\n" +
-                        "  , ORGANISMID bigint NOT NULL\n" +
-                        "  , BIOENTITYTYPEID bigint NOT NULL\n" +
-                        "  , annsrctype VARCHAR(255) NOT NULL\n" +
-                        "  , LOADDATE DATE\n" +
-                        ");");
+//        runStatement(conn,
+//                "CREATE TABLE A2_ANNSRC_BIOMARTPROPERTY (\n" +
+//                        "  annotationsrcid bigint NOT NULL\n" +
+//                        "  , BIOMARTPROPERTYID bigint NOT NULL\n" +
+//                        "  );");
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELEMENT " +
@@ -547,7 +536,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_CURRENTANNOTATIONSRC_SEQ");
 
         System.out.println("...done!");
         conn.close();

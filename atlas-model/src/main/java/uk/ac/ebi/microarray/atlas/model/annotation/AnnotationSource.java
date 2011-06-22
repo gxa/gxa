@@ -1,18 +1,24 @@
-package uk.ac.ebi.microarray.atlas.model.bioentity;
+package uk.ac.ebi.microarray.atlas.model.annotation;
 
 import org.hibernate.annotations.*;
 import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.ArrayList;
+import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
+import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
 /**
  * User: nsklyar
@@ -25,7 +31,7 @@ import java.util.Set;
         name = "annsrctype",
         discriminatorType = DiscriminatorType.STRING
 )
-public abstract class AnnotationSource{
+public abstract class AnnotationSource implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
     @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ")
@@ -42,6 +48,9 @@ public abstract class AnnotationSource{
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
+
+    @Temporal(TemporalType.DATE)
+    protected Date loadDate;
 
     protected AnnotationSource() {
     }
@@ -91,14 +100,28 @@ public abstract class AnnotationSource{
 
     public abstract boolean isUpdatable();
 
-
-    public Collection<CurrentAnnotationSource<? extends AnnotationSource>> generateCurrentAnnSrcs() {
-        List<CurrentAnnotationSource<? extends AnnotationSource>> result = new ArrayList<CurrentAnnotationSource<? extends AnnotationSource>>();
-        for (BioEntityType bioEntityType : this.getTypes()) {
-            result.add(this.createCurrAnnSrc(bioEntityType));
-        }
-        return result;
+    public Date getLoadDate() {
+        return copyOf(loadDate);
     }
 
-    protected abstract CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType);
+    public void setLoadDate(Date loadDate) {
+        this.loadDate = copyOf(loadDate);
+    }
+
+     private String getDateTime() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+
+    @Override
+    public String toString() {
+        return "AnnotationSource{" +
+                "annotationSrcId=" + annotationSrcId +
+                ", organism=" + organism +
+                ", software=" + software +
+                ", types=" + types +
+                ", loadDate=" + loadDate +
+                '}';
+    }
 }

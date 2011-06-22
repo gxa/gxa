@@ -15,10 +15,9 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.annotation.MappingSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
-import uk.ac.ebi.microarray.atlas.model.bioentity.MappingSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;

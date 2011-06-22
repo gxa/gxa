@@ -37,7 +37,6 @@
     <bean name="ensemblAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
         <property name="annSrcDAO" ref="annSrcDAO"/>
-        <property name="bioMartService" ref="biomartService"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 

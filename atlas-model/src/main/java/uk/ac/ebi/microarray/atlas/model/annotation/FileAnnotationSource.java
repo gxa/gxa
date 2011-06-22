@@ -1,6 +1,7 @@
-package uk.ac.ebi.microarray.atlas.model.bioentity;
+package uk.ac.ebi.microarray.atlas.model.annotation;
 
 import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -34,8 +35,4 @@ public class FileAnnotationSource extends AnnotationSource{
         return false;  
     }
 
-    @Override
-    protected CurrentAnnotationSource<? extends AnnotationSource> createCurrAnnSrc(BioEntityType bioEntityType) {
-        return new FileCurrentAnnotationSource(this, bioEntityType);
-    }
 }
