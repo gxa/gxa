@@ -19,6 +19,7 @@
  *
  * http://gxa.github.com/gxa
  */
+
 package uk.ac.ebi.gxa.netcdf.generator;
 
 import com.google.common.base.Predicate;
@@ -28,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
