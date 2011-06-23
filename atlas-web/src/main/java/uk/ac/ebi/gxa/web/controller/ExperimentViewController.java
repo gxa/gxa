@@ -174,7 +174,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(experiment, hasArrayDesign(adAcc));
+        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
         model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
         if (assayPropertiesRequired) {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
@@ -261,7 +261,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(experiment, ncdfPredicate);
+        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
 
         final BestDesignElementsResult res = (ncdfDescr == null) ?
                 BestDesignElementsResult.empty() :

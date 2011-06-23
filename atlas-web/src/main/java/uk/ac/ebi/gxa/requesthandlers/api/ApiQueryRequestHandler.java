@@ -209,7 +209,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             if (!experimentInfoOnly) {
 
                                 NetCDFDescriptor ncdfDescr =
-                                        atlasNetCDFDAO.getNetCdfFile(experiment.getExperiment(), netCDFProxyPredicate);
+                                        atlasNetCDFDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
 
                                 if (ncdfDescr != null) {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call

@@ -20,6 +20,10 @@ public class NetCDFDescriptor {
         return new NetCDFProxy(file);
     }
 
+    public String getFileName() {
+        return file.getName();
+    }
+
     public String getPathForR() {
         return file.getAbsolutePath();
     }

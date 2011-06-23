@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -46,16 +47,19 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     }
 
     private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException {
-        File[] netCDFs = getNetCDFs(exp);
+        final List<NetCDFDescriptor> descriptors = atlasNetCDFDAO.getNetCDFDescriptors(exp);
+        if (descriptors.isEmpty()) {
+            throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");
+        }
 
         List<ExperimentDesignUI> designs = new ArrayList<ExperimentDesignUI>();
 
-        for (File netCdfFile : netCDFs) {
+        for (NetCDFDescriptor d : descriptors) {
             ExperimentDesignUI experimentDesign = new ExperimentDesignUI();
 
             NetCDFProxy netcdf = null;
             try {
-                netcdf = new NetCDFProxy(netCdfFile);
+                netcdf = d.createProxy();
 
                 String[] netCdfFactors = netcdf.getFactors();
                 Map<String, String[]> factorValues = new HashMap<String, String[]>();
@@ -104,14 +108,6 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         }
 
         return mergeExperimentDesigns(designs);
-    }
-
-    private File[] getNetCDFs(Experiment exp) throws ResourceNotFoundException {
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp);
-        if (netCDFs.length == 0) {
-            throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");
-        }
-        return netCDFs;
     }
 
     //merge experimental factors from all designs, and create assays with factor values either blank (if factor

@@ -85,7 +85,7 @@ public final class NetCDFProxy implements Closeable {
     private final File pathToNetCDF;
     private final NetcdfFile netCDF;
 
-    public NetCDFProxy(File file) throws IOException {
+    NetCDFProxy(File file) throws IOException {
         this.pathToNetCDF = file.getAbsoluteFile();
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
         if (isOutOfDate())

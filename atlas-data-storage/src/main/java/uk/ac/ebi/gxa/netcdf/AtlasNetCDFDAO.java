@@ -62,7 +62,7 @@ public class AtlasNetCDFDAO {
         return experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc";
     }
 
-    public File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
+    File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
         return new File(getDataDirectory(experiment), getFilename(experiment, arrayDesign));
     }
 
@@ -129,6 +129,10 @@ public class AtlasNetCDFDAO {
         return new NetCDFCreator(this, experiment, arrayDesign);
     }
 
+    public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, ArrayDesign arrayDesign) {
+        return new NetCDFDescriptor(getNetCDFLocation(experiment, arrayDesign));
+    }
+
     /**
      * @param proxyId the id of proxy
      * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
@@ -163,7 +167,7 @@ public class AtlasNetCDFDAO {
      * @param experiment@return all ncdf files corresponding to experimentAccession
      * @throws RuntimeException if at least one ncdf file in experimentAccession's directory does not start with experimentId
      */
-    public File[] listNetCDFs(Experiment experiment) {
+    private File[] listNetCDFs(Experiment experiment) {
         File[] list = getDataDirectory(experiment).listFiles(extension("nc", false));
         if (list == null) {
             return new File[0];
@@ -194,7 +198,7 @@ public class AtlasNetCDFDAO {
     /**
      * @param experiment@return List of NetCDF proxies corresponding to experimentAccession
      */
-    public Collection<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
+    public List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experiment);
 
@@ -309,7 +313,7 @@ public class AtlasNetCDFDAO {
     /**
      * @return List of all NetCDF Files in atlasNetCDFRepo
      */
-    public List<File> getAllNcdfs() {
+    public List<NetCDFDescriptor> getAllNcdfs() {
         return getAllNcdfs(atlasDataRepo);
     }
 
@@ -317,23 +321,31 @@ public class AtlasNetCDFDAO {
      * @param dir the directory to search NetCDFs in
      * @return List of all NetCDF Files in dir
      */
-    private List<File> getAllNcdfs(File dir) {
-        List<File> ncdfs = new ArrayList<File>();
-        ncdfs.addAll(Arrays.asList(dir.listFiles(extension("nc", false))));
+    private List<NetCDFDescriptor> getAllNcdfs(File dir) {
+        List<NetCDFDescriptor> ncdfs = new ArrayList<NetCDFDescriptor>();
+        {
+            final File[] files = dir.listFiles(extension("nc", false));
+            if (files != null) {
+                for (File f : files) {
+                    ncdfs.add(new NetCDFDescriptor(f));
+                }
+            }
+        }
 
         // We assume as soon as there are NetCDF files in the directory,
         // there's no point looking deeper in the file hierarchy
         if (ncdfs.isEmpty()) {
-            List<File> files = Arrays.asList(dir.listFiles());
-            for (File file : files) {
-                if (file.isDirectory())
-                    ncdfs.addAll(getAllNcdfs(file));
+            final File[] files = dir.listFiles();
+            for (File f: files) {
+                if (f.isDirectory()) {
+                    ncdfs.addAll(getAllNcdfs(f));
+                }
             }
         }
         return ncdfs;
     }
 
-    public NetCDFDescriptor getNetCdfFile(Experiment experiment, Predicate<NetCDFProxy> criteria) {
+    public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, Predicate<NetCDFProxy> criteria) {
         try {
             return findNetCDF(experiment, criteria);
         } catch (IOException e) {

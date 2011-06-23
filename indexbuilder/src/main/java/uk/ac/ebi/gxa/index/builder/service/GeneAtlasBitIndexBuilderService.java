@@ -6,6 +6,7 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -124,7 +125,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final StatisticsBuilder updnStats = new ThreadSafeStatisticsBuilder();
         final StatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
 
-        List<File> ncdfs = atlasNetCDFDAO.getAllNcdfs();
+        List<NetCDFDescriptor> ncdfs = atlasNetCDFDAO.getAllNcdfs();
 
         final AtomicInteger totalStatCount = new AtomicInteger();
         final Integer total = ncdfs.size();
@@ -143,13 +144,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final long timeStart = System.currentTimeMillis();
 
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(total);
-        for (final File nc : ncdfs)
+        for (final NetCDFDescriptor nc : ncdfs)
             tasks.add(new Callable<Boolean>() {
                 public Boolean call() throws IOException {
                     NetCDFProxy ncdf = null;
                     getLog().debug("Processing {}", nc);
                     try {
-                        ncdf = new NetCDFProxy(nc);
+                        ncdf = nc.createProxy();
                         if (ncdf.isOutOfDate()) {
                             // Fail index build if a given ncdf is out of date
                             return false;
@@ -281,7 +282,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         totalStatCount.addAndGet(car);
                         if (car == 0) {
-                            getLog().debug(nc.getName() + " num uVals : " + uVals.size() + " [" + car + "]");
+                            getLog().debug(nc.getFileName() + " num uVals : " + uVals.size() + " [" + car + "]");
                         }
 
 
