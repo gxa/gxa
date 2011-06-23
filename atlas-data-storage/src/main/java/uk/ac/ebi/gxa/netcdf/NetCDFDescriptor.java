@@ -12,7 +12,7 @@ import java.io.IOException;
 public class NetCDFDescriptor {
     private final File file;
 
-    public NetCDFDescriptor(File file) {
+    NetCDFDescriptor(File file) {
         this.file = file;
     }
 
