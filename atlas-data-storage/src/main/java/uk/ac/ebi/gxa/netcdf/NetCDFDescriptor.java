@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.netcdf.reader;
+package uk.ac.ebi.gxa.netcdf;
 
 import javax.annotation.concurrent.Immutable;
 import java.io.File;

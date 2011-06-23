@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.netcdf.reader;
+package uk.ac.ebi.gxa.netcdf;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;

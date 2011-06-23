@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.netcdf.reader;
+package uk.ac.ebi.gxa.netcdf;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -43,7 +43,6 @@ import java.util.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static java.util.Collections.singleton;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
 import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
@@ -93,7 +92,7 @@ public class AtlasNetCDFDAO {
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws IOException {
-        final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(containsGenes(geneIds), criteria));
+        final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(NetCDFPredicates.containsGenes(geneIds), criteria));
         if (netCDF == null)
             return null;
 

@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.netcdf.reader;
+package uk.ac.ebi.gxa.netcdf;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;

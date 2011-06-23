@@ -26,8 +26,8 @@ import ae3.model.ExperimentalFactorsCompactData;
 import ae3.model.SampleCharacteristicsCompactData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 
 import java.io.IOException;
 import java.util.Collection;

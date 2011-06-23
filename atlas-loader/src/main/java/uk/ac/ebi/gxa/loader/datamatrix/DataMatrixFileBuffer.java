@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.steps.DataUtils;
-import uk.ac.ebi.gxa.netcdf.generator.DataMatrixStorage;
+import uk.ac.ebi.gxa.netcdf.DataMatrixStorage;
 
 import java.io.*;
 import java.net.URL;

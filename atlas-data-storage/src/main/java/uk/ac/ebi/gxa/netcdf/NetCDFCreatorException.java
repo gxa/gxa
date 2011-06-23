@@ -19,7 +19,7 @@
  *
  * http://gxa.github.com/gxa
  */
-package uk.ac.ebi.gxa.netcdf.generator;
+package uk.ac.ebi.gxa.netcdf;
 
 /**
  * NetCDF creator exception

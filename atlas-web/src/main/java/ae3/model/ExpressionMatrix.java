@@ -23,7 +23,7 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 
 import java.io.IOException;
 
