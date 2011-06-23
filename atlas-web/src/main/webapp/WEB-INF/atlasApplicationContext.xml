@@ -364,10 +364,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="experimentDAO" ref="experimentDAO"/>
-        <property name="netCDFReader" ref="netCDFReader"/>
     </bean>
-
-    <bean name="netCDFReader" class="ae3.dao.NetCDFReader"/>
 
     <bean name="apiV2QueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.v2.QueryRequestHandler">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>

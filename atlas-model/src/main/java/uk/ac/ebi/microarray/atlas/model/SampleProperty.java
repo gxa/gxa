@@ -48,10 +48,12 @@ public final class SampleProperty {
     @SequenceGenerator(name = "samplePVSeq", sequenceName = "A2_SAMPLEPV_SEQ")
     private Long samplepvid;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Sample sample;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     // TODO: 4alf: this can be expressed in NamingStrategy
     @JoinTable(name = "A2_SAMPLEPVONTOLOGY",
             joinColumns = @JoinColumn(name = "SAMPLEPVID", referencedColumnName = "SAMPLEPVID"),

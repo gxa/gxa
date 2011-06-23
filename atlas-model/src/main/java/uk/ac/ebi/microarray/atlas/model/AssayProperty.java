@@ -24,6 +24,8 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -41,10 +43,12 @@ public final class AssayProperty {
     @SequenceGenerator(name = "assayPVSeq", sequenceName = "A2_ASSAYPV_SEQ")
     private Long assaypvid;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private Assay assay;
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",
             joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))

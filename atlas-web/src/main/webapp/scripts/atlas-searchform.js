@@ -28,21 +28,6 @@ var atlas = atlas || {};
         hideText: "hide suggestions",
         noResultsText: "no results found",
 
-        classes: {
-            tokenList: "tokeninput",
-            token: "tokeninput",
-            selectedToken: "tokeninputsel",
-            highlightedToken: "token-input-highlighted-token-facebook",
-            dropdown: "tokeninputdrop",
-            dropdownItem: "tokendropitem",
-            dropdownItem2: "tokendropitem2",
-            selectedDropdownItem: "tokendropitemsel",
-            inputToken: "tokeninputinput",
-            hideText: "tokendrophide",
-            searching: "tokeninputsearching",
-            browseIcon: "efoexpand"
-        },
-
         getItemList:  function (json, query) {
             return json.completions[query];
         },
@@ -64,6 +49,11 @@ var atlas = atlas || {};
             actype = 'efo';
         }
 
+
+        function ellipsis(val, n) {
+            return val.length > n ? val.substr(0, n) + '...' : val
+        }
+
         fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
         {
             extraParams: {
@@ -72,29 +62,34 @@ var atlas = atlas || {};
                 limit: 15
             },
 
+            treeMode: true,
+
             defaultValue: defaultvalue,
 
-            formatListItem: function(row, q, i) {
-                var text = $.highlightTerm(row.value.length > 50 ? row.value.substr(0, 50) + '...' : row.value, q, 'b');
-                if (row.property == 'efo') {
-                    var indent = '';
-                    for (var i = 0; i < row.depth; ++i)
-                        indent += '&nbsp;&nbsp;&nbsp;';
-                    var title = '';
-                    if (row.alternativeTerms.length) {
-                        for (var i in row.alternativeTerms) {
-                            var at = row.alternativeTerms[i];
-                            var hat = $.highlightTerm(at, q, 'b');
-                            if (hat != at) {
-                                text += ' [' + (at.length > 50 ? $.highlightTerm(at.substr(0, 50) + '...', q, 'b') : hat) + ']';
-                                break;
-                            }
+            formatListItem: function(item, q, i) {
+                var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
+                var title = "";
+                var id = item.property === "efo" ? item.id : "";
+
+                if (item.alternativeTerms && item.alternativeTerms.length > 0) {
+                    for (var i = 0; i < item.alternativeTerms.length; i++) {
+                        var at = item.alternativeTerms[i];
+                        var hat = $.highlightTerm(at, q, 'b');
+                        if (hat != at) {
+                            text.push("[" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
+                            break;
                         }
-                        title += ' title="Alternative terms: ' + row.alternativeTerms.join(', ') + '"';
                     }
-                    return '<nobr' + title + '>' + indent + text + ' <em>(' + row.count + ' genes) ' + row.id + '</em></nobr>';
+                    title = "Alternative terms: " + item.alternativeTerms.join(', ');
                 }
-                return '<nobr>' + text + ' <em>(' + row.count + ' genes)</em></nobr>';
+
+                var span = $("<span>");
+                span.html(text.join(" "));
+                span.append($("<em>").text(" (" + item.count + " genes) " + id));
+                if (title) {
+                    span.attr("title", title);
+                }
+                return $("<div>").append(span).html();
             },
 
             formatToken: function(row) {

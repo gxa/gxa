@@ -104,9 +104,9 @@ public interface Efo extends Closeable {
      * Searches for prefix in ontology
      *
      * @param prefix prefix to search
-     * @return set of string IDs
+     * @return collection of EFO terms
      */
-    public Set<String> searchTermPrefix(String prefix);
+    public Collection<EfoTerm> searchTermPrefix(String prefix);
 
 
     /**

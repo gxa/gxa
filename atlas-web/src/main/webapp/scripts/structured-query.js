@@ -146,7 +146,7 @@ if(!atlas)
          left += 15;
          top += 15;
 
-         var waiter = $('<div class="waiter" />').append($('<img/>').attr('src','images/indicator.gif'))
+         var waiter = $('<div class="waiter" />')
                  .css({ left: left + 'px', top: top + 'px' });
 
          $('body').append(waiter);

@@ -44,40 +44,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-//import ae3.dao.NetCDFReader;
-//import ae3.model.AtlasExperiment;
-//import ae3.model.AtlasGene;
-//import ae3.model.ExperimentalData;
-//import ae3.service.AtlasStatisticsQueryService;
-//import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
-//import ae3.service.experiment.AtlasExperimentQuery;
-//import ae3.service.experiment.AtlasExperimentQueryParser;
-//import ae3.service.structuredquery.*;
-//import com.google.common.base.Function;
-//import com.google.common.base.Predicate;
-//import uk.ac.ebi.gxa.efo.Efo;
-//import uk.ac.ebi.gxa.index.builder.IndexBuilder;
-//import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-//import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-//import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-//import uk.ac.ebi.gxa.properties.AtlasProperties;
-//import uk.ac.ebi.gxa.requesthandlers.api.result.*;
-//import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
-//import uk.ac.ebi.gxa.utils.Pair;
-//import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-//
-//import javax.annotation.Nonnull;
-//
-//import static com.google.common.base.Predicates.alwaysTrue;
-//import static com.google.common.base.Predicates.or;
-//import static com.google.common.base.Strings.emptyToNull;
-//import static com.google.common.base.Strings.isNullOrEmpty;
-//import static com.google.common.collect.Collections2.transform;
-//import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsGenes;
-//import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
-
 /**
- * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
+ * REST API v2 structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
  */
 public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEventHandler,*/ DisposableBean {
     private Logger log = LoggerFactory.getLogger(getClass());

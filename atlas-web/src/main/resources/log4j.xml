@@ -39,6 +39,36 @@
         </layout>
     </appender>
 
+    <logger name="org.hibernate" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="org.hibernate.cache" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="net.sf.ehcache" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="net.sf.ehcache.config" additivity="false">
+        <level value="TRACE"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="net.sf.ehcache.distribution" additivity="false">
+        <level value="TRACE"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+    <logger name="net.sf.ehcache.code" additivity="false">
+        <level value="TRACE"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
     <logger name="org.apache.solr" additivity="false">
         <level value="WARN"/>
         <appender-ref ref="atlas-log"/>

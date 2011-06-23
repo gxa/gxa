@@ -104,7 +104,7 @@ public class AtlasStructuredQueryResult {
      * Return iterable results
      * @return iterable results
      */
-    public Iterable<StructuredResultRow> getResults() {
+    public Collection<StructuredResultRow> getResults() {
         return results;
     }
 

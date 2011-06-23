@@ -58,10 +58,9 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
-<link rel="stylesheet" type="text/css"
-      href="${pageContext.request.contextPath}/scripts/jquery-lightbox-0.5/css/jquery.lightbox-0.5.css" media="screen"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
 
+<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox/css/lightbox.css" media="screen"/>
+<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-lightbox/jquery.lightbox.js"></script>
 
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
@@ -142,7 +141,18 @@
     }
 </style>
 
+<script type="text/javascript">
+    $(function() {
+        $("a.lightbox").lightbox({
+            fileLoadingImage: "${pageContext.request.contextPath}/scripts/jquery-lightbox/images/loading.gif",
+		    fileBottomNavCloseImage: "${pageContext.request.contextPath}/scripts/jquery-lightbox/images/closelabel.gif"
+        });
+    });
+</script>
+
 <script id="source" type="text/javascript">
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '${u:escapeJS(atlasProperties.curatedEfs[ef])}';
+    </c:forEach>
 
     $(document).ready(function() {
 
@@ -323,7 +333,7 @@
     <tr style="height:25px;">
         <td class="padded designElementRow" style="text-align:center;" id="results_\${deIndex}">
             <a onclick="expPage.addOrRemoveDesignElement(\${deIndex});return false;">
-                <img title="Add to plot" border="0" src="images/chart_line_add.png" style="margin:auto;cursor:pointer;"/></a>
+                <span title="Add to plot" class="chartIcon add-btn">&nbsp;</span></a>
         </td>
         <td class="padded genename">
             <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" title="${geneName}">\${geneName}</a>

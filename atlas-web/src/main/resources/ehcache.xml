@@ -5,46 +5,66 @@
 
     <diskStore path="java.io.tmpdir"/>
 
-
-    <defaultCache
-            maxElementsInMemory="10"
-            eternal="false"
-            timeToIdleSeconds="5"
-            timeToLiveSeconds="10"
-            overflowToDisk="true"
-            />
-
-
+    <defaultCache eternal="false" maxElementsInMemory="1000" overflowToDisk="false"
+                  timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
 
     <!-- Page and Page Fragment Caches -->
-
-    <!--<cache name="CachePage1CachingFilter"-->
-           <!--maxElementsInMemory="10"-->
-           <!--eternal="false"-->
-           <!--timeToIdleSeconds="10000"-->
-           <!--timeToLiveSeconds="10000"-->
-           <!--overflowToDisk="true">-->
-    <!--</cache>-->
-
-    <!--<cache name="CachedPage2Cache"-->
-           <!--maxElementsInMemory="10"-->
-           <!--eternal="false"-->
-           <!--timeToLiveSeconds="3600"-->
-           <!--overflowToDisk="true">-->
-    <!--</cache>-->
-
     <cache name="SimplePageFragmentCachingFilter"
            maxElementsInMemory="10000"
            eternal="true"
            overflowToDisk="true">
     </cache>
 
-    <!--<cache name="SimpleCachingHeadersTimeoutPageCachingFilter"-->
-           <!--maxElementsInMemory="10"-->
-           <!--eternal="false"-->
-           <!--timeToIdleSeconds="10000"-->
-           <!--timeToLiveSeconds="10000"-->
-           <!--overflowToDisk="true">-->
-    <!--</cache>-->
+    <cache name="org.hibernate.cache.UpdateTimestampsCache" eternal="true" maxElementsInMemory="1000"
+           overflowToDisk="false"/>
+
+    <cache name="org.hibernate.cache.StandardQueryCache" eternal="false" maxElementsInMemory="1000"
+           overflowToDisk="false" timeToIdleSeconds="600" timeToLiveSeconds="300"/>
+
+    <cache name="uk.ac.ebi.microarray.atlas.model.ArrayDesign" eternal="true" maxElementsInMemory="200"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.PropertyValue" eternal="true" maxElementsInMemory="40000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Property" eternal="true" maxElementsInMemory="1000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Property.values" eternal="true" maxElementsInMemory="1000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.OntologyTerm" eternal="true" maxElementsInMemory="10000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Experiment" eternal="true" maxElementsInMemory="6000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Experiment.assays" eternal="true" maxElementsInMemory="6000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Experiment.samples" eternal="true" maxElementsInMemory="6000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.SampleProperty" eternal="true" maxElementsInMemory="500000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Organism" eternal="true" maxElementsInMemory="1000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Asset" eternal="true" maxElementsInMemory="1000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Sample" eternal="true" maxElementsInMemory="200000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Sample.properties" eternal="true" maxElementsInMemory="200000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.AssayProperty" eternal="true" maxElementsInMemory="400000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Ontology" eternal="true" maxElementsInMemory="50"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Assay" eternal="true" maxElementsInMemory="200000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Assay.properties" eternal="true" maxElementsInMemory="200000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+    <cache name="uk.ac.ebi.microarray.atlas.model.Assay.samples" eternal="true" maxElementsInMemory="200000"
+           overflowToDisk="false" timeToIdleSeconds="6000" timeToLiveSeconds="300"/>
+
+    <!--
+    TODO:
+
+2011-05-26 11:59:01,246 WARN  [main] regions.EhcacheEntityRegion (EhcacheEntityRegion.java:60) - read-only cache configured for mutable entity [uk.ac.ebi.microarray.atlas.model.OntologyTerm]
+2011-05-26 11:59:01,303 WARN  [main] regions.EhcacheEntityRegion (EhcacheEntityRegion.java:60) - read-only cache configured for mutable entity [uk.ac.ebi.microarray.atlas.model.Organism]
+2011-05-26 11:59:01,319 WARN  [main] regions.EhcacheEntityRegion (EhcacheEntityRegion.java:60) - read-only cache configured for mutable entity [uk.ac.ebi.microarray.atlas.model.Ontology]
+
+    -->
 
 </ehcache>
