@@ -252,18 +252,17 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                         " and " + arrayDesign);
 
-            NetCDFCreator netCdfCreator = new NetCDFCreator();
+            NetCDFCreator netCdfCreator = new NetCDFCreator(experiment, arrayDesign);
 
             netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays)
-                for (Sample sample : assay.getSamples())
+            for (Assay assay : adAssays) {
+                for (Sample sample : assay.getSamples()) {
                     netCdfCreator.setSample(assay, sample);
+                }
+            }
 
-            netCdfCreator.setArrayDesign(arrayDesign);
-            netCdfCreator.setExperiment(experiment);
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
             netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
-
 
             final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())

@@ -127,7 +127,7 @@ public class AtlasNetCDFUpdaterService {
 
     private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
-            NetCDFCreator netCdfCreator = new NetCDFCreator();
+            final NetCDFCreator netCdfCreator = new NetCDFCreator(experiment, arrayDesign);
 
             // TODO: 4alf: we cannot use experiment.getAssays() as we're bound by the ArrayDesign
             netCdfCreator.setAssays(data.getAssays());
@@ -141,8 +141,6 @@ public class AtlasNetCDFUpdaterService {
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
             netCdfCreator.setPvalDataMap(data.getPValDataMap());
             netCdfCreator.setTstatDataMap(data.getTStatDataMap());
-            netCdfCreator.setArrayDesign(arrayDesign);
-            netCdfCreator.setExperiment(experiment);
             netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
             final File tempFile = File.createTempFile(target.getName(), ".tmp");

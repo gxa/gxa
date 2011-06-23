@@ -51,8 +51,8 @@ import java.util.*;
 public class NetCDFCreator {
     private final Logger log = LoggerFactory.getLogger(NetCDFCreator.class);
 
-    private Experiment experiment;
-    private ArrayDesign arrayDesign;
+    private final Experiment experiment;
+    private final ArrayDesign arrayDesign;
 
     private List<Assay> assays;
     private LinkedHashSet<Sample> samples = new LinkedHashSet<Sample>();
@@ -99,16 +99,13 @@ public class NetCDFCreator {
 
     private String version = "0.0";
 
+    public NetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
+        this.experiment = experiment;
+        this.arrayDesign = arrayDesign;
+    }
+
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public void setExperiment(Experiment experiment) {
-        this.experiment = experiment;
-    }
-
-    public void setArrayDesign(ArrayDesign arrayDesign) {
-        this.arrayDesign = arrayDesign;
     }
 
     public void setAssays(Collection<Assay> assays) {
