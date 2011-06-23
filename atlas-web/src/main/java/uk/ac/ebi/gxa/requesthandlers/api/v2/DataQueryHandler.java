@@ -29,9 +29,9 @@ import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -217,7 +217,7 @@ class DataQueryHandler implements QueryHandler {
             if (experiment == null) {
                 return new Error("Experiment " + experimentAccession + " is not found");
             }
-            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experiment)) {
+            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFDescriptors(experiment)) {
                 NetCDFProxy proxy = null;
                 try {
                     proxy = ncdf.createProxy();

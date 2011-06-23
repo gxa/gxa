@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.analytics.generator;
 
 import junit.framework.TestCase;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;

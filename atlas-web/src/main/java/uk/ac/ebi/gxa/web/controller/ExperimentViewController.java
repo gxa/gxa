@@ -42,11 +42,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
@@ -67,8 +66,8 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
+import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.containsAtLeastOneGene;
+import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.hasArrayDesign;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -158,8 +157,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param model                   a model for the view to render
      * @return the view path
      * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws IOException                    if any netCDF file reading error happened
-     * @throws ucar.ma2.InvalidRangeException if given design element indexes are out of range
+     * @throws IOException                    if any netCDF file reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -168,7 +166,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, IOException, InvalidRangeException {
+    ) throws ResourceNotFoundException, IOException {
 
         ExperimentPage page = createExperimentPage(accession);
         if (page.getExperiment().getArrayDesign(adAcc) == null) {
@@ -176,7 +174,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(experiment, hasArrayDesign(adAcc));
+        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
         model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
         if (assayPropertiesRequired) {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
@@ -263,7 +261,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(experiment, ncdfPredicate);
+        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
 
         final BestDesignElementsResult res = (ncdfDescr == null) ?
                 BestDesignElementsResult.empty() :
