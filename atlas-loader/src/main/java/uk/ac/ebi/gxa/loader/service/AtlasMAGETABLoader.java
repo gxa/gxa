@@ -239,7 +239,7 @@ public class AtlasMAGETABLoader {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
         final Experiment experiment = cache.fetchExperiment();
 
         for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
