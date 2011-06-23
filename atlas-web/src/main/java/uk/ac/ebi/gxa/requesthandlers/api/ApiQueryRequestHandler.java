@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.requesthandlers.api;
 
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
@@ -235,7 +234,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
 
                                 try {
-                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
+                                    expData = ExperimentalData.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
                                 } catch (IOException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }

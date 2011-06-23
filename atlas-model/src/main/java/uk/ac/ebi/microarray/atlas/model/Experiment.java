@@ -250,6 +250,14 @@ public class Experiment {
         return result;
     }
 
+    public Set<String> getExperimentCharacteristics() {
+        Set<String> result = newTreeSet();
+        for (Sample sample : samples) {
+            result.addAll(sample.getPropertyNames());
+        }
+        return result;
+    }
+
     public void addAssay(Assay assay) {
         final Assay oldAssay = getAssay(assay.getAccession());
         if (oldAssay != null && oldAssay != assay) {

@@ -25,6 +25,8 @@ package ae3.model;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.*;
 
@@ -37,23 +39,19 @@ import static java.util.Collections.unmodifiableSet;
  *
  * @author pashky
  */
-public class Sample {
-    private int number;
-    private String accession;
-    private Map<String, String> sampleCharacteristics = new HashMap<String, String>();
-    private Set<Assay> assays = new HashSet<Assay>();
+class SampleDecorator {
+    private final Sample sample;
+    private final int number;
+    private final Set<AssayDecorator> assays = new HashSet<AssayDecorator>();
 
     /**
      * Constructor
      *
      * @param number                sample number
-     * @param sampleCharacteristics sample characteristics values map
-     * @param accession             sample DW accession
      */
-    Sample(int number, Map<String, String> sampleCharacteristics, String accession) {
+    SampleDecorator(Sample sample, int number) {
+        this.sample = sample;
         this.number = number;
-        this.sampleCharacteristics.putAll(sampleCharacteristics);
-        this.accession = accession;
     }
 
     /**
@@ -63,7 +61,11 @@ public class Sample {
      */
     @RestOut(name = "sampleCharacteristics")
     public Map<String, String> getSampleCharacteristics() {
-        return unmodifiableMap(sampleCharacteristics);
+        final Map<String, String> result = new HashMap<String, String>();
+        for (SampleProperty property : sample.getProperties()) {
+            result.put(property.getName(), property.getValue());
+        }
+        return result;
     }
 
     /**
@@ -73,8 +75,8 @@ public class Sample {
      */
     @RestOut(name = "relatedAssays", xmlItemName = "assayId")
     public Iterator<Integer> getAssayNumbers() {
-        return new MappingIterator<Assay, Integer>(getAssays().iterator()) {
-            public Integer map(Assay assay) {
+        return new MappingIterator<AssayDecorator, Integer>(getAssays().iterator()) {
+            public Integer map(AssayDecorator assay) {
                 return assay.getNumber();
             }
         };
@@ -95,7 +97,7 @@ public class Sample {
      *
      * @return set of assays
      */
-    public Set<Assay> getAssays() {
+    public Set<AssayDecorator> getAssays() {
         return unmodifiableSet(assays);
     }
 
@@ -105,7 +107,7 @@ public class Sample {
      * @return sample accession
      */
     String getAccession() {
-        return accession;
+        return sample.getAccession();
     }
 
     /**
@@ -113,7 +115,7 @@ public class Sample {
      *
      * @param assay assay to link
      */
-    void addAssay(Assay assay) {
+    void addAssay(AssayDecorator assay) {
         assays.add(assay);
     }
 
@@ -122,7 +124,7 @@ public class Sample {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Sample sample = (Sample) o;
+        SampleDecorator sample = (SampleDecorator) o;
 
         if (number != sample.number) return false;
 
@@ -138,8 +140,8 @@ public class Sample {
     public String toString() {
         return "Sample{" +
                 "number=" + number +
-                ", accession=" + accession +
-                ", sampleCharacteristics=" + sampleCharacteristics +
+                ", accession=" + getAccession() +
+                ", sampleCharacteristics=" + getSampleCharacteristics() +
                 ", assays=" + assays +
                 '}';
     }

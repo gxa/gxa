@@ -217,7 +217,7 @@ class DataQueryHandler implements QueryHandler {
             if (experiment == null) {
                 return new Error("Experiment " + experimentAccession + " is not found");
             }
-            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFProxiesForExperiment(experiment)) {
+            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFDescriptors(experiment)) {
                 NetCDFProxy proxy = null;
                 try {
                     proxy = ncdf.createProxy();
