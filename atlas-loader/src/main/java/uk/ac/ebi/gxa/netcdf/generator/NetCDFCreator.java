@@ -21,6 +21,8 @@
  */
 package uk.ac.ebi.gxa.netcdf.generator;
 
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.slf4j.Logger;
@@ -51,6 +53,7 @@ import java.util.*;
 public class NetCDFCreator {
     private final Logger log = LoggerFactory.getLogger(NetCDFCreator.class);
 
+    private final AtlasNetCDFDAO netCDFDAO;
     private final Experiment experiment;
     private final ArrayDesign arrayDesign;
 
@@ -97,15 +100,10 @@ public class NetCDFCreator {
     private int maxScLength;
     private int maxScvLength;
 
-    private String version = "0.0";
-
-    public NetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
+    public NetCDFCreator(AtlasNetCDFDAO netCDFDAO, Experiment experiment, ArrayDesign arrayDesign) {
+        this.netCDFDAO = netCDFDAO;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     public void setAssays(Collection<Assay> assays) {
@@ -422,7 +420,7 @@ public class NetCDFCreator {
         // add metadata global attributes
         safeAddGlobalAttribute(
                 "CreateNetCDF_VERSION",
-                version);
+                NetCDFProxy.NCDF_VERSION);
         safeAddGlobalAttribute(
                 "experiment_accession",
                 experiment.getAccession());
@@ -839,13 +837,21 @@ public class NetCDFCreator {
         netCdf.write("EFSC", efscAC);
     }
 
-    public void createNetCdf(File file) throws NetCDFCreatorException {
+    public void createNetCdf() throws NetCDFCreatorException {
         warnings.clear();
         prepareData();
 
         try {
-            log.info("Writing NetCDF file to " + file);
-            netCdf = NetcdfFileWriteable.createNew(file.getAbsolutePath(), true);
+            final File targetFile = netCDFDAO.getNetCDFLocation(experiment, arrayDesign);
+            if (!targetFile.getParentFile().exists() && !targetFile.getParentFile().mkdirs()) {
+                throw new NetCDFCreatorException(
+                    "Cannot create folder for the output file" + targetFile
+                );
+            }
+
+            final File tempFile = File.createTempFile(targetFile.getName(), ".tmp");
+            log.info("Writing NetCDF file to " + tempFile);
+            netCdf = NetcdfFileWriteable.createNew(tempFile.getAbsolutePath(), true);
             try {
                 create();
                 write();
@@ -853,6 +859,10 @@ public class NetCDFCreator {
                 throw new NetCDFCreatorException(e);
             } finally {
                 netCdf.close();
+            }
+            log.info("Renaming " + tempFile + " to " + targetFile);
+            if (!tempFile.renameTo(targetFile)) {
+                throw new NetCDFCreatorException("Can't rename " + tempFile + " to " + targetFile);
             }
         } catch (IOException e) {
             throw new NetCDFCreatorException(e);

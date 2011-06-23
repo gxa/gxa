@@ -63,7 +63,7 @@ public class AtlasNetCDFUpdaterService {
             NetCDFData data = readNetCDF(atlasDAO, netCDFLocation, assayMap);
 
             listener.setProgress("Writing updated NetCDF");
-            writeNetCDF(atlasDAO, netCDFLocation, data, experiment, arrayDesign);
+            writeNetCDF(data, experiment, arrayDesign);
 
             if (data.isAnalyticsTransferred())
                 listener.setRecomputeAnalytics(false);
@@ -125,9 +125,9 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static void writeNetCDF(AtlasDAO dao, File target, NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
+    private void writeNetCDF(NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
-            final NetCDFCreator netCdfCreator = new NetCDFCreator(experiment, arrayDesign);
+            final NetCDFCreator netCdfCreator = new NetCDFCreator(atlasNetCDFDAO, experiment, arrayDesign);
 
             // TODO: 4alf: we cannot use experiment.getAssays() as we're bound by the ArrayDesign
             netCdfCreator.setAssays(data.getAssays());
@@ -141,20 +141,12 @@ public class AtlasNetCDFUpdaterService {
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
             netCdfCreator.setPvalDataMap(data.getPValDataMap());
             netCdfCreator.setTstatDataMap(data.getTStatDataMap());
-            netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
-            final File tempFile = File.createTempFile(target.getName(), ".tmp");
-            netCdfCreator.createNetCdf(tempFile);
-            if (!target.delete() || !tempFile.renameTo(target))
-                throw new AtlasLoaderException("Can't update original NetCDF file " + target);
+            netCdfCreator.createNetCdf();
 
-            log.info("Successfully finished NetCDF for " + experiment.getAccession() +
-                    " and " + arrayDesign.getAccession());
+            log.info("Successfully finished NetCDF for " + experiment.getAccession() + " and " + arrayDesign.getAccession());
         } catch (NetCDFCreatorException e) {
-            log.error("Error writing NetCDF file: " + target, e);
-            throw new AtlasLoaderException(e);
-        } catch (IOException e) {
-            log.error("Error writing NetCDF file: " + target, e);
+            log.error("Error writing NetCDF file for " + experiment.getAccession() + " and " + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         }
     }
