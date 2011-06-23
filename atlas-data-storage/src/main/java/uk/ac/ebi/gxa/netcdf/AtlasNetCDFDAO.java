@@ -125,6 +125,10 @@ public class AtlasNetCDFDAO {
         }
     }
 
+    public NetCDFCreator getNetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
+        return new NetCDFCreator(this, experiment, arrayDesign);
+    }
+
     /**
      * @param proxyId the id of proxy
      * @return NetCDFProxy for a given proxyId (i.e. proxy file name)

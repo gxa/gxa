@@ -251,7 +251,7 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                         " and " + arrayDesign);
 
-            NetCDFCreator netCdfCreator = new NetCDFCreator(atlasNetCDFDAO, experiment, arrayDesign);
+            final NetCDFCreator netCdfCreator = atlasNetCDFDAO.getNetCDFCreator(experiment, arrayDesign);
 
             netCdfCreator.setAssays(adAssays);
             for (Assay assay : adAssays) {

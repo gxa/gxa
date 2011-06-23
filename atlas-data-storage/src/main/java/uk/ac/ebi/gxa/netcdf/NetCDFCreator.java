@@ -98,7 +98,7 @@ public class NetCDFCreator {
     private int maxScLength;
     private int maxScvLength;
 
-    public NetCDFCreator(AtlasNetCDFDAO netCDFDAO, Experiment experiment, ArrayDesign arrayDesign) {
+    NetCDFCreator(AtlasNetCDFDAO netCDFDAO, Experiment experiment, ArrayDesign arrayDesign) {
         this.netCDFDAO = netCDFDAO;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;

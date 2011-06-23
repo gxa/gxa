@@ -123,7 +123,7 @@ public class AtlasNetCDFUpdaterService {
 
     private void writeNetCDF(NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
-            final NetCDFCreator netCdfCreator = new NetCDFCreator(atlasNetCDFDAO, experiment, arrayDesign);
+            final NetCDFCreator netCdfCreator = atlasNetCDFDAO.getNetCDFCreator(experiment, arrayDesign);
 
             // TODO: 4alf: we cannot use experiment.getAssays() as we're bound by the ArrayDesign
             netCdfCreator.setAssays(data.getAssays());
