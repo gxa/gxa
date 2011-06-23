@@ -21,8 +21,6 @@
  */
 package uk.ac.ebi.gxa.netcdf.generator;
 
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import org.slf4j.Logger;
@@ -38,6 +36,8 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
 import javax.annotation.Nullable;
 import java.io.File;
