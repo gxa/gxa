@@ -63,7 +63,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
         getAtlasDAO().startSession();
         try {
-            // fetch all experiments - check if we want all or only the pending ones
             final List<Experiment> experiments = experimentDAO.getAll();
 
             final int total = experiments.size();
