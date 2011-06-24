@@ -79,9 +79,8 @@ public class ExperimentalDataTest {
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
         Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
-        ArrayDesign ad1 = new ArrayDesign();
+        ArrayDesign ad1 = new ArrayDesign("A-AFFY-44");
         ad1.setArrayDesignID(160588088);
-        ad1.setAccession("A-AFFY-44");
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
@@ -95,12 +94,10 @@ public class ExperimentalDataTest {
     @Test
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
         Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
-        ArrayDesign ad21 = new ArrayDesign();
+        ArrayDesign ad21 = new ArrayDesign("A-AFFY-33");
         ad21.setArrayDesignID(153069949);
-        ad21.setAccession("A-AFFY-33");
-        ArrayDesign ad22 = new ArrayDesign();
+        ArrayDesign ad22 = new ArrayDesign("A-AFFY-44");
         ad22.setArrayDesignID(165554923);
-        ad22.setAccession("A-AFFY-44");
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
         eMexp1913.setAssays(assays);
