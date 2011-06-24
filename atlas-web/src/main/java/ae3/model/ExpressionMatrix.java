@@ -22,18 +22,43 @@
 
 package ae3.model;
 
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+
+import java.io.IOException;
+
 /**
- * Expression matrix interface
- * Is used only in NetCDFReader and should be replaced with newer model classes.
- * 
+ * Lazy expression matrix class
+ *
  * @author pashky
  */
-public interface ExpressionMatrix {
+class ExpressionMatrix {
+    final NetCDFProxy proxy;
+    int lastDesignElement = -1;
+    float[] lastData = null;
+
+    ExpressionMatrix(NetCDFProxy proxy) {
+        this.proxy = proxy;
+    }
+
     /**
      * Returns expression for design element in assay position
-     * @param designElementId design element id
-     * @param assayPos assay's position in matrix
+     *
+     * @param designElementIndex design element id
+     * @param assayId            assay's position in matrix
      * @return expression value
      */
-    float getExpression(int designElementId, int assayPos);
+    float getExpression(int designElementIndex, int assayId) {
+        try {
+            if (lastData == null || lastDesignElement != designElementIndex) {
+                lastDesignElement = designElementIndex;
+                lastData = proxy.getExpressionDataForDesignElementAtIndex(designElementIndex);
+            }
+            return lastData[assayId];
+        } catch (IOException e) {
+            throw LogUtil.createUnexpected("Exception during matrix load", e);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw LogUtil.createUnexpected("Exception during matrix load", e);
+        }
+    }
 }

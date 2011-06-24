@@ -43,7 +43,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author pashky
  */
-public class NetCDFReaderTest {
+public class ExperimentalDataTest {
     private long assayid = 0;
 
     private List<Assay> eMexp1586Assays(Experiment eMexp1586, ArrayDesign ad1) {
@@ -87,7 +87,7 @@ public class NetCDFReaderTest {
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc
-        ExperimentalData expData = new NetCDFReader().loadExperiment(dao, eMexp1586);
+        ExperimentalData expData = ExperimentalData.loadExperiment(dao, eMexp1586);
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
     }
@@ -109,14 +109,14 @@ public class NetCDFReaderTest {
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-33.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-34.nc
-        ExperimentalData expData = new NetCDFReader().loadExperiment(dao, eMexp1913);
+        ExperimentalData expData = ExperimentalData.loadExperiment(dao, eMexp1913);
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
     }
 
     private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(NetCDFReaderTest.class.getClassLoader().getResource("").getPath());
+        return new File(ExperimentalData.class.getClassLoader().getResource("").getPath());
     }
 
     @After
