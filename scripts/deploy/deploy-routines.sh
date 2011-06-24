@@ -3,30 +3,25 @@
 # deploy-routines.sh
 
 log() {
-	echo "[`date`] $instance - $1\n" >> $audit_log
+    echo "[`date`] $instance - $1\n"
 }
 
-# kills a tomcat identfied by $atlas_instance
-kill_tomcat() {
-	for thepin in `ps -Af | grep -v grep | grep tomcat | grep ${atlas_instance} | awk '{ print $2 }'`
-	do
-		log "Killing ${thepin}"
-		kill -9 ${thepin}
-	done
+upload_archive() {
+    archive=`git describe`.war
+    remote_dir=${ssh_host}:${temp_dir}
+    log "Uploading webapp"
+    scp ../../atlas-web/target/atlas-web-*.war ${remote_dir}/${archive}
+    log "Uploading config sample"
+    scp ./context.xml ${remote_dir}
+    log "Uploading scripts"
+    scp ./rdeploy-routines.sh ${remote_dir}
+    scp ./rdeploy.sh ${remote_dir}
+    scp ./config-$1.sh ${remote_dir}/config.sh
+    log "Upload done"
 }
 
-start_tomcat() {
-	log "Starting ${TOMCAT_HOME}"
-	$TOMCAT_HOME/$start_tomcat
-}
-
-update_config() {
-	log "Linking to ${archive}"
-	export WAR_FILE=${war_storage}/${archive}
-	while read -r line; do eval echo "$line"; done < context.xml > ${TOMCAT_HOME}/conf/Catalina/localhost/${context}.xml
-}
-
-register_archive() {
-	log "Registering ${archive} at ${war_storage}"
-	cp ${archive} ${war_storage}/${archive}
+do_deploy() {
+    log "Deploying..."
+    ssh ${ssh_host} sudo -u ${sudo_as} archive=${archive} "sh ${temp_dir}/rdeploy.sh"
+    log "Done!"
 }

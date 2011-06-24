@@ -2,18 +2,9 @@
 #
 # deploy.sh
 
-source config.sh
+source config-$1.sh
 source deploy-routines.sh
 
-log "Starting deployment"
+upload_archive $1
 
-register_archive
-
-kill_tomcat
-
-update_config
-
-start_tomcat
-
-log "Finishing deployment"
-
+do_deploy
