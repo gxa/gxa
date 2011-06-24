@@ -8,35 +8,35 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 
 /**
- * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment index combinations
+ * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment combinations
  * Note that Attributes are grouped per experiment. This facilitates scoring of efo queries against bit index.
  */
 public class EfoIndex implements Serializable {
     private static final long serialVersionUID = 201106061646L;
 
-    // efoTerm -> experiment index -> Set<Attribute Index>
+    // efoTerm -> experiment -> attributes
     private Map<String, Map<ExperimentInfo, Set<EfvAttribute>>> efoIndex = newHashMap();
 
-    // Attribute -> experiment index -> efoTerm
+    // attribute -> experiment -> efoTerm
     private Map<EfvAttribute, Map<ExperimentInfo, String>> efvToEfoIndex = newHashMap();
 
-    public void addMapping(String efoTerm, EfvAttribute attributeIndex, ExperimentInfo experimentIndex) {
+    public void addMapping(String efoTerm, EfvAttribute attribute, ExperimentInfo experiment) {
         if (!efoIndex.containsKey(efoTerm)) {
             Map<ExperimentInfo, Set<EfvAttribute>> expToAttrs = newHashMap();
             efoIndex.put(efoTerm, expToAttrs);
         }
 
-        if (!efoIndex.get(efoTerm).containsKey(experimentIndex)) {
+        if (!efoIndex.get(efoTerm).containsKey(experiment)) {
             Set<EfvAttribute> attrs = newHashSet();
-            efoIndex.get(efoTerm).put(experimentIndex, attrs);
+            efoIndex.get(efoTerm).put(experiment, attrs);
         }
-        efoIndex.get(efoTerm).get(experimentIndex).add(attributeIndex);
+        efoIndex.get(efoTerm).get(experiment).add(attribute);
 
-        if (!efvToEfoIndex.containsKey(attributeIndex)) {
+        if (!efvToEfoIndex.containsKey(attribute)) {
             Map<ExperimentInfo, String> expToEfo = newHashMap();
-            efvToEfoIndex.put(attributeIndex, expToEfo);
+            efvToEfoIndex.put(attribute, expToEfo);
         }
-        efvToEfoIndex.get(attributeIndex).put(experimentIndex, efoTerm);
+        efvToEfoIndex.get(attribute).put(experiment, efoTerm);
     }
 
     public Map<ExperimentInfo, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
@@ -44,13 +44,14 @@ public class EfoIndex implements Serializable {
     }
 
     /**
-     * @param attributeIndex
-     * @param expIndex
-     * @return an efo term one of whose mapping is an efv referenced by attributeIndex in a an experiment expIndex
+     * @param attribute  EFV to search EFO term for
+     * @param experiment the scope of search
+     *        TODO: actually, mapping is assay- or sample-scoped, so searching within experiment is a bad idea
+     * @return an efo term one of whose mapping is an efv referenced by attribute in a given experiment
      */
-    public String getEfoTerm(EfvAttribute attributeIndex, ExperimentInfo expIndex) {
-        Map<ExperimentInfo, String> expToEfo = efvToEfoIndex.get(attributeIndex);
-        return expToEfo != null ? expToEfo.get(expIndex) : null;
+    public String getEfoTerm(EfvAttribute attribute, ExperimentInfo experiment) {
+        Map<ExperimentInfo, String> expToEfo = efvToEfoIndex.get(attribute);
+        return expToEfo != null ? expToEfo.get(experiment) : null;
     }
 
     /**
