@@ -112,10 +112,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final ObjectPool<EfvAttribute> attributePool = new ObjectPool<EfvAttribute>();
         final ObjectPool<String> stringPool = new ObjectPool<String>();
 
-        final StatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
-        final StatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
-        final StatisticsBuilder updnStats = new ThreadSafeStatisticsBuilder();
-        final StatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
+        final ThreadSafeStatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
+        final ThreadSafeStatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
+        final ThreadSafeStatisticsBuilder updnStats = new ThreadSafeStatisticsBuilder();
+        final ThreadSafeStatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
 
         BitIndexTask task = new BitIndexTask(ncdfsToProcess());
 
@@ -292,6 +292,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         } catch (InterruptedException e) {
             getLog().error("Indexing interrupted!", e);
             throw new IndexBuilderException(e.getMessage(), e);
+        } finally {
+            updnStats.destroy();
+            dnStats.destroy();
+            updnStats.destroy();
+            noStats.destroy();
         }
 
         return statisticsStorage;
