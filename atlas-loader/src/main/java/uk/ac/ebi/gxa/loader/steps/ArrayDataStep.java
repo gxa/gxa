@@ -149,6 +149,10 @@ public class ArrayDataStep implements Step {
         final HashMap<String,File> zipFiles =  new HashMap<String,File>();
 
         try {
+            // set this variable to false to avoid attempts of load
+            // CEL files from the same location as IDF/SDRF files;
+            // ftp link will be used
+            // set this variable to true to try local files firstly
             boolean useLocalCopy = true;
             listener.setProgress("Loading CEL files");
             for (ArrayDataNode node : investigation.SDRF.lookupNodes(ArrayDataNode.class)) {
