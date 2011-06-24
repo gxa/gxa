@@ -330,47 +330,35 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         return indexFileName;
     }
 
-    private EfoIndex loadEfoMapping(ObjectPool<EfvAttribute> attributeIndex, ObjectPool<ExperimentInfo> experimentIndex) {
-
+    private EfoIndex loadEfoMapping(ObjectPool<EfvAttribute> attributePool, ObjectPool<ExperimentInfo> experimentPool) {
         EfoIndex efoIndex = new EfoIndex();
         getLog().info("Fetching ontology mappings...");
 
-        Set<String> allEfos = new HashSet<String>();
-        int missingExpsNum = 0, missingAttrsNum = 0, LoadedCompleteEfos = 0, LoadedInCompleteEfos = 0;
+        final Set<String> missingEFOs = new HashSet<String>();
+        int completeEfos = 0;
+
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
+            EfvAttribute attribute = attributePool.intern(new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null));
+
             ExperimentInfo exp = new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId());
-            EfvAttribute attr = new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null);
-            EfvAttribute attributeIdx = attributeIndex.intern(attr);
-            ExperimentInfo experimentIdx = experimentIndex.intern(exp);
+            ExperimentInfo internedExp = experimentPool.intern(exp);
 
-            if (attributeIdx == null) {
-                attributeIdx = attributeIndex.intern(attr);
-                getLog().debug(
-                        "BitIndex build: efo term: " + mapping.getOntologyTerm() + " maps to a missing attribute: " + attr + " -> adding it to Attribute Index");
-            }
-            if (experimentIdx == null) {
-                missingExpsNum++;
-                getLog().error(
-                        "BitIndex build: Incomplete load for efo term: " + mapping.getOntologyTerm() + " because experiment: " + exp + " could not be found in Experiment Index");
-            }
-
-            if (attributeIdx != null && experimentIdx != null) {
-                LoadedCompleteEfos++;
-                efoIndex.addMapping(mapping.getOntologyTerm(), attributeIdx, experimentIdx);
-                getLog().debug(
-                        "Adding: " + mapping.getOntologyTerm() + ":" + attr + " (" + attributeIdx + "):" + exp + " (" + experimentIdx + ")");
+            if (internedExp != null) {
+                efoIndex.addMapping(mapping.getOntologyTerm(), attribute, internedExp);
+                getLog().debug("Adding '{}': {} in {} ({})",
+                        new Object[]{mapping.getOntologyTerm(), attribute, exp, internedExp});
+                completeEfos++;
             } else {
-                LoadedInCompleteEfos++;
+                getLog().error(
+                        "BitIndex build: Incomplete load for efo term: '{}' because experiment {} could not be found in Experiment Index",
+                        mapping.getOntologyTerm(), exp);
+                missingEFOs.add(mapping.getOntologyTerm());
             }
-            allEfos.add(mapping.getOntologyTerm());
         }
-        getLog().info(String.format(
-                "Loaded %d ontology mappings (Load incomplete for %d due to missing %d experiments or missing %d attributes",
-                LoadedCompleteEfos, LoadedInCompleteEfos, missingExpsNum, missingAttrsNum));
-
-        allEfos.removeAll(efoIndex.getEfos());
-        getLog().info("The following " + allEfos.size() + " efo's have not been loaded at all:" + allEfos);
+        getLog().info("Loaded {} ontology mappings (Load incomplete for {} due to missing experiments)",
+                completeEfos, missingEFOs.size());
+        getLog().info("The following {} EFOs have not been mapped: {}", missingEFOs.size(), missingEFOs);
         return efoIndex;
     }
 
