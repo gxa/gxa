@@ -149,7 +149,7 @@ public class ArrayDataStep implements Step {
         final HashMap<String,File> zipFiles =  new HashMap<String,File>();
 
         try {
-            boolean useLocalCopy = false;
+            boolean useLocalCopy = true;
             listener.setProgress("Loading CEL files");
             for (ArrayDataNode node : investigation.SDRF.lookupNodes(ArrayDataNode.class)) {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
