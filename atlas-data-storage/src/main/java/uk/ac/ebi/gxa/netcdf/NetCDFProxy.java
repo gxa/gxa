@@ -89,7 +89,7 @@ public final class NetCDFProxy implements Closeable {
         this.pathToNetCDF = file.getAbsoluteFile();
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
         if (isOutOfDate())
-            log.error("ncdf " + getId() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+            log.error("ncdf " + pathToNetCDF.getName() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
     }
 
     /**
@@ -98,10 +98,6 @@ public final class NetCDFProxy implements Closeable {
      */
     public boolean isOutOfDate()  {
         return !NCDF_VERSION.equals(getNcdfVersion());
-    }
-
-    private String getId() {
-        return pathToNetCDF.getName();
     }
 
     public String getExperimentAccession() {
@@ -676,9 +672,8 @@ public final class NetCDFProxy implements Closeable {
                     ea.setEfName(ef);
                     ea.setEfvName(efv);
                     ea.setDesignElementAccession(designElementAccessions[deIndex]);
-                    //ea.setExperimentID(getExperimentId());
                     ea.setDesignElementIndex(deIndex);
-                    ea.setProxyId(getId());
+                    ea.setArrayDesignAccession(getArrayDesignAccession());
                     return ea;
                 }
 

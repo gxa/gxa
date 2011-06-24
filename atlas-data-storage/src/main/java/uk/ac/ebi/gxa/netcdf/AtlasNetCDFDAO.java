@@ -86,7 +86,7 @@ public class AtlasNetCDFDAO {
      * @param geneIds    ids of genes to plot
      * @param criteria   other criteria to choose NetCDF to plot
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
-     *         Note that ea contains proxyId and designElement index from which it came, so that
+     *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
      * @throws IOException in case of I/O errors
      */
@@ -109,16 +109,16 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     * @param proxyId
+     * @param arrayDesign
      * @param designElementIndex
-     * @return List of expression values retrieved from designElementIndex in proxyId
+     * @return List of expression values retrieved from designElementIndex in arrayDesign
      * @throws IOException
      */
-    public List<Float> getExpressionData(final Experiment experiment, final String proxyId, final Integer designElementIndex)
+    public List<Float> getExpressionData(final Experiment experiment, final ArrayDesign arrayDesign, final Integer designElementIndex)
             throws IOException {
         NetCDFProxy proxy = null;
         try {
-            proxy = getNetCDFProxy(experiment, proxyId);
+            proxy = getNetCDFProxy(experiment, arrayDesign);
             return asList(proxy.getExpressionDataForDesignElementAtIndex(designElementIndex));
         } finally {
             closeQuietly(proxy);
@@ -133,14 +133,9 @@ public class AtlasNetCDFDAO {
         return new NetCDFDescriptor(getNetCDFLocation(experiment, arrayDesign));
     }
 
-    /**
-     * @param proxyId the id of proxy
-     * @return NetCDFProxy for a given proxyId (i.e. proxy file name)
-     */
-    public NetCDFProxy getNetCDFProxy(Experiment experiment, String proxyId) throws IOException {
-        return new NetCDFProxy(new File(getDataDirectory(experiment), proxyId));
+    private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws IOException {
+        return getNetCDFDescriptor(experiment, arrayDesign).createProxy();
     }
-
 
     /**
      * @param experiment the experiment to find proxy for
@@ -285,7 +280,7 @@ public class AtlasNetCDFDAO {
     }
 
     /**
-     * @param proxyId
+     * @param arrayDesign
      * @param geneId
      * @param ef
      * @return Map: efv -> best ExpressionAnalysis for geneid-ef in this proxy
@@ -293,14 +288,14 @@ public class AtlasNetCDFDAO {
      */
     public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(
             final Experiment experiment,
-            final String proxyId,
+            final ArrayDesign arrayDesign,
             final Long geneId,
             final String ef)
             throws IOException {
 
         NetCDFProxy proxy = null;
         try {
-            proxy = getNetCDFProxy(experiment, proxyId);
+            proxy = getNetCDFProxy(experiment, arrayDesign);
             Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
@@ -353,10 +348,10 @@ public class AtlasNetCDFDAO {
         }
     }
 
-    public List<String> getFactorValues(Experiment experiment, String proxyId, String ef) throws IOException {
+    public List<String> getFactorValues(Experiment experiment, ArrayDesign arrayDesign, String ef) throws IOException {
         NetCDFProxy proxy = null;
         try {
-            proxy = getNetCDFProxy(experiment, proxyId);
+            proxy = getNetCDFProxy(experiment, arrayDesign);
             return Arrays.asList(proxy.getFactorValues(ef));
         } finally {
             closeQuietly(proxy);

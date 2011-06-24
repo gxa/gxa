@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.netcdf;
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -27,14 +28,14 @@ public class TestNetCDFDAO extends TestCase {
     private float minPValue;
     private String designElementAccessionForMinPValue;
     private Set<Long> geneIds;
-    private String proxyId;
+    private ArrayDesign arrayDesign;
     private final static DecimalFormat pValFormat = new DecimalFormat("0.#######");
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         geneId = 153070209l; // human brca1
-        proxyId = "E-MTAB-25_A-AFFY-33.nc";
+        arrayDesign = new ArrayDesign("A-AFFY-33");
         ef = "cell_type";
         efv = "germ cell";
         minPValue = 0.9999986f;
@@ -51,7 +52,7 @@ public class TestNetCDFDAO extends TestCase {
     }
 
     public void testGetFactorValues() throws IOException {
-        List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment, proxyId, ef);
+        List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment, arrayDesign, ef);
         assertNotNull(fvs);
         assertNotSame(fvs.size(), 0);
         assertTrue(fvs.contains(efv));
@@ -76,7 +77,7 @@ public class TestNetCDFDAO extends TestCase {
         assertNotNull("Got null for efv id", ea.getEfvId());
         assertNotNull("Got null for pvalue", ea.getPValAdjusted());
         assertNotNull("Got null for tstat", ea.getTStatistic());
-        assertNotNull("Got null for proxyid", ea.getProxyId());
+        assertNotNull("Got null for arrayDesign accession", ea.getArrayDesignAccession());
         assertNotNull("Got null for design element index", ea.getDesignElementIndex());
         System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
 
