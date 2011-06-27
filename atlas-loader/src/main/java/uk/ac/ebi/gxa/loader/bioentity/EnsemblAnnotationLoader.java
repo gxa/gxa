@@ -112,6 +112,7 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
             throw new AtlasLoaderException("Wrong type of annotation source " + annotationSource.getDisplayName());
         }
 
+        this.annotationSource = annotationSource;
         updateAnnotations((BioMartAnnotationSource) annotationSource);
     }
 }

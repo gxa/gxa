@@ -184,7 +184,7 @@ public class BioMartConnection {
     }
 
     private String getPropertyURLLocation(String martProperty) {
-        return URLEncoder.encode(martUrl + PROPERTY_QUERY.replace(DATA_SET_PH, datasetName).
+        return martUrl + "query=" + URLEncoder.encode(PROPERTY_QUERY.replace(DATA_SET_PH, datasetName).
                 replace(PROP_NAME_PH, martProperty).replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema));
     }
 

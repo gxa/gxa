@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.loader.bioentity;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.HashSet;
@@ -63,6 +64,10 @@ public class BioMartConnectionTest extends TestCase {
     public void testGetPropertyForOrganismURL() throws Exception {
 //        String encode = URLEncoder.encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE Query><Query  virtualSchemaName = \"fungi_mart_9\" formatter = \"TSV\" header = \"0\" uniqueRows = \"0\" count = \"\" datasetConfigVersion = \"0.7\" ><Dataset name = \"scerevisiae_eg_gene\" interface = \"default\" ><Attribute name = \"ensembl_gene_id\" /><Attribute name = \"ensembl_transcript_id\" /></Dataset></Query>", "US-ASCII");
 //        System.out.println("encode = " + encode);
+         bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plant", "athaliana_eg_gene");
+        URL name_1006 = bmService.getPropertyURL("name_1006");
+        System.out.println("name_1006 = " + name_1006);
+
     }
 
 

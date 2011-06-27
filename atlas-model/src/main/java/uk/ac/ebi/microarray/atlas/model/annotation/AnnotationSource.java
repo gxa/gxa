@@ -39,14 +39,15 @@ public abstract class AnnotationSource implements Serializable{
     @ManyToOne
     protected Organism organism;
 
-    @ManyToOne(cascade = {CascadeType.ALL})
-    @Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     protected Software software;
 
-    @ManyToMany
+    @ManyToMany (fetch = FetchType.EAGER)
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
+
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
 
     @Temporal(TemporalType.DATE)

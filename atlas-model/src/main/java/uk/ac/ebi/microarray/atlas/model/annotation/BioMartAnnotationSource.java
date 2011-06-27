@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model.annotation;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
@@ -44,12 +46,13 @@ public class BioMartAnnotationSource extends AnnotationSource {
     @Column(name = "databaseName")
     private String databaseName;
 
-    @OneToMany(targetEntity = BioMartProperty.class,
-            mappedBy = "annotationSrc"
+    @OneToMany(targetEntity = BioMartProperty.class
+           , mappedBy = "annotationSrc"
             , cascade = CascadeType.ALL
             , fetch = FetchType.EAGER
             , orphanRemoval = true
     )
+    @Fetch(FetchMode.SUBSELECT)
     private Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
 
     BioMartAnnotationSource() {
@@ -122,7 +125,10 @@ public class BioMartAnnotationSource extends AnnotationSource {
         BioMartAnnotationSource result = new BioMartAnnotationSource(newSoftware, this.organism);
         result.setDatasetName(this.datasetName);
         result.setUrl(this.url);
-        result.bioMartProperties = new HashSet<BioMartProperty>(this.bioMartProperties);
+        for (BioMartProperty bioMartProperty : bioMartProperties) {
+            result.addBioMartProperty(bioMartProperty.getName(), bioMartProperty.getBioEntityProperty());
+        }
+//        result.bioMartProperties = new HashSet<BioMartProperty>(this.bioMartProperties);
         result.setDatabaseName(this.databaseName);
 
         return result;

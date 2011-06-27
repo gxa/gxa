@@ -106,7 +106,5 @@
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
         <constructor-arg ref="sessionFactory"/>
         <constructor-arg ref="softwareDAO"/>
-        <constructor-arg ref="organismDAO"/>
-        <constructor-arg ref="bioEntityPropertyDAO"/>
     </bean>
 </beans>

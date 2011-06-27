@@ -2,6 +2,9 @@ package uk.ac.ebi.gxa.dao;
 
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.hibernate.Transaction;
+import org.hibernate.classic.Session;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
@@ -74,6 +77,28 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
 
         annotationSourceDAO.save(annotationSource);
         assertNotNull(annotationSource.getAnnotationSrcId());
+
+    }
+
+    public void testSaveNew1() throws Exception {
+        Software software = new Software(null, "plants", "8");
+        Organism organism = organismDAO.getByName("arabidopsis thaliana");
+
+        BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
+        annotationSource.setDatabaseName("plant");
+        annotationSource.setDatasetName("athaliana_eg_gene");
+        annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
+
+        BioEntityPropertyDAO bioEntityPropertyDAO = new BioEntityPropertyDAO(sessionFactory);
+        BioEntityProperty goterm = bioEntityPropertyDAO.getByName("goterm");
+        annotationSource.addBioMartProperty("name_1006", goterm);
+
+        org.hibernate.Session session = SessionFactoryUtils.getSession(sessionFactory, true);
+        Transaction transaction = session.getTransaction();
+        transaction.begin();
+        annotationSourceDAO.save(annotationSource);
+        assertNotNull(annotationSource.getAnnotationSrcId());
+        transaction.commit();
 
     }
 

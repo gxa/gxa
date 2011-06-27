@@ -1,7 +1,10 @@
 package uk.ac.ebi.microarray.atlas.model.annotation;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -25,6 +28,7 @@ public class BioMartProperty {
     private BioEntityProperty bioEntityProperty;
 
     @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private BioMartAnnotationSource annotationSrc;
 
     BioMartProperty() {
@@ -67,6 +71,10 @@ public class BioMartProperty {
 
     public void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
         this.annotationSrc = annotationSrc;
+    }
+
+    public void setBioEntityProperty(BioEntityProperty bioEntityProperty) {
+        this.bioEntityProperty = bioEntityProperty;
     }
 
     @Override

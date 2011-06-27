@@ -69,12 +69,12 @@ public abstract class AtlasBioentityAnnotationLoader{
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + transcriptProperties.size() + " properties for trasncripts " + finalOrganism.getName());
-                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, annotationSource);
+                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, annotationSource.getSoftware());
                 if (StringUtils.isNotEmpty(geneType)) {
                     reportProgress("Wirting " + geneProperties.size() + " properties for genes " + finalOrganism.getName());
-                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, annotationSource);
+                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, annotationSource.getSoftware());
                     reportProgress("Wirting " + geneTranscriptMapping.size() + " transcript to gene mappings " + finalOrganism.getName());
-                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, annotationSource);
+                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, annotationSource.getSoftware());
                 }
             }
         });

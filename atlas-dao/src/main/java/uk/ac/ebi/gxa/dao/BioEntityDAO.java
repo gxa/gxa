@@ -14,7 +14,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.MappingSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
@@ -318,10 +317,10 @@ public class BioEntityDAO {
      *                     [1] - property name
      *                     [2] - property value
      * @param beType
-     * @param annSrc
+     * @param software
      */
     public void writeBioEntityToPropertyValues(final Set<List<String>> beProperties, final String beType,
-                                               final AnnotationSource annSrc) {
+                                               final Software software) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
                 "  values (\n" +
@@ -334,7 +333,7 @@ public class BioEntityDAO {
         List<List<String>> propertyValues = new ArrayList<List<String>>(beProperties);
 
         ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
-            long softwareId = annSrc.getAnnotationSrcId();
+            long softwareId = software.getSoftwareid();
             Map<String, Long> properties = getAllBEProperties();
 
             long typeId = getBETypeIdByName(beType);
@@ -356,12 +355,12 @@ public class BioEntityDAO {
      * @param relations - a List of String array, which contains values:
      *                  [0] - gene identifier
      *                  [1] - transcript identifier
-     * @param annSrc
+     * @param software
      */
     public void writeGeneToTranscriptRelations(final Set<List<String>> relations,
                                                final String transcriptType,
                                                final String geneType,
-                                               final AnnotationSource annSrc) {
+                                               final Software software) {
 
         String query = "INSERT INTO a2_bioentity2bioentity "
                 + "            (bioentityidto, "
@@ -377,7 +376,7 @@ public class BioEntityDAO {
 
 
         ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
-            long softwareId = annSrc.getAnnotationSrcId();
+            long softwareId = software.getSoftwareid();
             public long geneTypeId = getBETypeIdByName(geneType);
             public long tnsTypeId = getBETypeIdByName(transcriptType);
 

@@ -47,8 +47,10 @@ public class AnnotationSourceController {
                     viewSources.add(new BioMartAnnotationSourceView(annSrc, annSrc.getDisplayName()));
                 } else {
                     //check if AnnotationSource exists for new version
+                    softwareDAO.startSession();
                     Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
-
+                    softwareDAO.finishSession();
+//                     Software newSoftware = new Software(annSrc.getSoftware().getName(), newVersion);
                     BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
                     //create and Save new AnnotationSource
                     if (newAnnSrc == null) {
@@ -77,9 +79,7 @@ public class AnnotationSourceController {
     public static class BioMartAnnotationSourceView {
         private BioMartAnnotationSource annSrc;
         private String currentName;
-        private ValidationReport validationReport;
-
-        private String newVersion;
+        private ValidationReport validationReport = new ValidationReport();
 
         public BioMartAnnotationSourceView(BioMartAnnotationSource annSrc, String currentName) {
             this.annSrc = annSrc;
@@ -119,6 +119,9 @@ public class AnnotationSourceController {
         }
 
         public String getSummary() {
+            if (isValid()) {
+                return "Valid";
+            }
             StringBuilder sb = new StringBuilder();
             sb.append(organismName + " ");
             sb.append(missingProperties);
