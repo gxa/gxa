@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,13 +41,14 @@ public class EfoIndex implements Serializable {
     }
 
     public Map<ExperimentInfo, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
-        return efoIndex.get(efoTerm);
+        final Map<ExperimentInfo, Set<EfvAttribute>> experimentToEfvs = efoIndex.get(efoTerm);
+        return experimentToEfvs == null ? Collections.<ExperimentInfo, Set<EfvAttribute>>emptyMap() : experimentToEfvs;
     }
 
     /**
      * @param attribute  EFV to search EFO term for
      * @param experiment the scope of search
-     *        TODO: actually, mapping is assay- or sample-scoped, so searching within experiment is a bad idea
+     *                   TODO: actually, mapping is assay- or sample-scoped, so searching within experiment is a bad idea
      * @return an efo term one of whose mapping is an efv referenced by attribute in a given experiment
      */
     public String getEfoTerm(EfvAttribute attribute, ExperimentInfo experiment) {
