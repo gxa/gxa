@@ -9,7 +9,7 @@ war_storage=TODO
 # tomcat details
 atlas_instance=TODO
 TOMCAT_HOME=TODO
-start_tomcat=/bin/startup.sh
+start_tomcat=bin/startup.sh
 audit_log=${TOMCAT_HOME}/logs/deploy.log
 context=gxa
 
