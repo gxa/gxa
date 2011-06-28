@@ -17,8 +17,9 @@ kill_tomcat() {
 
 start_tomcat() {
     log "Starting ${TOMCAT_HOME}"
-    cd ${TOMCAT_HOME}
+    pushd ${TOMCAT_HOME}
     ${start_tomcat}
+    popd
 }
 
 update_config() {
