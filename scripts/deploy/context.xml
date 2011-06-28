@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context swallowOutput="true" unpackWAR="true" antiJARLocking="true" antiResourceLocking="true">
+<Context swallowOutput="true" docBase="${WAR_FILE}" unpackWAR="true" antiJARLocking="true" antiResourceLocking="true">
     <Resource
             name="jdbc/ATLAS2"
             type="javax.sql.DataSource"
             factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
             driverClassName="oracle.jdbc.OracleDriver"
-            url="${atlas-db.jdbc.url}"
-            username="${atlas-db.jdbc.username}"
-            password="${atlas-db.jdbc.password}"
+            url="${ATLAS_JDBC_URL}"
+            username="${ATLAS_JDBC_USERNAME}"
+            password="${ATLAS_JDBC_PASSWORD}"
             initialSize="6"
             maxIdle="32"
             maxActive="100"
@@ -18,23 +18,23 @@
             name="file/GXAINDEX"
             type="java.util.File"
             factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
-            path="${atlas.index}"
+            path="${ATLAS_INDEX}"
             />
 
     <Resource
             name="file/GXANETCDFS"
             type="java.util.File"
             factory="uk.ac.ebi.gxa.naming.factory.FileFactory"
-            path="${atlas.netcdfs}"
+            path="${ATLAS_NETCDF}"
             />
 
     <Resource
             name="uri/GXAEFO"
             type="java.net.URI"
             factory="uk.ac.ebi.gxa.naming.factory.URIFactory"
-            path="${atlas.efo.uri}"
+            path="${ATLAS_EFO_URI}"
             />
 
-    <!-- ${atlas.efo.uri} can be any external of file url too, e.g.
+    <!-- ATLAS_EFO_URI  can be any external of file url too, e.g.
     value="http://efo.svn.sourceforge.net/svnroot/efo/trunk/src/efoinowl/InferredEFOOWLview/EFO_inferred.owl"/>-->
 </Context>
