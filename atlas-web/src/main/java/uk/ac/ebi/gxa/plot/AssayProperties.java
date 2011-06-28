@@ -62,7 +62,7 @@ public class AssayProperties {
 
         String[] factors = proxy.getFactors();
         String[] sampleCharacteristics = proxy.getCharacteristics();
-        int[][] a2s = proxy.getSamplesToAssays();
+        int[][] s2a = proxy.getSamplesToAssays();
 
         for (String f : factors) {
             String[] vals = proxy.getFactorValues(f);
@@ -80,8 +80,8 @@ public class AssayProperties {
                     nameConverter.apply(s), vals.length);
             for (int i = 0; i < vals.length; i++) {
                 d.addScv(vals[i], i);
-                for (int j = a2s[i].length - 1; j >= 0; j--) {
-                    if (a2s[i][j] > 0) {
+                for (int j = s2a[i].length - 1; j >= 0; j--) {
+                    if (s2a[i][j] > 0) {
                         d.addMapping(j, i);
                     }
                 }
