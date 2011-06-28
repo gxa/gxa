@@ -81,8 +81,8 @@ public class AssayProperties {
             for (int i = 0; i < vals.length; i++) {
                 d.addScv(vals[i], i);
                 for (int j = s2a[i].length - 1; j >= 0; j--) {
-                    if (s2a[j][i] > 0) {
-                        d.addMapping(j, i);
+                    if (s2a[i][j] > 0) {
+                        d.addMapping(i, j);
                     }
                 }
             }
