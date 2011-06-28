@@ -205,6 +205,7 @@ public class BioEntityDAO {
                 new SingleColumnRowMapper<String>());
     }
 
+    //ToDo: move to Organism DAO
     public Organism findOrCreateOrganism(final String name) {
         if (organismCache.containsKey(name)) {
             return organismCache.get(name);

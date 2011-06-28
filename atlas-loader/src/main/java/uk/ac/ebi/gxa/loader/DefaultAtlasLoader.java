@@ -24,10 +24,10 @@ package uk.ac.ebi.gxa.loader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.loader.bioentity.AnnotationLoader;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
-import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
-import uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader;
-import uk.ac.ebi.gxa.loader.bioentity.FileAnnotationLoader;
+import uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotator;
+import uk.ac.ebi.gxa.loader.bioentity.FileAnnotator;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
@@ -55,10 +55,9 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private AtlasMAGETABLoader magetabLoader;
     private AtlasExperimentUnloaderService experimentUnloaderService;
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
-    private FileAnnotationLoader bioentityAnnotationLoader;
     private ArrayDesignMappingLoader designMappingLoader;
     private AtlasDataReleaseService dataReleaseService;
-    private EnsemblAnnotationLoader ensemblAnnotationLoader;
+    private AnnotationLoader annotationLoader;
 
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;
@@ -108,7 +107,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
                         }
 
                         public void process(LoadBioentityCommand cmd) throws AtlasLoaderException {
-                            bioentityAnnotationLoader.process(cmd, this);
+                            annotationLoader.process(cmd, this);
                         }
 
                         public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
@@ -120,7 +119,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
                         }
 
                         public void process(UpdateAnnotationCommand cmd) throws AtlasLoaderException {
-                            ensemblAnnotationLoader.process(cmd, this);
+                            annotationLoader.process(cmd, this);
                         }
                     });
 
@@ -151,10 +150,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.netCDFUpdaterService = netCDFUpdaterService;
     }
 
-    public void setBioentityAnnotationLoader(FileAnnotationLoader bioentityAnnotationLoader) {
-        this.bioentityAnnotationLoader = bioentityAnnotationLoader;
-    }
-
     public void setDesignMappingLoader(ArrayDesignMappingLoader designMappingLoader) {
         this.designMappingLoader = designMappingLoader;
     }
@@ -163,7 +158,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.dataReleaseService = dataReleaseService;
     }
 
-    public void setEnsemblAnnotationLoader(EnsemblAnnotationLoader ensemblAnnotationLoader) {
-        this.ensemblAnnotationLoader = ensemblAnnotationLoader;
+    public void setAnnotationLoader(AnnotationLoader annotationLoader) {
+        this.annotationLoader = annotationLoader;
     }
 }

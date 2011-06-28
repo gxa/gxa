@@ -1,13 +1,10 @@
 package uk.ac.ebi.gxa.loader.bioentity;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.Assert;
-import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.loader.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
@@ -24,7 +21,7 @@ import java.util.Set;
  * User: nsklyar
  * Date: Oct 21, 2010
  */
-public abstract class AtlasBioentityAnnotationLoader{
+public abstract class AtlasBioentityAnnotator {
 
     private final Set<List<String>> geneTranscriptMapping = new HashSet<List<String>>();
     private final Set<List<String>> transcriptProperties = new HashSet<List<String>>();
@@ -35,8 +32,6 @@ public abstract class AtlasBioentityAnnotationLoader{
     private final Set<BioEntity> transcripts = new HashSet<BioEntity>();
     private final Set<BioEntity> genes = new HashSet<BioEntity>();
 
-    protected BioEntityDAO bioEntityDAO;
-
     protected TransactionTemplate transactionTemplate;
 
     private AtlasLoaderServiceListener listener;
@@ -45,10 +40,11 @@ public abstract class AtlasBioentityAnnotationLoader{
     //    protected Software software;
     protected AnnotationSource annotationSource;
 
-    protected AnnotationSourceDAO annSrcDAO;
+    protected final AnnotationDAO annotationDAO;
 
-    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
-        this.annSrcDAO = annSrcDAO;
+    protected AtlasBioentityAnnotator( AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
+        this.annotationDAO = annotationDAO;
+        this.transactionTemplate= transactionTemplate;
     }
 
     protected void writeBioentitiesAndAnnotations(final String transcriptType, final String geneType) {
@@ -57,11 +53,11 @@ public abstract class AtlasBioentityAnnotationLoader{
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + transcripts.size() + " transcripts for " + finalOrganism.getName());
-                bioEntityDAO.writeBioentities(transcripts);
+                annotationDAO.writeBioentities(transcripts);
                 reportProgress("Wirting " + genes.size() + " genes for " + finalOrganism.getName());
-                bioEntityDAO.writeBioentities(genes);
+                annotationDAO.writeBioentities(genes);
                 reportProgress("Wirting " + bePropertyValues.size() + " property values " + finalOrganism.getName());
-                bioEntityDAO.writePropertyValues(bePropertyValues);
+                annotationDAO.writePropertyValues(bePropertyValues);
             }
         });
 
@@ -69,22 +65,23 @@ public abstract class AtlasBioentityAnnotationLoader{
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + transcriptProperties.size() + " properties for trasncripts " + finalOrganism.getName());
-                bioEntityDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, annotationSource.getSoftware());
+                annotationDAO.writeBioEntityToPropertyValues(transcriptProperties, transcriptType, annotationSource.getSoftware());
                 if (StringUtils.isNotEmpty(geneType)) {
                     reportProgress("Wirting " + geneProperties.size() + " properties for genes " + finalOrganism.getName());
-                    bioEntityDAO.writeBioEntityToPropertyValues(geneProperties, geneType, annotationSource.getSoftware());
+                    annotationDAO.writeBioEntityToPropertyValues(geneProperties, geneType, annotationSource.getSoftware());
                     reportProgress("Wirting " + geneTranscriptMapping.size() + " transcript to gene mappings " + finalOrganism.getName());
-                    bioEntityDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, annotationSource.getSoftware());
+                    annotationDAO.writeGeneToTranscriptRelations(geneTranscriptMapping, transcriptType, geneType, annotationSource.getSoftware());
                 }
             }
         });
 
-        //Update current Annotation sources
+        //ToDo:software should be set active outside of annotator
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Updating current annotation sources for " + annotationSource.getDisplayName());
-                annSrcDAO.saveAsCurrentAnnotationSource(annotationSource);
+                annotationSource.getSoftware().setActive(true);
+                annotationDAO.saveSoftware(annotationSource.getSoftware());
             }
         });
 
@@ -124,7 +121,7 @@ public abstract class AtlasBioentityAnnotationLoader{
     }
 
     private BioEntity createBioEntity(Organism organism, String type, String beIdentifier) {
-        BioEntity bioEntity = new BioEntity(beIdentifier, bioEntityDAO.findOrCreateBioEntityType(type));
+        BioEntity bioEntity = new BioEntity(beIdentifier, annotationDAO.findOrCreateBioEntityType(type));
         bioEntity.setOrganism(organism);
         return bioEntity;
     }
@@ -137,14 +134,6 @@ public abstract class AtlasBioentityAnnotationLoader{
 
     }
 
-//    protected void saveProperies(final HashSet<String> properties) {
-//        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-//            @Override
-//            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-//                bioEntityDAO.saveProperies(properties);
-//            }
-//        });
-//    }
 
     protected void reportProgress(String report) {
         if (listener != null)
@@ -155,14 +144,4 @@ public abstract class AtlasBioentityAnnotationLoader{
         this.listener = listener;
     }
 
-    /////////// Dependency injection /////////////
-    public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
-        this.bioEntityDAO = bioEntityDAO;
-    }
-
-    public void setTxManager(PlatformTransactionManager txManager) {
-        Assert.notNull(txManager, "The 'transactionManager' argument must not be null.");
-        this.transactionTemplate = new TransactionTemplate(txManager);
-
-    }
 }

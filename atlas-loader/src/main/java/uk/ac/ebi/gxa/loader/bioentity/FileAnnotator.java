@@ -6,9 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import uk.ac.ebi.gxa.dao.BioEntityPropertyDAO;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
+import uk.ac.ebi.gxa.loader.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -18,6 +19,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -26,26 +28,21 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 13/04/2011
  */
-public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
+public class FileAnnotator extends AtlasBioentityAnnotator {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private String transcriptField;
     private String geneField;
 
-    private List<BioEntityProperty> properties;
-
-    private BioEntityPropertyDAO propertyDAO;
-
-    public void setPropertyDAO(BioEntityPropertyDAO propertyDAO) {
-        this.propertyDAO = propertyDAO;
+    protected FileAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
+        super(annotationDAO, transactionTemplate);
     }
 
-    public void process(LoadBioentityCommand command, final AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    public void process(URL url, final AtlasLoaderServiceListener listener) throws AtlasLoaderException {
 
         setListener(listener);
 
-        URL url = command.getUrl();
         reportProgress("Start parsing bioentity annotations from  " + url);
 
         CSVReader csvReader = null;
@@ -60,6 +57,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
             String[] headers = csvReader.readNext();
 
             int geneColumnIndex = -1;
+            List<BioEntityProperty> properties = new ArrayList<BioEntityProperty>();
 
             for (int i = 0; i < headers.length; i++) {
                 properties.add(i, new BioEntityProperty(null, headers[i]));
@@ -68,7 +66,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
                 }
             }
 
-            saveProperies(properties);
+            saveProperties(properties);
 
             if (geneColumnIndex < 0)
                 log.info("Gene coulumn is not present in the annotation file");
@@ -98,7 +96,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
                         }
                         
                         if (property.getName().equalsIgnoreCase("Organism") && StringUtils.isNotBlank(line[i])) {
-                            this.targetOrganism = bioEntityDAO.findOrCreateOrganism(line[i]);
+                            this.targetOrganism = annotationDAO.findOrCreateOrganism(line[i]);
                         }
 
                         if (BioEntity.NAME_PROPERTY_SYMBOL.equalsIgnoreCase(property.getName()) ||
@@ -137,7 +135,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
     }
 
     private void initFields(URL url, CSVReader csvReader) throws IOException, AtlasLoaderException {
-        this.targetOrganism = bioEntityDAO.findOrCreateOrganism(readValue("organism", url, csvReader));
+        this.targetOrganism = annotationDAO.findOrCreateOrganism(readValue("organism", url, csvReader));
         String sourceName = readValue("source", url, csvReader);
         String version = readValue("version", url, csvReader);
 
@@ -146,7 +144,7 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
 
         Software software = new Software(null, sourceName, version);
         this.annotationSource = new FileAnnotationSource(software, targetOrganism, url.getFile());
-        annSrcDAO.save(annotationSource);
+        annotationDAO.saveAnnSrc(annotationSource);
     }
 
     private String readValue(String type, URL adURL, CSVReader csvReader) throws IOException, AtlasLoaderException {
@@ -158,12 +156,12 @@ public class FileAnnotationLoader extends AtlasBioentityAnnotationLoader {
         return line[1];
     }
 
-     protected void saveProperies(final List<BioEntityProperty> properties) {
+     protected void saveProperties(final List<BioEntityProperty> properties) {
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 for (BioEntityProperty property : properties) {
-                    propertyDAO.save(property);
+                    annotationDAO.saveProperty(property);
                 }
             }
         });

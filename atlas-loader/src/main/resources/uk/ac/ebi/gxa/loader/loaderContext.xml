@@ -15,28 +15,17 @@
         <property name="magetabLoader" ref="MAGETABLoader"/>
         <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
         <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
-        <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
-        <property name="ensemblAnnotationLoader" ref="ensemblAnnotationLoader"/>
+        <!--<property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>-->
+        <!--<property name="ensemblAnnotationLoader" ref="ensemblAnnotationLoader"/>-->
         <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
         <property name="dataReleaseService" ref="atlasDataReleaseService"/>
+        <property name="annotationLoader" ref="annotationLoader"/>
         <property name="executor" ref="threadPool"/>
     </bean>
 
 
     <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-     <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.FileAnnotationLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="annSrcDAO" ref="annSrcDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-    <bean name="ensemblAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotationLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="annSrcDAO" ref="annSrcDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 
@@ -61,4 +50,17 @@
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
+
+    <bean id="bioentityAnnotationDAO" class="uk.ac.ebi.gxa.loader.dao.AnnotationDAO">
+        <constructor-arg ref="bioEntityDAO"/>
+        <constructor-arg ref="annSrcDAO"/>
+        <constructor-arg ref="bioEntityPropertyDAO"/>
+        <constructor-arg ref="softwareDAO"/>
+    </bean>
+    
+    <bean name="annotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AnnotationLoader">
+        <constructor-arg ref="bioentityAnnotationDAO"/>
+        <constructor-arg ref="atlasTxManager"/>
+    </bean>
+
 </beans>

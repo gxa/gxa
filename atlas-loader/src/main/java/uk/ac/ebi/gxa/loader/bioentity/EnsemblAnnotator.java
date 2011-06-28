@@ -3,8 +3,10 @@ package uk.ac.ebi.gxa.loader.bioentity;
 import au.com.bytecode.opencsv.CSVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.loader.UpdateAnnotationCommand;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
@@ -24,16 +26,14 @@ import static com.google.common.io.Closeables.closeQuietly;
  * nsklyar
  * Date: 11/04/2011
  */
-public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
+public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-//    private BioMartService bioMartService;
-
-//    public void setBioMartService(BioMartService bioMartService) {
-//        this.bioMartService = bioMartService;
-//    }
+    protected EnsemblAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
+        super(annotationDAO, transactionTemplate);
+    }
 
     private void updateAnnotations(BioMartAnnotationSource annSrc) throws AtlasLoaderException {
 
@@ -100,10 +100,9 @@ public class EnsemblAnnotationLoader extends AtlasBioentityAnnotationLoader {
         }
     }
 
-    public void process(UpdateAnnotationCommand command, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    public void process(String annotationSrcId, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         setListener(listener);
-        String annotationSrcId = command.getAccession();
-        AnnotationSource annotationSource = annSrcDAO.getById(Long.parseLong(annotationSrcId));
+        AnnotationSource annotationSource = annotationDAO.getAnnSrcById(Long.parseLong(annotationSrcId));
         if (annotationSource == null) {
             throw new AtlasLoaderException("No annotation source with id " + annotationSrcId);
         }
