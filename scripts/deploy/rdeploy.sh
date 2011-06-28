@@ -7,6 +7,8 @@ source rdeploy-routines.sh
 
 log "Starting deployment"
 
+old_wd=`pwd`
+
 register_archive
 
 kill_tomcat
@@ -17,3 +19,6 @@ start_tomcat
 
 log "Finishing deployment"
 
+cd ${old_wd}
+
+exit 0

@@ -14,14 +14,15 @@ kill_tomcat() {
     do
         log "Killing ${thepin}"
         kill -9 ${thepin}
+        sleep 1
     done
 }
 
 start_tomcat() {
     log "Starting ${TOMCAT_HOME}"
-    pushd ${TOMCAT_HOME}
-    ${start_tomcat}
-    popd
+    cd ${TOMCAT_HOME}
+    nohup ${start_tomcat} &
+    sleep 3
 }
 
 update_config() {
