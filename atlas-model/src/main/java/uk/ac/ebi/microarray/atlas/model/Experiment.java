@@ -59,6 +59,7 @@ public class Experiment {
     private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Asset> assets = new ArrayList<Asset>();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
@@ -246,6 +247,14 @@ public class Experiment {
         Set<String> result = newTreeSet();
         for (Assay assay : assays) {
             result.addAll(assay.getPropertyNames());
+        }
+        return result;
+    }
+
+    public Set<String> getExperimentCharacteristics() {
+        Set<String> result = newTreeSet();
+        for (Sample sample : samples) {
+            result.addAll(sample.getPropertyNames());
         }
         return result;
     }

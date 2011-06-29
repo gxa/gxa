@@ -141,26 +141,6 @@ public class AtlasDAO {
         return stats;
     }
 
-    /**
-     * Writes the given experiment to the database, using the default transaction strategy configured for the
-     * datasource.
-     *
-     * @param experiment the experiment to write
-     */
-    public void writeExperimentInternal(Experiment experiment) {
-        experimentDAO.save(experiment);
-    }
-
-    /**
-     * Deletes the experiment with the given accession from the database.  If this experiment is not present, this does
-     * nothing.
-     *
-     * @param experimentAccession the accession of the experiment to remove
-     */
-    public void deleteExperimentFromDatabase(final String experimentAccession) {
-        experimentDAO.delete(experimentAccession);
-    }
-
     public void startSession() {
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }

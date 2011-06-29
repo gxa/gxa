@@ -1,7 +1,5 @@
 package uk.ac.ebi.gxa.statistics;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
@@ -9,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * This class handles Statistics queries, delegated from AtlasStatisticsQueryService
@@ -22,7 +22,7 @@ public class StatisticsQueryUtils {
     /**
      * @param orAttributes
      * @param minExperiments    minimum experiment count restriction for this clause
-     * @param statisticsStorage - used to retrieve indexes of orAttributes, needed finding experiment counts in bit index
+     * @param statisticsStorage - used to retrieve orAttributes, needed finding experiment counts in bit index
      * @return StatisticsQueryOrConditions representing orAttributes
      */
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
@@ -114,19 +114,17 @@ public class StatisticsQueryUtils {
                 // only once for a single experiment - across all OR attributes in this query. Once all attributes have been traversed for a single experiment,
                 // add ConciseSet to Multiset results
                 for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
-                    Integer expIdx = statisticsStorage.getIndexForExperiment(exp);
                     ConciseSet statsForExperiment = new ConciseSet();
-                    for (Attribute attr : attributes) {
-                        Integer attrIdx = statisticsStorage.getIndexForAttribute((EfvAttribute) attr);
-                        if (attrIdx != null) {
-                            Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
+                    for (EfvAttribute attr : attributes) {
+                        Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                        if (expsToStats != null) {
                             if (expsToStats.isEmpty()) {
                                 log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " and attr: " + attr);
                             } else {
-                                if (expsToStats.get(expIdx) != null) {
+                                if (expsToStats.get(exp) != null) {
                                     if (!gatherScoringExpsOnly) {
-                                        statsForExperiment.addAll(intersect(expsToStats.get(expIdx), bioEntityIdRestrictionSet));
-                                    } else if (containsAtLeastOne(expsToStats.get(expIdx), bioEntityIdRestrictionSet)) {
+                                        statsForExperiment.addAll(intersect(expsToStats.get(exp), bioEntityIdRestrictionSet));
+                                    } else if (containsAtLeastOne(expsToStats.get(exp), bioEntityIdRestrictionSet)) {
                                         // exp contains at least one non-zero score for at least one gene index in bioEntityIdRestrictionSet -> add it to scoringExps
                                         scoringExps.add(exp);
                                     }
@@ -134,9 +132,6 @@ public class StatisticsQueryUtils {
                                     log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " exp: " + exp.getAccession() + " and attr: " + attr);
                                 }
                             }
-                        } else {
-                            // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-                            log.debug("Attribute " + attr + " was not found in Attribute Index");
                         }
                     }
                     if (!gatherScoringExpsOnly) {
@@ -224,7 +219,7 @@ public class StatisticsQueryUtils {
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
-            Map<Long, ExperimentInfo> bestExperimentsSoFar) {
+            Map<Long, ExperimentResult> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
 
@@ -232,33 +227,25 @@ public class StatisticsQueryUtils {
             Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
-            Set<Integer> experimentIdxs = new HashSet<Integer>(Collections2.transform(
-                    statisticsQuery.getExperiments(),
-                    new Function<ExperimentInfo, Integer>() {
-                        public Integer apply(ExperimentInfo input) {
-                            return statisticsStorage.getIndexForExperiment(input);
-                        }
-                    }));
+            Set<ExperimentInfo> experiments = statisticsQuery.getExperiments();
 
             for (EfvAttribute attr : attributes) {
-                Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
 
-                SortedMap<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenes =
-                        statisticsStorage.getPvalsTStatRanksForAttribute(attrIdx, statisticsQuery.getStatisticsType());
+                SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenes =
+                        statisticsStorage.getPvalsTStatRanksForAttribute(attr, statisticsQuery.getStatisticsType());
 
                 if (pValToExpToGenes != null) {
-                    for (Map.Entry<PvalTstatRank, Map<Integer, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
-                        Map<Integer, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
+                    for (Map.Entry<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
+                        Map<ExperimentInfo, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
                         if (expToGenes != null) {
-                            for (Map.Entry<Integer, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
-                                if (experimentIdxs.isEmpty() || experimentIdxs.contains(expToGenesEntry.getKey())) {
+                            for (Map.Entry<ExperimentInfo, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
+                                if (experiments.isEmpty() || experiments.contains(expToGenesEntry.getKey())) {
                                     if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
-                                        Integer expIdx = expToGenesEntry.getKey();
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
-                                        ExperimentInfo exp = statisticsStorage.getExperimentForIndex(expIdx);
-                                        ExperimentInfo expCandidate = new ExperimentInfo(exp.getAccession(), exp.getExperimentId());
-                                        expCandidate.setPvalTstatRank(pValToExpToGenesEntry.getKey());
+                                        ExperimentResult expCandidate = new ExperimentResult(expToGenesEntry.getKey());
+                                        // TODO: 4alf: mutability strikes here!
+                                        expCandidate.setPValTstatRank(pValToExpToGenesEntry.getKey());
                                         expCandidate.setHighestRankAttribute(attr);
                                         tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
                                     }
@@ -291,14 +278,9 @@ public class StatisticsQueryUtils {
         Set<ExperimentInfo> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (EfvAttribute attr : statisticsQuery.getAttributes()) {
-                Integer attrIdx = statisticsStorage.getIndexForAttribute(attr);
-                if (attrIdx != null) {
-                    Map<Integer, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attrIdx, statisticsStorage);
-                    exps.addAll(statisticsStorage.getExperimentsForIndexes(expsToStats.keySet()));
-                } else {
-                    // TODO NB. This is currently possible as sample properties are not currently stored in statisticsStorage
-                    log.debug("Attribute " + attr + " was not found in Attribute Index");
-                }
+                Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                if (expsToStats != null)
+                    exps.addAll(expsToStats.keySet());
             }
             statisticsQuery.inExperiments(exps);
         }
@@ -324,19 +306,19 @@ public class StatisticsQueryUtils {
 
     /**
      * @param statType
-     * @param attrIndex
+     * @param attribute
      * @param statisticsStorage
-     * @return Map: experiment index -> bit stats corresponding to statType and attrIndex
+     * @return Map: experiment -> bit stats corresponding to statType and attr
      */
-    private static Map<Integer, ConciseSet> getStatisticsForAttribute(
+    private static Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(
             final StatisticsType statType,
-            final Integer attrIndex,
+            final EfvAttribute attribute,
             final StatisticsStorage statisticsStorage) {
-        Map<Integer, ConciseSet> expIndexToBits = statisticsStorage.getStatisticsForAttribute(attrIndex, statType);
-        if (expIndexToBits != null) {
-            return expIndexToBits;
+        Map<ExperimentInfo, ConciseSet> expToBits = statisticsStorage.getStatisticsForAttribute(attribute, statType);
+        if (expToBits != null) {
+            return expToBits;
         }
-        return Collections.unmodifiableMap(new HashMap<Integer, ConciseSet>());
+        return emptyMap();
     }
 
     /**
@@ -376,7 +358,7 @@ public class StatisticsQueryUtils {
      * @param statisticsStorage
      * @param scoringExps       Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
      *                          to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
-     * @return Multiset<Integer> containing experiment counts corresponding to all attribute indexes in each StatisticsQueryCondition in orConditions
+     * @return Multiset<Integer> containing experiment counts corresponding to all attributes in each StatisticsQueryCondition in orConditions
      */
     private static Multiset<Integer> getScoresForOrConditions(
             final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
@@ -408,51 +390,15 @@ public class StatisticsQueryUtils {
      * @param exp
      * @param exps
      */
-    private static void tryAddOrReplaceExperiment(ExperimentInfo exp, Map<Long, ExperimentInfo> exps) {
+    private static void tryAddOrReplaceExperiment(ExperimentResult exp, Map<Long, ExperimentResult> exps) {
         long expId = exp.getExperimentId();
-        ExperimentInfo existingExp = exps.get(expId);
+        ExperimentResult existingExp = exps.get(expId);
         if (existingExp != null) {
-            if (exp.getpValTStatRank().compareTo(existingExp.getpValTStatRank()) < 0) {
+            if (exp.getPValTStatRank().compareTo(existingExp.getPValTStatRank()) < 0) {
                 exps.put(expId, exp);
             }
         } else {
             exps.put(expId, exp);
-        }
-    }
-
-    /**
-     * @param t
-     * @return tStat ranks as follows:
-     *         t =<  -9       -> rank: -4
-     *         t in <-6, -9)  -> rank: -3
-     *         t in <-3, -6)  -> rank: -2
-     *         t in (-3,  0)  -> rank: -1
-     *         t == 0         -> rank:  0
-     *         t in ( 0,  3)  -> rank:  1
-     *         t in < 3,  6)  -> rank:  2
-     *         t in < 6,  9)  -> rank:  3
-     *         t >=   9       -> rank:  4
-     *         Note that the higher the absolute value of tStat (rank) the better the tStat.
-     */
-    public static short getTStatRank(float t) {
-        if (t <= -9) {
-            return -4;
-        } else if (t <= -6) {
-            return -3;
-        } else if (t <= -3) {
-            return -2;
-        } else if (t < 0) {
-            return -1;
-        } else if (t == 0) {
-            return 0;
-        } else if (t < 3) {
-            return 1;
-        } else if (t < 6) {
-            return 2;
-        } else if (t < 9) {
-            return 3;
-        } else {
-            return 4;
         }
     }
 }

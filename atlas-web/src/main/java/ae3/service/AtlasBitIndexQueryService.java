@@ -1,6 +1,5 @@
 package ae3.service;
 
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
@@ -18,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.google.common.collect.HashMultiset.create;
+import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -162,23 +163,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     * @param attribute
-     * @return Index of Attribute within bit index
-     */
-    public Integer getIndexForAttribute(EfvAttribute attribute) {
-        return statisticsStorage.getIndexForAttribute(attribute);
-    }
-
-    /**
-     * @param attributeIndex
-     * @return Attribute corresponding to attributeIndex bit index
-     */
-    public EfvAttribute getAttributeForIndex(Integer attributeIndex) {
-        return statisticsStorage.getAttributeForIndex(attributeIndex);
-    }
-
-
-    /**
      * http://stackoverflow.com/questions/3029151/find-top-n-elements-in-a-multiset-from-google-collections
      *
      * @param multiset
@@ -284,20 +268,21 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     *
      * @param bioEntityId Bioentity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
-    public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
+    public List<ExperimentResult> getExperimentsSortedByPvalueTRank(
             final Integer bioEntityId,
             final Attribute attribute,
             int fromRow,
             int toRow) {
 
         List<Attribute> attrs;
-        if (attribute.getValue() == null) { // Empty attribute
+        if (attribute.isEmpty()) { // Empty attribute
             List<String> efs = getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
             attrs = new ArrayList<Attribute>();
             for (String expFactor : efs) {
@@ -314,14 +299,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
-        Map<Long, ExperimentInfo> bestExperimentsMap = new HashMap<Long, ExperimentInfo>();
+        Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
         StatisticsQueryUtils.getBestExperiments(statsQuery, statisticsStorage, bestExperimentsMap);
 
-        List<ExperimentInfo> bestExperiments = new ArrayList<ExperimentInfo>(bestExperimentsMap.values());
+        List<ExperimentResult> bestExperiments = new ArrayList<ExperimentResult>(bestExperimentsMap.values());
         // Sort bestExperiments by best pVal/tStat ranks first
-        Collections.sort(bestExperiments, new Comparator<ExperimentInfo>() {
-            public int compare(ExperimentInfo e1, ExperimentInfo e2) {
-                return e1.getpValTStatRank().compareTo(e2.getpValTStatRank());
+        Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
+            public int compare(ExperimentResult e1, ExperimentResult e2) {
+                return e1.getPValTStatRank().compareTo(e2.getPValTStatRank());
             }
         });
 
@@ -331,12 +316,12 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             fromRow = 0;
         if (toRow == -1 || toRow > maxSize)
             toRow = maxSize;
-        List<ExperimentInfo> exps = bestExperiments.subList(fromRow, toRow);
+        List<ExperimentResult> exps = bestExperiments.subList(fromRow, toRow);
 
         log.debug("Sorted experiments: ");
-        for (ExperimentInfo exp : exps) {
-            log.debug(exp.getAccession() + ": pval=" + exp.getpValTStatRank().getPValue() +
-                    "; tStat rank: " + exp.getpValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute());
+        for (ExperimentResult exp : exps) {
+            log.debug(exp.getAccession() + ": pval=" + exp.getPValTStatRank().getPValue() +
+                    "; tStat rank: " + exp.getPValTStatRank().getTStatRank() + "; highest ranking ef: " + exp.getHighestRankAttribute());
         }
         return exps;
     }
@@ -355,11 +340,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         long timeStart = System.currentTimeMillis();
         List<String> scoringEfs = new ArrayList<String>();
         if (bioEntityId != null) {
-            Set<Integer> scoringEfIndexes = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
-            for (Integer attrIdx : scoringEfIndexes) {
-                EfvAttribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
-                if (attr != null && (ef == null || "".equals(ef) || ef.equals(attr.getEf()))) {
-                    scoringEfs.add(attr.getEf());
+            Set<EfvAttribute> scoringEfIndexes = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
+            for (EfvAttribute efv : scoringEfIndexes) {
+                if (efv != null && (ef == null || "".equals(ef) || ef.equals(efv.getEf()))) {
+                    scoringEfs.add(efv.getEf());
                 }
             }
         }
@@ -379,12 +363,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         long timeStart = System.currentTimeMillis();
         List<EfvAttribute> scoringEfvs = new ArrayList<EfvAttribute>();
         if (bioEntityId != null) {
-            Set<Integer> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForBioEntity(bioEntityId, statType);
-            for (Integer attrIdx : scoringEfvIndexes) {
-                EfvAttribute attr = statisticsStorage.getAttributeForIndex(attrIdx);
-                if (attr.getEfv() != null && !attr.getEfv().isEmpty()) {
-                    attr.setStatType(statType);
-                    scoringEfvs.add(attr);
+            Set<EfvAttribute> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForBioEntity(bioEntityId, statType);
+            for (EfvAttribute efv : scoringEfvIndexes) {
+                if (efv.getEfv() != null && !efv.getEfv().isEmpty()) {
+                    efv.setStatType(statType);
+                    scoringEfvs.add(efv);
                 }
             }
         }
@@ -401,20 +384,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nullable EfvAttribute attribute, StatisticsType statType) {
         List<ExperimentInfo> exps = new ArrayList<ExperimentInfo>();
-        Integer attrIdx = null;
         // Note that if ef == null, this method returns list of experiments across all efs for which this bioentity has up/down exp counts
-        if (attribute != null)
-            attrIdx = statisticsStorage.getIndexForAttribute(attribute);
         if (bioEntityId != null) {
-            Set<Integer> expIdxs = statisticsStorage.getExperimentsForBioEntityAndAttribute(attrIdx, bioEntityId, statType);
-            for (Integer expIdx : expIdxs) {
-                ExperimentInfo exp = statisticsStorage.getExperimentForIndex(expIdx);
-                if (exp != null) {
-                    exps.add(exp);
-                }
-            }
+            return new ArrayList<ExperimentInfo>(statisticsStorage.getExperimentsForBioEntityAndAttribute(attribute, bioEntityId, statType));
         }
-
         return exps;
     }
 
@@ -426,13 +399,12 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param scoringEfos  if not null, populated by this method. Set of Efo terms with non-zero experiment counts
      */
     private void collectScoringAttributes(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors,
-                                          @Nullable Multiset<Integer> attrCounts, @Nullable Set<String> scoringEfos) {
+                                          @Nullable Multiset<EfvAttribute> attrCounts, @Nullable Set<String> scoringEfos) {
         Set<EfvAttribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
         for (EfvAttribute attr : allEfvAttributesForStat) {
             if ((autoFactors != null && !autoFactors.contains(attr.getEf())) || attr.getEfv() == null) {
                 continue; // skip attribute if its factor is not of interest or it's an ef-only attribute
             }
-            Integer attrIndex = statisticsStorage.getIndexForAttribute(attr);
             attr.setStatType(statType);
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIds);
             statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr), 1));
@@ -440,7 +412,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
             if (scoringExps.size() > 0) { // at least one bioEntityId in bioEntityIds had an experiment count > 0 for attr
                 if (attrCounts != null)
-                    attrCounts.add(attrIndex, scoringExps.size());
+                    attrCounts.add(attr, scoringExps.size());
                 for (ExperimentInfo exp : scoringExps) {
                     String efoTerm = statisticsStorage.getEfoTerm(attr, exp);
                     if (efoTerm != null) {
@@ -466,18 +438,19 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
      * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
      */
-    public List<Multiset.Entry<Integer>> getScoringAttributesForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors) {
+    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors) {
         long timeStart = System.currentTimeMillis();
 
-        Multiset<Integer> attrCounts = HashMultiset.create();
+        Multiset<EfvAttribute> attrCounts = create();
         collectScoringAttributes(bioEntityIds, statType, autoFactors, attrCounts, null);
 
-        List<Multiset.Entry<Integer>> sortedAttrCounts = getEntriesBetweenMinMaxFromListSortedByCount(attrCounts, 0, attrCounts.entrySet().size());
+        List<Multiset.Entry<EfvAttribute>> sortedAttrCounts = getEntriesBetweenMinMaxFromListSortedByCount(attrCounts, 0, attrCounts.entrySet().size());
 
         log.debug("Retrieved " + sortedAttrCounts.size() + " sorted scoring attributes for statType: " + statType + " and bioentity ids: (" + bioEntityIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");
         return sortedAttrCounts;
