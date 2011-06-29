@@ -16,6 +16,10 @@ kill_tomcat() {
         kill -9 ${thepin}
         sleep 1
     done
+    log "Cleaning up tomcat's work dirs"
+    rm -rf ${TOMCAT_HOME}/work/*
+    rm -rf ${TOMCAT_HOME}/temp/*
+    rm -rf ${TOMCAT_HOME}/webapps/${context}
 }
 
 start_tomcat() {

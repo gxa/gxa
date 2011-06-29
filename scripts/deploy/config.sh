@@ -23,6 +23,7 @@ export ATLAS_JDBC_PASSWORD=TODO
 export ATLAS_INDEX=TODO
 export ATLAS_NETCDF=TODO
 export ATLAS_EFO_URI=TODO
+export ATLAS_UNPACK_WAR=TODO
 
 # our small bash_rc
 export JAVA_HOME=TODO
