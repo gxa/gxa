@@ -40,6 +40,8 @@ import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RObject;
+import uk.ac.ebi.rcloud.server.RType.RChar;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -71,7 +73,7 @@ public class ArrayDataStep implements Step {
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoaderServiceListener listener;
     private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
+    private final static Log log = LogFactory.getLog(ArrayDataStep.class);
 
     public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener) {
         this.loader = loader;
@@ -267,7 +269,11 @@ public class ArrayDataStep implements Step {
                 log.info("directory " + entry.getValue().dataDir);
 
                 DataNormalizer normalizer = new DataNormalizer(entry.getValue());
-                computeService.computeTask(normalizer);
+                final RObject result = computeService.computeTask(normalizer);
+                log.info("RResult = " + result);
+                if (result instanceof RChar) {
+                    throw new AtlasLoaderException(((RChar)result).getValue()[0]);
+                }
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);
                     DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(mergedFile.toURL(), null);
@@ -301,7 +307,7 @@ public class ArrayDataStep implements Step {
         }
     }
 
-    private static class DataNormalizer implements ComputeTask<Void> {
+    private static class DataNormalizer implements ComputeTask<RObject> {
         private final RawData data;
         public final ArrayList<String> fileNames = new ArrayList<String>();
         public final String pathPrefix;
@@ -313,7 +319,7 @@ public class ArrayDataStep implements Step {
             mergedFilePath = pathPrefix + "merged.txt";
         }
 
-        public Void compute(RServices R) throws RemoteException {
+        public RObject compute(RServices R) throws RemoteException {
             StringBuilder files = new StringBuilder();
             StringBuilder scans = new StringBuilder();
             files.append("files = c(");
@@ -337,11 +343,14 @@ public class ArrayDataStep implements Step {
             }
             files.append(")");
             scans.append(")");
+            log.info(files.toString());
+            log.info(scans.toString());
+            log.info("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(files.toString());
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(getRCodeFromResource("R/normalizeOneExperiment.R"));
-            R.sourceFromBuffer("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
+            final RObject result = R.getObject("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
             R.sourceFromBuffer("rm(outFile)");
             R.sourceFromBuffer("rm(scans)");
             R.sourceFromBuffer("rm(files)");
