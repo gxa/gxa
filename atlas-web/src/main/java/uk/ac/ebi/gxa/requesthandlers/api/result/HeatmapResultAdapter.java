@@ -27,8 +27,8 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterators;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -110,19 +110,19 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return Iterators.filter(
                         Iterators.transform(
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
-                                new Function<ExperimentInfo, ListResultRowExperiment>() {
-                                    public ListResultRowExperiment apply(@Nonnull ExperimentInfo e) {
+                                new Function<ExperimentResult, ListResultRowExperiment>() {
+                                    public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
                                         Experiment exp = getExperiment(e.getAccession());
                                         if (exp == null) return null;
                                         return new ListResultRowExperiment(exp,
-                                                e.getpValTStatRank().getPValue(),
-                                                toExpression(e.getpValTStatRank()));
+                                                e.getPValTStatRank().getPValue(),
+                                                toExpression(e.getPValTStatRank()));
                                     }
                                 }),
                         Predicates.<ListResultRowExperiment>notNull());
             }
 
-            abstract Iterator<ExperimentInfo> expiter();
+            abstract Iterator<ExperimentResult> expiter();
         }
 
         public class EfvExp extends ResultRow.Expression {
@@ -141,7 +141,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efefv.getEfv();
             }
 
-            Iterator<ExperimentInfo> expiter() {
+            Iterator<ExperimentResult> expiter() {
                 EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv(), StatisticsType.UP_DOWN);
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
@@ -163,7 +163,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return efoItem.getId();
             }
 
-            Iterator<ExperimentInfo> expiter() {
+            Iterator<ExperimentResult> expiter() {
                 Attribute attr = new EfoAttribute(efoItem.getId(), StatisticsType.UP_DOWN);
                 return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
             }
@@ -223,8 +223,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 });
     }
 
-    private static UpDownExpression toExpression(PvalTstatRank pvalTstatRank) {
-        return UpDownExpression.valueOf(pvalTstatRank.getPValue(), pvalTstatRank.getTStatRank());
+    private static UpDownExpression toExpression(PTRank ptRank) {
+        return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
     }
 
     /**
