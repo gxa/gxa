@@ -70,6 +70,10 @@ public class AtlasNetCDFDAO {
         this.atlasDataRepo = atlasDataRepo;
     }
 
+    public ExperimentWithData createExperimentWithData(Experiment experiment) {
+        return new ExperimentWithData(this, experiment);
+    }
+
     public void releaseExperiment(Experiment experiment) throws IOException {
         File directory = getDataDirectory(experiment);
 
