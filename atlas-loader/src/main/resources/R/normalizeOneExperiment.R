@@ -39,7 +39,7 @@ normalizeOneExperiment <- function(files, outFile, scans, parallel = FALSE) {
     #featureNames(es) = paste("Affymetrix:CompositeSequence:HG-U133_Plus_2:", featureNames(es), sep = "")
     write.table(exprs(es), file = outFile, sep = "\t", quote = FALSE, row.names = TRUE, col.names = FALSE, append = TRUE)
   })
-  if ("try-error" == attr(error, "class")) {
+  if ("try-error" == class(error)) {
     return(error)
   } else {
     return(NULL)
