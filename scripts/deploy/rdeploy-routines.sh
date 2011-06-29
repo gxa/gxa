@@ -9,7 +9,7 @@ log() {
 # kills a tomcat identified by $atlas_instance
 kill_tomcat() {
     log "Killing tomcats:"
-    ps -Af | grep -v grep | grep tomcat | grep ${atlas_instance}                                     | tee -a $audit_log
+    ps -Af | grep -v grep | grep -v "tee\ \-a" | grep tomcat | grep ${atlas_instance}                | tee -a $audit_log
     for thepin in `ps -Af | grep -v grep | grep tomcat | grep ${atlas_instance} | awk '{ print $2 }'`
     do
         log "Killing ${thepin}"
