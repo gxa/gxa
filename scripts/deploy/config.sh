@@ -1,3 +1,5 @@
+instance=TODO
+
 # connection details
 ssh_host=TODO
 sudo_as=TODO
