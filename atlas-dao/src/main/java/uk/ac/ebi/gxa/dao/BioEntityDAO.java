@@ -240,6 +240,7 @@ public class BioEntityDAO {
                 "  when not matched then \n" +
                 "  insert (identifier, organismid, bioentitytypeid)   \n" +
                 "  values (?, ?, ?) ";
+        //ToDo(4ns): add BE name
 
         final List<BioEntity> bioEntityList = new ArrayList<BioEntity>(bioEntities);
 

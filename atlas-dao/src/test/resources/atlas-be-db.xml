@@ -142,33 +142,37 @@
             />
 
     <A2_BIOENTITYTYPE
-            BIOENTITYTYPEID="1"
+            BIOENTITYTYPEID="100"
             NAME="enstranscript"
             ID_FOR_INDEX="0"
             ID_FOR_ANALYTICS="0"
             PROP_FOR_INDEX="1"
+            identifierPropertyID="200"
+            namePropertyID="200"
             />
 
     <A2_BIOENTITYTYPE
-            BIOENTITYTYPEID="2"
+            BIOENTITYTYPEID="200"
             NAME="ensgene"
             ID_FOR_INDEX="1"
             ID_FOR_ANALYTICS="1"
             PROP_FOR_INDEX="0"
+            identifierPropertyID="300"
+            namePropertyID="300"
             />
 
     <A2_BIOENTITY
             BIOENTITYID="516248"
             organismid="1"
             identifier="ENSMUSG00000020275"
-            BIOENTITYTYPEID="2"
+            BIOENTITYTYPEID="200"
             />
 
     <A2_BIOENTITY
             BIOENTITYID="2"
             organismid="1"
             identifier="ENST0000001"
-            BIOENTITYTYPEID="1"
+            BIOENTITYTYPEID="100"
             NAME="DNAa"
             />
 
@@ -229,13 +233,21 @@
             />
 
     <A2_BIOENTITYPROPERTY
-            BIOENTITYPROPERTYID="1"
+            BIOENTITYPROPERTYID="200"
+            name="enstranscript"
+            />
+    <A2_BIOENTITYPROPERTY
+            BIOENTITYPROPERTYID="300"
+            name="ensgene"
+            />
+    <A2_BIOENTITYPROPERTY
+            BIOENTITYPROPERTYID="100"
             name="goterm"
             />
 
     <A2_BIOENTITYPROPERTYVALUE
             BEPROPERTYVALUEID="1"
-            BIOENTITYPROPERTYID="1"
+            BIOENTITYPROPERTYID="100"
             value="Some GO value"
             />
 
@@ -527,26 +539,38 @@
             />
     <A2_ANNSRC_BIOENTITYTYPE
             annotationsrcid="1000"
-            BIOENTITYTYPEID="1"
+            BIOENTITYTYPEID="100"
             />
 
     <A2_ANNSRC_BIOENTITYTYPE
             annotationsrcid="1000"
-            BIOENTITYTYPEID="2"
+            BIOENTITYTYPEID="200"
             />
 
     <A2_BIOMARTPROPERTY
             BIOMARTPROPERTYID="1000"
             annotationsrcid="1000"
-            BIOENTITYPROPERTYID="1"
+            BIOENTITYPROPERTYID="100"
             NAME="name_1006"
             />
 
     <A2_BIOMARTPROPERTY
             BIOMARTPROPERTYID="2000"
             annotationsrcid="1000"
-            BIOENTITYPROPERTYID="1"
+            BIOENTITYPROPERTYID="300"
+            NAME="ensembl_gene_id"
+            />
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="2000"
+            annotationsrcid="1000"
+            BIOENTITYPROPERTYID="100"
             NAME="go_cellular_component__dm_name_1006"
             />
 
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="2000"
+            annotationsrcid="1000"
+            BIOENTITYPROPERTYID="200"
+            NAME="ensembl_transcript_id"
+            />
 </dataset>

@@ -26,9 +26,9 @@ public class SoftwareDAO extends AbstractDAO<Software> {
 
     public Software findOrCreate(String name, String newVersion) {
 //        template.setFlushMode(HibernateAccessor.FLUSH_COMMIT);
-        FlushMode flushMode = sessionFactory.getCurrentSession().getFlushMode();
-        System.out.println("flushMode = " + flushMode);
-        sessionFactory.getCurrentSession().setFlushMode(FlushMode.COMMIT);
+//        FlushMode flushMode = sessionFactory.getCurrentSession().getFlushMode();
+//        System.out.println("flushMode = " + flushMode);
+//        sessionFactory.getCurrentSession().setFlushMode(FlushMode.COMMIT);
         List<Software> softwareList = template.find("from Software where name = ? and version = ?", name, newVersion);
         if (softwareList.size() == 1) {
             return softwareList.get(0);

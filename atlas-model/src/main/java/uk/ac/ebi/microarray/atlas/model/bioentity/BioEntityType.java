@@ -1,8 +1,14 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
 
 /**
  * User: nsklyar
@@ -21,18 +27,32 @@ public class BioEntityType {
     public static final String DE_ATL = "designelement_atl";
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "beTypeSeq")
+    @SequenceGenerator(name = "beTypeSeq", sequenceName = "A2_BIOENTITYTYPE_SEQ")
     private Long bioentitytypeid;
     private String name;
     @Column(name = "ID_FOR_INDEX")
     private int useForIndex;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private BioEntityProperty identifierProperty;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private BioEntityProperty nameProperty;
+
     BioEntityType() {
     }
 
-    public BioEntityType(Long id, String name, int useForIndex) {
-        this.bioentitytypeid = id;
+    public BioEntityType(Long id, String name,  int useForIndex) {
+        this(id, name, useForIndex, new BioEntityProperty(null, name), new BioEntityProperty(null, name));
+    }
+
+    public BioEntityType(Long bioentitytypeid, String name, int useForIndex, BioEntityProperty identifierProperty, BioEntityProperty nameProperty) {
+        this.bioentitytypeid = bioentitytypeid;
         this.name = name;
         this.useForIndex = useForIndex;
+        this.identifierProperty = identifierProperty;
+        this.nameProperty = nameProperty;
     }
 
     public Long getId() {
@@ -41,6 +61,22 @@ public class BioEntityType {
 
     public String getName() {
         return name;
+    }
+
+    public BioEntityProperty getIdentifierProperty() {
+        return identifierProperty;
+    }
+
+    public BioEntityProperty getNameProperty() {
+        return nameProperty;
+    }
+
+    private void setIdentifierProperty(BioEntityProperty identifierProperty) {
+        this.identifierProperty = identifierProperty;
+    }
+
+    public void setNameProperty(BioEntityProperty nameProperty) {
+        this.nameProperty = nameProperty;
     }
 
     public int isUseForIndex() {

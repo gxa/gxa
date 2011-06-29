@@ -43,11 +43,10 @@ public abstract class AnnotationSource implements Serializable{
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     protected Software software;
 
-    @ManyToMany (fetch = FetchType.EAGER)
+    @ManyToMany (fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
-
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
 
     @Temporal(TemporalType.DATE)

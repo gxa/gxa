@@ -351,6 +351,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "NAME VARCHAR(255), " +
                         "ID_FOR_INDEX int, " +
                         "ID_FOR_ANALYTICS int, " +
+                        "identifierPropertyID bigint, " +
+                        "namePropertyID bigint, " +
                         "PROP_FOR_INDEX int );");
 
         runStatement(conn,
@@ -536,6 +538,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYTYPE_SEQ");
 
         System.out.println("...done!");
         conn.close();

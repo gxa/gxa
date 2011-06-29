@@ -4,6 +4,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.CascadeType;
@@ -12,9 +13,10 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -86,6 +88,16 @@ public class BioMartAnnotationSource extends AnnotationSource {
         return answer;
     }
 
+//    public Set<String> getBioMartPropertyNamesForProperty(BioEntityProperty beProprety) {
+//        Set<String> answer = new HashSet<String>(bioMartProperties.size());
+//        for (BioMartProperty bioMartProperty : bioMartProperties) {
+//            if (beProprety.equals(bioMartProperty)) {
+//                answer.add(bioMartProperty.getName());
+//            }
+//        }
+//        return answer;
+//    }
+
     public void setBioMartProperties(Set<BioMartProperty> bioMartProperties) {
         this.bioMartProperties = bioMartProperties;
     }
@@ -133,7 +145,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
         return result;
     }
-
 
     @Override
     public String toString() {

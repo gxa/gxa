@@ -11,10 +11,14 @@ import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -29,6 +33,8 @@ public abstract class AtlasBioentityAnnotator {
 
     private final Set<BEPropertyValue> bePropertyValues = new HashSet<BEPropertyValue>();
 
+    private Map<BioEntityType, Set<BioEntity>> typeToBioentities = new HashMap<BioEntityType, Set<BioEntity>>();
+    
     private final Set<BioEntity> transcripts = new HashSet<BioEntity>();
     private final Set<BioEntity> genes = new HashSet<BioEntity>();
 
@@ -144,4 +150,9 @@ public abstract class AtlasBioentityAnnotator {
         this.listener = listener;
     }
 
+    protected void initTypeBioentityMap(Collection<BioEntityType> types) {
+        for (BioEntityType type : types) {
+            typeToBioentities.put(type, new HashSet<BioEntity>());
+        }
+    }
 }

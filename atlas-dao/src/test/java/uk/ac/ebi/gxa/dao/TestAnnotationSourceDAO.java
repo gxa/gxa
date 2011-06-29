@@ -10,6 +10,7 @@ import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.InputStream;
@@ -93,6 +94,12 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
         BioEntityProperty goterm = bioEntityPropertyDAO.getByName("goterm");
         annotationSource.addBioMartProperty("name_1006", goterm);
 
+        BioEntityType type1 = new BioEntityType(null, "new_type", 0);
+        annotationSource.addBioentityType(type1);
+
+        BioEntityType type2 = bioEntityDAO.findOrCreateBioEntityType("enstranscript");
+        annotationSource.addBioentityType(type2);
+        
         org.hibernate.Session session = SessionFactoryUtils.getSession(sessionFactory, true);
         Transaction transaction = session.getTransaction();
         transaction.begin();
@@ -100,6 +107,7 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
         assertNotNull(annotationSource.getAnnotationSrcId());
         transaction.commit();
 
+        System.out.println("annotationSource = " + annotationSource);
     }
 
     public void testGetById() {
