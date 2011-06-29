@@ -37,6 +37,8 @@ import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RObject;
+import uk.ac.ebi.rcloud.server.RType.RChar;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -136,7 +138,11 @@ public class ArrayDataStep {
         final HashMap<String, File> zipFiles = new HashMap<String, File>();
 
         try {
-            boolean useLocalCopy = false;
+            // set this variable to false to avoid attempts of load
+            // CEL files from the same location as IDF/SDRF files;
+            // ftp link will be used
+            // set this variable to true to try local files firstly
+            boolean useLocalCopy = true;
             listener.setProgress("Loading CEL files");
             for (ArrayDataNode node : investigation.SDRF.lookupNodes(ArrayDataNode.class)) {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
@@ -240,11 +246,18 @@ public class ArrayDataStep {
 
             listener.setProgress("Processing data in R");
             for (Map.Entry<String, RawData> entry : dataByArrayDesign.entrySet()) {
-                log.info("ArrayDesign " + entry.getKey() + ":");
-                log.info("directory " + entry.getValue().dataDir);
-
                 DataNormalizer normalizer = new DataNormalizer(entry.getValue());
-                computeService.computeTask(normalizer);
+                // this method returns null if computation was finished successfully
+                // or an instance of "try-error" R class in case of failure
+                // currently we receive instances of "try-error" as RChar objects
+                final RObject result = computeService.computeTask(normalizer);
+                if (result != null) {
+                    if (result instanceof RChar) {
+                        throw new AtlasLoaderException(((RChar)result).getValue()[0]);
+                    } else {
+                        throw new AtlasLoaderException("Something unexpected happens in our R code; returned " + result);
+                    }
+                }
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);
                     DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(mergedFile.toURL(), null);
@@ -278,7 +291,7 @@ public class ArrayDataStep {
         }
     }
 
-    private static class DataNormalizer implements ComputeTask<Void> {
+    private static class DataNormalizer implements ComputeTask<RObject> {
         private final RawData data;
         public final ArrayList<String> fileNames = new ArrayList<String>();
         public final String pathPrefix;
@@ -290,7 +303,7 @@ public class ArrayDataStep {
             mergedFilePath = pathPrefix + "merged.txt";
         }
 
-        public Void compute(RServices R) throws RemoteException {
+        public RObject compute(RServices R) throws RemoteException {
             StringBuilder files = new StringBuilder();
             StringBuilder scans = new StringBuilder();
             files.append("files = c(");
@@ -318,12 +331,12 @@ public class ArrayDataStep {
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(RUtil.getRCodeFromResource("R/normalizeOneExperiment.R"));
-            R.sourceFromBuffer("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
+            final RObject result = R.getObject("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
             R.sourceFromBuffer("rm(outFile)");
             R.sourceFromBuffer("rm(scans)");
             R.sourceFromBuffer("rm(files)");
             R.sourceFromBuffer(RUtil.getRCodeFromResource("R/cleanupNamespace.R"));
-            return null;
+            return result;
         }
     }
 }
