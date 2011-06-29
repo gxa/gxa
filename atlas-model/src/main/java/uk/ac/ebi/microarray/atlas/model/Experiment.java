@@ -59,6 +59,7 @@ public class Experiment {
     private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Asset> assets = new ArrayList<Asset>();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
