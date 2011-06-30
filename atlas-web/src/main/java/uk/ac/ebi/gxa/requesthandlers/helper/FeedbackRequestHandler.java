@@ -67,19 +67,32 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
 
             // create a message
             Message msg = new MimeMessage(smtpSession);
-
-            // set the from and to address
-            InternetAddress addressFrom = new InternetAddress(atlasProperties.getFeedbackFromAddress());
-            msg.setFrom(addressFrom);
+            // Set to address
             msg.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(atlasProperties.getFeedbackToAddress())});
 
-            String email = request.getParameter("e");
-            if (!Strings.isNullOrEmpty(email))
-                msg.setReplyTo(new InternetAddress[]{new InternetAddress(request.getParameter("e"))});
+            InternetAddress addressFrom = null;
+            String email = request.getParameter("email");
+            if (!Strings.isNullOrEmpty(email)) {
+                addressFrom = new InternetAddress(request.getParameter("email"));
+                msg.setFrom(addressFrom);
+                msg.setReplyTo(new InternetAddress[]{addressFrom});
+            } else {
+                // Get the default from address
+                addressFrom = new InternetAddress(atlasProperties.getFeedbackFromAddress());
+            }
+            // Set the from address
+            msg.setFrom(addressFrom);
 
             // Setting the Subject and Content Type
             msg.setSubject(atlasProperties.getFeedbackSubject());
-            msg.setContent(request.getParameter("f"), "text/plain");
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("URL: ").append(request.getParameter("url")).append("\n");
+            sb.append("What were you trying to do:\n\t").append(request.getParameter("context")).append("\n");
+            sb.append("What went wrong:\n\t").append(request.getParameter("error")).append("\n");
+            sb.append("What could be done better:\n\t").append(request.getParameter("dobetter")).append("\n");
+
+            msg.setContent(sb.toString(), "text/plain");
 
             Transport.send(msg);
             response.getWriter().write("SEND OK");

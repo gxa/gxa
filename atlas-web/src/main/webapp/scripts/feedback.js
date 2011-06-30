@@ -20,8 +20,12 @@
  * http://gxa.github.com/gxa
  */
 
-var feedback_formtxt = 'Tell us what you think:<br/>' +
-          '<textarea style="width:100%" rows="5" id="feedback_txt" name="feedback_txt"/><br/><br/>' +
+var feedback_formtxt = 'What were you trying to do:<br/>' +
+          '<textarea style="width:100%" rows="5" id="feedback_context" name="feedback_context"/><br/><br/>' +
+          'What went wrong:<br/>' +
+          '<textarea style="width:100%" rows="5" id="feedback_error" name="feedback_error"/><br/><br/>' +
+          'What could be done better:<br/>' +
+          '<textarea style="width:100%" rows="5" id="feedback_dobetter" name="feedback_dobetter"/><br/><br/>' +
           'Email (optional): ' +
           '<input size="20" id="feedback_email" name="feedback_email"/>';
 
@@ -33,8 +37,11 @@ function sendFeedback(v,m){
       if(v) {
           $.post(
             atlas.homeUrl + "feedback",
-            { f: m.children('#feedback_txt').val(),
-              e: m.children('#feedback_email').val()
+            { context:    m.children('#feedback_context').val(),
+              error:      m.children('#feedback_error').val(),
+              dobetter:   m.children('#feedback_dobetter').val(),
+              email:      m.children('#feedback_email').val(),
+              url:        window.location.href
             },
             function(res) {
                 if(-1 != res.indexOf("SEND OK")) {
