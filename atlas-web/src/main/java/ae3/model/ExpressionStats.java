@@ -24,6 +24,7 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -43,18 +44,12 @@ public class ExpressionStats {
     private EfvTree<Stat> lastData;
     private long lastDesignElement = -1;
 
-    ExpressionStats(NetCDFProxy proxy) throws IOException {
+    ExpressionStats(NetCDFProxy proxy) throws IOException, AtlasDataException {
         this.proxy = proxy;
 
-        final List<String> uvals = proxy.getUniqueValues();
-
         int valueIndex = 0;
-        for (String uval : proxy.getUniqueValues()) {
-            final String[] pair = uval.split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-            if (pair.length != 2) {
-                throw LogUtil.createUnexpected("uVAL '" + uval + "'" + " does not match '.*||.*'");
-            }
-            efvTree.put(normalized(pair[0], "ba_"), pair[1], valueIndex);
+        for (NetCDFProxy.KeyValuePair uval : proxy.getUniqueValues()) {
+            efvTree.put(uval.key, uval.value, valueIndex);
             ++valueIndex;
         }
     }

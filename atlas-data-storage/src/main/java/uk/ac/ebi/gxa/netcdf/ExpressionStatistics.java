@@ -48,9 +48,9 @@ public class ExpressionStatistics {
     private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
-        List<String> values = proxy.getUniqueValues();
+        List<NetCDFProxy.KeyValuePair> values = proxy.getUniqueValues();
         for (int i = 0, valuesSize = values.size(); i < valuesSize; i++) {
-            String v = values.get(i);
+            final String v = values.get(i).key + "||" + values.get(i).value;
             efEfv.put(v.toLowerCase(), i);
         }
         for (int i = 0; i < deIndices.length; i++) {

@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
@@ -60,7 +61,7 @@ public class ExperimentalData implements Closeable {
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException {
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException, AtlasDataException {
         log.info("loading data for experiment" + experiment.getAccession());
 
         ExperimentalData experimentalData = null;
@@ -186,6 +187,8 @@ public class ExperimentalData implements Closeable {
         if (stats == null) {
             try {
                 stats = new ExpressionStats(getProxy(arrayDesign));
+            } catch (AtlasDataException e) {
+                return null;
             } catch (IOException e) {
                 return null;
             }

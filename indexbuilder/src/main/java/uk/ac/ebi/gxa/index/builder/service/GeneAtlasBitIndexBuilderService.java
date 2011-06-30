@@ -151,10 +151,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     getLog().debug("Processing {}", nc);
                     try {
                         ncdf = nc.createProxy();
-                        if (ncdf.isOutOfDate()) {
-                            // Fail index build if a given ncdf is out of date
-                            return false;
-                        }
                         final Long experimentId = allExperimentIds.get(ncdf.getExperimentAccession());
                         if (experimentId == null) {
                             processedNcdfsCount.incrementAndGet();
@@ -168,7 +164,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
                         // TODO should change to ncdf.getUniqueValues()
-                        List<String> uVals = ncdf.getUniqueFactorValues();
+                        List<NetCDFProxy.KeyValuePair> uVals = ncdf.getUniqueFactorValues();
                         int car = 0; // count of all Statistics records added for this ncdf
 
                         if (uVals.size() == 0) {
@@ -194,9 +190,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         Map<Integer, MinPMaxT> efToPTUpDown = new HashMap<Integer, MinPMaxT>();
                         for (int j = 0; j < uVals.size(); j++) {
-                            String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-                            String ef = arr[0];
-                            String efv = arr.length == 1 ? "" : arr[1];
+                            final NetCDFProxy.KeyValuePair pair = uVals.get(j);
+                            final String ef = pair.key;
+                            final String efv = pair.value;
 
                             final Integer efvAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, efv, null));
                             final Integer efAttributeIndex = attributeIndex.addObject(new EfvAttribute(ef, null));

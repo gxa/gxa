@@ -85,11 +85,12 @@ public final class NetCDFProxy implements Closeable {
     private final File pathToNetCDF;
     private final NetcdfFile netCDF;
 
-    NetCDFProxy(File file) throws IOException {
+    NetCDFProxy(File file) throws IOException, AtlasDataException {
         this.pathToNetCDF = file.getAbsoluteFile();
         this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
-        if (isOutOfDate())
-            log.error("ncdf " + pathToNetCDF.getName() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+        if (isOutOfDate()) {
+            throw new AtlasDataException("ncdf " + pathToNetCDF.getName() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+        }
     }
 
     /**
@@ -358,7 +359,34 @@ public final class NetCDFProxy implements Closeable {
         return result;
     }
 
-    public List<String> getUniqueValues() throws IOException {
+    public static class KeyValuePair {
+        public final String key;
+        public final String value;
+
+        KeyValuePair(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof KeyValuePair)) {
+                return false;
+            }
+            final KeyValuePair pair = (KeyValuePair)o;
+            return key.equals(pair.key) && value.equals(pair.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return key.hashCode() + value.hashCode();
+        }
+    }
+
+    public List<KeyValuePair> getUniqueValues() throws IOException {
         Variable uVALVar;
         uVALVar = netCDF.findVariable("uVAL");
 
@@ -371,21 +399,25 @@ public final class NetCDFProxy implements Closeable {
             return Collections.emptyList();
         }
 
-        ArrayChar uVal = (ArrayChar) uVALVar.read();
+        ArrayChar uVal = (ArrayChar)uVALVar.read();
 
-        // convert to a string array and return
-        Object[] uValArray = (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class);
-        return Arrays.asList(Arrays.copyOf(uValArray, uValArray.length, String[].class));
+        final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
+        for (Object text : (Object[])uVal.make1DStringArray().get1DJavaArray(String.class)) {
+            final String[] data = ((String)text).split(NCDF_PROP_VAL_SEP_REGEX);
+            if (data.length != 2) {
+                throw new RuntimeException("Invalid uVAL element: " + text);
+            }
+            list.add(new KeyValuePair(data[0], data[1]));
+        }
+        return list;
     }
 
-    public List<String> getUniqueFactorValues() throws IOException {
-        List<String> uniqueEFVs = new ArrayList<String>();
+    public List<KeyValuePair> getUniqueFactorValues() throws IOException {
+        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
         List<String> factors = Arrays.asList(getFactors());
 
-        for (String propVal : getUniqueValues()) {
-            String[] nameValue = propVal.split(NCDF_PROP_VAL_SEP_REGEX);
-            String name = nameValue[0];
-            if (factors.contains(name)) {
+        for (KeyValuePair propVal : getUniqueValues()) {
+            if (factors.contains(propVal.key)) {
                 // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
                 uniqueEFVs.add(propVal);
             }
@@ -636,21 +668,14 @@ public final class NetCDFProxy implements Closeable {
     }
 
     public class ExpressionAnalysisHelper {
-
-        private List<String[]> uniquePropertyValues = new ArrayList<String[]>();
+        private List<KeyValuePair> uniquePropertyValues = new ArrayList<KeyValuePair>();
         private String[] designElementAccessions;
 
         private ExpressionAnalysisHelper() {
         }
 
         private ExpressionAnalysisHelper prepare() throws IOException {
-            List<String> uVals = getUniqueValues();
-
-            for (String uVal : uVals) {
-                String[] arr = uVal.split(NCDF_PROP_VAL_SEP_REGEX);
-                uniquePropertyValues.add(arr.length == 1 ? new String[]{arr[0], ""} : arr);
-            }
-
+            uniquePropertyValues.addAll(getUniqueValues());
             designElementAccessions = getDesignElementAccessions();
             return this;
         }
@@ -664,13 +689,10 @@ public final class NetCDFProxy implements Closeable {
 
                 @Override
                 public ExpressionAnalysis createExpressionAnalysis(int deIndex, int efIndex) {
-                    String[] uniqueValue = uniquePropertyValues.get(efIndex);
-                    String ef = uniqueValue[0];
-                    String efv = uniqueValue[1];
-
-                    ExpressionAnalysis ea = new ExpressionAnalysis();
-                    ea.setEfName(ef);
-                    ea.setEfvName(efv);
+                    final KeyValuePair uniqueValue = uniquePropertyValues.get(efIndex);
+                    final ExpressionAnalysis ea = new ExpressionAnalysis();
+                    ea.setEfName(uniqueValue.key);
+                    ea.setEfvName(uniqueValue.value);
                     ea.setDesignElementAccession(designElementAccessions[deIndex]);
                     ea.setDesignElementIndex(deIndex);
                     ea.setArrayDesignAccession(getArrayDesignAccession());
@@ -679,9 +701,9 @@ public final class NetCDFProxy implements Closeable {
 
                 @Override
                 public boolean isIndexValid(int efIndex, String efName, String efvName) {
-                    String[] uniqueValue = uniquePropertyValues.get(efIndex);
-                    return uniqueValue[0].equals(efName) &&
-                            (efvName == null || uniqueValue[1].equals(efvName));
+                    final KeyValuePair uniqueValue = uniquePropertyValues.get(efIndex);
+                    return uniqueValue.key.equals(efName) &&
+                            (efvName == null || uniqueValue.value.equals(efvName));
                 }
             };
         }
@@ -744,11 +766,8 @@ public final class NetCDFProxy implements Closeable {
     public Map<String, Collection<String>> getActualEfvTree() throws IOException {
         Multimap<String, String> efvs = HashMultimap.create();
 
-        for (String s : getUniqueFactorValues()) {
-            String[] nameValue = s.split(NCDF_PROP_VAL_SEP_REGEX);
-            String name = nameValue[0];
-            String value = nameValue.length > 1 ? nameValue[1] : "";
-            efvs.put(name, value);
+        for (KeyValuePair pair : getUniqueFactorValues()) {
+            efvs.put(pair.key, pair.value);
         }
         return efvs.asMap();
     }

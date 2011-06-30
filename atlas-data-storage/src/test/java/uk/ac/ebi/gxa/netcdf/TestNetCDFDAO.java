@@ -51,14 +51,14 @@ public class TestNetCDFDAO extends TestCase {
         geneIds.add(geneId);
     }
 
-    public void testGetFactorValues() throws IOException {
+    public void testGetFactorValues() throws IOException, AtlasDataException {
         List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment, arrayDesign, ef);
         assertNotNull(fvs);
         assertNotSame(fvs.size(), 0);
         assertTrue(fvs.contains(efv));
     }
 
-    public void testGetExpressionAnalyticsByGeneID() throws IOException {
+    public void testGetExpressionAnalyticsByGeneID() throws IOException, AtlasDataException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                 atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment, geneIds,
                         Predicates.<NetCDFProxy>alwaysTrue());

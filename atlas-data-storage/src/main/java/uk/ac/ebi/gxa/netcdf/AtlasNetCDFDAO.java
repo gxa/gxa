@@ -95,7 +95,7 @@ public class AtlasNetCDFDAO {
      * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
-            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws IOException {
+            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws IOException, AtlasDataException {
         final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(NetCDFPredicates.containsGenes(geneIds), criteria));
         if (netCDF == null)
             return null;
@@ -118,8 +118,7 @@ public class AtlasNetCDFDAO {
      * @return List of expression values retrieved from designElementIndex in arrayDesign
      * @throws IOException
      */
-    public List<Float> getExpressionData(final Experiment experiment, final ArrayDesign arrayDesign, final Integer designElementIndex)
-            throws IOException {
+    public List<Float> getExpressionData(final Experiment experiment, final ArrayDesign arrayDesign, final Integer designElementIndex) throws IOException, AtlasDataException {
         NetCDFProxy proxy = null;
         try {
             proxy = getNetCDFProxy(experiment, arrayDesign);
@@ -137,7 +136,7 @@ public class AtlasNetCDFDAO {
         return new NetCDFDescriptor(getNetCDFLocation(experiment, arrayDesign));
     }
 
-    private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws IOException {
+    private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws IOException, AtlasDataException {
         return getNetCDFDescriptor(experiment, arrayDesign).createProxy();
     }
 
@@ -147,7 +146,7 @@ public class AtlasNetCDFDAO {
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFDescriptors()
      */
-    private NetCDFDescriptor findNetCDF(final Experiment experiment, Predicate<NetCDFProxy> criteria) throws IOException {
+    private NetCDFDescriptor findNetCDF(final Experiment experiment, Predicate<NetCDFProxy> criteria) throws IOException, AtlasDataException {
         for (NetCDFDescriptor ncdf : getNetCDFDescriptors(experiment)) {
             NetCDFProxy proxy = null;
             try {
@@ -277,6 +276,8 @@ public class AtlasNetCDFDAO {
                     closeQuietly(proxy);
                 }
             }
+        } catch (AtlasDataException ioe) {
+            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
         } catch (IOException ioe) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
         }
@@ -295,7 +296,7 @@ public class AtlasNetCDFDAO {
             final ArrayDesign arrayDesign,
             final Long geneId,
             final String ef)
-            throws IOException {
+            throws IOException,AtlasDataException {
 
         NetCDFProxy proxy = null;
         try {
@@ -347,12 +348,14 @@ public class AtlasNetCDFDAO {
     public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, Predicate<NetCDFProxy> criteria) {
         try {
             return findNetCDF(experiment, criteria);
+        } catch (AtlasDataException e) {
+            return null;
         } catch (IOException e) {
             return null;
         }
     }
 
-    public List<String> getFactorValues(Experiment experiment, ArrayDesign arrayDesign, String ef) throws IOException {
+    public List<String> getFactorValues(Experiment experiment, ArrayDesign arrayDesign, String ef) throws IOException, AtlasDataException {
         NetCDFProxy proxy = null;
         try {
             proxy = getNetCDFProxy(experiment, arrayDesign);

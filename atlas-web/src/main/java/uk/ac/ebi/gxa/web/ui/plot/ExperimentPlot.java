@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.netcdf.ExpressionStatistics;
 import uk.ac.ebi.gxa.netcdf.FloatMatrixProxy;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -85,7 +86,7 @@ public class ExperimentPlot {
         return efEfvAssays;
     }
 
-    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException {
+    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException, AtlasDataException {
         NetCDFProxy proxy = null;
 
         try {

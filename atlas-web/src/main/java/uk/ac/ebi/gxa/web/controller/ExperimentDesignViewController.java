@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
     public String getExperimentDesign(
             @RequestParam("eid") String accession,
-            Model model) throws ResourceNotFoundException, IOException {
+            Model model) throws ResourceNotFoundException, IOException, AtlasDataException {
 
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
@@ -46,7 +47,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         return "experimentpage/experiment-design";
     }
 
-    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException {
+    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException, AtlasDataException {
         final List<NetCDFDescriptor> descriptors = atlasNetCDFDAO.getNetCDFDescriptors(exp);
         if (descriptors.isEmpty()) {
             throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");

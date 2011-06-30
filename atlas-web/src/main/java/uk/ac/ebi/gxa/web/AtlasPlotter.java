@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -135,6 +136,8 @@ public class AtlasPlotter {
                     return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experiment);
             }
 
+        } catch (AtlasDataException e) {
+            throw createUnexpected("AtlasDataException whilst trying to read from NetCDFs for experiment " + experiment, e);
         } catch (IOException e) {
             throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experiment, e);
         }
@@ -525,7 +528,7 @@ public class AtlasPlotter {
             String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
             final Experiment experiment)
-            throws IOException {
+            throws IOException, AtlasDataException {
 
         if (efvToBestEA.containsKey(EMPTY_EFV)) {
             // Don't plot (empty) efvs unless they are the only efv that could be plotted
@@ -596,8 +599,7 @@ public class AtlasPlotter {
     }
 
 
-    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment)
-            throws IOException {
+    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment) throws IOException, AtlasDataException {
         log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, ExpressionAnalysis: {}",
                 new Object[]{ef, efv, ea});
 

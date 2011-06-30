@@ -69,9 +69,8 @@ public class NetCDFPredicates {
                 new Predicate<NetCDFProxy>() {
                     public boolean apply(@Nonnull NetCDFProxy input) {
                         try {
-                            final String pattern = ef + "||";
-                            for (String uefv : input.getUniqueFactorValues()) {
-                                if (uefv.startsWith(pattern))
+                            for (NetCDFProxy.KeyValuePair uefv : input.getUniqueFactorValues()) {
+                                if (uefv.key.equals(ef))
                                     return true;
                             }
                             return false;
@@ -89,10 +88,10 @@ public class NetCDFPredicates {
                 new Predicate<NetCDFProxy>() {
                     public boolean apply(@Nonnull NetCDFProxy input) {
                         try {
-                            final String pattern = ef + "||" + efv;
-                            for (String uefv : input.getUniqueFactorValues()) {
-                                if (uefv.equals(pattern))
+                            for (NetCDFProxy.KeyValuePair uefv : input.getUniqueFactorValues()) {
+                                if (uefv.key.equals(ef) && uefv.value.equals(efv)) {
                                     return true;
+                                }
                             }
                             return false;
                         } catch (IOException e) {

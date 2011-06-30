@@ -89,7 +89,7 @@ public class AtlasNetCDFUpdaterService {
             }
 
             // Get unique values
-            List<String> uniqueValues = proxy.getUniqueValues();
+            List<NetCDFProxy.KeyValuePair> uniqueValues = proxy.getUniqueValues();
             data.setUniqueValues(uniqueValues);
 
             String[] deAccessions = proxy.getDesignElementAccessions();
@@ -113,6 +113,9 @@ public class AtlasNetCDFUpdaterService {
                         asList(tstat).iterator()));
             }
             return data;
+        } catch (AtlasDataException e) {
+            log.error("Error reading NetCDF file: " + descriptor.getFileName(), e);
+            throw new AtlasLoaderException(e);
         } catch (IOException e) {
             log.error("Error reading NetCDF file: " + descriptor.getFileName(), e);
             throw new AtlasLoaderException(e);

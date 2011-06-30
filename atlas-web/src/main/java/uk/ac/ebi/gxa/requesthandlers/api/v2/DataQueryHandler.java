@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -299,6 +300,8 @@ class DataQueryHandler implements QueryHandler {
                 }
             }
             return data;
+        } catch (AtlasDataException e) {
+            return new Error(e.toString());
         } catch (IOException e) {
             return new Error(e.toString());
         }

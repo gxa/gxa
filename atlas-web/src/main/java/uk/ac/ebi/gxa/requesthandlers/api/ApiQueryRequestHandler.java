@@ -42,6 +42,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -235,6 +236,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                 try {
                                     expData = ExperimentalData.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
+                                } catch (AtlasDataException e) {
+                                    throw createUnexpected("Failed to read experimental data", e);
                                 } catch (IOException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }

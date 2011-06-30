@@ -16,7 +16,7 @@ public class NetCDFDescriptor {
         this.file = file;
     }
 
-    public NetCDFProxy createProxy() throws IOException {
+    public NetCDFProxy createProxy() throws IOException, AtlasDataException {
         return new NetCDFProxy(file);
     }
 

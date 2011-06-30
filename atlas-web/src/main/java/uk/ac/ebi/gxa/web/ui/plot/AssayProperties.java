@@ -28,6 +28,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -91,7 +92,7 @@ public class AssayProperties {
         return this;
     }
 
-    public static AssayProperties create(NetCDFDescriptor proxyDescr, Function<String, String> nameConverter) throws IOException {
+    public static AssayProperties create(NetCDFDescriptor proxyDescr, Function<String, String> nameConverter) throws IOException, AtlasDataException {
         NetCDFProxy proxy = null;
         try {
             proxy = proxyDescr.createProxy();

@@ -26,6 +26,7 @@ import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -77,7 +78,7 @@ public class ExperimentalDataTest {
 
 
     @Test
-    public void testLoadExperiment() throws IOException, URISyntaxException {
+    public void testLoadExperiment() throws IOException, URISyntaxException, AtlasDataException {
         Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
         ArrayDesign ad1 = new ArrayDesign("A-AFFY-44");
         ad1.setArrayDesignID(160588088);
@@ -92,7 +93,7 @@ public class ExperimentalDataTest {
     }
 
     @Test
-    public void testMultiArrayDesign() throws IOException, URISyntaxException {
+    public void testMultiArrayDesign() throws IOException, URISyntaxException, AtlasDataException {
         Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
         ArrayDesign ad21 = new ArrayDesign("A-AFFY-33");
         ad21.setArrayDesignID(153069949);

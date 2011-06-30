@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import uk.ac.ebi.gxa.netcdf.DataMatrixStorage;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -27,8 +28,12 @@ class NetCDFData {
         storage.add(designElement, values);
     }
 
-    public void setUniqueValues(List<String> uniqueValues) {
-        this.uniqueValues = uniqueValues;
+    public void setUniqueValues(List<NetCDFProxy.KeyValuePair> uniqueValues) {
+        // TODO: change this.uniqueValues to List of KeyValuePairs
+        this.uniqueValues = new ArrayList<String>(uniqueValues.size());
+        for (NetCDFProxy.KeyValuePair pair : uniqueValues) {
+            this.uniqueValues.add(pair.key + "||" + pair.value);
+        }
     }
 
     public List<Assay> getAssays() {

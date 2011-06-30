@@ -46,6 +46,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
@@ -166,7 +167,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, IOException {
+    ) throws ResourceNotFoundException, IOException, AtlasDataException {
 
         ExperimentPage page = createExperimentPage(accession);
         if (page.getExperiment().getArrayDesign(adAcc) == null) {
@@ -247,7 +248,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws IOException {
+    ) throws IOException, AtlasDataException {
 
         List<Long> geneIds = findGeneIds(gid);
 
@@ -295,7 +296,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         return tips;
     }
 
-    private String getArrayDesignAccession(NetCDFDescriptor descr) throws IOException {
+    private String getArrayDesignAccession(NetCDFDescriptor descr) throws IOException, AtlasDataException {
         if (descr == null) {
             return null;
         }
