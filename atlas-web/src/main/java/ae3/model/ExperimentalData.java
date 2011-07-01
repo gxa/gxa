@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
@@ -61,23 +62,15 @@ public class ExperimentalData implements Closeable {
      * @return either constructed object or null, if no data files was found for this accession
      * @throws IOException if i/o error occurs
      */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws IOException, AtlasDataException {
+    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws AtlasDataException {
         log.info("loading data for experiment" + experiment.getAccession());
 
-        ExperimentalData experimentalData = null;
-        for (NetCDFDescriptor descriptor : atlasNetCDFDAO.createExperimentWithData(experiment).getNetCDFDescriptors()) {
-            if (experimentalData == null) {
-                experimentalData = new ExperimentalData(experiment);
-            }
-            experimentalData.addProxy(descriptor.createProxy());
-        }
-        if (experimentalData != null) {
-            experimentalData.createAssaySampleMappings();
-        }
-        return experimentalData;
+        final ExperimentalData experimentalData =
+            new ExperimentalData(atlasNetCDFDAO.createExperimentWithData(experiment));
+        return experimentalData.proxies.isEmpty() ? null : experimentalData;
     }
 
-    private final Experiment experiment;
+    private final ExperimentWithData experiment;
     private final List<SampleDecorator> samples = new ArrayList<SampleDecorator>();
     private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
 
@@ -94,8 +87,16 @@ public class ExperimentalData implements Closeable {
      *
      * @param experiment
      */
-    private ExperimentalData(Experiment experiment) {
+    private ExperimentalData(ExperimentWithData experiment) throws AtlasDataException {
         this.experiment = experiment;
+        for (NetCDFDescriptor descriptor : experiment.getNetCDFDescriptors()) {
+            try {
+                addProxy(descriptor.createProxy());
+            } catch (IOException e) {
+                throw new AtlasDataException(e);
+            }
+        }
+        createAssaySampleMappings();
     }
 
     public void addProxy(NetCDFProxy proxy) throws IOException {
@@ -116,7 +117,7 @@ public class ExperimentalData implements Closeable {
             }
             if (sample == null) {
                 this.samples.add(new SampleDecorator(
-                    getExperiment().getSample(accession),
+                    experiment.getExperiment().getSample(accession),
                     this.samples.size()
                 ));
             }
@@ -125,7 +126,7 @@ public class ExperimentalData implements Closeable {
         final String[] assayAccessions = proxy.getAssayAccessions();
         for (int i = 0; i < assayAccessions.length; ++i) {
             this.assays.add(new AssayDecorator(
-                getExperiment().getAssay(assayAccessions[i]),
+                experiment.getExperiment().getAssay(assayAccessions[i]),
                 this.assays.size(),
                 arrayDesign,
                 i // position in matrix
@@ -151,14 +152,14 @@ public class ExperimentalData implements Closeable {
         }
     }
 
-    public Experiment getExperiment() {
+    public ExperimentWithData getExperiment() {
         return experiment;
     }
 
     private NetCDFProxy getProxy(ArrayDesign arrayDesign) {
         final NetCDFProxy proxy = proxies.get(arrayDesign);
         if (proxy == null) {
-            throw LogUtil.createUnexpected("NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession() + "is not found");
+            throw LogUtil.createUnexpected("Cannot access data for " + experiment.getExperiment().getAccession() + "/" + arrayDesign.getAccession() + "is not found");
         }
         return proxy;
     }
@@ -325,7 +326,7 @@ public class ExperimentalData implements Closeable {
      */
     @RestOut(name = "experimentalFactors")
     public Set<String> getExperimentalFactors() {
-        return experiment.getExperimentFactors();
+        return experiment.getExperiment().getExperimentFactors();
     }
 
     /**
@@ -335,7 +336,7 @@ public class ExperimentalData implements Closeable {
      */
     @RestOut(name = "sampleCharacteristics")
     public Set<String> getSampleCharacteristics() {
-        return experiment.getExperimentCharacteristics();
+        return experiment.getExperiment().getExperimentCharacteristics();
     }
 
     public String getDesignElementAccession(ArrayDesign arrayDesign, int designElementId) {

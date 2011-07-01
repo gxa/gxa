@@ -54,11 +54,7 @@ public class ExperimentWithData {
     private NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
-            try {
-                p = netCDFDao.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
-            } catch (IOException e) {
-                throw new AtlasDataException(e);
-            }
+            p = netCDFDao.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
             proxies.put(arrayDesign, p);
         }
         return p;

@@ -238,8 +238,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     expData = ExperimentalData.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
                                 } catch (AtlasDataException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
-                                } catch (IOException e) {
-                                    throw createUnexpected("Failed to read experimental data", e);
                                 }
                             }
 
