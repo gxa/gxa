@@ -1,3 +1,6 @@
+<%--
+This file is used by ArrayExpress interface to render short summary of Atlas DB
+--%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page buffer="0kb" %>
 <%@ page contentType="text/plain;charset=UTF-8" language="java" %>
