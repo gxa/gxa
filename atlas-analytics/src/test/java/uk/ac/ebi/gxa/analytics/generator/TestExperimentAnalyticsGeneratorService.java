@@ -31,18 +31,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class TestExperimentAnalyticsGeneratorService extends TestCase {
-    public void testDoublePipeEscape() {
-        String uefv = "diseasestate||normal 9";
-        String[] values = uefv.split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-        String ef = values[0];
-        if (values.length > 1) {
-            String efv = values[1];
-
-            assertEquals("ef is wrong!", "diseasestate", ef);
-            assertEquals("efv is wrong!", "normal 9", efv);
-        }
-    }
-
     public void testGetRCodeFromResource() throws IOException {
         // open a stream to the resource
         InputStream in = getClass().getClassLoader().getResourceAsStream("R/analytics.R");
