@@ -38,7 +38,6 @@ function sendFeedback(v,m){
         var email = m.children('#feedback_email').val();
         if (email && !validateEmail(email)) {
             alert('Invalid email address = ' + email);
-            m.children('#feedback_email').val(''); // reset the email field
             return false;
         }
 
@@ -55,7 +54,7 @@ function sendFeedback(v,m){
                     $("#feedback_thanks").show();
                     setTimeout(resetFeedback, 3000);
                 } else {
-                    alert("Failed to send feedback! Sorry!");
+                    alert("Failed to send feedback due to an internal error, but the query has been logged. Apologies for the inconvenience.");
                     return false;
                 }
           }
@@ -77,6 +76,6 @@ function showFeedbackForm() {
  * @param txtEmail
  */
 function validateEmail(email) {
-    var filter = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-z]{2,4}$/;
+    var filter = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+\.[a-z]{2,4}$/;
     return filter.test(email);
 }
