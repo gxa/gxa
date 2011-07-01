@@ -87,8 +87,13 @@ public class ExperimentalData implements Closeable {
      *
      * @param experiment
      */
-    private ExperimentalData(ExperimentWithData experiment) throws AtlasDataException {
+    private ExperimentalData(final ExperimentWithData experiment) throws AtlasDataException {
         this.experiment = experiment;
+        ResourceWatchdogFilter.register(new Closeable() {
+            public void close() {
+                experiment.closeAllDataSources();
+            }
+        });
         for (NetCDFDescriptor descriptor : experiment.getNetCDFDescriptors()) {
             try {
                 addProxy(descriptor.createProxy());
