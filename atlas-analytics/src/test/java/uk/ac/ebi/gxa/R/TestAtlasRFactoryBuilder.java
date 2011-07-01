@@ -36,17 +36,21 @@ public class TestAtlasRFactoryBuilder extends TestCase {
 
     @Test
     public void testGetLocalRFactory() throws InstantiationException, AtlasRServicesException {
-        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
-        if (!rFactory.validateEnvironment()) {
-            // this is a valid result if no $R_HOME set
-            if (Strings.isNullOrEmpty(System.getenv("R_HOME"))) {
-                log.info("No R_HOME set, so environment is not valid: result is correct");
-            } else {
-                fail("Unable to validate R remote environment");
+        try {
+            AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
+            if (!rFactory.validateEnvironment()) {
+                // this is a valid result if no $R_HOME set
+                if (Strings.isNullOrEmpty(System.getenv("R_HOME"))) {
+                    log.info("No R_HOME set, so environment is not valid: result is correct");
+                } else {
+                    fail("Unable to validate R remote environment");
+                }
             }
-        }
 
-        rFactory.releaseResources();
+            rFactory.releaseResources();
+        } catch (UnsatisfiedLinkError e) {
+            fail(e.getMessage());
+        }
     }
 
     @Test
