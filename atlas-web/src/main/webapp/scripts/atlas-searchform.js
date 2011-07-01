@@ -69,7 +69,7 @@ var atlas = atlas || {};
             formatListItem: function(item, q, i) {
                 var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
                 var title = "";
-                var id = item.property === "efo" ? item.id : item.property;
+                var id = item.property === "efo" ? item.id : (item.factorName || "");
 
                 if (item.alternativeTerms && item.alternativeTerms.length > 0) {
                     for (var i = 0; i < item.alternativeTerms.length; i++) {

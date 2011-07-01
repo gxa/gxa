@@ -41,6 +41,7 @@ import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -154,19 +155,16 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return result;
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, String query, int limit) {
-        return autoCompleteValues(property, query, limit, null);
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit) {
+        return autoCompleteValues(property, prefix, limit, null);
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(final String property, @Nonnull String prefix, final int limit, Map<String, String> filters) {
-
-        prefix = prefix == null ? null : prefix.toLowerCase();
-
+    public Collection<AutoCompleteItem> autoCompleteValues(final String property, @Nonnull String prefix, final int limit, @Nullable Map<String, String> filters) {
         boolean everywhere = isNullOrEmpty(property);
 
         Collection<String> properties = everywhere ? getOptionsFactors() :
                (getOptionsFactors().contains(property) ? Arrays.asList(property) : Collections.<String>emptyList());
-        return treeAutocomplete(properties, prefix, limit);
+        return treeAutocomplete(properties, prefix.toLowerCase(), limit);
     }
 
     private Collection<AutoCompleteItem> treeAutocomplete(Collection<String> properties, final @Nonnull String prefix, final int limit) {
@@ -177,7 +175,13 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
             if (root != null) {
                 root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                     public void put(String name, int count) {
-                        result.add(new AutoCompleteItem(property, name, name, (long) count, new Rank(1.0 * prefix.length() / name.length())));
+                        result.add(
+                                new EfvAutoCompleteItem(
+                                        property,
+                                        curatedName(property),
+                                        name,
+                                        (long) count,
+                                        new Rank(1.0 * prefix.length() / name.length())));
                     }
 
                     public boolean enough() {
@@ -187,6 +191,11 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
             }
         }
         return result;
+    }
+
+    private String curatedName(String property) {
+        String curated = atlasProperties.getCuratedEf(property);
+        return curated == null ? property : curated;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
