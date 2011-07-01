@@ -310,41 +310,6 @@ public class AtlasNetCDFDAO {
         }
     }
 
-    /**
-     * @return List of all NetCDF Files in atlasNetCDFRepo
-     */
-    public List<NetCDFDescriptor> getAllNcdfs() {
-        return getAllNcdfs(atlasDataRepo);
-    }
-
-    /**
-     * @param dir the directory to search NetCDFs in
-     * @return List of all NetCDF Files in dir
-     */
-    private List<NetCDFDescriptor> getAllNcdfs(File dir) {
-        List<NetCDFDescriptor> ncdfs = new ArrayList<NetCDFDescriptor>();
-        {
-            final File[] files = dir.listFiles(extension("nc", false));
-            if (files != null) {
-                for (File f : files) {
-                    ncdfs.add(new NetCDFDescriptor(f));
-                }
-            }
-        }
-
-        // We assume as soon as there are NetCDF files in the directory,
-        // there's no point looking deeper in the file hierarchy
-        if (ncdfs.isEmpty()) {
-            final File[] files = dir.listFiles();
-            for (File f: files) {
-                if (f.isDirectory()) {
-                    ncdfs.addAll(getAllNcdfs(f));
-                }
-            }
-        }
-        return ncdfs;
-    }
-
     public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, Predicate<NetCDFProxy> criteria) {
         try {
             return findNetCDF(experiment, criteria);

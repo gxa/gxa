@@ -125,17 +125,19 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final StatisticsBuilder updnStats = new ThreadSafeStatisticsBuilder();
         final StatisticsBuilder noStats = new ThreadSafeStatisticsBuilder();
 
-        List<NetCDFDescriptor> ncdfs = atlasNetCDFDAO.getAllNcdfs();
+        List<NetCDFDescriptor> ncdfs = new LinkedList<NetCDFDescriptor>();
 
         final AtomicInteger totalStatCount = new AtomicInteger();
-        final Integer total = ncdfs.size();
-        getLog().info("Found total ncdfs to index: " + total);
 
         // fetch experiments - we want to include public experiments only in the index
         final Map<String,Long> allExperimentIds = new HashMap<String,Long>();
         for (Experiment e : getAtlasDAO().getAllExperiments()) {
             allExperimentIds.put(e.getAccession(), e.getId());
+            ncdfs.addAll(atlasNetCDFDAO.getNetCDFDescriptors(e));
         }
+
+        final Integer total = ncdfs.size();
+        getLog().info("Found total ncdfs to index: " + total);
 
         final AtomicInteger processedNcdfsCount = new AtomicInteger(0);
         // Count of ncdfs in which no efvs were found

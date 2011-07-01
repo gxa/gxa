@@ -76,7 +76,7 @@ import static java.lang.Float.isNaN;
  * @author Tony Burdett
  */
 public final class NetCDFProxy implements Closeable {
-    private static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
+    public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
     // Default
     public static final float NA_PVAL_TSTAT = 1e+30f;
     public static final String NCDF_VERSION = "1.0";
