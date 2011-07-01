@@ -65,7 +65,7 @@ public class ExperimentalData implements Closeable {
         log.info("loading data for experiment" + experiment.getAccession());
 
         ExperimentalData experimentalData = null;
-        for (NetCDFDescriptor descriptor : atlasNetCDFDAO.getNetCDFDescriptors(experiment)) {
+        for (NetCDFDescriptor descriptor : atlasNetCDFDAO.createExperimentWithData(experiment).getNetCDFDescriptors()) {
             if (experimentalData == null) {
                 experimentalData = new ExperimentalData(experiment);
             }

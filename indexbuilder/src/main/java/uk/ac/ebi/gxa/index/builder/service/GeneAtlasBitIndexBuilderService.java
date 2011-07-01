@@ -133,7 +133,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final Map<String,Long> allExperimentIds = new HashMap<String,Long>();
         for (Experiment e : getAtlasDAO().getAllExperiments()) {
             allExperimentIds.put(e.getAccession(), e.getId());
-            ncdfs.addAll(atlasNetCDFDAO.getNetCDFDescriptors(e));
+            ncdfs.addAll(atlasNetCDFDAO.createExperimentWithData(e).getNetCDFDescriptors());
         }
 
         final Integer total = ncdfs.size();

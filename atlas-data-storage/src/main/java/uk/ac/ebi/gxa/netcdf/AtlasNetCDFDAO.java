@@ -196,7 +196,7 @@ public class AtlasNetCDFDAO {
     /**
      * @param experiment@return List of NetCDF proxies corresponding to experimentAccession
      */
-    public List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
+    List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experiment);
 

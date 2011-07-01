@@ -48,7 +48,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     }
 
     private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException, AtlasDataException {
-        final List<NetCDFDescriptor> descriptors = atlasNetCDFDAO.getNetCDFDescriptors(exp);
+        final List<NetCDFDescriptor> descriptors = atlasNetCDFDAO.createExperimentWithData(exp).getNetCDFDescriptors();
         if (descriptors.isEmpty()) {
             throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");
         }
