@@ -35,23 +35,31 @@ function resetFeedback() {
 
 function sendFeedback(v,m){
       if(v) {
-          $.post(
-            atlas.homeUrl + "feedback",
-            { context:    m.children('#feedback_context').val(),
-              error:      m.children('#feedback_error').val(),
-              dobetter:   m.children('#feedback_dobetter').val(),
-              email:      m.children('#feedback_email').val(),
-              url:        window.location.href
-            },
-            function(res) {
+        var email = m.children('#feedback_email').val();
+        if (email && !validateEmail(email)) {
+            alert('Invalid email address = ' + email);
+            m.children('#feedback_email').val(''); // reset the email field
+            return false;
+        }
+
+        $.post(
+          atlas.homeUrl + "feedback",
+          { context:    m.children('#feedback_context').val(),
+            error:      m.children('#feedback_error').val(),
+            dobetter:   m.children('#feedback_dobetter').val(),
+            email:      email,
+            url:        window.location.href
+          },
+          function(res) {
                 if(-1 != res.indexOf("SEND OK")) {
-                  $("#feedback_thanks").show();
-                  setTimeout(resetFeedback, 3000);
+                    $("#feedback_thanks").show();
+                    setTimeout(resetFeedback, 3000);
                 } else {
-                    alert ("Failed to send feedback! Sorry!");
+                    alert("Failed to send feedback! Sorry!");
+                    return false;
                 }
-            }
-          );
+          }
+        );
       }
       return true;
 }
@@ -63,3 +71,17 @@ function showFeedbackForm() {
     });
 }
 
+
+/**
+ * From http://jquerybyexample.blogspot.com/2011/04/validate-email-address-using-jquery.html
+ * @param txtEmail
+ */
+function validateEmail(email) {
+    var filter = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-z]{2,4}$/;
+    if (filter.test(email)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}

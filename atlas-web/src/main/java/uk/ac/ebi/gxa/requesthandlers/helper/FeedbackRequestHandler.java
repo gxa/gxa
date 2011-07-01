@@ -54,6 +54,7 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         boolean success = false;
+        StringBuilder sb = new StringBuilder();
         try {
             boolean debug = false;
 
@@ -68,25 +69,22 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             // create a message
             Message msg = new MimeMessage(smtpSession);
             // Set to address
-            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(atlasProperties.getFeedbackToAddress())});
+            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(atlasProperties.getFeedbackToAddress(), true)});
 
-            InternetAddress addressFrom = null;
             String email = request.getParameter("email");
-            if (!Strings.isNullOrEmpty(email)) {
-                addressFrom = new InternetAddress(request.getParameter("email"));
-                msg.setFrom(addressFrom);
-                msg.setReplyTo(new InternetAddress[]{addressFrom});
-            } else {
+            if (Strings.isNullOrEmpty(email)) {
                 // Get the default from address
-                addressFrom = new InternetAddress(atlasProperties.getFeedbackFromAddress());
+                email = atlasProperties.getFeedbackFromAddress();
             }
-            // Set the from address
+
+            // Set the from and replyTo address
+            InternetAddress addressFrom = new InternetAddress(email, true);
             msg.setFrom(addressFrom);
+            msg.setReplyTo(new InternetAddress[]{addressFrom});
 
             // Setting the Subject and Content Type
             msg.setSubject(atlasProperties.getFeedbackSubject());
 
-            StringBuilder sb = new StringBuilder();
             sb.append("URL: ").append(request.getParameter("url")).append("\n");
             sb.append("What were you trying to do:\n\t").append(request.getParameter("context")).append("\n");
             sb.append("What went wrong:\n\t").append(request.getParameter("error")).append("\n");
@@ -98,9 +96,9 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             response.getWriter().write("SEND OK");
             success = true;
         } catch (AddressException e) {
-            throw logUnexpected(e.getMessage(), e);
+            logUnexpected(e.getMessage() + " while sending:\n " + sb.toString()+"\n", e);
         } catch (MessagingException e) {
-            throw logUnexpected(e.getMessage(), e);
+            logUnexpected(e.getMessage() + " while sending:\n " + sb.toString()+"\n", e);
         } finally {
             if (!success)
                 response.getWriter().write("SEND FAIL");
