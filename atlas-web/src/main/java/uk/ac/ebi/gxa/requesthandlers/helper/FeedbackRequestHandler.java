@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
@@ -46,6 +48,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  * @author pashky
  */
 public class FeedbackRequestHandler implements HttpRequestHandler {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private AtlasProperties atlasProperties;
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -96,9 +99,9 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
             response.getWriter().write("SEND OK");
             success = true;
         } catch (AddressException e) {
-            logUnexpected(e.getMessage() + " while sending:\n " + sb.toString()+"\n", e);
+            log.error(e.getMessage() + " while sending:\n " + sb.toString() + "\n", e);
         } catch (MessagingException e) {
-            logUnexpected(e.getMessage() + " while sending:\n " + sb.toString()+"\n", e);
+            log.error(e.getMessage() + " while sending:\n " + sb.toString() + "\n", e);
         } finally {
             if (!success)
                 response.getWriter().write("SEND FAIL");

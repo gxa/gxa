@@ -78,10 +78,5 @@ function showFeedbackForm() {
  */
 function validateEmail(email) {
     var filter = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-z]{2,4}$/;
-    if (filter.test(email)) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return filter.test(email);
 }
