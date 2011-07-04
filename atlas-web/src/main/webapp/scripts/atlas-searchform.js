@@ -68,7 +68,7 @@ var atlas = atlas || {};
 
             formatListItem: function(item, q, i) {
                 var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
-                var title = "";
+                var title = item.value;
                 var id = item.property === "efo" ? item.id : (item.factorName || "");
 
                 if (item.alternativeTerms && item.alternativeTerms.length > 0) {
@@ -80,7 +80,10 @@ var atlas = atlas || {};
                             break;
                         }
                     }
-                    title = "Alternative terms: " + item.alternativeTerms.join(', ');
+
+                    if (item.alternativeTerms.length > 0) {
+                        title += "[" + item.alternativeTerms.join(', ') + "]";
+                    }
                 }
 
                 var span = $("<span>");
