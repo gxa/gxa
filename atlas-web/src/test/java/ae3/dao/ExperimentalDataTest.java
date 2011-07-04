@@ -89,7 +89,7 @@ public class ExperimentalDataTest {
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc
         ExperimentalData expData = new ExperimentalData(dao, eMexp1586);
         assertNotNull(expData);
-        assertEquals(1, expData.getArrayDesigns().size());
+        assertEquals(1, expData.getArrayDesignDecorators().size());
     }
 
     @Test
@@ -109,7 +109,7 @@ public class ExperimentalDataTest {
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-34.nc
         ExperimentalData expData = new ExperimentalData(dao, eMexp1913);
         assertNotNull(expData);
-        assertEquals(2, expData.getArrayDesigns().size());
+        assertEquals(2, expData.getArrayDesignDecorators().size());
     }
 
     private static File getTestNCDir() throws URISyntaxException {

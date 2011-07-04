@@ -27,7 +27,6 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 /**
  * Class, representing array design for {@link ae3.model.ExperimentalData} object
- * Is used only in NetCDFReader and should be replaced with newer model class.
  *
  * @author pashky
  */
@@ -42,14 +41,6 @@ public class ArrayDesignDecorator {
         this.arrayDesign = arrayDesign;
     }
 
-    ArrayDesignDecorator(String accession) {
-        this(new ArrayDesign(accession));
-    }
-
-    ArrayDesign getArrayDesign() {
-        return arrayDesign;
-    }
-
     /**
      * Gets accession string
      * @return accession string
@@ -61,21 +52,19 @@ public class ArrayDesignDecorator {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ArrayDesignDecorator that = (ArrayDesignDecorator) o;
-
-        if (arrayDesign != null) {
-            return arrayDesign.equals(that.arrayDesign);
-        } else {
-            return that.arrayDesign == null;
+        if (this == o) {
+            return true;
         }
+        if (!(o instanceof ArrayDesignDecorator)) {
+            return false;
+        }
+
+        return arrayDesign.equals(((ArrayDesignDecorator)o).arrayDesign);
     }
 
     @Override
     public int hashCode() {
-        return arrayDesign != null ? arrayDesign.hashCode() : 0;
+        return arrayDesign.hashCode();
     }
 
     @Override

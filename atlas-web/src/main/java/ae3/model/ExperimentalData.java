@@ -26,7 +26,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
@@ -54,15 +53,15 @@ import static java.lang.System.arraycopy;
 public class ExperimentalData {
     private static final Logger log = LoggerFactory.getLogger(ExperimentalData.class);
 
-    private final ExperimentWithData experiment;
+    private final ExperimentWithData experimentWithData;
     private final List<SampleDecorator> samples = new ArrayList<SampleDecorator>();
     private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
 
-    private final Map<ArrayDesignDecorator, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesignDecorator, ExpressionMatrix>();
-    private final Map<ArrayDesignDecorator, String[]> designElementAccessions = new HashMap<ArrayDesignDecorator, String[]>();
-    private final Map<ArrayDesignDecorator, Map<Long, int[]>> geneIdMaps = new HashMap<ArrayDesignDecorator, Map<Long, int[]>>();
+    private final Map<ArrayDesign, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesign, ExpressionMatrix>();
+    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
+    private final Map<ArrayDesign, Map<Long, int[]>> geneIdMaps = new HashMap<ArrayDesign, Map<Long, int[]>>();
 
-    private final Map<ArrayDesignDecorator, ExpressionStats> expressionStats = new HashMap<ArrayDesignDecorator, ExpressionStats>();
+    private final Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
 
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
@@ -71,14 +70,14 @@ public class ExperimentalData {
      */
     public ExperimentalData(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws AtlasDataException {
         log.info("loading data for experiment" + experiment.getAccession());
-        this.experiment = atlasNetCDFDAO.createExperimentWithData(experiment);
+        experimentWithData = atlasNetCDFDAO.createExperimentWithData(experiment);
 
         ResourceWatchdogFilter.register(new Closeable() {
             public void close() {
-                ExperimentalData.this.experiment.closeAllDataSources();
+                experimentWithData.closeAllDataSources();
             }
         });
-        for (NetCDFDescriptor descriptor : this.experiment.getNetCDFDescriptors()) {
+        for (NetCDFDescriptor descriptor : experimentWithData.getNetCDFDescriptors()) {
             try {
                 addProxy(descriptor);
             } catch (IOException e) {
@@ -91,7 +90,7 @@ public class ExperimentalData {
     public void addProxy(NetCDFDescriptor descriptor) throws AtlasDataException, IOException {
         final NetCDFProxy proxy = descriptor.createProxy();
         try {
-            final ArrayDesignDecorator arrayDesign = new ArrayDesignDecorator(proxy.getArrayDesignAccession());
+            final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         
             final String[] sampleAccessions = proxy.getSampleAccessions();
             for (int i = 0; i < sampleAccessions.length; ++i) {
@@ -105,7 +104,7 @@ public class ExperimentalData {
                 }
                 if (sample == null) {
                     this.samples.add(new SampleDecorator(
-                        experiment.getExperiment().getSample(accession),
+                        getExperiment().getSample(accession),
                         this.samples.size()
                     ));
                 }
@@ -114,7 +113,7 @@ public class ExperimentalData {
             final String[] assayAccessions = proxy.getAssayAccessions();
             for (int i = 0; i < assayAccessions.length; ++i) {
                 this.assays.add(new AssayDecorator(
-                    experiment.getExperiment().getAssay(assayAccessions[i]),
+                    getExperiment().getAssay(assayAccessions[i]),
                     this.assays.size(),
                     arrayDesign,
                     i // position in matrix
@@ -137,16 +136,16 @@ public class ExperimentalData {
         }
     }
 
-    public ExperimentWithData getExperiment() {
-        return experiment;
+    private NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
+        return experimentWithData.getProxy(arrayDesign);
     }
 
-    private NetCDFProxy getProxy(ArrayDesignDecorator arrayDesign) {
-        try {
-            return experiment.getProxy(arrayDesign.getArrayDesign());
-        } catch (AtlasDataException e) {
-            throw LogUtil.createUnexpected("unexpected", e);
-        }
+    public ExperimentWithData getExperimentWithData() {
+        return experimentWithData;
+    }
+
+    public Experiment getExperiment() {
+        return experimentWithData.getExperiment();
     }
 
     /**
@@ -154,7 +153,7 @@ public class ExperimentalData {
      *
      * @param arrayDesign array design, this matrix applies to
      */
-    private ExpressionMatrix getExpressionMatrix(ArrayDesignDecorator arrayDesign) {
+    private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) throws AtlasDataException {
         ExpressionMatrix matrix = expressionMatrices.get(arrayDesign);
         if (matrix == null) {
             matrix = new ExpressionMatrix(getProxy(arrayDesign));
@@ -168,7 +167,7 @@ public class ExperimentalData {
      *
      * @param arrayDesign array design, this data apply to
      */
-    private ExpressionStats getExpressionStats(ArrayDesignDecorator arrayDesign) {
+    private ExpressionStats getExpressionStats(ArrayDesign arrayDesign) {
         ExpressionStats stats = expressionStats.get(arrayDesign);
         if (stats == null) {
             try {
@@ -201,10 +200,11 @@ public class ExperimentalData {
      * @param designElementIndex design element index
      * @return expression value
      */
-    public float getExpression(AssayDecorator assay, int designElementIndex) {
+    public float getExpression(AssayDecorator assay, int designElementIndex) throws AtlasDataException {
         final ExpressionMatrix matrix = getExpressionMatrix(assay.getArrayDesign());
-        if (matrix == null)
-            throw LogUtil.createUnexpected("Cannot find expression matrix for " + assay);
+        if (matrix == null) {
+            throw new AtlasDataException("Cannot find expression matrix for " + assay);
+        }
         return matrix.getExpression(designElementIndex, assay.getPositionInMatrix());
     }
 
@@ -215,7 +215,7 @@ public class ExperimentalData {
      * @param designElement design element id
      * @return map of statstics
      */
-    public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesignDecorator ad, int designElement) {
+    public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
         final ExpressionStats stats = getExpressionStats(ad);
         return stats != null ? stats.getExpressionStats(designElement) : new EfvTree<ExpressionStats.Stat>();
     }
@@ -227,7 +227,7 @@ public class ExperimentalData {
      * @param geneId      gene id (the Atlas/DW one)
      * @return array of design element id's to be used in expression/statistics retrieval functions
      */
-    public int[] getDesignElementIndexes(ArrayDesignDecorator arrayDesign, long geneId) {
+    public int[] getDesignElementIndexes(ArrayDesign arrayDesign, long geneId) throws AtlasDataException {
         Map<Long, int[]> geneMap = geneIdMaps.get(arrayDesign);
         if (geneMap == null) {
             final NetCDFProxy proxy = getProxy(arrayDesign);
@@ -236,7 +236,7 @@ public class ExperimentalData {
             try {
                 geneIds = proxy.getGenes();
             } catch (IOException e) {
-                throw LogUtil.createUnexpected("Error during reading gene ids", e);
+                throw new AtlasDataException("Error during reading gene ids", e);
             }
             geneMap = new HashMap<Long, int[]>();
             for (int currentIndex = 0; currentIndex < geneIds.length; ++currentIndex) {
@@ -284,7 +284,7 @@ public class ExperimentalData {
      * @param arrayDesign array design
      * @return iterable of assays
      */
-    public Iterable<AssayDecorator> getAssays(final ArrayDesignDecorator arrayDesign) {
+    public Iterable<AssayDecorator> getAssays(final ArrayDesign arrayDesign) {
         return Collections2.filter(
                 assays,
                 new Predicate<AssayDecorator>() {
@@ -300,9 +300,9 @@ public class ExperimentalData {
      * @return set of array designs
      */
     @RestOut(name = "arrayDesigns")
-    public Set<ArrayDesignDecorator> getArrayDesigns() {
+    public Set<ArrayDesignDecorator> getArrayDesignDecorators() {
         final HashSet<ArrayDesignDecorator> decorators = new HashSet<ArrayDesignDecorator>();
-        for (ArrayDesign ad : experiment.getExperiment().getArrayDesigns()) {
+        for (ArrayDesign ad : getExperiment().getArrayDesigns()) {
             decorators.add(new ArrayDesignDecorator(ad));
         }
         return decorators;
@@ -315,7 +315,7 @@ public class ExperimentalData {
      */
     @RestOut(name = "experimentalFactors")
     public Set<String> getExperimentalFactors() {
-        return experiment.getExperiment().getExperimentFactors();
+        return getExperiment().getExperimentFactors();
     }
 
     /**
@@ -325,16 +325,16 @@ public class ExperimentalData {
      */
     @RestOut(name = "sampleCharacteristics")
     public Set<String> getSampleCharacteristics() {
-        return experiment.getExperiment().getExperimentCharacteristics();
+        return getExperiment().getExperimentCharacteristics();
     }
 
-    public String getDesignElementAccession(ArrayDesignDecorator arrayDesign, int designElementId) {
+    public String getDesignElementAccession(ArrayDesign arrayDesign, int designElementId) throws AtlasDataException {
         String[] array = designElementAccessions.get(arrayDesign);
         if (array == null) {
             try {
                 array = getProxy(arrayDesign).getDesignElementAccessions();
             } catch (IOException e) {
-                throw LogUtil.createUnexpected("Exception during access to designElements", e);
+                throw new AtlasDataException("Exception during access to designElements", e);
             }
             designElementAccessions.put(arrayDesign, array);
         }

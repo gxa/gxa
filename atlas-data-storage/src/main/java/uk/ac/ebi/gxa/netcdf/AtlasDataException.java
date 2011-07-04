@@ -30,4 +30,8 @@ public class AtlasDataException extends Exception {
     public AtlasDataException(Exception cause) {
         super(cause);
     }
+
+    public AtlasDataException(String message, Exception cause) {
+        super(message, cause);
+    }
 }
