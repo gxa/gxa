@@ -28,12 +28,6 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
         template.flush();
     }
 
-    public void saveAsCurrentAnnotationSource(AnnotationSource currentAnnotationSource) {
-        Software software = currentAnnotationSource.getSoftware();
-        software.setActive(true);
-        softwareDAO.save(software);
-    }
-
     public <T extends AnnotationSource> Collection<T> getCurrentAnnotationSourcesOfType(Class<T> type) {
         List<T> result = template.find("from " + type.getSimpleName());
         return result;

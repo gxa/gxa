@@ -36,7 +36,7 @@ public class AnnotationDAO {
         this.softwareDAO = softwareDAO;
     }
 
-    public void writeBioentities(Set<BioEntity> bioEntities) {
+    public void writeBioentities(Collection<BioEntity> bioEntities) {
         bioEntityDAO.writeBioentities(bioEntities);
     }
 
@@ -52,8 +52,8 @@ public class AnnotationDAO {
         bioEntityDAO.writeBioEntityToPropertyValues(beProperties, beType, software);
     }
 
-    public void writeGeneToTranscriptRelations(Set<List<String>> relations, String transcriptType, String geneType, Software software) {
-        bioEntityDAO.writeGeneToTranscriptRelations(relations, transcriptType, geneType, software);
+    public void writeGeneToBioentityRelations(Set<List<BioEntity>> relations, Software software) {
+        bioEntityDAO.writeGeneToBioentityRelations(relations, software);
     }
 
     public void writeArrayDesign(ArrayDesign arrayDesign, MappingSource mappingSrc) {
@@ -95,4 +95,5 @@ public class AnnotationDAO {
     public void saveAnnSrc(AnnotationSource annotationSource) {
         annSrcDAO.save(annotationSource);
     }
+
 }

@@ -25,6 +25,13 @@ public class BioEntity {
         this.type = type;
     }
 
+    public BioEntity(String identifier, String name, BioEntityType type, Organism organism) {
+        this.identifier = identifier;
+        this.name = name;
+        this.type = type;
+        this.organism = organism;
+    }
+
     public Long getId() {
         return id;
     }
@@ -88,22 +95,20 @@ public class BioEntity {
 
         BioEntity bioEntity = (BioEntity) o;
 
-        if (identifier != null ? !identifier.equals(bioEntity.identifier) : bioEntity.identifier != null) return false;
+        if (!identifier.equals(bioEntity.identifier)) return false;
         if (name != null ? !name.equals(bioEntity.name) : bioEntity.name != null) return false;
-        if (organism != null ? !organism.equals(bioEntity.organism) : bioEntity.organism != null) return false;
-        if (properties != null ? !properties.equals(bioEntity.properties) : bioEntity.properties != null) return false;
-        if (type != null ? !type.equals(bioEntity.type) : bioEntity.type != null) return false;
+        if (!organism.equals(bioEntity.organism)) return false;
+        if (!type.equals(bioEntity.type)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = identifier != null ? identifier.hashCode() : 0;
+        int result = identifier.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (properties != null ? properties.hashCode() : 0);
-        result = 31 * result + (organism != null ? organism.hashCode() : 0);
+        result = 31 * result + type.hashCode();
+        result = 31 * result + organism.hashCode();
         return result;
     }
 }

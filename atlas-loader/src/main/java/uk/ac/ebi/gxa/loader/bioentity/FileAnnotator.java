@@ -12,10 +12,13 @@ import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -25,15 +28,16 @@ import java.util.List;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * User: nsklyar
- * Date: 13/04/2011
- */
+* User: nsklyar
+* Date: 13/04/2011
+*/
 public class FileAnnotator extends AtlasBioentityAnnotator {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private String transcriptField;
-    private String geneField;
+
+    private BioEntityType beType;
+    private BioEntityType geneType;
 
     protected FileAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
         super(annotationDAO, transactionTemplate);
@@ -61,7 +65,7 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
 
             for (int i = 0; i < headers.length; i++) {
                 properties.add(i, new BioEntityProperty(null, headers[i]));
-                if (headers[i].equals(geneField)) {
+                if (headers[i].equals(geneType.getName())) {
                     geneColumnIndex = i;
                 }
             }
@@ -76,6 +80,7 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
 
             while ((line = csvReader.readNext()) != null) {
                 String beIdentifier = line[0];
+                annotationDAO.findOrCreateBioEntityType(beIdentifier);
 
                 if (StringUtils.isNotBlank(beIdentifier)) {
 
@@ -91,10 +96,12 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
                         BioEntityProperty property = properties.get(i);
                         if (values != null) {
                             for (String value : values) {
-                                addPropertyValue(beIdentifier, geneIdentifier, property, value);
+                                BEPropertyValue propertyValue = new BEPropertyValue(property, value);
+                                addPropertyValue(beIdentifier, beType, propertyValue);
+                                addPropertyValue(geneIdentifier, geneType, propertyValue);
                             }
                         }
-                        
+
                         if (property.getName().equalsIgnoreCase("Organism") && StringUtils.isNotBlank(line[i])) {
                             this.targetOrganism = annotationDAO.findOrCreateOrganism(line[i]);
                         }
@@ -105,13 +112,13 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
                         }
                     }
 
+                    BioEntity bioEntity = addBioEntity(beIdentifier, beIdentifier, beType, targetOrganism);
+
                     //create transcript gene mapping
                     if (geneIdentifier != null) {
-                        addTranscriptGeneMapping(beIdentifier, geneIdentifier);
-                        addGene(targetOrganism, geneField, geneIdentifier, geneName);
+                        BioEntity gene = addBioEntity(geneIdentifier, geneName, geneType, targetOrganism);
+                        addGeneBioEntityMapping(bioEntity, gene);
                     }
-
-                    addTransctipt(targetOrganism, transcriptField, beIdentifier);
 
                     count++;
                 }
@@ -123,7 +130,7 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
 
             log.info("Parsed " + count + " bioentities with annotations");
 
-            writeBioentitiesAndAnnotations(transcriptField, geneField);
+            writeBioentitiesAndAnnotations();
 
         } catch (IOException e) {
             log.error("Problem when reading bioentity annotations file " + url);
@@ -139,8 +146,8 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
         String sourceName = readValue("source", url, csvReader);
         String version = readValue("version", url, csvReader);
 
-        transcriptField = readValue("bioentity", url, csvReader);
-        geneField = readValue("gene", url, csvReader);
+        beType = annotationDAO.findOrCreateBioEntityType(readValue("bioentity", url, csvReader));
+        geneType = annotationDAO.findOrCreateBioEntityType(readValue("gene", url, csvReader));
 
         Software software = new Software(null, sourceName, version);
         this.annotationSource = new FileAnnotationSource(software, targetOrganism, url.getFile());

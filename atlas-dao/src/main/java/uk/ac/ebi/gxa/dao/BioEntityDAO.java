@@ -233,7 +233,7 @@ public class BioEntityDAO {
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
-    public void writeBioentities(final Set<BioEntity> bioEntities) {
+    public void writeBioentities(final Collection<BioEntity> bioEntities) {
         String query = "merge into a2_bioentity p\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
@@ -354,14 +354,12 @@ public class BioEntityDAO {
     }
 
     /**
-     * @param relations - a List of String array, which contains values:
-     *                  [0] - gene identifier
-     *                  [1] - transcript identifier
+     * @param relations - a List of StrinBioEntitis, which contains values:
+     *                  [0] - gene
+     *                  [1] - transcript
      * @param software
      */
-    public void writeGeneToTranscriptRelations(final Set<List<String>> relations,
-                                               final String transcriptType,
-                                               final String geneType,
+    public void writeGeneToBioentityRelations(final Set<List<BioEntity>> relations,
                                                final Software software) {
 
         String query = "INSERT INTO a2_bioentity2bioentity "
@@ -377,22 +375,20 @@ public class BioEntityDAO {
                 + "             ?) ";
 
 
-        ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
+        ListStatementSetter<List<BioEntity>> statementSetter = new ListStatementSetter<List<BioEntity>>() {
             long softwareId = software.getSoftwareid();
-            public long geneTypeId = getBETypeIdByName(geneType);
-            public long tnsTypeId = getBETypeIdByName(transcriptType);
 
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, list.get(i).get(0));
-                ps.setLong(2, geneTypeId);
-                ps.setString(3, list.get(i).get(1));
-                ps.setLong(4, tnsTypeId);
+                ps.setString(1, list.get(i).get(0).getIdentifier());
+                ps.setLong(2, list.get(i).get(0).getType().getId());
+                ps.setString(3, list.get(i).get(1).getIdentifier());
+                ps.setLong(4,  list.get(i).get(1).getType().getId());
                 ps.setLong(5, softwareId);
             }
         };
 
-        List<List<String>> relationList = new ArrayList<List<String>>(relations);
+        List<List<BioEntity>> relationList = new ArrayList<List<BioEntity>>(relations);
 
         writeBatchInChunks(query, relationList, statementSetter);
 
