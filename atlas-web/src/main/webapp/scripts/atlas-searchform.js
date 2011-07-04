@@ -75,15 +75,14 @@ var atlas = atlas || {};
                         var at = item.alternativeTerms[i];
                         var hat = $.highlightTerm(at, q, 'b');
                         if (hat != at) {
-                            text.push("[" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
+                            text.push(" [" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
+                            title += " [" + at + "]";
                             break;
                         }
                     }
-
-                    if (item.alternativeTerms.length > 0) {
-                        title += "[" + item.alternativeTerms.join(', ') + "]";
-                    }
                 }
+
+                title += " [" + id + "]";
 
                 var span = $("<span>");
                 span.attr("title", title);
