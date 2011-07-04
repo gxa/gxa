@@ -39,6 +39,9 @@ public class ExperimentWithData {
 
     private final Map<ArrayDesign,NetCDFProxy> proxies = new HashMap<ArrayDesign,NetCDFProxy>();
 
+    // cached data
+    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
+
     ExperimentWithData(AtlasNetCDFDAO netCDFDao, Experiment experiment) {
         this.netCDFDao = netCDFDao;
         this.experiment = experiment;
@@ -89,6 +92,19 @@ public class ExperimentWithData {
             assays.add(getExperiment().getAssay(accession));
         }
         return assays;
+    }
+
+    public String[] getDesignElementAccessions(ArrayDesign arrayDesign) throws AtlasDataException {
+        String[] array = designElementAccessions.get(arrayDesign);
+        if (array == null) {
+            try {
+                array = getProxy(arrayDesign).getDesignElementAccessions();
+                designElementAccessions.put(arrayDesign, array);
+            } catch (IOException e) {
+                throw new AtlasDataException(e);
+            }
+        }
+        return array;
     }
 
     public void closeAllDataSources() {
