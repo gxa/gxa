@@ -53,7 +53,7 @@ public class ExperimentalData {
     private static final Logger log = LoggerFactory.getLogger(ExperimentalData.class);
 
     private final ExperimentWithData experimentWithData;
-    private final List<SampleDecorator> samples = new ArrayList<SampleDecorator>();
+    private final List<SampleDecorator> sampleDecorators = new ArrayList<SampleDecorator>();
     private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
 
     private final Map<ArrayDesign, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesign, ExpressionMatrix>();
@@ -76,37 +76,20 @@ public class ExperimentalData {
                 experimentWithData.closeAllDataSources();
             }
         });
+        for (Sample sample : experiment.getSamples()) {
+            sampleDecorators.add(new SampleDecorator(
+                sample,
+                sampleDecorators.size()
+            ));
+        }
+        
         for (ArrayDesign ad : getExperiment().getArrayDesigns()) {
-            try {
-                addProxy(experimentWithData.getProxy(ad));
-            } catch (IOException e) {
-                throw new AtlasDataException(e);
-            }
+            addArrayDesign(ad);
         }
         createAssaySampleMappings();
     }
 
-    public void addProxy(NetCDFProxy proxy) throws AtlasDataException, IOException {
-        final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
-        
-        final String[] sampleAccessions = proxy.getSampleAccessions();
-        for (int i = 0; i < sampleAccessions.length; ++i) {
-            final String accession = sampleAccessions[i];
-            SampleDecorator sample = null;
-            for (SampleDecorator s : this.samples) {
-                if (accession.equals(s.getAccession())) {
-                    sample = s;
-                    break;
-                }
-            }
-            if (sample == null) {
-                this.samples.add(new SampleDecorator(
-                    getExperiment().getSample(accession),
-                    this.samples.size()
-                ));
-            }
-        }
-        
+    private void addArrayDesign(ArrayDesign arrayDesign) throws AtlasDataException {
         final String[] assayAccessions = proxy.getAssayAccessions();
         for (int i = 0; i < assayAccessions.length; ++i) {
             this.assays.add(new AssayDecorator(
@@ -120,7 +103,7 @@ public class ExperimentalData {
 
     private void createAssaySampleMappings() {
         final Map<Sample, SampleDecorator> sampleMap = new HashMap<Sample, SampleDecorator>();
-        for (SampleDecorator sd : samples) {
+        for (SampleDecorator sd : sampleDecorators) {
             sampleMap.put(sd.getSample(), sd);
         }
         for (AssayDecorator ad : assays) {
@@ -258,8 +241,8 @@ public class ExperimentalData {
      * @return list of all samples
      */
     @RestOut(name = "samples")
-    public List<SampleDecorator> getSamples() {
-        return samples;
+    public List<SampleDecorator> getSampleDecorators() {
+        return sampleDecorators;
     }
 
     /**

@@ -30,6 +30,8 @@ import com.google.common.io.Closeables;
 
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 public class ExperimentWithData {
     private final AtlasNetCDFDAO netCDFDao;
@@ -59,6 +61,34 @@ public class ExperimentWithData {
             proxies.put(arrayDesign, p);
         }
         return p;
+    }
+
+    public List<Sample> getSamples(ArrayDesign arrayDesign) throws AtlasDataException {
+        final String[] sampleAccessions;
+        try {
+            sampleAccessions = getProxy(arrayDesign).getSampleAccessions();
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+        final ArrayList<Sample> samples = new ArrayList<Sample>(sampleAccessions.length);
+        for (String accession : sampleAccessions) {
+            samples.add(getExperiment().getSample(accession));
+        }
+        return samples;
+    }
+
+    public List<Assay> getAssays(ArrayDesign arrayDesign) throws AtlasDataException {
+        final String[] assayAccessions;
+        try {
+            assayAccessions = getProxy(arrayDesign).getAssayAccessions();
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+        final ArrayList<Assay> assays = new ArrayList<Assay>(assayAccessions.length);
+        for (String accession : assayAccessions) {
+            assays.add(getExperiment().getAssay(accession));
+        }
+        return assays;
     }
 
     public void closeAllDataSources() {
