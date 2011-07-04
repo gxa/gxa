@@ -132,7 +132,7 @@ var atlas = atlas || {};
 
                 if (prop == "gene") {
                     var otherNames = row.otherNames || [];
-                    ext = otherNames.length > 0 ? "(" + otherNames.join(",") + ")&nbsp;" : "";
+                    ext = otherNames.length > 0 ? "(" + otherNames.join(",") + ") " : "";
                     ext += row.species;
                     title += " " + ext;
                 }
