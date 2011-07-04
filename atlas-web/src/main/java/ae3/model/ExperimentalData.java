@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
-import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -77,9 +76,9 @@ public class ExperimentalData {
                 experimentWithData.closeAllDataSources();
             }
         });
-        for (NetCDFDescriptor descriptor : experimentWithData.getNetCDFDescriptors()) {
+        for (ArrayDesign ad : getExperiment().getArrayDesigns()) {
             try {
-                addProxy(descriptor);
+                addProxy(experimentWithData.getProxy(ad));
             } catch (IOException e) {
                 throw new AtlasDataException(e);
             }
@@ -87,40 +86,35 @@ public class ExperimentalData {
         createAssaySampleMappings();
     }
 
-    public void addProxy(NetCDFDescriptor descriptor) throws AtlasDataException, IOException {
-        final NetCDFProxy proxy = descriptor.createProxy();
-        try {
-            final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
+    public void addProxy(NetCDFProxy proxy) throws AtlasDataException, IOException {
+        final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
         
-            final String[] sampleAccessions = proxy.getSampleAccessions();
-            for (int i = 0; i < sampleAccessions.length; ++i) {
-                final String accession = sampleAccessions[i];
-                SampleDecorator sample = null;
-                for (SampleDecorator s : this.samples) {
-                    if (accession.equals(s.getAccession())) {
-                        sample = s;
-                        break;
-                    }
-                }
-                if (sample == null) {
-                    this.samples.add(new SampleDecorator(
-                        getExperiment().getSample(accession),
-                        this.samples.size()
-                    ));
+        final String[] sampleAccessions = proxy.getSampleAccessions();
+        for (int i = 0; i < sampleAccessions.length; ++i) {
+            final String accession = sampleAccessions[i];
+            SampleDecorator sample = null;
+            for (SampleDecorator s : this.samples) {
+                if (accession.equals(s.getAccession())) {
+                    sample = s;
+                    break;
                 }
             }
-        
-            final String[] assayAccessions = proxy.getAssayAccessions();
-            for (int i = 0; i < assayAccessions.length; ++i) {
-                this.assays.add(new AssayDecorator(
-                    getExperiment().getAssay(assayAccessions[i]),
-                    this.assays.size(),
-                    arrayDesign,
-                    i // position in matrix
+            if (sample == null) {
+                this.samples.add(new SampleDecorator(
+                    getExperiment().getSample(accession),
+                    this.samples.size()
                 ));
             }
-        } finally {
-            proxy.close();
+        }
+        
+        final String[] assayAccessions = proxy.getAssayAccessions();
+        for (int i = 0; i < assayAccessions.length; ++i) {
+            this.assays.add(new AssayDecorator(
+                getExperiment().getAssay(assayAccessions[i]),
+                this.assays.size(),
+                arrayDesign,
+                i // position in matrix
+            ));
         }
     }
 
