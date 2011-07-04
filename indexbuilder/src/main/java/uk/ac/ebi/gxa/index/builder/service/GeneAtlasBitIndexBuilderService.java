@@ -133,6 +133,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 }
 
                 final Experiment exp = getAtlasDAO().getExperimentByAccession(ncdf.getExperimentAccession());
+                if (exp == null)
+                    continue;
+
                 final ExperimentInfo experiment = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
