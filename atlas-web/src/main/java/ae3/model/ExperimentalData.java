@@ -54,7 +54,7 @@ public class ExperimentalData {
 
     private final ExperimentWithData experimentWithData;
     private final List<SampleDecorator> sampleDecorators = new ArrayList<SampleDecorator>();
-    private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
+    private final List<AssayDecorator> assayDecorators = new ArrayList<AssayDecorator>();
 
     private final Map<ArrayDesign, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesign, ExpressionMatrix>();
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
@@ -76,28 +76,32 @@ public class ExperimentalData {
                 experimentWithData.closeAllDataSources();
             }
         });
+
+        collectSamples();
+        collectAssays();
+        createAssaySampleMappings();
+    }
+
+    private void collectSamples() throws AtlasDataException {
         for (Sample sample : experiment.getSamples()) {
             sampleDecorators.add(new SampleDecorator(
                 sample,
                 sampleDecorators.size()
             ));
         }
-        
-        for (ArrayDesign ad : getExperiment().getArrayDesigns()) {
-            addArrayDesign(ad);
-        }
-        createAssaySampleMappings();
     }
 
-    private void addArrayDesign(ArrayDesign arrayDesign) throws AtlasDataException {
-        final String[] assayAccessions = proxy.getAssayAccessions();
-        for (int i = 0; i < assayAccessions.length; ++i) {
-            this.assays.add(new AssayDecorator(
-                getExperiment().getAssay(assayAccessions[i]),
-                this.assays.size(),
-                arrayDesign,
-                i // position in matrix
-            ));
+    private void collectAssays() throws AtlasDataException {
+        for (ArrayDesign ad : getExperiment().getArrayDesigns()) {
+            int index = 0;
+            for (Assay assay : experimentWithData.getAssays(arrayDesign)) {
+                assayDecorators.add(new AssayDecorator(
+                    assay,
+                    assayDecorators.size(),
+                    arrayDesign,
+                    index++ // position in matrix
+                ));
+            }
         }
     }
 
@@ -106,9 +110,10 @@ public class ExperimentalData {
         for (SampleDecorator sd : sampleDecorators) {
             sampleMap.put(sd.getSample(), sd);
         }
-        for (AssayDecorator ad : assays) {
+        for (AssayDecorator ad : assayDecorators) {
             for (Sample sample: ad.getAssay().getSamples()) {
-                addSampleAssayMapping(sampleMap.get(sample), ad);
+                assay.addSample(sample);
+                sample.addAssay(assay);
             } 
         }
     }
@@ -157,17 +162,6 @@ public class ExperimentalData {
             expressionStats.put(arrayDesign, stats);
         }
         return stats;
-    }
-
-    /**
-     * Add mapping between assay and sample
-     *
-     * @param sample sample to link with specified assay
-     * @param assay  assay to link with specified sample
-     */
-    public void addSampleAssayMapping(SampleDecorator sample, AssayDecorator assay) {
-        assay.addSample(sample);
-        sample.addAssay(assay);
     }
 
     /**
@@ -251,8 +245,8 @@ public class ExperimentalData {
      * @return list of assays
      */
     @RestOut(name = "assays")
-    public List<AssayDecorator> getAssays() {
-        return assays;
+    public List<AssayDecorator> getAssayDecorators() {
+        return assayDecorators;
     }
 
     /**
@@ -263,7 +257,7 @@ public class ExperimentalData {
      */
     public Iterable<AssayDecorator> getAssays(final ArrayDesign arrayDesign) {
         return Collections2.filter(
-                assays,
+                assayDecorators,
                 new Predicate<AssayDecorator>() {
                     public boolean apply(@Nullable AssayDecorator input) {
                         return input != null && arrayDesign.equals(input.getArrayDesign());
