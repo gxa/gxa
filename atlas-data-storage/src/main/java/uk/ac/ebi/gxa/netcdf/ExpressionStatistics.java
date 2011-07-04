@@ -36,7 +36,6 @@ import java.util.Map;
  *         Date: 21/04/2011
  */
 public class ExpressionStatistics {
-
     private FloatMatrixProxy pvalues;
     private FloatMatrixProxy tstatistics;
     private Map<String, Integer> efEfv = Maps.newHashMap();
@@ -48,7 +47,7 @@ public class ExpressionStatistics {
     private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
-        List<NetCDFProxy.KeyValuePair> values = proxy.getUniqueValues();
+        List<KeyValuePair> values = proxy.getUniqueValues();
         for (int i = 0, valuesSize = values.size(); i < valuesSize; i++) {
             final String v = values.get(i).key + "||" + values.get(i).value;
             efEfv.put(v.toLowerCase(), i);

@@ -56,8 +56,7 @@ public class ExperimentWithData {
         return netCDFDao.getNetCDFDescriptors(experiment);
     }
 
-    // TODO: this method should be private
-    public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
+    private NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
             p = netCDFDao.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
@@ -105,6 +104,46 @@ public class ExperimentWithData {
             }
         }
         return array;
+    }
+
+    public long[] getGenes(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getGenes(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getUniqueValues(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public float[] getExpressionDataForDesignElementAtIndex(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getExpressionDataForDesignElementAtIndex(designElementIndex); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
     }
 
     public void closeAllDataSources() {

@@ -359,33 +359,6 @@ public final class NetCDFProxy implements Closeable {
         return result;
     }
 
-    public static class KeyValuePair {
-        public final String key;
-        public final String value;
-
-        KeyValuePair(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof KeyValuePair)) {
-                return false;
-            }
-            final KeyValuePair pair = (KeyValuePair)o;
-            return key.equals(pair.key) && value.equals(pair.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return key.hashCode() + value.hashCode();
-        }
-    }
-
     public List<KeyValuePair> getUniqueValues() throws IOException {
         Variable uVALVar;
         uVALVar = netCDF.findVariable("uVAL");

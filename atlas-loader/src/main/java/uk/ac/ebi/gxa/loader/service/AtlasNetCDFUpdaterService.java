@@ -89,7 +89,7 @@ public class AtlasNetCDFUpdaterService {
             }
 
             // Get unique values
-            List<NetCDFProxy.KeyValuePair> uniqueValues = proxy.getUniqueValues();
+            List<KeyValuePair> uniqueValues = proxy.getUniqueValues();
             data.setUniqueValues(uniqueValues);
 
             String[] deAccessions = proxy.getDesignElementAccessions();

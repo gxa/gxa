@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.KeyValuePair;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -166,7 +167,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
                         // TODO should change to ncdf.getUniqueValues()
-                        List<NetCDFProxy.KeyValuePair> uVals = ncdf.getUniqueFactorValues();
+                        List<KeyValuePair> uVals = ncdf.getUniqueFactorValues();
                         int car = 0; // count of all Statistics records added for this ncdf
 
                         if (uVals.size() == 0) {
@@ -192,7 +193,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                         Map<Integer, MinPMaxT> efToPTUpDown = new HashMap<Integer, MinPMaxT>();
                         for (int j = 0; j < uVals.size(); j++) {
-                            final NetCDFProxy.KeyValuePair pair = uVals.get(j);
+                            final KeyValuePair pair = uVals.get(j);
                             final String ef = pair.key;
                             final String efv = pair.value;
 

@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
-import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -40,7 +39,6 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.*;
 
 import static java.lang.System.arraycopy;
@@ -135,7 +133,7 @@ public class ExperimentalData {
     private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) throws AtlasDataException {
         ExpressionMatrix matrix = expressionMatrices.get(arrayDesign);
         if (matrix == null) {
-            matrix = new ExpressionMatrix(experimentWithData.getProxy(arrayDesign));
+            matrix = new ExpressionMatrix(experimentWithData, arrayDesign);
             expressionMatrices.put(arrayDesign, matrix);
         }
         return matrix;
@@ -150,10 +148,8 @@ public class ExperimentalData {
         ExpressionStats stats = expressionStats.get(arrayDesign);
         if (stats == null) {
             try {
-                stats = new ExpressionStats(experimentWithData.getProxy(arrayDesign));
+                stats = new ExpressionStats(experimentWithData, arrayDesign);
             } catch (AtlasDataException e) {
-                return null;
-            } catch (IOException e) {
                 return null;
             }
             expressionStats.put(arrayDesign, stats);
@@ -185,7 +181,14 @@ public class ExperimentalData {
      */
     public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
         final ExpressionStats stats = getExpressionStats(ad);
-        return stats != null ? stats.getExpressionStats(designElement) : new EfvTree<ExpressionStats.Stat>();
+        
+        if (stats != null) {
+            try {
+                return stats.getExpressionStats(designElement);
+            } catch (AtlasDataException e) {
+            }
+        }
+        return new EfvTree<ExpressionStats.Stat>();
     }
 
     /**
@@ -198,14 +201,7 @@ public class ExperimentalData {
     public int[] getDesignElementIndexes(ArrayDesign arrayDesign, long geneId) throws AtlasDataException {
         Map<Long, int[]> geneMap = geneIdMaps.get(arrayDesign);
         if (geneMap == null) {
-            final NetCDFProxy proxy = experimentWithData.getProxy(arrayDesign);
-
-            final long[] geneIds;
-            try {
-                geneIds = proxy.getGenes();
-            } catch (IOException e) {
-                throw new AtlasDataException("Error during reading gene ids", e);
-            }
+            final long[] geneIds = experimentWithData.getGenes(arrayDesign);
             geneMap = new HashMap<Long, int[]>();
             for (int currentIndex = 0; currentIndex < geneIds.length; ++currentIndex) {
                 int[] deIndexes = geneMap.get(geneIds[currentIndex]);

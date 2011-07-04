@@ -99,8 +99,8 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetUniqueFactorValues() throws IOException {
-        final Set<NetCDFProxy.KeyValuePair> uniques = new HashSet<NetCDFProxy.KeyValuePair>();
-        for (NetCDFProxy.KeyValuePair uefv : netCDF.getUniqueFactorValues()) {
+        final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
+        for (KeyValuePair uefv : netCDF.getUniqueFactorValues()) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {
@@ -110,12 +110,12 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetUniqueValues() throws IOException {
-        Set<NetCDFProxy.KeyValuePair> uniques = new HashSet<NetCDFProxy.KeyValuePair>();
-        List<NetCDFProxy.KeyValuePair> uVals = netCDF.getUniqueValues();
-        List<NetCDFProxy.KeyValuePair> uefvs = netCDF.getUniqueFactorValues();
+        Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
+        List<KeyValuePair> uVals = netCDF.getUniqueValues();
+        List<KeyValuePair> uefvs = netCDF.getUniqueFactorValues();
         assert (uVals.size() >= uefvs.size());
 
-        for (NetCDFProxy.KeyValuePair uefv : uVals) {
+        for (KeyValuePair uefv : uVals) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {
