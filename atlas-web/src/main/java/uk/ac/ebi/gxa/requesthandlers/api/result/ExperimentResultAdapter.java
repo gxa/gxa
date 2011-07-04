@@ -31,7 +31,6 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.io.Closeable;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
@@ -48,7 +47,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  * @author Pavel Kurnosov
  */
 @RestOut(xmlItemName = "result")
-public class ExperimentResultAdapter implements Closeable {
+public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes = new HashSet<AtlasGene>();
@@ -60,10 +59,6 @@ public class ExperimentResultAdapter implements Closeable {
         this.experiment = experiment;
         this.expData = expData;
         this.genes.addAll(genes);
-    }
-
-    public void close() {
-        expData.close();
     }
 
     @RestOut(name = "experimentInfo")
@@ -82,10 +77,10 @@ public class ExperimentResultAdapter implements Closeable {
     }
 
     public static class ArrayDesignExpression {
-        private final ArrayDesign arrayDesign;
+        private final ArrayDesignDecorator arrayDesign;
         private ExperimentResultAdapter experimentResultAdapter;
 
-        public ArrayDesignExpression(final ExperimentResultAdapter experimentResultAdapter, ArrayDesign arrayDesign) {
+        public ArrayDesignExpression(final ExperimentResultAdapter experimentResultAdapter, ArrayDesignDecorator arrayDesign) {
             this.arrayDesign = arrayDesign;
             this.experimentResultAdapter = experimentResultAdapter;
         }
@@ -112,10 +107,10 @@ public class ExperimentResultAdapter implements Closeable {
         })
         public static class DesignElementExpressions implements Iterable<Float> {
             private final int deIndex;
-            private ArrayDesign arrayDesign;
+            private ArrayDesignDecorator arrayDesign;
             private ExperimentResultAdapter experimentResultAdapter;
 
-            public DesignElementExpressions(final ArrayDesign arrayDesign, final ExperimentResultAdapter experimentResultAdapter, int deIndex) {
+            public DesignElementExpressions(final ArrayDesignDecorator arrayDesign, final ExperimentResultAdapter experimentResultAdapter, int deIndex) {
                 this.deIndex = deIndex;
                 this.arrayDesign = arrayDesign;
                 this.experimentResultAdapter = experimentResultAdapter;
@@ -174,11 +169,11 @@ public class ExperimentResultAdapter implements Closeable {
     }
 
     public static class ArrayDesignStats {
-        private final ArrayDesign arrayDesign;
+        private final ArrayDesignDecorator arrayDesign;
         private ExperimentResultAdapter experimentResultAdapter;
         private Set<AtlasGene> genes;
 
-        public ArrayDesignStats(ExperimentResultAdapter experimentResultAdapter, Set<AtlasGene> genes, ArrayDesign arrayDesign) {
+        public ArrayDesignStats(ExperimentResultAdapter experimentResultAdapter, Set<AtlasGene> genes, ArrayDesignDecorator arrayDesign) {
             this.arrayDesign = arrayDesign;
             this.experimentResultAdapter = experimentResultAdapter;
             this.genes = genes;
@@ -223,7 +218,7 @@ public class ExperimentResultAdapter implements Closeable {
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
         if (!genes.isEmpty())
-            for (ArrayDesign ad : expData.getArrayDesigns()) {
+            for (ArrayDesignDecorator ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignStats(this, genes, ad));
             }
         return adExpMap;
@@ -234,7 +229,7 @@ public class ExperimentResultAdapter implements Closeable {
 
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();
         if (!genes.isEmpty())
-            for (ArrayDesign ad : expData.getArrayDesigns()) {
+            for (ArrayDesignDecorator ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignExpression(this, ad));
             }
         return adExpMap;

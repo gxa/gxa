@@ -38,7 +38,7 @@ import java.util.*;
 public class AssayDecorator {
     private final Assay assay;
     private final int number;
-    private final ArrayDesign arrayDesign;
+    private final ArrayDesignDecorator arrayDesign;
     private final int positionInMatrix;
     private final Set<SampleDecorator> samples = new HashSet<SampleDecorator>();
 
@@ -50,7 +50,7 @@ public class AssayDecorator {
      * @param arrayDesign      array design of this assay
      * @param positionInMatrix position in expression matrix (for specified array design)
      */
-    AssayDecorator(Assay assay, int number, ArrayDesign arrayDesign, int positionInMatrix) {
+    AssayDecorator(Assay assay, int number, ArrayDesignDecorator arrayDesign, int positionInMatrix) {
         this.assay = assay;
         this.number = number;
         this.arrayDesign = arrayDesign;
@@ -118,7 +118,7 @@ public class AssayDecorator {
      *
      * @return array design
      */
-    public ArrayDesign getArrayDesign() {
+    public ArrayDesignDecorator getArrayDesign() {
         return arrayDesign;
     }
 

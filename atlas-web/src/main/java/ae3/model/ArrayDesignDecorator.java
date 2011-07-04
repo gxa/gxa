@@ -23,6 +23,7 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 /**
  * Class, representing array design for {@link ae3.model.ExperimentalData} object
@@ -30,19 +31,23 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
  *
  * @author pashky
  */
-public class ArrayDesign {
-    private final uk.ac.ebi.microarray.atlas.model.ArrayDesign arrayDesign;
+public class ArrayDesignDecorator {
+    private final ArrayDesign arrayDesign;
 
     /**
      * Constructor
      * @param arrayDesign
      */
-    public ArrayDesign(uk.ac.ebi.microarray.atlas.model.ArrayDesign arrayDesign) {
+    ArrayDesignDecorator(ArrayDesign arrayDesign) {
         this.arrayDesign = arrayDesign;
     }
 
-    public ArrayDesign(String accession) {
-        this(new uk.ac.ebi.microarray.atlas.model.ArrayDesign(accession));
+    ArrayDesignDecorator(String accession) {
+        this(new ArrayDesign(accession));
+    }
+
+    ArrayDesign getArrayDesign() {
+        return arrayDesign;
     }
 
     /**
@@ -59,11 +64,13 @@ public class ArrayDesign {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ArrayDesign that = (ArrayDesign) o;
+        ArrayDesignDecorator that = (ArrayDesignDecorator) o;
 
-        if (arrayDesign != null ? !arrayDesign.equals(that.arrayDesign) : that.arrayDesign != null) return false;
-
-        return true;
+        if (arrayDesign != null) {
+            return arrayDesign.equals(that.arrayDesign);
+        } else {
+            return that.arrayDesign == null;
+        }
     }
 
     @Override

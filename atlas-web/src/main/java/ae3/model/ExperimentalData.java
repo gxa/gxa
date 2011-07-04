@@ -37,13 +37,13 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.System.arraycopy;
 
 /**
@@ -51,52 +51,36 @@ import static java.lang.System.arraycopy;
  *
  * @author pashky
  */
-public class ExperimentalData implements Closeable {
+public class ExperimentalData {
     private static final Logger log = LoggerFactory.getLogger(ExperimentalData.class);
-
-    /**
-     * Load experimental data using default path
-     *
-     * @param atlasNetCDFDAO netCDF DAO
-     * @param experiment     data accession
-     * @return either constructed object or null, if no data files was found for this accession
-     * @throws IOException if i/o error occurs
-     */
-    public static ExperimentalData loadExperiment(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws AtlasDataException {
-        log.info("loading data for experiment" + experiment.getAccession());
-
-        final ExperimentalData experimentalData =
-            new ExperimentalData(atlasNetCDFDAO.createExperimentWithData(experiment));
-        return experimentalData.proxies.isEmpty() ? null : experimentalData;
-    }
 
     private final ExperimentWithData experiment;
     private final List<SampleDecorator> samples = new ArrayList<SampleDecorator>();
     private final List<AssayDecorator> assays = new ArrayList<AssayDecorator>();
 
-    private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
+    private final Map<ArrayDesignDecorator, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesignDecorator, ExpressionMatrix>();
+    private final Map<ArrayDesignDecorator, String[]> designElementAccessions = new HashMap<ArrayDesignDecorator, String[]>();
+    private final Map<ArrayDesignDecorator, Map<Long, int[]>> geneIdMaps = new HashMap<ArrayDesignDecorator, Map<Long, int[]>>();
 
-    private final Map<ArrayDesign, ExpressionMatrix> expressionMatrices = new HashMap<ArrayDesign, ExpressionMatrix>();
-    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
-    private final Map<ArrayDesign, Map<Long, int[]>> geneIdMaps = new HashMap<ArrayDesign, Map<Long, int[]>>();
-
-    private final Map<ArrayDesign, ExpressionStats> expressionStats = new HashMap<ArrayDesign, ExpressionStats>();
+    private final Map<ArrayDesignDecorator, ExpressionStats> expressionStats = new HashMap<ArrayDesignDecorator, ExpressionStats>();
 
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
      *
      * @param experiment
      */
-    private ExperimentalData(final ExperimentWithData experiment) throws AtlasDataException {
-        this.experiment = experiment;
+    public ExperimentalData(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws AtlasDataException {
+        log.info("loading data for experiment" + experiment.getAccession());
+        this.experiment = atlasNetCDFDAO.createExperimentWithData(experiment);
+
         ResourceWatchdogFilter.register(new Closeable() {
             public void close() {
-                experiment.closeAllDataSources();
+                ExperimentalData.this.experiment.closeAllDataSources();
             }
         });
-        for (NetCDFDescriptor descriptor : experiment.getNetCDFDescriptors()) {
+        for (NetCDFDescriptor descriptor : this.experiment.getNetCDFDescriptors()) {
             try {
-                addProxy(descriptor.createProxy());
+                addProxy(descriptor);
             } catch (IOException e) {
                 throw new AtlasDataException(e);
             }
@@ -104,38 +88,40 @@ public class ExperimentalData implements Closeable {
         createAssaySampleMappings();
     }
 
-    public void addProxy(NetCDFProxy proxy) throws IOException {
-        ResourceWatchdogFilter.register(proxy);
-
-        final ArrayDesign arrayDesign = new ArrayDesign(proxy.getArrayDesignAccession());
-        proxies.put(arrayDesign, proxy);
-
-        final String[] sampleAccessions = proxy.getSampleAccessions();
-        for (int i = 0; i < sampleAccessions.length; ++i) {
-            final String accession = sampleAccessions[i];
-            SampleDecorator sample = null;
-            for (SampleDecorator s : this.samples) {
-                if (accession.equals(s.getAccession())) {
-                    sample = s;
-                    break;
+    public void addProxy(NetCDFDescriptor descriptor) throws AtlasDataException, IOException {
+        final NetCDFProxy proxy = descriptor.createProxy();
+        try {
+            final ArrayDesignDecorator arrayDesign = new ArrayDesignDecorator(proxy.getArrayDesignAccession());
+        
+            final String[] sampleAccessions = proxy.getSampleAccessions();
+            for (int i = 0; i < sampleAccessions.length; ++i) {
+                final String accession = sampleAccessions[i];
+                SampleDecorator sample = null;
+                for (SampleDecorator s : this.samples) {
+                    if (accession.equals(s.getAccession())) {
+                        sample = s;
+                        break;
+                    }
+                }
+                if (sample == null) {
+                    this.samples.add(new SampleDecorator(
+                        experiment.getExperiment().getSample(accession),
+                        this.samples.size()
+                    ));
                 }
             }
-            if (sample == null) {
-                this.samples.add(new SampleDecorator(
-                    experiment.getExperiment().getSample(accession),
-                    this.samples.size()
+        
+            final String[] assayAccessions = proxy.getAssayAccessions();
+            for (int i = 0; i < assayAccessions.length; ++i) {
+                this.assays.add(new AssayDecorator(
+                    experiment.getExperiment().getAssay(assayAccessions[i]),
+                    this.assays.size(),
+                    arrayDesign,
+                    i // position in matrix
                 ));
             }
-        }
-
-        final String[] assayAccessions = proxy.getAssayAccessions();
-        for (int i = 0; i < assayAccessions.length; ++i) {
-            this.assays.add(new AssayDecorator(
-                experiment.getExperiment().getAssay(assayAccessions[i]),
-                this.assays.size(),
-                arrayDesign,
-                i // position in matrix
-            ));
+        } finally {
+            proxy.close();
         }
     }
 
@@ -151,22 +137,16 @@ public class ExperimentalData implements Closeable {
         }
     }
 
-    public void close() {
-        for (NetCDFProxy p : proxies.values()) {
-            closeQuietly(p);
-        }
-    }
-
     public ExperimentWithData getExperiment() {
         return experiment;
     }
 
-    private NetCDFProxy getProxy(ArrayDesign arrayDesign) {
-        final NetCDFProxy proxy = proxies.get(arrayDesign);
-        if (proxy == null) {
-            throw LogUtil.createUnexpected("Cannot access data for " + experiment.getExperiment().getAccession() + "/" + arrayDesign.getAccession() + "is not found");
+    private NetCDFProxy getProxy(ArrayDesignDecorator arrayDesign) {
+        try {
+            return experiment.getProxy(arrayDesign.getArrayDesign());
+        } catch (AtlasDataException e) {
+            throw LogUtil.createUnexpected("unexpected", e);
         }
-        return proxy;
     }
 
     /**
@@ -174,7 +154,7 @@ public class ExperimentalData implements Closeable {
      *
      * @param arrayDesign array design, this matrix applies to
      */
-    private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
+    private ExpressionMatrix getExpressionMatrix(ArrayDesignDecorator arrayDesign) {
         ExpressionMatrix matrix = expressionMatrices.get(arrayDesign);
         if (matrix == null) {
             matrix = new ExpressionMatrix(getProxy(arrayDesign));
@@ -188,7 +168,7 @@ public class ExperimentalData implements Closeable {
      *
      * @param arrayDesign array design, this data apply to
      */
-    private ExpressionStats getExpressionStats(ArrayDesign arrayDesign) {
+    private ExpressionStats getExpressionStats(ArrayDesignDecorator arrayDesign) {
         ExpressionStats stats = expressionStats.get(arrayDesign);
         if (stats == null) {
             try {
@@ -235,7 +215,7 @@ public class ExperimentalData implements Closeable {
      * @param designElement design element id
      * @return map of statstics
      */
-    public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
+    public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesignDecorator ad, int designElement) {
         final ExpressionStats stats = getExpressionStats(ad);
         return stats != null ? stats.getExpressionStats(designElement) : new EfvTree<ExpressionStats.Stat>();
     }
@@ -247,7 +227,7 @@ public class ExperimentalData implements Closeable {
      * @param geneId      gene id (the Atlas/DW one)
      * @return array of design element id's to be used in expression/statistics retrieval functions
      */
-    public int[] getDesignElementIndexes(ArrayDesign arrayDesign, long geneId) {
+    public int[] getDesignElementIndexes(ArrayDesignDecorator arrayDesign, long geneId) {
         Map<Long, int[]> geneMap = geneIdMaps.get(arrayDesign);
         if (geneMap == null) {
             final NetCDFProxy proxy = getProxy(arrayDesign);
@@ -304,7 +284,7 @@ public class ExperimentalData implements Closeable {
      * @param arrayDesign array design
      * @return iterable of assays
      */
-    public Iterable<AssayDecorator> getAssays(final ArrayDesign arrayDesign) {
+    public Iterable<AssayDecorator> getAssays(final ArrayDesignDecorator arrayDesign) {
         return Collections2.filter(
                 assays,
                 new Predicate<AssayDecorator>() {
@@ -320,8 +300,12 @@ public class ExperimentalData implements Closeable {
      * @return set of array designs
      */
     @RestOut(name = "arrayDesigns")
-    public Set<ArrayDesign> getArrayDesigns() {
-        return proxies.keySet();
+    public Set<ArrayDesignDecorator> getArrayDesigns() {
+        final HashSet<ArrayDesignDecorator> decorators = new HashSet<ArrayDesignDecorator>();
+        for (ArrayDesign ad : experiment.getExperiment().getArrayDesigns()) {
+            decorators.add(new ArrayDesignDecorator(ad));
+        }
+        return decorators;
     }
 
     /**
@@ -344,7 +328,7 @@ public class ExperimentalData implements Closeable {
         return experiment.getExperiment().getExperimentCharacteristics();
     }
 
-    public String getDesignElementAccession(ArrayDesign arrayDesign, int designElementId) {
+    public String getDesignElementAccession(ArrayDesignDecorator arrayDesign, int designElementId) {
         String[] array = designElementAccessions.get(arrayDesign);
         if (array == null) {
             try {

@@ -117,7 +117,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
-    private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter>, Closeable {
+    private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter> {
         private final ExperimentSolrDAO.AtlasExperimentsResult experiments;
         private final Collection<ExperimentResultAdapter> results;
 
@@ -140,12 +140,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
         public Collection<ExperimentResultAdapter> getResults() {
             return results;
-        }
-
-        public void close() {
-            for (ExperimentResultAdapter adapter : results) {
-                adapter.close();
-            }
         }
     }
 
@@ -235,7 +229,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
 
                                 try {
-                                    expData = ExperimentalData.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
+                                    expData = new ExperimentalData(atlasNetCDFDAO, experiment.getExperiment());
                                 } catch (AtlasDataException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }
