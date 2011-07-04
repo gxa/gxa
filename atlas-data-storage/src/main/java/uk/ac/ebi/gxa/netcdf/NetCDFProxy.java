@@ -438,25 +438,6 @@ public final class NetCDFProxy implements Closeable {
         return readFloatValuesForAllRows("BDC");
     }
 
-    public static class TwoDFloatArray {
-        private final Array array;
-        private final int[] shape;
-
-        TwoDFloatArray(Array array) {
-            this.array = array;
-            this.shape = new int[] {1, array.getShape()[1]};
-        }
-
-        public float[] getRow(int index) {
-            final int[] origin = {index, 0};
-            try {
-                return (float[])array.section(origin, shape).get1DJavaArray(float.class);
-            } catch (InvalidRangeException e) {
-                return new float[0];
-            }
-        }
-    }
-
     private TwoDFloatArray readFloatValuesForAllRows(String varName) throws IOException {
         final Variable variable = netCDF.findVariable(varName);
         return new TwoDFloatArray(variable.read());
