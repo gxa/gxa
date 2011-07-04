@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
@@ -46,6 +48,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
  * @author pashky
  */
 public class FeedbackRequestHandler implements HttpRequestHandler {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private AtlasProperties atlasProperties;
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -54,6 +57,7 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
 
     public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         boolean success = false;
+        StringBuilder sb = new StringBuilder();
         try {
             boolean debug = false;
 
@@ -67,27 +71,37 @@ public class FeedbackRequestHandler implements HttpRequestHandler {
 
             // create a message
             Message msg = new MimeMessage(smtpSession);
+            // Set to address
+            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(atlasProperties.getFeedbackToAddress(), true)});
 
-            // set the from and to address
-            InternetAddress addressFrom = new InternetAddress(atlasProperties.getFeedbackFromAddress());
+            String email = request.getParameter("email");
+            if (Strings.isNullOrEmpty(email)) {
+                // Get the default from address
+                email = atlasProperties.getFeedbackFromAddress();
+            }
+
+            // Set the from and replyTo address
+            InternetAddress addressFrom = new InternetAddress(email, true);
             msg.setFrom(addressFrom);
-            msg.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(atlasProperties.getFeedbackToAddress())});
-
-            String email = request.getParameter("e");
-            if (!Strings.isNullOrEmpty(email))
-                msg.setReplyTo(new InternetAddress[]{new InternetAddress(request.getParameter("e"))});
+            msg.setReplyTo(new InternetAddress[]{addressFrom});
 
             // Setting the Subject and Content Type
             msg.setSubject(atlasProperties.getFeedbackSubject());
-            msg.setContent(request.getParameter("f"), "text/plain");
+
+            sb.append("URL: ").append(request.getParameter("url")).append("\n");
+            sb.append("What were you trying to do:\n\t").append(request.getParameter("context")).append("\n");
+            sb.append("What went wrong:\n\t").append(request.getParameter("error")).append("\n");
+            sb.append("What could be done better:\n\t").append(request.getParameter("dobetter")).append("\n");
+
+            msg.setContent(sb.toString(), "text/plain");
 
             Transport.send(msg);
             response.getWriter().write("SEND OK");
             success = true;
         } catch (AddressException e) {
-            throw logUnexpected(e.getMessage(), e);
+            log.error(e.getMessage() + " while sending:\n " + sb.toString() + "\n", e);
         } catch (MessagingException e) {
-            throw logUnexpected(e.getMessage(), e);
+            log.error(e.getMessage() + " while sending:\n " + sb.toString() + "\n", e);
         } finally {
             if (!success)
                 response.getWriter().write("SEND FAIL");
