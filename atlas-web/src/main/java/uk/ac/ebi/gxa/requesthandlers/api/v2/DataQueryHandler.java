@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
-import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.TwoDFloatArray;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
@@ -39,7 +38,6 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
-import java.io.IOException;
 import java.util.*;
 
 class DataQueryHandler implements QueryHandler {
@@ -224,7 +222,6 @@ class DataQueryHandler implements QueryHandler {
             final ExperimentWithData experimentWithData =
                 atlasNetCDFDAO.createExperimentWithData(experiment);
             for (ArrayDesign ad : experiment.getArrayDesigns()) {
-                final NetCDFProxy proxy = experimentWithData.getProxy(ad);
                 final Map<Integer, String> assayAccessionByIndex = new TreeMap<Integer, String>();
                 int index = 0;
                 for (Assay assay : experimentWithData.getAssays(ad)) {
@@ -244,7 +241,7 @@ class DataQueryHandler implements QueryHandler {
                 final long[] proxyGenes = experimentWithData.getGenes(ad);
                 final String[] proxyDEAccessions = experimentWithData.getDesignElementAccessions(ad);
                 if (genesById == null) {
-                    final TwoDFloatArray array = proxy.getAllExpressionData();
+                    final TwoDFloatArray array = experimentWithData.getAllExpressionData(ad);
                     final TreeMap<Long,String> allGenesById = new TreeMap<Long,String>();
                     for (BioEntity g : bioEntityDAO.getAllGenesFast()) {
                         allGenesById.put(g.getId(), useGeneNames ? g.getName() : g.getIdentifier());
@@ -300,8 +297,6 @@ class DataQueryHandler implements QueryHandler {
             }
             return data;
         } catch (AtlasDataException e) {
-            return new Error(e.toString());
-        } catch (IOException e) {
             return new Error(e.toString());
         }
     }

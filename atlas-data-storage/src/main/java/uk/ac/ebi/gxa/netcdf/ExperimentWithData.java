@@ -56,8 +56,7 @@ public class ExperimentWithData {
         return netCDFDao.getNetCDFDescriptors(experiment);
     }
 
-    // TODO: change to private
-    public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
+    private NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
             p = netCDFDao.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
@@ -142,6 +141,14 @@ public class ExperimentWithData {
     public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public TwoDFloatArray getAllExpressionData(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getAllExpressionData(); 
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
