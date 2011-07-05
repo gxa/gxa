@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
@@ -49,6 +51,7 @@ import java.util.List;
  * @author Olga Melnichuk
  */
 public class AtlasDAO {
+    private static final Logger log = LoggerFactory.getLogger(AtlasDAO.class);
     private final ArrayDesignDAO arrayDesignDAO;
     private final BioEntityDAO bioEntityDAO;
     private final JdbcTemplate template;
@@ -142,10 +145,12 @@ public class AtlasDAO {
     }
 
     public void startSession() {
+        log.debug("startSession()");
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
     public void finishSession() {
+        log.debug("finishSession()");
         SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
 

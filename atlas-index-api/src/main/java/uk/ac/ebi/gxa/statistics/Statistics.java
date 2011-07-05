@@ -260,6 +260,9 @@ public class Statistics implements Serializable, StatisticsBuilder {
         Set<ExperimentInfo> expsForBioEntity = newHashSet();
         for (EfvAttribute attr : scoringEfsForBioEntities) {
             Map<ExperimentInfo, ConciseSet> expToBioEntities = statistics.get(attr);
+            if (expToBioEntities == null)
+                continue;
+
             for (Map.Entry<ExperimentInfo, ConciseSet> expToBioEntity : expToBioEntities.entrySet()) {
                 if (expToBioEntity.getValue().contains(bioEntityId)) {
                     expsForBioEntity.add(expToBioEntity.getKey());
