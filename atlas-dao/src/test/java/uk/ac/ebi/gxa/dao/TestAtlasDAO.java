@@ -35,6 +35,18 @@ import java.util.List;
  * @author Tony Burdett
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        atlasDAO.startSession();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        atlasDAO.finishSession();
+        super.tearDown();
+    }
+
     public void testGetAllExperiments() throws Exception {
         // get row count of experiments in the dataset
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
