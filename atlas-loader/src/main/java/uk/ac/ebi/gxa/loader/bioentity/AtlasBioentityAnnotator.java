@@ -62,7 +62,7 @@ public abstract class AtlasBioentityAnnotator {
                     reportProgress("Wirting " + bioEntities.size() + " " + type.getName() + " " + finalOrganism.getName());
                     annotationDAO.writeBioentities(bioEntities);
                 }
-                
+
                 reportProgress("Wirting " + propertyValues.size() + " property values " + finalOrganism.getName());
                 annotationDAO.writePropertyValues(propertyValues);
             }
@@ -93,15 +93,14 @@ public abstract class AtlasBioentityAnnotator {
     }
 
     protected void addPropertyValue(String beIdentifier, BioEntityType type, BEPropertyValue pv) {
-
-        propertyValues.add(pv);
-
         if (StringUtils.isNotBlank(pv.getValue()) && pv.getValue().length() < 1000 && !"NA".equals(pv.getValue())) {
             List<String> beProperty = new ArrayList<String>(3);
             beProperty.add(beIdentifier);
             beProperty.add(pv.getProperty().getName());
             beProperty.add(pv.getValue());
             typeToBEPropValues.put(type, beProperty);
+
+            propertyValues.add(pv);
         }
     }
 

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +51,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
 
             this.targetOrganism = annSrc.getOrganism();
-            reportProgress("Reading Ensembl annotations for organism " + targetOrganism);
+            reportProgress("Reading Ensembl annotations for organism " + targetOrganism.getName());
 
             //Create a list with biomart attribute names for bioentity types of  annotation source
             BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
@@ -58,7 +59,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
             URL beURL = martConnection.getAttributesURL(martBENames);
             if (beURL != null) {
-                reportProgress("Reading bioentities for " + targetOrganism);
+                reportProgress("Reading bioentities for " + targetOrganism.getName());
                 csvReader = new CSVReader(new InputStreamReader(beURL.openStream()), '\t', '"');
                 readBioenties(csvReader, targetOrganism, attributesHandler);
                 csvReader.close();
@@ -66,7 +67,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
             for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
                 //List of Attributes contains for example: {"ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"}
-                List<String> attributes = attributesHandler.getMartBEIdentifiers();
+                List<String> attributes = new ArrayList<String>(attributesHandler.getMartBEIdentifiers());
                 attributes.add(bioMartProperty.getName());
 
                 URL url = martConnection.getAttributesURL(attributes);
@@ -202,11 +203,11 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
          * @return
          */
         public List<String> getMartBEIdentifiersAndNames() {
-            return martBEIdentifiersAndNames;
+            return Collections.unmodifiableList(martBEIdentifiersAndNames);
         }
 
         public List<String> getMartBEIdentifiers() {
-            return martBEIdentifiers;
+            return Collections.unmodifiableList(martBEIdentifiers);
         }
 
         public BioEntityType[] getTypes() {
