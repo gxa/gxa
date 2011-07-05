@@ -59,6 +59,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     }
 
     public void testGetGeneInExpPlotData() throws Exception {
+        atlasDAO.startSession();
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
         Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
@@ -78,6 +79,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
         ArrayList data = (ArrayList) series.get("data");
         assertTrue("Data retrieved was empty", data.size() > 0);
+        atlasDAO.finishSession();
     }
 
     public GeneSolrDAO getAtlasSolrDao() {

@@ -85,6 +85,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(atlasDAO);
+        eaibs.setExperimentDAO(experimentDAO);
         eaibs.setSolrServer(exptServer);
 
         indexBuilder = new DefaultIndexBuilder();
