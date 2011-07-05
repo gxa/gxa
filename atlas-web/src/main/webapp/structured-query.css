@@ -322,7 +322,6 @@ fieldset, #drill {
     text-decoration: underline;
 }
 
-#expopup table.oneplot td { vertical-align: top; }
 #expopup table.oneplot .efname { font-size: smaller; font-weight: bold; margin: 6px 0 2px 2px;  }
 
 #tooltipPlot {
