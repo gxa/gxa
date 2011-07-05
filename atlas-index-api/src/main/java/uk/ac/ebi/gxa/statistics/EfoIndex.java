@@ -1,64 +1,62 @@
 package uk.ac.ebi.gxa.statistics;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newHashSet;
+
 /**
- * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment index combinations
+ * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment combinations
  * Note that Attributes are grouped per experiment. This facilitates scoring of efo queries against bit index.
  */
 public class EfoIndex implements Serializable {
+    private static final long serialVersionUID = 201106061646L;
 
-    private static final long serialVersionUID = -1000094628265441595L;
+    // efoTerm -> experiment -> attributes
+    private Map<String, Map<ExperimentInfo, Set<EfvAttribute>>> efoIndex = newHashMap();
 
-    // efoTerm -> experiment index -> Set<Attribute Index>
-    private Map<String, Map<Integer, Set<Integer>>> efoIndex = new HashMap<String, Map<Integer, Set<Integer>>>();
+    // attribute -> experiment -> efoTerm
+    private Map<EfvAttribute, Map<ExperimentInfo, String>> efvToEfoIndex = newHashMap();
 
-    // Attribute -> experiment index -> efoTerm
-    private Map<Integer, Map<Integer, String>> efvToEfoIndex = new HashMap<Integer, Map<Integer, String>>();
-
-    public void addMapping(String efoTerm, Integer attributeIndex, Integer experimentIndex) {
+    public void addMapping(String efoTerm, EfvAttribute attribute, ExperimentInfo experiment) {
         if (!efoIndex.containsKey(efoTerm)) {
-            Map<Integer, Set<Integer>> expToAttrs = new HashMap<Integer, Set<Integer>>();
+            Map<ExperimentInfo, Set<EfvAttribute>> expToAttrs = newHashMap();
             efoIndex.put(efoTerm, expToAttrs);
         }
 
-        if (!efoIndex.get(efoTerm).containsKey(experimentIndex)) {
-            Set<Integer> attrs = new HashSet<Integer>();
-            efoIndex.get(efoTerm).put(experimentIndex, attrs);
+        if (!efoIndex.get(efoTerm).containsKey(experiment)) {
+            Set<EfvAttribute> attrs = newHashSet();
+            efoIndex.get(efoTerm).put(experiment, attrs);
         }
-        efoIndex.get(efoTerm).get(experimentIndex).add(attributeIndex);
+        efoIndex.get(efoTerm).get(experiment).add(attribute);
 
-        if (!efvToEfoIndex.containsKey(attributeIndex)) {
-            Map<Integer, String> expToEfo = new HashMap<Integer, String>();
-            efvToEfoIndex.put(attributeIndex, expToEfo);
+        if (!efvToEfoIndex.containsKey(attribute)) {
+            Map<ExperimentInfo, String> expToEfo = newHashMap();
+            efvToEfoIndex.put(attribute, expToEfo);
         }
-        efvToEfoIndex.get(attributeIndex).put(experimentIndex, efoTerm);
+        efvToEfoIndex.get(attribute).put(experiment, efoTerm);
     }
 
-    public Map<Integer, Set<Integer>> getMappingsForEfo(String efoTerm) {
-        return efoIndex.get(efoTerm);
+    public Map<ExperimentInfo, Set<EfvAttribute>> getMappingsForEfo(String efoTerm) {
+        final Map<ExperimentInfo, Set<EfvAttribute>> experimentToEfvs = efoIndex.get(efoTerm);
+        return experimentToEfvs == null ? Collections.<ExperimentInfo, Set<EfvAttribute>>emptyMap() : experimentToEfvs;
     }
 
     /**
-     *
-     * @param attributeIndex
-     * @param expIndex
-     * @return an efo term one of whose mapping is an efv referenced by attributeIndex in a an experiment expIndex
+     * @param attribute  EFV to search EFO term for
+     * @param experiment the scope of search
+     *                   TODO: actually, mapping is assay- or sample-scoped, so searching within experiment is a bad idea
+     * @return an efo term one of whose mapping is an efv referenced by attribute in a given experiment
      */
-    public String getEfoTerm(Integer attributeIndex, Integer expIndex) {
-        Map<Integer, String> expToEfo = efvToEfoIndex.get(attributeIndex);
-        if (expToEfo != null) {
-            return expToEfo.get(expIndex);
-        }
-        return null;
+    public String getEfoTerm(EfvAttribute attribute, ExperimentInfo experiment) {
+        Map<ExperimentInfo, String> expToEfo = efvToEfoIndex.get(attribute);
+        return expToEfo != null ? expToEfo.get(experiment) : null;
     }
 
     /**
-     *
      * @return all efo terms stored in this index
      */
     public Set<String> getEfos() {

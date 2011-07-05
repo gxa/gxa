@@ -246,14 +246,17 @@ public class ArrayDataStep {
 
             listener.setProgress("Processing data in R");
             for (Map.Entry<String, RawData> entry : dataByArrayDesign.entrySet()) {
-                log.info("ArrayDesign " + entry.getKey() + ":");
-                log.info("directory " + entry.getValue().dataDir);
-
                 DataNormalizer normalizer = new DataNormalizer(entry.getValue());
+                // this method returns null if computation was finished successfully
+                // or an instance of "try-error" R class in case of failure
+                // currently we receive instances of "try-error" as RChar objects
                 final RObject result = computeService.computeTask(normalizer);
-                log.info("RResult = " + result);
-                if (result instanceof RChar) {
-                    throw new AtlasLoaderException(((RChar)result).getValue()[0]);
+                if (result != null) {
+                    if (result instanceof RChar) {
+                        throw new AtlasLoaderException(((RChar)result).getValue()[0]);
+                    } else {
+                        throw new AtlasLoaderException("Something unexpected happens in our R code; returned " + result);
+                    }
                 }
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);

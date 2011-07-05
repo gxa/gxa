@@ -78,8 +78,9 @@ public class AssayProperties {
         for (String s : sampleCharacteristics) {
             String[] vals = proxy.getCharacteristicValues(s);
             SampleCharacteristicsCompactData d = new SampleCharacteristicsCompactData(
-                    nameConverter.apply(s), vals.length);
-            for (int i = 0; i < vals.length; i++) {
+                    nameConverter.apply(s), s2a[0].length);
+            assert vals.length == s2a.length;
+            for (int i = 0; i < s2a.length; i++) {
                 d.addScv(vals[i], i);
                 for (int j = s2a[i].length - 1; j >= 0; j--) {
                     if (s2a[i][j] > 0) {

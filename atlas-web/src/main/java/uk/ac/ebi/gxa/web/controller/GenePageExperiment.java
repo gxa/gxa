@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.web.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentInfo;
+import uk.ac.ebi.gxa.statistics.ExperimentResult;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -17,9 +17,9 @@ public class GenePageExperiment {
     private static final Logger log = LoggerFactory.getLogger(GenePageExperiment.class);
 
     private Experiment experiment;
-    private ExperimentInfo experimentInfo;
+    private ExperimentResult experimentInfo;
 
-    public GenePageExperiment(Experiment experiment, ExperimentInfo experimentInfo) {
+    public GenePageExperiment(Experiment experiment, ExperimentResult experimentInfo) {
         this.experiment = experiment;
         this.experimentInfo = experimentInfo;
     }
