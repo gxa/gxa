@@ -36,7 +36,8 @@ public abstract class AnnotationSource implements Serializable{
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
     @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ")
     protected Long annotationSrcId;
-    @ManyToOne
+
+    @ManyToOne(cascade = CascadeType.ALL)
     protected Organism organism;
 
     @ManyToOne(cascade = CascadeType.ALL)

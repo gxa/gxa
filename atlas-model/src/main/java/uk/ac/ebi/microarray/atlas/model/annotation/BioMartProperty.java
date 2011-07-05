@@ -25,7 +25,7 @@ public class BioMartProperty {
     private Long biomartpropertyId;
     private String name;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private BioEntityProperty bioEntityProperty;
 
     @ManyToOne

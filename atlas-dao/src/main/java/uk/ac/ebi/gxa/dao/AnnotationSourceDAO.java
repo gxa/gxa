@@ -4,8 +4,12 @@ import org.hibernate.SessionFactory;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,14 +38,14 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
 //        //ToDo: this is just for test, write real method!
 //        Software software = new Software(null, "plants", "8");
-//        Organism organism = organismDAO.getByName("arabidopsis thaliana");
+//        Organism organism = new Organism(null, "arabidopsis thaliana");
 //
 //        BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
 //        annotationSource.setDatabaseName("plant");
 //        annotationSource.setDatasetName("athaliana_eg_gene");
 //        annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
 //
-//        BioEntityProperty goterm = bioEntityPropertyDAO.getByName("goterm");
+//        BioEntityProperty goterm = new BioEntityProperty(null, "goterm");
 //        annotationSource.addBioMartProperty("name_1006", goterm);
 //
 //        BioEntityType transcType = (BioEntityType) getFirst(template.find("from BioEntityType where name = ?", BioEntityType.ENSTRANSCRIPT), null);
