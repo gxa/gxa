@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
@@ -46,11 +47,20 @@ import static org.junit.Assert.assertNotNull;
  */
 public class ExperimentalDataTest {
     private long assayid = 0;
+    private long sampleid = 0;
 
     private List<Assay> eMexp1586Assays(Experiment eMexp1586, ArrayDesign ad1) {
         List<Assay> result = new ArrayList<Assay>();
         for (int i = 1; i <= 6; i++)
             result.add(new Assay(assayid++, "A127-0" + i, eMexp1586, ad1));
+        return result;
+    }
+
+    private List<Sample> eMexp1586Samples() {
+        List<Sample> result = new ArrayList<Sample>();
+        for (int i = 1; i <= 6; i++) {
+            result.add(new Sample(sampleid++, "A127-0" + i, null, null));
+        }
         return result;
     }
 
@@ -76,6 +86,29 @@ public class ExperimentalDataTest {
         return result;
     }
 
+    private List<Sample> eMexp1913Samples() {
+        final List<Sample> result = new ArrayList<Sample>();
+        final String[] accessions = new String[] {
+            "C99V50F 5-43",
+            "C99WT 5-23",
+            "mock 2-67_3. Negative control",
+            "C99I45F 4-25a",
+            "C99V50F 4-52",
+            "C99WT 4-2",
+            "C99I45F 4-13",
+            "mock 2-67_2. Negative control",
+            "C99V50F 5-59a",
+            "mock 2-67_1. Negative control",
+            "C99WT 5-12",
+            "C99I45F 4-17"
+        };
+
+        for (String s : accessions) {
+            result.add(new Sample(sampleid++, s, null, null));
+        }
+        return result;
+    }
+
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException, AtlasDataException {
@@ -83,6 +116,7 @@ public class ExperimentalDataTest {
         ArrayDesign ad1 = new ArrayDesign("A-AFFY-44");
         ad1.setArrayDesignID(160588088);
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
+        eMexp1586.setSamples(eMexp1586Samples());
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
@@ -102,6 +136,7 @@ public class ExperimentalDataTest {
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
         eMexp1913.setAssays(assays);
+        eMexp1913.setSamples(eMexp1913Samples());
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());

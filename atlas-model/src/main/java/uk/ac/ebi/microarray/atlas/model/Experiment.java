@@ -168,6 +168,10 @@ public class Experiment {
         return samples;
     }
 
+    public void setSamples(List<Sample> samples) {
+        this.samples = samples;
+    }
+
     public List<String> getSpecies() {
         Set<String> species = new HashSet<String>();
         for (Sample sample : samples) {
