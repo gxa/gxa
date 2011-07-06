@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context swallowOutput="true" docBase="${WAR_FILE}" unpackWAR="${ATLAS_UNPACK_WAR}" antiJARLocking="true" antiResourceLocking="true">
+<Context swallowOutput="true" docBase="${WAR_FILE}" unpackWAR="false">
+    <!-- antiJARLocking="true" antiResourceLocking="true" -->
     <Resource
             name="jdbc/ATLAS2"
             type="javax.sql.DataSource"
