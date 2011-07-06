@@ -38,6 +38,8 @@ public interface AtlasLoaderCommandVisitor {
 
     void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException;
 
+    void process(DataReleaseCommand cmd);
+
     void process(MakeExperimentPrivateCommand cmd) throws AtlasLoaderException;
 
     void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException;
