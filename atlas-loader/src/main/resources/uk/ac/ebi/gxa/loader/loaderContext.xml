@@ -23,7 +23,7 @@
     </bean>
 
     <bean name="experimentEditorService" class="uk.ac.ebi.gxa.loader.service.ExperimentEditorService">
-        <constructor-arg ref="organismDAO"/>
+        <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="atlasDAO"/>
     </bean>
 
