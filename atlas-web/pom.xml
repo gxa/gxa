@@ -77,7 +77,10 @@
                         def gitDescribe = """${gitcmd} describe""".execute().in.text.trim()
                         def m = gitDescribe =~ /(?:atlas-)?(.*)/
 
-                        project.properties['versionDescriptor'] = m[0][1]
+                        def gitBranch = """${gitcmd} symbolic-ref -q HEAD""".execute().in.text.trim()
+                        def n = gitBranch =~ /(?:refs\/heads\/)?(.*)/
+
+                        project.properties['versionDescriptor'] = m[0][1] + '-' + n[0][1]
                         project.properties['buildDate'] = new Date().getDateTimeString()
                     </source>
                 </configuration>
