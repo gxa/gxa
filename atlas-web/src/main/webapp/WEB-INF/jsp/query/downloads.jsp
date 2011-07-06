@@ -91,7 +91,7 @@
                         <c:forEach items="${downloads}" var="download" varStatus="i">
                           <c:choose>
                             <c:when test="${f:length(download.value.query) > 50}">
-                                <c:set var="queryString" value="${f:substring(download.value.query,0,50)}..." />
+                                <c:set var="queryString" value="${f:substring(download.value.query,0,47)}..." />
                             </c:when>
                             <c:otherwise>
                                 <c:set var="queryString" value="${download.value.query}" />
