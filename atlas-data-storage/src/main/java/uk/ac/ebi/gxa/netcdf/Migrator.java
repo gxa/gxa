@@ -23,8 +23,7 @@
 package uk.ac.ebi.gxa.netcdf;
 
 import java.util.*;
-
-import java.io.IOException;
+import java.io.*;
 
 import ucar.nc2.*;
 import ucar.ma2.*;
@@ -32,11 +31,60 @@ import ucar.ma2.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+
 class Migrator {
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final AtlasNetCDFDAO netCDFDAO;
 
-    private void splitNetCDFFile(String originalFilePath, String dataFilePath, String statisticsFilePath) throws AtlasDataException {
-        log.info("Splitting " + originalFilePath + " into " + dataFilePath + " and " + statisticsFilePath);
+    public Migrator(AtlasNetCDFDAO netCDFDAO) {
+        this.netCDFDAO = netCDFDAO;
+    }
+
+    private File getVersion1File(Experiment experiment, ArrayDesign ad) {
+        return new File(
+            netCDFDAO.getDataDirectory(experiment),
+            experiment.getAccession() + "_" + ad.getAccession() + ".nc"
+        );
+    }
+
+    private File getVersion2DataFile(Experiment experiment, ArrayDesign ad) {
+        return new File(
+            netCDFDAO.getDataDirectory(experiment),
+            experiment.getAccession() + "_" + ad.getAccession() + "_data.nc"
+        );
+    }
+
+    private File getVersion2StatisticsFile(Experiment experiment, ArrayDesign ad) {
+        return new File(
+            netCDFDAO.getDataDirectory(experiment),
+            experiment.getAccession() + "_" + ad.getAccession() + "_statistics.nc"
+        );
+    }
+
+    // returns String identifier of netcdf file version; returns null if netcdf file is missing
+    public String getVersion(Experiment experiment, ArrayDesign ad) {
+        if (getVersion1File(experiment, ad).exists()) {
+            return "1.0";
+        } else if (getVersion2DataFile(experiment, ad).exists()) {
+            // TODO: read version attribute from file
+            return "2.0";
+        } else {
+            return null;
+        }
+    }
+
+    public void migrateToVersion2(Experiment experiment, ArrayDesign ad) throws AtlasDataException {
+        splitNetCDFFile(
+            getVersion1File(experiment, ad),
+            getVersion2DataFile(experiment, ad),
+            getVersion2StatisticsFile(experiment, ad)
+        );
+    }
+
+    private void splitNetCDFFile(File originalFile, File dataFile, File statisticsFile) throws AtlasDataException {
+        log.info("Splitting " + originalFile.getPath() + " into " + dataFile.getPath() + " and " + statisticsFile.getPath());
         final Set<String> dataDimensions = new TreeSet<String>();
         final Set<String> statsDimensions = new TreeSet<String>();
 
@@ -90,17 +138,25 @@ class Migrator {
         NetcdfFileWriteable outfileData = null;
         NetcdfFileWriteable outfileStats = null;
         try {
-            infile = NetcdfFile.open(originalFilePath);
-            outfileData = NetcdfFileWriteable.createNew(dataFilePath, false);
-            outfileStats = NetcdfFileWriteable.createNew(statisticsFilePath, false);
-            final List<Attribute> attributes = infile.getGlobalAttributes();
+            infile = NetcdfFile.open(originalFile.getAbsolutePath());
+            outfileData = NetcdfFileWriteable.createNew(dataFile.getAbsolutePath(), false);
+            outfileStats = NetcdfFileWriteable.createNew(statisticsFile.getAbsolutePath(), false);
+
             log.info("Writing attributes");
+            final List<Attribute> attributes = infile.getGlobalAttributes();
+            final String versionAttributeName = "CreateNetCDF_VERSION";
+            outfileData.addGlobalAttribute(versionAttributeName, "2.0");
+            outfileStats.addGlobalAttribute(versionAttributeName, "2.0");
             for (Attribute a : attributes) {
-                outfileData.addGlobalAttribute(a.getName(), a.getValues());
-                outfileStats.addGlobalAttribute(a.getName(), a.getValues());
+                final String name = a.getName();
+                if (!versionAttributeName.equals(name)) {
+                    outfileData.addGlobalAttribute(a.getName(), a.getValues());
+                    outfileStats.addGlobalAttribute(a.getName(), a.getValues());
+                }
             }
-            final List<Dimension> dimensions = infile.getDimensions();
+
             log.info("Writing dimensions");
+            final List<Dimension> dimensions = infile.getDimensions();
             for (Dimension d : dimensions) {
                 final String name = d.getName();
                 if (dataDimensions.contains(name)) {
@@ -156,12 +212,13 @@ class Migrator {
                         }
                     );
                 } else if (!dropVariables.contains(name)) {
-                    throw new AtlasDataException("Unexpected variable name " + name + " in file " + originalFilePath);
+                    throw new AtlasDataException("Unexpected variable name " + name + " in file " + originalFile.getPath());
                 }
             }
+
+            log.info("Writing data");
             outfileData.create();
             outfileStats.create();
-            log.info("Writing data");
             for (Variable v : variables) {
                 final String name = v.getName();
                 try {
