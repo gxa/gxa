@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public interface AutoCompleter {
      * @param filters  custom filters for results. implementation defines handling (if any)
      * @return collection of auto completed items
      */
-    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit, Map<String, String> filters);
+    public Collection<AutoCompleteItem> autoCompleteValues(String property, @Nonnull String prefix, int limit, @Nullable Map<String, String> filters);
 
     /**
      * Auto-completion helper method, returning list of matching values and counters for specific factor/property and prefix

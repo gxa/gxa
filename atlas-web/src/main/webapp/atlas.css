@@ -131,7 +131,12 @@ td.atlastable {
 }
 
 td.legendLabel {
-    white-space:nowrap;
+    vertical-align: bottom;
+    white-space: nowrap;
+}
+
+td.legendColorBox {
+    vertical-align: bottom;
 }
 
 .hrClear hr {

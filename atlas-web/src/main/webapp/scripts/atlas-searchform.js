@@ -41,17 +41,16 @@ var atlas = atlas || {};
         }
     };
 
+    function ellipsis(val, n) {
+        return val.length > n ? val.substr(0, n) + '...' : val
+    }
+
     atlas.tokenizeConditionInput = function (fvalfield, factor, defaultvalue) {
         var actype = 'efv';
         if (factor == '') {
             actype = 'efoefv';
         } else if (factor == 'efo') {
             actype = 'efo';
-        }
-
-
-        function ellipsis(val, n) {
-            return val.length > n ? val.substr(0, n) + '...' : val
         }
 
         fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
@@ -68,27 +67,27 @@ var atlas = atlas || {};
 
             formatListItem: function(item, q, i) {
                 var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
-                var title = "";
-                var id = item.property === "efo" ? item.id : "";
+                var title = item.value;
+                var id = item.property === "efo" ? item.id : (item.factorName || "");
 
                 if (item.alternativeTerms && item.alternativeTerms.length > 0) {
                     for (var i = 0; i < item.alternativeTerms.length; i++) {
                         var at = item.alternativeTerms[i];
                         var hat = $.highlightTerm(at, q, 'b');
                         if (hat != at) {
-                            text.push("[" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
+                            text.push(" [" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
+                            title += " [" + at + "]";
                             break;
                         }
                     }
-                    title = "Alternative terms: " + item.alternativeTerms.join(', ');
                 }
 
+                title += " [" + id + "]";
+
                 var span = $("<span>");
+                span.attr("title", title);
                 span.html(text.join(" "));
                 span.append($("<em>").text(" (" + item.count + " genes) " + id));
-                if (title) {
-                    span.attr("title", title);
-                }
                 return $("<div>").append(span).html();
             },
 
@@ -118,37 +117,52 @@ var atlas = atlas || {};
         {
             extraParams: {
                 factor: property,
-                type: 'gene',
+                type: "gene",
                 limit: 15
             },
 
             defaultValue: defaultvalue,
 
             formatListItem: function(row, q, i) {
-                var text = $.highlightTerm(row.value.length > 50 ? row.value.substr(0, 50) + '...' : row.value, q, 'b');
-                if (property == '') {
-                    if (row.property == 'gene') {
-                        var ext = '(' + row.otherNames.join(',') + ') ' + row.species;
-                        return '<em>gene:</em>&nbsp;' + text + '&nbsp;<em>' + ext + '</em>';
-                    } else {
-                        return '<em>' + row.property.toLowerCase() + ':</em>&nbsp;' + text + '&nbsp;<em>(' + row.count + ')</em>';
-                    }
-                } else {
-                    return '<nobr>' + text + ' (' + row.count + ')</nobr>';
+                var text = $.highlightTerm(ellipsis(row.value, 50), q, 'b');
+                var title = row.value;
+                var prop = property ? "" : (row.property || "").toLowerCase();
+                var ext = "";
+                var count = row.count || 0;
+
+                if (prop == "gene") {
+                    var otherNames = row.otherNames || [];
+                    ext = otherNames.length > 0 ? "(" + otherNames.join(",") + ") " : "";
+                    ext += row.species;
+                    title += " " + ext;
                 }
+
+                var span = $("<span>");
+                span.attr("title", title);
+                if (prop) {
+                    span.append($("<em>").html(prop + ":"));
+                }
+                span.append("&nbsp;" + text);
+                if (ext) {
+                    span.append($("<em>").html("&nbsp;" + ext));
+                }
+                if (count > 0) {
+                    span.append($("<em>").html("&nbsp;(" + count + ")"));
+                }
+                return $("<div>").append(span).html();
             },
 
             formatToken: function(row) {
-                var text = row.property == 'gene' && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                var text = row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
                 return text.length > 20 ? text.substr(0, 20) + '...' : text;
             },
 
             formatTokenTooltip: function(row) {
-                return row.property == 'gene' && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
             },
 
             formatId: function(res) {
-                return res.property == 'gene' ? res.id : res.value;
+                return res.property == "gene" ? res.id : res.value;
             }
 
         }));
