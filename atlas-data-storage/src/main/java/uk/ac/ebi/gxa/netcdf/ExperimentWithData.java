@@ -56,7 +56,8 @@ public class ExperimentWithData {
         return netCDFDao.getNetCDFDescriptors(experiment);
     }
 
-    private NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
+    // TODO: change access rignts to private
+    public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
             p = netCDFDao.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
