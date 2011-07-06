@@ -143,7 +143,12 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
         <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
         <property name="dataReleaseService" ref="atlasDataReleaseService"/>
+        <property name="experimentEditorService" ref="experimentEditorService"/>
         <property name="executor" ref="threadPool"/>
+    </bean>
+
+    <bean name="experimentEditorService" class="uk.ac.ebi.gxa.loader.service.ExperimentEditorService">
+        <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
 

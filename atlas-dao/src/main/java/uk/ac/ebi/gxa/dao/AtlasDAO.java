@@ -817,6 +817,12 @@ public class AtlasDAO implements ExperimentDAO {
         return bioEntityDAO.getSpeciesForExperiment(experimentId);
     }
 
+    public void setPrivate(String accession, boolean isPrivate) {
+        template.update("update a2_experiment " +
+                "set private = ? " +
+                "where accession = ?", Integer.valueOf(isPrivate ? 1 : 0), accession);
+    }
+
     private static class ExperimentMapper implements RowMapper<Experiment> {
         private static final String FIELDS = " accession, description, performer, lab, " +
                 " experimentid, loaddate, pmid, abstract, releasedate, private, curated ";
