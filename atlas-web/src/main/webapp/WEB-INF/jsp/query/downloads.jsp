@@ -89,9 +89,17 @@
                         <th class="padded header">Download Progress</th>
                         <th class="padded header">File</th>
                         <c:forEach items="${downloads}" var="download" varStatus="i">
+                          <c:choose>
+                            <c:when test="${f:length(download.value.query) > 50}">
+                                <c:set var="queryString" value="${f:substring(download.value.query,0,47)}..." />
+                            </c:when>
+                            <c:otherwise>
+                                <c:set var="queryString" value="${download.value.query}" />
+                            </c:otherwise>
+                          </c:choose>
                             <tr>
                                 <td class="padded">${i.index+1}</td>
-                                <td class="padded"><c:out value="${download.value.query}"></c:out> </td>
+                                <td class="padded"><c:out value="${queryString}"></c:out> </td>
                                 <td class="padded"><span class="progressBar" id="query${download.key}"><c:out value="${download.value.progress}"></c:out></span></td>
                                 <td class="padded">
                                     <c:if test="${download.value.progress < 100}">
