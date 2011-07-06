@@ -819,7 +819,7 @@ public class AtlasDAO implements ExperimentDAO {
 
     public void setPrivate(String accession, boolean isPrivate) {
         template.update("update a2_experiment " +
-                "set private = ?" +
+                "set private = ? " +
                 "where accession = ?", Integer.valueOf(isPrivate ? 1 : 0), accession);
     }
 
