@@ -40,6 +40,8 @@ import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
+import uk.ac.ebi.rcloud.server.RType.RChar;
+import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -71,7 +73,7 @@ public class ArrayDataStep implements Step {
     private final MAGETABInvestigationExt investigation;
     private final AtlasLoaderServiceListener listener;
     private final AtlasLoadCache cache;
-    private final Log log = LogFactory.getLog(this.getClass());
+    private static final Log log = LogFactory.getLog(ArrayDataStep.class);
 
     public ArrayDataStep(AtlasMAGETABLoader loader, MAGETABInvestigationExt investigation, AtlasLoaderServiceListener listener) {
         this.loader = loader;
@@ -86,8 +88,8 @@ public class ArrayDataStep implements Step {
 
     private static class RawData {
         final File dataDir;
-        final HashMap<String,String> celFiles = new HashMap<String,String>();
-        final HashMap<String,Assay> assays = new HashMap<String,Assay>();
+        final HashMap<String, String> celFiles = new HashMap<String, String>();
+        final HashMap<String, Assay> assays = new HashMap<String, Assay>();
 
         RawData() {
             dataDir = FileUtil.createTempDirectory("atlas-loader");
@@ -117,6 +119,7 @@ public class ArrayDataStep implements Step {
     }
 
     private static final Object EXTRACT_ZIP_LOCK = new Object();
+
     private static void extractZip(File zipFile, File dir) throws IOException {
         synchronized (EXTRACT_ZIP_LOCK) {
             ZipInputStream zipInputStream = null;
@@ -145,8 +148,8 @@ public class ArrayDataStep implements Step {
     public void run() throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
-        final HashMap<String,RawData> dataByArrayDesign =  new HashMap<String,RawData>();
-        final HashMap<String,File> zipFiles =  new HashMap<String,File>();
+        final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
+        final HashMap<String, File> zipFiles = new HashMap<String, File>();
 
         try {
             // set this variable to false to avoid attempts of load
@@ -164,7 +167,7 @@ public class ArrayDataStep implements Step {
                     throw new AtlasLoaderException("ArrayDataNode " + node.getNodeName() + " corresponds to " + (hybridizationNodes.size() + assayNodes.size()) + " assays");
                 }
                 final HybridizationNode assayNode =
-                    hybridizationNodes.size() == 0 ? assayNodes.iterator().next() : hybridizationNodes.iterator().next();
+                        hybridizationNodes.size() == 0 ? assayNodes.iterator().next() : hybridizationNodes.iterator().next();
                 Assay assay = cache.fetchAssay(assayNode.getNodeName());
                 if (assay == null) {
                     throw new AtlasLoaderException("Cannot fetch an assay for node " + assayNode.getNodeName());
@@ -212,13 +215,13 @@ public class ArrayDataStep implements Step {
                     URL localFileURL;
                     try {
                         localFileURL = sdrfURL.getPort() == -1
-                            ? new URL(sdrfURL.getProtocol(),
-                                      sdrfURL.getHost(),
-                                      localFile.toString().replaceAll("\\\\", "/"))
-                            : new URL(sdrfURL.getProtocol(),
-                                      sdrfURL.getHost(),
-                                      sdrfURL.getPort(),
-                                      localFile.toString().replaceAll("\\\\", "/"));
+                                ? new URL(sdrfURL.getProtocol(),
+                                sdrfURL.getHost(),
+                                localFile.toString().replaceAll("\\\\", "/"))
+                                : new URL(sdrfURL.getProtocol(),
+                                sdrfURL.getHost(),
+                                sdrfURL.getPort(),
+                                localFile.toString().replaceAll("\\\\", "/"));
                         copyFile(localFileURL, tempFile);
                     } catch (IOException e) {
                         // ignore
@@ -262,16 +265,20 @@ public class ArrayDataStep implements Step {
             }
 
             listener.setProgress("Processing data in R");
-            for (Map.Entry<String,RawData> entry : dataByArrayDesign.entrySet()) {
+            for (Map.Entry<String, RawData> entry : dataByArrayDesign.entrySet()) {
                 log.info("ArrayDesign " + entry.getKey() + ":");
                 log.info("directory " + entry.getValue().dataDir);
 
                 DataNormalizer normalizer = new DataNormalizer(entry.getValue());
-                computeService.computeTask(normalizer);
+                final RObject result = computeService.computeTask(normalizer);
+                log.info("RResult = " + result);
+                if (result instanceof RChar) {
+                    throw new AtlasLoaderException(((RChar) result).getValue()[0]);
+                }
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);
                     DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(mergedFile.toURL(), null);
-                    final HashMap<String,Assay> assayMap = entry.getValue().assays;
+                    final HashMap<String, Assay> assayMap = entry.getValue().assays;
                     final ArrayList<String> fileNames = normalizer.fileNames;
                     for (int i = 0; i < fileNames.size(); ++i) {
                         Assay assay = assayMap.get(fileNames.get(i));
@@ -301,7 +308,7 @@ public class ArrayDataStep implements Step {
         }
     }
 
-    private static class DataNormalizer implements ComputeTask<Void> {
+    private static class DataNormalizer implements ComputeTask<RObject> {
         private final RawData data;
         public final ArrayList<String> fileNames = new ArrayList<String>();
         public final String pathPrefix;
@@ -313,13 +320,13 @@ public class ArrayDataStep implements Step {
             mergedFilePath = pathPrefix + "merged.txt";
         }
 
-        public Void compute(RServices R) throws RemoteException {
+        public RObject compute(RServices R) throws RemoteException {
             StringBuilder files = new StringBuilder();
             StringBuilder scans = new StringBuilder();
             files.append("files = c(");
             scans.append("scans = c(");
             boolean isFirst = true;
-            for (Map.Entry<String,String> entry : data.celFiles.entrySet()) {
+            for (Map.Entry<String, String> entry : data.celFiles.entrySet()) {
                 if (isFirst) {
                     isFirst = false;
                 } else {
@@ -337,16 +344,19 @@ public class ArrayDataStep implements Step {
             }
             files.append(")");
             scans.append(")");
+            log.info(files.toString());
+            log.info(scans.toString());
+            log.info("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(files.toString());
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(getRCodeFromResource("R/normalizeOneExperiment.R"));
-            R.sourceFromBuffer("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
+            final RObject result = R.getObject("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
             R.sourceFromBuffer("rm(outFile)");
             R.sourceFromBuffer("rm(scans)");
             R.sourceFromBuffer("rm(files)");
             R.sourceFromBuffer(getRCodeFromResource("R/cleanupNamespace.R"));
-            return null;
+            return result;
         }
 
         // TODO: copy-pasted from atlas-analitics; should be extracted to an utility function
