@@ -18,6 +18,8 @@ kill_tomcat() {
 }
 
 start_tomcat() {
+    log "Special magic for shared NFS"
+    umask 0000
     log "Starting ${TOMCAT_HOME}"
     pushd ${TOMCAT_HOME}
     ${start_tomcat}
