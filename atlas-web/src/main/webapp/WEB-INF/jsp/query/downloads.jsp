@@ -25,7 +25,7 @@
 <html>
     <head>
 
-        <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.3.2.min.js"></script>
+        <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.4.3.min.js"></script>
         <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.progressbar.js"></script>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
         <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
