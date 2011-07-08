@@ -45,10 +45,6 @@ public class ExperimentLine {
         return experiment.getLoadDate();
     }
 
-    public Date getReleaseDate() {
-        return experiment.getReleaseDate();
-    }
-
     public String getPubmedId() {
         return experiment.getPubmedId();
     }
