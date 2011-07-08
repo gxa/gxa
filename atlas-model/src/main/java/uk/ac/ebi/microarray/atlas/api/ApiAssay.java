@@ -19,6 +19,12 @@ public class ApiAssay {
 
     public ApiAssay() {}
 
+    public ApiAssay(final String accession, final ApiArrayDesign arrayDesign, final Collection<ApiAssayProperty> properties) {
+        this.accession = accession;
+        this.arrayDesign = arrayDesign;
+        this.properties = properties;
+    }
+
     public ApiAssay(final Assay assay) {
         this.accession = assay.getAccession();
         this.arrayDesign = new ApiArrayDesign(assay.getArrayDesign());

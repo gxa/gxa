@@ -19,10 +19,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * TODO
@@ -33,10 +30,12 @@ import java.util.Set;
 public class CurationApiController extends AtlasViewController {
     final private AtlasDAO atlasDAO;
     final private AssayDAO assayDAO;
+    private ExperimentDAO experimentDAO;
 
     @Autowired
-    public CurationApiController(AtlasDAO atlasDAO, AssayDAO assayDAO) {
+    public CurationApiController(AtlasDAO atlasDAO, ExperimentDAO experimentDAO, AssayDAO assayDAO) {
         this.atlasDAO = atlasDAO;
+        this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
     }
 
@@ -65,11 +64,21 @@ public class CurationApiController extends AtlasViewController {
 
         Experiment experiment = new Experiment(apiExperiment.getAccession());
 
+        experiment.setAbstract(apiExperiment.getArticleAbstract());
+        experiment.setCurated(apiExperiment.isCurated());
+        experiment.setDescription(apiExperiment.getDescription());
+        experiment.setLab(apiExperiment.getLab());
+        experiment.setLoadDate(apiExperiment.getLoadDate());
+        experiment.setPerformer(apiExperiment.getPerformer());
+        experiment.setPrivate(apiExperiment.isPrivate());
+        experiment.setPubmedId(apiExperiment.getPubmedId());
+        experiment.setReleaseDate(apiExperiment.getReleaseDate());
+
         Map<String,Assay> assays = Maps.newHashMap();
         for (ApiAssay apiAssay : apiExperiment.getAssays()) {
             Assay assay = new Assay(apiAssay.getAccession());
             // TODO: create ArrayDesign
-            assay.setArrayDesign(atlasDAO.getArrayDesignByAccession(apiAssay.getArrayDesign().getAccession()));
+            assay.setArrayDesign(atlasDAO.getArrayDesignShallowByAccession(apiAssay.getArrayDesign().getAccession()));
 
             for (ApiAssayProperty apiAssayProperty : apiAssay.getProperties()) {
                 PropertyValue propertyValue =  atlasDAO.getOrCreatePropertyValue(
@@ -98,7 +107,10 @@ public class CurationApiController extends AtlasViewController {
         for (ApiSample apiSample : apiExperiment.getSamples()) {
             Sample sample = new Sample(apiSample.getAccession());
             sample.setChannel(apiSample.getChannel());
-            sample.setOrganism(atlasDAO.getOrganismByName(apiSample.getOrganism().getName()));
+
+            if(apiSample.getOrganism() != null){
+                sample.setOrganism(atlasDAO.getOrganismByName(apiSample.getOrganism().getName()));
+            }
 
             for (ApiSampleProperty apiSampleProperty : apiSample.getProperties()) {
                 PropertyValue propertyValue =  atlasDAO.getOrCreatePropertyValue(
@@ -127,6 +139,11 @@ public class CurationApiController extends AtlasViewController {
             samples.add(sample);
         }
 
+        experiment.setAssays(new ArrayList<Assay>(assays.values()));
+        experiment.setSamples(samples);
+
+        experimentDAO.save(experiment);
+        atlasDAO.commit();
         response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
@@ -149,6 +166,26 @@ public class CurationApiController extends AtlasViewController {
 
         response.setStatus(HttpServletResponse.SC_FOUND);
         return new ApiAssay(assay);
+    }
+    @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}",
+            method = RequestMethod.GET)
+    public ApiSample getSamples(@PathVariable("experimentAccession") final String experimentAccession,
+                                   @PathVariable("sampleAccession") final String sampleAccession,
+                                        HttpServletResponse response) throws ResourceNotFoundException {
+        final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+        if(experiment == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw new ResourceNotFoundException("No records for experiment " + experimentAccession);
+        }
+
+        final Sample sample = experiment.getSample(sampleAccession);
+        if(sample == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw new ResourceNotFoundException("No records for assay " + sampleAccession);
+        }
+
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        return new ApiSample(sample);
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",

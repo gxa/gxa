@@ -11,10 +11,19 @@ public class ApiArrayDesign {
     private String name;
     private String provider;
     private String type;
-
-//    private long mappingSoftwareId;
+//    private Long mappingSoftwareId;
 //    private Map<String, Long> designElements = new HashMap<String, Long>();
 //    private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
+
+    public ApiArrayDesign() {}
+
+    public ApiArrayDesign(final String accession, final String name, final String provider, final String type) {
+        this.accession = accession;
+        this.name = name;
+        this.provider = provider;
+        this.type = type;
+    }
+
 
     public ApiArrayDesign(final ArrayDesign arrayDesign) {
         this.accession = arrayDesign.getAccession();
