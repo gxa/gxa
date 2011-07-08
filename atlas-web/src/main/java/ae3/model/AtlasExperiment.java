@@ -169,21 +169,6 @@ public class AtlasExperiment {
         return dateToString(experiment.getLoadDate());
     }
 
-    @RestOut(name = "releasedate")
-    public String getReleaseDateString() {
-        return dateToString(experiment.getReleaseDate());
-    }
-
-    /**
-     * Not yet implemented, always new
-     *
-     * @return "new"
-     */
-    @RestOut(name = "status")
-    public String getStatus() {
-        return "new";
-    }
-
     public Experiment getExperiment() {
         return experiment;
     }

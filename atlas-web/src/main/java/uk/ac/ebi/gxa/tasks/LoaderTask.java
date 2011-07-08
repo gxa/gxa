@@ -49,7 +49,6 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
     public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
     public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
-    public static final String TYPE_DATARELEASE = "datarelease";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -73,9 +72,6 @@ public class LoaderTask extends AbstractWorkingTask {
 
         else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());
-
-        else if (TYPE_DATARELEASE.equals(getTaskSpec().getType()))
-            return new DataReleaseCommand(getTaskSpec().getAccession());
 
         else if (TYPE_PRIVATEEXPERIMENT.equals(getTaskSpec().getType()))
             return new MakeExperimentPrivateCommand(getTaskSpec().getAccession());
@@ -220,12 +216,10 @@ public class LoaderTask extends AbstractWorkingTask {
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_DATARELEASE.equals(taskSpec.getType())
                     || TYPE_PRIVATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_PUBLICEXPERIMENT.equals(taskSpec.getType())
                     ;
         }
-
     };
 
 }

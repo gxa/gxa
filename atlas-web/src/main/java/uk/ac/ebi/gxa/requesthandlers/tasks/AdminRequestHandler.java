@@ -231,10 +231,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         );
     }
 
-    private Object processGetMaxReleaseDate() {
-        return taskManagerDbStorage.getMaxReleaseDate();
-    }
-
     private Object processSearchArrayDesigns(String search, int page, int num) {
         search = search.toLowerCase();
         List<Map> results = new ArrayList<Map>();
@@ -409,9 +405,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getEnum("pendingOnly", DbStorage.ExperimentIncompleteness.ALL),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-
-        else if ("maxreleasedate".equals(op))
-            return processGetMaxReleaseDate();
 
         else if ("searchad".equals(op))
             return processSearchArrayDesigns(

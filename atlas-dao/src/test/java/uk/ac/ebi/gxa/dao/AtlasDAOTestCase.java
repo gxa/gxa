@@ -178,7 +178,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "PERFORMER VARCHAR(2000), " +
                         "LAB VARCHAR(2000), " +
                         "LOADDATE timestamp, " +
-                        "RELEASEDATE timestamp, " +
                         "PMID VARCHAR(255)," +
                         "PRIVATE bit," +
                         "CURATED bit, " +
