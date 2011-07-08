@@ -30,14 +30,12 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.transform;
 import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSet;
 
 @Entity
 @Table(name = "A2_SAMPLEPV")
@@ -59,7 +57,7 @@ public final class SampleProperty {
             joinColumns = @JoinColumn(name = "SAMPLEPVID", referencedColumnName = "SAMPLEPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
     @Fetch(FetchMode.SUBSELECT)
-    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
+    private Set<OntologyTerm> terms = new HashSet<OntologyTerm>();
 
     SampleProperty() {
     }
@@ -94,8 +92,8 @@ public final class SampleProperty {
         return propertyValue;
     }
 
-    public List<OntologyTerm> getTerms() {
-        return unmodifiableList(terms);
+    public Set<OntologyTerm> getTerms() {
+        return unmodifiableSet(terms);
     }
 
     @Deprecated
@@ -128,5 +126,9 @@ public final class SampleProperty {
 
     void setSample(Sample sample) {
         this.sample = sample;
+    }
+
+    public void setTerms(Set<OntologyTerm> terms) {
+        this.terms = terms;
     }
 }

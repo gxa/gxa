@@ -40,7 +40,7 @@
                 <prop key="hibernate.cache.region.factory_class">
                     net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory
                 </prop>
-                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.show_sql">false</prop>
             </props>
         </property>
     </bean>
@@ -57,6 +57,7 @@
         <constructor-arg ref="ontologyTermDAO"/>
         <constructor-arg ref="propertyDAO"/>
         <constructor-arg ref="propertyValueDAO"/>
+        <constructor-arg ref="organismDAO"/>
         <constructor-arg ref="sessionFactory"/>
     </bean>
 

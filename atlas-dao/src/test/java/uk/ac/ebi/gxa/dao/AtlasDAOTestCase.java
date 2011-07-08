@@ -136,6 +136,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 new OntologyTermDAO(sessionFactory),
                 new PropertyDAO(sessionFactory),
                 new PropertyValueDAO(sessionFactory),
+                new OrganismDAO(sessionFactory),
                 sessionFactory);
     }
 

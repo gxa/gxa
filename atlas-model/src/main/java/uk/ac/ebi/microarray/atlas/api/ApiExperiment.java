@@ -27,8 +27,28 @@ public class ApiExperiment {
     private Collection<ApiAsset> assets;
     private Collection<ApiAssay> assays;
     private Collection<ApiSample> samples;
-    private boolean isPrivate;
-    private boolean curated;
+    private Boolean isPrivate;
+    private Boolean curated;
+
+    public ApiExperiment() {}
+
+    public ApiExperiment(final String accession, final String description, final String performer, final String lab,
+                         final Date loadDate, final Date releaseDate, final String pmid, final Collection<ApiAsset> assets,
+                         final Collection<ApiAssay> assays, final Collection<ApiSample> samples, final Boolean isPrivate,
+                         final Boolean curated) {
+        this.accession = accession;
+        this.description = description;
+        this.performer = performer;
+        this.lab = lab;
+        this.loadDate = loadDate;
+        this.releaseDate = releaseDate;
+        this.pmid = pmid;
+        this.assets = assets;
+        this.assays = assays;
+        this.samples = samples;
+        this.isPrivate = isPrivate;
+        this.curated = curated;
+    }
 
     public ApiExperiment(final Experiment experiment) {
         this.accession = experiment.getAccession();

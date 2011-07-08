@@ -37,6 +37,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
@@ -218,6 +219,37 @@ public class Sample {
 
     void setExperiment(Experiment experiment) {
         this.experiment = experiment;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public boolean hasProperty(final PropertyValue propertyValue) {
+        for (SampleProperty property : properties) {
+            if(property.getPropertyValue().equals(propertyValue))
+                return true;
+        }
+
+        return false;
+    }
+
+    public SampleProperty getProperty(PropertyValue propertyValue) {
+        for (SampleProperty property : properties) {
+            if(property.getPropertyValue().equals(propertyValue))
+                return property;
+        }
+
+        return null;
+    }
+
+    public void addOrUpdateProperty(PropertyValue propertyValue, Set<OntologyTerm> terms) {
+        if(!this.hasProperty(propertyValue)) {
+            this.addProperty(propertyValue, terms);
+        } else {
+            SampleProperty sampleProperty = this.getProperty(propertyValue);
+            sampleProperty.setTerms(terms);
+        }
     }
 }
 

@@ -6,7 +6,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 /**
  * @author Misha Kapushesky
  */
-public class ApiArrayDesign extends ArrayDesign {
+public class ApiArrayDesign {
     private String accession;
     private String name;
     private String provider;

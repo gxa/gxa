@@ -9,6 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -29,7 +30,7 @@ public class ApiAssayProperty {
     public ApiAssayProperty(final AssayProperty assayProperty) {
         this.propertyValue = new ApiPropertyValue(assayProperty.getPropertyValue());
 
-        this.terms = new TreeSet<ApiOntologyTerm>
+        this.terms = new HashSet<ApiOntologyTerm>
             (Collections2.transform(assayProperty.getTerms(),
                 GuavaUtil.instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
     }
@@ -42,7 +43,7 @@ public class ApiAssayProperty {
         this.propertyValue = propertyValue;
     }
 
-    public Collection<ApiOntologyTerm> getTerms() {
+    public Set<ApiOntologyTerm> getTerms() {
         return terms;
     }
 

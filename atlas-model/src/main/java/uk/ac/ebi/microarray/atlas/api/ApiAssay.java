@@ -14,16 +14,14 @@ import java.util.Collection;
  */
 public class ApiAssay {
     private String accession;
-    private ArrayDesign arrayDesign;
-    private Collection<ApiSample> samples;
+    private ApiArrayDesign arrayDesign;
     private Collection<ApiAssayProperty> properties;
+
+    public ApiAssay() {}
 
     public ApiAssay(final Assay assay) {
         this.accession = assay.getAccession();
         this.arrayDesign = new ApiArrayDesign(assay.getArrayDesign());
-
-        this.samples = Collections2.transform(assay.getSamples(),
-                GuavaUtil.instanceTransformer(Sample.class, ApiSample.class));
 
         this.properties = Collections2.transform(assay.getProperties(),
                 GuavaUtil.instanceTransformer(AssayProperty.class, ApiAssayProperty.class));
@@ -37,20 +35,12 @@ public class ApiAssay {
         this.accession = accession;
     }
 
-    public ArrayDesign getArrayDesign() {
+    public ApiArrayDesign getArrayDesign() {
         return arrayDesign;
     }
 
-    public void setArrayDesign(ArrayDesign arrayDesign) {
+    public void setArrayDesign(ApiArrayDesign arrayDesign) {
         this.arrayDesign = arrayDesign;
-    }
-
-    public Collection<ApiSample> getSamples() {
-        return samples;
-    }
-
-    public void setSamples(Collection<ApiSample> samples) {
-        this.samples = samples;
     }
 
     public Collection<ApiAssayProperty> getProperties() {

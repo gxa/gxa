@@ -60,11 +60,12 @@ public class AtlasDAO {
     private PropertyDAO propertyDAO;
     private PropertyValueDAO propertyValueDAO;
     private OntologyTermDAO ontologyTermDAO;
+    private OrganismDAO organismDAO;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
                     ExperimentDAO experimentDAO, AssayDAO assayDAO, OntologyDAO ontologyDAO,
                     OntologyTermDAO ontologyTermDAO, PropertyDAO propertyDAO, PropertyValueDAO propertyValueDAO,
-                    SessionFactory sessionFactory) {
+                    OrganismDAO organismDAO, SessionFactory sessionFactory) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
@@ -74,6 +75,7 @@ public class AtlasDAO {
         this.ontologyTermDAO = ontologyTermDAO;
         this.propertyDAO = propertyDAO;
         this.propertyValueDAO = propertyValueDAO;
+        this.organismDAO = organismDAO;
         this.sessionFactory = sessionFactory;
     }
 
@@ -200,6 +202,14 @@ public class AtlasDAO {
         log.debug("commit()");
         Session session = sessionFactory.getCurrentSession();
         session.flush();
+    }
+
+    public Ontology getOntologyByName(final String ontologyName) {
+        return ontologyDAO.getByName(ontologyName);
+    }
+
+    public Organism getOrganismByName(final String name) {
+        return organismDAO.getByName(name);
     }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
