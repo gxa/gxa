@@ -55,7 +55,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
     private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
     private ArrayDesignMappingLoader designMappingLoader;
-    private AtlasDataReleaseService dataReleaseService;
     private ExperimentEditorService experimentEditorService;
 
     public void setExecutor(ExecutorService executor) {
@@ -113,10 +112,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             designMappingLoader.process(cmd);
                         }
 
-                        public void process(DataReleaseCommand cmd) {
-                            dataReleaseService.process(cmd);
-                        }
-
                         public void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException {
                             experimentEditorService.process(cmd, false);
                         }
@@ -159,10 +154,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
 
     public void setDesignMappingLoader(ArrayDesignMappingLoader designMappingLoader) {
         this.designMappingLoader = designMappingLoader;
-    }
-
-    public void setDataReleaseService(AtlasDataReleaseService dataReleaseService) {
-        this.dataReleaseService = dataReleaseService;
     }
 
     public void setExperimentEditorService(ExperimentEditorService experimentEditorService) {
