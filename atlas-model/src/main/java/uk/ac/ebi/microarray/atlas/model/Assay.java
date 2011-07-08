@@ -31,10 +31,7 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
@@ -179,7 +176,7 @@ public class Assay {
     }
 
     public void addProperty(String type, String nodeName, String s) {
-        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
+        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptySet()));
     }
 
     public boolean hasNoProperties() {
@@ -214,7 +211,38 @@ public class Assay {
     }
 
     public void addProperty(PropertyValue property) {
-        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
+        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptySet()));
+    }
+
+    public void addProperty(final PropertyValue property, final Set<OntologyTerm> terms) {
+        properties.add(new AssayProperty(null, this, property, terms));
+    }
+
+    public boolean hasProperty(final PropertyValue propertyValue) {
+        for (AssayProperty property : properties) {
+            if(property.getPropertyValue().equals(propertyValue))
+                return true;
+        }
+
+        return false;
+    }
+
+    public AssayProperty getProperty(PropertyValue propertyValue) {
+        for (AssayProperty property : properties) {
+            if(property.getPropertyValue().equals(propertyValue))
+                return property;
+        }
+
+        return null;
+    }
+
+    public void addOrUpdateProperty(PropertyValue propertyValue, Set<OntologyTerm> terms) {
+        if(!this.hasProperty(propertyValue)) {
+            this.addProperty(propertyValue, terms);
+        } else {
+            AssayProperty assayProperty = this.getProperty(propertyValue);
+            assayProperty.setTerms(terms);
+        }
     }
 
     private static class PropertyNamePredicate implements Predicate<AssayProperty> {

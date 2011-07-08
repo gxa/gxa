@@ -28,11 +28,9 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Joiner.on;
-import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_ASSAYPV")
@@ -52,23 +50,23 @@ public final class AssayProperty {
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",
             joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
-    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
+    private Set<OntologyTerm> terms = new HashSet<OntologyTerm>();
 
     AssayProperty() {
     }
 
-    public AssayProperty(Assay assay, String name, String value, List<OntologyTerm> efoTerms) {
+    public AssayProperty(Assay assay, String name, String value, Set<OntologyTerm> efoTerms) {
         this.assaypvid = null; // TODO: 4alf: we must handle this on save
         this.assay = assay;
         propertyValue = new PropertyValue(null, new Property(null, name), value);
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
+        this.terms = new HashSet<OntologyTerm>(efoTerms);
     }
 
-    public AssayProperty(Long id, Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
+    public AssayProperty(Long id, Assay assay, PropertyValue pv, Set<OntologyTerm> efoTerms) {
         this.assaypvid = id;
         this.assay = assay;
         propertyValue = pv;
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
+        this.terms = new HashSet<OntologyTerm>(efoTerms);
     }
 
     public Long getId() {
@@ -91,8 +89,8 @@ public final class AssayProperty {
         return propertyValue;
     }
 
-    public List<OntologyTerm> getTerms() {
-        return unmodifiableList(terms);
+    public Set<OntologyTerm> getTerms() {
+        return Collections.unmodifiableSet(terms);
     }
 
     @Deprecated
@@ -116,5 +114,26 @@ public final class AssayProperty {
                 "propertyValue=" + propertyValue +
                 ", terms='" + terms + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AssayProperty)) return false;
+
+        AssayProperty property = (AssayProperty) o;
+
+        if (!propertyValue.equals(property.propertyValue)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return propertyValue.hashCode();
+    }
+
+    public void setTerms(Set<OntologyTerm> terms) {
+        this.terms = terms;
     }
 }

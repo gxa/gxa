@@ -40,7 +40,7 @@
                 <prop key="hibernate.cache.region.factory_class">
                     net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory
                 </prop>
-                <prop key="hibernate.show_sql">false</prop>
+                <prop key="hibernate.show_sql">true</prop>
             </props>
         </property>
     </bean>
@@ -53,6 +53,10 @@
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="assayDAO"/>
+        <constructor-arg ref="ontologyDAO"/>
+        <constructor-arg ref="ontologyTermDAO"/>
+        <constructor-arg ref="propertyDAO"/>
+        <constructor-arg ref="propertyValueDAO"/>
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
@@ -80,6 +84,14 @@
     </bean>
 
     <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 

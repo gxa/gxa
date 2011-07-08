@@ -52,7 +52,6 @@ public final class Property {
 
         Property that = (Property) o;
 
-        if (propertyid != null ? !propertyid.equals(that.propertyid) : that.propertyid != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
@@ -60,9 +59,7 @@ public final class Property {
 
     @Override
     public int hashCode() {
-        int result = propertyid != null ? propertyid.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
+        return name != null ? name.hashCode() : 0;
     }
 
     @Override

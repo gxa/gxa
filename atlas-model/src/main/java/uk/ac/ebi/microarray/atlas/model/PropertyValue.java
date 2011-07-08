@@ -48,8 +48,6 @@ public final class PropertyValue {
         PropertyValue that = (PropertyValue) o;
 
         if (property != null ? !property.equals(that.property) : that.property != null) return false;
-        if (propertyvalueid != null ? !propertyvalueid.equals(that.propertyvalueid) : that.propertyvalueid != null)
-            return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
@@ -57,9 +55,9 @@ public final class PropertyValue {
 
     @Override
     public int hashCode() {
-        int result = propertyvalueid != null ? propertyvalueid.hashCode() : 0;
-        result = 31 * result + (property != null ? property.hashCode() : 0);
+        int result = property != null ? property.hashCode() : 0;
         result = 31 * result + (value != null ? value.hashCode() : 0);
+
         return result;
     }
 

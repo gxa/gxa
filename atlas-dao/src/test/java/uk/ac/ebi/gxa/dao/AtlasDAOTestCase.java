@@ -132,6 +132,10 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
                 experimentDAO = new ExperimentDAO(sessionFactory),
                 new AssayDAO(sessionFactory),
+                new OntologyDAO(sessionFactory),
+                new OntologyTermDAO(sessionFactory),
+                new PropertyDAO(sessionFactory),
+                new PropertyValueDAO(sessionFactory),
                 sessionFactory);
     }
 

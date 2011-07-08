@@ -36,13 +36,13 @@ public class ArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")
     @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ")
-    private long arrayDesignID;
+    private Long arrayDesignID;
     private String accession;
     private String name;
     private String provider;
     private String type;
     @Column(name = "MAPPINGSWID")
-    private long mappingSoftwareId;
+    private Long mappingSoftwareId;
     @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
     @Transient

@@ -28,7 +28,7 @@ public class OntologyTerm {
         term = name;
     }
 
-    public OntologyTerm(long id, Ontology ontology, String term, String accession, String description) {
+    public OntologyTerm(Long id, Ontology ontology, String term, String accession, String description) {
         this.ontologytermid = id;
         this.ontology = ontology;
         this.term = term;
