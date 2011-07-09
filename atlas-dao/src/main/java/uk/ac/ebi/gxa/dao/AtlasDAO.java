@@ -198,8 +198,8 @@ public class AtlasDAO {
         return ontologyTerm;
     }
 
-    public void commit() {
-        log.debug("commit()");
+    public void flushCurrentSession() {
+        log.debug("flush()");
         Session session = sessionFactory.getCurrentSession();
         session.flush();
     }

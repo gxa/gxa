@@ -143,7 +143,7 @@ public class CurationApiController extends AtlasViewController {
         experiment.setSamples(samples);
 
         experimentDAO.save(experiment);
-        atlasDAO.commit();
+        atlasDAO.flushCurrentSession();
         response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
@@ -249,7 +249,7 @@ public class CurationApiController extends AtlasViewController {
         }
 
         assayDAO.save(assay);
-        atlasDAO.commit();
+        atlasDAO.flushCurrentSession();
         response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
