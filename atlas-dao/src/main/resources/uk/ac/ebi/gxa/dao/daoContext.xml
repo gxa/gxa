@@ -105,6 +105,5 @@
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
         <constructor-arg ref="sessionFactory"/>
-        <constructor-arg ref="softwareDAO"/>
     </bean>
 </beans>

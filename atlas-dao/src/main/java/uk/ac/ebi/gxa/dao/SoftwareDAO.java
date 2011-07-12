@@ -10,17 +10,13 @@ import java.util.List;
 
 public class SoftwareDAO extends AbstractDAO<Software> {
 
-    private SessionFactory sessionFactory;
-
     SoftwareDAO(SessionFactory sessionFactory) {
         super(sessionFactory, Software.class);
-        this.sessionFactory = sessionFactory;
     }
 
 
     public Software find(String name, String newVersion) {
         Software software = new Software(name, newVersion);
-        save(software);
         return software;
     }
 
@@ -49,11 +45,4 @@ public class SoftwareDAO extends AbstractDAO<Software> {
         return template.find("from Software where isActive = 1");
     }
 
-    public void startSession() {
-        SessionFactoryUtils.initDeferredClose(sessionFactory);
-    }
-
-    public void finishSession() {
-        SessionFactoryUtils.processDeferredClose(sessionFactory);
-    }
 }

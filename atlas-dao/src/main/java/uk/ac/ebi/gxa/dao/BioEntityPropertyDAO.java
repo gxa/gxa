@@ -26,4 +26,5 @@ public class BioEntityPropertyDAO extends AbstractDAO<BioEntityProperty>{
         final List<BioEntityProperty> results = template.find("from BioEntityProperty where name = ?", name.toLowerCase());
         return getFirst(results, null);
     }
+
 }

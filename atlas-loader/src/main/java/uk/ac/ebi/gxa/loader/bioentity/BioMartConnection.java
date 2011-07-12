@@ -239,39 +239,4 @@ public class BioMartConnection {
             closeQuietly(bufferedReader);
         }
     }
-
-//    public static class ValidationReport {
-//        private String organismName;
-//        private List<BioMartProperty> missingProperties;
-//
-//        public ValidationReport() {
-//        }
-//
-//        public String getOrganismName() {
-//            return organismName;
-//        }
-//
-//        public void setOrganismName(String organismName) {
-//            this.organismName = organismName;
-//        }
-//
-//        public String getSummary() {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(organismName + " ");
-//            sb.append(missingProperties);
-//            return sb.toString();
-//        }
-//
-//        public List<BioMartProperty> getMissingProperties() {
-//            return missingProperties;
-//        }
-//
-//        public void setMissingProperties(List<BioMartProperty> missingProperties) {
-//            this.missingProperties = missingProperties;
-//        }
-//
-//        public boolean isValid() {
-//            return StringUtils.isEmpty(organismName) && CollectionUtils.isEmpty(missingProperties);
-//        }
-//    }
 }

@@ -25,17 +25,13 @@ public class AnnotationSourceController {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private AnnotationSourceDAO annSrcDAO;
-    private SoftwareDAO softwareDAO;
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
     }
 
-    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
-        this.softwareDAO = softwareDAO;
-    }
-
     public List<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
+        annSrcDAO.startSession();
         List<BioMartAnnotationSourceView> viewSources = new ArrayList<BioMartAnnotationSourceView>();
         Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getCurrentAnnotationSourcesOfType(BioMartAnnotationSource.class);
         for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
@@ -47,9 +43,9 @@ public class AnnotationSourceController {
                     viewSources.add(new BioMartAnnotationSourceView(annSrc, annSrc.getDisplayName()));
                 } else {
                     //check if AnnotationSource exists for new version
-                    softwareDAO.startSession();
-                    Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
-                    softwareDAO.finishSession();
+//                    softwareDAO.startSession();
+                    Software newSoftware = annSrcDAO.findOrCreateSoftware(annSrc.getSoftware().getName(), newVersion);
+//                    softwareDAO.finishSession();
 //                     Software newSoftware = new Software(annSrc.getSoftware().getName(), newVersion);
                     BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
                     //create and Save new AnnotationSource
@@ -72,7 +68,7 @@ public class AnnotationSourceController {
                 log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
-
+        annSrcDAO.finishSession();
         return viewSources;
     }
 

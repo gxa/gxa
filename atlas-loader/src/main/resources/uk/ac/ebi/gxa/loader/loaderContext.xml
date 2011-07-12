@@ -26,6 +26,7 @@
 
     <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="annSrcDAO" ref="annSrcDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
     </bean>
 

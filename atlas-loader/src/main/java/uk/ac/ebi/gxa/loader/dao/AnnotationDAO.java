@@ -40,15 +40,11 @@ public class AnnotationDAO {
         bioEntityDAO.writeBioentities(bioEntities);
     }
 
-    public void writeProperties(Set<String> properties) {
-        bioEntityDAO.writeProperties(properties);
-    }
-
     public void writePropertyValues(Collection<BEPropertyValue> propertyValues) {
         bioEntityDAO.writePropertyValues(propertyValues);
     }
 
-    public void writeBioEntityToPropertyValues(Set<List<String>> beProperties, String beType, Software software) {
+    public void writeBioEntityToPropertyValues(Set<List<String>> beProperties, BioEntityType beType, Software software) {
         bioEntityDAO.writeBioEntityToPropertyValues(beProperties, beType, software);
     }
 
@@ -89,7 +85,7 @@ public class AnnotationDAO {
     }
 
     public Organism findOrCreateOrganism(String organism) {
-        return bioEntityDAO.findOrCreateOrganism(organism);
+        return annSrcDAO.findOrCreateOrganism(organism);
     }
 
     public void saveAnnSrc(AnnotationSource annotationSource) {

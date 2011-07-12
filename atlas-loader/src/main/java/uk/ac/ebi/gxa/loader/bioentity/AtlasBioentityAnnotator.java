@@ -3,6 +3,8 @@ package uk.ac.ebi.gxa.loader.bioentity;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -15,6 +17,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
+import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,7 +34,7 @@ public abstract class AtlasBioentityAnnotator {
 
     private final Set<List<BioEntity>> geneBioetityMapping = new HashSet<List<BioEntity>>();
 
-    private Multimap<BioEntityType, List<String>> typeToBEPropValues= HashMultimap.create();
+    private Multimap<BioEntityType, List<String>> typeToBEPropValues = HashMultimap.create();
 
     private final Set<BEPropertyValue> propertyValues = new HashSet<BEPropertyValue>();
 
@@ -46,6 +49,8 @@ public abstract class AtlasBioentityAnnotator {
     protected AnnotationSource annotationSource;
 
     protected final AnnotationDAO annotationDAO;
+
+    private static Logger log = LoggerFactory.getLogger(AtlasBioentityAnnotator.class);
 
     protected AtlasBioentityAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
         this.annotationDAO = annotationDAO;
@@ -72,11 +77,12 @@ public abstract class AtlasBioentityAnnotator {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 for (BioEntityType type : typeToBEPropValues.keySet()) {
-                    Collection<List<String>> propValues = typeToBEPropValues.get(type);
+                    Set<List<String>> propValues = (Set<List<String>>) typeToBEPropValues.get(type);
                     reportProgress("Wirting " + propValues.size() + " properties for " + type.getName() + " " + finalOrganism.getName());
+                    annotationDAO.writeBioEntityToPropertyValues(propValues, type, annotationSource.getSoftware());
                 }
-
-                annotationDAO.writeGeneToBioentityRelations(geneBioetityMapping, annotationSource.getSoftware());
+                reportProgress("Wirting " + geneBioetityMapping.size() + "  bioentities mapped to gene for " + finalOrganism.getName());
+//                annotationDAO.writeGeneToBioentityRelations(geneBioetityMapping, annotationSource.getSoftware());
             }
         });
 
@@ -118,6 +124,7 @@ public abstract class AtlasBioentityAnnotator {
     }
 
     protected void reportProgress(String report) {
+        log.debug(report);
         if (listener != null)
             listener.setProgress(report);
     }

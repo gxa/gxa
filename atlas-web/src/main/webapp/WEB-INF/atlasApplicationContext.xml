@@ -497,7 +497,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
         <property name="annSrcDAO" ref="annSrcDAO"/>
-        <property name="softwareDAO" ref="softwareDAO"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

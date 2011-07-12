@@ -72,7 +72,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
-                    reportProgress("Reading " + bioMartProperty.getBioEntityProperty().getName() + " for " + targetOrganism);
+                    reportProgress("Reading property " + bioMartProperty.getBioEntityProperty().getName() +" ("+ bioMartProperty.getName() + ") for " + targetOrganism.getName());
                     csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
                     readProperty(csvReader, bioMartProperty.getBioEntityProperty(), attributesHandler);
                     csvReader.close();
@@ -145,6 +145,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
     public void process(String annotationSrcId, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         setListener(listener);
+
         AnnotationSource annotationSource = annotationDAO.getAnnSrcById(Long.parseLong(annotationSrcId));
         if (annotationSource == null) {
             throw new AtlasLoaderException("No annotation source with id " + annotationSrcId);

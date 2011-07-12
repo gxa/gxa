@@ -9,6 +9,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -37,12 +38,12 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class ArrayDesignMappingLoader {
 
     private BioEntityDAO bioEntityDAO;
-    private SoftwareDAO softwareDAO;
 
     private TransactionTemplate transactionTemplate;
 
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
+    private AnnotationSourceDAO annSrcDAO;
 
     public void process(LoadArrayDesignMappingCommand command) throws AtlasLoaderException {
         URL url = command.getUrl();
@@ -67,7 +68,8 @@ public class ArrayDesignMappingLoader {
             String organismName = readValue("Organism", url, csvReader);
             if (StringUtils.isEmpty(organismName))
                 organismName = "unknown";
-            Organism organism = bioEntityDAO.findOrCreateOrganism(organismName);
+
+            Organism organism = annSrcDAO.findOrCreateOrganism(organismName);
 
             String bioentityType = readValue("BioEntity Type", url, csvReader);
             if (StringUtils.isEmpty(bioentityType))
@@ -127,7 +129,7 @@ public class ArrayDesignMappingLoader {
 
                                         //read organismName if available
                                         if (line.length > 2) {
-                                            Organism deOrganism = bioEntityDAO.findOrCreateOrganism(line[2]);
+                                            Organism deOrganism = annSrcDAO.findOrCreateOrganism(line[2]);
                                             bioEntity.setOrganism(deOrganism);
                                         }
                                     }
@@ -184,13 +186,13 @@ public class ArrayDesignMappingLoader {
         this.bioEntityDAO = bioEntityDAO;
     }
 
-    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
-        this.softwareDAO = softwareDAO;
-    }
-
     public void setTxManager(PlatformTransactionManager txManager) {
         Assert.notNull(txManager, "The 'transactionManager' argument must not be null.");
         this.transactionTemplate = new TransactionTemplate(txManager);
 
+    }
+
+    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
+        this.annSrcDAO = annSrcDAO;
     }
 }

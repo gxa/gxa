@@ -8,8 +8,6 @@ public class BEPropertyValue {
 
     private Software software;
 
-//    private AnnotationSource annotationSource;
-
 
     BEPropertyValue() {
     }
