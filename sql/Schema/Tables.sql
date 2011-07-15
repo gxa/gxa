@@ -1032,6 +1032,11 @@ ALTER TRIGGER A2_SAMPLEPV_INSERT ENABLE;
 -- ONTOLOGY
 --------------------------------------------------------
 
+CREATE SEQUENCE  "A2_ONTOLOGY_SEQ"
+    MINVALUE 600790582 MAXVALUE 1.00000000000000E+27
+    INCREMENT BY 1 START WITH 600790582 CACHE 20
+    NOORDER  NOCYCLE;
+
   CREATE TABLE "A2_ONTOLOGY" (
     "ONTOLOGYID" NUMBER(22,0) CONSTRAINT NN_ONTOLOGY_ID NOT NULL
   , "NAME" VARCHAR2(255) 
@@ -1044,7 +1049,17 @@ ALTER TRIGGER A2_SAMPLEPV_INSERT ENABLE;
   ADD CONSTRAINT "PK_ONTOLOGY" 
     PRIMARY KEY ("ONTOLOGYID") 
     /*PK_TABLESPACE*/
-    ENABLE;  
+    ENABLE;
+
+CREATE OR REPLACE TRIGGER A2_ONTOLOGY_INSERT
+before insert on A2_Ontology
+for each row
+begin
+if( :new.OntologyID is null) then
+select A2_Ontology_seq.nextval into :new.OntologyID from dual;
+end if;
+end;
+/
 
 
 --------------------------------------------------------

@@ -115,6 +115,10 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
+    <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>

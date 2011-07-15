@@ -218,6 +218,10 @@ public class Assay {
         properties.add(new AssayProperty(null, this, property, terms));
     }
 
+    public void deleteProperty(final PropertyValue propertyValue) {
+        properties.remove(new AssayProperty(null, this, propertyValue, Collections.<OntologyTerm>emptySet()));
+    }
+
     public boolean hasProperty(final PropertyValue propertyValue) {
         for (AssayProperty property : properties) {
             if(property.getPropertyValue().equals(propertyValue))

@@ -124,6 +124,23 @@ public final class SampleProperty {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SampleProperty)) return false;
+
+        SampleProperty property = (SampleProperty) o;
+
+        if (!propertyValue.equals(property.propertyValue)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return propertyValue.hashCode();
+    }
+
     void setSample(Sample sample) {
         this.sample = sample;
     }

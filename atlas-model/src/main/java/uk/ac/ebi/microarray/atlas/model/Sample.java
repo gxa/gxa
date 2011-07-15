@@ -34,10 +34,7 @@ import javax.annotation.Nonnull;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
@@ -211,6 +208,10 @@ public class Sample {
 
     public void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
         properties.add(new SampleProperty(this, pv, efoTerms));
+    }
+
+    public void deleteProperty(final PropertyValue property) {
+        properties.remove(new SampleProperty(this, property, Collections.<OntologyTerm>emptySet()));
     }
 
     public void setOrganism(Organism organism) {

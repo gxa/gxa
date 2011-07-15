@@ -8,8 +8,7 @@ import uk.ac.ebi.gxa.Temporary;
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@Immutable
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class OntologyTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")
@@ -54,6 +53,22 @@ public class OntologyTerm {
 
     public String getTerm() {
         return term;
+    }
+
+    public void setOntology(Ontology ontology) {
+        this.ontology = ontology;
+    }
+
+    public void setAccession(String accession) {
+        this.accession = accession;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
     }
 
     // TODO: 4alf: so far it's a String replacement, must be done properly as soon as we have all the values in place

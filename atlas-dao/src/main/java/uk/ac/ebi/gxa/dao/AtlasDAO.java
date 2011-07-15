@@ -177,6 +177,20 @@ public class AtlasDAO {
         return propertyValue;
     }
 
+    public Ontology getOrCreateOntology(
+            final String ontologyName,
+            final String ontologyDescription,
+            final String ontologySourceUri,
+            final String ontologyVersion) {
+        Ontology ontology = ontologyDAO.getByName(ontologyName);
+        if (ontology == null) {
+            ontologyDAO.save(ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
+                    ontologyVersion));
+        }
+        return ontology;
+
+    }
+
     public OntologyTerm getOrCreateOntologyTerm(final String accession,
                                                 final String term,
                                                 final String description,
@@ -184,11 +198,8 @@ public class AtlasDAO {
                                                 final String ontologyDescription,
                                                 final String ontologySourceUri,
                                                 final String ontologyVersion) {
-        Ontology ontology = ontologyDAO.getByName(ontologyName);
-        if(ontology == null) {
-            ontologyDAO.save(ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
-                    ontologyVersion));
-        }
+        Ontology ontology =
+                getOrCreateOntology(ontologyName, ontologyDescription, ontologySourceUri, ontologyVersion);
 
         OntologyTerm ontologyTerm = ontologyTermDAO.getByAccession(accession);
         if(ontologyTerm == null) {
@@ -206,6 +217,11 @@ public class AtlasDAO {
 
     public Ontology getOntologyByName(final String ontologyName) {
         return ontologyDAO.getByName(ontologyName);
+    }
+
+
+    public OntologyTerm getOntologyTermByAccession(final String accession) {
+        return ontologyTermDAO.getByAccession(accession);
     }
 
     public Organism getOrganismByName(final String name) {
