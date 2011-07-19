@@ -66,7 +66,8 @@
     <li><a href="#tab-prop">Configuration</a></li>
     <li><a href="#tab-asys">System info</a></li>
     <li><a href="#tab-up">Upstream</a><sup>beta</sup></li>
-    <li><a href="#tab-org">Organisms</a><sup>beta</sup></li>
+    <li><a href="#tab-annSrc">Annotation Sources</a><sup>beta</sup></li>
+    <li><a href="#tab-annSrcEd">Annotation Source Editor</a><sup>beta</sup></li>
 </ul>
 
 <div id="tab-exp">
@@ -89,7 +90,7 @@
                         <input type="text" id="dateFrom" class="date value"> to <input type="text" id="dateTo" class="date value">
                     </td>
                     <td style="padding-left:20px;" align="right">
-                        <select id="incompleteOnly" style="width:100%">                            
+                        <select id="incompleteOnly" style="width:100%">
                             <option value="ALL">Any status</option>
                             <option value="COMPLETE">Fully complete</option>
                             <option value="INCOMPLETE">Incomplete by any means</option>
@@ -98,7 +99,7 @@
                             <option value="INCOMPLETE_INDEX">Waiting for indexing</option>
                         </select>
                     </td>
-                    <td></td>                    
+                    <td></td>
                 </tr>
             </table>
         </form>
@@ -139,7 +140,7 @@
                     </td>
                     <td colspan="6" class="selall">
                         <label for="selectCollapsed">Total <span class="total">4</span>  result(s) on pages </label>
-                        &nbsp;&nbsp;&nbsp;                        
+                        &nbsp;&nbsp;&nbsp;
                         <span id="expPages" class="pagination_ie"></span>
                     </td>
                 </tr>
@@ -153,11 +154,11 @@
                 </tr>
             </tbody>
         </table>
-        
+
         <div class="none">
             No matching experiments found! Please check your query.
         </div>
-        
+
         <fieldset class="expall">
             <table class="rebuildIndex">
                 <tr>
@@ -237,18 +238,19 @@
     </div>
 </div>
 
-<div id="tab-org">
+<div id="tab-annSrc">
     <div id="orgList">
         <table>
             <thead>
                 <tr>
                     <td class="sel">
                     </td>
-                    <td>Name</td>
-                    <td>Annotation Source</td>
+                    <td>Organism</td>
                     <td>BioEntity Types</td>
-                    <td>New version</td>
+                    <td>Current software</td>
+                    <td>On-line version</td>
                     <td>Validation message</td>
+                    <td>Edit</td>
                 </tr>
             </thead>
             <tbody>
@@ -257,10 +259,11 @@
                         <input class="orgSelector" type="checkbox" value="" id="selOrg">
                     </td>
                     <td class="name"><label class="name" for="selOrg">Mouse</label></td>
-                    <td class="currAnnSrc">Ens 61</td>
                     <td class="types">ensgene</td>
+                    <td class="currAnnSrc">Ens 61</td>
                     <td class="newVersion">62</td>
                     <td class="validation">valid</td>
+                    <td class="edit"><input type="button" value="Edit"></td>
                 </tr>
             </tbody>
         </table>
@@ -287,6 +290,36 @@
             <!--</tbody>-->
         <!--</table>-->
     <!--</div>-->
+</div>
+
+<div id="tab-annSrcEd">
+    <div id="annSrcEd">
+
+
+        <table>
+
+            <tr>
+                <td class="label"><label for="txtAnnSrc">Annotation Source:</label></td>
+                <td>
+                    <form action="#" id="editAnnSrcForm">
+                        <textarea rows="20" cols="50" id="txtAnnSrc" class="value">lll</textarea>
+                    </form>
+                </td>
+            </tr>
+
+            <tr>
+                <td>&nbsp;</td>
+                <td>
+                    <fieldset>
+                        <input type="button" value="Save" id="saveAnnSrcButton" class="saveannsrc">
+                        <input type="button" value="Cancel" id="cancelAnnSrcButton">
+                    </fieldset>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
 </div>
 
 <div id="tab-que">
@@ -355,7 +388,7 @@
             </td>
             <td style="padding-left:10px;white-space:nowrap">
                 <span id="numWorking">1</span> task(s) working / <span id="numPending">2</span> task(s) pending
-            </td>            
+            </td>
             <td style="padding-left:10px;white-space:nowrap"><div id="taskListPages" class="pagination_ie"></div></td>
             <td><img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator"></td>
             <td style="text-align:right;width:90%">
@@ -540,7 +573,6 @@
                     <td>
                         <input type="submit">
                         <a href="#" onlcick="updateAvailableUpdates();return false;" style="display:none;">click me</a>
-                        
                         <img src="images/indicator.gif" alt="" width="16" height="16" style="visibility:hidden;" class="loadIndicator">
                     </td>
                 </tr>

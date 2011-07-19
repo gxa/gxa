@@ -1,5 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model.annotation;
 
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -50,11 +51,12 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     @OneToMany(targetEntity = BioMartProperty.class
            , mappedBy = "annotationSrc"
-            , cascade = CascadeType.ALL
+            , cascade = {CascadeType.ALL}
             , fetch = FetchType.EAGER
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
+    @Cascade({org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
     private Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
 
     BioMartAnnotationSource() {
@@ -98,7 +100,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 //        return answer;
 //    }
 
-    public void setBioMartProperties(Set<BioMartProperty> bioMartProperties) {
+    void setBioMartProperties(Set<BioMartProperty> bioMartProperties) {
         this.bioMartProperties = bioMartProperties;
     }
 
@@ -106,6 +108,19 @@ public class BioMartAnnotationSource extends AnnotationSource {
         BioMartProperty bioMartProperty = new BioMartProperty(biomartPropertyName, bioEntityProperty);
         bioMartProperty.setAnnotationSrc(this);
         this.bioMartProperties.add(bioMartProperty);
+    }
+
+    public void addBioMartProperty(BioMartProperty bioMartProperty) {
+        bioMartProperty.setAnnotationSrc(this);
+        this.bioMartProperties.add(bioMartProperty);
+    }
+
+    public boolean removeBioMartProperty(BioMartProperty property) {
+        return bioMartProperties.remove(property);
+    }
+
+    public void clearBioMartProperties() {
+        bioMartProperties.clear();
     }
 
     public String getDatasetName() {

@@ -48,7 +48,9 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
         List<BioMartProperty> bioMartProperties = bmPropertyDAO.getAll();
         assertTrue(bioMartProperties.size() > 0);
 
-        annotationSource.setBioMartProperties(new HashSet<BioMartProperty>(bioMartProperties));
+        for (BioMartProperty bioMartProperty : bioMartProperties) {
+            annotationSource.addBioMartProperty(bioMartProperty);
+        }
 
         annotationSourceDAO.save(annotationSource);
         assertNotNull(annotationSource.getAnnotationSrcId());

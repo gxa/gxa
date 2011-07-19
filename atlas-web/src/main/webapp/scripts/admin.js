@@ -62,6 +62,8 @@ var $options = {
     tasklogPageSize: 20
 };
 
+var annSrcId;
+
 var $msg = {
     taskType: {
         analytics: 'Compute analytics',
@@ -625,7 +627,7 @@ function updateArrayDesigns() {
     });
 }
 
-function updateOrganisms() {
+function updateAnnSrcs() {
     adminCall('searchorg', {}, function (result) {
 
         function updateOrgButtons() {
@@ -683,12 +685,112 @@ function updateOrganisms() {
             }
         }
 
+        $('#orgList .edit input').each(function (i, e) {
+            var li = result.annSrcs[i];
+
+            $(e).click(function() {
+               annSrcId = li.id;
+               $('#tabs').tabs('select', $tab.annSrcEd);
+            });
+
+        });
+
         $('#orgList input.update').click(function () {
             startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
         });
 
         bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
     });
+}
+
+function editAnnSrc(annSrcId) {
+    adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
+
+//        function updateOrgButtons() {
+//            var cando = selectAllOrg;
+//            for (var k in selectedOrganisms) {
+//                cando = true;
+//                break;
+//            }
+//            if (cando)
+//                $('#orgList .orgbuttons input').removeAttr('disabled');
+//            else
+//                $('#orgList .orgbuttons input').attr('disabled', 'disabled');
+//        }
+
+        renderTpl('annSrcEd', result);
+
+//        $('#orgList tr input.orgSelector').click(function () {
+//            if ($(this).is(':checked'))
+//                selectedOrganisms[this.value] = 1;
+//            else
+//                delete selectedOrganisms[this.value];
+//            updateOrgButtons();
+//        });
+
+//        var newAccessions = {};
+//        for (var i = 0; i < result.annSrcs.length; ++i)
+//            newAccessions[result.annSrcs[i].id] = 1;
+//        for (i in selectedOrganisms)
+//            if (!newAccessions[i])
+//                delete selectedOrganisms[i];
+//        updateOrgButtons();
+
+//        function startSelectedTasks(type, mode, title) {
+//            var asText = $('#txtAnnSrc').val();
+//
+//            adminCall('schedule', {
+//                    runMode: mode,
+//                    accession: asText,
+//                    type: type,
+//                    autoDepends: false
+//                }, switchToQueue);
+
+//            var accessions = [];
+//            for (var accession in selectedOrganisms)
+//                accessions.push(accession);
+//
+//            if (accessions.length == 0 && !selectAllOrg)
+//                return;
+//
+//            if (window.confirm('Do you really want to ' + title + ' '
+//                    + (selectAllOrg ? result.numTotal : accessions.length)
+//                    + ' organism(s)' + '?')) {
+//
+//                adminCall('schedule', {
+//                    runMode: mode,
+//                    accession: accessions,
+//                    type: type,
+//                    autoDepends: false
+//                }, switchToQueue);
+//
+//
+//                selectedOrganisms = {};
+//                selectAllOrg = false;
+//            }
+//        }
+
+        $('#annSrcEd input.saveannsrc').click(function () {
+//            startSelectedTasks('annSrcUpdate', 'RESTART', 'update annotationsource ');
+            saveAnnSrc();
+            
+        });
+
+//        bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
+    });
+}
+
+function saveAnnSrc() {
+    var asText = $('#txtAnnSrc').val();
+
+    function switchToAnnSrcList() {
+        $('#tabs').tabs('select', $tab.annSrc);
+    }
+
+    adminCall('annSrcUpdate', {
+                annSrcId: 111,
+                asText: asText
+            }, switchToAnnSrcList);
 }
 
 var masterAtlasURL = "http://www.ebi.ac.uk/gxa";
@@ -843,9 +945,12 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.ad) {
         updateArrayDesigns();
         $('#tabs').tabs('select', $tab.ad);
-    } else if(currentState['tab'] == $tab.org) {
-        updateOrganisms();
-        $('#tabs').tabs('select', $tab.org);
+    } else if(currentState['tab'] == $tab.annSrc) {
+        updateAnnSrcs();
+        $('#tabs').tabs('select', $tab.annSrc);
+    } else if(currentState['tab'] == $tab.annSrcEd) {
+        editAnnSrc(annSrcId);
+        $('#tabs').tabs('select', $tab.annSrcEd);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
             $('#aboutSystem').autoRender(r);
@@ -957,8 +1062,8 @@ function compileTemplates() {
         'tbody tr': {
             'annSrc <- annSrcs': {
                 'label.name': 'annSrc.organismName',
-                '.currAnnSrc': 'annSrc.currName',
                 '.types': 'annSrc.beTypes',
+                '.currAnnSrc': 'annSrc.currName',
                 '.newVersion': 'annSrc.newVersion',
                 '.validation': 'annSrc.validation',
 //                '.orgSelector@checked': function (r) { return selectedannSrcs[r.item.accession]; },
@@ -967,6 +1072,13 @@ function compileTemplates() {
                 '.orgSelector@id+': 'annSrc.id'
             }
         }
+    });
+
+    compileTpl('annSrcEd', {
+//        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+//        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+
+        'textarea.value':'annSrcText'
     });
 //    compileTpl('orgList', {
 //
@@ -1201,7 +1313,9 @@ $(document).ready(function () {
 
     $('#cancelPropsButton').click(updateProperties);
     $('#savePropsButton').click(saveProperties);
-        
+
+//    $('#saveAnnSrcButton').click(saveAnnSrc);
+
     $('#logout a').click(function () {
         adminCall('logout', {}, function () {
             requireLogin(null, {}, null);

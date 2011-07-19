@@ -49,7 +49,7 @@ public class BioEntityType {
 
     public BioEntityType(Long bioentitytypeid, String name, int useForIndex, BioEntityProperty identifierProperty, BioEntityProperty nameProperty) {
         this.bioentitytypeid = bioentitytypeid;
-        this.name = name;
+        this.name = name.toLowerCase();
         this.useForIndex = useForIndex;
         this.identifierProperty = identifierProperty;
         this.nameProperty = nameProperty;

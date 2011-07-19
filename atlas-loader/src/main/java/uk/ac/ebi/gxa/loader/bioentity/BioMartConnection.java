@@ -39,17 +39,6 @@ public class BioMartConnection {
     private static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
     private static final String ATTRIBUTES_PH = "$ATTRIBUTES";
 
-    private static final String PROPERTY_QUERY_OLD =
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                    "<!DOCTYPE Query>" +
-                    "<Query  virtualSchemaName = \"$VIRTUAL_SCHEMA\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" >" +
-                    "<Dataset name = \"$DATA_SET\" interface = \"default\" >" +
-                    "<Attribute name = \"ensembl_gene_id\" />" +
-                    "<Attribute name = \"ensembl_transcript_id\" />" +
-                    "<Attribute name = \"$PROP_NAME\" />" +
-                    "</Dataset>" +
-                    "</Query>";
-
     private static final String PROPERTY_QUERY =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                     "<!DOCTYPE Query>" +
@@ -187,20 +176,11 @@ public class BioMartConnection {
         return url;
     }
 
-    public URL getPropertyURL(String property) throws BioMartAccessException {
-        return getMartURL(getPropertyURLLocation(property));
-    }
-
     public URL getAttributesURL(Collection<String> attributes) throws BioMartAccessException {
         return getMartURL(getAttributesURLLocation(attributes));
     }
     private String parseOutValue(String nameProp, String line) {
         return line.substring(line.indexOf(nameProp) + nameProp.length(), line.indexOf("\"", line.indexOf(nameProp) + nameProp.length()));
-    }
-
-    private String getPropertyURLLocation(String martProperty) {
-        return martUrl + "query=" + URLEncoder.encode(PROPERTY_QUERY_OLD.replace(DATA_SET_PH, datasetName).
-                replace(PROP_NAME_PH, martProperty).replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema));
     }
 
     private String getAttributesURLLocation(Collection<String> attributes) {

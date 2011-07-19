@@ -5,13 +5,18 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.loader.annotationsrc.AnnotationLoaderException;
+import uk.ac.ebi.gxa.loader.annotationsrc.BioMartAnnotationSourceLoader;
 import uk.ac.ebi.gxa.loader.bioentity.BioMartAccessException;
 import uk.ac.ebi.gxa.loader.bioentity.BioMartConnection;
 import uk.ac.ebi.gxa.loader.bioentity.BioMartConnectionFactory;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.io.CharArrayWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,9 +30,11 @@ public class AnnotationSourceController {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private AnnotationSourceDAO annSrcDAO;
+    private BioMartAnnotationSourceLoader loader;
 
-    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
-        this.annSrcDAO = annSrcDAO;
+    public AnnotationSourceController(AnnotationSourceDAO annotationSourceDAO) {
+        this.annSrcDAO = annotationSourceDAO;
+        loader = new BioMartAnnotationSourceLoader(annotationSourceDAO);
     }
 
     public List<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
@@ -40,7 +47,7 @@ public class AnnotationSourceController {
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
-                    viewSources.add(new BioMartAnnotationSourceView(annSrc, annSrc.getDisplayName()));
+                    viewSources.add(new BioMartAnnotationSourceView(annSrc, annSrc.getSoftware().getDisplayName()));
                 } else {
                     //check if AnnotationSource exists for new version
 //                    softwareDAO.startSession();
@@ -55,11 +62,11 @@ public class AnnotationSourceController {
                     }
                     ValidationReport validationReport = new ValidationReport();
                     if (!connection.isValidDataSetName()) {
-                        validationReport.setOrganismName(annSrc.getDatasetName());
+                        validationReport.setOrganismName(newAnnSrc.getDatasetName());
                     }
-                    validationReport.setMissingProperties(connection.validateAttributeNames(annSrc.getBioMartPropertyNames()));
+                    validationReport.setMissingProperties(connection.validateAttributeNames(newAnnSrc.getBioMartPropertyNames()));
 
-                    BioMartAnnotationSourceView annSrcView = new BioMartAnnotationSourceView(newAnnSrc, annSrc.getDisplayName());
+                    BioMartAnnotationSourceView annSrcView = new BioMartAnnotationSourceView(newAnnSrc, annSrc.getSoftware().getDisplayName());
                     annSrcView.setValidationReport(validationReport);
                     viewSources.add(annSrcView);
                 }
@@ -70,6 +77,27 @@ public class AnnotationSourceController {
         }
         annSrcDAO.finishSession();
         return viewSources;
+    }
+
+    public String getAnnSrcString(String id)  {
+        Long aLong = Long.parseLong(id);
+        BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
+        Writer writer = new CharArrayWriter();
+        loader.writeSource(annotationSource, writer);
+        return writer.toString();
+    }
+
+    public void saveAnnSrc(String text) {
+         Reader reader = new StringReader(text);
+        try {
+            annSrcDAO.startSession();
+            BioMartAnnotationSource annotationSource = loader.readSource(reader);
+
+            annSrcDAO.save(annotationSource);
+            annSrcDAO.finishSession();
+        } catch (AnnotationLoaderException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 
     public static class BioMartAnnotationSourceView {
@@ -104,10 +132,6 @@ public class AnnotationSourceController {
         private Collection<String> missingProperties;
 
         public ValidationReport() {
-        }
-
-        public String getOrganismName() {
-            return organismName;
         }
 
         public void setOrganismName(String organismName) {

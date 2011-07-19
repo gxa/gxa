@@ -32,7 +32,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     public AnnotationSourceDAO(SessionFactory sessionFactory) {
         super(sessionFactory, AnnotationSource.class);
 
-        this.sessionFactory= sessionFactory;
+        this.sessionFactory = sessionFactory;
 
         organismDAO = new OrganismDAO(sessionFactory);
         softwareDAO = new SoftwareDAO(sessionFactory);
@@ -43,8 +43,11 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     @Override
     public void save(AnnotationSource object) {
         object.setLoadDate(new Date());
-        template.merge(object);
-        template.flush();
+//        template.merge(object);
+//        template.save(object);
+//        template.flush();
+        sessionFactory.getCurrentSession().merge(object);
+        sessionFactory.getCurrentSession().flush();
     }
 
     public <T extends AnnotationSource> Collection<T> getCurrentAnnotationSourcesOfType(Class<T> type) {
@@ -71,13 +74,29 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
         return softwareDAO.findOrCreate(swName, swVersion);
     }
 
-    public BioEntityType findOrCreateBioEntityType(String type) {
-        return typeDAO.findOrCreate(type);
+    public BioEntityType findOrCreateBioEntityType(String typeName) {
+        BioEntityType type = typeDAO.find(typeName);
+        if (type == null) {
+            BioEntityProperty beProperty = findOrCreateBEProperty(typeName);
+            type = new BioEntityType(null, typeName, 0, beProperty, beProperty);
+        }
+
+        return type;
     }
 
     public BioEntityProperty findBEProperty(String propertyName) {
         return propertyDAO.getByName(propertyName);
     }
+
+    public BioEntityProperty findOrCreateBEProperty(String propertyName) {
+        BioEntityProperty property = propertyDAO.getByName(propertyName);
+        if (property == null) {
+            property = new BioEntityProperty(null, propertyName);
+            propertyDAO.save(property);
+        }
+        return property;
+    }
+
 
     public void startSession() {
         SessionFactoryUtils.initDeferredClose(sessionFactory);

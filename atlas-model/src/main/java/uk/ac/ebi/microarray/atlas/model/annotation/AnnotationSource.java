@@ -37,14 +37,14 @@ public abstract class AnnotationSource implements Serializable{
     @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ")
     protected Long annotationSrcId;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne()
     protected Organism organism;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    @ManyToOne()
+//    @Cascade({org.hibernate.annotations.CascadeType.PERSIST, org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     protected Software software;
 
-    @ManyToMany (fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany (fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
@@ -75,12 +75,16 @@ public abstract class AnnotationSource implements Serializable{
         this.annotationSrcId = annotationSrcId;
     }
 
-    public Collection<BioEntityType> getTypes() {
-        return Collections.unmodifiableCollection(types);
+    public Set<BioEntityType> getTypes() {
+        return Collections.unmodifiableSet(types);
     }
 
     public void addBioentityType(BioEntityType type) {
         types.add(type);
+    }
+
+    public boolean removeBioentityType(BioEntityType type) {
+       return types.remove(type);
     }
 
     public Organism getOrganism() {
@@ -108,6 +112,7 @@ public abstract class AnnotationSource implements Serializable{
     public void setLoadDate(Date loadDate) {
         this.loadDate = copyOf(loadDate);
     }
+
 
      private String getDateTime() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");

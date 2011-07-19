@@ -5,6 +5,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.List;
 
+import static com.google.common.collect.Iterables.getFirst;
+
 
 /**
  * User: nsklyar
@@ -25,5 +27,10 @@ public class BioEntityTypeDAO extends AbstractDAO<BioEntityType> {
            save(type);
            return type;
        }
+    }
+
+    public BioEntityType find(String typeName) {
+       final List<BioEntityType> types = template.find("from BioEntityType where name = ?", typeName.toLowerCase());
+       return getFirst(types, null);
     }
 }

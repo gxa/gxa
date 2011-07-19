@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.tasks.*;
+import uk.ac.ebi.gxa.utils.CollectionUtil;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -274,21 +275,31 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             BioMartAnnotationSource annSrc = sourceView.getAnnSrc();
             results.add(
                     makeMap("organismName", annSrc.getOrganism().getName()
-                         , "id", String.valueOf(annSrc.getAnnotationSrcId())
-                         , "beTypes", Arrays.toString(annSrc.getTypes().toArray())
-                         , "currName", sourceView.getCurrentName()
-                         , "newVersion", annSrc.getSoftware().getVersion()
-                         , "validation", sourceView.getValidationReport().getSummary()
-                         , "isUpdatable", annSrc.isUpdatable()
+                            , "id", String.valueOf(annSrc.getAnnotationSrcId())
+                            , "beTypes", Arrays.toString(annSrc.getTypes().toArray())
+                            , "currName", sourceView.getCurrentName()
+                            , "newVersion", annSrc.getSoftware().getVersion()
+                            , "validation", sourceView.getValidationReport().getSummary()
+                            , "isUpdatable", annSrc.isUpdatable()
                     ));
         }
-        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "drosophila melanogaster", "id", "112", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "gallus gallus", "id", "113", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "Dataset name ggallus_gene_ensembl is not valid ", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "schizosaccharomyces pombe", "id", "114", "beTypes", "ensgene, enstranscript", "currName", "EnsemblFungi 8", "newVersion", "9", "validation", "valid", "isUpdatable", "true"));
-        results.add(makeMap("organismName", "homo sapience", "id", "115", "beTypes", "microRNA", "currName", "Mirbase 14", "newVersion", "", "validation", "", "isUpdatable", "false"));
+//        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "drosophila melanogaster", "id", "112", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "gallus gallus", "id", "113", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "Dataset name ggallus_gene_ensembl is not valid ", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "schizosaccharomyces pombe", "id", "114", "beTypes", "ensgene, enstranscript", "currName", "EnsemblFungi 8", "newVersion", "9", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "homo sapience", "id", "115", "beTypes", "microRNA", "currName", "Mirbase 14", "newVersion", "", "validation", "", "isUpdatable", "false"));
 
         return makeMap("annSrcs", results);
+    }
+
+    private Object processSearchAnnSrc(String annSrcId) {
+        System.out.println("annSrcId = " + annSrcId);
+        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
+        if (!StringUtils.EMPTY.equals(annSrcId)) {
+            annSrcString = annSrcController.getAnnSrcString(annSrcId);
+        }
+
+        return makeMap("annSrcText", annSrcString);
     }
 
     private Date parseDate(String toDateStr) {
@@ -362,6 +373,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 atlasProperties.setProperty(e.getKey(), "".equals(newValue) ? null : newValue);
             }
         }
+        return EMPTY;
+    }
+
+    private Object processUpdateAnnSrc(String text) {
+        System.out.println("AdminRequestHandler.processUpdateAnnSrc");
+        System.out.println("text = " + text);
+        annSrcController.saveAnnSrc(text);
         return EMPTY;
     }
 
@@ -453,6 +471,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if ("searchorg".equals(op))
             return processSearchOrganisms();
+
+        else if ("searchannSrc".equals(op))
+            return processSearchAnnSrc(req.getStr("annSrcId"));
+
+        else if ("annSrcUpdate".equals(op))
+            return processUpdateAnnSrc(req.getStr("asText"));
 
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(
