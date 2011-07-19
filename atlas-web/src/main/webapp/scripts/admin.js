@@ -706,77 +706,13 @@ function updateAnnSrcs() {
 function editAnnSrc(annSrcId) {
     adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
 
-//        function updateOrgButtons() {
-//            var cando = selectAllOrg;
-//            for (var k in selectedOrganisms) {
-//                cando = true;
-//                break;
-//            }
-//            if (cando)
-//                $('#orgList .orgbuttons input').removeAttr('disabled');
-//            else
-//                $('#orgList .orgbuttons input').attr('disabled', 'disabled');
-//        }
-
         renderTpl('annSrcEd', result);
 
-//        $('#orgList tr input.orgSelector').click(function () {
-//            if ($(this).is(':checked'))
-//                selectedOrganisms[this.value] = 1;
-//            else
-//                delete selectedOrganisms[this.value];
-//            updateOrgButtons();
-//        });
-
-//        var newAccessions = {};
-//        for (var i = 0; i < result.annSrcs.length; ++i)
-//            newAccessions[result.annSrcs[i].id] = 1;
-//        for (i in selectedOrganisms)
-//            if (!newAccessions[i])
-//                delete selectedOrganisms[i];
-//        updateOrgButtons();
-
-//        function startSelectedTasks(type, mode, title) {
-//            var asText = $('#txtAnnSrc').val();
-//
-//            adminCall('schedule', {
-//                    runMode: mode,
-//                    accession: asText,
-//                    type: type,
-//                    autoDepends: false
-//                }, switchToQueue);
-
-//            var accessions = [];
-//            for (var accession in selectedOrganisms)
-//                accessions.push(accession);
-//
-//            if (accessions.length == 0 && !selectAllOrg)
-//                return;
-//
-//            if (window.confirm('Do you really want to ' + title + ' '
-//                    + (selectAllOrg ? result.numTotal : accessions.length)
-//                    + ' organism(s)' + '?')) {
-//
-//                adminCall('schedule', {
-//                    runMode: mode,
-//                    accession: accessions,
-//                    type: type,
-//                    autoDepends: false
-//                }, switchToQueue);
-//
-//
-//                selectedOrganisms = {};
-//                selectAllOrg = false;
-//            }
-//        }
-
         $('#annSrcEd input.saveannsrc').click(function () {
-//            startSelectedTasks('annSrcUpdate', 'RESTART', 'update annotationsource ');
             saveAnnSrc();
             
         });
 
-//        bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
     });
 }
 
@@ -1075,19 +1011,9 @@ function compileTemplates() {
     });
 
     compileTpl('annSrcEd', {
-//        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
-//        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
 
         'textarea.value':'annSrcText'
     });
-//    compileTpl('orgList', {
-//
-//        'tbody tr' : {
-//            'annSrc <- annSrcs': {
-//                '.name': 'annSrc.name'
-//            }
-//        }
-//    });
 
     compileTpl('taskLogItems', {
         'tr' : {
