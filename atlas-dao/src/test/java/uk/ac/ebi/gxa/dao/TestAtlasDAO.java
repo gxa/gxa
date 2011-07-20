@@ -65,10 +65,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         // test data contains 2 experiments, check size of returned list
         assertEquals("Wrong number of experiments", expected, actual);
-
-        System.out.println(
-                "Expected number of experiments: " + expected + ", actual: " +
-                        actual);
     }
 
     @Test
@@ -84,10 +80,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         assertNotNull(exp);
         assertEquals("Accessions don't match", exp.getAccession(), accession);
         assertEquals("IDs don't match", exp.getId(), Long.valueOf(id));
-
-        System.out.println(
-                "Fetched expected experiment id: " + id + " by accession: " +
-                        accession + " successfully");
     }
 
     private long someExperimentId() throws Exception {
@@ -111,11 +103,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             assertNotNull(assay);
             assertEquals("Accessions don't match", assay.getExperiment().getAccession(),
                     accession);
-
-            System.out.println(
-                    "Fetched expected assay id: " + assay.getAssayID() +
-                            " by accession: " +
-                            accession + " successfully");
         }
     }
 
@@ -126,10 +113,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         int actual = arrayDesignDAO.getAllArrayDesigns().size();
 
         assertEquals("Wrong number of array designs", expected, actual);
-
-        System.out.println(
-                "Expected number of array designs: " + expected + ", actual: " +
-                        actual);
     }
 
     @Test
@@ -150,10 +133,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         assertEquals("Accessions don't match", arrayDesign.getAccession(),
                 accession);
         assertEquals("IDs don't match", arrayDesign.getArrayDesignID(), id);
-
-        System.out.println(
-                "Fetched expected array design id: " + id + " by accession: " +
-                        accession + " successfully");
     }
 
 
