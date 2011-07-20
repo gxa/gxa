@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean">
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="annotatedClasses">
+            <list>
+                <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
+                <value>uk.ac.ebi.microarray.atlas.model.AssayProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Asset</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Experiment</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Ontology</value>
+                <value>uk.ac.ebi.microarray.atlas.model.OntologyTerm</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Organism</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Property</value>
+                <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
+                <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
+            </list>
+        </property>
+
+        <property name="namingStrategy" ref="hibernateNamingStrategy"/>
+        <property name="schemaUpdate" value="false"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+                <prop key="hibernate.query.substitutions">true 1,false 0</prop>
+                <prop key="hibernate.cache.use_query_cache">true</prop>
+                <prop key="hibernate.cache.use_second_level_cache">true</prop>
+                <prop key="hibernate.cache.use_structured_entries">true</prop>
+                <prop key="hibernate.cache.region.factory_class">
+                    net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory
+                </prop>
+                <prop key="hibernate.show_sql">false</prop>
+            </props>
+        </property>
+    </bean>
+</beans>

@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -36,17 +39,18 @@ import java.util.List;
  */
 public class TestAtlasDAO extends AtlasDAOTestCase {
     @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
-        atlasDAO.startSession();
     }
 
     @Override
-    protected void tearDown() throws Exception {
-        atlasDAO.finishSession();
+    @After
+    public void tearDown() throws Exception {
         super.tearDown();
     }
 
+    @Test
     public void testGetAllExperiments() throws Exception {
         // get row count of experiments in the dataset
         int expected = getDataSet().getTable("A2_EXPERIMENT").getRowCount();
@@ -62,12 +66,11 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                         actual);
     }
 
+    @Test
     public void testGetExperimentByAccession() throws Exception {
         // fetch the accession of the first experiment in our dataset
-        String accession = getDataSet().getTable("A2_EXPERIMENT")
-                .getValue(0, "accession").toString();
-        long id = Long.parseLong(getDataSet().getTable("A2_EXPERIMENT")
-                .getValue(0, "experimentid").toString());
+        String accession = someExperimentAccession();
+        long id = someExperimentId();
 
         // fetch the experiment using the DAO
         Experiment exp = atlasDAO.getExperimentByAccession(accession);
@@ -82,11 +85,19 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                         accession + " successfully");
     }
 
+    private long someExperimentId() throws Exception {
+        return Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString());
+    }
+
+    private String someExperimentAccession() throws Exception {
+        return getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString();
+    }
+
+    @Test
     public void testGetAssaysByExperimentAccession() throws Exception {
         // fetch the accession of the first experiment in our dataset
         String accession =
-                getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession")
-                        .toString();
+                someExperimentAccession();
 
         List<Assay> assays = atlasDAO.getExperimentByAccession(accession).getAssays();
 
@@ -103,6 +114,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         }
     }
 
+    @Test
     public void testGetAllArrayDesigns() throws Exception {
         int expected = getDataSet().getTable("A2_ARRAYDESIGN").getRowCount();
 
@@ -115,6 +127,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
                         actual);
     }
 
+    @Test
     public void testGetArrayDesignByAccession() throws Exception {
         String accession =
                 getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
@@ -139,6 +152,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
 
+    @Test
     public void testGetOntologyMappingsForOntology() {
         String ontologyName = "EFO";
 
@@ -148,5 +162,16 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         assertNotSame("Got zero ontology mappings", ontologyMappings.size(), 0);
 
         // todo: do some other checks once this code is implemented
+    }
+
+    @Test
+    public void testDeleteAssayProperty() throws Exception {
+        final Experiment experiment = experimentDAO.getExperimentByAccession("E-MEXP-420");
+        final Assay assay = experiment.getAssay("abc:ABCxyz:SomeThing:1234.ABC123");
+        assay.getProperties().clear();
+        experimentDAO.save(experiment);
+
+        assertEquals("Deleted the OntologyTerm - invalid cascading", 1,
+                getDataSet().getTable("A2_ONTOLOGYTERM").getRowCount());
     }
 }

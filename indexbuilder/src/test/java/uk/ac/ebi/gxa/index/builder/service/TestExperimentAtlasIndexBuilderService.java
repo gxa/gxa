@@ -26,6 +26,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.dbunit.dataset.ITable;
+import org.junit.Test;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 
 import java.util.Collection;
@@ -56,6 +57,7 @@ public class TestExperimentAtlasIndexBuilderService
         eaibs = null;
     }
 
+    @Test
     public void testCreateIndexDocs() throws Exception {
         // create the docs
         eaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {

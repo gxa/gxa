@@ -22,24 +22,22 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.dbunit.DBTestCase;
-import org.dbunit.PropertiesBasedJdbcDatabaseTester;
+import org.dbunit.DataSourceBasedDBTestCase;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.hibernate.SessionFactory;
-import org.hibernate.cache.HashtableCacheProvider;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
-import uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean;
-import uk.ac.ebi.microarray.atlas.model.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.TransactionConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.*;
-import java.util.Properties;
 
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
@@ -47,25 +45,35 @@ import java.util.Properties;
  *
  * @author Tony Burdett
  */
-public abstract class AtlasDAOTestCase extends DBTestCase {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
+@TransactionConfiguration(transactionManager = "txManager", defaultRollback = false)
+@Transactional
+public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-be-db.xml";
 
-    private static final String DRIVER = "org.hsqldb.jdbcDriver";
-    private static final String URL = "jdbc:hsqldb:mem:atlas";
-    private static final String USER = "sa";
-    private static final String PASSWD = "";
-
+    @Autowired(required = true)
     protected DataSource atlasDataSource;
+    @Autowired
     protected AtlasDAO atlasDAO;
+    @Autowired
     protected ArrayDesignDAO arrayDesignDAO;
+    @Autowired
     protected BioEntityDAO bioEntityDAO;
+    @Autowired
     protected ExperimentDAO experimentDAO;
+    @Autowired
     protected SessionFactory sessionFactory;
 
     protected IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
 
         return new FlatXmlDataSet(in);
+    }
+
+    @Override
+    protected DataSource getDataSource() {
+        return atlasDataSource;
     }
 
     /**
@@ -75,92 +83,21 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
      * this template.  After setup, you should be able to use atlasDAO to test method calls against the data configured
      * in the sample dataset, or add to it and check the resulting data.
      */
-    protected void setUp() throws Exception {
-        // set system properties for hsqldb
-        System.setProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_DRIVER_CLASS, DRIVER);
-        System.setProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_CONNECTION_URL, URL);
-        System.setProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_USERNAME, USER);
-        System.setProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD, PASSWD);
-
-        // create a new database
+    @Before
+    public void setUp() throws Exception {
         createDatabase();
-
-        // do dbunit setup
         super.setUp();
-
-        // do our setup
-        atlasDataSource = new SingleConnectionDataSource(getConnection().getConnection(), true);
-        final JdbcTemplate jdbcTemplate = new JdbcTemplate(atlasDataSource);
-
-
-        SchemaValidatingAnnotationSessionFactoryBean factory = new SchemaValidatingAnnotationSessionFactoryBean();
-        factory.setDataSource(atlasDataSource);
-        factory.setAnnotatedClasses(new Class[]{
-                Experiment.class,
-                Assay.class,
-                Sample.class,
-                AssayProperty.class,
-                SampleProperty.class,
-                ArrayDesign.class,
-                Organism.class,
-                Property.class,
-                PropertyValue.class,
-                Ontology.class,
-                OntologyTerm.class,
-                Asset.class
-        });
-        factory.setHibernateProperties(new Properties() {
-            {
-                put("hibernate.dialect", org.hibernate.dialect.HSQLDialect.class.getName());
-            }
-        });
-        factory.setNamingStrategy(new AtlasNamingStrategy());
-        factory.setCacheProvider(new HashtableCacheProvider());
-        factory.afterPropertiesSet();
-        factory.validateDatabaseSchema();
-
-        sessionFactory = factory.getObject();
-
-        SoftwareDAO softwareDAO = new SoftwareDAO(jdbcTemplate);
-
-        arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO, sessionFactory);
-
-        bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO);
-
-        atlasDAO = new AtlasDAO(
-                arrayDesignDAO = new ArrayDesignDAO(jdbcTemplate, softwareDAO, sessionFactory),
-                bioEntityDAO = new BioEntityDAO(jdbcTemplate, softwareDAO), jdbcTemplate,
-                experimentDAO = new ExperimentDAO(sessionFactory),
-                new AssayDAO(sessionFactory),
-                sessionFactory);
     }
 
-    protected void tearDown() throws Exception {
-        sessionFactory = null;
-        // do our teardown
-        atlasDataSource = null;
-        atlasDAO = null;
-
-        // do dbunit teardown
+    @After
+    public void tearDown() throws Exception {
         super.tearDown();
-
-        // destroy the old DB
         destroyDatabase();
-
-        // do our teardown
-        System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_DRIVER_CLASS);
-        System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_CONNECTION_URL);
-        System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_USERNAME);
-        System.clearProperty(PropertiesBasedJdbcDatabaseTester.DBUNIT_PASSWORD);
     }
 
-    @BeforeClass
-    public static void createDatabase() throws SQLException, ClassNotFoundException {
-        // Load the HSQL Database Engine JDBC driver
-        Class.forName("org.hsqldb.jdbcDriver");
-
+    public void createDatabase() throws SQLException, ClassNotFoundException {
         // get a database connection, that will create the DB if it doesn't exist yet
-        Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
+        Connection conn = atlasDataSource.getConnection("sa", "");
         System.out.print("Creating test database tables...");
 
         runStatement(conn,
@@ -594,14 +531,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
 
-    @AfterClass
-    public static void destroyDatabase() throws SQLException, ClassNotFoundException {
-        // Load the HSQL Database Engine JDBC driver
-        Class.forName("org.hsqldb.jdbcDriver");
-
-        // get a database connection, that will create the DB if it doesn't exist yet
-        Connection conn = DriverManager.getConnection(URL, USER, PASSWD);
-
+    public void destroyDatabase() throws SQLException, ClassNotFoundException {
+        Connection conn = atlasDataSource.getConnection();
         runStatement(conn, "SHUTDOWN");
         conn.close();
     }

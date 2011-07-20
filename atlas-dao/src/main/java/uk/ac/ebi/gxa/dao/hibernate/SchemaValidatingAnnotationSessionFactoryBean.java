@@ -21,7 +21,7 @@ public class SchemaValidatingAnnotationSessionFactoryBean extends AnnotationSess
         logger.info("Validating database schema for Hibernate SessionFactory");
         HibernateTemplate hibernateTemplate = new HibernateTemplate(
                 getSessionFactory());
-        hibernateTemplate.setFlushMode(HibernateTemplate.FLUSH_NEVER);
+        hibernateTemplate.setFlushMode(HibernateTemplate.FLUSH_AUTO);
         hibernateTemplate.execute(new HibernateCallback<Object>() {
             public Object doInHibernate(Session session)
                     throws HibernateException, SQLException {

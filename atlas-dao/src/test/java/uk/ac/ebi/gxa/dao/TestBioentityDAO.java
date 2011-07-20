@@ -1,23 +1,13 @@
 package uk.ac.ebi.gxa.dao;
 
-import org.dbunit.dataset.IDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.junit.Test;
 import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 
-import java.io.InputStream;
 import java.util.List;
 
 public class TestBioentityDAO extends AtlasDAOTestCase {
-
-    private static final String ATLAS_BE_DATA_RESOURCE = "atlas-be-db.xml";
-
-    protected IDataSet getDataSet() throws Exception {
-        InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_BE_DATA_RESOURCE);
-
-        return new FlatXmlDataSetBuilder().build(in);
-    }
-
+    @Test
     public void testGetAllGenes() throws Exception {
         int expected = 1;
 
@@ -28,6 +18,7 @@ public class TestBioentityDAO extends AtlasDAOTestCase {
         assertEquals("Wrong number of genes", expected, actual);
     }
 
+    @Test
     public void testGetPropertiesForGenes() throws Exception {
         List<BioEntity> bioEntities = bioEntityDAO.getAllGenesFast();
 
