@@ -25,6 +25,9 @@ package uk.ac.ebi.gxa.dao;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -37,7 +40,9 @@ import java.util.List;
  *
  * @author Tony Burdett
  */
+@Transactional
 public class TestAtlasDAO extends AtlasDAOTestCase {
+
     @Override
     @Before
     public void setUp() throws Exception {
@@ -166,12 +171,29 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     @Test
     public void testDeleteAssayProperty() throws Exception {
+        final long termsCount = countOntologyTerms();
+
+        removeAssayProperties();
+
+        final Experiment experiment = experimentDAO.getExperimentByAccession("E-MEXP-420");
+        final Assay assay = experiment.getAssay("abc:ABCxyz:SomeThing:1234.ABC123");
+
+        assertEquals("Properties are not deleted!", 0, assay.getProperties().size());
+        assertEquals("Deleted the OntologyTerm - invalid cascading", termsCount,
+                countOntologyTerms());
+    }
+
+    private long countOntologyTerms() {
+        JdbcTemplate template = new JdbcTemplate(atlasDataSource);
+
+        return template.queryForLong("select count(*) from a2_ontologyterm");
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void removeAssayProperties() {
         final Experiment experiment = experimentDAO.getExperimentByAccession("E-MEXP-420");
         final Assay assay = experiment.getAssay("abc:ABCxyz:SomeThing:1234.ABC123");
         assay.getProperties().clear();
         experimentDAO.save(experiment);
-
-        assertEquals("Deleted the OntologyTerm - invalid cascading", 1,
-                getDataSet().getTable("A2_ONTOLOGYTERM").getRowCount());
     }
 }
