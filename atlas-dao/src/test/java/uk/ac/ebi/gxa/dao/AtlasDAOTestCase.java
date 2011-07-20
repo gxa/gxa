@@ -155,7 +155,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
     @BeforeClass
-    private void createDatabase() throws SQLException, ClassNotFoundException {
+    public static void createDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver
         Class.forName("org.hsqldb.jdbcDriver");
 
@@ -594,9 +594,8 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
     }
 
 
-    @SuppressWarnings("unused")
     @AfterClass
-    private void destroyDatabase() throws SQLException, ClassNotFoundException {
+    public static void destroyDatabase() throws SQLException, ClassNotFoundException {
         // Load the HSQL Database Engine JDBC driver
         Class.forName("org.hsqldb.jdbcDriver");
 
@@ -607,7 +606,7 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
         conn.close();
     }
 
-    private void runStatement(Connection conn, String sql) throws SQLException {
+    private static void runStatement(Connection conn, String sql) throws SQLException {
         // just using raw sql here, prior to any dao/jdbctemplate setup
         Statement st = conn.createStatement();
         st.execute(sql);
