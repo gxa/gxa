@@ -9,11 +9,9 @@ import java.util.Set;
  * Abstract representation for ef-efv/efo Attributes used in querying bit index
  */
 public abstract class Attribute {
-
-    protected StatisticsType statType;
+    protected transient StatisticsType statType;
 
     /**
-     *
      * @param efo
      * @return Set containing this Attribute (and all its children if applicable - c.f. EfoAttribute)
      */
@@ -50,9 +48,7 @@ public abstract class Attribute {
 
         Attribute attribute = (Attribute) o;
 
-        if (getValue() != null ? !getValue().equals(attribute.getValue()) : attribute.getValue() != null) return false;
-
-        return true;
+        return getValue() == null ? attribute.getValue() == null : getValue().equals(attribute.getValue());
     }
 
     @Override
@@ -61,4 +57,7 @@ public abstract class Attribute {
     }
 
 
+    public boolean isEmpty() {
+        return getValue() == null;
+    }
 }

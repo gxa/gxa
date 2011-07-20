@@ -450,12 +450,6 @@ public class DbStorage implements PersistentStorage {
                 });
     }
 
-    public String getMaxReleaseDate() {
-        String sql = "select TO_CHAR(MAX(RELEASEDATE),'DD/MM/YYYY') FROM a2_experiment";
-
-        return jdbcTemplate.queryForObject(sql, String.class);
-    }
-
     private static String likeifyString(String searchStr) {
         return "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
     }

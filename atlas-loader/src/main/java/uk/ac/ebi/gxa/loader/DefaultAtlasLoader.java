@@ -26,11 +26,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.bioentity.AnnotationLoader;
 import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
-import uk.ac.ebi.gxa.loader.bioentity.EnsemblAnnotator;
-import uk.ac.ebi.gxa.loader.bioentity.FileAnnotator;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.loader.service.*;
+import uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService;
+import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
+import uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService;
+import uk.ac.ebi.gxa.loader.service.ExperimentEditorService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +58,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private AtlasExperimentUnloaderService experimentUnloaderService;
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
     private ArrayDesignMappingLoader designMappingLoader;
-    private AtlasDataReleaseService dataReleaseService;
+    private ExperimentEditorService experimentEditorService;
     private AnnotationLoader annotationLoader;
 
     public void setExecutor(ExecutorService executor) {
@@ -114,12 +116,16 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             designMappingLoader.process(cmd);
                         }
 
-                        public void process(DataReleaseCommand cmd) {
-                            dataReleaseService.process(cmd);
+                        public void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException {
+                            experimentEditorService.process(cmd, false);
                         }
 
                         public void process(UpdateAnnotationCommand cmd) throws AtlasLoaderException {
                             annotationLoader.process(cmd, this);
+                        }
+
+                        public void process(MakeExperimentPrivateCommand cmd) throws AtlasLoaderException {
+                            experimentEditorService.process(cmd, true);
                         }
                     });
 
@@ -154,8 +160,8 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.designMappingLoader = designMappingLoader;
     }
 
-    public void setDataReleaseService(AtlasDataReleaseService dataReleaseService) {
-        this.dataReleaseService = dataReleaseService;
+    public void setExperimentEditorService(ExperimentEditorService experimentEditorService) {
+        this.experimentEditorService = experimentEditorService;
     }
 
     public void setAnnotationLoader(AnnotationLoader annotationLoader) {

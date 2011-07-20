@@ -30,8 +30,21 @@ import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.annotation.Nullable;
-import javax.persistence.*;
-import java.util.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Sets.newHashSet;
@@ -55,10 +68,10 @@ public class Experiment {
     private String lab;
 
     private Date loadDate;
-    private Date releaseDate;
     private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Asset> assets = new ArrayList<Asset>();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
@@ -141,14 +154,6 @@ public class Experiment {
         this.loadDate = copyOf(loadDate);
     }
 
-    public Date getReleaseDate() {
-        return copyOf(releaseDate);
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = copyOf(releaseDate);
-    }
-
     public String getPubmedId() {
         return pmid;
     }
@@ -175,6 +180,10 @@ public class Experiment {
 
     public List<Sample> getSamples() {
         return samples;
+    }
+
+    public void setSamples(List<Sample> samples) {
+        this.samples = samples;
     }
 
     public List<String> getSpecies() {
@@ -246,6 +255,14 @@ public class Experiment {
         Set<String> result = newTreeSet();
         for (Assay assay : assays) {
             result.addAll(assay.getPropertyNames());
+        }
+        return result;
+    }
+
+    public Set<String> getExperimentCharacteristics() {
+        Set<String> result = newTreeSet();
+        for (Sample sample : samples) {
+            result.addAll(sample.getPropertyNames());
         }
         return result;
     }

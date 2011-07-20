@@ -38,7 +38,12 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
@@ -139,10 +144,10 @@ public class AtlasNetCDFDAO {
      * @param experiment the experiment to find proxy for
      * @param criteria   the criteria to choose NetCDF proxy
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
-     *         otherwise, id of first proxy in the list returned by getNetCDFProxiesForExperiment()
+     *         otherwise, id of first proxy in the list returned by getNetCDFDescriptors()
      */
     private NetCDFDescriptor findNetCDF(final Experiment experiment, Predicate<NetCDFProxy> criteria) throws IOException {
-        for (NetCDFDescriptor ncdf : getNetCDFProxiesForExperiment(experiment)) {
+        for (NetCDFDescriptor ncdf : getNetCDFDescriptors(experiment)) {
             NetCDFProxy proxy = null;
             try {
                 proxy = ncdf.createProxy();
@@ -191,7 +196,7 @@ public class AtlasNetCDFDAO {
     /**
      * @param experiment@return List of NetCDF proxies corresponding to experimentAccession
      */
-    public Collection<NetCDFDescriptor> getNetCDFProxiesForExperiment(final Experiment experiment) {
+    public Collection<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experiment);
 
@@ -249,7 +254,7 @@ public class AtlasNetCDFDAO {
                                                                 final UpDownCondition upDownCondition) {
         ExpressionAnalysis ea = null;
         try {
-            Collection<NetCDFDescriptor> ncdfs = getNetCDFProxiesForExperiment(experiment);
+            Collection<NetCDFDescriptor> ncdfs = getNetCDFDescriptors(experiment);
             for (NetCDFDescriptor ncdf : ncdfs) {
                 NetCDFProxy proxy = null;
                 try {

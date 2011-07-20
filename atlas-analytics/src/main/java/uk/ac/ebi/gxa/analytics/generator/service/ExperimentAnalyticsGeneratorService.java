@@ -224,7 +224,7 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     private Collection<NetCDFDescriptor> getNetCDFs(Experiment experiment) throws AnalyticsGeneratorException {
-        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFProxiesForExperiment(experiment);
+        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFDescriptors(experiment);
         if (netCDFs.isEmpty()) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experiment);
         }

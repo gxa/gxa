@@ -26,10 +26,13 @@ import org.apache.solr.client.solrj.SolrServerException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
 public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCase {
     private GeneAtlasIndexBuilderService gaibs;
@@ -37,10 +40,10 @@ public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCas
     public void setUp() throws Exception {
         super.setUp();
 
-        ResourceFileStorage storage = new ResourceFileStorage();
-        storage.setResourcePath("atlas.properties");
-        AtlasProperties atlasProperties = new AtlasProperties();
-        atlasProperties.setStorage(storage);
+        final AtlasProperties atlasProperties = createMock(AtlasProperties.class);
+        expect(atlasProperties.getGeneAtlasIndexBuilderChunksize()).andReturn(100);
+        expect(atlasProperties.getGeneAtlasIndexBuilderCommitfreq()).andReturn(1000);
+        replay(atlasProperties);
 
         gaibs = new GeneAtlasIndexBuilderService();
         gaibs.setAtlasDAO(atlasDAO);

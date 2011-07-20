@@ -35,13 +35,27 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.statistics.Attribute;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.ExperimentInfo;
+import uk.ac.ebi.gxa.statistics.ExperimentResult;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.gxa.utils.LazyMap;
+import uk.ac.ebi.gxa.utils.Maker;
+import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
@@ -401,14 +415,14 @@ public class AtlasGene {
         for (EfvAttribute attr : scoringEfvsForGene) {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
-            List<ExperimentInfo> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
+            List<ExperimentResult> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
             UpdownCounter counter = result.getOrCreate(attr.getEf(), attr.getEfv(), maker);
             // Retrieve all up/down counts and pvals/tStatRanks
-            for (ExperimentInfo exp : allExperimentsForAttribute) {
-                UpDownExpression upDown = UpDownExpression.valueOf(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
+            for (ExperimentResult exp : allExperimentsForAttribute) {
+                UpDownExpression upDown = UpDownExpression.valueOf(exp.getPValTStatRank().getPValue(), exp.getPValTStatRank().getTStatRank());
                 if (upDown.isUpOrDown()) {
                     counter.add(upDown.isUp(),
-                            exp.getpValTStatRank().getPValue());
+                            exp.getPValTStatRank().getPValue());
                 }
                 counter.addExperiment(exp.getExperimentId());
             }

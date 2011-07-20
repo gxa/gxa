@@ -32,8 +32,18 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
-import uk.ac.ebi.gxa.tasks.*;
-import uk.ac.ebi.gxa.utils.CollectionUtil;
+import uk.ac.ebi.gxa.tasks.DbStorage;
+import uk.ac.ebi.gxa.tasks.ExperimentLine;
+import uk.ac.ebi.gxa.tasks.ExperimentList;
+import uk.ac.ebi.gxa.tasks.IndexTask;
+import uk.ac.ebi.gxa.tasks.Task;
+import uk.ac.ebi.gxa.tasks.TaskEvent;
+import uk.ac.ebi.gxa.tasks.TaskManager;
+import uk.ac.ebi.gxa.tasks.TaskRunMode;
+import uk.ac.ebi.gxa.tasks.TaskSpec;
+import uk.ac.ebi.gxa.tasks.TaskTagType;
+import uk.ac.ebi.gxa.tasks.TaskUser;
+import uk.ac.ebi.gxa.tasks.WorkingTask;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -43,7 +53,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.addMap;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
@@ -238,10 +256,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 "numTotal", experiments.getNumTotal(),
                 "indexStatus", !taskManagerDbStorage.isAnyIncomplete(IndexTask.TYPE_INDEX, IndexTask.TYPE_INDEXEXPERIMENT)
         );
-    }
-
-    private Object processGetMaxReleaseDate() {
-        return taskManagerDbStorage.getMaxReleaseDate();
     }
 
     private Object processSearchArrayDesigns(String search, int page, int num) {
@@ -459,9 +473,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getEnum("pendingOnly", DbStorage.ExperimentIncompleteness.ALL),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-
-        else if ("maxreleasedate".equals(op))
-            return processGetMaxReleaseDate();
 
         else if ("searchad".equals(op))
             return processSearchArrayDesigns(

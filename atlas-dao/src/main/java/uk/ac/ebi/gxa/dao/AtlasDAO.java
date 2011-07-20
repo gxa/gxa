@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
@@ -49,6 +51,7 @@ import java.util.List;
  * @author Olga Melnichuk
  */
 public class AtlasDAO {
+    private static final Logger log = LoggerFactory.getLogger(AtlasDAO.class);
     private final ArrayDesignDAO arrayDesignDAO;
     private final BioEntityDAO bioEntityDAO;
     private final JdbcTemplate template;
@@ -141,31 +144,13 @@ public class AtlasDAO {
         return stats;
     }
 
-    /**
-     * Writes the given experiment to the database, using the default transaction strategy configured for the
-     * datasource.
-     *
-     * @param experiment the experiment to write
-     */
-    public void writeExperimentInternal(Experiment experiment) {
-        experimentDAO.save(experiment);
-    }
-
-    /**
-     * Deletes the experiment with the given accession from the database.  If this experiment is not present, this does
-     * nothing.
-     *
-     * @param experimentAccession the accession of the experiment to remove
-     */
-    public void deleteExperimentFromDatabase(final String experimentAccession) {
-        experimentDAO.delete(experimentAccession);
-    }
-
     public void startSession() {
+        log.debug("startSession()");
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
     public void finishSession() {
+        log.debug("finishSession()");
         SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
 

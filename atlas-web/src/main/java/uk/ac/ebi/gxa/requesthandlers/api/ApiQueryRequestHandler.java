@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.requesthandlers.api;
 
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.dao.NetCDFReader;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
@@ -33,7 +32,14 @@ import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.experiment.BestDesignElementsResult;
-import ae3.service.structuredquery.*;
+import ae3.service.structuredquery.AtlasStructuredQuery;
+import ae3.service.structuredquery.AtlasStructuredQueryParser;
+import ae3.service.structuredquery.AtlasStructuredQueryResult;
+import ae3.service.structuredquery.AtlasStructuredQueryService;
+import ae3.service.structuredquery.ExpFactorQueryCondition;
+import ae3.service.structuredquery.QueryExpression;
+import ae3.service.structuredquery.StructuredResultRow;
+import ae3.service.structuredquery.ViewType;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
@@ -44,7 +50,13 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.requesthandlers.api.result.*;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ApiQueryResults;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentAnalyticsRestProfile;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentFullRestProfile;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentPageRestProfile;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentRestProfile;
+import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
+import uk.ac.ebi.gxa.requesthandlers.api.result.HeatmapResultAdapter;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 
@@ -52,7 +64,11 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.emptyToNull;
@@ -235,7 +251,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
 
                                 try {
-                                    expData = NetCDFReader.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
+                                    expData = ExperimentalData.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
                                 } catch (IOException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }

@@ -34,7 +34,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
 import uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
+import uk.ac.ebi.microarray.atlas.model.Asset;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Ontology;
+import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
+import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
+import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty;
 import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
@@ -44,7 +55,12 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -147,11 +163,9 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                 experimentDAO = new ExperimentDAO(sessionFactory),
                 new AssayDAO(sessionFactory),
                 sessionFactory);
-        atlasDAO.startSession();
     }
 
     protected void tearDown() throws Exception {
-        atlasDAO.finishSession();
         sessionFactory = null;
         // do our teardown
         atlasDataSource = null;
@@ -198,7 +212,6 @@ public abstract class AtlasDAOTestCase extends DBTestCase {
                         "PERFORMER VARCHAR(2000), " +
                         "LAB VARCHAR(2000), " +
                         "LOADDATE timestamp, " +
-                        "RELEASEDATE timestamp, " +
                         "PMID VARCHAR(255)," +
                         "PRIVATE bit," +
                         "CURATED bit, " +

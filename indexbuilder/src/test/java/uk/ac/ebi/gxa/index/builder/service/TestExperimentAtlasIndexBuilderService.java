@@ -31,8 +31,6 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import java.util.Collection;
 import java.util.Map;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-
 /**
  * Tests the documents that are created by the class {@link uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService}.
  * Whilst most of the lifecycle instantiation is left to the IndexBuilder and the abstract service, the logic for the
@@ -49,13 +47,12 @@ public class TestExperimentAtlasIndexBuilderService
         // create IndexBuilderServices for genes (atlas) and experiments
         eaibs = new ExperimentAtlasIndexBuilderService();
         eaibs.setAtlasDAO(atlasDAO);
+        eaibs.setExperimentDAO(experimentDAO);
         eaibs.setSolrServer(getExptSolrServer());
-        eaibs.setExecutor(newSingleThreadExecutor());
     }
 
     public void tearDown() throws Exception {
         super.tearDown();
-
         eaibs = null;
     }
 

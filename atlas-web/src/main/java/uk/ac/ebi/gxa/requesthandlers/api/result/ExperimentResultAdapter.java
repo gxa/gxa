@@ -22,7 +22,12 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.model.*;
+import ae3.model.ArrayDesign;
+import ae3.model.AssayDecorator;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.model.ExperimentalData;
+import ae3.model.ExpressionStats;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -31,8 +36,15 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 
-import java.util.*;
 import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -95,8 +107,8 @@ public class ExperimentResultAdapter implements Closeable {
                 @RestOut(forRenderer = JsonRestResultRenderer.class, name = "assays", asString = false)
         })
         public Iterator<Integer> getAssayIds() {
-            return new MappingIterator<Assay, Integer>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
-                public Integer map(Assay assay) {
+            return new MappingIterator<AssayDecorator, Integer>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
+                public Integer map(AssayDecorator assay) {
                     return assay.getNumber();
                 }
 
@@ -122,8 +134,8 @@ public class ExperimentResultAdapter implements Closeable {
             }
 
             public Iterator<Float> iterator() {
-                return new MappingIterator<Assay, Float>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
-                    public Float map(Assay assay) {
+                return new MappingIterator<AssayDecorator, Float>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
+                    public Float map(AssayDecorator assay) {
                         return experimentResultAdapter.getExperimentalData().getExpression(assay, deIndex);
                     }
                 };
@@ -158,7 +170,7 @@ public class ExperimentResultAdapter implements Closeable {
         public Map<String, DesignElementExpMap> getGeneExpressions() {
             Map<String, DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
             for (AtlasGene gene : experimentResultAdapter.genes) {
-                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElements(arrayDesign, gene.getGeneId());
+                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
                 if (designElements != null) {
                     DesignElementExpMap deMap = new DesignElementExpMap();
                     for (final int designElementId : designElements) {
@@ -203,7 +215,7 @@ public class ExperimentResultAdapter implements Closeable {
         public Map<String, DesignElementStatMap> getGeneExpressions() {
             Map<String, DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
             for (AtlasGene gene : genes) {
-                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElements(arrayDesign, gene.getGeneId());
+                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
                 if (designElements != null) {
                     DesignElementStatMap deMap = new DesignElementStatMap();
                     for (final int designElementId : designElements) {

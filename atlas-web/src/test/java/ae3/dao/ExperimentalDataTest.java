@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,13 +44,22 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author pashky
  */
-public class NetCDFReaderTest {
+public class ExperimentalDataTest {
     private long assayid = 0;
+    private long sampleid = 0;
 
     private List<Assay> eMexp1586Assays(Experiment eMexp1586, ArrayDesign ad1) {
         List<Assay> result = new ArrayList<Assay>();
         for (int i = 1; i <= 6; i++)
             result.add(new Assay(assayid++, "A127-0" + i, eMexp1586, ad1));
+        return result;
+    }
+
+    private List<Sample> eMexp1586Samples() {
+        List<Sample> result = new ArrayList<Sample>();
+        for (int i = 1; i <= 6; i++) {
+            result.add(new Sample(sampleid++, "A127-0" + i, null, null));
+        }
         return result;
     }
 
@@ -75,6 +85,29 @@ public class NetCDFReaderTest {
         return result;
     }
 
+    private List<Sample> eMexp1913Samples() {
+        final List<Sample> result = new ArrayList<Sample>();
+        final String[] accessions = new String[] {
+            "C99V50F 5-43",
+            "C99WT 5-23",
+            "mock 2-67_3. Negative control",
+            "C99I45F 4-25a",
+            "C99V50F 4-52",
+            "C99WT 4-2",
+            "C99I45F 4-13",
+            "mock 2-67_2. Negative control",
+            "C99V50F 5-59a",
+            "mock 2-67_1. Negative control",
+            "C99WT 5-12",
+            "C99I45F 4-17"
+        };
+
+        for (String s : accessions) {
+            result.add(new Sample(sampleid++, s, null, null));
+        }
+        return result;
+    }
+
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException {
@@ -83,11 +116,12 @@ public class NetCDFReaderTest {
         ad1.setArrayDesignID(160588088);
         ad1.setAccession("A-AFFY-44");
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
+        eMexp1586.setSamples(eMexp1586Samples());
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc
-        ExperimentalData expData = new NetCDFReader().loadExperiment(dao, eMexp1586);
+        ExperimentalData expData = ExperimentalData.loadExperiment(dao, eMexp1586);
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesigns().size());
     }
@@ -104,19 +138,20 @@ public class NetCDFReaderTest {
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
         eMexp1913.setAssays(assays);
+        eMexp1913.setSamples(eMexp1913Samples());
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-33.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-34.nc
-        ExperimentalData expData = new NetCDFReader().loadExperiment(dao, eMexp1913);
+        ExperimentalData expData = ExperimentalData.loadExperiment(dao, eMexp1913);
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesigns().size());
     }
 
     private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(NetCDFReaderTest.class.getClassLoader().getResource("").getPath());
+        return new File(ExperimentalData.class.getClassLoader().getResource("").getPath());
     }
 
     @After

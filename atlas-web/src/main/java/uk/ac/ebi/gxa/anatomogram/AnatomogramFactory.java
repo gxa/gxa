@@ -41,7 +41,11 @@ import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AnatomogramFactory {
 
@@ -127,6 +131,7 @@ public class AnatomogramFactory {
         long bitIndexAccessTime = 0;
         if (doc != null) {
             for (String acc : getKnownEfo(doc)) {
+                log.debug("Looking at '{}'", acc);
                 EfoTerm term = efo.getTermById(acc);
                 Attribute attr = new EfoAttribute(acc, StatisticsType.DOWN);
                 long start = System.currentTimeMillis();
@@ -151,7 +156,7 @@ public class AnatomogramFactory {
             an.addOrganismParts(parts);
         }
 
-        log.debug("Retrieved stats from bit index for " + gene.getGeneName() + "'s anatomogram in: " + bitIndexAccessTime + " ms");
+        log.debug("Retrieved stats from bit index for {}'s anatomogram in: {} ms", gene.getGeneName(), bitIndexAccessTime);
 
         return an == null ? emptyAnatomogram : an;
     }

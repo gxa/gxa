@@ -5,13 +5,24 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
+import uk.ac.ebi.gxa.statistics.ExperimentResult;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryCondition;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryOrConditions;
+import uk.ac.ebi.gxa.statistics.StatisticsStorage;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This interface provides bioentity expression statistics query service API
@@ -56,19 +67,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             int minExperiments);
 
     /**
-     * @param attribute
-     * @return Index of Attribute within bit index
-     */
-    public Integer getIndexForAttribute(EfvAttribute attribute);
-
-    /**
-     * @param attributeIndex
-     * @return Attribute corresponding to attributeIndex bit index
-     */
-    public EfvAttribute getAttributeForIndex(Integer attributeIndex);
-
-
-    /**
      * @param statsQuery
      * @param minPos
      * @param rows
@@ -85,12 +83,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             List<Integer> sortedBioEntitiesChunk);
 
     /**
+     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
      * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
      */
-    public List<Multiset.Entry<Integer>> getScoringAttributesForBioEntities(
+    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(
             Set<Integer> bioEntityIds,
             StatisticsType statType,
             Collection<String> autoFactors);
@@ -119,13 +118,14 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public Set<EfvAttribute> getAttributesForEfo(String efoTerm);
 
     /**
+     *
      * @param bioEntityId BioEntity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
-    public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
+    public List<ExperimentResult> getExperimentsSortedByPvalueTRank(
             final Integer bioEntityId,
             final Attribute attribute,
             final int fromRow,

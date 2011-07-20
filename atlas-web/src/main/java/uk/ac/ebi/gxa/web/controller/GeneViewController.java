@@ -43,7 +43,11 @@ import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfoAttribute;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.ExperimentResult;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
@@ -244,9 +248,9 @@ public class GeneViewController extends AtlasViewController {
         long start = System.currentTimeMillis();
         List<GenePageExperiment> sortedAtlasExps = new ArrayList<GenePageExperiment>();
 
-        List<ExperimentInfo> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
+        List<ExperimentResult> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
         log.debug("Retrieved {} experiments from bit index in: {} ms", sortedExps.size(), System.currentTimeMillis() - start);
-        for (ExperimentInfo exp : sortedExps) {
+        for (ExperimentResult exp : sortedExps) {
             Experiment experiment = experimentDAO.getById(exp.getExperimentId());
             if (experiment != null) {
                 sortedAtlasExps.add(new GenePageExperiment(experiment, exp));

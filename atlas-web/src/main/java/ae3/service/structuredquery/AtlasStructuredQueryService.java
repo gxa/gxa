@@ -52,7 +52,13 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.statistics.Attribute;
+import uk.ac.ebi.gxa.statistics.EfoAttribute;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
+import uk.ac.ebi.gxa.statistics.ExperimentResult;
+import uk.ac.ebi.gxa.statistics.StatisticsQueryCondition;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Maker;
@@ -62,7 +68,19 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -1204,14 +1222,14 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             StatisticsType statisticType,
             boolean isFullHeatMap
     ) {
-        List<Multiset.Entry<Integer>> attrCountsSortedDescByExperimentCounts =
+        List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
 
-        Multiset<Integer> efAttrCounts = HashMultiset.create();
-        for (Multiset.Entry<Integer> attrCount : attrCountsSortedDescByExperimentCounts) {
-            EfvAttribute attr = atlasStatisticsQueryService.getAttributeForIndex(attrCount.getElement());
+        Multiset<EfvAttribute> efAttrCounts = HashMultiset.create();
+        for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {
+            EfvAttribute attr = attrCount.getElement();
             if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
-                Integer efAttrIndex = atlasStatisticsQueryService.getIndexForAttribute(new EfvAttribute(attr.getEf(), null));
+                EfvAttribute efAttrIndex = new EfvAttribute(attr.getEf(), null);
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
                 if (isFullHeatMap || efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
                     qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
@@ -1275,21 +1293,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             if (upCnt > 0) {
                 // Get best up pValue
                 attribute.setStatType(StatisticsType.UP);
-                List<ExperimentInfo> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                List<ExperimentResult> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
                 if (bestUpExperimentsForAttribute.isEmpty()) {
                     throw LogUtil.createUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
                 }
-                minPValUp = bestUpExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+                minPValUp = bestUpExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
             }
 
             if (downCnt > 0) {
                 // Get best down pValue
                 attribute.setStatType(StatisticsType.DOWN);
-                List<ExperimentInfo> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                List<ExperimentResult> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
                 if (bestDownExperimentsForAttribute.isEmpty()) {
                     throw LogUtil.createUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
                 }
-                minPValDown = bestDownExperimentsForAttribute.get(0).getpValTStatRank().getPValue();
+                minPValDown = bestDownExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
             }
 
             if (minPValUp != 1 || minPValDown != 1)

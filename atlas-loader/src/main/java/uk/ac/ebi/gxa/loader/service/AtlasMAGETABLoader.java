@@ -31,7 +31,13 @@ import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.loader.steps.ArrayDataStep;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.DerivedArrayDataMatrixStep;
+import uk.ac.ebi.gxa.loader.steps.HTSArrayDataStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
@@ -50,8 +56,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.utils.FileUtil.*;
+import static uk.ac.ebi.gxa.utils.FileUtil.createTempDirectory;
+import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
+import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.
@@ -111,10 +118,7 @@ public class AtlasMAGETABLoader {
                         throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
                     }
                     if (idfs.length == 0) {
-                        // No IDFs found - perhaps, a NetCDF pack for "incremental" updates, give it a try
-                        loadNetCDFs(cache, tempDirectory);
-                        write(listener, cache);
-                        return;
+                        throw new AtlasLoaderException("No IDFs to import!");
                     }
                     idfFileLocation = new URL("file:" + idfs[0]);
                 } catch (IOException ex) {
@@ -199,28 +203,6 @@ public class AtlasMAGETABLoader {
             throw e;
         } catch (Exception e) {
             throw new AtlasLoaderException(e);
-        }
-    }
-
-    private void loadNetCDFs(AtlasLoadCache cache, File target) throws AtlasLoaderException {
-        File[] netcdfs = target.listFiles(extension("nc", false));
-        if (netcdfs == null) {
-            throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
-        }
-        if (netcdfs.length == 0)
-            throw new AtlasLoaderException("No IDF or NetCDF files found - nothing to import");
-
-        for (File file : netcdfs) {
-            NetCDFProxy proxy = null;
-            try {
-                proxy = new NetCDFProxy(file);
-                AtlasNcdfLoaderUtil.loadNcdfToCache(cache, proxy, dao);
-            } catch (IOException e) {
-                log.error("Cannot load NCDF: " + e.getMessage(), e);
-                throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
-            } finally {
-                closeQuietly(proxy);
-            }
         }
     }
 

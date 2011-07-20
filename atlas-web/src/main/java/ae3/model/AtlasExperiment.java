@@ -33,7 +33,13 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Sets.newTreeSet;
@@ -167,21 +173,6 @@ public class AtlasExperiment {
     @RestOut(name = "loaddate")
     public String getLoadDateString() {
         return dateToString(experiment.getLoadDate());
-    }
-
-    @RestOut(name = "releasedate")
-    public String getReleaseDateString() {
-        return dateToString(experiment.getReleaseDate());
-    }
-
-    /**
-     * Not yet implemented, always new
-     *
-     * @return "new"
-     */
-    @RestOut(name = "status")
-    public String getStatus() {
-        return "new";
     }
 
     public Experiment getExperiment() {

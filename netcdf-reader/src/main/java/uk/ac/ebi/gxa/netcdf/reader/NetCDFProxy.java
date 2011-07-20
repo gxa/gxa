@@ -45,7 +45,13 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.Float.isNaN;
 
@@ -382,7 +388,7 @@ public class NetCDFProxy implements Closeable {
         return Arrays.asList(Arrays.copyOf(uValArray, uValArray.length, String[].class));
     }
 
-    public int[] getUniqueValueIndexes() throws IOException {
+    public int[] getUniqueValueCounts() throws IOException {
         Variable uVALnumVar = netCDF.findVariable("uVALnum");
 
         if (uVALnumVar == null) {
