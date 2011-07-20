@@ -44,6 +44,18 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
         super(annotationDAO, transactionTemplate);
     }
 
+    public void process(String annotationSrcId, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+        setListener(listener);
+
+        AnnotationSource annotationSource = annotationDAO.getAnnSrcById(Long.parseLong(annotationSrcId));
+        if (annotationSource == null) {
+            throw new AtlasLoaderException("No annotation source with id " + annotationSrcId);
+        }
+
+        this.annotationSource = annotationSource;
+        updateAnnotations((BioMartAnnotationSource) annotationSource);
+    }
+
     private void updateAnnotations(BioMartAnnotationSource annSrc) throws AtlasLoaderException {
 
         CSVReader csvReader = null;
@@ -72,7 +84,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
-                    reportProgress("Reading property " + bioMartProperty.getBioEntityProperty().getName() +" ("+ bioMartProperty.getName() + ") for " + targetOrganism.getName());
+                    reportProgress("Reading property " + bioMartProperty.getBioEntityProperty().getName() + " (" + bioMartProperty.getName() + ") for " + targetOrganism.getName());
                     csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
                     readProperty(csvReader, bioMartProperty.getBioEntityProperty(), attributesHandler);
                     csvReader.close();
@@ -143,28 +155,12 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
         }
     }
 
-    public void process(String annotationSrcId, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        setListener(listener);
-
-        AnnotationSource annotationSource = annotationDAO.getAnnSrcById(Long.parseLong(annotationSrcId));
-        if (annotationSource == null) {
-            throw new AtlasLoaderException("No annotation source with id " + annotationSrcId);
-        }
-        //ToDo: find better way for this check, or avoid this, by having a reference to the service in AnnSrc object itself
-        if (!(annotationSource instanceof BioMartAnnotationSource)) {
-            throw new AtlasLoaderException("Wrong type of annotation source " + annotationSource.getDisplayName());
-        }
-
-        this.annotationSource = annotationSource;
-        updateAnnotations((BioMartAnnotationSource) annotationSource);
-    }
-
     private static class BETypeMartAttributesHandler {
 
         private final BioEntityType[] types;
         private final Set<BioMartProperty> bioMartProperties;
-        private  List<String> martBEIdentifiersAndNames = new ArrayList<String>();
-        private  List<String> martBEIdentifiers = new ArrayList<String>();
+        private List<String> martBEIdentifiersAndNames = new ArrayList<String>();
+        private List<String> martBEIdentifiers = new ArrayList<String>();
 
         private BETypeMartAttributesHandler(BioMartAnnotationSource annSrc) throws AtlasLoaderException {
             this.types = toArray(annSrc.getTypes(), BioEntityType.class);
@@ -196,7 +192,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
             }
         }
-        
+
         /**
          * Returns a List of mart attributes corresponding to BioEntityType's identifier and name, keeping an order
          * of BioEntityTypes

@@ -37,6 +37,7 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.annotation.BioMartArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty;
 import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -71,6 +72,7 @@ public class BioMartAnnotationSourceLoader {
     private static final String datasetName_propName = "datasetName";
     private static final String databaseName_propName = "databaseName";
     private static final String biomartProperty_propName = "biomartProperty";
+    private static final String arrayDesign_propName = "arrayDesign";
 
     private AnnotationSourceDAO annSrcDAO;
 
@@ -98,6 +100,8 @@ public class BioMartAnnotationSourceLoader {
             annotationSource.setDatasetName(getProperty(datasetName_propName, properties));
 
             updateBioMartProperties(properties, annotationSource);
+
+            updateBioMartArrayDesigns(properties, annotationSource);
 
         } catch (IOException e) {
             throw new AnnotationLoaderException("Cannot read annotation properties", e);
@@ -129,6 +133,30 @@ public class BioMartAnnotationSourceLoader {
         Set<BioMartProperty> addedProperties = new HashSet<BioMartProperty>(difference(bioMartProperties, annotationSource.getBioMartProperties()));
         for (BioMartProperty addedProperty : addedProperties) {
             annotationSource.addBioMartProperty(addedProperty);
+        }
+    }
+
+    private void updateBioMartArrayDesigns(Properties properties, BioMartAnnotationSource annotationSource) {
+        Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
+        for (String propName : properties.stringPropertyNames()) {
+
+            if (propName.startsWith(arrayDesign_propName)) {
+                ArrayDesign arrayDesign = annSrcDAO.getArrayDesignShallowByAccession(propName.substring(arrayDesign_propName.length() + 1));
+                                StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
+                while (tokenizer.hasMoreElements()) {
+                    bioMartArrayDesigns.add(new BioMartArrayDesign(null, tokenizer.nextToken().trim(), arrayDesign));
+                }
+            }
+        }
+
+        Set<BioMartArrayDesign> removedProperties = new HashSet<BioMartArrayDesign>(difference(annotationSource.getBioMartArrayDesigns(), bioMartArrayDesigns));
+        for (BioMartArrayDesign removedProperty : removedProperties) {
+            annotationSource.removeBioMartArrayDesign(removedProperty);
+        }
+
+        Set<BioMartArrayDesign> addedProperties = new HashSet<BioMartArrayDesign>(difference(bioMartArrayDesigns, annotationSource.getBioMartArrayDesigns()));
+        for (BioMartArrayDesign addedProperty : addedProperties) {
+            annotationSource.addBioMartArrayDesign(addedProperty);
         }
     }
 

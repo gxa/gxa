@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.dao;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 
@@ -28,6 +29,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     private SoftwareDAO softwareDAO;
     private BioEntityTypeDAO typeDAO;
     private BioEntityPropertyDAO propertyDAO;
+    private ArrayDesignDAO arrayDesignDAO;
 
     public AnnotationSourceDAO(SessionFactory sessionFactory) {
         super(sessionFactory, AnnotationSource.class);
@@ -38,6 +40,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
         softwareDAO = new SoftwareDAO(sessionFactory);
         typeDAO = new BioEntityTypeDAO(sessionFactory);
         propertyDAO = new BioEntityPropertyDAO(sessionFactory);
+        arrayDesignDAO = new ArrayDesignDAO(null, sessionFactory);
     }
 
     @Override
@@ -97,6 +100,9 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
         return property;
     }
 
+    public ArrayDesign getArrayDesignShallowByAccession(String accession) {
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+    }
 
     public void startSession() {
         SessionFactoryUtils.initDeferredClose(sessionFactory);

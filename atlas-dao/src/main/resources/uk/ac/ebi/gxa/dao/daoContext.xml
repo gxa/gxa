@@ -30,6 +30,7 @@
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty</value>
                 <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource</value>
                 <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartArrayDesign</value>
                 <value>uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType</value>

@@ -52,6 +52,10 @@ public abstract class AtlasBioentityAnnotator {
 
     private static Logger log = LoggerFactory.getLogger(AtlasBioentityAnnotator.class);
 
+    public void setListener(AtlasLoaderServiceListener listener) {
+        this.listener = listener;
+    }
+
     protected AtlasBioentityAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
         this.annotationDAO = annotationDAO;
         this.transactionTemplate = transactionTemplate;
@@ -129,9 +133,7 @@ public abstract class AtlasBioentityAnnotator {
             listener.setProgress(report);
     }
 
-    public void setListener(AtlasLoaderServiceListener listener) {
-        this.listener = listener;
-    }
+
 
 //    protected void initTypeBioentityMap(Collection<BioEntityType> types) {
 //        for (BioEntityType type : types) {

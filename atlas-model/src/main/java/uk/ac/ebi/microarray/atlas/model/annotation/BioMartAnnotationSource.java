@@ -59,6 +59,16 @@ public class BioMartAnnotationSource extends AnnotationSource {
     @Cascade({org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
     private Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
 
+    @OneToMany(targetEntity = BioMartArrayDesign.class
+           , mappedBy = "annotationSrc"
+            , cascade = {CascadeType.ALL}
+            , fetch = FetchType.EAGER
+            , orphanRemoval = true
+    )
+    @Fetch(FetchMode.SUBSELECT)
+    @Cascade({org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
+    private Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
+
     BioMartAnnotationSource() {
     }
 
@@ -90,16 +100,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
         return answer;
     }
 
-//    public Set<String> getBioMartPropertyNamesForProperty(BioEntityProperty beProprety) {
-//        Set<String> answer = new HashSet<String>(bioMartProperties.size());
-//        for (BioMartProperty bioMartProperty : bioMartProperties) {
-//            if (beProprety.equals(bioMartProperty)) {
-//                answer.add(bioMartProperty.getName());
-//            }
-//        }
-//        return answer;
-//    }
-
     void setBioMartProperties(Set<BioMartProperty> bioMartProperties) {
         this.bioMartProperties = bioMartProperties;
     }
@@ -119,8 +119,21 @@ public class BioMartAnnotationSource extends AnnotationSource {
         return bioMartProperties.remove(property);
     }
 
-    public void clearBioMartProperties() {
-        bioMartProperties.clear();
+    public Set<BioMartArrayDesign> getBioMartArrayDesigns() {
+        return bioMartArrayDesigns;
+    }
+
+    void setBioMartArrayDesigns(Set<BioMartArrayDesign> bioMartArrayDesigns) {
+        this.bioMartArrayDesigns = bioMartArrayDesigns;
+    }
+
+    public void addBioMartArrayDesign(BioMartArrayDesign bioMartArrayDesign) {
+        bioMartArrayDesign.setAnnotationSrc(this);
+        this.bioMartArrayDesigns.add(bioMartArrayDesign);
+    }
+
+    public boolean removeBioMartArrayDesign(BioMartArrayDesign bioMartArrayDesign) {
+        return bioMartArrayDesigns.remove(bioMartArrayDesign);
     }
 
     public String getDatasetName() {
