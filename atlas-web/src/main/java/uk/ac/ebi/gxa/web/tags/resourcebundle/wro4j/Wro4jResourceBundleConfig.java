@@ -68,11 +68,6 @@ public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
     }
 
     @Override
-    public Collection<WebResource> getResources(String bundleName) throws WebResourceBundleConfigException {
-        return getResources(bundleName, Arrays.asList(WebResourceType.values()));
-    }
-
-    @Override
     public void assertConfigured(String bundleName) throws WebResourceBundleConfigException {
         getGroup(bundleName);
     }
