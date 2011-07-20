@@ -118,6 +118,27 @@
                     <skip>false</skip>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>ro.isdc.wro4j</groupId>
+                <artifactId>wro4j-maven-plugin</artifactId>
+                <version>${wro4j.version}</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory
+                    </wroManagerFactory>
+                    <cssDestinationFolder>${project.build.directory}/${project.build.finalName}${compressed.css.path}</cssDestinationFolder>
+                    <jsDestinationFolder>${project.build.directory}/${project.build.finalName}${compressed.js.path}
+                    </jsDestinationFolder>
+                    <contextFolder>${basedir}/src/main/webapp/</contextFolder>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -267,6 +288,11 @@
             <artifactId>commons-dbcp</artifactId>
             <version>1.2.2</version>
         </dependency>
+         <dependency>
+            <groupId>commons-digester</groupId>
+            <artifactId>commons-digester</artifactId>
+            <version>2.1</version>
+        </dependency>
 
         <dependency>
             <groupId>org.tuckey</groupId>
@@ -280,6 +306,13 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>ro.isdc.wro4j</groupId>
+            <artifactId>wro4j-extensions</artifactId>
+            <version>${wro4j.version}</version>
+        </dependency>
+
 
         <!-- dependencies required by testcases -->
         <dependency>
@@ -385,5 +418,8 @@
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script/>
+        <compressed.js.path>/scripts</compressed.js.path>
+        <compressed.css.path>/css</compressed.css.path>
+        <wro4j.version>1.3.8</wro4j.version>
     </properties>
 </project>

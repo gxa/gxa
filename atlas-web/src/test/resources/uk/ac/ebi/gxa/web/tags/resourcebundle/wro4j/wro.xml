@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<groups xmlns="http://www.isdc.ro/wro"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
+
+    <group name="css-only-resources">
+        <css>/style-1.css</css>
+        <css>/style-2.css</css>
+    </group>
+
+    <group name="js-only-resources">
+        <js>/script-1.js</js>
+        <js>/script-2.js</js>
+    </group>
+
+    <group name="mixed-resources-1">
+        <css>/style-1.css</css>
+        <css>/style-2.css</css>
+        <js>/script-1.js</js>
+        <js>/script-2.js</js>
+    </group>
+
+    <group name="mixed-resources-2">
+        <group-ref>css-only-resources</group-ref>
+        <group-ref>js-only-resources</group-ref>
+    </group>
+
+    <group name="mixed-resources-3">
+        <group-ref>mixed-resources-2</group-ref>
+        <css>/style-3.css</css>
+        <js>/script-3.js</js>
+    </group>
+</groups>
+
