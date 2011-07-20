@@ -715,9 +715,11 @@ function editAnnSrc(annSrcId) {
 
         $('#annSrcEd input.saveannsrc').click(function () {
             saveAnnSrc();
-
         });
 
+         $('#cancelAnnSrcButton').click(function () {
+            $('#tabs').tabs('select', $tab.annSrc);
+        });
     });
 }
 
