@@ -34,30 +34,28 @@
     <tmpl:param name="experiment" value="${exp}"/>
 </tmpl:stringTemplate>
 
-<jsp:include page="../includes/query-includes.jsp"/>
-
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.transform-0.9.0pre.js"></script>
 <!--[if IE]>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script>
+<script type="text/javascript" src="${contextPath}/scripts/excanvas.min.js"></script>
 <![endif]-->
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot-0.6.atlas.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.headers.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.boxplot.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.scroll.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.selection.js"></script>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
+<bundle:js name="bundle-experimentpage"/>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.easing.1.3.js"></script>
+<script type="text/javascript" language="javascript">
+    var atlas = {};
+    atlas.homeUrl='${pageContext.request.contextPath}/';
+</script>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
+<script type="text/javascript" src="${contextPath}/scripts/common-query.js"></script>
+<script type="text/javascript" src="${contextPath}/scripts/feedback.js"></script>
+<script type="text/javascript" src="${contextPath}/scripts/experiment.js"></script>
 
-<link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox/css/lightbox.css" media="screen"/>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-lightbox/jquery.lightbox.js"></script>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
+<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />¤
+<link rel="stylesheet" href="${contextPath}/structured-query.css" type="text/css"/>
+<link rel="stylesheet" href="${contextPath}/geneView.css" type="text/css"/>
+
+<link rel="stylesheet" href="${contextPath}/scripts/jquery-lightbox/css/lightbox.css" type="text/css" media="screen"/>
+<script type="text/javascript" src="${contextPath}/scripts/jquery-lightbox/jquery.lightbox.js"></script>
 
 <style type="text/css">
     .ui-tabs .ui-tabs-hide {
