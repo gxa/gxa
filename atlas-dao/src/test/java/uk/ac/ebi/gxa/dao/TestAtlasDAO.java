@@ -43,6 +43,9 @@ import java.util.List;
 @Transactional
 public class TestAtlasDAO extends AtlasDAOTestCase {
 
+    private static final String ABC_ABCXYZ_SOME_THING_1234_ABC123 = "abc:ABCxyz:SomeThing:1234.ABC123";
+    private static final String E_MEXP_420 = "E-MEXP-420";
+
     @Override
     @Before
     public void setUp() throws Exception {
@@ -154,8 +157,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         removeAssayProperties();
 
-        final Experiment experiment = experimentDAO.getExperimentByAccession("E-MEXP-420");
-        final Assay assay = experiment.getAssay("abc:ABCxyz:SomeThing:1234.ABC123");
+        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
 
         assertEquals("Properties are not deleted!", 0, assay.getProperties().size());
         assertEquals("Deleted the OntologyTerm - invalid cascading", termsCount,
@@ -170,8 +173,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void removeAssayProperties() {
-        final Experiment experiment = experimentDAO.getExperimentByAccession("E-MEXP-420");
-        final Assay assay = experiment.getAssay("abc:ABCxyz:SomeThing:1234.ABC123");
+        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assay.getProperties().clear();
         experimentDAO.save(experiment);
     }
