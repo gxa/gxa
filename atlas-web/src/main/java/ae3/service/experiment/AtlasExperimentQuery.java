@@ -43,8 +43,6 @@ public class AtlasExperimentQuery {
     private int start = 0;
     private boolean all = false;
 
-    private String dateReleaseFrom = null;
-    private String dateReleaseTo = null;
     private String dateLoadFrom = null;
     private String dateLoadTo = null;
 
@@ -215,16 +213,6 @@ public class AtlasExperimentQuery {
      */
     public AtlasExperimentQuery start(int start) {
         this.start = start;
-        return this;
-    }
-
-    public AtlasExperimentQuery addDateReleaseFrom(String date) {
-        this.dateReleaseFrom = date;
-        return this;
-    }
-
-    public AtlasExperimentQuery addDateReleaseTo(String date) {
-        this.dateReleaseTo = date;
         return this;
     }
 
