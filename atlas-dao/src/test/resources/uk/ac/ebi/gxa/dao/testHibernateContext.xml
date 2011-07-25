@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="atlasDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+        <property name="driverClass" value="org.hsqldb.jdbcDriver"/>
+        <property name="url" value="jdbc:hsqldb:mem:atlas"/>
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean">
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="annotatedClasses" ref="hibernateClasses"/>
+        <property name="namingStrategy" ref="hibernateNamingStrategy"/>
+        <property name="schemaUpdate" value="false"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
+                <prop key="hibernate.query.substitutions">true 1,false 0</prop>
+                <prop key="hibernate.cache.use_query_cache">false</prop>
+                <prop key="hibernate.cache.use_second_level_cache">false</prop>
+                <prop key="hibernate.cache.use_structured_entries">false</prop>
+                <prop key="hibernate.show_sql">false</prop>
+            </props>
+        </property>
+    </bean>
+</beans>

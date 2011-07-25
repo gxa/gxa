@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader;
 
 import com.google.common.collect.HashMultimap;
 import org.easymock.EasyMock;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -61,11 +62,12 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                 "E-GEOD-3790.idf.txt");
     }
 
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
         cache = null;
     }
 
+    @Test
     public void testParseAndCheckExperiments() throws AtlasLoaderException {
         log.debug("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
@@ -82,6 +84,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         log.debug("Experiment parse and check test done!");
     }
 
+    @Test
     public void testAll() throws Exception {
         log.debug("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
@@ -121,6 +124,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         return computeService;
     }
 
+    @Test
     public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
         log.debug("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();

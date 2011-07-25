@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
+import org.junit.Test;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -57,6 +58,7 @@ public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCas
         gaibs = null;
     }
 
+    @Test
     public void testCreateIndexDocs() throws IndexBuilderException, IOException, SolrServerException {
         // create the docs
         gaibs.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
