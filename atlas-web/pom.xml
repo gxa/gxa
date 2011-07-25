@@ -283,12 +283,6 @@
 
         <!-- dependencies required by testcases -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-index-api</artifactId>
             <type>test-jar</type>

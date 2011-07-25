@@ -30,6 +30,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.dbunit.dataset.DataSetException;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -122,6 +123,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
     }
 
+    @Test
     public void testBuildIndex() throws InterruptedException, IndexBuilderException {
         // run buildIndex
         indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderAdapter() {
