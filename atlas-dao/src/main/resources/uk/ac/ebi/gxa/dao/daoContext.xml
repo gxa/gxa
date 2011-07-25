@@ -26,17 +26,17 @@
         </property>
     </bean>
 
+    <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="atlasDataSource"/>
+    </bean>
+
     <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
         <property name="dataSource" ref="atlasDataSource"/>
         <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
     </bean>
 
-    <bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sessionFactory"/>
-    </bean>
-
-    <tx:annotation-driven transaction-manager="txManager"/>
+    <tx:annotation-driven transaction-manager="atlasTxManager"/>
 
     <context:component-scan base-package="uk.ac.ebi.gxa.dao"/>
     <context:annotation-config/>

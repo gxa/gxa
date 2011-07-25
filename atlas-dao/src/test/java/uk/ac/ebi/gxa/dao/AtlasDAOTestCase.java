@@ -47,7 +47,7 @@ import java.sql.*;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@TransactionConfiguration(transactionManager = "txManager", defaultRollback = false)
+@TransactionConfiguration(transactionManager = "atlasTxManager", defaultRollback = false)
 @Transactional
 public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-be-db.xml";

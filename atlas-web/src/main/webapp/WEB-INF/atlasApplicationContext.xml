@@ -483,11 +483,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Required spring driven data access configuration -->
 
-    <!-- Spring JDBC template for database queries -->
-    <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="atlasDataSource"/>
-    </bean>
-
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
