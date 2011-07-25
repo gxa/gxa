@@ -57,7 +57,7 @@ public class AssayProperties {
         return Collections.unmodifiableCollection(scs);
     }
 
-    protected AssayProperties load(NetCDFProxy proxy, Function<String, String> nameConverter) throws IOException {
+    private AssayProperties load(NetCDFProxy proxy, Function<String, String> nameConverter) throws IOException {
         efs = Lists.newArrayList();
         scs = Lists.newArrayList();
 
