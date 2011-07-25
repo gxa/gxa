@@ -7,6 +7,25 @@
             http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+    <bean id="hibernateClasses" class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
+            <list>
+                <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
+                <value>uk.ac.ebi.microarray.atlas.model.AssayProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Asset</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Experiment</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Ontology</value>
+                <value>uk.ac.ebi.microarray.atlas.model.OntologyTerm</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Organism</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Property</value>
+                <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
+                <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
+            </list>
+        </property>
+    </bean>
+
     <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
         <!-- datasource bean, from JNDI -->
         <property name="dataSource" ref="atlasDataSource"/>

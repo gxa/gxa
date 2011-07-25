@@ -5,23 +5,7 @@
 
     <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean">
         <property name="dataSource" ref="atlasDataSource"/>
-        <property name="annotatedClasses">
-            <list>
-                <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
-                <value>uk.ac.ebi.microarray.atlas.model.AssayProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Asset</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Experiment</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Ontology</value>
-                <value>uk.ac.ebi.microarray.atlas.model.OntologyTerm</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Organism</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Property</value>
-                <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
-                <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
-                <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
-            </list>
-        </property>
-
+        <property name="annotatedClasses" ref="hibernateClasses" />
         <property name="namingStrategy" ref="hibernateNamingStrategy"/>
         <property name="schemaUpdate" value="false"/>
         <property name="hibernateProperties">
