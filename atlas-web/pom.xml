@@ -77,7 +77,10 @@
                         def gitDescribe = """${gitcmd} describe""".execute().in.text.trim()
                         def m = gitDescribe =~ /(?:atlas-)?(.*)/
 
-                        project.properties['versionDescriptor'] = m[0][1]
+                        def gitBranch = """${gitcmd} symbolic-ref -q HEAD""".execute().in.text.trim()
+                        def n = gitBranch =~ /(?:refs\/heads\/)?(.*)/
+
+                        project.properties['versionDescriptor'] = m[0][1] + '-' + n[0][1]
                         project.properties['buildDate'] = new Date().getDateTimeString()
                     </source>
                 </configuration>
@@ -116,7 +119,6 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>${project.artifactId}-${versionDescriptor}</finalName>
     </build>
 
     <dependencies>
@@ -384,48 +386,4 @@
         <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script/>
     </properties>
-
-    <profiles>
-        <profile>
-            <id>nightly</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <version>2.1.1</version>
-                        <configuration>
-                            <webResources>
-                                <resource>
-                                    <includes>
-                                        <include>MydasServerConfig.xml</include>
-                                    </includes>
-                                    <directory>src/main/webapp</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                                <resource>
-                                    <includes>
-                                        <include>jsp/includes/end_body.jsp</include>
-                                        <include>web.xml</include>
-                                        <include>atlasApplicationContext.xml</include>
-                                    </includes>
-                                    <directory>src/main/webapp/WEB-INF</directory>
-                                    <targetPath>WEB-INF</targetPath>
-                                    <filtering>true</filtering>
-                                </resource>
-                                <resource>
-                                    <includes>
-                                        <include>context.xml</include>
-                                    </includes>
-                                    <directory>src/main/nightly/META-INF</directory>
-                                    <targetPath>META-INF</targetPath>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </webResources>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

@@ -47,6 +47,8 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_LOADMAPPING = "loadmapping";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
+    public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
+    public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -70,6 +72,12 @@ public class LoaderTask extends AbstractWorkingTask {
 
         else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());
+
+        else if (TYPE_PRIVATEEXPERIMENT.equals(getTaskSpec().getType()))
+            return new MakeExperimentPrivateCommand(getTaskSpec().getAccession());
+
+        else if (TYPE_PUBLICEXPERIMENT.equals(getTaskSpec().getType()))
+            return new MakeExperimentPublicCommand(getTaskSpec().getAccession());
 
         throw new IllegalStateException();
     }
@@ -201,12 +209,16 @@ public class LoaderTask extends AbstractWorkingTask {
         }
 
         public boolean isFor(TaskSpec taskSpec) {
+
             return TYPE_LOADEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_LOADARRAYDESIGN.equals(taskSpec.getType())
                     || TYPE_LOADANNOTATIONS.equals(taskSpec.getType())
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType());
+                    || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
+                    || TYPE_PRIVATEEXPERIMENT.equals(taskSpec.getType())
+                    || TYPE_PUBLICEXPERIMENT.equals(taskSpec.getType())
+                    ;
         }
     };
 

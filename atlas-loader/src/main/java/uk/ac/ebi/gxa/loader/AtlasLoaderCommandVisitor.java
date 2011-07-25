@@ -37,4 +37,8 @@ public interface AtlasLoaderCommandVisitor {
     void process(LoadBioentityCommand cmd) throws AtlasLoaderException;
 
     void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException;
+
+    void process(MakeExperimentPrivateCommand cmd) throws AtlasLoaderException;
+
+    void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException;
 }

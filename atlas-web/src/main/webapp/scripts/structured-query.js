@@ -199,7 +199,7 @@ if(!atlas)
     };
 
     atlas.popup = function  (url) {
-        var width  = 600;
+        var width  = 700;
         var height = 200;
         var left   = (screen.width  - width)/2;
         var top    = (screen.height - height)/2;

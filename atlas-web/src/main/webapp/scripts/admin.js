@@ -68,6 +68,8 @@ var $msg = {
         index: 'Build index',
         unloadexperiment: 'Unload experiment',
         updateexperiment: 'Update NetCDF',
+        makeexperimentprivate: 'Make experiment private',
+        makeexperimentpublic: 'Make experiment public',
         indexexperiment: 'Index experiment',
         repairexperiment: 'Repair experiment'
     },
@@ -346,6 +348,14 @@ function updateBrowseExperiments() {
 
         $('#experimentList input.updatenetcdf').click(function () {
             startSelectedTasks('updateexperiment', 'RESTART', 'update NetCDF of', false);
+        });
+
+        $('#experimentList input.makeprivate').click(function () {
+            startSelectedTasks('makeexperimentprivate', 'RESTART', 'makeprivate', false);
+        });
+
+        $('#experimentList input.makepublic').click(function () {
+            startSelectedTasks('makeexperimentpublic', 'RESTART', 'makepublic', false);
         });
 
         $('#experimentList input.updateindex').click(function () {
