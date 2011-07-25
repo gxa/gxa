@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-        <!-- datasource bean, from JNDI -->
-        <property name="dataSource" ref="atlasDataSource"/>
-        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
-    </bean>
-
-    <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean">
-        <property name="dataSource" ref="atlasDataSource"/>
-        <property name="annotatedClasses">
+    <bean id="hibernateClasses" class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
             <list>
                 <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
@@ -27,23 +24,22 @@
                 <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
             </list>
         </property>
-
-        <property name="namingStrategy" ref="hibernateNamingStrategy"/>
-        <property name="schemaUpdate" value="false"/>
-        <property name="hibernateProperties">
-            <props>
-                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
-                <prop key="hibernate.query.substitutions">true 1,false 0</prop>
-                <prop key="hibernate.cache.use_query_cache">true</prop>
-                <prop key="hibernate.cache.use_second_level_cache">true</prop>
-                <prop key="hibernate.cache.use_structured_entries">true</prop>
-                <prop key="hibernate.cache.region.factory_class">
-                    net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory
-                </prop>
-                <prop key="hibernate.show_sql">false</prop>
-            </props>
-        </property>
     </bean>
+
+    <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="atlasDataSource"/>
+    </bean>
+
+    <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <!-- datasource bean, from JNDI -->
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="atlasTxManager"/>
+
+    <context:component-scan base-package="uk.ac.ebi.gxa.dao"/>
+    <context:annotation-config/>
 
     <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
 
@@ -90,4 +86,9 @@
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
+
+    <!-- Common spring-drive data access configuration -->
+    <!-- native extractor for fetching oracle connections from pool wrapper etc -->
+    <bean name="nativeJdbcExtractor"
+          class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
 </beans>
