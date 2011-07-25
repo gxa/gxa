@@ -8,7 +8,6 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.annotation.MappingSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -52,16 +51,16 @@ public class AnnotationDAO {
         bioEntityDAO.writeGeneToBioentityRelations(relations, software);
     }
 
-    public void writeArrayDesign(ArrayDesign arrayDesign, MappingSource mappingSrc) {
-        bioEntityDAO.writeArrayDesign(arrayDesign, mappingSrc);
+    public void writeArrayDesign(ArrayDesign arrayDesign, Software software) {
+        bioEntityDAO.writeArrayDesign(arrayDesign, software);
     }
 
-    public void writeDesignElements(List<DesignElement> designElements, String arrayDesignAccession) {
+    public void writeDesignElements(Set<DesignElement> designElements, String arrayDesignAccession) {
         bioEntityDAO.writeDesignElements(designElements, arrayDesignAccession);
     }
 
-    public void writeDesignElementBioentityMappings(Collection<List<String>> deToBeMappings, String beType, MappingSource mappingSrc, String arrayDesignAccession) {
-        bioEntityDAO.writeDesignElementBioentityMappings(deToBeMappings, beType, mappingSrc, arrayDesignAccession);
+    public void writeDesignElementBioentityMappings(Collection<List<String>> deToBeMappings, BioEntityType beType, Software software, String arrayDesignAccession) {
+        bioEntityDAO.writeDesignElementBioentityMappings(deToBeMappings, beType, software, arrayDesignAccession);
     }
 
     public AnnotationSource getAnnSrcById(long id) {
@@ -92,4 +91,7 @@ public class AnnotationDAO {
         annSrcDAO.save(annotationSource);
     }
 
+    public Software findOrCreateSoftware(String name, String newVersion) {
+        return softwareDAO.findOrCreate(name, newVersion);
+    }
 }

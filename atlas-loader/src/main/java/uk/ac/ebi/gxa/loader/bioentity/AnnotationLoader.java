@@ -3,8 +3,8 @@ package uk.ac.ebi.gxa.loader.bioentity;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.BioMartUpdateCommand;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
-import uk.ac.ebi.gxa.loader.UpdateAnnotationCommand;
 import uk.ac.ebi.gxa.loader.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 
@@ -27,8 +27,11 @@ public class AnnotationLoader {
         annotator.process(cmd.getUrl(), listener);
     }
 
-     public void process(UpdateAnnotationCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    public void process(BioMartUpdateCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         EnsemblAnnotator annotator = new EnsemblAnnotator(annotationDAO, transactionTemplate);
-         annotator.process(cmd.getAccession(), listener);
+        if (cmd.getUpdateType().equals(BioMartUpdateCommand.BioMartUpdateType.ANNOTATIONS))
+            annotator.updateAnnotations(cmd.getAccession(), listener);
+        else
+            annotator.updateMappings(cmd.getAccession(), listener);
     }
 }

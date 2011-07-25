@@ -2,57 +2,25 @@ package uk.ac.ebi.gxa.loader.annotationsrc;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cache.HashtableCacheProvider;
-import org.hibernate.dialect.Oracle10gDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
-import sun.rmi.runtime.Log;
 import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.dao.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.dao.BioEntityTypeDAO;
-import uk.ac.ebi.gxa.dao.OrganismDAO;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
-import uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy;
-import uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean;
-import uk.ac.ebi.gxa.loader.bioentity.BioMartAccessException;
-import uk.ac.ebi.gxa.loader.bioentity.BioMartConnection;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.AssayProperty;
-import uk.ac.ebi.microarray.atlas.model.Asset;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Ontology;
-import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.PropertyValue;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.SampleProperty;
-import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty;
-import uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -120,17 +88,18 @@ public class BioMartAnnotationSourceLoader {
                 BioEntityProperty beProperty = annSrcDAO.findOrCreateBEProperty(propName.substring(biomartProperty_propName.length() + 1));
                 StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
                 while (tokenizer.hasMoreElements()) {
-                    bioMartProperties.add(new BioMartProperty(tokenizer.nextToken().trim(), beProperty));
+                    bioMartProperties.add(new BioMartProperty(tokenizer.nextToken().trim(), beProperty, annotationSource));
                 }
             }
         }
 
         Set<BioMartProperty> removedProperties = new HashSet<BioMartProperty>(difference(annotationSource.getBioMartProperties(), bioMartProperties));
+        Set<BioMartProperty> addedProperties = new HashSet<BioMartProperty>(difference(bioMartProperties, annotationSource.getBioMartProperties()));
+
         for (BioMartProperty removedProperty : removedProperties) {
             annotationSource.removeBioMartProperty(removedProperty);
         }
 
-        Set<BioMartProperty> addedProperties = new HashSet<BioMartProperty>(difference(bioMartProperties, annotationSource.getBioMartProperties()));
         for (BioMartProperty addedProperty : addedProperties) {
             annotationSource.addBioMartProperty(addedProperty);
         }
@@ -142,19 +111,20 @@ public class BioMartAnnotationSourceLoader {
 
             if (propName.startsWith(arrayDesign_propName)) {
                 ArrayDesign arrayDesign = annSrcDAO.getArrayDesignShallowByAccession(propName.substring(arrayDesign_propName.length() + 1));
-                                StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
+                StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
                 while (tokenizer.hasMoreElements()) {
-                    bioMartArrayDesigns.add(new BioMartArrayDesign(null, tokenizer.nextToken().trim(), arrayDesign));
+                    bioMartArrayDesigns.add(new BioMartArrayDesign(null, tokenizer.nextToken().trim(), arrayDesign, annotationSource));
                 }
             }
         }
 
         Set<BioMartArrayDesign> removedProperties = new HashSet<BioMartArrayDesign>(difference(annotationSource.getBioMartArrayDesigns(), bioMartArrayDesigns));
+        Set<BioMartArrayDesign> addedProperties = new HashSet<BioMartArrayDesign>(difference(bioMartArrayDesigns, annotationSource.getBioMartArrayDesigns()));
+        
         for (BioMartArrayDesign removedProperty : removedProperties) {
             annotationSource.removeBioMartArrayDesign(removedProperty);
         }
 
-        Set<BioMartArrayDesign> addedProperties = new HashSet<BioMartArrayDesign>(difference(bioMartArrayDesigns, annotationSource.getBioMartArrayDesigns()));
         for (BioMartArrayDesign addedProperty : addedProperties) {
             annotationSource.addBioMartArrayDesign(addedProperty);
         }
@@ -180,19 +150,6 @@ public class BioMartAnnotationSourceLoader {
         }
     }
 
-    public void saveAnnotationSource(BioMartAnnotationSource annSrc) throws BioMartAccessException {
-        BioMartConnection connection = new BioMartConnection(annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
-        boolean validDataSetName = connection.isValidDataSetName();
-        System.out.println("connection.isValidDataSetName() = " + validDataSetName);
-        Collection<String> invalidAttributes = connection.validateAttributeNames(annSrc.getBioMartPropertyNames());
-        System.out.println("strings = " + invalidAttributes);
-        if (validDataSetName && invalidAttributes.isEmpty()) {
-            annSrcDAO.save(annSrc);
-        } else {
-            throw new BioMartAccessException("Annotation source is not valid: " + invalidAttributes);
-        }
-    }
-
     public void writeSource(BioMartAnnotationSource annSrc, Writer out) {
         PropertiesConfiguration properties = new PropertiesConfiguration();
         properties.addProperty(organism_propName, annSrc.getOrganism().getName());
@@ -201,6 +158,8 @@ public class BioMartAnnotationSourceLoader {
         properties.addProperty(url_propName, annSrc.getUrl());
         properties.addProperty(databaseName_propName, annSrc.getDatabaseName());
         properties.addProperty(datasetName_propName, annSrc.getDatasetName());
+
+        //Write beioentity types
         StringBuffer types = new StringBuffer();
         int count = 1;
         for (BioEntityType type : annSrc.getTypes()) {
@@ -211,23 +170,9 @@ public class BioMartAnnotationSourceLoader {
         }
         properties.addProperty(types_propName, types.toString());
 
-        Multimap<String, String> bePropToBmProp = HashMultimap.create();
-        for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
-            bePropToBmProp.put(bioMartProperty.getBioEntityProperty().getName(), bioMartProperty.getName());
-        }
+        writeBioMartProperties(annSrc, properties);
 
-        for (String beProp : bePropToBmProp.keySet()) {
-            count = 1;
-            StringBuffer bmProperties = new StringBuffer();
-            Collection<String> bmPropCollection = bePropToBmProp.get(beProp);
-            for (String bmProp : bmPropCollection) {
-                bmProperties.append(bmProp);
-                if (count++ < bmPropCollection.size()) {
-                    bmProperties.append(",");
-                }
-            }
-            properties.addProperty(biomartProperty_propName + "." + beProp, bmProperties.toString());
-        }
+        writeBioMartArrayDesign(annSrc, properties);
 
         try {
             properties.save(out);
@@ -238,6 +183,43 @@ public class BioMartAnnotationSourceLoader {
             closeQuietly(out);
         }
     }
+
+    private void writeBioMartProperties(BioMartAnnotationSource annSrc, PropertiesConfiguration properties) {
+        Multimap<String, String> bePropToBmProp = HashMultimap.create();
+        for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
+            bePropToBmProp.put(bioMartProperty.getBioEntityProperty().getName(), bioMartProperty.getName());
+        }
+
+        addCommaSeparatedProperties(biomartProperty_propName, properties, bePropToBmProp);
+
+    }
+
+    private void writeBioMartArrayDesign(BioMartAnnotationSource annSrc, PropertiesConfiguration properties) {
+        Multimap<String, String> bePropToBmProp = HashMultimap.create();
+
+        for (BioMartArrayDesign bioMartArrayDesign : annSrc.getBioMartArrayDesigns()) {
+            bePropToBmProp.put(bioMartArrayDesign.getArrayDesign().getAccession(), bioMartArrayDesign.getName());
+        }
+
+        addCommaSeparatedProperties(arrayDesign_propName, properties, bePropToBmProp);
+    }
+
+    private void addCommaSeparatedProperties(String propNamePrefix, PropertiesConfiguration properties, Multimap<String, String> bePropToBmProp) {
+        int count;
+        for (String beProp : bePropToBmProp.keySet()) {
+            count = 1;
+            StringBuffer bmProperties = new StringBuffer();
+            Collection<String> bmPropCollection = bePropToBmProp.get(beProp);
+            for (String bmProp : bmPropCollection) {
+                bmProperties.append(bmProp);
+                if (count++ < bmPropCollection.size()) {
+                    bmProperties.append(",");
+                }
+            }
+            properties.addProperty(propNamePrefix + "." + beProp, bmProperties.toString());
+        }
+    }
+
 
     private String getProperty(String name, Properties properties) throws AnnotationLoaderException {
         String property = properties.getProperty(name);

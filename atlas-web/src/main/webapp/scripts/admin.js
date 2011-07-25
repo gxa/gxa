@@ -171,6 +171,7 @@ function adminCall(op, params, func) {
         type: "POST",
         url: atlas.homeUrl + "admin",
         dataType: "json",
+        traditional: true,
         data: $.extend(params, { op : op }),
         success: function (json) {
             $('.loadIndicator').css('visibility', 'hidden');
@@ -704,12 +705,16 @@ function updateAnnSrcs() {
             startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
         });
 
+        $('#orgList input.updateMapping').click(function () {
+            startSelectedTasks('mappingupdate', 'RESTART', 'update annotations for organism ');
+        });
+
         bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
     });
 }
 
 function editAnnSrc(annSrcId) {
-    adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
+    adminCall('searchannSrc', {annScId:annSrcId}, function (result) {
 
         renderTpl('annSrcEd', result);
 

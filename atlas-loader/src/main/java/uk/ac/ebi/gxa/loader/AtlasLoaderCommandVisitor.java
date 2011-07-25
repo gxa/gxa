@@ -42,5 +42,5 @@ public interface AtlasLoaderCommandVisitor {
 
     void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException;
     
-    void process(UpdateAnnotationCommand cmd) throws AtlasLoaderException;
+    void process(BioMartUpdateCommand cmd) throws AtlasLoaderException;
 }

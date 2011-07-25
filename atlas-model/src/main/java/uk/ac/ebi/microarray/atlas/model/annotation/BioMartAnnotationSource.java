@@ -14,10 +14,8 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -105,8 +103,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
     }
 
     public void addBioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty) {
-        BioMartProperty bioMartProperty = new BioMartProperty(biomartPropertyName, bioEntityProperty);
-        bioMartProperty.setAnnotationSrc(this);
+        BioMartProperty bioMartProperty = new BioMartProperty(biomartPropertyName, bioEntityProperty, this);
         this.bioMartProperties.add(bioMartProperty);
     }
 

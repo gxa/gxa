@@ -10,20 +10,18 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.loader.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,6 +37,9 @@ public abstract class AtlasBioentityAnnotator {
     private final Set<BEPropertyValue> propertyValues = new HashSet<BEPropertyValue>();
 
     private Multimap<BioEntityType, BioEntity> typeToBioentities = HashMultimap.create();
+
+    private Multimap<BioEntityType, List<String>> typeToDesignElementBEMapping = HashMultimap.create();
+    private Set<DesignElement> designElements = new HashSet<DesignElement>();
 
     protected TransactionTemplate transactionTemplate;
 
@@ -62,6 +63,19 @@ public abstract class AtlasBioentityAnnotator {
     }
 
     protected void writeBioentitiesAndAnnotations() {
+        writeBioentitiesToDB();
+
+        writePropertyValuesToDB();
+
+        writeBEPropertyValueMappingsToDB();
+
+        writeGeneToBioentityRelationsToDB();
+
+        //ToDo:software should be set active outside of annotator
+        setSoftwareAsActive();
+    }
+
+    protected void writeBioentitiesToDB() {
         final Organism finalOrganism = targetOrganism;
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
@@ -71,12 +85,23 @@ public abstract class AtlasBioentityAnnotator {
                     reportProgress("Wirting " + bioEntities.size() + " " + type.getName() + " " + finalOrganism.getName());
                     annotationDAO.writeBioentities(bioEntities);
                 }
+            }
+        });
+    }
 
+    protected void writePropertyValuesToDB() {
+        final Organism finalOrganism = targetOrganism;
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                 reportProgress("Wirting " + propertyValues.size() + " property values " + finalOrganism.getName());
                 annotationDAO.writePropertyValues(propertyValues);
             }
         });
+    }
 
+    protected void writeBEPropertyValueMappingsToDB() {
+        final Organism finalOrganism = targetOrganism;
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
@@ -85,12 +110,22 @@ public abstract class AtlasBioentityAnnotator {
                     reportProgress("Wirting " + propValues.size() + " properties for " + type.getName() + " " + finalOrganism.getName());
                     annotationDAO.writeBioEntityToPropertyValues(propValues, type, annotationSource.getSoftware());
                 }
-                reportProgress("Wirting " + geneBioetityMapping.size() + "  bioentities mapped to gene for " + finalOrganism.getName());
-//                annotationDAO.writeGeneToBioentityRelations(geneBioetityMapping, annotationSource.getSoftware());
             }
         });
+    }
 
-        //ToDo:software should be set active outside of annotator
+    protected void writeGeneToBioentityRelationsToDB() {
+        final Organism finalOrganism = targetOrganism;
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                reportProgress("Wirting " + geneBioetityMapping.size() + "  bioentities mapped to gene for " + finalOrganism.getName());
+                annotationDAO.writeGeneToBioentityRelations(geneBioetityMapping, annotationSource.getSoftware());
+            }
+        });
+    }
+
+    protected void setSoftwareAsActive() {
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
@@ -99,8 +134,23 @@ public abstract class AtlasBioentityAnnotator {
                 annotationDAO.saveSoftware(annotationSource.getSoftware());
             }
         });
-
     }
+
+    protected void writeDesignElementBEMappingsToDB(final ArrayDesign arrayDesign) {
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
+                annotationDAO.writeDesignElements(designElements, arrayDesign.getAccession());
+                for (BioEntityType bioEntityType : typeToDesignElementBEMapping.keySet()) {
+                    annotationDAO.writeDesignElementBioentityMappings(typeToDesignElementBEMapping.get(bioEntityType),
+                            bioEntityType,
+                            annotationSource.getSoftware(),
+                            arrayDesign.getAccession());
+                }
+            }
+        });
+    }
+
 
     protected void addPropertyValue(String beIdentifier, BioEntityType type, BEPropertyValue pv) {
         if (StringUtils.isNotBlank(pv.getValue()) && pv.getValue().length() < 1000 && !"NA".equals(pv.getValue())) {
@@ -111,6 +161,18 @@ public abstract class AtlasBioentityAnnotator {
             typeToBEPropValues.put(type, beProperty);
 
             propertyValues.add(pv);
+        }
+    }
+
+    protected void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {
+        if (StringUtils.isNotBlank(deAccession) && deAccession.length() < 1000 && !"NA".equals(deAccession)) {
+            List<String> de2be = new ArrayList<String>(2);
+            de2be.add(deAccession);
+            de2be.add(beIdentifier);
+            typeToDesignElementBEMapping.put(type, de2be);
+
+            DesignElement designElement = new DesignElement(deAccession, deAccession);
+            designElements.add(designElement);
         }
     }
 
@@ -132,7 +194,6 @@ public abstract class AtlasBioentityAnnotator {
         if (listener != null)
             listener.setProgress(report);
     }
-
 
 
 //    protected void initTypeBioentityMap(Collection<BioEntityType> types) {

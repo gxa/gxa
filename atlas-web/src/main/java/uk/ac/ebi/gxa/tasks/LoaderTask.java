@@ -26,13 +26,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
+import uk.ac.ebi.gxa.loader.BioMartUpdateCommand;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.MakeExperimentPrivateCommand;
 import uk.ac.ebi.gxa.loader.MakeExperimentPublicCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
-import uk.ac.ebi.gxa.loader.UpdateAnnotationCommand;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
@@ -58,6 +58,7 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
     public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
     public static final String TYPE_UPDATEANNOTATIONS = "orgupdate";
+    public static final String TYPE_UPDATEMAPPINGS = "mappingupdate";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -74,7 +75,10 @@ public class LoaderTask extends AbstractWorkingTask {
             return new LoadBioentityCommand(getTaskSpec().getAccession());
 
         else if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
-            return new UpdateAnnotationCommand(getTaskSpec().getAccession());
+            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.ANNOTATIONS);
+
+        else if (TYPE_UPDATEMAPPINGS.equals(getTaskSpec().getType()))
+            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.MAPPINGS);
 
         else if (TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
             return new LoadArrayDesignMappingCommand(getTaskSpec().getAccession());
@@ -226,6 +230,7 @@ public class LoaderTask extends AbstractWorkingTask {
                     || TYPE_LOADARRAYDESIGN.equals(taskSpec.getType())
                     || TYPE_LOADANNOTATIONS.equals(taskSpec.getType())
                     || TYPE_UPDATEANNOTATIONS.equals(taskSpec.getType())
+                    || TYPE_UPDATEMAPPINGS.equals(taskSpec.getType())
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())

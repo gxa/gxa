@@ -41,9 +41,10 @@ public class BioMartProperty {
         this.bioEntityProperty = bioEntityProperty;
     }
 
-    public BioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty) {
+    public BioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty, BioMartAnnotationSource annSrc) {
         this.name = biomartPropertyName;
         this.bioEntityProperty = bioEntityProperty;
+        this.annotationSrc = annSrc;
     }
 
     public Long getId() {
@@ -62,7 +63,7 @@ public class BioMartProperty {
         return biomartpropertyId;
     }
 
-    public void setBiomartpropertyId(Long biomartpropertyId) {
+    void setBiomartpropertyId(Long biomartpropertyId) {
         this.biomartpropertyId = biomartpropertyId;
     }
 
@@ -70,11 +71,11 @@ public class BioMartProperty {
         return annotationSrc;
     }
 
-    public void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
+     void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
         this.annotationSrc = annotationSrc;
     }
 
-    public void setBioEntityProperty(BioEntityProperty bioEntityProperty) {
+    void setBioEntityProperty(BioEntityProperty bioEntityProperty) {
         this.bioEntityProperty = bioEntityProperty;
     }
 
@@ -85,9 +86,11 @@ public class BioMartProperty {
 
         BioMartProperty that = (BioMartProperty) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null)
+        if (annotationSrc != null ? !annotationSrc.equals(that.annotationSrc) : that.annotationSrc != null)
             return false;
-        if (bioEntityProperty != null ? !bioEntityProperty.equals(that.bioEntityProperty) : that.bioEntityProperty != null) return false;
+        if (bioEntityProperty != null ? !bioEntityProperty.equals(that.bioEntityProperty) : that.bioEntityProperty != null)
+            return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
     }
@@ -96,6 +99,7 @@ public class BioMartProperty {
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (bioEntityProperty != null ? bioEntityProperty.hashCode() : 0);
+        result = 31 * result + (annotationSrc != null ? annotationSrc.hashCode() : 0);
         return result;
     }
 }

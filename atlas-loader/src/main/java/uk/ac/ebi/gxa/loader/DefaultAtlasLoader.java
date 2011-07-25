@@ -120,7 +120,7 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             experimentEditorService.process(cmd, false);
                         }
 
-                        public void process(UpdateAnnotationCommand cmd) throws AtlasLoaderException {
+                        public void process(BioMartUpdateCommand cmd) throws AtlasLoaderException {
                             annotationLoader.process(cmd, this);
                         }
 

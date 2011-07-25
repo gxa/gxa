@@ -3,11 +3,8 @@ package uk.ac.ebi.microarray.atlas.model.annotation;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -26,7 +23,8 @@ public class BioMartArrayDesign {
     private Long biomartarraydesignId;
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @Fetch(FetchMode.SELECT)
     private ArrayDesign arrayDesign;
 
     @ManyToOne
@@ -36,10 +34,11 @@ public class BioMartArrayDesign {
     BioMartArrayDesign() {
     }
 
-    public BioMartArrayDesign(Long biomartarraydesignId, String name, ArrayDesign arrayDesign) {
+    public BioMartArrayDesign(Long biomartarraydesignId, String name, ArrayDesign arrayDesign, BioMartAnnotationSource annSrc) {
         this.biomartarraydesignId = biomartarraydesignId;
         this.name = name;
         this.arrayDesign = arrayDesign;
+        this.annotationSrc = annSrc;
     }
 
     public Long getBiomartarraydesignId() {

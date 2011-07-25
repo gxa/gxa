@@ -11,14 +11,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.annotation.MappingSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
+import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.IOException;
@@ -41,6 +40,12 @@ public class ArrayDesignMappingLoader {
 
     private TransactionTemplate transactionTemplate;
 
+    protected final List<DesignElement> designElements = new ArrayList<DesignElement>();
+    protected final Set<BioEntity> bioentities = new HashSet<BioEntity>();
+    protected final Set<List<String>> deTobeMappings = new HashSet<List<String>>();
+
+    protected Software software;
+    protected ArrayDesign arrayDesign;
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
     private AnnotationSourceDAO annSrcDAO;
@@ -49,21 +54,17 @@ public class ArrayDesignMappingLoader {
         URL url = command.getUrl();
         CSVReader csvReader = null;
 
-        final List<DesignElement> designElements = new ArrayList<DesignElement>();
-        final Set<BioEntity> bioentities = new HashSet<BioEntity>();
-        final Set<List<String>> deTobeMappings = new HashSet<List<String>>();
 
         try {
             csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
 
-            final ArrayDesign arrayDesign = new ArrayDesign();
+            arrayDesign = new ArrayDesign();
             arrayDesign.setName(readValue("Array Design Name", url, csvReader));
             arrayDesign.setAccession(readValue("Array Design Accession", url, csvReader));
             arrayDesign.setType(readValue("Array Design Type", url, csvReader));
             arrayDesign.setProvider(readValue("Array Design Provider", url, csvReader));
 
-            Software software= new Software(null, readValue("Mapping Software Name", url, csvReader), readValue("Mapping Software Version", url, csvReader));
-            final MappingSource mappingSource = new MappingSource(software, arrayDesign);
+            software = annSrcDAO.findOrCreateSoftware(readValue("Mapping Software Name", url, csvReader), readValue("Mapping Software Version", url, csvReader));
 
             String organismName = readValue("Organism", url, csvReader);
             if (StringUtils.isEmpty(organismName))
@@ -145,14 +146,14 @@ public class ArrayDesignMappingLoader {
                 }
             }
 
-            final String finalBioentityType = bioentityType;
+            final BioEntityType finalBioentityType = annSrcDAO.findOrCreateBioEntityType(bioentityType);
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                    bioEntityDAO.writeArrayDesign(arrayDesign, mappingSource);
+                    bioEntityDAO.writeArrayDesign(arrayDesign, software);
                     bioEntityDAO.writeDesignElements(designElements, arrayDesign.getAccession());
                     bioEntityDAO.writeBioentities(bioentities);
-                    bioEntityDAO.writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, mappingSource,
+                    bioEntityDAO.writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, software,
                             arrayDesign.getAccession());
                 }
             });
