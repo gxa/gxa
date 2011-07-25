@@ -714,7 +714,7 @@ function updateAnnSrcs() {
 }
 
 function editAnnSrc(annSrcId) {
-    adminCall('searchannSrc', {annScId:annSrcId}, function (result) {
+    adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
 
         renderTpl('annSrcEd', result);
 
