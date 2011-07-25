@@ -30,25 +30,23 @@ import java.io.Serializable;
 public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAnalysis> {
     public static final long serialVersionUID = -6759797835522535043L;
 
+    private String arrayDesignAccession;
     private String efName;
     private String efvName;
-    //private long experimentID;
     private String designElementAccession;  // we don't care about it
     private float tStatistic;
     private float pValAdjusted;
     private transient long efId;  // TODO: make it properly
     private transient long efvId; // TODO: make it properly
-    // Id (i.e. filename) of the proxy in which data to populate this object were found
-    private String proxyId;
-    // Index of a design element (in proxyId) in which data to populate this object were found
+    // Index of a design element (in netcdf file) in which data to populate this object were found
     private Integer designElementIndex;
 
-    public String getProxyId() {
-        return proxyId;
+    public String getArrayDesignAccession() {
+        return arrayDesignAccession;
     }
 
-    public void setProxyId(String proxyId) {
-        this.proxyId = proxyId;
+    public void setArrayDesignAccession(String arrayDesignAccession) {
+        this.arrayDesignAccession = arrayDesignAccession;
     }
 
     public Integer getDesignElementIndex() {
@@ -144,7 +142,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
                 ", pValAdjusted=" + pValAdjusted +
                 ", efId=" + efId +
                 ", efvId=" + efvId +
-                ", proxyId=" + proxyId +
                 ", designElementIndex=" + designElementIndex +
                 '}';
     }
@@ -164,7 +161,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
         if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
-        if (proxyId != null ? !proxyId.equals(that.proxyId) : that.proxyId != null) return false;
         if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null)
             return false;
 
@@ -181,7 +177,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
         result = 31 * result + (int) (efId ^ (efId >>> 32));
         result = 31 * result + (int) (efvId ^ (efvId >>> 32));
-        result = 31 * result + (proxyId != null ? proxyId.hashCode() : 0);
         result = 31 * result + (designElementIndex != null ? designElementIndex : 0);
 
         return result;

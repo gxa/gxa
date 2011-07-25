@@ -55,10 +55,10 @@ public class Experiment {
     private String lab;
 
     private Date loadDate;
-    private Date releaseDate;
     private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Asset> assets = new ArrayList<Asset>();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
@@ -141,14 +141,6 @@ public class Experiment {
         this.loadDate = copyOf(loadDate);
     }
 
-    public Date getReleaseDate() {
-        return copyOf(releaseDate);
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = copyOf(releaseDate);
-    }
-
     public String getPubmedId() {
         return pmid;
     }
@@ -175,6 +167,10 @@ public class Experiment {
 
     public List<Sample> getSamples() {
         return samples;
+    }
+
+    public void setSamples(List<Sample> samples) {
+        this.samples = samples;
     }
 
     public List<String> getSpecies() {

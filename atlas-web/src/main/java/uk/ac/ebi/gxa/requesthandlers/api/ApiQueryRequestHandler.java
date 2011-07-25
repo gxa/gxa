@@ -39,9 +39,10 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -58,8 +59,8 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
+import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.containsAtLeastOneGene;
+import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.hasArrayDesign;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -116,7 +117,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
-    private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter>, Closeable {
+    private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter> {
         private final ExperimentSolrDAO.AtlasExperimentsResult experiments;
         private final Collection<ExperimentResultAdapter> results;
 
@@ -139,12 +140,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
         public Collection<ExperimentResultAdapter> getResults() {
             return results;
-        }
-
-        public void close() {
-            for (ExperimentResultAdapter adapter : results) {
-                adapter.close();
-            }
         }
     }
 
@@ -209,7 +204,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             if (!experimentInfoOnly) {
 
                                 NetCDFDescriptor ncdfDescr =
-                                        atlasNetCDFDAO.getNetCdfFile(experiment.getExperiment(), netCDFProxyPredicate);
+                                        atlasNetCDFDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
 
                                 if (ncdfDescr != null) {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
@@ -234,8 +229,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
 
                                 try {
-                                    expData = ExperimentalData.loadExperiment(atlasNetCDFDAO, experiment.getExperiment());
-                                } catch (IOException e) {
+                                    expData = new ExperimentalData(atlasNetCDFDAO, experiment.getExperiment());
+                                } catch (AtlasDataException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }
                             }

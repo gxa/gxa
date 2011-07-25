@@ -26,8 +26,9 @@ import ae3.model.ExperimentalFactorsCompactData;
 import ae3.model.SampleCharacteristicsCompactData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -77,8 +78,9 @@ public class AssayProperties {
         for (String s : sampleCharacteristics) {
             String[] vals = proxy.getCharacteristicValues(s);
             SampleCharacteristicsCompactData d = new SampleCharacteristicsCompactData(
-                    nameConverter.apply(s), vals.length);
-            for (int i = 0; i < vals.length; i++) {
+                    nameConverter.apply(s), s2a[0].length);
+            assert vals.length == s2a.length;
+            for (int i = 0; i < s2a.length; i++) {
                 d.addScv(vals[i], i);
                 for (int j = s2a[i].length - 1; j >= 0; j--) {
                     if (s2a[i][j] > 0) {
@@ -91,7 +93,7 @@ public class AssayProperties {
         return this;
     }
 
-    public static AssayProperties create(NetCDFDescriptor proxyDescr, Function<String, String> nameConverter) throws IOException {
+    public static AssayProperties create(NetCDFDescriptor proxyDescr, Function<String, String> nameConverter) throws IOException, AtlasDataException {
         NetCDFProxy proxy = null;
         try {
             proxy = proxyDescr.createProxy();

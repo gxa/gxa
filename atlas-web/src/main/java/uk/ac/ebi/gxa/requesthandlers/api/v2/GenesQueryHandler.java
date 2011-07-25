@@ -27,9 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 
 import java.util.*;
 import java.io.IOException;

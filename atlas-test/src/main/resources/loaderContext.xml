@@ -135,7 +135,7 @@
         </property>
     </bean>
 
-     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
+     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 

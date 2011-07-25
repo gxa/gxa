@@ -17,8 +17,13 @@
         <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
         <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
         <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
-        <property name="dataReleaseService" ref="atlasDataReleaseService"/>
+        <property name="experimentEditorService" ref="experimentEditorService"/>
         <property name="executor" ref="threadPool"/>
+    </bean>
+
+    <bean name="experimentEditorService" class="uk.ac.ebi.gxa.loader.service.ExperimentEditorService">
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="atlasDAO"/>
     </bean>
 
 
@@ -30,11 +35,6 @@
     <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
         <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-    <bean name="atlasDataReleaseService" class="uk.ac.ebi.gxa.loader.service.AtlasDataReleaseService">
-        <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="atlasNetCDFDAO"/>
     </bean>
 
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">

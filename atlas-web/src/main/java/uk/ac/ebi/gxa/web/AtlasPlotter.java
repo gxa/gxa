@@ -30,9 +30,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
@@ -43,7 +45,7 @@ import java.util.regex.Pattern;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsEfEfv;
+import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
@@ -134,6 +136,8 @@ public class AtlasPlotter {
                     return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experiment);
             }
 
+        } catch (AtlasDataException e) {
+            throw createUnexpected("AtlasDataException whilst trying to read from NetCDFs for experiment " + experiment, e);
         } catch (IOException e) {
             throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experiment, e);
         }
@@ -160,36 +164,28 @@ public class AtlasPlotter {
 
     /**
      * @param eas
-     * @return find proxy id which occurs most often in ExpressionAnalyses in eas
-     */
-    private String getBestProxyId(Collection<ExpressionAnalysis> eas) {
-        return getMostFrequentProxyId(getProxyIds(eas));
-    }
-
-    /**
-     * @param eas
      * @return list of proxy ids in eas
      */
-    private List<String> getProxyIds(Collection<ExpressionAnalysis> eas) {
+    private List<String> getArrayDesigns(Collection<ExpressionAnalysis> eas) {
         List<String> proxyIdsInEAs = new ArrayList<String>();
         for (ExpressionAnalysis ea : eas) {
-            proxyIdsInEAs.add(ea.getProxyId());
+            proxyIdsInEAs.add(ea.getArrayDesignAccession());
         }
         return proxyIdsInEAs;
     }
 
-    private String getMostFrequentProxyId(List<String> proxyIds) {
-        Set<String> uniqueProxyIds = new HashSet<String>(proxyIds);
-        int bestProxyFreq = 0;
-        String bestProxyId = null;
-        for (String proxyId : uniqueProxyIds) {
-            int freq = Collections.frequency(proxyIds, proxyId);
-            if (freq > bestProxyFreq) {
-                bestProxyId = proxyId;
-                bestProxyFreq = freq;
+    private String getMostFrequent(List<String> values) {
+        final Set<String> uniqueValues = new HashSet<String>(values);
+        int maxFrequency = 0;
+        String bestValue = null;
+        for (String v : uniqueValues) {
+            final int freq = Collections.frequency(values, v);
+            if (freq > maxFrequency) {
+                bestValue = v;
+                maxFrequency = freq;
             }
         }
-        return bestProxyId;
+        return bestValue;
     }
 
     private static class AssayInfo {
@@ -532,7 +528,7 @@ public class AtlasPlotter {
             String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
             final Experiment experiment)
-            throws IOException {
+            throws IOException, AtlasDataException {
 
         if (efvToBestEA.containsKey(EMPTY_EFV)) {
             // Don't plot (empty) efvs unless they are the only efv that could be plotted
@@ -543,28 +539,28 @@ public class AtlasPlotter {
         log.debug("Creating plot... EF: {}, Top FVs: [{}], Best EAs: [{}]",
                 new Object[]{ef, StringUtils.join(efvsToPlot, ","), efvToBestEA});
 
-        String bestProxyId;
+        final String bestArrayDesignAccession;
         if (efvClickedOn != null && efvToBestEA.get(efvClickedOn) != null) {
             // If the user has clicked on an efv, choose to plot expression data from NetCDF proxy in which
             // the best pValue for this proxy occurred.
-            bestProxyId = efvToBestEA.get(efvClickedOn).getProxyId();
+            bestArrayDesignAccession = efvToBestEA.get(efvClickedOn).getArrayDesignAccession();
         } else { // The user hasn't clicked on an efv - choose the proxy in most besEA across all efvs
-            bestProxyId = getBestProxyId(efvToBestEA.values());
+            bestArrayDesignAccession = getMostFrequent(getArrayDesigns(efvToBestEA.values()));
         }
 
         NetCDFProxy proxy = null;
         try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experiment, bestProxyId);
+            final ArrayDesign ad = new ArrayDesign(bestArrayDesignAccession);
+            proxy = atlasNetCDFDAO.getNetCDFDescriptor(experiment, ad).createProxy();
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
-            String arrayDesignAcc = proxy.getArrayDesignAccession();
-            String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(arrayDesignAcc).getName();
-            String arrayDesignDescription = arrayDesignAcc + (arrayDesignName != null ? " " + arrayDesignName : "");
+            String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession).getName();
+            String arrayDesignDescription = bestArrayDesignAccession + (arrayDesignName != null ? " " + arrayDesignName : "");
 
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experiment, bestProxyId, geneId, ef);
+                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experiment, ad, geneId, ef);
 
             BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
 
@@ -581,7 +577,7 @@ public class AtlasPlotter {
                 }
 
                 // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, bestProxyId, bestEA.getDesignElementIndex());
+                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, ad, bestEA.getDesignElementIndex());
 
                 barPlotData.setExpressions(factorValue, expressions);
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
@@ -603,8 +599,7 @@ public class AtlasPlotter {
     }
 
 
-    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment)
-            throws IOException {
+    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment) throws IOException, AtlasDataException {
         log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, ExpressionAnalysis: {}",
                 new Object[]{ef, efv, ea});
 
@@ -612,10 +607,11 @@ public class AtlasPlotter {
         int startMark = 0;
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
-        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experiment, ea.getProxyId(), ef);
+        final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
+        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experiment, arrayDesign, ef);
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
-        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, ea.getProxyId(), ea.getDesignElementIndex());
+        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, arrayDesign, ea.getDesignElementIndex());
 
 
         // iterate over each factor value (in sorted order)
