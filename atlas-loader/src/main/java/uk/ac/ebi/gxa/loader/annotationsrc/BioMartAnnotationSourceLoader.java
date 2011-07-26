@@ -7,6 +7,9 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.loader.bioentity.BioMartAccessException;
+import uk.ac.ebi.gxa.loader.bioentity.BioMartConnection;
+import uk.ac.ebi.gxa.loader.bioentity.BioMartConnectionFactory;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
@@ -80,6 +83,72 @@ public class BioMartAnnotationSourceLoader {
         return annotationSource;
     }
 
+    public void writeSource(BioMartAnnotationSource annSrc, Writer out) {
+        PropertiesConfiguration properties = new PropertiesConfiguration();
+        properties.addProperty(organism_propName, annSrc.getOrganism().getName());
+        properties.addProperty(software_name_propName, annSrc.getSoftware().getName());
+        properties.addProperty(software_version_propName, annSrc.getSoftware().getVersion());
+        properties.addProperty(url_propName, annSrc.getUrl());
+        properties.addProperty(databaseName_propName, annSrc.getDatabaseName());
+        properties.addProperty(datasetName_propName, annSrc.getDatasetName());
+
+        //Write beioentity types
+        StringBuffer types = new StringBuffer();
+        int count = 1;
+        for (BioEntityType type : annSrc.getTypes()) {
+            types.append(type.getName());
+            if (count++ < annSrc.getTypes().size()) {
+                types.append(",");
+            }
+        }
+        properties.addProperty(types_propName, types.toString());
+
+        writeBioMartProperties(annSrc, properties);
+
+        writeBioMartArrayDesign(annSrc, properties);
+
+        try {
+            properties.save(out);
+
+        } catch (ConfigurationException e) {
+            log.error("Cannot write Annotation Source " + annSrc.getAnnotationSrcId(), e);
+        } finally {
+            closeQuietly(out);
+        }
+    }
+
+    public Collection<BioMartAnnotationSource> getCurrentAnnotationSources() {
+        Collection<BioMartAnnotationSource> result = new HashSet<BioMartAnnotationSource>();
+        annSrcDAO.startSession();
+        Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getCurrentAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
+            try {
+                BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
+                String newVersion = connection.getOnlineMartVersion();
+
+                if (annSrc.getSoftware().getVersion().equals(newVersion)) {
+                    result.add(annSrc);
+                } else {
+                    //check if AnnotationSource exists for new version
+                    Software newSoftware = annSrcDAO.findOrCreateSoftware(annSrc.getSoftware().getName(), newVersion);
+                    BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
+                    //create and Save new AnnotationSource
+                    if (newAnnSrc == null) {
+                        newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
+                        annSrcDAO.save(newAnnSrc);
+                        annSrcDAO.remove(annSrc);
+                    }
+                    result.add(newAnnSrc);
+                }
+
+            } catch (BioMartAccessException e) {
+                log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
+            }
+        }
+        annSrcDAO.finishSession();
+        return result;
+    }
+
     private void updateBioMartProperties(Properties properties, BioMartAnnotationSource annotationSource) {
         Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
         for (String propName : properties.stringPropertyNames()) {
@@ -120,7 +189,7 @@ public class BioMartAnnotationSourceLoader {
 
         Set<BioMartArrayDesign> removedProperties = new HashSet<BioMartArrayDesign>(difference(annotationSource.getBioMartArrayDesigns(), bioMartArrayDesigns));
         Set<BioMartArrayDesign> addedProperties = new HashSet<BioMartArrayDesign>(difference(bioMartArrayDesigns, annotationSource.getBioMartArrayDesigns()));
-        
+
         for (BioMartArrayDesign removedProperty : removedProperties) {
             annotationSource.removeBioMartArrayDesign(removedProperty);
         }
@@ -147,40 +216,6 @@ public class BioMartAnnotationSourceLoader {
         Set<BioEntityType> addedTypes = new HashSet<BioEntityType>(difference(newTypes, annotationSource.getTypes()));
         for (BioEntityType addedType : addedTypes) {
             annotationSource.addBioentityType(addedType);
-        }
-    }
-
-    public void writeSource(BioMartAnnotationSource annSrc, Writer out) {
-        PropertiesConfiguration properties = new PropertiesConfiguration();
-        properties.addProperty(organism_propName, annSrc.getOrganism().getName());
-        properties.addProperty(software_name_propName, annSrc.getSoftware().getName());
-        properties.addProperty(software_version_propName, annSrc.getSoftware().getVersion());
-        properties.addProperty(url_propName, annSrc.getUrl());
-        properties.addProperty(databaseName_propName, annSrc.getDatabaseName());
-        properties.addProperty(datasetName_propName, annSrc.getDatasetName());
-
-        //Write beioentity types
-        StringBuffer types = new StringBuffer();
-        int count = 1;
-        for (BioEntityType type : annSrc.getTypes()) {
-            types.append(type.getName());
-            if (count++ < annSrc.getTypes().size()) {
-                types.append(",");
-            }
-        }
-        properties.addProperty(types_propName, types.toString());
-
-        writeBioMartProperties(annSrc, properties);
-
-        writeBioMartArrayDesign(annSrc, properties);
-
-        try {
-            properties.save(out);
-
-        } catch (ConfigurationException e) {
-            log.error("Cannot write Annotation Source " + annSrc.getAnnotationSrcId(), e);
-        } finally {
-            closeQuietly(out);
         }
     }
 

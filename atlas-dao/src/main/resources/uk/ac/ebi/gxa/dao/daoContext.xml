@@ -102,6 +102,7 @@
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
         <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <!-- Common spring-drive data access configuration -->

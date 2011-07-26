@@ -48,7 +48,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
     private String databaseName;
 
     @OneToMany(targetEntity = BioMartProperty.class
-           , mappedBy = "annotationSrc"
+            , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}
             , fetch = FetchType.EAGER
             , orphanRemoval = true
@@ -58,7 +58,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
     private Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
 
     @OneToMany(targetEntity = BioMartArrayDesign.class
-           , mappedBy = "annotationSrc"
+            , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}
             , fetch = FetchType.EAGER
             , orphanRemoval = true
@@ -131,6 +131,14 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public boolean removeBioMartArrayDesign(BioMartArrayDesign bioMartArrayDesign) {
         return bioMartArrayDesigns.remove(bioMartArrayDesign);
+    }
+
+    public Set<String> getBioMartArrayDesignNames() {
+        Set<String> answer = new HashSet<String>(bioMartArrayDesigns.size());
+        for (BioMartArrayDesign bioMartArrayDesign : bioMartArrayDesigns) {
+            answer.add(bioMartArrayDesign.getName());
+        }
+        return answer;
     }
 
     public String getDatasetName() {

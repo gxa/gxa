@@ -732,6 +732,7 @@ function saveAnnSrc() {
     var asText = $('#txtAnnSrc').val();
 
     function switchToAnnSrcList() {
+        updateAnnSrcs();
         $('#tabs').tabs('select', $tab.annSrc);
     }
 
@@ -891,8 +892,8 @@ function compileTemplates() {
                 'label.name': 'annSrc.organismName',
                 '.types': 'annSrc.beTypes',
                 '.currAnnSrc': 'annSrc.currName',
-                '.newVersion': 'annSrc.newVersion',
                 '.validation': 'annSrc.validation',
+                '.applied': 'annSrc.applied',
 //                '.orgSelector@checked': function (r) { return selectedannSrcs[r.item.accession]; },
 //                '.orgSelector@disabled':'annSrc.isUpdatable',
                 '.orgSelector@value': 'annSrc.id',

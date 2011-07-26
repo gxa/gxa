@@ -48,14 +48,12 @@ import uk.ac.ebi.gxa.tasks.WorkingTask;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -282,17 +280,17 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processSearchOrganisms() {
         List<Map> results = new ArrayList<Map>();
-        List<AnnotationSourceController.BioMartAnnotationSourceView> bioMartAnnSrcs = annSrcController.getBioMartAnnSrcViews();
+        Collection<AnnotationSourceController.BioMartAnnotationSourceView> bioMartAnnSrcs = annSrcController.getBioMartAnnSrcViews();
         for (AnnotationSourceController.BioMartAnnotationSourceView sourceView : bioMartAnnSrcs) {
-            BioMartAnnotationSource annSrc = sourceView.getAnnSrc();
+//            BioMartAnnotationSource annSrc = sourceView.getAnnSrc();
             results.add(
-                    makeMap("organismName", annSrc.getOrganism().getName()
-                            , "id", String.valueOf(annSrc.getAnnotationSrcId())
-                            , "beTypes", Arrays.toString(annSrc.getTypes().toArray())
-                            , "currName", sourceView.getCurrentName()
-                            , "newVersion", annSrc.getSoftware().getVersion()
-                            , "validation", sourceView.getValidationReport().getSummary()
-                            , "isUpdatable", annSrc.isUpdatable()
+                    makeMap("organismName", sourceView.getOrganismName()
+                            , "id", sourceView.getAnnSrcId()
+                            , "beTypes", sourceView.getBioentityTypes()
+                            , "currName", sourceView.getSoftware()
+                            , "validation", sourceView.getValidationMessage()
+                            , "applied", sourceView.getApplied()
+
                     ));
         }
 //        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));

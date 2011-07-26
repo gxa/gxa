@@ -11,22 +11,22 @@ import uk.ac.ebi.gxa.loader.bioentity.BioMartAccessException;
 import uk.ac.ebi.gxa.loader.bioentity.BioMartConnection;
 import uk.ac.ebi.gxa.loader.bioentity.BioMartConnectionFactory;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.io.CharArrayWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User: nsklyar
  * Date: 21/06/2011
  */
 public class AnnotationSourceController {
-        // logging
+    // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private AnnotationSourceDAO annSrcDAO;
@@ -37,49 +37,33 @@ public class AnnotationSourceController {
         loader = new BioMartAnnotationSourceLoader(annotationSourceDAO);
     }
 
-    public List<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
-        annSrcDAO.startSession();
-        List<BioMartAnnotationSourceView> viewSources = new ArrayList<BioMartAnnotationSourceView>();
-        Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getCurrentAnnotationSourcesOfType(BioMartAnnotationSource.class);
-        for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
+    public Collection<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
+        Set<BioMartAnnotationSourceView> viewSources = new HashSet<BioMartAnnotationSourceView>();
+        Collection<BioMartAnnotationSource> annotationSources = loader.getCurrentAnnotationSources();
+        for (BioMartAnnotationSource annSrc : annotationSources) {
             try {
-                BioMartConnection connection  = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
-                String newVersion = connection.getOnlineMartVersion();
-
-                if (annSrc.getSoftware().getVersion().equals(newVersion)) {
-                    viewSources.add(new BioMartAnnotationSourceView(annSrc, annSrc.getSoftware().getDisplayName()));
-                } else {
-                    //check if AnnotationSource exists for new version
-//                    softwareDAO.startSession();
-                    Software newSoftware = annSrcDAO.findOrCreateSoftware(annSrc.getSoftware().getName(), newVersion);
-//                    softwareDAO.finishSession();
-//                     Software newSoftware = new Software(annSrc.getSoftware().getName(), newVersion);
-                    BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
-                    //create and Save new AnnotationSource
-                    if (newAnnSrc == null) {
-                        newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
-                        annSrcDAO.save(newAnnSrc);
-                    }
-                    ValidationReport validationReport = new ValidationReport();
-                    if (!connection.isValidDataSetName()) {
-                        validationReport.setOrganismName(newAnnSrc.getDatasetName());
-                    }
-                    validationReport.setMissingProperties(connection.validateAttributeNames(newAnnSrc.getBioMartPropertyNames()));
-
-                    BioMartAnnotationSourceView annSrcView = new BioMartAnnotationSourceView(newAnnSrc, annSrc.getSoftware().getDisplayName());
-                    annSrcView.setValidationReport(validationReport);
-                    viewSources.add(annSrcView);
+                BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
+                ValidationReport validationReport = new ValidationReport();
+                if (!connection.isValidDataSetName()) {
+                    validationReport.setOrganismName(annSrc.getDatasetName());
                 }
+                validationReport.setMissingProperties(connection.validateAttributeNames(annSrc.getBioMartPropertyNames()));
+                validationReport.addMissingProperties(connection.validateAttributeNames(annSrc.getBioMartArrayDesignNames()));
+
+                BioMartAnnotationSourceView view = new BioMartAnnotationSourceView(annSrc, validationReport);
+
+                view.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
+
+                viewSources.add(view);
 
             } catch (BioMartAccessException e) {
                 log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
-        annSrcDAO.finishSession();
         return viewSources;
     }
 
-    public String getAnnSrcString(String id)  {
+    public String getAnnSrcString(String id) {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
         Writer writer = new CharArrayWriter();
@@ -88,7 +72,7 @@ public class AnnotationSourceController {
     }
 
     public void saveAnnSrc(String text) {
-         Reader reader = new StringReader(text);
+        Reader reader = new StringReader(text);
         try {
             annSrcDAO.startSession();
             BioMartAnnotationSource annotationSource = loader.readSource(reader);
@@ -102,33 +86,44 @@ public class AnnotationSourceController {
 
     public static class BioMartAnnotationSourceView {
         private BioMartAnnotationSource annSrc;
-        private String currentName;
-        private ValidationReport validationReport = new ValidationReport();
+        private ValidationReport validationReport;
         private boolean applied = false;
 
-        public BioMartAnnotationSourceView(BioMartAnnotationSource annSrc, String currentName) {
+        public BioMartAnnotationSourceView(BioMartAnnotationSource annSrc, ValidationReport validationReport) {
             this.annSrc = annSrc;
-            this.currentName = currentName;
-        }
-
-        public BioMartAnnotationSource getAnnSrc() {
-            return annSrc;
-        }
-
-        public String getCurrentName() {
-            return currentName;
-        }
-
-        public ValidationReport getValidationReport() {
-            return validationReport;
-        }
-
-        public void setValidationReport(ValidationReport validationReport) {
             this.validationReport = validationReport;
         }
 
-        public boolean isApplied() {
-            return applied;
+        public String getAnnSrcId() {
+            return String.valueOf(annSrc.getAnnotationSrcId());
+        }
+
+        public String getOrganismName() {
+            return annSrc.getOrganism().getName();
+        }
+
+        public String getBioentityTypes() {
+            StringBuilder sb = new StringBuilder();
+            int count = 1;
+            for (BioEntityType type : annSrc.getTypes()) {
+                sb.append(type.getName());
+                if (count++ < annSrc.getTypes().size()) {
+                    sb.append(", ");
+                }
+            }
+            return sb.toString();
+        }
+
+        public String getSoftware() {
+            return annSrc.getSoftware().getName() + " " + annSrc.getSoftware().getVersion();
+        }
+
+        public String getValidationMessage() {
+            return validationReport.getSummary();
+        }
+
+        public String getApplied() {
+            return applied?"yes":"no";
         }
 
         public void setApplied(boolean applied) {
@@ -136,7 +131,7 @@ public class AnnotationSourceController {
         }
     }
 
-    public static class ValidationReport {
+    private static class ValidationReport {
         private String organismName;
         private Collection<String> missingProperties;
 
@@ -152,17 +147,22 @@ public class AnnotationSourceController {
                 return "Valid";
             }
             StringBuilder sb = new StringBuilder();
-            sb.append(organismName + " ");
-            sb.append(missingProperties);
+            if (!StringUtils.isEmpty(organismName)) {
+                sb.append("Dataset name is not valid: " + organismName + "\n ");
+            }
+            if (!missingProperties.isEmpty()) {
+                sb.append("Invalid properties: ");
+                sb.append(missingProperties);
+            }
             return sb.toString();
-        }
-
-        public Collection<String> getMissingProperties() {
-            return missingProperties;
         }
 
         public void setMissingProperties(Collection<String> missingProperties) {
             this.missingProperties = missingProperties;
+        }
+
+        public void addMissingProperties(Collection<String> missingProperties) {
+            this.missingProperties.addAll(missingProperties);
         }
 
         public boolean isValid() {
