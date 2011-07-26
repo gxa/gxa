@@ -203,16 +203,6 @@
             SOFTWAREID='1'
             />
 
-    <!--<A2_BE2BE_UNFOLDED-->
-    <!--BEIDFROM="1"-->
-    <!--BEIDTO="2"-->
-    <!--/>-->
-
-    <!--<A2_BE2BE_UNFOLDED-->
-    <!--BEIDFROM="2"-->
-    <!--BEIDTO="1"-->
-    <!--/>-->
-
     <A2_GENEPROPERTY
             genepropertyid="1"
             name="goterm"
@@ -573,4 +563,22 @@
             BIOENTITYPROPERTYID="200"
             NAME="ensembl_transcript_id"
             />
+    
+    <A2_ONTOLOGY
+            ONTOLOGYID="1"
+            name="EFO"
+            SOURCE_URI="/dev/null"
+            version="unknown-alpha"
+            DESCRIPTION="Sample experimental factor ontology"/>
+
+    <A2_ONTOLOGYTERM
+            ONTOLOGYTERMID="1"
+            ONTOLOGYID="1"
+            ACCESSION="EFO_0000827"
+            DESCRIPTION="Just a term"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ASSAYPVONTOLOGYID="1"
+            ONTOLOGYTERMID="1"
+            ASSAYPVID="1"/>
 </dataset>

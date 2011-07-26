@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.dao;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.hibernate.Transaction;
-import org.hibernate.classic.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
@@ -14,7 +14,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -24,17 +23,17 @@ import java.util.List;
 public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
 
     private static final String ATLAS_BE_DATA_RESOURCE = "atlas-be-db.xml";
+    @Autowired
     protected OrganismDAO organismDAO;
 
-    protected IDataSet getDataSet() throws Exception {
+    public IDataSet getDataSet() throws Exception {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_BE_DATA_RESOURCE);
 
         return new FlatXmlDataSetBuilder().build(in);
     }
 
-     protected void setUp() throws Exception {
+     public void setUp() throws Exception {
          super.setUp();
-         organismDAO = new OrganismDAO(sessionFactory);
 
      }
     public void testSave() throws Exception {
@@ -119,7 +118,7 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
     }
 
     public void testFindAnnotationSource() {
-        Software software = softwareDAO.findOrCreate("Ensembl", "60");
+        Software software = annotationSourceDAO.findOrCreateSoftware("Ensembl", "60");
         Organism organism = organismDAO.getByName("Homo Sapiens");
 
         BioMartAnnotationSource annotationSource = annotationSourceDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);

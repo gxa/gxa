@@ -6,13 +6,10 @@ import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource;
-
-import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -64,6 +61,11 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
         return results.isEmpty() ? null : (T) results.get(0);
     }
 
+    public boolean isAnnSrcApplied(AnnotationSource annSrc) {
+        
+        return false;
+    }
+
     public Organism findOrCreateOrganism(String organismName) {
         Organism organism = organismDAO.getByName(organismName);
         if (organism == null) {
@@ -85,10 +87,6 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
         }
 
         return type;
-    }
-
-    public BioEntityProperty findBEProperty(String propertyName) {
-        return propertyDAO.getByName(propertyName);
     }
 
     public BioEntityProperty findOrCreateBEProperty(String propertyName) {

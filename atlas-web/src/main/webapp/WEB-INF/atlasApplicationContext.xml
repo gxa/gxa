@@ -33,6 +33,7 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/dao/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
@@ -135,7 +136,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Loader component -->
 
-    
+
 
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
@@ -451,7 +452,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="arrayDesignDAO" ref="arrayDesignDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasManager" ref="atlasManager"/>
-        <property name="annSrcController" ref="annSrcController"/>
     </bean>
 
     <bean name="stringTemplateLoader" class="ae3.util.StringTemplateLoader">
@@ -483,26 +483,14 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Required spring driven data access configuration -->
 
-    <!-- Spring JDBC template for database queries -->
-    <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="atlasDataSource"/>
-    </bean>
-
     <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
-
-
-    <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
+     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
         <constructor-arg ref="annSrcDAO"/>
     </bean>
-
-    <!-- Common spring-drive data access configuration -->
-    <!-- native extractor for fetching oracle connections from pool wrapper etc -->
-    <bean name="nativeJdbcExtractor"
-          class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
-
+    
     <!--Configure R workbench -->
     <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
     <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory" init-method="init" destroy-method="destroy">

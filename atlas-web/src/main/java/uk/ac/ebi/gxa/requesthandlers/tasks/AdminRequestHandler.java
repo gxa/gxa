@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.requesthandlers.tasks;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotation.AnnotationSourceController;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
@@ -85,6 +86,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private AtlasManager atlasManager;
 
+    @Autowired
     private AnnotationSourceController annSrcController;
 
     public void setTaskManager(TaskManager taskManager) {
@@ -105,10 +107,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     public void setAtlasManager(AtlasManager manager) {
         this.atlasManager = manager;
-    }
-
-    public void setAnnSrcController(AnnotationSourceController annSrcController) {
-        this.annSrcController = annSrcController;
     }
 
     private Object processPause() {

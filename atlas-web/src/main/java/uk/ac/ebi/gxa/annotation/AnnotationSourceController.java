@@ -104,6 +104,7 @@ public class AnnotationSourceController {
         private BioMartAnnotationSource annSrc;
         private String currentName;
         private ValidationReport validationReport = new ValidationReport();
+        private boolean applied = false;
 
         public BioMartAnnotationSourceView(BioMartAnnotationSource annSrc, String currentName) {
             this.annSrc = annSrc;
@@ -124,6 +125,14 @@ public class AnnotationSourceController {
 
         public void setValidationReport(ValidationReport validationReport) {
             this.validationReport = validationReport;
+        }
+
+        public boolean isApplied() {
+            return applied;
+        }
+
+        public void setApplied(boolean applied) {
+            this.applied = applied;
         }
     }
 

@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.loader;
 
 import com.google.common.collect.HashMultimap;
 import org.easymock.EasyMock;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -37,14 +38,24 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.HTSArrayDataStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);
@@ -61,11 +72,12 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                 "E-GEOD-3790.idf.txt");
     }
 
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
         cache = null;
     }
 
+    @Test
     public void testParseAndCheckExperiments() throws AtlasLoaderException {
         log.debug("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
@@ -82,6 +94,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         log.debug("Experiment parse and check test done!");
     }
 
+    @Test
     public void testAll() throws Exception {
         log.debug("Running parse and check experiment test...");
         HandlerPool pool = HandlerPool.getInstance();
@@ -121,6 +134,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         return computeService;
     }
 
+    @Test
     public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
         log.debug("Running parse and check samples and assays test...");
         HandlerPool pool = HandlerPool.getInstance();
