@@ -60,11 +60,6 @@ public class ArrayDesign {
         return accession;
     }
 
-    // setter constructor can be used in hibernate only
-    void setAccession() {
-        this.accession = accession;
-    }
-
     public String getName() {
         return name;
     }
