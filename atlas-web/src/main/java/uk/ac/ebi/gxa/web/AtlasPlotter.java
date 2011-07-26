@@ -88,7 +88,7 @@ public class AtlasPlotter {
             final List<AtlasGene> genes = parseGenes(geneIdKey);
 
             // geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
-            // Note that ea contains proxyId and designElement index from which it came, so that
+            // Note that ea contains arrayDesign accession and designElement index from which it came, so that
             // the actual expression values can be easily retrieved later
             final Collection<Long> geneIds = transform(genes, new Function<AtlasGene, Long>() {
                 public Long apply(@Nonnull AtlasGene input) {
@@ -167,11 +167,11 @@ public class AtlasPlotter {
      * @return list of proxy ids in eas
      */
     private List<String> getArrayDesigns(Collection<ExpressionAnalysis> eas) {
-        List<String> proxyIdsInEAs = new ArrayList<String>();
+        List<String> adAccessions = new ArrayList<String>();
         for (ExpressionAnalysis ea : eas) {
-            proxyIdsInEAs.add(ea.getArrayDesignAccession());
+            adAccessions.add(ea.getArrayDesignAccession());
         }
-        return proxyIdsInEAs;
+        return adAccessions;
     }
 
     private String getMostFrequent(List<String> values) {
@@ -571,7 +571,7 @@ public class AtlasPlotter {
                 if (bestEA == null) {
                     // If no bestEA expression analysis for factorValue could be found in proxy
                     // (e.g. factorValue is present, but only with pVal == 0) then don't
-                    // plot this factorValue for proxyId
+                    // plot this factorValue for arrayDesign
                     barPlotData.removeFactorValue(factorValue);
                     continue;
                 }
