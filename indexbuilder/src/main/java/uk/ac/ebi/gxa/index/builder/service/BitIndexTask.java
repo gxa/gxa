@@ -11,8 +11,6 @@ class BitIndexTask {
     private int totalStatCount = 0;
     private int processedCount = 0;
     private long processedSize = 0;
-    // Count of ncdfs in which no efvs were found
-    //private int emptyCount = 0;
     private final long start = System.currentTimeMillis();
 
     public BitIndexTask(List<Experiment> experiments) {
@@ -45,11 +43,6 @@ class BitIndexTask {
     public int getTotalExperiments() {
         return experiments.size();
     }
-
-    //public void skipEmpty(Experiment e) {
-    //    emptyCount++;
-    //    done(e);
-    //}
 
     public void done(Experiment e) {
         processedCount++;
