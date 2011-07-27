@@ -34,7 +34,7 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 
 /**
- * A decorator class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}
+ * A decorator class, representing an experiment sample for use in {@link ae3.model.ExperimentalData}
  *
  * @author pashky
  */
