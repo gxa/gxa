@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -80,6 +80,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final PrintWriter out = response.getWriter();
 
         String uri = request.getRequestURI();
+        log.info("handling request " + uri);
         uri = uri.substring(uri.lastIndexOf('/') + 1);
 
         final String[] allParams = splitRequest(uri);
@@ -121,6 +122,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
                 }
             }
         }
+        log.info("getting info for " + assaysToGet.size() + " assays");
 
         final long delta = (geneEnd - geneStart) / 5;
         geneStart -= delta;

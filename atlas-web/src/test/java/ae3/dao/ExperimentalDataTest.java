@@ -25,7 +25,8 @@ package ae3.dao;
 import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -110,31 +111,28 @@ public class ExperimentalDataTest {
 
 
     @Test
-    public void testLoadExperiment() throws IOException, URISyntaxException {
+    public void testLoadExperiment() throws IOException, URISyntaxException, AtlasDataException {
         Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
-        ArrayDesign ad1 = new ArrayDesign();
+        ArrayDesign ad1 = new ArrayDesign("A-AFFY-44");
         ad1.setArrayDesignID(160588088);
-        ad1.setAccession("A-AFFY-44");
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
         eMexp1586.setSamples(eMexp1586Samples());
 
         AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc
-        ExperimentalData expData = ExperimentalData.loadExperiment(dao, eMexp1586);
+        ExperimentalData expData = new ExperimentalData(dao, eMexp1586);
         assertNotNull(expData);
-        assertEquals(1, expData.getArrayDesigns().size());
+        assertEquals(1, expData.getArrayDesignDecorators().size());
     }
 
     @Test
-    public void testMultiArrayDesign() throws IOException, URISyntaxException {
+    public void testMultiArrayDesign() throws IOException, URISyntaxException, AtlasDataException {
         Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
-        ArrayDesign ad21 = new ArrayDesign();
+        ArrayDesign ad21 = new ArrayDesign("A-AFFY-33");
         ad21.setArrayDesignID(153069949);
-        ad21.setAccession("A-AFFY-33");
-        ArrayDesign ad22 = new ArrayDesign();
+        ArrayDesign ad22 = new ArrayDesign("A-AFFY-34");
         ad22.setArrayDesignID(165554923);
-        ad22.setAccession("A-AFFY-44");
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
         eMexp1913.setAssays(assays);
@@ -144,9 +142,9 @@ public class ExperimentalDataTest {
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-33.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-34.nc
-        ExperimentalData expData = ExperimentalData.loadExperiment(dao, eMexp1913);
+        ExperimentalData expData = new ExperimentalData(dao, eMexp1913);
         assertNotNull(expData);
-        assertEquals(2, expData.getArrayDesigns().size());
+        assertEquals(2, expData.getArrayDesignDecorators().size());
     }
 
     private static File getTestNCDir() throws URISyntaxException {
