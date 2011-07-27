@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.util.*;
 
@@ -172,6 +173,7 @@ public class ExperimentResultAdapter {
                     }
                 }
             } catch (AtlasDataException e) {
+                throw LogUtil.createUnexpected(e);
             }
             return geneMap;
         }
@@ -221,6 +223,7 @@ public class ExperimentResultAdapter {
                     }
                 } 
             } catch (AtlasDataException e) {
+                throw LogUtil.createUnexpected(e);
             }
             return geneMap;
         }
