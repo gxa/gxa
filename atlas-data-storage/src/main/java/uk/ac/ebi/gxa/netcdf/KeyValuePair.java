@@ -22,11 +22,13 @@
 
 package uk.ac.ebi.gxa.netcdf;
 
+import javax.annotation.Nonnull;
+
 public final class KeyValuePair {
     public final String key;
     public final String value;
 
-    KeyValuePair(String key, String value) {
+    KeyValuePair(@Nonnull String key, @Nonnull String value) {
         this.key = key;
         this.value = value;
     }
