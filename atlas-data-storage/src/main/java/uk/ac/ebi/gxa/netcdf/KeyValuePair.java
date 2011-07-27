@@ -45,6 +45,6 @@ public final class KeyValuePair {
 
     @Override
     public int hashCode() {
-        return key.hashCode() + value.hashCode();
+        return key.hashCode() + 23 * value.hashCode();
     }
 }
