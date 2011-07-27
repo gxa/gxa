@@ -314,8 +314,10 @@ public class AtlasNetCDFDAO {
         try {
             return findNetCDF(experiment, criteria);
         } catch (AtlasDataException e) {
+            log.warn("exception in findNetCDF", e);
             return null;
         } catch (IOException e) {
+            log.warn("exception in findNetCDF", e);
             return null;
         }
     }
