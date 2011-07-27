@@ -131,7 +131,7 @@ public class ExperimentalDataTest {
         Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
         ArrayDesign ad21 = new ArrayDesign("A-AFFY-33");
         ad21.setArrayDesignID(153069949);
-        ArrayDesign ad22 = new ArrayDesign("A-AFFY-44");
+        ArrayDesign ad22 = new ArrayDesign("A-AFFY-34");
         ad22.setArrayDesignID(165554923);
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));

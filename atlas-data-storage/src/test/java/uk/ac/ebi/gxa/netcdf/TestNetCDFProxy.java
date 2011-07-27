@@ -50,8 +50,13 @@ public class TestNetCDFProxy extends TestCase {
         netCDF = null;
     }
 
-    public void testisOutOfDate() throws IOException {
-        assertTrue(netCDF.isOutOfDate());
+    public void testisOutOfDate() throws Exception {
+        try {
+            new NetCDFProxy(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44_old.nc").toURI())).isOutOfDate();
+        } catch (AtlasDataException e) {
+            return;
+        }
+        fail("AtlasDataException is not thrown");
     }
 
     public void testGetExperiment() throws IOException {
