@@ -1,18 +1,17 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import com.google.common.primitives.Longs;
 import it.uniroma3.mat.extendedset.FastSet;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
+import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.netcdf.KeyValuePair;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -163,12 +162,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 
                     final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
                     for (int j = 0; j < uVals.size(); j++) {
-                        final KeyValuePair pair = uVals.get(j);
-                        final String ef = pair.key;
-                        final String efv = pair.value;
-                
-                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(ef, efv, null));
-                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(ef, null));
+                        final KeyValuePair efv = uVals.get(j);
+                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value, null));
+                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key, null));
                 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
