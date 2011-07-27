@@ -386,9 +386,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Object processUpdateAnnSrc(String text) {
-        System.out.println("AdminRequestHandler.processUpdateAnnSrc");
-        System.out.println("text = " + text);
+    private Object processUpdateAnnSrc(String text){
         annSrcController.saveAnnSrc(text);
         return EMPTY;
     }

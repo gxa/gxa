@@ -487,8 +487,12 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
-     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
+    <!--ToDo (ns): move to annotation context -->
+    <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.loader.annotationsrc.BioMartAnnotationSourceLoader">
         <constructor-arg ref="annSrcDAO"/>
+    </bean>
+     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
+        <constructor-arg ref="annotationSourceLoader"/>
     </bean>
     
     <!--Configure R workbench -->

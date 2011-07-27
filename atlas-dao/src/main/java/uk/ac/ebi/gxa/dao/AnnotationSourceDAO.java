@@ -42,7 +42,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
         this.sessionFactory = sessionFactory;
         this.atlasJdbcTemplate = atlasJdbcTemplate;
-        
+
         typeDAO = new BioEntityTypeDAO(sessionFactory);
 
     }
@@ -50,14 +50,11 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     @Override
     public void save(AnnotationSource object) {
         object.setLoadDate(new Date());
-//        template.merge(object);
         template.save(object);
         template.flush();
-//        sessionFactory.getCurrentSession().merge(object);
-//        sessionFactory.getCurrentSession().flush();
     }
 
-    public <T extends AnnotationSource> Collection<T> getCurrentAnnotationSourcesOfType(Class<T> type) {
+    public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
         List<T> result = template.find("from " + type.getSimpleName());
 //        List<T> result = template.find("from " + type.getSimpleName() + " where software.isActive = ?", true);
         return result;
@@ -80,7 +77,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
                 "  where BEPV.SOFTWAREID=? and BE.ORGANISMID=? and rownum=1";
         List list = atlasJdbcTemplate.queryForList(query, annSrc.getSoftware().getSoftwareid(), annSrc.getOrganism().getId());
 
-        return list.size() >0;
+        return list.size() > 0;
     }
 
     public Organism findOrCreateOrganism(String organismName) {

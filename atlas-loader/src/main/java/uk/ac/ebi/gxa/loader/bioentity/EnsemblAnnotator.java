@@ -74,6 +74,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
             }
 
             writeBioentitiesAndAnnotations();
+            annSrc.setApplied(true);
 
         } catch (IOException e) {
             throw new AtlasLoaderException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e);

@@ -1,18 +1,13 @@
 package uk.ac.ebi.microarray.atlas.model.annotation;
 
-import org.hibernate.annotations.*;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -52,6 +47,8 @@ public abstract class AnnotationSource implements Serializable{
 
     @Temporal(TemporalType.DATE)
     protected Date loadDate;
+    @Transient
+    private boolean isApplied = false;
 
     protected AnnotationSource() {
     }
@@ -129,5 +126,13 @@ public abstract class AnnotationSource implements Serializable{
                 ", types=" + types +
                 ", loadDate=" + loadDate +
                 '}';
+    }
+
+    public boolean isApplied() {
+        return isApplied;
+    }
+
+    public void setApplied(boolean applied) {
+        isApplied = applied;
     }
 }

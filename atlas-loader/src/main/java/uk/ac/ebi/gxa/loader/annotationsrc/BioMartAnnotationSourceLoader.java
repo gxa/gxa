@@ -19,8 +19,10 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,6 +53,24 @@ public class BioMartAnnotationSourceLoader {
         this.annSrcDAO = annSrcDAO;
     }
 
+     public String getAnnSrcAsStringById(String id) {
+        Long aLong = Long.parseLong(id);
+        BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
+        Writer writer = new CharArrayWriter();
+        writeSource(annotationSource, writer);
+        return writer.toString();
+    }
+
+    public void saveAnnSrc(String text) throws AnnotationLoaderException {
+        Reader reader = new StringReader(text);
+
+            annSrcDAO.startSession();
+            BioMartAnnotationSource annotationSource = readSource(reader);
+
+            annSrcDAO.save(annotationSource);
+            annSrcDAO.finishSession();
+
+    }
     public BioMartAnnotationSource readSource(Reader input) throws AnnotationLoaderException {
         Properties properties = new Properties();
         BioMartAnnotationSource annotationSource = null;
@@ -78,12 +98,10 @@ public class BioMartAnnotationSourceLoader {
             throw new AnnotationLoaderException("Cannot read annotation properties", e);
         }
 
-
-        System.out.println(properties.getProperty("databaseName"));
         return annotationSource;
     }
 
-    public void writeSource(BioMartAnnotationSource annSrc, Writer out) {
+    private void writeSource(BioMartAnnotationSource annSrc, Writer out) {
         PropertiesConfiguration properties = new PropertiesConfiguration();
         properties.addProperty(organism_propName, annSrc.getOrganism().getName());
         properties.addProperty(software_name_propName, annSrc.getSoftware().getName());
@@ -120,13 +138,14 @@ public class BioMartAnnotationSourceLoader {
     public Collection<BioMartAnnotationSource> getCurrentAnnotationSources() {
         Collection<BioMartAnnotationSource> result = new HashSet<BioMartAnnotationSource>();
         annSrcDAO.startSession();
-        Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getCurrentAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
         for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
             try {
                 BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
+                    annSrc.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
                     result.add(annSrc);
                 } else {
                     //check if AnnotationSource exists for new version

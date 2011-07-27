@@ -13,10 +13,6 @@ import uk.ac.ebi.gxa.loader.bioentity.BioMartConnectionFactory;
 import uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.io.CharArrayWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,11 +25,9 @@ public class AnnotationSourceController {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private AnnotationSourceDAO annSrcDAO;
     private BioMartAnnotationSourceLoader loader;
 
     public AnnotationSourceController(AnnotationSourceDAO annotationSourceDAO) {
-        this.annSrcDAO = annotationSourceDAO;
         loader = new BioMartAnnotationSourceLoader(annotationSourceDAO);
     }
 
@@ -52,8 +46,6 @@ public class AnnotationSourceController {
 
                 BioMartAnnotationSourceView view = new BioMartAnnotationSourceView(annSrc, validationReport);
 
-                view.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
-
                 viewSources.add(view);
 
             } catch (BioMartAccessException e) {
@@ -64,30 +56,21 @@ public class AnnotationSourceController {
     }
 
     public String getAnnSrcString(String id) {
-        Long aLong = Long.parseLong(id);
-        BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
-        Writer writer = new CharArrayWriter();
-        loader.writeSource(annotationSource, writer);
-        return writer.toString();
+        return loader.getAnnSrcAsStringById(id);
     }
 
     public void saveAnnSrc(String text) {
-        Reader reader = new StringReader(text);
         try {
-            annSrcDAO.startSession();
-            BioMartAnnotationSource annotationSource = loader.readSource(reader);
-
-            annSrcDAO.save(annotationSource);
-            annSrcDAO.finishSession();
+            loader.saveAnnSrc(text);
         } catch (AnnotationLoaderException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            //ToDo: add error processing
+            log.error(e.getMessage(), e);
         }
     }
 
     public static class BioMartAnnotationSourceView {
         private BioMartAnnotationSource annSrc;
         private ValidationReport validationReport;
-        private boolean applied = false;
 
         public BioMartAnnotationSourceView(BioMartAnnotationSource annSrc, ValidationReport validationReport) {
             this.annSrc = annSrc;
@@ -123,11 +106,7 @@ public class AnnotationSourceController {
         }
 
         public String getApplied() {
-            return applied?"yes":"no";
-        }
-
-        public void setApplied(boolean applied) {
-            this.applied = applied;
+            return annSrc.isApplied()?"yes":"no";
         }
     }
 
