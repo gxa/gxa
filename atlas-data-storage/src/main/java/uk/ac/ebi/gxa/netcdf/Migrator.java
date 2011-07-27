@@ -34,6 +34,9 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+// This file is just a prototype for NetCDF migrator. It is never used at this time.
+// Should be reviewed again when will be implmented.
+
 class Migrator {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final AtlasNetCDFDAO netCDFDAO;
