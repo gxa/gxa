@@ -98,7 +98,10 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException
      */
     public boolean isOutOfDate()  {
-        return !NCDF_VERSION.equals(getNcdfVersion());
+        final String version = getNcdfVersion();
+        // "NetCDF Updater" string was used as version id in NetCDFs created by updater
+        // before March 23, 2011
+        return !NCDF_VERSION.equals(version) && !"NetCDF Updater".equals(version);
     }
 
     public String getExperimentAccession() {
