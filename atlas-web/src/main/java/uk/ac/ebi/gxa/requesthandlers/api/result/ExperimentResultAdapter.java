@@ -173,7 +173,7 @@ public class ExperimentResultAdapter {
                     }
                 }
             } catch (AtlasDataException e) {
-                throw LogUtil.createUnexpected(e);
+                throw LogUtil.createUnexpected("API does not expect to receive incorrect data", e);
             }
             return geneMap;
         }
@@ -223,7 +223,7 @@ public class ExperimentResultAdapter {
                     }
                 } 
             } catch (AtlasDataException e) {
-                throw LogUtil.createUnexpected(e);
+                throw LogUtil.createUnexpected("API does not expect to receive incorrect data", e);
             }
             return geneMap;
         }
