@@ -23,8 +23,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class behaves like {@link MydasServlet}, except for slotting in its own {@link ServletContext}&mdash;
- * for more information on the rationale see {@link MydasGxaServletContext}.
+ * {@link MydasServlet} tailored for Atlas
+ * <p/>
+ * This class behaves like {@link MydasServlet}, except for slotting in its own {@link ServletContext} and listening for
+ * {@link AtlasProperties} changes.
+ * <p/>
+ * For more information on the rationale see {@link MydasGxaServletContext}.
  *
  * @see MydasGxaServletContext
  */
@@ -58,6 +62,11 @@ public class MydasGxaServlet extends MydasServlet implements VetoableChangeListe
      * provide access to its internal fields using atlas.dasbase, the only current way to re-configure MydasServlet code after
      * an AtlasProperties change to atlas.dasbase is vai the reflection hack below.
      * TODO replace this method with direct calls to MydasServlet code once setter methods are provided by the DAS team
+     * <p/>
+     * It would be nice to re-init the MydasServlet using standard {@link javax.servlet.Servlet#destroy()} and
+     * {@link javax.servlet.Servlet#init} methods, but unfortunately the settings are stored in a static field
+     * which gets destroyed but not cleared. Hence, the reflection tricks are still necessary,
+     * which in turn makes re-init cycle senseless.
      *
      * @param dasBaseURL base URL for DAS
      * @return true if all fields were updated via reflection successfully; false otherwise
