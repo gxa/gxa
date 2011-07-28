@@ -24,7 +24,6 @@ import java.util.List;
 public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
     private SessionFactory sessionFactory;
-    @Autowired
     private JdbcTemplate atlasJdbcTemplate;
 
     @Autowired

@@ -39,7 +39,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
     // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected EnsemblAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
+    public EnsemblAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
         super(annotationDAO, transactionTemplate);
     }
 

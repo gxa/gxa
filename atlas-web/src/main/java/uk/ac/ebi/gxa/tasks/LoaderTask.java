@@ -26,7 +26,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
-import uk.ac.ebi.gxa.loader.BioMartUpdateCommand;
 import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
 import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
@@ -57,8 +56,8 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
     public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
     public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
-    public static final String TYPE_UPDATEANNOTATIONS = "orgupdate";
-    public static final String TYPE_UPDATEMAPPINGS = "mappingupdate";
+//    public static final String TYPE_UPDATEANNOTATIONS = "orgupdate";
+//    public static final String TYPE_UPDATEMAPPINGS = "mappingupdate";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -74,11 +73,11 @@ public class LoaderTask extends AbstractWorkingTask {
         else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
             return new LoadBioentityCommand(getTaskSpec().getAccession());
 
-        else if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
-            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.ANNOTATIONS);
-
-        else if (TYPE_UPDATEMAPPINGS.equals(getTaskSpec().getType()))
-            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.MAPPINGS);
+//        else if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
+//            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.ANNOTATIONS);
+//
+//        else if (TYPE_UPDATEMAPPINGS.equals(getTaskSpec().getType()))
+//            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.MAPPINGS);
 
         else if (TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
             return new LoadArrayDesignMappingCommand(getTaskSpec().getAccession());
@@ -229,8 +228,8 @@ public class LoaderTask extends AbstractWorkingTask {
             return TYPE_LOADEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_LOADARRAYDESIGN.equals(taskSpec.getType())
                     || TYPE_LOADANNOTATIONS.equals(taskSpec.getType())
-                    || TYPE_UPDATEANNOTATIONS.equals(taskSpec.getType())
-                    || TYPE_UPDATEMAPPINGS.equals(taskSpec.getType())
+//                    || TYPE_UPDATEANNOTATIONS.equals(taskSpec.getType())
+//                    || TYPE_UPDATEMAPPINGS.equals(taskSpec.getType())
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
+
+        <constructor-arg index="0" ref="bioentityAnnotationDAO"/>
+        <constructor-arg index="1" ref="atlasTxManager"/>
+    </bean>
+
+    <bean id="newAnnotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">
+        <constructor-arg ref="annotatorFactory"/>
+    </bean>
+</beans>

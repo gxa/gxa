@@ -282,7 +282,7 @@
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
         <module>netcdf-reader</module>
-    <module>annotation</module>
+        <module>annotator</module>
   </modules>
 
     <dependencies>

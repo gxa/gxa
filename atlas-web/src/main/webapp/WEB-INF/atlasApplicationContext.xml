@@ -35,6 +35,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/dao/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
@@ -310,6 +311,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="maxWorkingTasks" value="16"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="annotationLoader" ref="newAnnotationLoader"/>
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
@@ -492,7 +494,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <constructor-arg ref="annSrcDAO"/>
     </bean>
      <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
-        <constructor-arg ref="annotationSourceLoader"/>
+        <constructor-arg ref="annSrcDAO"/>
     </bean>
     
     <!--Configure R workbench -->
