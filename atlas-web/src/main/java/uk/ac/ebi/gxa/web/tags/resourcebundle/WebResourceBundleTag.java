@@ -105,13 +105,13 @@ public class WebResourceBundleTag extends TagSupport {
     }
 
     private String compressedResourcesHtml(WebResourceBundleConfig config, String contextPath) throws WebResourceBundleConfigException {
-        config.assertConfigured(name);
-
         StringBuilder sb = new StringBuilder();
         for (WebResourceType type : resourceTypes) {
-            sb.append(
-                    type.toHtml(WebResourcePath.joinPaths(contextPath, properties.getBundlePath(type)), name)
-            ).append("\n");
+            if (config.hasResources(name, type)) {
+                sb.append(
+                        type.toHtml(WebResourcePath.joinPaths(contextPath, properties.getBundlePath(type)), name)
+                ).append("\n");
+            }
         }
         return sb.toString();
     }

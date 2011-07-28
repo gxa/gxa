@@ -26,7 +26,10 @@ import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.annotations.DigesterLoader;
 import org.apache.commons.digester.annotations.DigesterLoaderBuilder;
 import org.xml.sax.SAXException;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.*;
+import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResource;
+import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceBundleConfig;
+import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceBundleConfigException;
+import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceType;
 
 import java.io.*;
 import java.util.*;
@@ -64,27 +67,38 @@ public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
 
     @Override
     public Collection<WebResource> getResources(String bundleName, Collection<WebResourceType> resourceTypes) throws WebResourceBundleConfigException {
-        return getResources(bundleName, resourceTypes, new Stack<Wro4jGroup>());
+        final List<WebResource> list = new ArrayList<WebResource>();
+        traverseGroup(bundleName, new TraverseHandler(resourceTypes) {
+            public boolean enoughResourcesFound(Collection<WebResource> resources) {
+                list.addAll(resources);
+                return false;
+            }
+        }, new Stack<Wro4jGroup>());
+
+        return list;
     }
 
     @Override
-    public void assertConfigured(String bundleName) throws WebResourceBundleConfigException {
-        getGroup(bundleName);
+    public boolean hasResources(String bundleName, WebResourceType resourceType) throws WebResourceBundleConfigException {
+        final List<WebResource> list = new ArrayList<WebResource>();
+        traverseGroup(bundleName, new TraverseHandler(Arrays.asList(resourceType)) {
+            public boolean enoughResourcesFound(Collection<WebResource> resources) {
+                list.addAll(resources);
+                return (list.size() > 0);
+            }
+        }, new Stack<Wro4jGroup>());
+
+        return (list.size() > 0);
     }
 
-    private Collection<WebResource> getResources(String bundleName, Collection<WebResourceType> resourceTypes, Stack<Wro4jGroup> stack) throws WebResourceBundleConfigException {
-        Wro4jGroup group = addGroup(stack, bundleName);
-        List<WebResource> list = new ArrayList<WebResource>();
-        for (WebResourceType type : resourceTypes) {
-            list.addAll(group.getResources(type));
+    private void traverseGroup(String groupName, TraverseHandler traverseHandler, Stack<Wro4jGroup> stack) throws WebResourceBundleConfigException {
+        Wro4jGroup group = addGroup(stack, groupName);
+        if (!traverseHandler.enough(group)) {
+            for (String groupRef : group.getGroupRefs()) {
+                traverseGroup(groupRef, traverseHandler, stack);
+            }
         }
-        for (String groupRef : group.getGroupRefs()) {
-            list.addAll(getResources(groupRef, resourceTypes, stack));
-        }
-
         stack.pop();
-        return list;
-
     }
 
     private Wro4jGroup addGroup(Stack<Wro4jGroup> stack, String groupName) throws WebResourceBundleConfigException {
@@ -104,5 +118,24 @@ public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
             throw new WebResourceBundleConfigException("Wro4j group not found: '" + groupName + "'");
         }
         return group;
+    }
+
+    private static abstract class TraverseHandler {
+        private final List<WebResourceType> resourceTypes;
+
+        public TraverseHandler(Collection<WebResourceType> resourceTypes) {
+            this.resourceTypes = new ArrayList<WebResourceType>(resourceTypes);
+        }
+
+        boolean enough(Wro4jGroup group) {
+            for (WebResourceType type : resourceTypes) {
+                if (enoughResourcesFound(group.getResources(type))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public abstract boolean enoughResourcesFound(Collection<WebResource> resources);
     }
 }

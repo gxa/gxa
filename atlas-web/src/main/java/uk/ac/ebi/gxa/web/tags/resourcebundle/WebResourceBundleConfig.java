@@ -56,16 +56,18 @@ public interface WebResourceBundleConfig {
      * @param resourceTypes types of resources to look for
      * @return a collection of web resources found
      * @throws WebResourceBundleConfigException
-     *          if resource bundle is not configured properly
+     *          if resource bundle is not configured
      */
     public Collection<WebResource> getResources(String bundleName, Collection<WebResourceType> resourceTypes) throws WebResourceBundleConfigException;
 
     /**
-     * Checks if the resource bundle configured.
+     * Checks if the resource bundle contains resources of required type
      *
      * @param bundleName a bundle name to check
+     * @param type       type of web resource to check for existence
+     * @return true if at least one resource of given type exists
      * @throws WebResourceBundleConfigException
-     *          if the resource bundle is not configured properly
+     *          if the resource bundle is not configured
      */
-    void assertConfigured(String bundleName) throws WebResourceBundleConfigException;
+    boolean hasResources(String bundleName, WebResourceType type) throws WebResourceBundleConfigException;
 }

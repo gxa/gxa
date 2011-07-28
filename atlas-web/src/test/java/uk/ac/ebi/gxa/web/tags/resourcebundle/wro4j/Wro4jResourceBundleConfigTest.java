@@ -31,9 +31,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * @author Olga Melnichuk
@@ -45,12 +43,6 @@ public class Wro4jResourceBundleConfigTest {
         Wro4jResourceBundleConfig config = new Wro4jResourceBundleConfig();
         config.load(Wro4jResourceBundleConfigTest.class.getResourceAsStream("wro.xml"));
 
-        assertConfigured(config, "css-only-resources");
-        assertConfigured(config, "js-only-resources");
-        assertConfigured(config, "mixed-resources-1");
-        assertConfigured(config, "mixed-resources-2");
-        assertConfigured(config, "mixed-resources-3");
-
         assertResourceBundleContains(config, "css-only-resources", Arrays.asList("/style-1.css", "/style-2.css"));
         assertResourceBundleContains(config, "js-only-resources", Arrays.asList("/script-1.js", "/script-2.js"));
         assertResourceBundleContains(config, "mixed-resources-1", Arrays.asList("/script-1.js", "/script-2.js", "/style-1.css", "/style-2.css"));
@@ -59,6 +51,12 @@ public class Wro4jResourceBundleConfigTest {
 
         assertResourceBundleContains(config, "mixed-resources-1", Arrays.asList("/script-1.js", "/script-2.js"), WebResourceType.JS);
         assertResourceBundleContains(config, "mixed-resources-1", Arrays.asList("/style-1.css", "/style-2.css"), WebResourceType.CSS);
+
+        assertTrue(config.hasResources("css-only-resources", WebResourceType.CSS));
+        assertFalse(config.hasResources("css-only-resources", WebResourceType.JS));
+
+        assertTrue(config.hasResources("js-only-resources", WebResourceType.JS));
+        assertFalse(config.hasResources("js-only-resources", WebResourceType.CSS));
     }
 
     private void assertResourceBundleContains(Wro4jResourceBundleConfig config, String bundleName, List<String> contents) throws WebResourceBundleConfigException {
@@ -78,9 +76,6 @@ public class Wro4jResourceBundleConfigTest {
         Wro4jResourceBundleConfig config = new Wro4jResourceBundleConfig();
         config.load(Wro4jResourceBundleConfigTest.class.getResourceAsStream("wro-with-cycle-refs.xml"));
 
-        assertConfigured(config, "resources-1");
-        assertConfigured(config, "resources-2");
-        assertConfigured(config, "resources-3");
         assertNotConfigured(config, "resources-4");
 
         assertCycleReference(config, "resources-1");
@@ -97,21 +92,12 @@ public class Wro4jResourceBundleConfigTest {
         }
     }
 
-    private void assertConfigured(Wro4jResourceBundleConfig config, String groupName) {
-        try {
-            config.assertConfigured(groupName);
-        } catch (WebResourceBundleConfigException e) {
-            fail();
-        }
-    }
-
     private void assertNotConfigured(Wro4jResourceBundleConfig config, String groupName) {
         try {
-            config.assertConfigured(groupName);
+            config.hasResources(groupName, WebResourceType.CSS);
             fail();
         } catch (WebResourceBundleConfigException e) {
             // OK
         }
     }
-
 }
