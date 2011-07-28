@@ -39,29 +39,29 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 class Migrator {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final AtlasNetCDFDAO netCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
 
-    public Migrator(AtlasNetCDFDAO netCDFDAO) {
-        this.netCDFDAO = netCDFDAO;
+    public Migrator(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     private File getVersion1File(Experiment experiment, ArrayDesign ad) {
         return new File(
-            netCDFDAO.getDataDirectory(experiment),
+            atlasDataDAO.getDataDirectory(experiment),
             experiment.getAccession() + "_" + ad.getAccession() + ".nc"
         );
     }
 
     private File getVersion2DataFile(Experiment experiment, ArrayDesign ad) {
         return new File(
-            netCDFDAO.getDataDirectory(experiment),
+            atlasDataDAO.getDataDirectory(experiment),
             experiment.getAccession() + "_" + ad.getAccession() + "_data.nc"
         );
     }
 
     private File getVersion2StatisticsFile(Experiment experiment, ArrayDesign ad) {
         return new File(
-            netCDFDAO.getDataDirectory(experiment),
+            atlasDataDAO.getDataDirectory(experiment),
             experiment.getAccession() + "_" + ad.getAccession() + "_statistics.nc"
         );
     }

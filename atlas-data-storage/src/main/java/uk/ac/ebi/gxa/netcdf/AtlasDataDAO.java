@@ -52,7 +52,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.extension;
  * @author Rober Petryszak
  * @author Nikolay Pultsin
  */
-public class AtlasNetCDFDAO {
+public class AtlasDataDAO {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // Location of the experiment data files

@@ -35,7 +35,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.statistics.Attribute;
@@ -103,7 +103,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         gpService.setAtlasProperties(atlasProperties);
         gpService.setSolrServerAtlas(solrServerAtlas);
 
-        AtlasNetCDFDAO atlasNetCDFDAO = new AtlasNetCDFDAO();
+        AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
 
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
@@ -115,7 +115,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setEfo(efo);
         service.setAtlasProperties(atlasProperties);
         service.setGenePropService(gpService);
-        service.setAtlasNetCDFDAO(atlasNetCDFDAO);
+        service.setAtlasDataDAO(atlasDataDAO);
         service.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
     }
 

@@ -34,7 +34,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 public class ExperimentWithData {
-    private final AtlasNetCDFDAO netCDFDao;
+    private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
 
     private final Map<ArrayDesign,NetCDFProxy> proxies = new HashMap<ArrayDesign,NetCDFProxy>();
@@ -42,8 +42,8 @@ public class ExperimentWithData {
     // cached data
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
 
-    ExperimentWithData(AtlasNetCDFDAO netCDFDao, Experiment experiment) {
-        this.netCDFDao = netCDFDao;
+    ExperimentWithData(AtlasDataDAO atlasDataDAO, Experiment experiment) {
+        this.atlasDataDAO = atlasDataDAO;
         this.experiment = experiment;
     }
 
@@ -53,14 +53,14 @@ public class ExperimentWithData {
 
     // TODO: remove this temporary method
     public List<NetCDFDescriptor> getNetCDFDescriptors() {
-        return netCDFDao.getNetCDFDescriptors(experiment);
+        return atlasDataDAO.getNetCDFDescriptors(experiment);
     }
 
     // TODO: change access rignts to private
     public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
-            p = netCDFDao.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
+            p = atlasDataDAO.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
             proxies.put(arrayDesign, p);
         }
         return p;

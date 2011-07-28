@@ -39,7 +39,7 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
@@ -73,7 +73,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
     private ExperimentDAO experimentDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -96,8 +96,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.experimentSolrDAO = experimentSolrDAO;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -204,7 +204,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             if (!experimentInfoOnly) {
 
                                 NetCDFDescriptor ncdfDescr =
-                                        atlasNetCDFDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
+                                        atlasDataDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
 
                                 if (ncdfDescr != null) {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
@@ -229,7 +229,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
 
                                 try {
-                                    expData = new ExperimentalData(atlasNetCDFDAO, experiment.getExperiment());
+                                    expData = new ExperimentalData(atlasDataDAO, experiment.getExperiment());
                                 } catch (AtlasDataException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }

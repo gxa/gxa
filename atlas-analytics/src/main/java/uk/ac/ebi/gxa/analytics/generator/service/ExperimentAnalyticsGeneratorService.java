@@ -32,7 +32,7 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
@@ -55,15 +55,15 @@ import static com.google.common.io.Closeables.closeQuietly;
 
 public class ExperimentAnalyticsGeneratorService {
     private final AtlasDAO atlasDAO;
-    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
     private final AtlasComputeService atlasComputeService;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasComputeService = atlasComputeService;
         this.executor = executor;
     }
@@ -225,7 +225,7 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     private Collection<NetCDFDescriptor> getNetCDFs(Experiment experiment) throws AnalyticsGeneratorException {
-        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.createExperimentWithData(experiment).getNetCDFDescriptors();
+        Collection<NetCDFDescriptor> netCDFs = atlasDataDAO.createExperimentWithData(experiment).getNetCDFDescriptors();
         if (netCDFs.isEmpty()) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experiment);
         }

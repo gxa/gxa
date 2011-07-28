@@ -26,7 +26,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -65,9 +65,9 @@ public class ExperimentalData {
      *
      * @param experiment
      */
-    public ExperimentalData(AtlasNetCDFDAO atlasNetCDFDAO, Experiment experiment) throws AtlasDataException {
+    public ExperimentalData(AtlasDataDAO atlasDataDAO, Experiment experiment) throws AtlasDataException {
         log.info("loading data for experiment" + experiment.getAccession());
-        experimentWithData = atlasNetCDFDAO.createExperimentWithData(experiment);
+        experimentWithData = atlasDataDAO.createExperimentWithData(experiment);
 
         ResourceWatchdogFilter.register(new Closeable() {
             public void close() {

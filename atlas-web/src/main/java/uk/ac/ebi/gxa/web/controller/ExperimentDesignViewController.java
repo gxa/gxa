@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
@@ -27,12 +27,12 @@ import static com.google.common.io.Closeables.closeQuietly;
 @Controller
 public class ExperimentDesignViewController extends ExperimentViewControllerBase {
 
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     @Autowired
-    public ExperimentDesignViewController(ExperimentSolrDAO solrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+    public ExperimentDesignViewController(ExperimentSolrDAO solrDAO, AtlasDataDAO atlasDataDAO, AtlasDAO atlasDAO) {
         super(solrDAO, atlasDAO);
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
@@ -48,7 +48,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     }
 
     private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException, AtlasDataException {
-        final List<NetCDFDescriptor> descriptors = atlasNetCDFDAO.createExperimentWithData(exp).getNetCDFDescriptors();
+        final List<NetCDFDescriptor> descriptors = atlasDataDAO.createExperimentWithData(exp).getNetCDFDescriptors();
         if (descriptors.isEmpty()) {
             throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");
         }

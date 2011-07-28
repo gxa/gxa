@@ -51,7 +51,7 @@ import java.util.*;
 public class NetCDFCreator {
     private final Logger log = LoggerFactory.getLogger(NetCDFCreator.class);
 
-    private final AtlasNetCDFDAO netCDFDAO;
+    private final AtlasDataDAO dataDAO;
     private final Experiment experiment;
     private final ArrayDesign arrayDesign;
 
@@ -98,8 +98,8 @@ public class NetCDFCreator {
     private int maxScLength;
     private int maxScvLength;
 
-    NetCDFCreator(AtlasNetCDFDAO netCDFDAO, Experiment experiment, ArrayDesign arrayDesign) {
-        this.netCDFDAO = netCDFDAO;
+    NetCDFCreator(AtlasDataDAO dataDAO, Experiment experiment, ArrayDesign arrayDesign) {
+        this.dataDAO = dataDAO;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
     }
@@ -840,7 +840,7 @@ public class NetCDFCreator {
         prepareData();
 
         try {
-            final File targetFile = netCDFDAO.getNetCDFLocation(experiment, arrayDesign);
+            final File targetFile = dataDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!targetFile.getParentFile().exists() && !targetFile.getParentFile().mkdirs()) {
                 throw new NetCDFCreatorException(
                     "Cannot create folder for the output file" + targetFile

@@ -6,7 +6,7 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
 import uk.ac.ebi.gxa.netcdf.KeyValuePair;
 import uk.ac.ebi.gxa.statistics.*;
@@ -31,15 +31,15 @@ import static java.util.Collections.sort;
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
     private final String indexFileName;
     private File atlasIndex;
     private File indexFile = null;
 
     private StatisticsStorage statistics;
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public void setAtlasIndex(File atlasIndex) {
@@ -140,7 +140,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             ExperimentWithData experimentWithData = null;
             getLog().debug("Processing {}", exp);
             try {
-                experimentWithData = atlasNetCDFDAO.createExperimentWithData(exp);
+                experimentWithData = atlasDataDAO.createExperimentWithData(exp);
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {

@@ -25,7 +25,7 @@ package ae3.dao;
 import ae3.model.ExperimentalData;
 import org.junit.After;
 import org.junit.Test;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -118,7 +118,7 @@ public class ExperimentalDataTest {
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
         eMexp1586.setSamples(eMexp1586Samples());
 
-        AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        AtlasDataDAO dao = new AtlasDataDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc
         ExperimentalData expData = new ExperimentalData(dao, eMexp1586);
@@ -138,7 +138,7 @@ public class ExperimentalDataTest {
         eMexp1913.setAssays(assays);
         eMexp1913.setSamples(eMexp1913Samples());
 
-        AtlasNetCDFDAO dao = new AtlasNetCDFDAO();
+        AtlasDataDAO dao = new AtlasDataDAO();
         dao.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-33.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-34.nc

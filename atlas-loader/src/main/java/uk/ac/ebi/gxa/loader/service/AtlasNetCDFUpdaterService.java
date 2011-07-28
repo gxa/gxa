@@ -32,7 +32,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
 public class AtlasNetCDFUpdaterService {
     private static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
     private AtlasDAO atlasDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         atlasDAO.startSession();
@@ -53,7 +53,7 @@ public class AtlasNetCDFUpdaterService {
             for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
                 final ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
 
-                final NetCDFDescriptor descriptor = atlasNetCDFDAO.getNetCDFDescriptor(experiment, arrayDesign);
+                final NetCDFDescriptor descriptor = atlasDataDAO.getNetCDFDescriptor(experiment, arrayDesign);
                 listener.setProgress("Reading existing NetCDF");
 
                 final Map<String, Assay> assayMap = entry.getValue();
@@ -132,7 +132,7 @@ public class AtlasNetCDFUpdaterService {
 
     private void writeNetCDF(NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
-            final NetCDFCreator netCdfCreator = atlasNetCDFDAO.getNetCDFCreator(experiment, arrayDesign);
+            final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
 
             netCdfCreator.setAssays(experiment.getAssaysForDesign(arrayDesign));
 
@@ -191,8 +191,8 @@ public class AtlasNetCDFUpdaterService {
         this.atlasDAO = atlasDAO;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
 }

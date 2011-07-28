@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
 import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
 import uk.ac.ebi.gxa.netcdf.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -49,7 +49,7 @@ import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
     private AtlasDAO atlasDatabaseDAO;
     private GeneSolrDAO geneSolrDAO;
 
@@ -72,8 +72,8 @@ public class AtlasPlotter {
     }
 
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
@@ -96,7 +96,7 @@ public class AtlasPlotter {
                 }
             });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, containsEfEfv(ef, efv));
+                    atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, containsEfEfv(ef, efv));
             if (geneIdsToEfToEfvToEA == null)
                 return null;
 
@@ -551,7 +551,7 @@ public class AtlasPlotter {
         NetCDFProxy proxy = null;
         try {
             final ArrayDesign ad = new ArrayDesign(bestArrayDesignAccession);
-            proxy = atlasNetCDFDAO.getNetCDFDescriptor(experiment, ad).createProxy();
+            proxy = atlasDataDAO.getNetCDFDescriptor(experiment, ad).createProxy();
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
             String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession).getName();
@@ -560,7 +560,7 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experiment, ad, geneId, ef);
+                    atlasDataDAO.getBestEAsPerEfvInProxy(experiment, ad, geneId, ef);
 
             BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
 
@@ -577,7 +577,7 @@ public class AtlasPlotter {
                 }
 
                 // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, ad, bestEA.getDesignElementIndex());
+                List<Float> expressions = atlasDataDAO.getExpressionData(experiment, ad, bestEA.getDesignElementIndex());
 
                 barPlotData.setExpressions(factorValue, expressions);
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
@@ -608,10 +608,10 @@ public class AtlasPlotter {
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
         final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
-        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experiment, arrayDesign, ef);
+        List<String> assayFVs = atlasDataDAO.getFactorValues(experiment, arrayDesign, ef);
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
-        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, arrayDesign, ea.getDesignElementIndex());
+        List<Float> expressions = atlasDataDAO.getExpressionData(experiment, arrayDesign, ea.getDesignElementIndex());
 
 
         // iterate over each factor value (in sorted order)
