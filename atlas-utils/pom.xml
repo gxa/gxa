@@ -29,20 +29,7 @@
         <version>2.0.9-SNAPSHOT</version>
     </parent>
     <dependencies>
-        <dependency>
-            <groupId>uk.ac.ebi.mydas</groupId>
-            <artifactId>mydas</artifactId>
-            <version>1.6.1_j5</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-nop</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- batik for anatomogramms -->
-
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-svggen</artifactId>
