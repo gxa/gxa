@@ -66,6 +66,11 @@ public class ExperimentWithData {
         return p;
     }
 
+    /*
+     * This method returns samples in the order they are stored in netcdf file.
+     * While this order is important we have to use this method,
+     * in future it would be replaced by Experiment method.
+     */
     public List<Sample> getSamples(ArrayDesign arrayDesign) throws AtlasDataException {
         final String[] sampleAccessions;
         try {
@@ -80,6 +85,11 @@ public class ExperimentWithData {
         return samples;
     }
 
+    /*
+     * This method returns assays in the order they are stored in netcdf file.
+     * While this order is important we have to use this method,
+     * in future it would be replaced by Experiment method.
+     */
     public List<Assay> getAssays(ArrayDesign arrayDesign) throws AtlasDataException {
         final String[] assayAccessions;
         try {
@@ -92,6 +102,14 @@ public class ExperimentWithData {
             assays.add(getExperiment().getAssay(accession));
         }
         return assays;
+    }
+
+    public List<Integer> getSamplesForAssay(ArrayDesign arrayDesign, int iAssay) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getSamplesForAssay(iAssay);
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
     }
 
     public String[] getDesignElementAccessions(ArrayDesign arrayDesign) throws AtlasDataException {
@@ -118,6 +136,38 @@ public class ExperimentWithData {
     public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getUniqueValues(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getFactors(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public String[] getCharacteristics(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getCharacteristics(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public String[] getCharacteristicValues(ArrayDesign arrayDesign, String characteristic) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getCharacteristicValues(characteristic); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public String[] getFactorValues(ArrayDesign arrayDesign, String factor) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getFactorValues(factor); 
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
