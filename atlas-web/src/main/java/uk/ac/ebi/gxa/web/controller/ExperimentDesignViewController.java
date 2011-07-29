@@ -16,7 +16,6 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -39,7 +38,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
     public String getExperimentDesign(
             @RequestParam("eid") String accession,
-            Model model) throws ResourceNotFoundException, IOException, AtlasDataException {
+            Model model) throws ResourceNotFoundException, AtlasDataException {
 
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
@@ -48,7 +47,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         return "experimentpage/experiment-design";
     }
 
-    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException, AtlasDataException {
+    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, AtlasDataException {
         final Collection<ArrayDesign> arrayDesigns = exp.getArrayDesigns();
         if (arrayDesigns.isEmpty()) {
             throw new ResourceNotFoundException("ArrayDesign for experiment " + exp.getAccession() + " is not found");
