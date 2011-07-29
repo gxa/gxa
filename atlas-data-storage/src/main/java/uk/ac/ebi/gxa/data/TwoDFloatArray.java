@@ -20,33 +20,26 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.netcdf;
+package uk.ac.ebi.gxa.data;
 
-import javax.annotation.Nonnull;
+import ucar.ma2.Array;
+import ucar.ma2.InvalidRangeException;
 
-public final class KeyValuePair {
-    public final String key;
-    public final String value;
+public final class TwoDFloatArray {
+    private final Array array;
+    private final int[] shape;
 
-    KeyValuePair(@Nonnull String key, @Nonnull String value) {
-        this.key = key;
-        this.value = value;
+    TwoDFloatArray(Array array) {
+        this.array = array;
+        this.shape = new int[] {1, array.getShape()[1]};
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    public float[] getRow(int index) {
+        final int[] origin = {index, 0};
+        try {
+            return (float[])array.section(origin, shape).get1DJavaArray(float.class);
+        } catch (InvalidRangeException e) {
+            return new float[0];
         }
-        if (!(o instanceof KeyValuePair)) {
-            return false;
-        }
-        final KeyValuePair pair = (KeyValuePair)o;
-        return key.equals(pair.key) && value.equals(pair.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return key.hashCode() + 23 * value.hashCode();
     }
 }

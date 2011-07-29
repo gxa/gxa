@@ -29,10 +29,10 @@ import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
-import uk.ac.ebi.gxa.netcdf.TwoDFloatArray;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.TwoDFloatArray;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -45,13 +45,13 @@ class DataQueryHandler implements QueryHandler {
 
     private final BioEntityDAO bioEntityDAO;
     private final GeneSolrDAO geneSolrDAO;
-    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
     private final AtlasDAO atlasDAO;
 
-    DataQueryHandler(BioEntityDAO bioEntityDAO, GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+    DataQueryHandler(BioEntityDAO bioEntityDAO, GeneSolrDAO geneSolrDAO, AtlasDataDAO atlasDataDAO, AtlasDAO atlasDAO) {
         this.bioEntityDAO = bioEntityDAO;
         this.geneSolrDAO = geneSolrDAO;
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasDAO = atlasDAO;
     }
 
@@ -220,7 +220,7 @@ class DataQueryHandler implements QueryHandler {
                 return new Error("Experiment " + experimentAccession + " is not found");
             }
             final ExperimentWithData experimentWithData =
-                atlasNetCDFDAO.createExperimentWithData(experiment);
+                atlasDataDAO.createExperimentWithData(experiment);
             for (ArrayDesign ad : experiment.getArrayDesigns()) {
                 final Map<Integer, String> assayAccessionByIndex = new TreeMap<Integer, String>();
                 int index = 0;

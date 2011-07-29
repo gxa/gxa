@@ -38,8 +38,8 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.netcdf.NetCDFCreatorException;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.data.NetCDFCreatorException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -63,7 +63,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
     private File netCDFRepoLocation;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     private boolean solrBuildFinished;
 
@@ -87,8 +87,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
         final File classPath = new File(this.getClass().getClassLoader().getResource("").getPath());
         netCDFRepoLocation = new File(classPath, "netcdfs");
-        atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasDataRepo(netCDFRepoLocation);
+        atlasDataDAO = new AtlasDataDAO();
+        atlasDataDAO.setAtlasDataRepo(netCDFRepoLocation);
     }
 
 
@@ -112,8 +112,8 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         indexBuilder = null;
     }
 
-    public AtlasNetCDFDAO getNetCDFDAO() {
-        return atlasNetCDFDAO;
+    public AtlasDataDAO getDataDAO() {
+        return atlasDataDAO;
     }
 
     public SolrServer getSolrServerExpt() {

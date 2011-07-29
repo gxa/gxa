@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
+import uk.ac.ebi.gxa.data.NetCDFDescriptor;
+import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
