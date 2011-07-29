@@ -22,16 +22,19 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Function;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.transform;
 import static java.util.Collections.unmodifiableList;
 
 @Entity
@@ -107,7 +110,12 @@ public final class AssayProperty {
 
     @Deprecated
     public String getEfoTerms() {
-        return on(',').join(terms);
+        return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
+            @Override
+            public Object apply(@Nonnull OntologyTerm term) {
+                return term.getAccession();
+            }
+        }));
     }
 
     @Override
