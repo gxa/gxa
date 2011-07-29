@@ -31,15 +31,13 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -194,14 +192,13 @@ public class Assay {
         return filter(properties, new PropertyNamePredicate(type));
     }
 
-    public Collection<String> getPropertyNames() {
-        return transform(properties, PROPERTY_NAME);
+    public SortedSet<String> getPropertyNames() {
+        return newTreeSet(transform(properties, PROPERTY_NAME));
     }
 
     public String getEfoSummary(String name) {
         return on(",").join(concat(transform(getProperties(name), PROPERTY_TERMS)));
     }
-
 
     /**
      * Adds a sample to assay. This method is intentionally package local, please use {@link Sample#addAssay(Assay)}

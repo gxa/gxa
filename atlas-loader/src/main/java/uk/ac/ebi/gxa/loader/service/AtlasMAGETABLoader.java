@@ -32,10 +32,9 @@ import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.netcdf.NetCDFCreator;
+import uk.ac.ebi.gxa.netcdf.NetCDFCreatorException;
+import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -240,7 +239,7 @@ public class AtlasMAGETABLoader {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
         final Experiment experiment = cache.fetchExperiment();
 
         for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
@@ -252,27 +251,22 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                         " and " + arrayDesign);
 
-            NetCDFCreator netCdfCreator = new NetCDFCreator();
+            final NetCDFCreator netCdfCreator = atlasNetCDFDAO.getNetCDFCreator(experiment, arrayDesign);
 
             netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays)
-                for (Sample sample : assay.getSamples())
+            for (Assay assay : adAssays) {
+                for (Sample sample : assay.getSamples()) {
                     netCdfCreator.setSample(assay, sample);
-
-            netCdfCreator.setArrayDesign(arrayDesign);
-            netCdfCreator.setExperiment(experiment);
+                }
+            }
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
-            netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
-
-            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
-            if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
-                throw new IOException("Cannot create folder for the output file" + netCDFLocation);
-            netCdfCreator.createNetCdf(netCDFLocation);
+            netCdfCreator.createNetCdf();
 
             if (netCdfCreator.hasWarning() && listener != null) {
-                for (String warning : netCdfCreator.getWarnings())
+                for (String warning : netCdfCreator.getWarnings()) {
                     listener.setWarning(warning);
+                }
             }
             log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
         }
