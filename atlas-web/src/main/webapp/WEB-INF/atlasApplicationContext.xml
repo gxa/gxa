@@ -483,7 +483,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Required spring driven data access configuration -->
 
-    <bean name="atlasDataDAO" class="uk.ac.ebi.gxa.netcdf.AtlasDataDAO">
+    <bean name="atlasDataDAO" class="uk.ac.ebi.gxa.data.AtlasDataDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 

@@ -1,6 +1,6 @@
 <FindBugsFilter>
     <Match>
-        <Class name="uk.ac.ebi.gxa.netcdf.FloatMatrixProxy"/>
+        <Class name="uk.ac.ebi.gxa.data.FloatMatrixProxy"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
 </FindBugsFilter>

@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.netcdf;
+package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;

@@ -4,7 +4,7 @@ import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
-import uk.ac.ebi.gxa.netcdf.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
