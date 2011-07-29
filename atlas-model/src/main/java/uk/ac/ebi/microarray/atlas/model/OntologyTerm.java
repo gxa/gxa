@@ -19,19 +19,13 @@ public class OntologyTerm {
     private Ontology ontology;
     private String accession;
     private String description;
-    private String term;
 
     OntologyTerm() {
     }
 
-    private OntologyTerm(String name) {
-        term = name;
-    }
-
-    public OntologyTerm(long id, Ontology ontology, String term, String accession, String description) {
+    public OntologyTerm(long id, Ontology ontology, String accession, String description) {
         this.ontologytermid = id;
         this.ontology = ontology;
-        this.term = term;
         this.accession = accession;
         this.description = description;
     }
@@ -50,10 +44,6 @@ public class OntologyTerm {
 
     public String getDescription() {
         return description;
-    }
-
-    public String getTerm() {
-        return term;
     }
 
     // TODO: 4alf: so far it's a String replacement, must be done properly as soon as we have all the values in place
