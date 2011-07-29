@@ -312,6 +312,12 @@
             <version>${wro4j.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>fr.xebia.web.extras</groupId>
+            <artifactId>xebia-servlet-extras</artifactId>
+            <version>1.0.5</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- dependencies required by testcases -->
         <dependency>
@@ -417,7 +423,7 @@
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script/>
-        <wro4j.aggregation.js.path>/scripts</wro4j.aggregation.js.path>
+        <wro4j.aggregation.js.path>/scripts/aggregated</wro4j.aggregation.js.path>
         <wro4j.aggregation.css.path>/css</wro4j.aggregation.css.path>
         <wro4j.version>1.3.8</wro4j.version>
     </properties>
