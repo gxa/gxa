@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -43,7 +43,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
@@ -548,10 +547,9 @@ public class AtlasPlotter {
             bestArrayDesignAccession = getMostFrequent(getArrayDesigns(efvToBestEA.values()));
         }
 
-        NetCDFProxy proxy = null;
+        final ArrayDesign ad = new ArrayDesign(bestArrayDesignAccession);
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
         try {
-            final ArrayDesign ad = new ArrayDesign(bestArrayDesignAccession);
-            proxy = atlasDataDAO.getNetCDFDescriptor(experiment, ad).createProxy();
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
             String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession).getName();
@@ -562,7 +560,7 @@ public class AtlasPlotter {
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
                     atlasDataDAO.getBestEAsPerEfvInProxy(experiment, ad, geneId, ef);
 
-            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
+            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(ewd.getFactorValues(ad, ef));
 
 
             for (String factorValue : barPlotData.getUniqueFactorValues()) {
@@ -594,7 +592,7 @@ public class AtlasPlotter {
 
             return barPlotData.toSeries(options);
         } finally {
-            closeQuietly(proxy);
+            ewd.closeAllDataSources();
         }
     }
 
