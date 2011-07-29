@@ -37,10 +37,12 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.SortedSet;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -171,15 +173,14 @@ public class Sample {
         ));
     }
 
-
-    public Collection<String> getPropertyNames() {
-        return transform(properties,
+    public SortedSet<String> getPropertyNames() {
+        return newTreeSet(transform(properties,
                 new Function<SampleProperty, String>() {
                     @Override
                     public String apply(@Nonnull SampleProperty input) {
                         return input.getName();
                     }
-                });
+                }));
     }
 
     public String getEfoSummary(final String name) {
