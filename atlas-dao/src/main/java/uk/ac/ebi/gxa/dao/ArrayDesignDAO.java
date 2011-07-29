@@ -131,9 +131,8 @@ public class ArrayDesignDAO {
         private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.mappingswid";
 
         public ArrayDesign mapRow(ResultSet resultSet, int i) throws SQLException {
-            ArrayDesign array = new ArrayDesign();
+            ArrayDesign array = new ArrayDesign(resultSet.getString(1));
 
-            array.setAccession(resultSet.getString(1));
             array.setType(resultSet.getString(2));
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));
