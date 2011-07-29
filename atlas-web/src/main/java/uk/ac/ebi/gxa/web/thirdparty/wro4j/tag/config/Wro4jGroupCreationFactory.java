@@ -20,27 +20,21 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle.wro4j;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
 
-import org.apache.commons.digester.annotations.rules.ObjectCreate;
-import org.apache.commons.digester.annotations.rules.SetNext;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.commons.digester.AbstractObjectCreationFactory;
+import org.xml.sax.Attributes;
 
 /**
  * @author Olga Melnichuk
  */
-@ObjectCreate(pattern = "groups")
-public class Wro4jGroups {
-    private final Map<String, Wro4jGroup> groups = new HashMap<String, Wro4jGroup>();
-
-    @SetNext
-    public void addGroup(Wro4jGroup group) {
-        groups.put(group.getName(), group);
-    }
-
-    public Wro4jGroup findGroup(String name) {
-        return groups.get(name);
+public class Wro4jGroupCreationFactory extends AbstractObjectCreationFactory {
+    @Override
+    public Object createObject(Attributes attributes) throws Exception {
+        String name = attributes.getValue("name");
+        if (name == null) {
+            throw new IllegalArgumentException();
+        }
+        return new Wro4jGroup(name);
     }
 }

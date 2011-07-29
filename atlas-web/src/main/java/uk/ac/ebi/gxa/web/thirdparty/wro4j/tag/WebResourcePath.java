@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
 
 import java.util.StringTokenizer;
 
@@ -61,14 +61,17 @@ public class WebResourcePath {
      * @param path2 a second path to add to the first one
      * @return a joined path string
      */
-    public static String joinPaths(String path1, String path2) {
+    public static String joinPaths(String path1, String... path2) {
         StringBuilder sb = new StringBuilder();
         if (path1.startsWith(PATH_SEPARATOR)) {
             sb.append(PATH_SEPARATOR);
         }
-        return sb.append(normalizePath(path1))
-                .append(PATH_SEPARATOR)
-                .append(normalizePath(path2))
-                .toString();
+
+        sb.append(normalizePath(path1));
+        for (String p : path2) {
+            sb.append(PATH_SEPARATOR)
+                    .append(normalizePath(p));
+        }
+        return sb.toString();
     }
 }

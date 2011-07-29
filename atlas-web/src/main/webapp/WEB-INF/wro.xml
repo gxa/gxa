@@ -4,6 +4,10 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
+    <group name="bundle-jquery">
+        <js minimize="false">/scripts/jquery-1.4.3.min.js</js>
+    </group>
+
     <group name="bundle-jquery-flot">
         <js>/scripts/jquery.transform-0.9.0pre.js</js>
         <js>/scripts/jquery.flot-0.6.atlas.js</js>
@@ -13,16 +17,80 @@
         <js>/scripts/jquery.flot.selection.js</js>
     </group>
 
-    <group name="bundle-experimentpage">
-        <js minimize="false">/scripts/jquery-1.4.3.min.js</js>
-        <js>/scripts/jquery.tmpl.min.js</js>
-        <js>/scripts/jquery.tooltip.js</js>
-        <js>/scripts/jquery.pagination.js</js>
-        <js>/scripts/jquery.cookie.js</js>
-        <js>/scripts/jquery-impromptu.1.5.js</js>
-        <js>/scripts/jquery.dimensions.js</js>
-        <js>/scripts/jquery.easing.1.3.js</js>
-        <group-ref>bundle-jquery-flot</group-ref>
+    <group name="bundle-jquery-flot-old">
+        <js>/scripts/jquery.flot.atlas.js</js>
     </group>
+
+    <group name="bundle-common-libs">
+        <js>/scripts/jquery-impromptu.1.5.js</js>
+        <js>/scripts/jquery.tooltip.js</js>
+        <js>/scripts/jquery.cookie.js</js>
+        <js>/scripts/jquery.dimensions.js</js>
+        <js>/scripts/jquery.tmpl.min.js</js>
+        <js>/scripts/pure2.js</js>
+    </group>
+
+    <group name="bundle-gxa">
+        <css>/atlas.css</css>
+        <css>/blue/style.css</css>
+        <js>/scripts/src/core/main.js</js>
+        <js>/scripts/common-query.js</js>
+        <js>/scripts/feedback.js</js>
+    </group>
+
+    <group name="bundle-gxa-grid-support">
+        <css>/atlas-grid.css</css>
+        <js>/scripts/jquery.pagination.js</js>
+        <js>/scripts/jquery.tablesorter.mod.js</js>
+        <js>/scripts/jquery.tablesorter.collapsible.js</js>
+    </group>
+
+    <group name="bundle-gxa-searchform-support">
+        <css>/scripts/jquery-token-autocomplete/css/jquery.token.autocomplete.css</css>
+        <css>/atlas-searchform.css</css>
+        <js>/scripts/jquery-token-autocomplete/jquery.token.autocomplete.js</js>
+        <js>/scripts/atlas-searchform.js</js>
+    </group>
+
+    <!-- atlas page differentiation -->
+
+    <group name="bundle-gxa-page-index">
+        <css>/index-view.css</css>
+        <js>/scripts/jquery.corner.js</js>
+    </group>
+
+    <group name="bundle-gxa-page-downloads">
+        <js>/scripts/jquery.progressbar.js</js>
+    </group>
+
+    <group name="bundle-gxa-page-query-result">
+        <css>/query-result-view.css</css>
+        <js>/scripts/structured-query.js</js>
+    </group>
+
+    <group name="bundle-gxa-page-gene">
+        <css>/gene-view.css</css>
+    </group>
+
+    <group name="bundle-gxa-page-experiment">
+        <css>/scripts/jquery-lightbox/css/lightbox.css</css>
+        <css>/experiment-view.css</css>
+
+        <js>/scripts/jquery-lightbox/jquery.lightbox.js</js>
+        <js>/scripts/experiment.js</js>
+    </group>
+
+    <group name="bundle-gxa-page-experiment-design">
+        <css>/experiment-design-view.css</css>
+    </group>
+
+    <group name="bundle-gxa-page-gene-index">
+        <css>/gene-index-view.css</css>
+    </group>
+
+    <group name="bundle-gxa-page-experiment-index">
+        <css>/experiment-index-view.css</css>
+    </group>
+
 </groups>
 

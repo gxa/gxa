@@ -20,21 +20,36 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle.wro4j;
-
-import org.apache.commons.digester.AbstractObjectCreationFactory;
-import org.xml.sax.Attributes;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jGroupCreationFactory extends AbstractObjectCreationFactory {
-    @Override
-    public Object createObject(Attributes attributes) throws Exception {
-        String name = attributes.getValue("name");
-        if (name == null) {
-            throw new IllegalArgumentException();
+public enum WebResourceType {
+
+    CSS("css") {
+        @Override
+        public String toHtml(String src) {
+            return "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + src + "\"/>";
         }
-        return new Wro4jGroup(name);
+    },
+
+    JS("js") {
+        @Override
+        public String toHtml(String src) {
+            return "<script type=\"text/javascript\" src=\"" + src + "\"></script>";
+        }
+    };
+
+    private String ext;
+
+    WebResourceType(String ext) {
+        this.ext = ext;
     }
+
+    public String ext() {
+        return ext;
+    }
+
+    public abstract String toHtml(String src);
 }

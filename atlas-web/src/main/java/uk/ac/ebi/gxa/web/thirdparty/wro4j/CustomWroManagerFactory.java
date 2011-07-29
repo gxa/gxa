@@ -20,18 +20,15 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j;
+
+import ro.isdc.wro.model.resource.util.HashEncoderNamingStrategy;
 
 /**
  * @author Olga Melnichuk
  */
-public class WebResourceBundleConfigException extends Exception {
-
-    public WebResourceBundleConfigException(String message) {
-        super(message);
-    }
-
-    public WebResourceBundleConfigException(String message, Throwable cause) {
-        super(message, cause);
+public class CustomWroManagerFactory extends ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory {
+    public CustomWroManagerFactory() {
+        setNamingStrategy(new HashEncoderNamingStrategy());
     }
 }

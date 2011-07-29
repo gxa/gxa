@@ -20,16 +20,11 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle.wro4j;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
 
-import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.annotations.DigesterLoader;
-import org.apache.commons.digester.annotations.DigesterLoaderBuilder;
 import org.xml.sax.SAXException;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResource;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceBundleConfig;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceBundleConfigException;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceType;
+import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResource;
+import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourceType;
 
 import java.io.*;
 import java.util.*;
@@ -37,38 +32,51 @@ import java.util.*;
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
+public class Wro4jConfig {
 
     private Wro4jGroups wroGroups = null;
 
-    @Override
-    public void load(File configPath) throws WebResourceBundleConfigException {
+    /**
+     * Loads wro group definitions from a config file.
+     *
+     * @param configPath a path to the config file
+     * @throws Wro4jConfigException if any error happened during the config loading
+     */
+    public void load(File configPath) throws Wro4jConfigException {
         try {
             load(new FileInputStream(configPath));
         } catch (FileNotFoundException e) {
-            throw new WebResourceBundleConfigException("Wro4j config not found: " + configPath);
+            throw new Wro4jConfigException("Wro4j config not found: " + configPath);
         }
     }
 
-    @Override
-    public void load(InputStream in) throws WebResourceBundleConfigException {
-        DigesterLoader digesterLoader = new DigesterLoaderBuilder()
-                .useDefaultAnnotationRuleProviderFactory()
-                .useDefaultDigesterLoaderHandlerFactory();
-        Digester digester = digesterLoader.createDigester(Wro4jGroups.class);
+    /**
+     * Loads wro group definitions from an input stream.
+     *
+     * @param in an InputStream to parse
+     * @throws Wro4jConfigException if any error happened during the config loading
+     */
+    public void load(InputStream in) throws Wro4jConfigException {
         try {
-            wroGroups = (Wro4jGroups) digester.parse(in);
+            wroGroups = Wro4jConfigParser.parse(in);
         } catch (IOException e) {
-            throw new WebResourceBundleConfigException("Wro4j config parse error", e);
+            throw new Wro4jConfigException("Wro4j config parse error", e);
         } catch (SAXException e) {
-            throw new WebResourceBundleConfigException("Wro4j config parse error", e);
+            throw new Wro4jConfigException("Wro4j config parse error", e);
         }
     }
 
-    @Override
-    public Collection<WebResource> getResources(String bundleName, Collection<WebResourceType> resourceTypes) throws WebResourceBundleConfigException {
+    /**
+     * Returns resources of given types for a specified group name.
+     *
+     * @param groupName     a group name to get resources from
+     * @param resourceTypes types of resources to get
+     * @return a collection of web resources found
+     * @throws Wro4jConfigException if a cyclic path exists; or the group not found
+     */
+    public Collection<WebResource> getResources(String groupName, Collection<WebResourceType> resourceTypes) throws Wro4jConfigException {
         final List<WebResource> list = new ArrayList<WebResource>();
-        traverseGroup(bundleName, new TraverseHandler(resourceTypes) {
+        traverseGroup(groupName, new TraverseHandler(resourceTypes) {
             public boolean enoughResourcesFound(Collection<WebResource> resources) {
                 list.addAll(resources);
                 return false;
@@ -78,10 +86,17 @@ public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
         return list;
     }
 
-    @Override
-    public boolean hasResources(String bundleName, WebResourceType resourceType) throws WebResourceBundleConfigException {
+    /**
+     * Checks if the group contains at least one resource of required type.
+     *
+     * @param groupName    a group name to check for
+     * @param resourceType web resource type to check for
+     * @return true if at least one resource of given type exists
+     * @throws Wro4jConfigException if a cyclic path exists; or the group not found
+     */
+    public boolean hasResources(String groupName, WebResourceType resourceType) throws Wro4jConfigException {
         final List<WebResource> list = new ArrayList<WebResource>();
-        traverseGroup(bundleName, new TraverseHandler(Arrays.asList(resourceType)) {
+        traverseGroup(groupName, new TraverseHandler(Arrays.asList(resourceType)) {
             public boolean enoughResourcesFound(Collection<WebResource> resources) {
                 list.addAll(resources);
                 return (list.size() > 0);
@@ -91,7 +106,7 @@ public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
         return (list.size() > 0);
     }
 
-    private void traverseGroup(String groupName, TraverseHandler traverseHandler, Stack<Wro4jGroup> stack) throws WebResourceBundleConfigException {
+    private void traverseGroup(String groupName, TraverseHandler traverseHandler, Stack<Wro4jGroup> stack) throws Wro4jConfigException {
         Wro4jGroup group = addGroup(stack, groupName);
         if (!traverseHandler.enough(group)) {
             for (String groupRef : group.getGroupRefs()) {
@@ -101,21 +116,21 @@ public class Wro4jResourceBundleConfig implements WebResourceBundleConfig {
         stack.pop();
     }
 
-    private Wro4jGroup addGroup(Stack<Wro4jGroup> stack, String groupName) throws WebResourceBundleConfigException {
+    private Wro4jGroup addGroup(Stack<Wro4jGroup> stack, String groupName) throws Wro4jConfigException {
         Wro4jGroup group = getGroup(groupName);
 
         if (stack.contains(group)) {
-            throw new WebResourceBundleConfigException("Config contains cycles for wro4j group: '" + groupName + "'");
+            throw new Wro4jConfigException("A cyclic path found for wro4j group: '" + groupName + "'");
         }
 
         stack.push(group);
         return group;
     }
 
-    private Wro4jGroup getGroup(String groupName) throws WebResourceBundleConfigException {
+    private Wro4jGroup getGroup(String groupName) throws Wro4jConfigException {
         Wro4jGroup group = wroGroups.findGroup(groupName);
         if (group == null) {
-            throw new WebResourceBundleConfigException("Wro4j group not found: '" + groupName + "'");
+            throw new Wro4jConfigException("Wro4j group not found: '" + groupName + "'");
         }
         return group;
     }

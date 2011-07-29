@@ -131,12 +131,11 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <wroManagerFactory>ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory
-                    </wroManagerFactory>
-                    <cssDestinationFolder>${project.build.directory}/${project.build.finalName}${compressed.css.path}</cssDestinationFolder>
-                    <jsDestinationFolder>${project.build.directory}/${project.build.finalName}${compressed.js.path}
-                    </jsDestinationFolder>
+                    <wroManagerFactory>uk.ac.ebi.gxa.web.thirdparty.wro4j.CustomWroManagerFactory</wroManagerFactory>
+                    <cssDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.css.path}</cssDestinationFolder>
+                    <jsDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.js.path}</jsDestinationFolder>
                     <contextFolder>${basedir}/src/main/webapp/</contextFolder>
+                    <minimize>true</minimize>
                 </configuration>
             </plugin>
         </plugins>
@@ -418,8 +417,8 @@
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
         <atlas.googleanalytics.script/>
-        <compressed.js.path>/scripts</compressed.js.path>
-        <compressed.css.path>/css</compressed.css.path>
+        <wro4j.aggregation.js.path>/scripts</wro4j.aggregation.js.path>
+        <wro4j.aggregation.css.path>/css</wro4j.aggregation.css.path>
         <wro4j.version>1.3.8</wro4j.version>
     </properties>
 </project>

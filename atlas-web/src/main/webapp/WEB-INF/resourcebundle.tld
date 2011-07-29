@@ -35,7 +35,7 @@
             JS bundle tag
         </description>
         <name>js</name>
-        <tag-class>uk.ac.ebi.gxa.web.tags.resourcebundle.JsBundleTag</tag-class>
+        <tag-class>uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.Wro4jJavaScriptTag</tag-class>
         <body-content>JSP</body-content>
         <attribute>
             <name>name</name>
@@ -49,7 +49,7 @@
             CSS bundle tag
         </description>
         <name>css</name>
-        <tag-class>uk.ac.ebi.gxa.web.tags.resourcebundle.CssBundleTag</tag-class>
+        <tag-class>uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.Wro4jCssTag</tag-class>
         <body-content>JSP</body-content>
         <attribute>
             <name>name</name>
@@ -63,7 +63,7 @@
             CSS, JS bundle tag
         </description>
         <name>all</name>
-        <tag-class>uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceBundleTag</tag-class>
+        <tag-class>uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.Wro4jTag</tag-class>
         <body-content>JSP</body-content>
         <attribute>
             <name>name</name>

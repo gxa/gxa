@@ -20,12 +20,11 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle.wro4j;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
 
 import org.junit.Test;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResource;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceBundleConfigException;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceType;
+import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResource;
+import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourceType;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,12 +35,12 @@ import static org.junit.Assert.*;
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jResourceBundleConfigTest {
+public class Wro4jConfigTest {
 
     @Test
-    public void resourceBundleContentsTest() throws WebResourceBundleConfigException {
-        Wro4jResourceBundleConfig config = new Wro4jResourceBundleConfig();
-        config.load(Wro4jResourceBundleConfigTest.class.getResourceAsStream("wro.xml"));
+    public void resourceBundleContentsTest() throws Wro4jConfigException {
+        Wro4jConfig config = new Wro4jConfig();
+        config.load(Wro4jConfigTest.class.getResourceAsStream("wro.xml"));
 
         assertResourceBundleContains(config, "css-only-resources", Arrays.asList("/style-1.css", "/style-2.css"));
         assertResourceBundleContains(config, "js-only-resources", Arrays.asList("/script-1.js", "/script-2.js"));
@@ -59,11 +58,11 @@ public class Wro4jResourceBundleConfigTest {
         assertFalse(config.hasResources("js-only-resources", WebResourceType.CSS));
     }
 
-    private void assertResourceBundleContains(Wro4jResourceBundleConfig config, String bundleName, List<String> contents) throws WebResourceBundleConfigException {
+    private void assertResourceBundleContains(Wro4jConfig config, String bundleName, List<String> contents) throws Wro4jConfigException {
         assertResourceBundleContains(config, bundleName, contents, WebResourceType.values());
     }
 
-    private void assertResourceBundleContains(Wro4jResourceBundleConfig config, String bundleName, List<String> contents,WebResourceType... types) throws WebResourceBundleConfigException {
+    private void assertResourceBundleContains(Wro4jConfig config, String bundleName, List<String> contents,WebResourceType... types) throws Wro4jConfigException {
         Collection<WebResource> resources = config.getResources(bundleName, Arrays.asList(types));
         assertEquals(contents.size(), resources.size());
         for(WebResource res : resources) {
@@ -72,9 +71,9 @@ public class Wro4jResourceBundleConfigTest {
     }
 
     @Test
-    public void cycleGroupReferencesTest() throws WebResourceBundleConfigException {
-        Wro4jResourceBundleConfig config = new Wro4jResourceBundleConfig();
-        config.load(Wro4jResourceBundleConfigTest.class.getResourceAsStream("wro-with-cycle-refs.xml"));
+    public void cycleGroupReferencesTest() throws Wro4jConfigException {
+        Wro4jConfig config = new Wro4jConfig();
+        config.load(Wro4jConfigTest.class.getResourceAsStream("wro-with-cycle-refs.xml"));
 
         assertNotConfigured(config, "resources-4");
 
@@ -83,20 +82,20 @@ public class Wro4jResourceBundleConfigTest {
         assertCycleReference(config, "resources-3");
     }
 
-    private void assertCycleReference(Wro4jResourceBundleConfig config, String groupName) {
+    private void assertCycleReference(Wro4jConfig config, String groupName) {
         try {
             config.getResources(groupName, Arrays.asList(WebResourceType.values()));
             fail();
-        } catch (WebResourceBundleConfigException e) {
+        } catch (Wro4jConfigException e) {
             //OK
         }
     }
 
-    private void assertNotConfigured(Wro4jResourceBundleConfig config, String groupName) {
+    private void assertNotConfigured(Wro4jConfig config, String groupName) {
         try {
             config.hasResources(groupName, WebResourceType.CSS);
             fail();
-        } catch (WebResourceBundleConfigException e) {
+        } catch (Wro4jConfigException e) {
             // OK
         }
     }

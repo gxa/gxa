@@ -20,24 +20,31 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourcePath.joinPaths;
+import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourcePath.normalizePath;
 
 /**
  * @author Olga Melnichuk
  */
-public class WebResourceTypeTest {
+public class WebResourcePathTest {
 
     @Test
-    public void toHtmlTest() {
-        WebResourceType type = WebResourceType.CSS;
-        assertEquals(type.toHtml("/css/compressed-utils.css"), type.toHtml("/css", "compressed-utils"));
-
-        type = WebResourceType.JS;
-        assertEquals(type.toHtml("/scripts/compressed-utils.js"), type.toHtml("/scripts", "compressed-utils"));
+    public void normalizePathTest() {
+        assertEquals("one/two", normalizePath("one///two"));
+        assertEquals("one/two", normalizePath("/one///two"));
+        assertEquals("one/two", normalizePath("/one///two/"));
+        assertEquals("one/two", normalizePath("///one///two///"));
     }
 
+    @Test
+    public void joinPathsTest() {
+        assertEquals("one/two/three/four", joinPaths("one///two", "three///four"));
+        assertEquals("/one/two/three/four", joinPaths("///one///two", "three///four"));
+        assertEquals("/one/two/three/four", joinPaths("///one///two///", "///three///four///"));
+    }
 }

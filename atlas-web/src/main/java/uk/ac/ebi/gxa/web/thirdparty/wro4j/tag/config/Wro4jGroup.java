@@ -20,13 +20,13 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle.wro4j;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
 
 import org.apache.commons.digester.annotations.rules.CallMethod;
 import org.apache.commons.digester.annotations.rules.CallParam;
 import org.apache.commons.digester.annotations.rules.FactoryCreate;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResource;
-import uk.ac.ebi.gxa.web.tags.resourcebundle.WebResourceType;
+import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResource;
+import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourceType;
 
 import java.util.*;
 

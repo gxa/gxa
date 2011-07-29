@@ -20,14 +20,27 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle;
+package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
 
 /**
  * @author Olga Melnichuk
  */
-public class CssBundleTag extends WebResourceBundleTag {
+public class WebResource {
 
-    public CssBundleTag() {
-        super(WebResourceType.CSS);
+    private final WebResourceType type;
+
+    private final String src;
+
+    public WebResource(WebResourceType type, String src) {
+        this.type = type;
+        this.src = src;
+    }
+
+    public String getSrc() {
+        return src;
+    }
+
+    public String asHtml(String contextPath) {
+        return type.toHtml(WebResourcePath.joinPaths(contextPath, src));
     }
 }
