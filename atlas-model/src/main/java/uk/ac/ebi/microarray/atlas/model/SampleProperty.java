@@ -113,7 +113,7 @@ public final class SampleProperty {
         return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
             @Override
             public Object apply(@Nonnull OntologyTerm term) {
-                return term.getTerm();
+                return term.getAccession();
             }
         }));
     }
