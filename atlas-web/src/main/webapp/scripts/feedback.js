@@ -67,6 +67,7 @@ function sendFeedback(v,m){
 function showFeedbackForm() {
     $.prompt(feedback_formtxt,{
       submit: sendFeedback,
+      useiframe: true,
       buttons: { Send: true, Cancel: false }
     });
 }

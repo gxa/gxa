@@ -22,7 +22,8 @@
     </group>
 
     <group name="bundle-common-libs">
-        <js>/scripts/jquery-impromptu.1.5.js</js>
+        <css>/scripts/jquery-impromptu/css/default.css</css>
+        <js>/scripts/jquery-impromptu/jquery-impromptu.3.1.js</js>
         <js>/scripts/jquery.tooltip.js</js>
         <js>/scripts/jquery.cookie.js</js>
         <js>/scripts/jquery.dimensions.js</js>
