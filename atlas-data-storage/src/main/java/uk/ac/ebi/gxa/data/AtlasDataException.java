@@ -20,26 +20,27 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.netcdf;
+package uk.ac.ebi.gxa.data;
 
-import ucar.ma2.Array;
-import ucar.ma2.InvalidRangeException;
+/*
+ * This exception should be trown outside of the package
+ * if any internal error is occured during Data reading/writing.
+ *
+ * IOException or any specific exception from external libraries
+ * (e.g. java netcdf library) should never be thrown outside of
+ * atlas-data-storage module.
+ */ 
 
-public final class TwoDFloatArray {
-    private final Array array;
-    private final int[] shape;
-
-    TwoDFloatArray(Array array) {
-        this.array = array;
-        this.shape = new int[] {1, array.getShape()[1]};
+public class AtlasDataException extends Exception {
+    public AtlasDataException(String message) {
+        super(message);
     }
 
-    public float[] getRow(int index) {
-        final int[] origin = {index, 0};
-        try {
-            return (float[])array.section(origin, shape).get1DJavaArray(float.class);
-        } catch (InvalidRangeException e) {
-            return new float[0];
-        }
+    public AtlasDataException(Exception cause) {
+        super(cause);
+    }
+
+    public AtlasDataException(String message, Exception cause) {
+        super(message, cause);
     }
 }

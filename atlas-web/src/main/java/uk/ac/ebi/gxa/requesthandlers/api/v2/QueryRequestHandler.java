@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.MapBasedFieldFilter;
@@ -54,7 +54,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
     private ExperimentSolrDAO experimentSolrDAO;
     private GeneSolrDAO geneSolrDAO;
     private AtlasDAO atlasDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
         this.experimentSolrDAO = experimentSolrDAO;
@@ -72,8 +72,8 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
         this.atlasDAO = atlasDAO;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     private Map<String,QueryHandler> handlersMap;
@@ -82,7 +82,7 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
             handlersMap = new TreeMap<String,QueryHandler>();
             handlersMap.put("experiments", new ExperimentsQueryHandler(experimentSolrDAO));
             handlersMap.put("assays", new AssaysQueryHandler(atlasDAO));
-            handlersMap.put("data", new DataQueryHandler(bioEntityDAO, geneSolrDAO, atlasNetCDFDAO, atlasDAO));
+            handlersMap.put("data", new DataQueryHandler(bioEntityDAO, geneSolrDAO, atlasDataDAO, atlasDAO));
             handlersMap.put("genes", new GenesQueryHandler(geneSolrDAO));
         }
         return handlersMap;

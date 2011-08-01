@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.netcdf;
+package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class tests functionality of AtlasNetCDFDAO
+ * This class tests functionality of AtlasDataDAO
  *
  * @author Robert Petryszak
  */
-public class TestNetCDFDAO extends TestCase {
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+public class TestAtlasDataDAO extends TestCase {
+    private AtlasDataDAO atlasDataDAO;
     private Long geneId;
     private Experiment experiment;
     private String ef;
@@ -44,15 +44,15 @@ public class TestNetCDFDAO extends TestCase {
         experiment = new Experiment(411512559L, "E-MTAB-25");
 
 
-        atlasNetCDFDAO = new AtlasNetCDFDAO();
-        atlasNetCDFDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
+        atlasDataDAO = new AtlasDataDAO();
+        atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
 
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
     }
 
     public void testGetFactorValues() throws IOException, AtlasDataException {
-        List<String> fvs = atlasNetCDFDAO.getFactorValues(experiment, arrayDesign, ef);
+        List<String> fvs = atlasDataDAO.getFactorValues(experiment, arrayDesign, ef);
         assertNotNull(fvs);
         assertNotSame(fvs.size(), 0);
         assertTrue(fvs.contains(efv));
@@ -60,7 +60,7 @@ public class TestNetCDFDAO extends TestCase {
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException, AtlasDataException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment, geneIds,
+                atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds,
                         Predicates.<NetCDFProxy>alwaysTrue());
 
         // check the returned data

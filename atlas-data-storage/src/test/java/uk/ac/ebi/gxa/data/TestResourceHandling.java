@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.netcdf;
+package uk.ac.ebi.gxa.data;
 
 import org.junit.Test;
 import org.slf4j.Logger;

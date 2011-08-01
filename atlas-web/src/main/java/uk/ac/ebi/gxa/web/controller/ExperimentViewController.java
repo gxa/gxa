@@ -43,10 +43,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.NetCDFDescriptor;
+import uk.ac.ebi.gxa.data.NetCDFProxy;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
@@ -67,8 +67,8 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.hasArrayDesign;
+import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsAtLeastOneGene;
+import static uk.ac.ebi.gxa.data.NetCDFPredicates.hasArrayDesign;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -80,7 +80,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewController.class);
 
-    private final AtlasNetCDFDAO netCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
 
     private final AtlasProperties atlasProperties;
 
@@ -99,12 +99,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     @Autowired
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
                                     AtlasDAO atlasDAO,
-                                    AtlasNetCDFDAO netCDFDAO,
+                                    AtlasDataDAO atlasDataDAO,
                                     AtlasProperties atlasProperties,
                                     GeneSolrDAO geneSolrDAO,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
-        this.netCDFDAO = netCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
         this.geneSolrDAO = geneSolrDAO;
         this.experimentAnalyticsService = experimentAnalyticsService;
@@ -175,7 +175,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
+        NetCDFDescriptor proxyDescr = atlasDataDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
         model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
         if (assayPropertiesRequired) {
             model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
@@ -208,7 +208,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 for (Asset asset : experiment.getAssets()) {
                     if (assetFileName.equals(asset.getFileName())) {
                         for (ResourcePattern rp : ResourcePattern.values()) {
-                            if (rp.handle(new File(netCDFDAO.getDataDirectory(experiment), "assets"), assetFileName, response)) {
+                            if (rp.handle(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), assetFileName, response)) {
                                 return;
                             }
                         }
@@ -262,7 +262,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
+        NetCDFDescriptor ncdfDescr = atlasDataDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
 
         final BestDesignElementsResult res = (ncdfDescr == null) ?
                 BestDesignElementsResult.empty() :

@@ -39,10 +39,10 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.NetCDFDescriptor;
+import uk.ac.ebi.gxa.data.NetCDFProxy;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -59,8 +59,8 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.netcdf.NetCDFPredicates.hasArrayDesign;
+import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsAtLeastOneGene;
+import static uk.ac.ebi.gxa.data.NetCDFPredicates.hasArrayDesign;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -73,7 +73,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
     private ExperimentDAO experimentDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
     private IndexBuilder indexBuilder;
     private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -96,8 +96,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         this.experimentSolrDAO = experimentSolrDAO;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -204,7 +204,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             if (!experimentInfoOnly) {
 
                                 NetCDFDescriptor ncdfDescr =
-                                        atlasNetCDFDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
+                                        atlasDataDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
 
                                 if (ncdfDescr != null) {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
@@ -229,7 +229,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
 
                                 try {
-                                    expData = new ExperimentalData(atlasNetCDFDAO, experiment.getExperiment());
+                                    expData = new ExperimentalData(atlasDataDAO, experiment.getExperiment());
                                 } catch (AtlasDataException e) {
                                     throw createUnexpected("Failed to read experimental data", e);
                                 }

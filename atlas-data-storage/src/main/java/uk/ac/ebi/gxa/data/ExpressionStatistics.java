@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.netcdf;
+package uk.ac.ebi.gxa.data;
 
 import com.google.common.collect.Maps;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;

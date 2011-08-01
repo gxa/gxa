@@ -1,7 +1,7 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.netcdf.DataMatrixStorage;
-import uk.ac.ebi.gxa.netcdf.KeyValuePair;
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
+import uk.ac.ebi.gxa.data.KeyValuePair;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;

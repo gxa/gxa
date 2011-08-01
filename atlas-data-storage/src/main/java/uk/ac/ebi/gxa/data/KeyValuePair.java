@@ -19,18 +19,34 @@
  *
  * http://gxa.github.com/gxa
  */
-package uk.ac.ebi.gxa.netcdf;
 
-/**
- * NetCDF creator exception
- * @author pashky
- */
-public class NetCDFCreatorException extends Exception {
-    public NetCDFCreatorException(String message) {
-        super(message);
+package uk.ac.ebi.gxa.data;
+
+import javax.annotation.Nonnull;
+
+public final class KeyValuePair {
+    public final String key;
+    public final String value;
+
+    KeyValuePair(@Nonnull String key, @Nonnull String value) {
+        this.key = key;
+        this.value = value;
     }
 
-    public NetCDFCreatorException(Throwable cause) {
-        super(cause);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof KeyValuePair)) {
+            return false;
+        }
+        final KeyValuePair pair = (KeyValuePair)o;
+        return key.equals(pair.key) && value.equals(pair.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return key.hashCode() + 23 * value.hashCode();
     }
 }

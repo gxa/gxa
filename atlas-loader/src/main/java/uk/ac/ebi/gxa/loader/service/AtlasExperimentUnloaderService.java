@@ -4,7 +4,7 @@ import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
@@ -12,11 +12,11 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
  */
 public class AtlasExperimentUnloaderService {
     private final ExperimentDAO experimentDAO;
-    private final AtlasNetCDFDAO netCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
 
-    public AtlasExperimentUnloaderService(ExperimentDAO experimentDAO, AtlasNetCDFDAO netCDFDAO) {
+    public AtlasExperimentUnloaderService(ExperimentDAO experimentDAO, AtlasDataDAO atlasDataDAO) {
         this.experimentDAO = experimentDAO;
-        this.netCDFDAO = netCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public void process(UnloadExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
@@ -31,7 +31,7 @@ public class AtlasExperimentUnloaderService {
             final Experiment experiment = experimentDAO.getExperimentByAccession(accession);
             if (experiment == null)
                 throw new AtlasLoaderException("Can't find experiment to unload");
-            netCDFDAO.deleteExperiment(experiment);
+            atlasDataDAO.deleteExperiment(experiment);
             experimentDAO.delete(experiment);
         } catch (DataAccessException e) {
             throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
