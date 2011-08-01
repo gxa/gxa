@@ -37,7 +37,7 @@
     <bundle:all name="bundle-jquery" />
     <bundle:all name="bundle-common-libs" />
     <bundle:all name="bundle-gxa" />
-    <bundle:all name="bundle-gxa-gene-index" />
+    <bundle:all name="bundle-gxa-page-gene-index" />
 
     <style type="text/css">
         @media print {
