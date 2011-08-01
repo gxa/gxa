@@ -34,42 +34,16 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.4.3.min.js"></script>
-    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/feedback.js"></script>
-
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
-
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen"/>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
+    <bundle:all name="bundle-jquery" />
+    <bundle:all name="bundle-common-libs" />
+    <bundle:all name="bundle-gxa" />
+    <bundle:all name="bundle-gxa-gene-index" />
 
     <style type="text/css">
         @media print {
             body, .contents, .header, .contentsarea, .head {
                 position: relative;
             }
-        }
-    </style>
-
-    <style type="text/css">
-        .alphabetIndex {
-            margin: 100px;
-            font-weight: bold;
-            font-size: larger;
-            text-align: center;
-        }
-
-        .alphabetIndex a {
-            margin: 10px;
-            white-space: nowrap;
-        }
-
-        .alphabetIndex a.current {
-            color: red;
-        }
-
-        .geneList a {
-            margin-right: 5px;
         }
     </style>
 
@@ -132,7 +106,7 @@
         <jsp:include page="../includes/atlas-header.jsp"/>
 
         <c:set var="url"><c:url value="/gene/index.htm"/></c:set>
-        <div class="alphabetIndex">
+        <div class="alphabet-index">
             <c:forTokens items="123 a b c d e f j h i j k l m n o p q r s t u v w x y z" delims=" " var="letter">
                <c:set var="prefix" value="${letter == '123' ? '0' : letter}"/>
                <a ${param.prefix == prefix ? 'class="current"' : ''} href="${url}?prefix=${prefix}"
@@ -140,7 +114,7 @@
             </c:forTokens>
         </div>
 
-        <div id="geneList" class="geneList">
+        <div id="geneList" class="gene-list">
             <div>
                 <c:forEach var="gene" items="${genes}" varStatus="status">
                     <a id="${gene.identifier}" href='<c:url value="/gene/${gene.identifier}"/>'

@@ -31,32 +31,33 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
 
-<tmpl:stringTemplate name="genePageHead">
-    <tmpl:param name="gene" value="${atlasGene}"/>
-</tmpl:stringTemplate>
+    <tmpl:stringTemplate name="genePageHead">
+        <tmpl:param name="gene" value="${atlasGene}"/>
+    </tmpl:stringTemplate>
 
-<meta name="Description" content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
-<meta name="Keywords"
-      content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
+    <meta name="Description"
+          content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
+    <meta name="Keywords"
+          content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-<jsp:include page="../includes/query-includes.jsp"/>
-<!--[if IE]><script language="javascript" type="text/javascript" src="${pageContext.request.contextPath}/scripts/excanvas.min.js"></script><![endif]-->
+    <!--[if IE]>
+    <script language="javascript" type="text/javascript" src="${contextPath}/scripts/excanvas.min.js"></script>
+    <![endif]-->
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.atlas.js"></script>
+    <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+    <bundle:all name="bundle-jquery"/>
+    <bundle:all name="bundle-common-libs"/>
+    <bundle:all name="bundle-jquery-flot-old"/>
+    <bundle:all name="bundle-gxa"/>
+    <bundle:all name="bundle-gxa-grid-support"/>
+    <bundle:all name="bundle-gxa-page-gene"/>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css"
-      media="print, projection, screen"/>
-<style type="text/css">
-    @media print {
-        body, .contents, .header, .contentsarea, .head {
-            position: relative;
+    <style type="text/css">
+        @media print {
+            body, .contents, .header, .contentsarea, .head {
+                position: relative;
+            }
         }
-    }
     </style>
 </head>
 
@@ -314,17 +315,16 @@ $(document).ready(function() {
 <table cellspacing="0" cellpadding="0" border="0" width="100%">
     <tr>
         <td style="vertical-align:top;">
-            <table width="100%" style="background-color: white" class="geneAnnotations">
-
+            <table class="gene-properties">
                 <tr>
-                    <td align="left" class="geneName">${atlasGene.geneName}
-                        <div style="font:normal"><c:import url="../includes/apilinks.jsp"><c:param name="apiUrl"
-                                                                                                   value="geneIs=${atlasGene.geneIdentifier}"/></c:import></div>
+                    <td align="left" class="page-title">${atlasGene.geneName}
+                        <div style="font:normal">
+                            <c:import url="../includes/apilinks.jsp">
+                                <c:param name="apiUrl" value="geneIs=${atlasGene.geneIdentifier}"/>
+                            </c:import>
+                        </div>
                     </td>
                     <td style="vertical-align: text-bottom">${atlasGene.geneSpecies}</td>
-                    <td rowspan="">
-
-                    </td>
                 </tr>
 
                 <tr>
@@ -333,22 +333,24 @@ $(document).ready(function() {
                     </td>
                 </tr>
 
-
                 <c:set var="synonyms">
-                    <c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop" varStatus="s"><c:if
-                            test="${!empty atlasGene.geneProperties[prop]}">${u:join(atlasGene.geneProperties[prop], ", ")}
-                        <c:if test="${!s.last}">, </c:if></c:if></c:forEach>
+                    <c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop" varStatus="s">
+                        <c:if test="${!empty atlasGene.geneProperties[prop]}">${u:join(atlasGene.geneProperties[prop], ", ")}
+                            <c:if test="${!s.last}">, </c:if>
+                        </c:if>
+                    </c:forEach>
                 </c:set>
+
                 <c:if test="${!empty synonyms}">
                     <tr>
-                        <td class="geneAnnotHeader">Synonyms</td>
+                        <td class="propname">Synonyms</td>
                         <td align="left">${synonyms}</td>
                     </tr>
                 </c:if>
 
                 <c:if test="${!empty orthologs}">
                     <tr>
-                        <td class="geneAnnotHeader">Orthologs</td>
+                        <td class="propname">Orthologs</td>
 
                         <td align="left">
                             <c:set var="orthoIds" value=""/>
@@ -369,7 +371,7 @@ $(document).ready(function() {
                     <c:if test="${!u:isIn(atlasProperties.geneAutocompleteNameFields, prop) && !u:isIn(atlasProperties.genePageIgnoreFields, prop)}">
                         <tr class="${u:isIn(atlasProperties.genePageDefaultFields, prop) ? '' : 'expandable'}"
                             style="${u:isIn(atlasProperties.genePageDefaultFields, prop) ? '' : 'display:none'}">
-                            <td class="geneAnnotHeader">${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}</td>
+                            <td class="propname">${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}</td>
                             <td align="left">
                                 <c:choose>
                                     <c:when test="${!empty atlasProperties.genePropertyLinks[prop]}">
@@ -388,7 +390,7 @@ $(document).ready(function() {
                 </c:forEach>
 
                 <tr>
-                    <td class="geneAnnotHeader">Search EB-eye</td>
+                    <td class="propname">Search EB-eye</td>
                     <td align="left">
                         <a title="Show gene annotation" target="_blank"
                            href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=${atlasGene.geneIdentifier}">
@@ -410,19 +412,12 @@ $(document).ready(function() {
     </tr>
 </table>
 
-<table cellspacing="0" cellpadding="0" style="margin-top:40px">
-
-
-<tr>
-<td>
-<table cellspacing="0" cellpadding="0" border="0">
+<table cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:40px">
 <tr>
 <td valign="top" width="50%">
 <table>
 <tr>
-    <td class="sectionHeader" style="padding-right:20px;">
-
-
+    <td class="section-header-1" style="padding-right:20px;">
         <c:choose>
             <c:when test="${not empty ef}">
                 ${f:escapeXml(atlasProperties.curatedEfs[ef])}
@@ -434,7 +429,6 @@ $(document).ready(function() {
                 Experimental Factors
             </c:otherwise>
         </c:choose>
-
     </td>
 </tr>
 
@@ -452,7 +446,7 @@ $(document).ready(function() {
 
         <td style="vertical-align:top; padding-right:20px;">
             <c:if test="${empty ef}">
-                <div class="geneAnnotHeader"
+                <div class="section-header-2 nowrap"
                      style="width:200px;">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
             </c:if>
             studied in
@@ -504,7 +498,7 @@ $(document).ready(function() {
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
 
                 <c:if test="${empty ef}">
-                    <div style="padding-left:0px; font-size:10px;">
+                    <div style="padding-left:0;font-size:10px;">
                        <c:choose>
                            <c:when test="${experimentalFactor.name != 'organism_part'}">
                                 <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
@@ -532,16 +526,15 @@ $(document).ready(function() {
                 b ef == 'organism_part' => show anatomogram (if exists) AND the table
                 --%>
 
-                <table class="heatmap" cellpadding="0" cellspacing="0" border="0"
+                <table class="atlas-grid hoverable heatmap" cellpadding="0" cellspacing="0" border="0"
                        style="margin-top:5px; margin-left:0px; width:100%;">
                     <thead>
-                    <tr style="height:26px;border-top:1px solid #CDCDCD">
-                        <th style="border: 1px solid #CDCDCD;padding: 1px 5px 1px 4px; width:180px;">Factor Value</th>
-                        <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding: 1px 2px 1px 4px; width:20px;">
-                            <span style="font-size:8px">U/D</span></th>
-                        <th style="border-top:1px solid #CDCDCD;border-bottom:1px solid #CDCDCD;border-right:1px solid #CDCDCD;padding: 1px 2px 1px 4px;">
-                            Experiments
+                    <tr>
+                        <th >Factor Value</th>
+                        <th style="width:20px;">
+                            <span style="font-size:8px">U/D</span>
                         </th>
+                        <th>Experiments</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -644,7 +637,7 @@ $(document).ready(function() {
                                                                        varStatus="i_e">
                                                                 <c:if test="${(i_e.index<5)}">
                                                                     <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${atlasGene.geneIdentifier}"
-                                                                       onclick="window.location=this.href;"
+                                                                       onclick="window.location=this.href;event.stopPropagation();return false;"
                                                                        title="${experimentalFactor.experimentAccessions[experimentID]}">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if
                                                                         test="${!i_e.last}">, </c:if>
                                                                 </c:if>
@@ -684,18 +677,14 @@ $(document).ready(function() {
         </c:forEach>
 
         <c:forEach var="k" begin="${4 - i.index mod 2}" end="2">
-            <td>
-
-            </td>
+            <td></td>
         </c:forEach>
-
-
     </tr>
 </table>
 
 <c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="i" begin="6">
     <c:if test="${empty ef}">
-        <div class="geneAnnotHeader">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
+        <div class="section-header-2 nowrap">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
     </c:if>
     studied in
     <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
@@ -726,11 +715,6 @@ $(document).ready(function() {
 </td>
 </tr>
 </table>
-</td>
-</tr>
-
-</table>
-
 
 <c:set var="timeFinish" value="${u:currentTime()}"/>
 <div align="center">Processing time: <c:out value="${(timeFinish - timeStart) / 1000.0}"/> secs.</div>

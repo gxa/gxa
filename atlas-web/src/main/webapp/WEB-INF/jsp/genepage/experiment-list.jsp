@@ -32,7 +32,7 @@
 
 <table align="left">
     <tr>
-        <td id="expHeader_td" class="sectionHeader" style="vertical-align: top">Expression Profiles</td>
+        <td id="expHeader_td" class="section-header-1" style="vertical-align: top">Expression Profiles</td>
         <td align="right">
             <span id="allStudiesLink" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></span>
             <span id="pagination" class="pagination_ie" style="padding-bottom: 3px; padding-top: 3px; "></span>
@@ -42,8 +42,8 @@
         <td>
             <table width="100%">
                 <tr>
-                    <td align="left" valign="top" style="border-bottom:1px solid #CDCDCD;padding-bottom:5px">
-                        <div id="pagingSummary" class="header">
+                    <td align="left" valign="top">
+                        <div id="pagingSummary" class="section-header-2">
                             ${noAtlasExps} experiment${noAtlasExps > 1 ? "s" : ""} showing differential expression <c:if
                                 test="${! empty target}">in "${target}"</c:if>
                         </div>

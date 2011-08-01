@@ -20,14 +20,29 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle;
-
-/**
- * @author Olga Melnichuk
- */
-public class JsBundleTag extends WebResourceBundleTag {
-
-    public JsBundleTag() {
-        super(WebResourceType.JS);
-    }
+.alertNotice {
+    padding: 50px 10px 10px 10px;
+    text-align: center;
+    font-weight: bold;
 }
+
+.alertNotice > p {
+    margin: 10px;
+}
+
+.alertHeader {
+    color: red;
+}
+
+#centeredMain {
+    width: 740px;
+    margin: 0 auto;
+    padding: 50px 0;
+    height: 100%;
+}
+
+.roundCorner {
+    background-color: #EEF5F5;
+}
+
+

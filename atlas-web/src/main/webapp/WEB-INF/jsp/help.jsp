@@ -26,12 +26,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
-
     <tmpl:stringTemplate name="helpPageHead"/>
-
-<%-- <c:out value="${f:substringAfter(pageContext.request.requestURI, '/help/')}"/> - Gene Expression Atlas Help --%>
-
-<c:import url="/WEB-INF/jsp/includes/query-includes.jsp" />
+    <bundle:all name="bundle-jquery" />
+    <bundle:all name="bundle-gxa" />
 
 <style type="text/css">
     /* TODO: display contents appropriately */

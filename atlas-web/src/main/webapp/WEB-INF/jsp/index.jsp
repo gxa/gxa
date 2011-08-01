@@ -36,38 +36,6 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas-searchform.css" type="text/css"/>
-
-
-    <style type="text/css">
-
-        .alertNotice {
-            padding: 50px 10px 10px 10px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .alertNotice > p {
-            margin: 10px;
-        }
-
-        .alertHeader {
-            color: red;
-        }
-
-        #centeredMain {
-            width: 740px;
-            margin: 0 auto;
-            padding: 50px 0;
-            height: 100%;
-        }
-
-        .roundCorner {
-            background-color: #EEF5F5;
-        }
-
-    </style>
-
     <style type="text/css">
         @media print {
             body, .contents, .header, .contentsarea, .head {
@@ -76,10 +44,12 @@
         }
     </style>
 
-    <jsp:include page="/WEB-INF/jsp/includes/query-includes.jsp"/>
-
-    <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/atlas-searchform.js"></script>
-
+    <jsp:include page="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+    <bundle:all name="bundle-jquery"/>
+    <bundle:all name="bundle-common-libs" />
+    <bundle:all name="bundle-gxa"/>
+    <bundle:all name="bundle-gxa-searchform-support"/>
+    <bundle:all name="bundle-gxa-page-index"/>
 </head>
 
 <tmpl:stringTemplateWrap name="page">
@@ -94,7 +64,6 @@
                 <jsp:param name="isAdvanced" value="false"/>
             </jsp:include>
 
-            <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.corner.js"></script>
             <script type="text/javascript">
                 $(document).ready(function () {
                     $("div.roundCorner").corner();

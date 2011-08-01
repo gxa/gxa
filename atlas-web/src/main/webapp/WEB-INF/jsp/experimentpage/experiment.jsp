@@ -29,118 +29,27 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
+    <tmpl:stringTemplate name="expPageHead">
+        <tmpl:param name="experiment" value="${exp}"/>
+    </tmpl:stringTemplate>
 
-<tmpl:stringTemplate name="expPageHead">
-    <tmpl:param name="experiment" value="${exp}"/>
-</tmpl:stringTemplate>
+    <!--[if IE]>
+    <script type="text/javascript" src="${contextPath}/scripts/excanvas.min.js"></script>
+    <![endif]-->
 
-<!--[if IE]>
-<script type="text/javascript" src="${contextPath}/scripts/excanvas.min.js"></script>
-<![endif]-->
-
-<bundle:js name="bundle-experimentpage"/>
-
-<script type="text/javascript" language="javascript">
-    var atlas = {};
-    atlas.homeUrl='${pageContext.request.contextPath}/';
-</script>
-
-<script type="text/javascript" src="${contextPath}/scripts/common-query.js"></script>
-<script type="text/javascript" src="${contextPath}/scripts/feedback.js"></script>
-<script type="text/javascript" src="${contextPath}/scripts/experiment.js"></script>
-
-<link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
-<link rel="stylesheet" href="${pageContext.request.contextPath}/blue/style.css" type="text/css" media="print, projection, screen" />¤
-<link rel="stylesheet" href="${contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${contextPath}/geneView.css" type="text/css"/>
-
-<link rel="stylesheet" href="${contextPath}/scripts/jquery-lightbox/css/lightbox.css" type="text/css" media="screen"/>
-<script type="text/javascript" src="${contextPath}/scripts/jquery-lightbox/jquery.lightbox.js"></script>
-
-<style type="text/css">
-    .ui-tabs .ui-tabs-hide {
-        display: none;
-    }
-
-    .sample_attr_values {
-        display: none;
-    }
-
-    /* bottom tabs for chart type selection */
-
-    .btabs {
-        width: 100%;
-        height: 20px;
-        border-top: 1px solid #006666;
-        padding-left: 5px;
-        background-color: #edf6f5;
-    }
-
-    .btabs ul {
-        clear: left;
-        float: left;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        position: relative;
-        text-align: center;
-    }
-
-    .btabs ul li {
-        float: left;
-        border: 1px solid #006666;
-        border-top-width: 0;
-        margin: 0 0.2em 0 0;
-        color: #006666;
-        padding: 2px 5px;
-        cursor: pointer;
-    }
-
-    .btabs .sel {
-        position: relative;
-        top: -1px;
-        background: white;
-    }
-
-    /* EF pagination */
-
-    .pagination_ef {
-        text-transform: capitalize;
-        float: left;
-        width: 100%;
-        padding: 0;
-        margin: 0;
-    }
-
-    .pagination_ef div {
-        float: left;
-        padding: 1px 2px;
-        margin: 2px 3px;
-        border: 1px solid #066;
-        font-weight: bold;
-        font-size: 75%;
-    }
-
-    .pagination_ef a, .pagination_ef a:hover, .pagination_ef a:link, .pagination_ef a:visited {
-        white-space: nowrap;
-        border: none;
-        padding: 0;
-        margin: 0;
-        color: #006666;
-        text-decoration: none;
-    }
-
-    .pagination_ef .current {
-        background: #006666;
-        color: #fff;
-    }
-</style>
+    <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+    <bundle:all name="bundle-jquery"/>
+    <bundle:all name="bundle-common-libs"/>
+    <bundle:all name="bundle-jquery-flot"/>
+    <bundle:all name="bundle-gxa"/>
+    <bundle:all name="bundle-gxa-grid-support"/>
+    <bundle:all name="bundle-gxa-page-experiment"/>
 
 <script type="text/javascript">
     $(function() {
         $("a.lightbox").lightbox({
-            fileLoadingImage: "${pageContext.request.contextPath}/scripts/jquery-lightbox/images/loading.gif",
-		    fileBottomNavCloseImage: "${pageContext.request.contextPath}/scripts/jquery-lightbox/images/closelabel.gif"
+            fileLoadingImage: "${contextPath}/scripts/jquery-lightbox/images/loading.gif",
+		    fileBottomNavCloseImage: "${contextPath}/scripts/jquery-lightbox/images/closelabel.gif"
         });
     });
 </script>
@@ -233,7 +142,7 @@
         <div class="column-container exp-page">
             <div class="left-column">
 
-                <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
+                <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
 
                 <p>
                     <c:import url="../includes/apilinks.jsp">
@@ -355,8 +264,8 @@
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
         <td class="padded">\${expr}</td>
-        <td class="padded">{{html tstat}}</td>
-        <td class="padded">{{html pvalue}}</td>
+        <td class="padded number">{{html tstat}}</td>
+        <td class="padded number">{{html pvalue}}</td>
     </tr>
 </script>
 
@@ -376,9 +285,8 @@
         <div id="topPagination" class="pagination_ie alignRight"></div>
 
         <div class="hrClear">
-            <hr/>
             <form id="expressionListFilterForm" action="javascript:alert('error');">
-                <table width="100%" id="squery">
+                <table id="squery" class="atlas-grid experiment-stats">
                     <tr class="header">
                         <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
                         <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>

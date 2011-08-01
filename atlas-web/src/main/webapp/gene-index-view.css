@@ -20,34 +20,22 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.tags.resourcebundle;
+.alphabet-index {
+    margin: 100px;
+    font-weight: bold;
+    font-size: larger;
+    text-align: center;
+}
 
-/**
- * @author Olga Melnichuk
- */
-public enum WebResourceType {
-    CSS("css") {
-        @Override
-        public String toHtml(String src) {
-            return "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + src + "\"/>";
-        }
-    },
-    JS("js") {
-        @Override
-        public String toHtml(String src) {
-            return "<script type=\"text/javascript\" src=\"" + src + "\"></script>";
-        }
-    };
+.alphabet-index a {
+    margin: 10px;
+    white-space: nowrap;
+}
 
-    private String ext;
+.alphabet-index a.current {
+    color: red;
+}
 
-    WebResourceType(String ext) {
-        this.ext = ext;
-    }
-
-    public String toHtml(String path, String name) {
-        return toHtml(WebResourcePath.joinPaths(path, name + "." + ext));
-    }
-
-    public abstract String toHtml(String src);
+.gene-list a {
+    margin-right: 5px;
 }
