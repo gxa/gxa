@@ -23,9 +23,9 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.netcdf.ExperimentWithData;
-import uk.ac.ebi.gxa.netcdf.KeyValuePair;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.KeyValuePair;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;

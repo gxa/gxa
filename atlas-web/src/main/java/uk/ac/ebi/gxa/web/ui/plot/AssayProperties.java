@@ -26,9 +26,9 @@ import ae3.model.ExperimentalFactorsCompactData;
 import ae3.model.SampleCharacteristicsCompactData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import uk.ac.ebi.gxa.netcdf.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.NetCDFProxy;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.data.NetCDFDescriptor;
+import uk.ac.ebi.gxa.data.NetCDFProxy;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 
 import java.io.IOException;
 import java.util.Collection;

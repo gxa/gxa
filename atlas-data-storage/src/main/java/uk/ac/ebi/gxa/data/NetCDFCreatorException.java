@@ -19,28 +19,18 @@
  *
  * http://gxa.github.com/gxa
  */
+package uk.ac.ebi.gxa.data;
 
-package uk.ac.ebi.gxa.netcdf;
-
-/*
- * This exception should be trown outside of the package
- * if any internal error is occured during Data reading/writing.
- *
- * IOException or any specific exception from external libraries
- * (e.g. java netcdf library) should never be thrown outside of
- * atlas-data-storage module.
- */ 
-
-public class AtlasDataException extends Exception {
-    public AtlasDataException(String message) {
+/**
+ * NetCDF creator exception
+ * @author pashky
+ */
+public class NetCDFCreatorException extends Exception {
+    public NetCDFCreatorException(String message) {
         super(message);
     }
 
-    public AtlasDataException(Exception cause) {
+    public NetCDFCreatorException(Throwable cause) {
         super(cause);
-    }
-
-    public AtlasDataException(String message, Exception cause) {
-        super(message, cause);
     }
 }

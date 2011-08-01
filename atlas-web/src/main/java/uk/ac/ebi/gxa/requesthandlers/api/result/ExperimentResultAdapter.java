@@ -31,7 +31,7 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.gxa.netcdf.AtlasDataException;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.util.*;

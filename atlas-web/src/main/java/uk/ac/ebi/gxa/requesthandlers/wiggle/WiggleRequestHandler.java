@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -50,14 +50,14 @@ public class WiggleRequestHandler implements HttpRequestHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private AtlasDAO atlasDAO;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public static String[] splitRequest(String request) {
@@ -101,7 +101,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
         final String factorValue = param3.substring(0, param3.length() - 4);
 
-        final File dataDir = atlasNetCDFDAO.getDataDirectory(atlasDAO.getExperimentByAccession(accession));
+        final File dataDir = atlasDataDAO.getDataDirectory(atlasDAO.getExperimentByAccession(accession));
         final GeneAnnotation anno =
                 new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
         final String chromosomeId = anno.chromosomeId();
