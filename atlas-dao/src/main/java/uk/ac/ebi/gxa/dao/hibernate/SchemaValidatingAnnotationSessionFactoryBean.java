@@ -19,9 +19,7 @@ import java.sql.SQLException;
 public class SchemaValidatingAnnotationSessionFactoryBean extends AnnotationSessionFactoryBean {
     public void validateDatabaseSchema() throws DataAccessException {
         logger.info("Validating database schema for Hibernate SessionFactory");
-        HibernateTemplate hibernateTemplate = new HibernateTemplate(
-                getSessionFactory());
-        hibernateTemplate.setFlushMode(HibernateTemplate.FLUSH_NEVER);
+        HibernateTemplate hibernateTemplate = new HibernateTemplate(getSessionFactory());
         hibernateTemplate.execute(new HibernateCallback<Object>() {
             public Object doInHibernate(Session session)
                     throws HibernateException, SQLException {

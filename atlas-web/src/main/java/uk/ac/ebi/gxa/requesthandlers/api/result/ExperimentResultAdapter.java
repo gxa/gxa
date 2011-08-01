@@ -30,8 +30,10 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
-import java.io.Closeable;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
@@ -48,7 +50,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  * @author Pavel Kurnosov
  */
 @RestOut(xmlItemName = "result")
-public class ExperimentResultAdapter implements Closeable {
+public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes = new HashSet<AtlasGene>();
@@ -60,10 +62,6 @@ public class ExperimentResultAdapter implements Closeable {
         this.experiment = experiment;
         this.expData = expData;
         this.genes.addAll(genes);
-    }
-
-    public void close() {
-        expData.close();
     }
 
     @RestOut(name = "experimentInfo")
@@ -124,7 +122,11 @@ public class ExperimentResultAdapter implements Closeable {
             public Iterator<Float> iterator() {
                 return new MappingIterator<AssayDecorator, Float>(experimentResultAdapter.getExperimentalData().getAssays(arrayDesign).iterator()) {
                     public Float map(AssayDecorator assay) {
-                        return experimentResultAdapter.getExperimentalData().getExpression(assay, deIndex);
+                        try {
+                            return experimentResultAdapter.getExperimentalData().getExpression(assay, deIndex);
+                        } catch (AtlasDataException e) {
+                            return Float.NaN;
+                        }
                     }
                 };
             }
@@ -157,17 +159,21 @@ public class ExperimentResultAdapter implements Closeable {
         @RestOut(name = "genes", xmlItemName = "gene", xmlAttr = "id")
         public Map<String, DesignElementExpMap> getGeneExpressions() {
             Map<String, DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
-            for (AtlasGene gene : experimentResultAdapter.genes) {
-                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
-                if (designElements != null) {
-                    DesignElementExpMap deMap = new DesignElementExpMap();
-                    for (final int designElementId : designElements) {
-                        final DesignElementExpressions designElementExpressions = new DesignElementExpressions(arrayDesign, experimentResultAdapter, designElementId);
-                        if (!designElementExpressions.isEmpty())
-                            deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), designElementExpressions);
+            try {
+                for (AtlasGene gene : experimentResultAdapter.genes) {
+                    int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
+                    if (designElements != null) {
+                        DesignElementExpMap deMap = new DesignElementExpMap();
+                        for (final int designElementId : designElements) {
+                            final DesignElementExpressions designElementExpressions = new DesignElementExpressions(arrayDesign, experimentResultAdapter, designElementId);
+                            if (!designElementExpressions.isEmpty())
+                                deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), designElementExpressions);
+                        }
+                        geneMap.put(gene.getGeneIdentifier(), deMap);
                     }
-                    geneMap.put(gene.getGeneIdentifier(), deMap);
                 }
+            } catch (AtlasDataException e) {
+                throw LogUtil.createUnexpected("API does not expect to receive incorrect data", e);
             }
             return geneMap;
         }
@@ -202,18 +208,22 @@ public class ExperimentResultAdapter implements Closeable {
         @RestOut(name = "genes", xmlItemName = "gene", xmlAttr = "id")
         public Map<String, DesignElementStatMap> getGeneExpressions() {
             Map<String, DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
-            for (AtlasGene gene : genes) {
-                int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
-                if (designElements != null) {
-                    DesignElementStatMap deMap = new DesignElementStatMap();
-                    for (final int designElementId : designElements) {
-                        List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
-                        if (!efefvList.isEmpty())
-                            deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
+            try {
+                for (AtlasGene gene : genes) {
+                    int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
+                    if (designElements != null) {
+                        DesignElementStatMap deMap = new DesignElementStatMap();
+                        for (final int designElementId : designElements) {
+                            List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
+                            if (!efefvList.isEmpty())
+                                deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
+                        }
+            
+                        geneMap.put(gene.getGeneIdentifier(), deMap);
                     }
-
-                    geneMap.put(gene.getGeneIdentifier(), deMap);
-                }
+                } 
+            } catch (AtlasDataException e) {
+                throw LogUtil.createUnexpected("API does not expect to receive incorrect data", e);
             }
             return geneMap;
         }
@@ -223,7 +233,7 @@ public class ExperimentResultAdapter implements Closeable {
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
         if (!genes.isEmpty())
-            for (ArrayDesign ad : expData.getArrayDesigns()) {
+            for (ArrayDesign ad : expData.getExperiment().getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignStats(this, genes, ad));
             }
         return adExpMap;
@@ -234,7 +244,7 @@ public class ExperimentResultAdapter implements Closeable {
 
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();
         if (!genes.isEmpty())
-            for (ArrayDesign ad : expData.getArrayDesigns()) {
+            for (ArrayDesign ad : expData.getExperiment().getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignExpression(this, ad));
             }
         return adExpMap;

@@ -53,7 +53,7 @@ public final class SampleProperty {
     @ManyToOne
     @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
     // TODO: 4alf: this can be expressed in NamingStrategy
     @JoinTable(name = "A2_SAMPLEPVONTOLOGY",
             joinColumns = @JoinColumn(name = "SAMPLEPVID", referencedColumnName = "SAMPLEPVID"),
@@ -113,7 +113,7 @@ public final class SampleProperty {
         return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
             @Override
             public Object apply(@Nonnull OntologyTerm term) {
-                return term.getTerm();
+                return term.getAccession();
             }
         }));
     }

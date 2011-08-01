@@ -68,10 +68,6 @@ public class AtlasExperimentQueryParser {
                     query.rows(parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize()));
                 } else if(name.equalsIgnoreCase("start")) {
                     query.start(parseNumber(v, 0, 0, Integer.MAX_VALUE));
-                } else if(name.equalsIgnoreCase("dateReleaseFrom")){
-                    query.addDateReleaseFrom(v);
-                } else if(name.equalsIgnoreCase("dateReleaseTo")){
-                    query.addDateReleaseTo(v);
                 } else if(name.equalsIgnoreCase("dateLoadFrom")){
                     query.addDateLoadFrom(v);
                 } else if(name.equalsIgnoreCase("dateLoadTo")){
