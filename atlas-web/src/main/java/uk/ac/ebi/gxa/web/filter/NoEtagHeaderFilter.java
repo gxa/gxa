@@ -53,7 +53,7 @@ public class NoEtagHeaderFilter implements Filter {
                 if (!"etag".equalsIgnoreCase(name)) {
                     super.setHeader(name, value);
                 } else {
-                    log.debug("Ignoring Etag header: " + name + " " + value);
+                    log.debug("Ignoring ETag header: {} {}", name, value);
                 }
             }
         });
