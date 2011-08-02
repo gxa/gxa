@@ -449,18 +449,19 @@ $(document).ready(function() {
                 <div class="section-header-2 nowrap"
                      style="width:200px;">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
             </c:if>
-            studied in
-            <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
-                <c:if test="${(i_e.index<5)||(not empty ef)}">
-                    <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}"
-                       title="${experiment}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
-                </c:if>
-                <c:if test="${i_e.last}">
-                    <c:if test="${(i_e.count>=5)&&(empty ef)}">
-                        ... (${i_e.count} experiments)
+            <p style="margin-top:3px; margin-bottom:5px">studied in
+                <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
+                    <c:if test="${(i_e.index<5)||(not empty ef)}">
+                        <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}"
+                           title="${experiment}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
                     </c:if>
-                </c:if>
-            </c:forEach>
+                    <c:if test="${i_e.last}">
+                        <c:if test="${(i_e.count>=5)&&(empty ef)}">
+                            ... (${i_e.count} experiments)
+                        </c:if>
+                    </c:if>
+                </c:forEach>
+            </p>
 
              <!-- Output legend for the first experimental factor only -->
              <c:if test="${i.index==0}">

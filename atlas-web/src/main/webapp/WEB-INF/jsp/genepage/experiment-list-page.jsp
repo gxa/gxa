@@ -38,21 +38,27 @@
     <c:forEach var="exp" items="${exps}">
         <tr class="experiment-title">
             <td>
-                    ${exp.accession}:
-            </td>
-            <td>
-                    ${exp.description}
-                <c:if test="${exp.pubmedId!=null}">
-                    &nbsp;&nbsp;<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                       target="_blank">PubMed ${exp.pubmedId}</a>
-                </c:if>
+                <table width="100%">
+                    <tr>
+                        <td class="nowrap">
+                                ${exp.accession}:
+                        </td>
+                        <td>
+                                ${exp.description}
+                            <c:if test="${exp.pubmedId!=null}">
+                                &nbsp;&nbsp;<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                                target="_blank">PubMed ${exp.pubmedId}</a>
+                            </c:if>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
 
         <c:if test="${!empty exp.experimentFactors}">
 
             <tr>
-                <td colspan="2">
+                <td>
                     <div style="padding-top:5px;padding-bottom:5px;vertical-align:middle">
                         <div style="padding-bottom:5px;"><span class="section-header-2">Experimental Factors</span></div>
 
@@ -69,7 +75,7 @@
         </c:if>
 
         <tr>
-            <td colspan="2">
+            <td>
                 <table width="100%">
                     <tr>
 
@@ -108,7 +114,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="2">
+            <td>
                 &nbsp;Show <a title="Show expression profile in detail"
                               href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression
                 profile</a>
@@ -120,7 +126,7 @@
         </tr>
 
         <tr class="delimiter">
-            <td colspan="2">&nbsp;</td>
+            <td>&nbsp;</td>
         </tr>
 
     </c:forEach>
