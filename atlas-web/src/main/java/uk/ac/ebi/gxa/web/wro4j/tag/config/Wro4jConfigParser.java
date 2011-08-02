@@ -20,14 +20,29 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag.config;
+
+import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.annotations.DigesterLoader;
+import org.apache.commons.digester.annotations.DigesterLoaderBuilder;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jJavaScriptTag extends Wro4jTag {
+public class Wro4jConfigParser {
 
-    public Wro4jJavaScriptTag() {
-        super(WebResourceType.JS);
+    private Wro4jConfigParser() {
+    }
+
+    public static Wro4jGroups parse(InputStream in) throws IOException, SAXException {
+        DigesterLoader digesterLoader = new DigesterLoaderBuilder()
+                .useDefaultAnnotationRuleProviderFactory()
+                .useDefaultDigesterLoaderHandlerFactory();
+        Digester digester = digesterLoader.createDigester(Wro4jGroups.class);
+        return (Wro4jGroups) digester.parse(in);
     }
 }

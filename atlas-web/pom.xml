@@ -131,7 +131,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <wroManagerFactory>uk.ac.ebi.gxa.web.thirdparty.wro4j.CustomWroManagerFactory</wroManagerFactory>
+                    <wroManagerFactory>uk.ac.ebi.gxa.web.wro4j.CustomWroManagerFactory</wroManagerFactory>
                     <cssDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.css.path}</cssDestinationFolder>
                     <jsDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.js.path}</jsDestinationFolder>
                     <contextFolder>${basedir}/src/main/webapp/</contextFolder>

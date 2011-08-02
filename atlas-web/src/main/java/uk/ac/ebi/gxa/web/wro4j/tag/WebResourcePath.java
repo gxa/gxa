@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import java.util.StringTokenizer;
 

@@ -20,16 +20,15 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j;
 
-import javax.servlet.jsp.JspTagException;
+import ro.isdc.wro.model.resource.util.HashEncoderNamingStrategy;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jTagException extends Exception {
-
-    public Wro4jTagException(String message) {
-        super(message);
+public class CustomWroManagerFactory extends ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory {
+    public CustomWroManagerFactory() {
+        setNamingStrategy(new HashEncoderNamingStrategy());
     }
 }

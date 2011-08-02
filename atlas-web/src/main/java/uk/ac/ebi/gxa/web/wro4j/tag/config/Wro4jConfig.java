@@ -20,11 +20,11 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
+package uk.ac.ebi.gxa.web.wro4j.tag.config;
 
 import org.xml.sax.SAXException;
-import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResource;
-import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourceType;
+import uk.ac.ebi.gxa.web.wro4j.tag.WebResource;
+import uk.ac.ebi.gxa.web.wro4j.tag.WebResourceType;
 
 import java.io.*;
 import java.util.*;

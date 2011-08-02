@@ -20,15 +20,21 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j;
+package uk.ac.ebi.gxa.web.wro4j.tag.config;
 
-import ro.isdc.wro.model.resource.util.HashEncoderNamingStrategy;
+import org.apache.commons.digester.AbstractObjectCreationFactory;
+import org.xml.sax.Attributes;
 
 /**
  * @author Olga Melnichuk
  */
-public class CustomWroManagerFactory extends ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory {
-    public CustomWroManagerFactory() {
-        setNamingStrategy(new HashEncoderNamingStrategy());
+public class Wro4jGroupCreationFactory extends AbstractObjectCreationFactory {
+    @Override
+    public Object createObject(Attributes attributes) throws Exception {
+        String name = attributes.getValue("name");
+        if (name == null) {
+            throw new IllegalArgumentException();
+        }
+        return new Wro4jGroup(name);
     }
 }

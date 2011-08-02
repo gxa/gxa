@@ -20,18 +20,27 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
+package uk.ac.ebi.gxa.web.wro4j.tag.config;
+
+import org.apache.commons.digester.annotations.rules.ObjectCreate;
+import org.apache.commons.digester.annotations.rules.SetNext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jConfigException extends Exception {
+@ObjectCreate(pattern = "groups")
+public class Wro4jGroups {
+    private final Map<String, Wro4jGroup> groups = new HashMap<String, Wro4jGroup>();
 
-    public Wro4jConfigException(String message) {
-        super(message);
+    @SetNext
+    public void addGroup(Wro4jGroup group) {
+        groups.put(group.getName(), group);
     }
 
-    public Wro4jConfigException(String message, Throwable cause) {
-        super(message, cause);
+    public Wro4jGroup findGroup(String name) {
+        return groups.get(name);
     }
 }

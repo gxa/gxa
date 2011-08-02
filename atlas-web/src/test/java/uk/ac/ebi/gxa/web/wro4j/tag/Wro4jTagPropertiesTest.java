@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import org.junit.Test;
 
@@ -29,9 +29,9 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import static org.junit.Assert.*;
-import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.Wro4jTagProperties.aggregationNamePatternPropertyName;
-import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.Wro4jTagProperties.aggregationPathPropertyName;
-import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.Wro4jTagProperties.debugPropertyName;
+import static uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTagProperties.aggregationNamePatternPropertyName;
+import static uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTagProperties.aggregationPathPropertyName;
+import static uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTagProperties.debugPropertyName;
 
 /**
  * @author Olga Melnichuk

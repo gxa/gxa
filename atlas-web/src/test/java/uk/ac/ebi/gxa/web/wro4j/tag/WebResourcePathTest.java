@@ -20,13 +20,13 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourcePath.joinPaths;
-import static uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.WebResourcePath.normalizePath;
+import static uk.ac.ebi.gxa.web.wro4j.tag.WebResourcePath.joinPaths;
+import static uk.ac.ebi.gxa.web.wro4j.tag.WebResourcePath.normalizePath;
 
 /**
  * @author Olga Melnichuk

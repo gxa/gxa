@@ -20,14 +20,27 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jCssTag extends Wro4jTag {
+public class WebResource {
 
-    public Wro4jCssTag() {
-        super(WebResourceType.CSS);
+    private final WebResourceType type;
+
+    private final String src;
+
+    public WebResource(WebResourceType type, String src) {
+        this.type = type;
+        this.src = src;
+    }
+
+    public String getSrc() {
+        return src;
+    }
+
+    public String asHtml(String contextPath) {
+        return type.toHtml(WebResourcePath.joinPaths(contextPath, src));
     }
 }

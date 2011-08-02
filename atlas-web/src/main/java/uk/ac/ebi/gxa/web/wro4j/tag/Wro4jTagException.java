@@ -20,21 +20,14 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
-
-import org.apache.commons.digester.AbstractObjectCreationFactory;
-import org.xml.sax.Attributes;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jGroupCreationFactory extends AbstractObjectCreationFactory {
-    @Override
-    public Object createObject(Attributes attributes) throws Exception {
-        String name = attributes.getValue("name");
-        if (name == null) {
-            throw new IllegalArgumentException();
-        }
-        return new Wro4jGroup(name);
+public class Wro4jTagException extends Exception {
+
+    public Wro4jTagException(String message) {
+        super(message);
     }
 }

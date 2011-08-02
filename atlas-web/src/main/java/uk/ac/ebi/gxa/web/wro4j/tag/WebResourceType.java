@@ -20,29 +20,36 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config;
-
-import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.annotations.DigesterLoader;
-import org.apache.commons.digester.annotations.DigesterLoaderBuilder;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.io.InputStream;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jConfigParser {
+public enum WebResourceType {
 
-    private Wro4jConfigParser() {
+    CSS("css") {
+        @Override
+        public String toHtml(String src) {
+            return "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + src + "\"/>";
+        }
+    },
+
+    JS("js") {
+        @Override
+        public String toHtml(String src) {
+            return "<script type=\"text/javascript\" src=\"" + src + "\"></script>";
+        }
+    };
+
+    private String ext;
+
+    WebResourceType(String ext) {
+        this.ext = ext;
     }
 
-    public static Wro4jGroups parse(InputStream in) throws IOException, SAXException {
-        DigesterLoader digesterLoader = new DigesterLoaderBuilder()
-                .useDefaultAnnotationRuleProviderFactory()
-                .useDefaultDigesterLoaderHandlerFactory();
-        Digester digester = digesterLoader.createDigester(Wro4jGroups.class);
-        return (Wro4jGroups) digester.parse(in);
+    public String ext() {
+        return ext;
     }
+
+    public abstract String toHtml(String src);
 }

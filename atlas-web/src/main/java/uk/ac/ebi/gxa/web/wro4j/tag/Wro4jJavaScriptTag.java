@@ -20,36 +20,14 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 /**
  * @author Olga Melnichuk
  */
-public enum WebResourceType {
+public class Wro4jJavaScriptTag extends Wro4jTag {
 
-    CSS("css") {
-        @Override
-        public String toHtml(String src) {
-            return "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + src + "\"/>";
-        }
-    },
-
-    JS("js") {
-        @Override
-        public String toHtml(String src) {
-            return "<script type=\"text/javascript\" src=\"" + src + "\"></script>";
-        }
-    };
-
-    private String ext;
-
-    WebResourceType(String ext) {
-        this.ext = ext;
+    public Wro4jJavaScriptTag() {
+        super(WebResourceType.JS);
     }
-
-    public String ext() {
-        return ext;
-    }
-
-    public abstract String toHtml(String src);
 }

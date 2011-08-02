@@ -20,12 +20,12 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.thirdparty.wro4j.tag;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config.Wro4jConfig;
-import uk.ac.ebi.gxa.web.thirdparty.wro4j.tag.config.Wro4jConfigException;
+import uk.ac.ebi.gxa.web.wro4j.tag.config.Wro4jConfig;
+import uk.ac.ebi.gxa.web.wro4j.tag.config.Wro4jConfigException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
