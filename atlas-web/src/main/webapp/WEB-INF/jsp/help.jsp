@@ -27,8 +27,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
     <tmpl:stringTemplate name="helpPageHead"/>
-    <bundle:all name="bundle-jquery" />
-    <bundle:all name="bundle-gxa" />
+    <wro4j:all name="bundle-jquery" />
+    <wro4j:all name="bundle-gxa" />
 
 <style type="text/css">
     /* TODO: display contents appropriately */

@@ -39,13 +39,13 @@
 <![endif]-->
 
     <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
-    <bundle:all name="bundle-jquery" />
-    <bundle:all name="bundle-common-libs" />
-    <bundle:all name="bundle-jquery-flot-old" />
-    <bundle:all name="bundle-gxa" />
-    <bundle:all name="bundle-gxa-searchform-support" />
-    <bundle:all name="bundle-gxa-grid-support" />
-    <bundle:all name="bundle-gxa-page-query-result" />
+    <wro4j:all name="bundle-jquery" />
+    <wro4j:all name="bundle-common-libs" />
+    <wro4j:all name="bundle-jquery-flot-old" />
+    <wro4j:all name="bundle-gxa" />
+    <wro4j:all name="bundle-gxa-searchform-support" />
+    <wro4j:all name="bundle-gxa-grid-support" />
+    <wro4j:all name="bundle-gxa-page-query-result" />
 
     <style type="text/css">
         @media print {

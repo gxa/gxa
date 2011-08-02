@@ -27,8 +27,8 @@
 
     <display-name>Web Resource Aggregator Tags</display-name>
     <tlib-version>1.0</tlib-version>
-    <short-name>bundle</short-name>
-    <uri>http://ebi.ac.uk/gxa/tags/resourcebundle</uri>
+    <short-name>wro4j</short-name>
+    <uri>http://ebi.ac.uk/gxa/tags/wro4j</uri>
 
     <tag>
         <description>

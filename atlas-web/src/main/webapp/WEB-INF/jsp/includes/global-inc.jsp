@@ -25,7 +25,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/templates" prefix="tmpl" %>
 <%@ taglib uri="http://ebi.ac.uk/ae3/functions" prefix="u" %>
-<%@ taglib uri="http://ebi.ac.uk/gxa/tags/resourcebundle" prefix="bundle" %>
+<%@ taglib uri="http://ebi.ac.uk/gxa/tags/wro4j" prefix="wro4j" %>
 <%@ taglib uri="http://displaytag.sf.net" prefix="display" %>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>

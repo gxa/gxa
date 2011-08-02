@@ -36,11 +36,11 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <bundle:all name="bundle-jquery" />
-    <bundle:all name="bundle-common-libs" />
-    <bundle:all name="bundle-gxa" />
-    <bundle:all name="bundle-gxa-grid-support" />
-    <bundle:all name="bundle-gxa-page-experiment-index"/>
+    <wro4j:all name="bundle-jquery" />
+    <wro4j:all name="bundle-common-libs" />
+    <wro4j:all name="bundle-gxa" />
+    <wro4j:all name="bundle-gxa-grid-support" />
+    <wro4j:all name="bundle-gxa-page-experiment-index"/>
 
     <style type="text/css">
         @media print {

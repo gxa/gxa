@@ -24,9 +24,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
     <head>
-        <bundle:all name="bundle-jquery" />
-        <bundle:all name="bundle-gxa" />
-        <bundle:all name="bundle-gxa-page-downloads" />
+        <wro4j:all name="bundle-jquery" />
+        <wro4j:all name="bundle-gxa" />
+        <wro4j:all name="bundle-gxa-page-downloads" />
 
         <script type="text/javascript">
             $(document).ready(function() {
