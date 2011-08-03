@@ -9,7 +9,15 @@
         <constructor-arg index="1" ref="atlasTxManager"/>
     </bean>
 
-    <bean id="newAnnotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">
-        <constructor-arg ref="annotatorFactory"/>
+    <bean id="bioentityAnnotationDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationDAO">
+        <constructor-arg ref="bioEntityDAO"/>
+        <constructor-arg ref="annSrcDAO"/>
+        <constructor-arg ref="bioEntityPropertyDAO"/>
+        <constructor-arg ref="softwareDAO"/>
+    </bean>
+
+    <bean name="annSrcDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO">
+        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 </beans>
