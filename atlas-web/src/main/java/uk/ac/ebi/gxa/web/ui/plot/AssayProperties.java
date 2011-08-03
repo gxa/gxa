@@ -26,16 +26,13 @@ import ae3.model.ExperimentalFactorsCompactData;
 import ae3.model.SampleCharacteristicsCompactData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * Loads assay properties in order to convert into JSON. Used by assay tooltips on the experiment page.
@@ -57,16 +54,16 @@ public class AssayProperties {
         return Collections.unmodifiableCollection(scs);
     }
 
-    private AssayProperties load(NetCDFProxy proxy, Function<String, String> nameConverter) throws IOException {
+    private AssayProperties load(ExperimentWithData ewd, ArrayDesign ad, Function<String, String> nameConverter) throws AtlasDataException {
         efs = Lists.newArrayList();
         scs = Lists.newArrayList();
 
-        String[] factors = proxy.getFactors();
-        String[] sampleCharacteristics = proxy.getCharacteristics();
-        int[][] s2a = proxy.getSamplesToAssays();
+        String[] factors = ewd.getFactors(ad);
+        String[] sampleCharacteristics = ewd.getCharacteristics(ad);
+        int[][] s2a = ewd.getSamplesToAssays(ad);
 
         for (String f : factors) {
-            String[] vals = proxy.getFactorValues(f);
+            String[] vals = ewd.getFactorValues(ad, f);
             ExperimentalFactorsCompactData d = new ExperimentalFactorsCompactData(
                     nameConverter.apply(f), vals.length);
             for (int i = 0; i < vals.length; i++) {
@@ -76,7 +73,7 @@ public class AssayProperties {
         }
 
         for (String s : sampleCharacteristics) {
-            String[] vals = proxy.getCharacteristicValues(s);
+            String[] vals = ewd.getCharacteristicValues(ad, s);
             SampleCharacteristicsCompactData d = new SampleCharacteristicsCompactData(
                     nameConverter.apply(s), s2a[0].length);
             assert vals.length == s2a.length;
@@ -93,13 +90,11 @@ public class AssayProperties {
         return this;
     }
 
-    public static AssayProperties create(NetCDFDescriptor proxyDescr, Function<String, String> nameConverter) throws IOException, AtlasDataException {
-        NetCDFProxy proxy = null;
+    public static AssayProperties create(ExperimentWithData ewd, ArrayDesign ad, Function<String, String> nameConverter) throws AtlasDataException {
         try {
-            proxy = proxyDescr.createProxy();
-            return (new AssayProperties()).load(proxy, nameConverter);
+            return new AssayProperties().load(ewd, ad, nameConverter);
         } finally {
-            closeQuietly(proxy);
+            ewd.closeAllDataSources();
         }
     }
 }

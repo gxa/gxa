@@ -104,6 +104,14 @@ public class ExperimentWithData {
         return assays;
     }
 
+    public int[][] getSamplesToAssays(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getSamplesToAssays();
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
     public List<Integer> getSamplesForAssay(ArrayDesign arrayDesign, int iAssay) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getSamplesForAssay(iAssay);
@@ -165,6 +173,14 @@ public class ExperimentWithData {
         }
     }
 
+    public String[][] getFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getFactorValues(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
     public String[] getFactorValues(ArrayDesign arrayDesign, String factor) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getFactorValues(factor); 
@@ -173,9 +189,25 @@ public class ExperimentWithData {
         }
     }
 
+    public FloatMatrixProxy getExpressionValues(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getExpressionValues(deIndices); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
     public float[] getExpressionDataForDesignElementAtIndex(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getExpressionDataForDesignElementAtIndex(designElementIndex); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getExpressionStatistics(deIndices); 
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }

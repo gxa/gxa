@@ -47,12 +47,14 @@ import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.NetCDFDescriptor;
 import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
 import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -169,16 +171,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             Model model
     ) throws ResourceNotFoundException, IOException, AtlasDataException {
 
-        ExperimentPage page = createExperimentPage(accession);
-        if (page.getExperiment().getArrayDesign(adAcc) == null) {
+        final ExperimentPage page = createExperimentPage(accession);
+        final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
+        if (ad == null) {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = atlasDataDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
-        model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
         if (assayPropertiesRequired) {
-            model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
+            model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
         }
         return UNSUPPORTED_HTML_VIEW;
     }
