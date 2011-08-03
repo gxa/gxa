@@ -26,13 +26,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.AtlasLoaderCommand;
-import uk.ac.ebi.gxa.loader.LoadArrayDesignMappingCommand;
-import uk.ac.ebi.gxa.loader.LoadBioentityCommand;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.MakeExperimentPrivateCommand;
 import uk.ac.ebi.gxa.loader.MakeExperimentPublicCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
-import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -70,8 +67,8 @@ public class LoaderTask extends AbstractWorkingTask {
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), getTaskSpec().getUserData());
 
-        else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
-            return new LoadBioentityCommand(getTaskSpec().getAccession());
+//        else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
+//            return new LoadBioentityCommand(getTaskSpec().getAccession());
 
 //        else if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
 //            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.ANNOTATIONS);
@@ -79,11 +76,11 @@ public class LoaderTask extends AbstractWorkingTask {
 //        else if (TYPE_UPDATEMAPPINGS.equals(getTaskSpec().getType()))
 //            return new BioMartUpdateCommand(getTaskSpec().getAccession(), BioMartUpdateCommand.BioMartUpdateType.MAPPINGS);
 
-        else if (TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
-            return new LoadArrayDesignMappingCommand(getTaskSpec().getAccession());
+//        else if (TYPE_LOADMAPPING.equals(getTaskSpec().getType()))
+//            return new LoadArrayDesignMappingCommand(getTaskSpec().getAccession());
 
-        else if (TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
-            return new UpdateNetCDFForExperimentCommand(getTaskSpec().getAccession());
+//        else if (TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
+//            return new UpdateNetCDFForExperimentCommand(getTaskSpec().getAccession());
 
         else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());

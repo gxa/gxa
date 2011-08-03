@@ -22,13 +22,13 @@
                 <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
                 <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.annotation.AnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
 
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartAnnotationSource</value>
-                <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartProperty</value>
-                <value>uk.ac.ebi.microarray.atlas.model.annotation.BioMartArrayDesign</value>
-                <value>uk.ac.ebi.microarray.atlas.model.annotation.FileAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
+                <value>uk.ac.ebi.gxa.annotator.model.FileAnnotationSource</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType</value>
 
@@ -68,7 +68,7 @@
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
-         <constructor-arg ref="softwareDAO"/>
+        <constructor-arg ref="softwareDAO"/>
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
@@ -92,6 +92,10 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
+    <bean name="bioEntityTypeDAO" class="uk.ac.ebi.gxa.dao.BioEntityTypeDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -99,12 +103,6 @@
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
-
-    <bean name="annSrcDAO" class="uk.ac.ebi.gxa.dao.AnnotationSourceDAO">
-        <constructor-arg ref="sessionFactory"/>
-        <constructor-arg ref="atlasJdbcTemplate"/>
-    </bean>
-
     <!-- Common spring-drive data access configuration -->
     <!-- native extractor for fetching oracle connections from pool wrapper etc -->
     <bean name="nativeJdbcExtractor"

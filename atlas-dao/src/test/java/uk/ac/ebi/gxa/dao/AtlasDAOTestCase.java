@@ -68,8 +68,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     @Autowired
     protected ExperimentDAO experimentDAO;
     @Autowired
-    protected AnnotationSourceDAO annotationSourceDAO;
-    @Autowired
     protected SessionFactory sessionFactory;
 
     protected IDataSet getDataSet() throws Exception {
@@ -350,11 +348,14 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         ", NAME VARCHAR(255) NOT NULL\n" +
                         ");");
 
-//        runStatement(conn,
-//                "CREATE TABLE A2_ANNSRC_BIOMARTPROPERTY (\n" +
-//                        "  annotationsrcid bigint NOT NULL\n" +
-//                        "  , BIOMARTPROPERTYID bigint NOT NULL\n" +
-//                        "  );");
+        runStatement(conn,
+                "CREATE TABLE A2_BIOMARTARRAYDESIGN (\n" +
+                        "  BIOMARTARRAYDESIGNID bigint NOT NULL\n" +
+                        ", annotationsrcid bigint NOT NULL\n" +
+                        ", ARRAYDESIGNID bigint NOT NULL\n" +
+                        ", NAME VARCHAR(255) NOT NULL\n" +
+                        ");");
+
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELEMENT " +
@@ -453,6 +454,8 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ANNOTATIONSRC_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ");
@@ -461,6 +464,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ");
 
         System.out.println("...done!");
         conn.close();

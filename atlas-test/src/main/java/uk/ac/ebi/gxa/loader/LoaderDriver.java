@@ -22,7 +22,14 @@
 
 package uk.ac.ebi.gxa.loader;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.solr.core.CoreContainer;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.BeanFactory;
@@ -237,9 +244,9 @@ public class LoaderDriver {
                 if (load_type.equals("experiment")) {
                     loader.doCommand(new LoadExperimentCommand(url), listener);
                 } else if (load_type.equals("bioentity")) {
-                    loader.doCommand(new LoadBioentityCommand(url), listener);
+//                    loader.doCommand(new LoadBioentityCommand(url), listener);
                 } else if (load_type.equals("mapping")) {
-                    loader.doCommand(new LoadArrayDesignMappingCommand(url), listener);
+//                    loader.doCommand(new LoadArrayDesignMappingCommand(url), listener);
                 }
 
             } catch (MalformedURLException e) {

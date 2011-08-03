@@ -563,6 +563,14 @@
             BIOENTITYPROPERTYID="200"
             NAME="ensembl_transcript_id"
             />
+
+    <A2_BIOMARTARRAYDESIGN
+            BIOMARTARRAYDESIGNID="1000"
+            annotationsrcid="1000"
+            ARRAYDESIGNID="1"
+            NAME="affy_74a"
+            />
+
     
     <A2_ONTOLOGY
             ONTOLOGYID="1"

@@ -311,7 +311,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="maxWorkingTasks" value="16"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="annotationLoader" ref="newAnnotationLoader"/>
+        <property name="annotationLoader" ref="annotationLoader"/>
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
@@ -490,13 +490,17 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <!--ToDo (ns): move to annotation context -->
-    <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.loader.annotationsrc.BioMartAnnotationSourceLoader">
+    <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader">
         <constructor-arg ref="annSrcDAO"/>
     </bean>
      <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
         <constructor-arg ref="annSrcDAO"/>
     </bean>
-    
+
+    <bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">
+        <constructor-arg ref="annotatorFactory"/>
+        <constructor-arg ref="threadPool"/>
+    </bean>
     <!--Configure R workbench -->
     <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
     <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory" init-method="init" destroy-method="destroy">

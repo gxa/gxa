@@ -15,10 +15,7 @@
         <property name="magetabLoader" ref="MAGETABLoader"/>
         <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
         <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
-  
-        <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
         <property name="experimentEditorService" ref="experimentEditorService"/>
-        <property name="annotationLoader" ref="annotationLoader"/>
         <property name="executor" ref="threadPool"/>
     </bean>
 
@@ -26,14 +23,6 @@
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="atlasDAO"/>
     </bean>
-
-
-    <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="annSrcDAO" ref="annSrcDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
     
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
         <constructor-arg ref="experimentDAO"/>
@@ -52,16 +41,5 @@
         <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
     </bean>
 
-    <bean id="bioentityAnnotationDAO" class="uk.ac.ebi.gxa.loader.dao.AnnotationDAO">
-        <constructor-arg ref="bioEntityDAO"/>
-        <constructor-arg ref="annSrcDAO"/>
-        <constructor-arg ref="bioEntityPropertyDAO"/>
-        <constructor-arg ref="softwareDAO"/>
-    </bean>
-    
-    <bean name="annotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AnnotationLoader">
-        <constructor-arg ref="bioentityAnnotationDAO"/>
-        <constructor-arg ref="atlasTxManager"/>
-    </bean>
 
 </beans>
