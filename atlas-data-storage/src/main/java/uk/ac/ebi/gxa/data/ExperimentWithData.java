@@ -51,11 +51,6 @@ public class ExperimentWithData {
         return experiment;
     }
 
-    // TODO: remove this temporary method
-    public List<NetCDFDescriptor> getNetCDFDescriptors() {
-        return atlasDataDAO.getNetCDFDescriptors(experiment);
-    }
-
     // TODO: change access rignts to private
     public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
