@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
+import com.google.common.primitives.Floats;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -575,9 +576,9 @@ public class AtlasPlotter {
                 }
 
                 // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                List<Float> expressions = atlasDataDAO.getExpressionData(experiment, ad, bestEA.getDesignElementIndex());
+                final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
 
-                barPlotData.setExpressions(factorValue, expressions);
+                barPlotData.setExpressions(factorValue, Floats.asList(expressions));
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
                 barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
                 barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
@@ -609,7 +610,13 @@ public class AtlasPlotter {
         List<String> assayFVs = atlasDataDAO.getFactorValues(experiment, arrayDesign, ef);
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
-        List<Float> expressions = atlasDataDAO.getExpressionData(experiment, arrayDesign, ea.getDesignElementIndex());
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
+        final float[] expressions;
+        try {
+            expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
+        } finally {
+            ewd.closeAllDataSources();
+        }
 
 
         // iterate over each factor value (in sorted order)
@@ -621,7 +628,7 @@ public class AtlasPlotter {
 
             for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++)
                 if (assayFVs.get(assayIndex).equals(factorValue)) {
-                    float value = expressions.get(assayIndex);
+                    float value = expressions[assayIndex];
                     seriesData.add(Arrays.<Number>asList(seriesData.size() + 1, value <= -1000000 ? null : value));
                 }
 

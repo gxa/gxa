@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -43,7 +42,6 @@ import java.util.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static java.util.Collections.singleton;
-import static uk.ac.ebi.gxa.utils.FileUtil.extension;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -74,17 +72,6 @@ public class AtlasDataDAO {
         return new ExperimentWithData(this, experiment);
     }
 
-    public void releaseExperiment(Experiment experiment) throws IOException {
-        File directory = getDataDirectory(experiment);
-
-        File exportFolder = new File(atlasDataRepo, "export");
-        if (!exportFolder.exists() && !exportFolder.mkdirs()) {
-            throw new FileNotFoundException("can not create export folder " + exportFolder);
-        }
-
-        ZipUtil.compress(directory, new File(exportFolder, experiment.getAccession() + ".zip"));
-    }
-
     /**
      * @param experiment experiment to plot
      * @param geneIds    ids of genes to plot
@@ -107,22 +94,6 @@ public class AtlasDataDAO {
             Map<Long, List<Integer>> geneIdToDEIndexes =
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
             return proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
-        } finally {
-            closeQuietly(proxy);
-        }
-    }
-
-    /**
-     * @param arrayDesign
-     * @param designElementIndex
-     * @return List of expression values retrieved from designElementIndex in arrayDesign
-     * @throws IOException
-     */
-    public List<Float> getExpressionData(final Experiment experiment, final ArrayDesign arrayDesign, final Integer designElementIndex) throws IOException, AtlasDataException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = getNetCDFProxy(experiment, arrayDesign);
-            return asList(proxy.getExpressionDataForDesignElementAtIndex(designElementIndex));
         } finally {
             closeQuietly(proxy);
         }
@@ -166,7 +137,7 @@ public class AtlasDataDAO {
      * @throws RuntimeException if at least one ncdf file in experimentAccession's directory does not start with experimentId
      */
     private File[] listNetCDFs(Experiment experiment) {
-        File[] list = getDataDirectory(experiment).listFiles(extension("nc", false));
+        File[] list = getDataDirectory(experiment).listFiles(FileUtil.extension("nc", false));
         if (list == null) {
             return new File[0];
         } else {
@@ -196,7 +167,7 @@ public class AtlasDataDAO {
     /**
      * @param experiment@return List of NetCDF proxies corresponding to experimentAccession
      */
-    List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
+    private List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
         // lookup NetCDFFiles for this experiment
         File[] netCDFs = listNetCDFs(experiment);
 
