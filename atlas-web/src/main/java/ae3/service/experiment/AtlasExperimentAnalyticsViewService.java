@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
@@ -110,7 +109,8 @@ public class AtlasExperimentAnalyticsViewService {
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
-            String[] uvals = rResult.getStringValues("uvals");
+            String[] uvalNames = rResult.getStringValues("uvalNames");
+            String[] uvalValues = rResult.getStringValues("uvalValues");
             long total = (long) rResult.getIntAttribute("total")[0];
 
             result.setTotalSize(total);
@@ -129,13 +129,8 @@ public class AtlasExperimentAnalyticsViewService {
                     continue;
                 }
 
-                String[] uval = uvals[i].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-                if (uval.length < 2) {
-                    log.error("Illegal <ef||efv> value: " + uvals[i]);
-                    continue;
-                }
-                String ef = uval[0];
-                String efv = uval[1];
+                String ef = uvalNames[i];
+                String efv = uvalValues[i];
 
                 result.add(gene, deIndexes[i] - 1, deAccessions[i], pvals[i], tstats[i], ef, efv);
             }
