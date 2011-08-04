@@ -34,6 +34,8 @@ import uk.ac.ebi.gxa.utils.MappingIterator;
 import java.io.Closeable;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 
@@ -55,15 +57,14 @@ public class ExperimentResultAdapter implements Closeable {
 
     public ExperimentResultAdapter(AtlasExperiment experiment,
                                    Collection<AtlasGene> genes,
-                                   ExperimentalData expData
-    ) {
+                                   ExperimentalData expData) {
         this.experiment = experiment;
         this.expData = expData;
         this.genes.addAll(genes);
     }
 
     public void close() {
-        expData.close();
+        closeQuietly(expData);
     }
 
     @RestOut(name = "experimentInfo")
@@ -73,6 +74,7 @@ public class ExperimentResultAdapter implements Closeable {
 
     @RestOut(name = "experimentDesign", forProfile = ExperimentFullRestProfile.class)
     public ExperimentalData getExperimentalData() {
+        requireExperimentalData();
         return expData;
     }
 
@@ -221,6 +223,7 @@ public class ExperimentResultAdapter implements Closeable {
 
     @RestOut(name = "geneExpressionStatistics", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
+        requireExperimentalData();
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
         if (!genes.isEmpty())
             for (ArrayDesign ad : expData.getArrayDesigns()) {
@@ -231,12 +234,17 @@ public class ExperimentResultAdapter implements Closeable {
 
     @RestOut(name = "geneExpressions", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignExpression> getExpression() {
-
+        requireExperimentalData();
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();
         if (!genes.isEmpty())
             for (ArrayDesign ad : expData.getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignExpression(this, ad));
             }
         return adExpMap;
+    }
+
+    private void requireExperimentalData() {
+        if (expData == null)
+            throw createUnexpected("ExperimentFullRestProfile implies that we did retrieve expData");
     }
 }
