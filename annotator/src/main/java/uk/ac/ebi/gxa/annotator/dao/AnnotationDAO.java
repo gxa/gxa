@@ -1,9 +1,9 @@
 package uk.ac.ebi.gxa.annotator.dao;
 
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
-import uk.ac.ebi.gxa.dao.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -54,12 +54,12 @@ public class AnnotationDAO {
         bioEntityDAO.writeArrayDesign(arrayDesign, software);
     }
 
-    public void writeDesignElements(Set<DesignElement> designElements, String arrayDesignAccession) {
-        bioEntityDAO.writeDesignElements(designElements, arrayDesignAccession);
+    public void writeDesignElements(Set<DesignElement> designElements, ArrayDesign arrayDesign) {
+        bioEntityDAO.writeDesignElements(designElements, arrayDesign);
     }
 
-    public void writeDesignElementBioentityMappings(Collection<List<String>> deToBeMappings, BioEntityType beType, Software software, String arrayDesignAccession) {
-        bioEntityDAO.writeDesignElementBioentityMappings(deToBeMappings, beType, software, arrayDesignAccession);
+    public void writeDesignElementBioentityMappings(Collection<List<String>> deToBeMappings, BioEntityType beType, Software software, ArrayDesign arrayDesign) {
+        bioEntityDAO.writeDesignElementBioentityMappings(deToBeMappings, beType, software, arrayDesign);
     }
 
     public AnnotationSource getAnnSrcById(long id) {

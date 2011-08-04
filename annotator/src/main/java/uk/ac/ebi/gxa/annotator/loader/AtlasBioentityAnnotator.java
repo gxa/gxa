@@ -9,7 +9,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListner;
+import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
@@ -43,7 +43,7 @@ public abstract class AtlasBioentityAnnotator {
 
     protected TransactionTemplate transactionTemplate;
 
-    protected AnnotationLoaderListner listener;
+    private AnnotationLoaderListener listener;
 
     protected Organism targetOrganism;
 
@@ -53,7 +53,7 @@ public abstract class AtlasBioentityAnnotator {
 
     private static Logger log = LoggerFactory.getLogger(AtlasBioentityAnnotator.class);
 
-    public void setListener(AnnotationLoaderListner listener) {
+    public void setListener(AnnotationLoaderListener listener) {
         this.listener = listener;
     }
 
@@ -140,12 +140,12 @@ public abstract class AtlasBioentityAnnotator {
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
-                annotationDAO.writeDesignElements(designElements, arrayDesign.getAccession());
+                annotationDAO.writeDesignElements(designElements, arrayDesign);
                 for (BioEntityType bioEntityType : typeToDesignElementBEMapping.keySet()) {
                     annotationDAO.writeDesignElementBioentityMappings(typeToDesignElementBEMapping.get(bioEntityType),
                             bioEntityType,
                             annotationSource.getSoftware(),
-                            arrayDesign.getAccession());
+                            arrayDesign);
                 }
             }
         });
@@ -190,12 +190,18 @@ public abstract class AtlasBioentityAnnotator {
     }
 
     protected void reportProgress(String report) {
-        log.debug(report);
+        log.info(report);
         if (listener != null)
             listener.buildProgress(report);
     }
 
+    protected void clearTypeToDesignElementBEMapping() {
+        typeToDesignElementBEMapping.clear();
+    }
 
+    protected void clearDesignElements() {
+        designElements.clear();
+    }
 //    protected void initTypeBioentityMap(Collection<BioEntityType> types) {
 //        for (BioEntityType type : types) {
 //            typeToBioentities.put(type, new HashSet<BioEntity>());

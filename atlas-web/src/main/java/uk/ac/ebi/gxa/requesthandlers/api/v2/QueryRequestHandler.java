@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;

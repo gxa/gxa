@@ -1,6 +1,8 @@
-package uk.ac.ebi.gxa.dao;
+package uk.ac.ebi.gxa.dao.bioentity;
 
 import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.AbstractDAO;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.List;
@@ -14,19 +16,21 @@ import static com.google.common.collect.Iterables.getFirst;
  */
 public class BioEntityTypeDAO extends AbstractDAO<BioEntityType> {
 
-    BioEntityTypeDAO(SessionFactory sessionFactory) {
+    private BioEntityPropertyDAO propertyDAO;
+
+    BioEntityTypeDAO(SessionFactory sessionFactory, BioEntityPropertyDAO propertyDAO) {
         super(sessionFactory, BioEntityType.class);
+        this.propertyDAO = propertyDAO;
     }
 
     public BioEntityType findOrCreate(String typeName) {
-       final List<BioEntityType> types = template.find("from BioEntityType where name = ?", typeName.toLowerCase());
-       if (types.size() == 1) {
-           return types.get(0);
-       } else {
-           BioEntityType type = new BioEntityType(null, typeName, 0);
-           save(type);
-           return type;
-       }
+       BioEntityType type = find(typeName);
+        if (type == null) {
+            BioEntityProperty beProperty = propertyDAO.findOrCreate(typeName);
+            type = new BioEntityType(null, typeName, 0, beProperty, beProperty);
+        }
+
+        return type;
     }
 
     public BioEntityType find(String typeName) {

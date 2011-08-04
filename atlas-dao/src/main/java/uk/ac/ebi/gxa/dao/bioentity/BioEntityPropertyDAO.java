@@ -1,6 +1,7 @@
-package uk.ac.ebi.gxa.dao;
+package uk.ac.ebi.gxa.dao.bioentity;
 
 import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.AbstractDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
 import java.util.Collection;
@@ -12,7 +13,7 @@ import static com.google.common.collect.Iterables.getFirst;
  * User: nsklyar
  * Date: 24/05/2011
  */
-public class BioEntityPropertyDAO extends AbstractDAO<BioEntityProperty>{
+public class BioEntityPropertyDAO extends AbstractDAO<BioEntityProperty> {
 
     BioEntityPropertyDAO(SessionFactory sessionFactory) {
         super(sessionFactory, BioEntityProperty.class);
@@ -27,4 +28,12 @@ public class BioEntityPropertyDAO extends AbstractDAO<BioEntityProperty>{
         return getFirst(results, null);
     }
 
+     public BioEntityProperty findOrCreate(String propertyName) {
+        BioEntityProperty property = getByName(propertyName);
+        if (property == null) {
+            property = new BioEntityProperty(null, propertyName);
+            save(property);
+        }
+        return property;
+    }
 }

@@ -7,8 +7,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioentityAnnotator;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderEvent;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListner;
+import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
@@ -23,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +30,6 @@ import java.util.Set;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * nsklyar
@@ -47,22 +44,11 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
         super(annotationDAO, transactionTemplate);
     }
 
-    public void updateAnnotations(String annotationSrcId, AnnotationLoaderListner listener) {
+    public void updateAnnotations(String annotationSrcId, AnnotationLoaderListener listener) throws AtlasAnnotationException {
         setListener(listener);
-        List<Throwable> observedErrors = new ArrayList<Throwable>();
 
-        BioMartAnnotationSource annSrc = null;
-        try {
-            annSrc = fetchAnnotationSource(annotationSrcId);
-        } catch (AtlasAnnotationException e) {
-            if (listener != null) {
-                listener.buildError(new AnnotationLoaderEvent(Arrays.<Throwable>asList(e)));
-                return;
-            } else {
-                createUnexpected(e.getMessage());
-            }
+        BioMartAnnotationSource annSrc = fetchAnnotationSource(annotationSrcId);
 
-        }
         CSVReader csvReader = null;
         try {
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
@@ -93,43 +79,20 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 //            annSrc.setApplied(true);
 
         } catch (IOException e) {
-            observedErrors.add(new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
+            throw new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e);
         } catch (BioMartAccessException e) {
-            observedErrors.add(new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
+            throw new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e);
         } catch (AtlasAnnotationException e) {
-            observedErrors.add(new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
+            throw new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e);
         } finally {
             closeQuietly(csvReader);
         }
-
-        finishUpdate(observedErrors);
     }
 
-    private void finishUpdate(List<Throwable> observedErrors) {
-        if (this.listener != null) {
-            if (observedErrors.isEmpty()) {
-                this.listener.buildSuccess();
-            } else {
-                this.listener.buildError(new AnnotationLoaderEvent(observedErrors));
-            }
-        }
-    }
+    public void updateMappings(String annotationSrcId, AnnotationLoaderListener listener) throws AtlasAnnotationException {
+        setListener(listener);
+        BioMartAnnotationSource annSrc = fetchAnnotationSource(annotationSrcId);
 
-    public void updateMappings(String annotationSrcId, AnnotationLoaderListner listener){
-        List<Throwable> observedErrors = new ArrayList<Throwable>();
-
-        BioMartAnnotationSource annSrc = null;
-        try {
-            annSrc = fetchAnnotationSource(annotationSrcId);
-        } catch (AtlasAnnotationException e) {
-            if (listener != null) {
-                listener.buildError(new AnnotationLoaderEvent(Arrays.<Throwable>asList(e)));
-                return;
-            } else {
-                createUnexpected(e.getMessage());
-            }
-
-        }
         CSVReader csvReader = null;
         try {
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
@@ -143,6 +106,9 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
             writeBioentitiesToDB();
 
             for (BioMartArrayDesign bioMartArrayDesign : annSrc.getBioMartArrayDesigns()) {
+                clearDesignElements();
+                clearTypeToDesignElementBEMapping();
+                
                 List<String> attributes = new ArrayList<String>(attributesHandler.getMartBEIdentifiers());
                 attributes.add(bioMartArrayDesign.getName());
 
@@ -165,16 +131,14 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
             }
 
         } catch (IOException e) {
-            observedErrors.add(new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e));
+            throw new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e);
         } catch (BioMartAccessException e) {
-            observedErrors.add(new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e));
+            throw new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e);
         } catch (AtlasAnnotationException e) {
-            observedErrors.add(new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e));
+            throw new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e);
         } finally {
             closeQuietly(csvReader);
         }
-
-        finishUpdate(observedErrors);
     }
 
     private BioMartAnnotationSource fetchAnnotationSource(String annotationSrcId) throws AtlasAnnotationException {

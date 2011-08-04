@@ -145,7 +145,8 @@ public class BioMartAnnotationSourceLoader {
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
-                    annSrc.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
+                    //ToDo: Too slow - find faster solution
+//                    annSrc.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
                     result.add(annSrc);
                 } else {
                     //check if AnnotationSource exists for new version

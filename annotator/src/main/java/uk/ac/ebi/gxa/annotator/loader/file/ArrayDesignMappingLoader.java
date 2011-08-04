@@ -11,7 +11,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -150,10 +150,10 @@ public class ArrayDesignMappingLoader {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                     bioEntityDAO.writeArrayDesign(arrayDesign, software);
-                    bioEntityDAO.writeDesignElements(designElements, arrayDesign.getAccession());
+                    bioEntityDAO.writeDesignElements(designElements, arrayDesign);
                     bioEntityDAO.writeBioentities(bioentities);
                     bioEntityDAO.writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, software,
-                            arrayDesign.getAccession());
+                            arrayDesign);
                 }
             });
 

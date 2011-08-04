@@ -10,7 +10,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioentityAnnotator;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListner;
+import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
@@ -42,7 +42,7 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
         super(annotationDAO, transactionTemplate);
     }
 
-    public void process(URL url, final AnnotationLoaderListner listener) throws AtlasAnnotationException {
+    public void process(URL url, final AnnotationLoaderListener listener) throws AtlasAnnotationException {
 
         setListener(listener);
 

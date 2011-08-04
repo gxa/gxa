@@ -7,7 +7,7 @@ import uk.ac.ebi.gxa.annotator.loader.AnnotationCommand;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartBioentityAnnotationCommand;
 import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateMappingCommand;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderEvent;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListner;
+import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 
 /**
  * User: nsklyar
@@ -33,14 +33,14 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
         taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.STARTED, "");
 
-        taskMan.getAnnotationLoader().annotate(getAnnotationCommand());
+        taskMan.getAnnotationLoader().annotate(getAnnotationCommand(), getListner());
     }
 
     private AnnotationCommand getAnnotationCommand() {
         if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
-            return new BioMartBioentityAnnotationCommand(getTaskSpec().getAccession(), getListner());
+            return new BioMartBioentityAnnotationCommand(getTaskSpec().getAccession());
         else if (TYPE_UPDATEMAPPINGS.endsWith(getTaskSpec().getType()))
-            return new UpdateMappingCommand(getTaskSpec().getAccession(), getListner());
+            return new UpdateMappingCommand(getTaskSpec().getAccession());
         throw new IllegalStateException();
     }
 
@@ -69,8 +69,8 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         }
     };
 
-    private AnnotationLoaderListner getListner() {
-        return new AnnotationLoaderListner() {
+    private AnnotationLoaderListener getListner() {
+        return new AnnotationLoaderListener() {
             @Override
             public void buildSuccess() {
                 taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FINISHED, "");

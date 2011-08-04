@@ -9,10 +9,10 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AbstractDAO;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
-import uk.ac.ebi.gxa.dao.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.dao.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -108,12 +108,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public BioEntityProperty findOrCreateBEProperty(String propertyName) {
-        BioEntityProperty property = propertyDAO.getByName(propertyName);
-        if (property == null) {
-            property = new BioEntityProperty(null, propertyName);
-            propertyDAO.save(property);
-        }
-        return property;
+        return propertyDAO.findOrCreate(propertyName);
     }
 
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {

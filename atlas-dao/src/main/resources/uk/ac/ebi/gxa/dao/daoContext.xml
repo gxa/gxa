@@ -67,9 +67,11 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
-    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
-        <constructor-arg ref="softwareDAO"/>
-        <constructor-arg ref="atlasJdbcTemplate"/>
+    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO">
+        <constructor-arg index="0" ref="softwareDAO"/>
+        <constructor-arg index="1" ref="atlasJdbcTemplate"/>
+        <constructor-arg index="2" ref="bioEntityPropertyDAO"/>
+        <constructor-arg index="3" ref="bioEntityTypeDAO"/>
     </bean>
 
     <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
@@ -88,12 +90,14 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
-    <bean name="bioEntityPropertyDAO" class="uk.ac.ebi.gxa.dao.BioEntityPropertyDAO">
+    <bean name="bioEntityPropertyDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
-    <bean name="bioEntityTypeDAO" class="uk.ac.ebi.gxa.dao.BioEntityTypeDAO">
-        <constructor-arg ref="sessionFactory"/>
+    <bean name="bioEntityTypeDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO">
+
+        <constructor-arg index="0" ref="sessionFactory"/>
+        <constructor-arg index="1" ref="bioEntityPropertyDAO"/>
     </bean>
 
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
