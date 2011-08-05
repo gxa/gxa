@@ -32,7 +32,7 @@ import java.io.IOException;
  *
  * @author pashky
  */
-class ExpressionMatrix {
+public class ExpressionMatrix {
     final NetCDFProxy proxy;
     int lastDesignElement = -1;
     float[] lastData = null;
