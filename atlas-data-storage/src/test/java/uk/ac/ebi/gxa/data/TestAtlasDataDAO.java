@@ -9,10 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class tests functionality of AtlasDataDAO
@@ -52,10 +49,12 @@ public class TestAtlasDataDAO extends TestCase {
     }
 
     public void testGetFactorValues() throws IOException, AtlasDataException {
-        List<String> fvs = atlasDataDAO.getFactorValues(experiment, arrayDesign, ef);
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        final String[] fvs = ewd.getFactorValues(arrayDesign, ef);
         assertNotNull(fvs);
-        assertNotSame(fvs.size(), 0);
-        assertTrue(fvs.contains(efv));
+        assertNotSame(fvs.length, 0);
+        assertTrue(Arrays.asList(fvs).contains(efv));
+        ewd.closeAllDataSources();
     }
 
     public void testGetExpressionAnalyticsByGeneID() throws IOException, AtlasDataException {

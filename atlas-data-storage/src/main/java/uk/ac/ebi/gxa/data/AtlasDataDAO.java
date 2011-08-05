@@ -34,9 +34,8 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.File;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -79,10 +78,10 @@ public class AtlasDataDAO {
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws IOException in case of I/O errors
+     * @throws AtlasDataException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
-            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws IOException, AtlasDataException {
+            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws AtlasDataException {
         final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(NetCDFPredicates.containsGenes(geneIds), criteria));
         if (netCDF == null)
             return null;
@@ -94,6 +93,8 @@ public class AtlasDataDAO {
             Map<Long, List<Integer>> geneIdToDEIndexes =
                     getGeneIdToDesignElementIndexes(proxy, geneIds);
             return proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
         } finally {
             closeQuietly(proxy);
         }
@@ -107,7 +108,7 @@ public class AtlasDataDAO {
         return new NetCDFDescriptor(getNetCDFLocation(experiment, arrayDesign));
     }
 
-    private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws IOException, AtlasDataException {
+    private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
         return getNetCDFDescriptor(experiment, arrayDesign).createProxy();
     }
 
@@ -117,7 +118,7 @@ public class AtlasDataDAO {
      * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
      *         otherwise, id of first proxy in the list returned by getNetCDFDescriptors()
      */
-    private NetCDFDescriptor findNetCDF(final Experiment experiment, Predicate<NetCDFProxy> criteria) throws IOException, AtlasDataException {
+    private NetCDFDescriptor findNetCDF(final Experiment experiment, Predicate<NetCDFProxy> criteria) throws AtlasDataException {
         for (NetCDFDescriptor ncdf : getNetCDFDescriptors(experiment)) {
             NetCDFProxy proxy = null;
             try {
@@ -162,8 +163,7 @@ public class AtlasDataDAO {
      */
     private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(
             final NetCDFProxy proxy,
-            final Collection<Long> geneIds)
-            throws IOException {
+            final Collection<Long> geneIds) throws IOException {
         // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
         // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
         // proxy.getGenes().size() == proxy.getDesignElements().size())
@@ -222,9 +222,9 @@ public class AtlasDataDAO {
                     closeQuietly(proxy);
                 }
             }
-        } catch (AtlasDataException ioe) {
+        } catch (AtlasDataException e) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
         }
         return ea;
@@ -235,14 +235,14 @@ public class AtlasDataDAO {
      * @param geneId
      * @param ef
      * @return Map: efv -> best ExpressionAnalysis for geneid-ef in this proxy
-     * @throws IOException
+     * @throws AtlasDataException
      */
     public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(
             final Experiment experiment,
             final ArrayDesign arrayDesign,
             final Long geneId,
             final String ef)
-            throws IOException,AtlasDataException {
+            throws AtlasDataException {
 
         NetCDFProxy proxy = null;
         try {
@@ -251,6 +251,8 @@ public class AtlasDataDAO {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
         } finally {
             closeQuietly(proxy);
         }
@@ -262,19 +264,6 @@ public class AtlasDataDAO {
         } catch (AtlasDataException e) {
             log.warn("exception in findNetCDF", e);
             return null;
-        } catch (IOException e) {
-            log.warn("exception in findNetCDF", e);
-            return null;
-        }
-    }
-
-    public List<String> getFactorValues(Experiment experiment, ArrayDesign arrayDesign, String ef) throws IOException, AtlasDataException {
-        NetCDFProxy proxy = null;
-        try {
-            proxy = getNetCDFProxy(experiment, arrayDesign);
-            return Arrays.asList(proxy.getFactorValues(ef));
-        } finally {
-            closeQuietly(proxy);
         }
     }
 

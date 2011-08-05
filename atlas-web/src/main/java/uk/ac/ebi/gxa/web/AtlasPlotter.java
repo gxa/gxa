@@ -607,12 +607,14 @@ public class AtlasPlotter {
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
         final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
-        List<String> assayFVs = atlasDataDAO.getFactorValues(experiment, arrayDesign, ef);
-        List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
+        final String[] assayFVs;
+        final List<String> uniqueFVs;
         final float[] expressions;
         try {
+            assayFVs = ewd.getFactorValues(arrayDesign, ef);
+            uniqueFVs = sortUniqueFVs(assayFVs);
             expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
         } finally {
             ewd.closeAllDataSources();
@@ -626,8 +628,8 @@ public class AtlasPlotter {
                 startMark = seriesData.size() + 1;
             }
 
-            for (int assayIndex = 0; assayIndex < assayFVs.size(); assayIndex++)
-                if (assayFVs.get(assayIndex).equals(factorValue)) {
+            for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
+                if (assayFVs[assayIndex].equals(factorValue)) {
                     float value = expressions[assayIndex];
                     seriesData.add(Arrays.<Number>asList(seriesData.size() + 1, value <= -1000000 ? null : value));
                 }
@@ -663,8 +665,8 @@ public class AtlasPlotter {
         );
     }
 
-    private static List<String> sortUniqueFVs(Collection<String> assayFVs) {
-        Set<String> uniqueSet = new HashSet<String>(assayFVs);
+    private static List<String> sortUniqueFVs(String[] assayFVs) {
+        Set<String> uniqueSet = new HashSet<String>(Arrays.asList(assayFVs));
         List<String> uniqueFVs = new ArrayList<String>(uniqueSet);
         Collections.sort(uniqueFVs, new Comparator<String>() {
             public int compare(String s1, String s2) {
