@@ -104,6 +104,10 @@ public class AtlasDataDAO {
         return new NetCDFCreator(this, experiment, arrayDesign);
     }
 
+    public String getPathForR(Experiment experiment, ArrayDesign arrayDesign) {
+        return getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
+    }
+
     public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, ArrayDesign arrayDesign) {
         return new NetCDFDescriptor(getNetCDFLocation(experiment, arrayDesign));
     }

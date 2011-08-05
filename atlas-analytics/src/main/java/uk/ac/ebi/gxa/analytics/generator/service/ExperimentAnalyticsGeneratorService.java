@@ -172,7 +172,7 @@ public class ExperimentAnalyticsGeneratorService {
                     return;
                 }
         
-                final String pathForR = atlasDataDAO.getNetCDFDescriptor(experiment, ad).getPathForR();
+                final String pathForR = atlasDataDAO.getPathForR(experiment, ad);
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                     public Void compute(RServices rs) throws ComputeException {
                         try {
