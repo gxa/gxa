@@ -22,9 +22,9 @@
 
 package ae3.model;
 
-import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 /**
@@ -32,7 +32,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
  *
  * @author pashky
  */
-class ExpressionMatrix {
+public class ExpressionMatrix {
     final ExperimentWithData experiment;
     final ArrayDesign arrayDesign;
     int lastDesignElement = -1;
