@@ -4,16 +4,21 @@ import javax.annotation.concurrent.Immutable;
 import java.io.File;
 import java.io.IOException;
 
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+
 /**
  * NetCDF File descriptor. Does not possess any resources, though will contain knowledge about repository
  * structure and the details one can extract from the file name.
  */
 @Immutable
 public class NetCDFDescriptor {
+    private final ArrayDesign arrayDesign;
     private final File file;
 
-    NetCDFDescriptor(File file) {
-        this.file = file;
+    NetCDFDescriptor(AtlasDataDAO atlasDataDao, Experiment experiment, ArrayDesign arrayDesign) {
+        this.arrayDesign = arrayDesign;
+        this.file = atlasDataDao.getNetCDFLocation(experiment, arrayDesign);
     }
 
     public NetCDFProxy createProxy() throws AtlasDataException {
@@ -22,6 +27,10 @@ public class NetCDFDescriptor {
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
+    }
+
+    public ArrayDesign getArrayDesign() {
+        return arrayDesign;
     }
 
     public String getFileName() {

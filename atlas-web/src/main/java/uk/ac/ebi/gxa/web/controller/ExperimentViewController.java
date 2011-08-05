@@ -272,7 +272,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                         offset,
                         limit);
 
-        model.addAttribute("arrayDesign", getArrayDesignAccession(ncdfDescr));
+        model.addAttribute("arrayDesign", ncdfDescr.getArrayDesign().getAccession());
         model.addAttribute("totalSize", res.getTotalSize());
         model.addAttribute("items", Iterables.transform(res,
                 new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
@@ -291,20 +291,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
-    }
-
-    private String getArrayDesignAccession(NetCDFDescriptor descr) throws IOException, AtlasDataException {
-        if (descr == null) {
-            return null;
-        }
-
-        NetCDFProxy proxy = null;
-        try {
-            proxy = descr.createProxy();
-            return proxy.getArrayDesignAccession();
-        } finally {
-            closeQuietly(proxy);
-        }
     }
 
     private List<Long> findGeneIds(String... query) {

@@ -109,7 +109,7 @@ public class AtlasDataDAO {
     }
 
     public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFDescriptor(getNetCDFLocation(experiment, arrayDesign));
+        return new NetCDFDescriptor(this, experiment, arrayDesign);
     }
 
     private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
