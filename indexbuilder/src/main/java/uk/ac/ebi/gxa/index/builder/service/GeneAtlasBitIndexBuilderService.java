@@ -95,7 +95,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         if (indexFile.exists() && !indexFile.delete()) {
             throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
         }
-        statistics = bitIndexNetCDFs(progressUpdater, 50);
+        statistics = bitIndexExperiments(progressUpdater, 50);
     }
 
     /**
@@ -105,18 +105,18 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
      */
-    private StatisticsStorage bitIndexNetCDFs(
+    private StatisticsStorage bitIndexExperiments(
             final ProgressUpdater progressUpdater,
             final Integer progressLogFreq) {
         getAtlasDAO().startSession();
         try {
-            return bitIndexNetCDFsInSession(progressUpdater, progressLogFreq);
+            return bitIndexExperimentsInSession(progressUpdater, progressLogFreq);
         } finally {
             getAtlasDAO().finishSession();
         }
     }
 
-    private StatisticsStorage bitIndexNetCDFsInSession(
+    private StatisticsStorage bitIndexExperimentsInSession(
             final ProgressUpdater progressUpdater,
             final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
