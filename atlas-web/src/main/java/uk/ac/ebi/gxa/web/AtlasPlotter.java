@@ -535,7 +535,7 @@ public class AtlasPlotter {
 
         final String bestArrayDesignAccession;
         if (efvClickedOn != null && efvToBestEA.get(efvClickedOn) != null) {
-            // If the user has clicked on an efv, choose to plot expression data from NetCDF proxy in which
+            // If the user has clicked on an efv, choose to plot expression data in which
             // the best pValue for this proxy occurred.
             bestArrayDesignAccession = efvToBestEA.get(efvClickedOn).getArrayDesignAccession();
         } else { // The user hasn't clicked on an efv - choose the proxy in most besEA across all efvs
