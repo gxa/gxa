@@ -1,3 +1,5 @@
+-- Estimated running time: 22 minutes
+
 alter table a2_sample add "EXPERIMENTID" NUMBER;
 
 update a2_sample s set s.experimentid = (
