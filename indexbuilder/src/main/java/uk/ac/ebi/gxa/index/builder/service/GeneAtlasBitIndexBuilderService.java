@@ -99,11 +99,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     /**
-     * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas ncdfs
+     * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas data
      *
      * @param progressUpdater
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
-     * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas ncdfs
+     * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas data
      */
     private StatisticsStorage bitIndexExperiments(
             final ProgressUpdater progressUpdater,
@@ -132,22 +132,21 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         final BitIndexTask task = new BitIndexTask(experimentsToProcess());
 
-        getLog().info("Found total ncdfs to index: " + task.getTotalExperiments());
+        getLog().info("Found total experiments to index: " + task.getTotalExperiments());
 
         final ExecutorService summarizer = Executors.newFixedThreadPool(10);
 
         for (final Experiment exp : task.getExperiments()) {
-            ExperimentWithData experimentWithData = null;
             getLog().debug("Processing {}", exp);
+            final ExperimentWithData experimentWithData = atlasDataDAO.createExperimentWithData(exp);
             try {
-                experimentWithData = atlasDataDAO.createExperimentWithData(exp);
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
                     // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
-                    // TODO should change to ncdf.getUniqueValues()
+                    // TODO should change to experimentWithData.getUniqueValues()
                     final List<KeyValuePair> uVals = experimentWithData.getProxy(ad).getUniqueFactorValues();
-                    int car = 0; // count of all Statistics records added for this ncdf
+                    int car = 0; // count of all Statistics records added for this experiment/array design pair
                 
                     if (uVals.size() == 0) {
                         //task.skipEmpty(f);
@@ -272,9 +271,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             } catch (IOException e) {
                 throw new IndexBuilderException(e.getMessage(), e);
             } finally {
-                if (experimentWithData != null) {
-                    experimentWithData.closeAllDataSources();
-                }
+                experimentWithData.closeAllDataSources();
             }
         }
 

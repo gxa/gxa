@@ -51,7 +51,7 @@ public class ExperimentWithData {
         return experiment;
     }
 
-    // TODO: change access rignts to private
+    // TODO: change access rights to private
     public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
