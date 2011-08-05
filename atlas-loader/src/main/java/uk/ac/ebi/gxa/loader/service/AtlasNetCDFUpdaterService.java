@@ -150,7 +150,7 @@ public class AtlasNetCDFUpdaterService {
             netCdfCreator.createNetCdf();
 
             log.info("Successfully finished NetCDF for " + experiment.getAccession() + " and " + arrayDesign.getAccession());
-        } catch (NetCDFCreatorException e) {
+        } catch (AtlasDataException e) {
             log.error("Error writing NetCDF file for " + experiment.getAccession() + " and " + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         }

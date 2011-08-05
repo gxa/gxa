@@ -38,8 +38,8 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.data.NetCDFCreatorException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -84,7 +84,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         generateNetCDFs();
     }
 
-    private void generateNetCDFs() throws NetCDFCreatorException, InterruptedException {
+    private void generateNetCDFs() throws AtlasDataException, InterruptedException {
         final File classPath = new File(this.getClass().getClassLoader().getResource("").getPath());
         netCDFRepoLocation = new File(classPath, "netcdfs");
         atlasDataDAO = new AtlasDataDAO();

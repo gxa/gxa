@@ -33,8 +33,8 @@ import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.gxa.data.NetCDFCreator;
-import uk.ac.ebi.gxa.data.NetCDFCreatorException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -239,7 +239,7 @@ public class AtlasMAGETABLoader {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
 
         for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
