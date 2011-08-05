@@ -54,15 +54,14 @@ import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 /**
- * Test case that creates Solr indices and NetCDFs from DB unit test.
+ * Test case that creates Solr indices from DB unit test.
  */
-public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
+public abstract class AbstractIndexDataTestCase extends AtlasDAOTestCase {
     private File indexLocation;
     private SolrServer exptServer;
     private SolrServer atlasServer;
     private DefaultIndexBuilder indexBuilder;
     private CoreContainer coreContainer;
-    private File netCDFRepoLocation;
     private AtlasDataDAO atlasDataDAO;
 
     private boolean solrBuildFinished;
@@ -81,24 +80,15 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         SLF4JBridgeHandler.install();
 
         buildSolrIndexes();
-        generateNetCDFs();
-    }
 
-    private void generateNetCDFs() throws AtlasDataException, InterruptedException {
         final File classPath = new File(this.getClass().getClassLoader().getResource("").getPath());
-        netCDFRepoLocation = new File(classPath, "netcdfs");
         atlasDataDAO = new AtlasDataDAO();
-        atlasDataDAO.setAtlasDataRepo(netCDFRepoLocation);
+        atlasDataDAO.setAtlasDataRepo(new File(classPath, "netcdfs"));
     }
 
 
     public void tearDown() throws Exception {
         super.tearDown();
-
-        // delete the repo
-        if (netCDFRepoLocation.exists()) FileUtil.deleteDirectory(netCDFRepoLocation);
-
-        netCDFRepoLocation = null;
 
         // shutdown the indexBuilder and coreContainer if its not already been done
         if (coreContainer != null) {
