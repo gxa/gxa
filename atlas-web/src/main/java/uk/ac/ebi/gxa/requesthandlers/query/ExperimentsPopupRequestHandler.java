@@ -125,7 +125,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             List<ExperimentResult> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
 
             // Now find non-de experiments
-            attr.setStatType(StatisticsType.NON_D_E);
+            attr = attr.withStatType(StatisticsType.NON_D_E);
             List<ExperimentResult> nonDEExps = toResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr));
             // ...and sort found nonDE experiments alphabetically by accession
             Collections.sort(nonDEExps, new Comparator<ExperimentResult>() {
@@ -250,11 +250,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             // TODO: we might be better off with one entity encapsulating the expression stats
             long start = System.currentTimeMillis();
-            attr.setStatType(NON_D_E);
+            attr = attr.withStatType(NON_D_E);
             int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-            attr.setStatType(UP);
+
+            attr = attr.withStatType(UP);
             int numUp = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-            attr.setStatType(DOWN);
+
+            attr = attr.withStatType(DOWN);
             int numDn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
             log.debug("Obtained  counts for gene: " + bioEntityId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
 

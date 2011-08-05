@@ -132,7 +132,8 @@ public class AnatomogramFactory {
                 Attribute attr = new EfoAttribute(acc, StatisticsType.DOWN);
                 long start = System.currentTimeMillis();
                 int dn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId());
-                attr.setStatType(StatisticsType.UP);
+
+                attr = attr.withStatType(StatisticsType.UP);
                 int up = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId());
                 bitIndexAccessTime += System.currentTimeMillis() - start;
 
