@@ -74,14 +74,12 @@ public class AtlasNetCDFUpdaterService {
     private NetCDFData readNetCDF(Experiment experiment, ArrayDesign arrayDesign, Map<String, Assay> knownAssays) throws AtlasLoaderException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            final NetCDFProxy proxy = ewd.getProxy(arrayDesign);
-
-            NetCDFData data = new NetCDFData();
+            final NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
-            final String[] assayAccessions = proxy.getAssayAccessions();
+            final String[] assayAccessions = ewd.getProxy(arrayDesign).getAssayAccessions();
             for (int i = 0; i < assayAccessions.length; ++i) {
-                Assay assay = knownAssays.get(assayAccessions[i]);
+                final Assay assay = knownAssays.get(assayAccessions[i]);
                 if (assay != null) {
                     data.addAssay(assay);
                     usedAssays.add(i);
@@ -89,20 +87,20 @@ public class AtlasNetCDFUpdaterService {
             }
 
             if (assayAccessions.length == data.getAssays().size()) {
-                data.matchValuePatterns(getValuePatterns(proxy));
+                data.matchValuePatterns(getValuePatterns(ewd, arrayDesign));
             }
 
             // Get unique values
-            List<KeyValuePair> uniqueValues = proxy.getUniqueValues();
+            final List<KeyValuePair> uniqueValues = ewd.getUniqueValues(arrayDesign);
             data.setUniqueValues(uniqueValues);
 
-            String[] deAccessions = proxy.getDesignElementAccessions();
+            final String[] deAccessions = ewd.getDesignElementAccessions(arrayDesign);
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
             for (int i = 0; i < deAccessions.length; ++i) {
-                final float[] values = proxy.getExpressionDataForDesignElementAtIndex(i);
-                final float[] pval = proxy.getPValuesForDesignElement(i);
-                final float[] tstat = proxy.getTStatisticsForDesignElement(i);
-                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than proxy.getUniqueFactorValues()
+                final float[] values = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, i);
+                final float[] pval = ewd.getPValuesForDesignElement(arrayDesign, i);
+                final float[] tstat = ewd.getTStatisticsForDesignElement(arrayDesign, i);
+                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than ewd.getUniqueFactorValues()
                 // i.e. we are in the process of enlarging the uniqueValues set from just efvs to efvs+scvs
                 List<Float> pVals = new ArrayList<Float>(asList(pval));
                 while (pVals.size() < uniqueValues.size())
@@ -153,35 +151,38 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static EfvTree<CBitSet> getValuePatterns(NetCDFProxy reader) throws IOException {
-        EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
+    private static EfvTree<CBitSet> getValuePatterns(ExperimentWithData ewd, ArrayDesign ad) throws AtlasDataException {
+        final EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
 
         // Store ef-efv patterns
-        List<String> efs = Arrays.asList(reader.getFactors());
+        final List<String> efs = Arrays.asList(ewd.getFactors(ad));
         for (String ef : efs) {
-            List<String> efvs = Arrays.asList(reader.getFactorValues(ef));
+            final List<String> efvs = Arrays.asList(ewd.getFactorValues(ad, ef));
             final Set<String> distinctEfvs = distinct(efvs);
             for (String value : distinctEfvs) {
-                CBitSet pattern = new CBitSet(efvs.size());
-                for (int i = 0; i < efvs.size(); i++)
+                final CBitSet pattern = new CBitSet(efvs.size());
+                for (int i = 0; i < efvs.size(); i++) {
                     pattern.set(i, efvs.get(i).equals(value));
+                }
                 patterns.putCaseSensitive(ef, value, pattern);
             }
         }
 
         // Store sc-scv patterns
-        List<String> scs = new ArrayList<String>(Arrays.asList(reader.getCharacteristics()));
+        final List<String> scs = new ArrayList<String>(Arrays.asList(ewd.getCharacteristics(ad)));
         scs.removeAll(efs); // process only scs that aren't also efs
         for (String sc : scs) {
-            List<String> scvs = Arrays.asList(reader.getCharacteristicValues(sc));
+            final List<String> scvs = Arrays.asList(ewd.getCharacteristicValues(ad, sc));
             final Set<String> distinctScvs = distinct(scvs);
             for (String value : distinctScvs) {
-                CBitSet pattern = new CBitSet(scvs.size());
-                for (int i = 0; i < scvs.size(); i++)
+                final CBitSet pattern = new CBitSet(scvs.size());
+                for (int i = 0; i < scvs.size(); i++) {
                     pattern.set(i, scvs.get(i).equals(value));
+                }
                 patterns.putCaseSensitive(sc, value, pattern);
             }
         }
+
         return patterns;
     }
 
