@@ -37,7 +37,6 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -134,9 +133,7 @@ public class AtlasPlotter {
             }
 
         } catch (AtlasDataException e) {
-            throw createUnexpected("AtlasDataException whilst trying to read from NetCDFs for experiment " + experiment, e);
-        } catch (IOException e) {
-            throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experiment, e);
+            throw createUnexpected("AtlasDataException whilst trying to read data for experiment " + experiment, e);
         }
         return null;
     }
@@ -517,7 +514,7 @@ public class AtlasPlotter {
      * @param efvToBestEA  Map: efv -> best EA, for this ef
      *                     All efv keys in this map will be plotted
      * @return Map key -> value representing a single plot
-     * @throws IOException
+     * @throws AtlasDataException
      */
     private Map<String, Object> createBarPlot(
             Long geneId,
@@ -525,7 +522,7 @@ public class AtlasPlotter {
             String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
             final Experiment experiment)
-            throws IOException, AtlasDataException {
+            throws AtlasDataException {
 
         if (efvToBestEA.containsKey(EMPTY_EFV)) {
             // Don't plot (empty) efvs unless they are the only efv that could be plotted
@@ -595,7 +592,7 @@ public class AtlasPlotter {
     }
 
 
-    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment) throws IOException, AtlasDataException {
+    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment) throws AtlasDataException {
         log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, ExpressionAnalysis: {}",
                 new Object[]{ef, efv, ea});
 
