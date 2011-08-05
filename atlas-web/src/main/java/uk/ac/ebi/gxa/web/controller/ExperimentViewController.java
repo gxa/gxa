@@ -154,7 +154,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param model                   a model for the view to render
      * @return the view path
      * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws IOException                    if any netCDF file reading error happened (including index out of range)
+     * @throws AtlasDataException     if any data reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -163,7 +163,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, IOException, AtlasDataException {
+    ) throws ResourceNotFoundException, AtlasDataException {
 
         final ExperimentPage page = createExperimentPage(accession);
         final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
@@ -232,7 +232,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param limit     a size of result set to take
      * @param model     a model for the view to render
      * @return the view path
-     * @throws java.io.IOException if netCDF file could not be read
+     * @throws AtlasDataException if data could not be read
      */
     @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
     public String getExperimentTable(
@@ -245,7 +245,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws IOException, AtlasDataException {
+    ) throws AtlasDataException {
 
         List<Long> geneIds = findGeneIds(gid);
 
