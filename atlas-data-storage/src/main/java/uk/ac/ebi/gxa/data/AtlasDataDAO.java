@@ -132,28 +132,6 @@ public class AtlasDataDAO {
         return null;
     }
 
-    /**
-     * @param experiment@return all ncdf files corresponding to experimentAccession
-     * @throws RuntimeException if at least one ncdf file in experimentAccession's directory does not start with experimentId
-     */
-    private File[] listNetCDFs(Experiment experiment) {
-        File[] list = getDataDirectory(experiment).listFiles(FileUtil.extension("nc", false));
-        if (list == null) {
-            return new File[0];
-        } else {
-            List<String> incorrectExperimentIdNcdfs = new ArrayList<String>();
-            for (final File netCDF : list) {
-                if (!netCDF.getAbsolutePath().matches("^.*" + experiment.getAccession() + "\\_.+\\.nc$")) {
-                    incorrectExperimentIdNcdfs.add(netCDF.getAbsolutePath());
-                }
-            }
-            if (incorrectExperimentIdNcdfs.size() > 0) {
-                throw LogUtil.createUnexpected("The following ncdfs did not match experiment id: " + experiment.getId() + " for: " + experiment + ": " + incorrectExperimentIdNcdfs);
-            }
-        }
-        return list;
-    }
-
     public File getDataDirectory(Experiment experiment) {
         final String[] parts = experiment.getAccession().split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
@@ -168,14 +146,11 @@ public class AtlasDataDAO {
      * @param experiment@return List of NetCDF proxies corresponding to experimentAccession
      */
     private List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
-        // lookup NetCDFFiles for this experiment
-        File[] netCDFs = listNetCDFs(experiment);
-
-        List<NetCDFDescriptor> nsdfs = new ArrayList<NetCDFDescriptor>(netCDFs.length);
-        for (File netCDF : netCDFs) {
-            nsdfs.add(new NetCDFDescriptor(netCDF));
+        final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
+        final List<NetCDFDescriptor> nsdfs = new ArrayList<NetCDFDescriptor>(arrayDesigns.size());
+        for (ArrayDesign ad : arrayDesigns) {
+            nsdfs.add(getNetCDFDescriptor(experiment, ad));
         }
-
         return nsdfs;
     }
 
