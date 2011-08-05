@@ -47,8 +47,6 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Predicates.alwaysTrue;
