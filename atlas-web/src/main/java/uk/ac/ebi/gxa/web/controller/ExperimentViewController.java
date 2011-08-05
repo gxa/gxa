@@ -259,12 +259,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = atlasDataDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
+        final ArrayDesign arrayDesign = atlasDataDAO.getArrayDesign(experiment, ncdfPredicate);
 
-        final BestDesignElementsResult res = (ncdfDescr == null) ?
+        final BestDesignElementsResult res = (arrayDesign == null) ?
                 BestDesignElementsResult.empty() :
                 experimentAnalyticsService.findBestGenesForExperiment(
-                        ncdfDescr.getPathForR(),
+                        atlasDataDAO.getPathForR(experiment, arrayDesign),
                         geneIds,
                         isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                         isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
@@ -272,7 +272,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                         offset,
                         limit);
 
-        model.addAttribute("arrayDesign", ncdfDescr.getArrayDesign().getAccession());
+        model.addAttribute("arrayDesign", arrayDesign.getAccession());
         model.addAttribute("totalSize", res.getTotalSize());
         model.addAttribute("items", Iterables.transform(res,
                 new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {

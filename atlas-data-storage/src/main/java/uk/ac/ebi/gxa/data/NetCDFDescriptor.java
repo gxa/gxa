@@ -37,10 +37,6 @@ public class NetCDFDescriptor {
         return file.getName();
     }
 
-    public String getPathForR() {
-        return file.getAbsolutePath();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

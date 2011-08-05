@@ -44,6 +44,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -196,10 +197,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                             if (!experimentInfoOnly) {
 
-                                NetCDFDescriptor ncdfDescr =
-                                        atlasDataDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
+                                final ArrayDesign arrayDesign =
+                                        atlasDataDAO.getArrayDesign(experiment.getExperiment(), netCDFProxyPredicate);
 
-                                if (ncdfDescr != null) {
+                                if (arrayDesign != null) {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                     Collection<String> factors = Collections.emptyList();
                                     Collection<String> factorValues = Collections.emptyList();
@@ -210,7 +211,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     BestDesignElementsResult geneResults =
                                             atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                    ncdfDescr.getPathForR(),
+                                                    atlasDataDAO.getPathForR(experiment.getExperiment(), arrayDesign),
                                                     geneIds,
                                                     factors,
                                                     factorValues,

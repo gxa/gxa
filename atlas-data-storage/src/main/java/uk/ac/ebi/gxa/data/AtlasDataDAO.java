@@ -262,9 +262,10 @@ public class AtlasDataDAO {
         }
     }
 
-    public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, Predicate<NetCDFProxy> criteria) {
+    public ArrayDesign getArrayDesign(Experiment experiment, Predicate<NetCDFProxy> criteria) {
         try {
-            return findNetCDF(experiment, criteria);
+            final NetCDFDescriptor d = findNetCDF(experiment, criteria);
+            return d != null ? d.getArrayDesign() : null;
         } catch (AtlasDataException e) {
             log.warn("exception in findNetCDF", e);
             return null;
