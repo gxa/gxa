@@ -12,7 +12,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
  * structure and the details one can extract from the file name.
  */
 @Immutable
-public class NetCDFDescriptor {
+class NetCDFDescriptor {
     private final ArrayDesign arrayDesign;
     private final File file;
 
@@ -21,7 +21,7 @@ public class NetCDFDescriptor {
         this.file = atlasDataDao.getNetCDFLocation(experiment, arrayDesign);
     }
 
-    public NetCDFProxy createProxy() throws AtlasDataException {
+    NetCDFProxy createProxy() throws AtlasDataException {
         try {
             return new NetCDFProxy(file);
         } catch (IOException e) {
@@ -29,11 +29,11 @@ public class NetCDFDescriptor {
         }
     }
 
-    public ArrayDesign getArrayDesign() {
+    ArrayDesign getArrayDesign() {
         return arrayDesign;
     }
 
-    public String getFileName() {
+    String getFileName() {
         return file.getName();
     }
 

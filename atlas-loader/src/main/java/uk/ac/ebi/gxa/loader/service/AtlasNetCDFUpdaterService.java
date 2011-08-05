@@ -19,7 +19,6 @@ import java.util.*;
 
 import static com.google.common.collect.Iterators.concat;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.distinct;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
@@ -73,11 +72,9 @@ public class AtlasNetCDFUpdaterService {
     }
 
     private NetCDFData readNetCDF(Experiment experiment, ArrayDesign arrayDesign, Map<String, Assay> knownAssays) throws AtlasLoaderException {
-        //final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-        final NetCDFDescriptor descriptor = atlasDataDAO.getNetCDFDescriptor(experiment, arrayDesign);
-        NetCDFProxy proxy = null;
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            proxy = descriptor.createProxy();
+            final NetCDFProxy proxy = ewd.getProxy(arrayDesign);
 
             NetCDFData data = new NetCDFData();
 
@@ -121,13 +118,13 @@ public class AtlasNetCDFUpdaterService {
             }
             return data;
         } catch (AtlasDataException e) {
-            log.error("Error reading NetCDF file: " + descriptor.getFileName(), e);
+            log.error("Error reading NetCDF file for: " + experiment.getAccession() + "/" + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         } catch (IOException e) {
-            log.error("Error reading NetCDF file: " + descriptor.getFileName(), e);
+            log.error("Error reading NetCDF file for: " + experiment.getAccession() + "/" + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         } finally {
-            closeQuietly(proxy);
+            ewd.closeAllDataSources();
         }
     }
 
