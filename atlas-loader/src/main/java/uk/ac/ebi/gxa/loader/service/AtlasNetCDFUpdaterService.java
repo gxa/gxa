@@ -53,13 +53,12 @@ public class AtlasNetCDFUpdaterService {
             for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
                 final ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
 
-                final NetCDFDescriptor descriptor = atlasDataDAO.getNetCDFDescriptor(experiment, arrayDesign);
                 listener.setProgress("Reading existing NetCDF");
 
                 final Map<String, Assay> assayMap = entry.getValue();
                 log.info("Starting NetCDF for " + experiment.getAccession() +
                         " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
-                NetCDFData data = readNetCDF(atlasDAO, descriptor, assayMap);
+                NetCDFData data = readNetCDF(experiment, arrayDesign, assayMap);
 
                 listener.setProgress("Writing updated NetCDF");
                 writeNetCDF(data, experiment, arrayDesign);
@@ -73,7 +72,9 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static NetCDFData readNetCDF(AtlasDAO dao, NetCDFDescriptor descriptor, Map<String, Assay> knownAssays) throws AtlasLoaderException {
+    private NetCDFData readNetCDF(Experiment experiment, ArrayDesign arrayDesign, Map<String, Assay> knownAssays) throws AtlasLoaderException {
+        //final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        final NetCDFDescriptor descriptor = atlasDataDAO.getNetCDFDescriptor(experiment, arrayDesign);
         NetCDFProxy proxy = null;
         try {
             proxy = descriptor.createProxy();
