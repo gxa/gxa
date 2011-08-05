@@ -43,11 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
@@ -69,8 +65,6 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.hasArrayDesign;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -257,9 +251,9 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         final Predicate<NetCDFProxy> ncdfPredicate;
         if (!isNullOrEmpty(adAcc)) {
-            ncdfPredicate = hasArrayDesign(adAcc);
+            ncdfPredicate = new NetCDFPredicates().hasArrayDesign(adAcc);
         } else if (!isNullOrEmpty(gid)) {
-            ncdfPredicate = containsAtLeastOneGene(geneIds);
+            ncdfPredicate = new NetCDFPredicates().containsAtLeastOneGene(geneIds);
         } else {
             ncdfPredicate = alwaysTrue();
         }

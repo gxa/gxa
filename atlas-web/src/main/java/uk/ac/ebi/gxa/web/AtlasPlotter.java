@@ -31,9 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -45,7 +43,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 public class AtlasPlotter {
@@ -96,7 +93,7 @@ public class AtlasPlotter {
                 }
             });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, containsEfEfv(ef, efv));
+                    atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, new NetCDFPredicates().containsEfEfv(ef, efv));
             if (geneIdsToEfToEfvToEA == null)
                 return null;
 

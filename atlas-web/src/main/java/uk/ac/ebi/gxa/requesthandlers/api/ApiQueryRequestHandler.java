@@ -39,10 +39,7 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
-import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
@@ -59,8 +56,6 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.hasArrayDesign;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -177,7 +172,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 final String[] requestedGeneIds = request.getParameterValues("geneIs");
                 if (requestedGeneIds != null && requestedGeneIds.length > 0) {
                     geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
-                    genePredicate = containsAtLeastOneGene(geneIds);
+                    genePredicate = new NetCDFPredicates().containsAtLeastOneGene(geneIds);
                 }
             }
 
@@ -189,7 +184,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 setRestProfile(ExperimentPageRestProfile.class);
 
             final Predicate<NetCDFProxy> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
-                    hasArrayDesign(arrayDesignAccession) : genePredicate;
+                    new NetCDFPredicates().hasArrayDesign(arrayDesignAccession) : genePredicate;
 
             return new ExperimentResults(
                 experiments,

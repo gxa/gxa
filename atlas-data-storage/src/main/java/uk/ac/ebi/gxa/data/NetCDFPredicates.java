@@ -19,9 +19,9 @@ import static com.google.common.collect.Collections2.transform;
  * @author Alexey Filippov
  */
 public class NetCDFPredicates {
-    private static final Logger log = LoggerFactory.getLogger(NetCDFPredicates.class);
+    private final Logger log = LoggerFactory.getLogger(NetCDFPredicates.class);
 
-    public static Predicate<NetCDFProxy> hasArrayDesign(@Nonnull final String arrayDesign) {
+    public Predicate<NetCDFProxy> hasArrayDesign(@Nonnull final String arrayDesign) {
         return new Predicate<NetCDFProxy>() {
             public boolean apply(@Nonnull NetCDFProxy proxy) {
                 String adAcc = proxy.getArrayDesignAccession();
@@ -35,7 +35,7 @@ public class NetCDFPredicates {
         };
     }
 
-    public static Predicate<NetCDFProxy> containsGenes(final Collection<Long> geneIds) {
+    public Predicate<NetCDFProxy> containsGenes(final Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty())
             return Predicates.alwaysTrue();
 
@@ -56,7 +56,7 @@ public class NetCDFPredicates {
         };
     }
 
-    public static Predicate<NetCDFProxy> containsAtLeastOneGene(final Collection<Long> geneIds) {
+    public Predicate<NetCDFProxy> containsAtLeastOneGene(final Collection<Long> geneIds) {
         return or(transform(geneIds, new Function<Long, Predicate<? super NetCDFProxy>>() {
             public Predicate<? super NetCDFProxy> apply(@Nonnull Long input) {
                 return containsGenes(Arrays.asList(input));
@@ -64,7 +64,7 @@ public class NetCDFPredicates {
         }));
     }
 
-    public static Predicate<NetCDFProxy> containsEfEfv(final String ef, final String efv) {
+    public Predicate<NetCDFProxy> containsEfEfv(final String ef, final String efv) {
         return isNullOrEmpty(efv) ?
                 new Predicate<NetCDFProxy>() {
                     public boolean apply(@Nonnull NetCDFProxy input) {

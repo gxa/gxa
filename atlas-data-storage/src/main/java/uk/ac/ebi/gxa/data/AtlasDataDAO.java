@@ -82,7 +82,7 @@ public class AtlasDataDAO {
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
             @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws AtlasDataException {
-        final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(NetCDFPredicates.containsGenes(geneIds), criteria));
+        final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(new NetCDFPredicates().containsGenes(geneIds), criteria));
         if (netCDF == null)
             return null;
 
