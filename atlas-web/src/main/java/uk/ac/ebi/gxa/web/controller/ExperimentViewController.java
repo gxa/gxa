@@ -147,8 +147,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * Returns experiment plots for given set of design elements.
      * (JSON view only supported)
      *
-     * @param accession               an experiment accession to find out the required netCDF
-     * @param adAcc                   an array design accession to find out the required netCDF
+     * @param accession               an experiment accession to find out the required data
+     * @param adAcc                   an array design accession to find out the required data
      * @param des                     an array of design element indexes to get plot data for
      * @param assayPropertiesRequired a boolean value to specify if assay properties ard needed
      * @param model                   a model for the view to render
@@ -222,8 +222,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * Returns experiment table data for given search parameters.
      * (JSON view only supported)
      *
-     * @param accession an experiment accession to find out the required netCDF
-     * @param adAcc     an array design accession to find out the required netCDF
+     * @param accession an experiment accession to find out the required data
+     * @param adAcc     an array design accession to find out the required data
      * @param gid       a gene param to search with
      * @param ef        an experiment factor param to search with
      * @param efv       an experiment factor value param to search with
