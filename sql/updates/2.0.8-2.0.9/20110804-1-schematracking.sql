@@ -1,4 +1,4 @@
--- Estimated running time: 1 minute
+-- Estimated running time: 1 second
 
 DROP TABLE A2_SCHEMACHANGES;
 
