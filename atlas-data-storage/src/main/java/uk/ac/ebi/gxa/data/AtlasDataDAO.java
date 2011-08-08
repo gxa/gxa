@@ -22,22 +22,12 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.io.File;
-import java.util.*;
-
-import static com.google.common.io.Closeables.closeQuietly;
-import static com.google.common.primitives.Floats.asList;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -74,14 +64,6 @@ public class AtlasDataDAO {
         return getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
     }
 
-    public NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFDescriptor(this, experiment, arrayDesign);
-    }
-
-    private NetCDFProxy getNetCDFProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
-        return getNetCDFDescriptor(experiment, arrayDesign).createProxy();
-    }
-
     public File getDataDirectory(Experiment experiment) {
         final String[] parts = experiment.getAccession().split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {
@@ -92,21 +74,11 @@ public class AtlasDataDAO {
         return new File(new File(new File(atlasDataRepo, parts[1]), num), experiment.getAccession());
     }
 
-    /**
-     * @param experiment@return List of NetCDF proxies corresponding to experimentAccession
-     */
-    /*
-    private List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
-        final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
-        final List<NetCDFDescriptor> ncdfs = new ArrayList<NetCDFDescriptor>(arrayDesigns.size());
-        for (ArrayDesign ad : arrayDesigns) {
-            ncdfs.add(getNetCDFDescriptor(experiment, ad));
-        }
-        return ncdfs;
-    }
-    */
-
     public void deleteExperiment(Experiment experiment) {
         FileUtil.deleteDirectory(getDataDirectory(experiment));
+    }
+
+    NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, ArrayDesign arrayDesign) {
+        return new NetCDFDescriptor(this, experiment, arrayDesign);
     }
 }
