@@ -91,10 +91,17 @@ public class AtlasPlotter {
                     return (long) input.getGeneId();
                 }
             });
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, new DataPredicates().containsEfEfv(ef, efv));
-            if (geneIdsToEfToEfvToEA == null)
+            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
+            final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
+            try {
+                geneIdsToEfToEfvToEA =
+                    atlasDataDAO.getExpressionAnalysesForGeneIds(ewd, geneIds, new DataPredicates().containsEfEfv(ef, efv));
+            } finally {
+                ewd.closeAllDataSources();
+            }
+            if (geneIdsToEfToEfvToEA == null) {
                 return null;
+            }
 
             String efToPlot;
 

@@ -81,20 +81,15 @@ public class AtlasDataDAO {
      * @throws AtlasDataException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
-            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
-        final ArrayDesign arrayDesign = findArrayDesign(experiment, Predicates.<DataPredicates.Pair>and(new DataPredicates().containsGenes(geneIds), criteria));
+            @Nonnull ExperimentWithData ewd, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+        final ArrayDesign arrayDesign = findArrayDesign(ewd, Predicates.<DataPredicates.Pair>and(new DataPredicates().containsGenes(geneIds), criteria));
         if (arrayDesign == null) {
             return null;
         }
 
-        final ExperimentWithData ewd = createExperimentWithData(experiment);
-        try {
-            final Map<Long, List<Integer>> geneIdToDEIndexes =
-                    getGeneIdToDesignElementIndexes(ewd, arrayDesign, geneIds);
-            return ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
-        } finally {
-            ewd.closeAllDataSources();
-        }
+        final Map<Long, List<Integer>> geneIdToDEIndexes =
+            getGeneIdToDesignElementIndexes(ewd, arrayDesign, geneIds);
+        return ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
     }
 
     public NetCDFCreator getNetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
@@ -119,16 +114,11 @@ public class AtlasDataDAO {
      * @return first arrayDesign used in experiment, that matches criteria;
      *         or null if no arrayDesign has been found
      */
-    private ArrayDesign findArrayDesign(final Experiment experiment, Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
-        final ExperimentWithData ewd = createExperimentWithData(experiment);
-        try {
-            for (ArrayDesign ad : experiment.getArrayDesigns()) {
-                if (criteria.apply(new DataPredicates.Pair(ewd, ad))) {
-                    return ad;
-                }
+    private ArrayDesign findArrayDesign(ExperimentWithData ewd, Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+        for (ArrayDesign ad : ewd.getExperiment().getArrayDesigns()) {
+            if (criteria.apply(new DataPredicates.Pair(ewd, ad))) {
+                return ad;
             }
-        } finally {
-            ewd.closeAllDataSources();
         }
         return null;
     }
@@ -250,11 +240,14 @@ public class AtlasDataDAO {
     }
 
     public ArrayDesign getArrayDesign(Experiment experiment, Predicate<DataPredicates.Pair> criteria) {
+        final ExperimentWithData ewd = createExperimentWithData(experiment);
         try {
-            return findArrayDesign(experiment, criteria);
+            return findArrayDesign(ewd, criteria);
         } catch (AtlasDataException e) {
             log.warn("exception in findArrayDesign", e);
             return null;
+        } finally {
+            ewd.closeAllDataSources();
         }
     }
 
