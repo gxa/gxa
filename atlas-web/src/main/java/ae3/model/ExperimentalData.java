@@ -41,10 +41,8 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.*;
 
-import static java.lang.System.arraycopy;
-
 /**
- * NetCDF experiment data representation class
+ * A wrapper for ExperimentWithData class that is used in API v1
  *
  * @author pashky
  */
@@ -217,7 +215,7 @@ public class ExperimentalData {
             return new int[]{a};
         }
         int[] result = new int[array.length + 1];
-        arraycopy(array, 0, result, 0, array.length);
+        System.arraycopy(array, 0, result, 0, array.length);
         result[result.length - 1] = a;
         return result;
     }
