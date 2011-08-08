@@ -64,8 +64,7 @@ public class TestAtlasDataDAO extends TestCase {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasDataDAO.getExpressionAnalysesForGeneIds(ewd, geneIds,
-                            Predicates.<DataPredicates.Pair>alwaysTrue());
+                ewd.getExpressionAnalysesForGeneIds(geneIds, Predicates.<DataPredicates.Pair>alwaysTrue());
         
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));

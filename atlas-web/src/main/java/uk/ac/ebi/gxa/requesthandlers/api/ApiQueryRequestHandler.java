@@ -200,7 +200,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                 ArrayDesign arrayDesign = null;
                                 try {
-                                    arrayDesign = atlasDataDAO.findArrayDesign(ewd, dataPredicate);
+                                    arrayDesign = ewd.findArrayDesign(dataPredicate);
                                 } catch (AtlasDataException e) {
                                     log.info("Exception in findArrayDesign");
                                 } finally {

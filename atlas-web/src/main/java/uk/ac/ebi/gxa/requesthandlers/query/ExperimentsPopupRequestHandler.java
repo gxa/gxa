@@ -167,8 +167,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 );
                 try {
                     for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                        ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(ewd,
-                                (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                         if (ea != null) {
                             exp.setHighestRankAttribute(attrCandidate);
                             break;

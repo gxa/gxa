@@ -95,7 +95,7 @@ public class AtlasPlotter {
             final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
             try {
                 geneIdsToEfToEfvToEA =
-                    atlasDataDAO.getExpressionAnalysesForGeneIds(ewd, geneIds, new DataPredicates().containsEfEfv(ef, efv));
+                    ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates().containsEfEfv(ef, efv));
             } finally {
                 ewd.closeAllDataSources();
             }
@@ -560,7 +560,7 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    atlasDataDAO.getBestEAsPerEfvInProxy(ewd, ad, geneId, ef);
+                ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
 
             BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(ewd.getFactorValues(ad, ef));
 

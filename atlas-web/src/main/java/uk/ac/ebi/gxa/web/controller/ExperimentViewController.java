@@ -266,7 +266,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         ArrayDesign arrayDesign = null;
         try {
-            arrayDesign = atlasDataDAO.findArrayDesign(ewd, dataPredicate);
+            arrayDesign = ewd.findArrayDesign(dataPredicate);
         } finally {
             ewd.closeAllDataSources();
         }

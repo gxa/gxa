@@ -26,8 +26,6 @@ import java.util.*;
 
 import java.io.IOException;
 
-import com.google.common.io.Closeables;
-
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -36,9 +34,19 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.io.Closeables;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ExperimentWithData {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
 
@@ -47,13 +55,28 @@ public class ExperimentWithData {
     // cached data
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
 
-    ExperimentWithData(AtlasDataDAO atlasDataDAO, Experiment experiment) {
+    ExperimentWithData(@Nonnull AtlasDataDAO atlasDataDAO, @Nonnull Experiment experiment) {
         this.atlasDataDAO = atlasDataDAO;
         this.experiment = experiment;
     }
 
     public Experiment getExperiment() {
         return experiment;
+    }
+
+    /**
+     * @param experiment the experiment to find arrayDesign for
+     * @param criteria   the criteria to choose arrayDesign
+     * @return first arrayDesign used in experiment, that matches criteria;
+     *         or null if no arrayDesign has been found
+     */
+    public ArrayDesign findArrayDesign(Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+        for (ArrayDesign ad : experiment.getArrayDesigns()) {
+            if (criteria.apply(new DataPredicates.Pair(this, ad))) {
+                return ad;
+            }
+        }
+        return null;
     }
 
     // TODO: change access rights to private
@@ -80,7 +103,7 @@ public class ExperimentWithData {
         }
         final ArrayList<Sample> samples = new ArrayList<Sample>(sampleAccessions.length);
         for (String accession : sampleAccessions) {
-            samples.add(getExperiment().getSample(accession));
+            samples.add(experiment.getSample(accession));
         }
         return samples;
     }
@@ -99,7 +122,7 @@ public class ExperimentWithData {
         }
         final ArrayList<Assay> assays = new ArrayList<Assay>(assayAccessions.length);
         for (String accession : assayAccessions) {
-            assays.add(getExperiment().getAssay(accession));
+            assays.add(experiment.getAssay(accession));
         }
         return assays;
     }
@@ -243,6 +266,51 @@ public class ExperimentWithData {
         }
     }
 
+    /**
+     * @param ad
+     * @param geneIds
+     * @return Map: geneId -> List of design element indexes for ArrayDesign
+     * @throws AtlasDataException
+     */
+    private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(ArrayDesign ad, final Collection<Long> geneIds) throws AtlasDataException {
+        // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
+        // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
+        // proxy.getGenes().size() == proxy.getDesignElements().size())
+        Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
+
+        int deIndex = 0;
+        for (Long geneId : getGenes(ad)) {
+            if (geneIds.contains(geneId)) {
+                List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
+                if (deIndexes == null) {
+                    deIndexes = new ArrayList<Integer>();
+                }
+                deIndexes.add(deIndex);
+                geneIdToDEIndexes.put(geneId, deIndexes);
+            }
+            deIndex++;
+        }
+        return geneIdToDEIndexes;
+    }
+
+    /**
+     * @param geneIds    ids of genes to plot
+     * @param criteria   other criteria to choose NetCDF to plot
+     * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     *         Note that ea contains arrayDesign and designElement index from which it came, so that
+     *         the actual expression values can be easily retrieved later
+     * @throws AtlasDataException in case of I/O errors
+     */
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<DataPredicates.Pair>and(new DataPredicates().containsGenes(geneIds), criteria));
+        if (arrayDesign == null) {
+            return null;
+        }
+
+        final Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
+        return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
+    }
+
     public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex); 
@@ -265,6 +333,53 @@ public class ExperimentWithData {
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
+    }
+
+    /**
+     * @param geneId
+     * @param ef
+     * @param efv
+     * @param upDownCondition
+     * @return best (according to expression) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
+     *         first proxy in which expression data for that combination exists
+     */
+    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, UpDownCondition upDownCondition) {
+        ExpressionAnalysis ea = null;
+        try {
+            final Collection<ArrayDesign> ads = experiment.getArrayDesigns();
+            for (ArrayDesign ad : ads) {
+                if (ea == null) {
+                    Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(ad, Collections.singleton(geneId));
+                    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                            getExpressionAnalysesForDesignElementIndexes(ad, geneIdToDEIndexes, ef, efv, upDownCondition);
+                    if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
+                            geneIdsToEfToEfvToEA.get(geneId).containsKey(ef) &&
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).containsKey(efv) &&
+
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv) != null) {
+                        ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
+                    }
+
+                }
+            }
+        } catch (AtlasDataException e) {
+            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
+        }
+        return ea;
+    }
+
+    /**
+     * @param arrayDesign
+     * @param geneId
+     * @param ef
+     * @return Map: efv -> best ExpressionAnalysis for geneid-ef in this proxy
+     * @throws AtlasDataException
+     */
+    public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(ArrayDesign arrayDesign, Long geneId, String ef) throws AtlasDataException {
+        Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, Collections.singleton(geneId));
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
+        return geneIdsToEfToEfvToEA.get(geneId).get(ef);
     }
 
     public void closeAllDataSources() {
