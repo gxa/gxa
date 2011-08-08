@@ -560,7 +560,7 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    atlasDataDAO.getBestEAsPerEfvInProxy(experiment, ad, geneId, ef);
+                    atlasDataDAO.getBestEAsPerEfvInProxy(ewd, ad, geneId, ef);
 
             BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(ewd.getFactorValues(ad, ef));
 

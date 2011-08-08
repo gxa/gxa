@@ -183,15 +183,14 @@ public class AtlasDataDAO {
      * @return best (according to expression) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
      *         first proxy in which expression data for that combination exists
      */
-    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(final Experiment experiment,
+    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(final ExperimentWithData ewd,
                                                                 final Long geneId,
                                                                 final String ef,
                                                                 final String efv,
                                                                 final UpDownCondition upDownCondition) {
         ExpressionAnalysis ea = null;
-        final ExperimentWithData ewd = createExperimentWithData(experiment);
         try {
-            final Collection<ArrayDesign> ads = experiment.getArrayDesigns();
+            final Collection<ArrayDesign> ads = ewd.getExperiment().getArrayDesigns();
             for (ArrayDesign ad : ads) {
                 if (ea == null) {
                     Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(ewd, ad, singleton(geneId));
@@ -208,9 +207,7 @@ public class AtlasDataDAO {
                 }
             }
         } catch (AtlasDataException e) {
-            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
-        } finally {
-            ewd.closeAllDataSources();
+            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + ewd.getExperiment());
         }
         return ea;
     }
@@ -223,20 +220,15 @@ public class AtlasDataDAO {
      * @throws AtlasDataException
      */
     public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(
-            final Experiment experiment,
+            final ExperimentWithData ewd,
             final ArrayDesign arrayDesign,
             final Long geneId,
             final String ef)
             throws AtlasDataException {
-        final ExperimentWithData ewd = createExperimentWithData(experiment);
-        try {
-            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(ewd, arrayDesign, singleton(geneId));
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
-            return geneIdsToEfToEfvToEA.get(geneId).get(ef);
-        } finally {
-            ewd.closeAllDataSources();
-        }
+        Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(ewd, arrayDesign, singleton(geneId));
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
+        return geneIdsToEfToEfvToEA.get(geneId).get(ef);
     }
 
     public void deleteExperiment(Experiment experiment) {

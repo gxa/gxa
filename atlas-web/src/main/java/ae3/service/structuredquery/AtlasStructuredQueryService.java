@@ -51,6 +51,7 @@ import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -1679,47 +1680,52 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
             // That means we're using two different levels of abstraction in the same class
             // That means we're not structuring out application properly
-            Experiment aexp = experimentDAO.getById(exp.getExperimentId());
-            if (aexp == null)
+            final Experiment aexp = experimentDAO.getById(exp.getExperimentId());
+            if (aexp == null) {
                 continue;
-
-            List<ExpressionAnalysis> upDnEAs = new ArrayList<ExpressionAnalysis>();
-            boolean isUp = true;
-            // Note that it is possible for the same geneId-ef-efv to be both up and down in the same experiment (and proxy) - in two
-            // different design elements
-            if (counter.getUps() > 0) {
-                start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(aexp, (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
-                totalDataQueryTime += System.currentTimeMillis() - start;
-                if (ea != null) {
-                    upDnEAs.add(ea);
-                }
             }
-            if (counter.getDowns() > 0) {
-                start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(aexp, (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
-                totalDataQueryTime += System.currentTimeMillis() - start;
-                if (ea != null) {
-                    upDnEAs.add(ea);
+            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(aexp);
+            try {
+                List<ExpressionAnalysis> upDnEAs = new ArrayList<ExpressionAnalysis>();
+                boolean isUp = true;
+                // Note that it is possible for the same geneId-ef-efv to be both up and down in the same experiment (and proxy) - in two
+                // different design elements
+                if (counter.getUps() > 0) {
+                    start = System.currentTimeMillis();
+                    ExpressionAnalysis ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(ewd, (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
+                    totalDataQueryTime += System.currentTimeMillis() - start;
+                    if (ea != null) {
+                        upDnEAs.add(ea);
+                    }
                 }
-            }
-            // Assemble experiment rows for the ListResultRow corresponding to geneId-ef-efv
-            for (ExpressionAnalysis ea : upDnEAs) {
-                if (designElementAccession == null) {
-                    designElementAccession = ea.getDesignElementAccession();
+                if (counter.getDowns() > 0) {
+                    start = System.currentTimeMillis();
+                    ExpressionAnalysis ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(ewd, (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
+                    totalDataQueryTime += System.currentTimeMillis() - start;
+                    if (ea != null) {
+                        upDnEAs.add(ea);
+                    }
                 }
-
-                if (ea.isUp()) {
-                    pup = Math.min(pup, ea.getPValAdjusted());
-                } else if (ea.isDown()) {
-                    pdn = Math.min(pdn, ea.getPValAdjusted());
+                // Assemble experiment rows for the ListResultRow corresponding to geneId-ef-efv
+                for (ExpressionAnalysis ea : upDnEAs) {
+                    if (designElementAccession == null) {
+                        designElementAccession = ea.getDesignElementAccession();
+                    }
+            
+                    if (ea.isUp()) {
+                        pup = Math.min(pup, ea.getPValAdjusted());
+                    } else if (ea.isDown()) {
+                        pdn = Math.min(pdn, ea.getPValAdjusted());
+                    }
+            
+                    ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
+                            ea.getPValAdjusted(),
+                            UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
+            
+                    experimentsForRow.add(experiment);
                 }
-
-                ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
-                        ea.getPValAdjusted(),
-                        UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
-
-                experimentsForRow.add(experiment);
+            } finally {
+                ewd.closeAllDataSources();
             }
         }
 
@@ -1736,20 +1742,26 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 // TODO: we use bot experimentSolrDAO and underlying Solr server in this class.
                 // That means we're using two different levels of abstraction in the same class
                 // That means we're not structuring out application properly
-                Experiment aexp = experimentDAO.getById(exp.getExperimentId());
-                if (aexp == null)
+                final Experiment aexp = experimentDAO.getById(exp.getExperimentId());
+                if (aexp == null) {
                     continue;
+                }
+                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(aexp);
 
-                start = System.currentTimeMillis();
-                ExpressionAnalysis ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(aexp, (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
-                totalDataQueryTime += System.currentTimeMillis() - start;
-                if (ea != null) {
-                    ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
-                            // This is just a placeholder as pValues for nonDE expressions are currently (not available here
-                            // and therefore) not displayed in experiment pop-ups off the list view
-                            ea.getPValAdjusted(),
-                            UpDownExpression.NONDE);
-                    experimentsForRow.add(experiment);
+                try {
+                    start = System.currentTimeMillis();
+                    ExpressionAnalysis ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(ewd, (long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
+                    totalDataQueryTime += System.currentTimeMillis() - start;
+                    if (ea != null) {
+                        ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
+                                // This is just a placeholder as pValues for nonDE expressions are currently (not available here
+                                // and therefore) not displayed in experiment pop-ups off the list view
+                                ea.getPValAdjusted(),
+                                UpDownExpression.NONDE);
+                        experimentsForRow.add(experiment);
+                    }
+                } finally {
+                    ewd.closeAllDataSources();
                 }
             }
         }
