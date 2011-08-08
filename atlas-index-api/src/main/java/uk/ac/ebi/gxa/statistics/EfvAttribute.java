@@ -25,17 +25,18 @@ public class EfvAttribute extends Attribute implements Serializable {
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
     // experiments (c.f. same method in EfoAttribute)
-    public final static ExperimentInfo ALL_EXPERIMENTS_PLACEHOLDER = null;
+    public static final ExperimentInfo ALL_EXPERIMENTS_PLACEHOLDER = null;
     private static final String EF_EFV_SEP = "_";
 
-    private String ef;
-    private String efv;
+    private final String ef;
+    private final String efv;
     private transient String value;
 
     /**
      * Constructor used for ef object stored in bit index
      *
-     * @param ef
+     * @param ef  an experiment factor name
+     * @param statType statistics type
      */
     public EfvAttribute(@Nonnull final String ef, StatisticsType statType) {
         this(ef, null, statType);
@@ -44,15 +45,15 @@ public class EfvAttribute extends Attribute implements Serializable {
     /**
      * Constructor used for ef-efv tuple stored in bit index
      *
-     * @param ef
-     * @param efv
+     * @param ef an experiment factor name
+     * @param efv an experiment factor value
+     * @param statType statistics type
      */
     public EfvAttribute(@Nonnull final String ef, @Nullable final String efv, @Nullable StatisticsType statType) {
+        super(statType);
         this.ef = ef;
         this.efv = efv;
         this.value = encodePair(ef, efv);
-        if (statType != null)
-            this.statType = statType;
     }
 
     public String getEf() {
@@ -66,6 +67,11 @@ public class EfvAttribute extends Attribute implements Serializable {
     @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public EfvAttribute withStatType(StatisticsType statType) {
+        return new EfvAttribute(ef, efv, statType);
     }
 
     /**

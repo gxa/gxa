@@ -39,6 +39,7 @@ import java.util.*;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -101,6 +102,8 @@ public class Sample {
     public String getChannel() {
         return channel;
     }
+
+
 
     public long getSampleID() {
         return getId();
@@ -169,15 +172,14 @@ public class Sample {
         ));
     }
 
-
-    public Collection<String> getPropertyNames() {
-        return transform(properties,
+    public SortedSet<String> getPropertyNames() {
+        return newTreeSet(transform(properties,
                 new Function<SampleProperty, String>() {
                     @Override
                     public String apply(@Nonnull SampleProperty input) {
                         return input.getName();
                     }
-                });
+                }));
     }
 
     public String getEfoSummary(final String name) {
@@ -211,7 +213,7 @@ public class Sample {
     }
 
     public void deleteProperty(final PropertyValue property) {
-        properties.remove(new SampleProperty(this, property, Collections.<OntologyTerm>emptySet()));
+        properties.remove(new SampleProperty(this, property, Collections.<OntologyTerm>emptyList()));
     }
 
     public void setOrganism(Organism organism) {
@@ -244,7 +246,7 @@ public class Sample {
         return null;
     }
 
-    public void addOrUpdateProperty(PropertyValue propertyValue, Set<OntologyTerm> terms) {
+    public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
         if(!this.hasProperty(propertyValue)) {
             this.addProperty(propertyValue, terms);
         } else {

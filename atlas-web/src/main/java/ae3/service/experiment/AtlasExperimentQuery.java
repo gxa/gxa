@@ -43,8 +43,6 @@ public class AtlasExperimentQuery {
     private int start = 0;
     private boolean all = false;
 
-    private String dateReleaseFrom = null;
-    private String dateReleaseTo = null;
     private String dateLoadFrom = null;
     private String dateLoadTo = null;
 
@@ -142,9 +140,6 @@ public class AtlasExperimentQuery {
     //not in melting pot of stringbuider
     private String notSerializedYetPartOfTheQuery() {
         StringBuilder result = new StringBuilder();
-        if ((!isNullOrEmpty(this.dateReleaseFrom)) || (!isNullOrEmpty(this.dateReleaseTo))) {
-            result.append(" AND releasedate:[").append(DateToSolrQueryParam(this.dateReleaseFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateReleaseTo)).append("]");
-        }
         if ((!isNullOrEmpty(this.dateLoadFrom)) || (!isNullOrEmpty(this.dateLoadTo))) {
             result.append(" AND loaddate:[").append(DateToSolrQueryParam(this.dateLoadFrom)).append(" TO ").append(DateToSolrQueryParam(this.dateLoadTo)).append("]");
         }
@@ -218,16 +213,6 @@ public class AtlasExperimentQuery {
      */
     public AtlasExperimentQuery start(int start) {
         this.start = start;
-        return this;
-    }
-
-    public AtlasExperimentQuery addDateReleaseFrom(String date) {
-        this.dateReleaseFrom = date;
-        return this;
-    }
-
-    public AtlasExperimentQuery addDateReleaseTo(String date) {
-        this.dateReleaseTo = date;
         return this;
     }
 

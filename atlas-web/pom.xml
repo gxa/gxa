@@ -171,7 +171,7 @@
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
-            <artifactId>netcdf-reader</artifactId>
+            <artifactId>atlas-data-storage</artifactId>
             <version>2.0.9-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -289,12 +289,6 @@
         </dependency>
 
         <!-- dependencies required by testcases -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-index-api</artifactId>

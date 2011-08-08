@@ -22,23 +22,25 @@
 
 package ae3.model;
 
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-
-import java.io.IOException;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 /**
  * Lazy expression matrix class
  *
  * @author pashky
  */
-class ExpressionMatrix {
-    final NetCDFProxy proxy;
+public class ExpressionMatrix {
+    final ExperimentWithData experiment;
+    final ArrayDesign arrayDesign;
     int lastDesignElement = -1;
     float[] lastData = null;
 
-    ExpressionMatrix(NetCDFProxy proxy) {
-        this.proxy = proxy;
+    ExpressionMatrix(ExperimentWithData experiment, ArrayDesign arrayDesign) {
+        this.experiment = experiment;
+        this.arrayDesign = arrayDesign;
     }
 
     /**
@@ -48,15 +50,13 @@ class ExpressionMatrix {
      * @param assayId            assay's position in matrix
      * @return expression value
      */
-    float getExpression(int designElementIndex, int assayId) {
+    float getExpression(int designElementIndex, int assayId) throws AtlasDataException {
         try {
             if (lastData == null || lastDesignElement != designElementIndex) {
                 lastDesignElement = designElementIndex;
-                lastData = proxy.getExpressionDataForDesignElementAtIndex(designElementIndex);
+                lastData = experiment.getExpressionDataForDesignElementAtIndex(arrayDesign, designElementIndex);
             }
             return lastData[assayId];
-        } catch (IOException e) {
-            throw LogUtil.createUnexpected("Exception during matrix load", e);
         } catch (ArrayIndexOutOfBoundsException e) {
             throw LogUtil.createUnexpected("Exception during matrix load", e);
         }

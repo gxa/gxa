@@ -22,15 +22,20 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Function;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.transform;
+import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_ASSAYPV")
@@ -46,27 +51,27 @@ public final class AssayProperty {
     @ManyToOne
     @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",
             joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
-    private Set<OntologyTerm> terms = new HashSet<OntologyTerm>();
+    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
     AssayProperty() {
     }
 
-    public AssayProperty(Assay assay, String name, String value, Set<OntologyTerm> efoTerms) {
+    public AssayProperty(Assay assay, String name, String value, List<OntologyTerm> efoTerms) {
         this.assaypvid = null; // TODO: 4alf: we must handle this on save
         this.assay = assay;
         propertyValue = new PropertyValue(null, new Property(null, name), value);
-        this.terms = new HashSet<OntologyTerm>(efoTerms);
+        this.terms = new ArrayList<OntologyTerm>(efoTerms);
     }
 
-    public AssayProperty(Long id, Assay assay, PropertyValue pv, Set<OntologyTerm> efoTerms) {
+    public AssayProperty(Long id, Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
         this.assaypvid = id;
         this.assay = assay;
         propertyValue = pv;
-        this.terms = new HashSet<OntologyTerm>(efoTerms);
+        this.terms = new ArrayList<OntologyTerm>(efoTerms);
     }
 
     public Long getId() {
@@ -89,8 +94,12 @@ public final class AssayProperty {
         return propertyValue;
     }
 
-    public Set<OntologyTerm> getTerms() {
-        return Collections.unmodifiableSet(terms);
+    public List<OntologyTerm> getTerms() {
+        return unmodifiableList(terms);
+    }
+
+    public void setTerms(List<OntologyTerm> terms) {
+        this.terms = terms;
     }
 
     @Deprecated
@@ -105,7 +114,12 @@ public final class AssayProperty {
 
     @Deprecated
     public String getEfoTerms() {
-        return on(',').join(terms);
+        return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
+            @Override
+            public Object apply(@Nonnull OntologyTerm term) {
+                return term.getAccession();
+            }
+        }));
     }
 
     @Override
@@ -114,26 +128,5 @@ public final class AssayProperty {
                 "propertyValue=" + propertyValue +
                 ", terms='" + terms + '\'' +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AssayProperty)) return false;
-
-        AssayProperty property = (AssayProperty) o;
-
-        if (!propertyValue.equals(property.propertyValue)) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return propertyValue.hashCode();
-    }
-
-    public void setTerms(Set<OntologyTerm> terms) {
-        this.terms = terms;
     }
 }

@@ -37,6 +37,7 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -176,7 +177,7 @@ public class Assay {
     }
 
     public void addProperty(String type, String nodeName, String s) {
-        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptySet()));
+        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
     }
 
     public boolean hasNoProperties() {
@@ -191,14 +192,13 @@ public class Assay {
         return filter(properties, new PropertyNamePredicate(type));
     }
 
-    public Collection<String> getPropertyNames() {
-        return transform(properties, PROPERTY_NAME);
+    public SortedSet<String> getPropertyNames() {
+        return newTreeSet(transform(properties, PROPERTY_NAME));
     }
 
     public String getEfoSummary(String name) {
         return on(",").join(concat(transform(getProperties(name), PROPERTY_TERMS)));
     }
-
 
     /**
      * Adds a sample to assay. This method is intentionally package local, please use {@link Sample#addAssay(Assay)}
@@ -211,15 +211,15 @@ public class Assay {
     }
 
     public void addProperty(PropertyValue property) {
-        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptySet()));
+        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
     }
 
-    public void addProperty(final PropertyValue property, final Set<OntologyTerm> terms) {
+    public void addProperty(final PropertyValue property, final List<OntologyTerm> terms) {
         properties.add(new AssayProperty(null, this, property, terms));
     }
 
     public void deleteProperty(final PropertyValue propertyValue) {
-        properties.remove(new AssayProperty(null, this, propertyValue, Collections.<OntologyTerm>emptySet()));
+        properties.remove(new AssayProperty(null, this, propertyValue, Collections.<OntologyTerm>emptyList()));
     }
 
     public boolean hasProperty(final PropertyValue propertyValue) {
@@ -240,7 +240,7 @@ public class Assay {
         return null;
     }
 
-    public void addOrUpdateProperty(PropertyValue propertyValue, Set<OntologyTerm> terms) {
+    public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
         if(!this.hasProperty(propertyValue)) {
             this.addProperty(propertyValue, terms);
         } else {

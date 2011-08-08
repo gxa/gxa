@@ -51,13 +51,13 @@ public final class SampleProperty {
     @ManyToOne
     @Fetch(FetchMode.SELECT)
     private PropertyValue propertyValue;
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH}, fetch = FetchType.LAZY)
     // TODO: 4alf: this can be expressed in NamingStrategy
     @JoinTable(name = "A2_SAMPLEPVONTOLOGY",
             joinColumns = @JoinColumn(name = "SAMPLEPVID", referencedColumnName = "SAMPLEPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
     @Fetch(FetchMode.SUBSELECT)
-    private Set<OntologyTerm> terms = new HashSet<OntologyTerm>();
+    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
 
     SampleProperty() {
     }
@@ -92,8 +92,8 @@ public final class SampleProperty {
         return propertyValue;
     }
 
-    public Set<OntologyTerm> getTerms() {
-        return unmodifiableSet(terms);
+    public List<OntologyTerm> getTerms() {
+        return unmodifiableList(terms);
     }
 
     @Deprecated
@@ -111,7 +111,7 @@ public final class SampleProperty {
         return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
             @Override
             public Object apply(@Nonnull OntologyTerm term) {
-                return term.getTerm();
+                return term.getAccession();
             }
         }));
     }
@@ -145,7 +145,7 @@ public final class SampleProperty {
         this.sample = sample;
     }
 
-    public void setTerms(Set<OntologyTerm> terms) {
+    public void setTerms(List<OntologyTerm> terms) {
         this.terms = terms;
     }
 }

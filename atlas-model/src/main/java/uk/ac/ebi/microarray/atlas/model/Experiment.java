@@ -55,7 +55,6 @@ public class Experiment {
     private String lab;
 
     private Date loadDate;
-    private Date releaseDate;
     private String pmid;
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
@@ -140,14 +139,6 @@ public class Experiment {
 
     public void setLoadDate(Date loadDate) {
         this.loadDate = copyOf(loadDate);
-    }
-
-    public Date getReleaseDate() {
-        return copyOf(releaseDate);
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = copyOf(releaseDate);
     }
 
     public String getPubmedId() {

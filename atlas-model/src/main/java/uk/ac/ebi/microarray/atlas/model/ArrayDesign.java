@@ -48,7 +48,8 @@ public class ArrayDesign {
     @Transient
     private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
 
-    public ArrayDesign() {
+    // this constructor can be used in hibernate only
+    ArrayDesign() {
     }
 
     public ArrayDesign(String accession) {
@@ -57,10 +58,6 @@ public class ArrayDesign {
 
     public String getAccession() {
         return accession;
-    }
-
-    public void setAccession(String accession) {
-        this.accession = accession;
     }
 
     public String getName() {
@@ -133,19 +130,17 @@ public class ArrayDesign {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ArrayDesign that = (ArrayDesign) o;
-
-        return arrayDesignID == that.arrayDesignID && !(accession != null ? !accession.equals(that.accession) : that.accession != null);
-
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ArrayDesign)) {
+            return false;
+        }
+        return accession.equals(((ArrayDesign)o).accession);
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (arrayDesignID ^ (arrayDesignID >>> 32));
-        result = 31 * result + (accession != null ? accession.hashCode() : 0);
-        return result;
+        return accession.hashCode();
     }
 }

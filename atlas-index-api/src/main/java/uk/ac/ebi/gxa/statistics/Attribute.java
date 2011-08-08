@@ -9,7 +9,19 @@ import java.util.Set;
  * Abstract representation for ef-efv/efo Attributes used in querying bit index
  */
 public abstract class Attribute {
-    protected transient StatisticsType statType;
+
+    private transient final StatisticsType statType;
+
+    /**
+     * Note: Default constructor is required for serializable descendants of the abstract class.
+     */
+    protected Attribute() {
+        this.statType = null;
+    }
+
+    protected Attribute(StatisticsType statType) {
+        this.statType = statType;
+    }
 
     /**
      * @param efo
@@ -28,9 +40,12 @@ public abstract class Attribute {
 
     public abstract String getValue();
 
-    public void setStatType(StatisticsType statType) {
-        this.statType = statType;
-    }
+    /**
+     * TODO: Temporary solution to make Attribute immutable. See ticket #3048
+     * @param statType new statistics type
+     * @return a copy of current object but with new statistics type
+     */
+    public abstract Attribute withStatType(StatisticsType statType);
 
     public StatisticsType getStatType() {
         return statType;

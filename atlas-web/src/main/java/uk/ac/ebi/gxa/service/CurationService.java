@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Misha Kapushesky
@@ -63,7 +61,7 @@ public class CurationService {
                         apiAssayProperty.getPropertyValue().getProperty().getName(),
                         apiAssayProperty.getPropertyValue().getValue());
 
-                Set<OntologyTerm> terms = Sets.newHashSet();
+                List<OntologyTerm> terms = Lists.newArrayList();
                 for (ApiOntologyTerm apiOntologyTerm : apiAssayProperty.getTerms()) {
                     terms.add(atlasDAO.getOrCreateOntologyTerm(
                             apiOntologyTerm.getAccession(),
@@ -95,7 +93,7 @@ public class CurationService {
                         apiSampleProperty.getPropertyValue().getProperty().getName(),
                         apiSampleProperty.getPropertyValue().getValue());
 
-                Set<OntologyTerm> terms = Sets.newHashSet();
+                List<OntologyTerm> terms = Lists.newArrayList();
                 for (ApiOntologyTerm apiOntologyTerm : apiSampleProperty.getTerms()) {
                     terms.add(atlasDAO.getOrCreateOntologyTerm(
                             apiOntologyTerm.getAccession(),

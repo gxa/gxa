@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
+import org.junit.Test;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -40,7 +41,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     private GeneSolrDAO geneSolrDAO;
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
 
         geneSolrDAO = new GeneSolrDAO();
@@ -49,15 +50,16 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         plotter = new AtlasPlotter();
         plotter.setAtlasDatabaseDAO(atlasDAO);
         plotter.setGeneSolrDAO(getAtlasSolrDao());
-        plotter.setAtlasNetCDFDAO(getNetCDFDAO());
+        plotter.setAtlasDataDAO(getDataDAO());
     }
 
     @Override
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         plotter = null;
         super.tearDown();
     }
 
+    @Test
     public void testGetGeneInExpPlotData() throws Exception {
         atlasDAO.startSession();
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();

@@ -1,34 +1,31 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import java.io.File;
 import java.util.List;
 
-class BitIndexTask {
-    private static final double GiB = 1024.0 * 1024.0 * 1024.0;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-    private final List<File> files;
+class BitIndexTask {
+    private final List<Experiment> experiments;
     private final long totalSize;
 
     private int totalStatCount = 0;
     private int processedCount = 0;
     private long processedSize = 0;
-    // Count of ncdfs in which no efvs were found
-    private int emptyCount = 0;
     private final long start = System.currentTimeMillis();
 
-    public BitIndexTask(List<File> files) {
-        this.files = files;
-        totalSize = size(files);
+    public BitIndexTask(List<Experiment> experiments) {
+        this.experiments = experiments;
+        totalSize = size(experiments);
     }
 
-    public List<File> getFiles() {
-        return files;
+    public List<Experiment> getExperiments() {
+        return experiments;
     }
 
-    private long size(List<File> files) {
+    private long size(List<Experiment> experiments) {
         long result = 0;
-        for (File f : files) {
-            result += f.length();
+        for (Experiment e : experiments) {
+            result += e.getAssays().size();
         }
         return result;
     }
@@ -38,23 +35,18 @@ class BitIndexTask {
     }
 
     public String progress() {
-        return String.format("%d/%d (%.1f/%.1fG)",
-                processedCount, files.size(),
-                processedSize / GiB, totalSize / GiB);
+        return String.format("%d/%d (%d/%d assays)",
+                processedCount, experiments.size(),
+                processedSize, totalSize);
     }
 
-    public int getTotalFiles() {
-        return files.size();
+    public int getTotalExperiments() {
+        return experiments.size();
     }
 
-    public void skipEmpty(File f) {
-        emptyCount++;
-        done(f);
-    }
-
-    public void done(File f) {
+    public void done(Experiment e) {
         processedCount++;
-        processedSize += f.length();
+        processedSize += e.getAssays().size();
     }
 
     public int getTotalStatCount() {

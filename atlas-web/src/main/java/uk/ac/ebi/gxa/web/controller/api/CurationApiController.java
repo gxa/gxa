@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.web.controller.api;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +16,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 /**
  * TODO
@@ -129,7 +129,7 @@ public class CurationApiController extends AtlasViewController {
                     apiAssayProperty.getPropertyValue().getProperty().getName(),
                     apiAssayProperty.getPropertyValue().getValue());
 
-            Set<OntologyTerm> terms = Sets.newHashSet();
+            List<OntologyTerm> terms = Lists.newArrayList();
             for (ApiOntologyTerm apiOntologyTerm : apiAssayProperty.getTerms()) {
                 terms.add(getOrCreateOntologyTerm(apiOntologyTerm));
             }
@@ -200,7 +200,7 @@ public class CurationApiController extends AtlasViewController {
                     apiSampleProperty.getPropertyValue().getProperty().getName(),
                     apiSampleProperty.getPropertyValue().getValue());
 
-            Set<OntologyTerm> terms = Sets.newHashSet();
+            List<OntologyTerm> terms = Lists.newArrayList();
             for (ApiOntologyTerm apiOntologyTerm : apiSampleProperty.getTerms()) {
                 terms.add(getOrCreateOntologyTerm(apiOntologyTerm));
             }
@@ -320,7 +320,6 @@ public class CurationApiController extends AtlasViewController {
 
 
     /**
-     *
      * @param apiOntology
      * @return Ontology
      */
@@ -333,7 +332,6 @@ public class CurationApiController extends AtlasViewController {
     }
 
     /**
-     *
      * @param apiOntologyTerm
      * @return OntologyTerm
      */

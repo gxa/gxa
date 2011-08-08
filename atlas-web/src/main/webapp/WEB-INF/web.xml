@@ -429,15 +429,6 @@
     </filter>
 
     <filter>
-        <filter-name>ReadWriteHibernateSessionFilter</filter-name>
-        <filter-class>uk.ac.ebi.gxa.dao.hibernate.ReadWriteHibernateSessionFilter</filter-class>
-        <init-param>
-            <param-name>sessionFactoryBeanName</param-name>
-            <param-value>sessionFactory</param-value>
-        </init-param>
-    </filter>
-
-    <filter>
         <filter-name>NoCacheHeaderFilter</filter-name>
         <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
     </filter>
@@ -482,7 +473,7 @@
     </filter-mapping>
 
     <filter-mapping>
-        <filter-name>ReadWriteHibernateSessionFilter</filter-name>
+        <filter-name>OpenSessionInViewFilter</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>

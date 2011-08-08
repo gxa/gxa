@@ -283,7 +283,7 @@
         <module>atlas-test</module>
         <module>atlas-utils</module>
         <module>atlas-analytics</module>
-        <module>netcdf-reader</module>
+        <module>atlas-data-storage</module>
     </modules>
 
     <dependencies>
@@ -344,6 +344,12 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
             <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

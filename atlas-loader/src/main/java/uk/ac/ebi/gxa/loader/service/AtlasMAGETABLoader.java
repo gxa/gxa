@@ -32,10 +32,9 @@ import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.data.NetCDFCreator;
+import uk.ac.ebi.gxa.data.NetCDFCreatorException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -50,7 +49,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
@@ -75,7 +73,7 @@ public class AtlasMAGETABLoader {
         }
     };
     private AtlasComputeService atlasComputeService;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
 
     private AtlasExperimentUnloaderService unloaderService;
@@ -111,10 +109,7 @@ public class AtlasMAGETABLoader {
                         throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
                     }
                     if (idfs.length == 0) {
-                        // No IDFs found - perhaps, a NetCDF pack for "incremental" updates, give it a try
-                        loadNetCDFs(cache, tempDirectory);
-                        write(listener, cache);
-                        return;
+                        throw new AtlasLoaderException("No IDFs to import!");
                     }
                     idfFileLocation = new URL("file:" + idfs[0]);
                 } catch (IOException ex) {
@@ -202,28 +197,6 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private void loadNetCDFs(AtlasLoadCache cache, File target) throws AtlasLoaderException {
-        File[] netcdfs = target.listFiles(extension("nc", false));
-        if (netcdfs == null) {
-            throw new AtlasLoaderException("The directory has suddenly disappeared or is not readable");
-        }
-        if (netcdfs.length == 0)
-            throw new AtlasLoaderException("No IDF or NetCDF files found - nothing to import");
-
-        for (File file : netcdfs) {
-            NetCDFProxy proxy = null;
-            try {
-                proxy = new NetCDFProxy(file);
-                AtlasNcdfLoaderUtil.loadNcdfToCache(cache, proxy, dao);
-            } catch (IOException e) {
-                log.error("Cannot load NCDF: " + e.getMessage(), e);
-                throw new AtlasLoaderException("can not load NetCDF file to loader cache, exit", e);
-            } finally {
-                closeQuietly(proxy);
-            }
-        }
-    }
-
     void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
@@ -266,7 +239,7 @@ public class AtlasMAGETABLoader {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
         final Experiment experiment = cache.fetchExperiment();
 
         for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
@@ -278,27 +251,22 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                         " and " + arrayDesign);
 
-            NetCDFCreator netCdfCreator = new NetCDFCreator();
+            final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
 
             netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays)
-                for (Sample sample : assay.getSamples())
+            for (Assay assay : adAssays) {
+                for (Sample sample : assay.getSamples()) {
                     netCdfCreator.setSample(assay, sample);
-
-            netCdfCreator.setArrayDesign(arrayDesign);
-            netCdfCreator.setExperiment(experiment);
+                }
+            }
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
-            netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
 
-
-            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
-            if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
-                throw new IOException("Cannot create folder for the output file" + netCDFLocation);
-            netCdfCreator.createNetCdf(netCDFLocation);
+            netCdfCreator.createNetCdf();
 
             if (netCdfCreator.hasWarning() && listener != null) {
-                for (String warning : netCdfCreator.getWarnings())
+                for (String warning : netCdfCreator.getWarnings()) {
                     listener.setWarning(warning);
+                }
             }
             log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
         }
@@ -367,8 +335,8 @@ public class AtlasMAGETABLoader {
         this.atlasComputeService = atlasComputeService;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
