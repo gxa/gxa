@@ -152,11 +152,11 @@ public class AtlasDataDAO {
      */
     private List<NetCDFDescriptor> getNetCDFDescriptors(final Experiment experiment) {
         final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
-        final List<NetCDFDescriptor> nsdfs = new ArrayList<NetCDFDescriptor>(arrayDesigns.size());
+        final List<NetCDFDescriptor> ncdfs = new ArrayList<NetCDFDescriptor>(arrayDesigns.size());
         for (ArrayDesign ad : arrayDesigns) {
-            nsdfs.add(getNetCDFDescriptor(experiment, ad));
+            ncdfs.add(getNetCDFDescriptor(experiment, ad));
         }
-        return nsdfs;
+        return ncdfs;
     }
 
     /**
