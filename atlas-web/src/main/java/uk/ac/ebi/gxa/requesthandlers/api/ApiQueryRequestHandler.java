@@ -164,14 +164,14 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
                     QueryExpression.parseFuzzyString(upDownParam);
 
-            Predicate<NetCDFProxy> genePredicate = alwaysTrue();
+            Predicate<DataPredicates.Pair> genePredicate = alwaysTrue();
 
             final Set<Long> geneIds = new HashSet<Long>();
             if (!experimentInfoOnly) {
                 final String[] requestedGeneIds = request.getParameterValues("geneIs");
                 if (requestedGeneIds != null && requestedGeneIds.length > 0) {
                     geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
-                    genePredicate = new NetCDFPredicates().containsAtLeastOneGene(geneIds);
+                    genePredicate = new DataPredicates().containsAtLeastOneGene(geneIds);
                 }
             }
 
@@ -182,8 +182,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
 
-            final Predicate<NetCDFProxy> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
-                    new NetCDFPredicates().hasArrayDesign(arrayDesignAccession) : genePredicate;
+            final Predicate<DataPredicates.Pair> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
+                    new DataPredicates().hasArrayDesign(arrayDesignAccession) : genePredicate;
 
             return new ExperimentResults(
                 experiments,

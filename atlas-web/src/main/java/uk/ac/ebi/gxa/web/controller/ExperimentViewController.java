@@ -249,17 +249,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         List<Long> geneIds = findGeneIds(gid);
 
-        final Predicate<NetCDFProxy> ncdfPredicate;
+        final Predicate<DataPredicates.Pair> dataPredicate;
         if (!isNullOrEmpty(adAcc)) {
-            ncdfPredicate = new NetCDFPredicates().hasArrayDesign(adAcc);
+            dataPredicate = new DataPredicates().hasArrayDesign(adAcc);
         } else if (!isNullOrEmpty(gid)) {
-            ncdfPredicate = new NetCDFPredicates().containsAtLeastOneGene(geneIds);
+            dataPredicate = new DataPredicates().containsAtLeastOneGene(geneIds);
         } else {
-            ncdfPredicate = alwaysTrue();
+            dataPredicate = alwaysTrue();
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        final ArrayDesign arrayDesign = atlasDataDAO.getArrayDesign(experiment, ncdfPredicate);
+        final ArrayDesign arrayDesign = atlasDataDAO.getArrayDesign(experiment, dataPredicate);
 
         final BestDesignElementsResult res = (arrayDesign == null) ?
                 BestDesignElementsResult.empty() :

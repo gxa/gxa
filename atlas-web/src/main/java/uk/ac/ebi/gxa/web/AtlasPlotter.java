@@ -92,7 +92,7 @@ public class AtlasPlotter {
                 }
             });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, new NetCDFPredicates().containsEfEfv(ef, efv));
+                    atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, new DataPredicates().containsEfEfv(ef, efv));
             if (geneIdsToEfToEfvToEA == null)
                 return null;
 

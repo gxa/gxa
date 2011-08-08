@@ -32,6 +32,11 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+
+import javax.annotation.Nullable;
 
 public class ExperimentWithData {
     private final AtlasDataDAO atlasDataDAO;
@@ -136,6 +141,14 @@ public class ExperimentWithData {
         }
     }
 
+    public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getUniqueFactorValues(); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
     public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getUniqueValues(); 
@@ -203,6 +216,28 @@ public class ExperimentWithData {
     public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getExpressionStatistics(deIndices); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(ArrayDesign arrayDesign, Map<Long, List<Integer>> geneIdsToDEIndexes) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes); 
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+            ArrayDesign arrayDesign,
+            final Map<Long, List<Integer>> geneIdsToDEIndexes,
+            @Nullable final String efVal,
+            @Nullable final String efvVal,
+            final UpDownCondition upDownCondition)
+            throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, efVal, efvVal, upDownCondition); 
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }

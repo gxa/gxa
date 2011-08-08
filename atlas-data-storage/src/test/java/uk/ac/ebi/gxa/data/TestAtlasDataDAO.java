@@ -60,7 +60,7 @@ public class TestAtlasDataDAO extends TestCase {
     public void testGetExpressionAnalyticsByGeneID() throws IOException, AtlasDataException {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                 atlasDataDAO.getExpressionAnalysesForGeneIds(experiment, geneIds,
-                        Predicates.<NetCDFProxy>alwaysTrue());
+                        Predicates.<DataPredicates.Pair>alwaysTrue());
 
         // check the returned data
         assertNotNull(geneIdsToEfToEfvToEA.get(geneId));

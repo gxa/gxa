@@ -81,22 +81,19 @@ public class AtlasDataDAO {
      * @throws AtlasDataException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(
-            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<NetCDFProxy> criteria) throws AtlasDataException {
-        final NetCDFDescriptor netCDF = findNetCDF(experiment, Predicates.<NetCDFProxy>and(new NetCDFPredicates().containsGenes(geneIds), criteria));
-        if (netCDF == null)
+            @Nonnull final Experiment experiment, @Nonnull Collection<Long> geneIds, @Nonnull Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+        final ArrayDesign arrayDesign = findArrayDesign(experiment, Predicates.<DataPredicates.Pair>and(new DataPredicates().containsGenes(geneIds), criteria));
+        if (arrayDesign == null) {
             return null;
+        }
 
-        NetCDFProxy proxy = null;
+        final ExperimentWithData ewd = createExperimentWithData(experiment);
         try {
-            proxy = netCDF.createProxy();
-            // Map gene ids to design element ids in which those genes are present
-            Map<Long, List<Integer>> geneIdToDEIndexes =
-                    getGeneIdToDesignElementIndexes(proxy, geneIds);
-            return proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
+            final Map<Long, List<Integer>> geneIdToDEIndexes =
+                    getGeneIdToDesignElementIndexes(ewd, arrayDesign, geneIds);
+            return ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
         } finally {
-            closeQuietly(proxy);
+            ewd.closeAllDataSources();
         }
     }
 
@@ -117,22 +114,21 @@ public class AtlasDataDAO {
     }
 
     /**
-     * @param experiment the experiment to find proxy for
-     * @param criteria   the criteria to choose NetCDF proxy
-     * @return if arrayDesignAcc != null, id of first proxy for experimentAccession, that matches arrayDesignAcc;
-     *         otherwise, id of first proxy in the list returned by getNetCDFDescriptors()
+     * @param experiment the experiment to find arrayDesign for
+     * @param criteria   the criteria to choose arrayDesign
+     * @return first arrayDesign used in experiment, that matches criteria;
+     *         or null if no arrayDesign has been found
      */
-    private NetCDFDescriptor findNetCDF(final Experiment experiment, Predicate<NetCDFProxy> criteria) throws AtlasDataException {
-        for (NetCDFDescriptor ncdf : getNetCDFDescriptors(experiment)) {
-            NetCDFProxy proxy = null;
-            try {
-                proxy = ncdf.createProxy();
-                if (criteria.apply(proxy)) {
-                    return ncdf;
+    private ArrayDesign findArrayDesign(final Experiment experiment, Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+        final ExperimentWithData ewd = createExperimentWithData(experiment);
+        try {
+            for (ArrayDesign ad : experiment.getArrayDesigns()) {
+                if (criteria.apply(new DataPredicates.Pair(ewd, ad))) {
+                    return ad;
                 }
-            } finally {
-                closeQuietly(proxy);
             }
+        } finally {
+            ewd.closeAllDataSources();
         }
         return null;
     }
@@ -166,15 +162,15 @@ public class AtlasDataDAO {
      * @throws IOException
      */
     private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(
-            final NetCDFProxy proxy,
-            final Collection<Long> geneIds) throws IOException {
+            final ExperimentWithData ewd, ArrayDesign ad,
+            final Collection<Long> geneIds) throws AtlasDataException {
         // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
         // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
         // proxy.getGenes().size() == proxy.getDesignElements().size())
         Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
 
         int deIndex = 0;
-        for (Long geneId : proxy.getGeneIds()) {
+        for (Long geneId : ewd.getGenes(ad)) {
             if (geneIds.contains(geneId)) {
                 List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
                 if (deIndexes == null) {
@@ -203,33 +199,28 @@ public class AtlasDataDAO {
                                                                 final String efv,
                                                                 final UpDownCondition upDownCondition) {
         ExpressionAnalysis ea = null;
+        final ExperimentWithData ewd = createExperimentWithData(experiment);
         try {
-            Collection<NetCDFDescriptor> ncdfs = getNetCDFDescriptors(experiment);
-            for (NetCDFDescriptor ncdf : ncdfs) {
-                NetCDFProxy proxy = null;
-                try {
-                    proxy = ncdf.createProxy();
-                    if (ea == null) {
-                        Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
-                        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                                proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes, ef, efv, upDownCondition);
-                        if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
-                                geneIdsToEfToEfvToEA.get(geneId).containsKey(ef) &&
-                                geneIdsToEfToEfvToEA.get(geneId).get(ef).containsKey(efv) &&
+            final Collection<ArrayDesign> ads = experiment.getArrayDesigns();
+            for (ArrayDesign ad : ads) {
+                if (ea == null) {
+                    Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(ewd, ad, singleton(geneId));
+                    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                            ewd.getExpressionAnalysesForDesignElementIndexes(ad, geneIdToDEIndexes, ef, efv, upDownCondition);
+                    if (geneIdsToEfToEfvToEA.containsKey(geneId) &&
+                            geneIdsToEfToEfvToEA.get(geneId).containsKey(ef) &&
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).containsKey(efv) &&
 
-                                geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv) != null) {
-                            ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-                        }
-
+                            geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv) != null) {
+                        ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
                     }
-                } finally {
-                    closeQuietly(proxy);
+
                 }
             }
         } catch (AtlasDataException e) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
-        } catch (IOException e) {
-            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
+        } finally {
+            ewd.closeAllDataSources();
         }
         return ea;
     }
@@ -247,27 +238,22 @@ public class AtlasDataDAO {
             final Long geneId,
             final String ef)
             throws AtlasDataException {
-
-        NetCDFProxy proxy = null;
+        final ExperimentWithData ewd = createExperimentWithData(experiment);
         try {
-            proxy = getNetCDFProxy(experiment, arrayDesign);
-            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(proxy, singleton(geneId));
+            Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(ewd, arrayDesign, singleton(geneId));
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    proxy.getExpressionAnalysesForDesignElementIndexes(geneIdToDEIndexes);
+                    ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
         } finally {
-            closeQuietly(proxy);
+            ewd.closeAllDataSources();
         }
     }
 
-    public ArrayDesign getArrayDesign(Experiment experiment, Predicate<NetCDFProxy> criteria) {
+    public ArrayDesign getArrayDesign(Experiment experiment, Predicate<DataPredicates.Pair> criteria) {
         try {
-            final NetCDFDescriptor d = findNetCDF(experiment, criteria);
-            return d != null ? d.getArrayDesign() : null;
+            return findArrayDesign(experiment, criteria);
         } catch (AtlasDataException e) {
-            log.warn("exception in findNetCDF", e);
+            log.warn("exception in findArrayDesign", e);
             return null;
         }
     }
