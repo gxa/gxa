@@ -182,7 +182,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
 
-            final Predicate<DataPredicates.Pair> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
+            final Predicate<DataPredicates.Pair> dataPredicate = !isNullOrEmpty(arrayDesignAccession) ?
                     new DataPredicates().hasArrayDesign(arrayDesignAccession) : genePredicate;
 
             return new ExperimentResults(
@@ -197,8 +197,15 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                             if (!experimentInfoOnly) {
 
-                                final ArrayDesign arrayDesign =
-                                        atlasDataDAO.getArrayDesign(experiment.getExperiment(), netCDFProxyPredicate);
+                                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
+                                ArrayDesign arrayDesign = null;
+                                try {
+                                    arrayDesign = atlasDataDAO.findArrayDesign(ewd, dataPredicate);
+                                } catch (AtlasDataException e) {
+                                    log.info("Exception in findArrayDesign");
+                                } finally {
+                                    ewd.closeAllDataSources();
+                                }
 
                                 if (arrayDesign != null) {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call

@@ -85,13 +85,9 @@ public class ExperimentPlot {
     }
 
     public static ExperimentPlot create(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
-        try {
-            ExperimentPlot plot = new ExperimentPlot();
-            plot.load(deIndices, ewd, ad, stringConverter);
-            return plot;
-        } finally {
-            ewd.closeAllDataSources();
-        }
+        ExperimentPlot plot = new ExperimentPlot();
+        plot.load(deIndices, ewd, ad, stringConverter);
+        return plot;
     }
 
     private void load(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {

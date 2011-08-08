@@ -114,7 +114,7 @@ public class AtlasDataDAO {
      * @return first arrayDesign used in experiment, that matches criteria;
      *         or null if no arrayDesign has been found
      */
-    private ArrayDesign findArrayDesign(ExperimentWithData ewd, Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+    public ArrayDesign findArrayDesign(ExperimentWithData ewd, Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
         for (ArrayDesign ad : ewd.getExperiment().getArrayDesigns()) {
             if (criteria.apply(new DataPredicates.Pair(ewd, ad))) {
                 return ad;
@@ -234,18 +234,6 @@ public class AtlasDataDAO {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
             return geneIdsToEfToEfvToEA.get(geneId).get(ef);
-        } finally {
-            ewd.closeAllDataSources();
-        }
-    }
-
-    public ArrayDesign getArrayDesign(Experiment experiment, Predicate<DataPredicates.Pair> criteria) {
-        final ExperimentWithData ewd = createExperimentWithData(experiment);
-        try {
-            return findArrayDesign(ewd, criteria);
-        } catch (AtlasDataException e) {
-            log.warn("exception in findArrayDesign", e);
-            return null;
         } finally {
             ewd.closeAllDataSources();
         }

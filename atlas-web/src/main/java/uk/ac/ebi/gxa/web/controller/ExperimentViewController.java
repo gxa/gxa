@@ -173,9 +173,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-        model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
-        if (assayPropertiesRequired) {
-            model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
+        try {
+            model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
+            if (assayPropertiesRequired) {
+                model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
+            }
+        } finally {
+            ewd.closeAllDataSources();
         }
         return UNSUPPORTED_HTML_VIEW;
     }
@@ -259,7 +263,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        final ArrayDesign arrayDesign = atlasDataDAO.getArrayDesign(experiment, dataPredicate);
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        ArrayDesign arrayDesign = null;
+        try {
+            arrayDesign = atlasDataDAO.findArrayDesign(ewd, dataPredicate);
+        } finally {
+            ewd.closeAllDataSources();
+        }
 
         final BestDesignElementsResult res = (arrayDesign == null) ?
                 BestDesignElementsResult.empty() :
