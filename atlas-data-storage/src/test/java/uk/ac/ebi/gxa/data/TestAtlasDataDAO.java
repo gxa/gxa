@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.data;
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -39,7 +40,9 @@ public class TestAtlasDataDAO extends TestCase {
         designElementAccessionForMinPValue = "204531_s_at";
 
         experiment = new Experiment(411512559L, "E-MTAB-25");
-
+        final Assay assay = new Assay("AssayAccession");
+        assay.setArrayDesign(arrayDesign);
+        experiment.setAssays(Collections.singletonList(assay));
 
         atlasDataDAO = new AtlasDataDAO();
         atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
@@ -60,7 +63,7 @@ public class TestAtlasDataDAO extends TestCase {
         }
     }
 
-    public void testGetExpressionAnalyticsByGeneID() throws IOException, AtlasDataException {
+    public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
