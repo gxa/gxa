@@ -89,6 +89,12 @@
         <appender-ref ref="atlas-log"/>
     </logger>
 
+    <logger name="uk.ac.ebi.gxa.annotator" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="atlas-log"/>
+    </logger>
+
+
     <logger name="uk.ac.ebi.gxa.index" additivity="false">
         <level value="DEBUG"/>
         <appender-ref ref="atlas-log"/>
