@@ -219,7 +219,12 @@ public class Assay {
     }
 
     public void deleteProperty(final PropertyValue propertyValue) {
-        properties.remove(new AssayProperty(null, this, propertyValue, Collections.<OntologyTerm>emptyList()));
+        for (Iterator<AssayProperty> iterator = properties.iterator(); iterator.hasNext(); ) {
+            AssayProperty property = iterator.next();
+            if (propertyValue.equals(property.getPropertyValue())) {
+                iterator.remove();
+            }
+        }
     }
 
     public boolean hasProperty(final PropertyValue propertyValue) {

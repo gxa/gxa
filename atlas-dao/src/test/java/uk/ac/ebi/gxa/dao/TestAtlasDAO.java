@@ -182,22 +182,21 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertTrue("Property not added", assay.hasProperty(propertyValue));
+        int oldCount = assay.getProperties().size();
 
         removeAssayProperty();
 
-        checkRemovalResults(termsCount, propertyValue);
+        checkRemovalResults(termsCount, propertyValue, oldCount);
     }
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void checkRemovalResults(long termsCount, PropertyValue propertyValue) {
+    private void checkRemovalResults(long termsCount, PropertyValue propertyValue, int oldCount) {
         Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertFalse("Property not removed", assay.hasProperty(propertyValue));
 
-        assertEquals("Property are not deleted!", 0, assay.getProperties().size());
-        assertEquals("Deleted the OntologyTerm - invalid cascading", termsCount,
-                countOntologyTerms());
+        assertEquals("Property is not deleted!", oldCount - 1, assay.getProperties().size());
     }
 
     private long countOntologyTerms() {
