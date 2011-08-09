@@ -3,7 +3,6 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -11,8 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@Immutable
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public final class Property {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
