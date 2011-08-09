@@ -47,6 +47,18 @@
             private="0"
             />
 
+    <A2_EXPERIMENT
+            experimentid="3"
+            accession="E-GEOD-5035"
+            description="Another test experiment"
+            performer="Someone else"
+            lab="Somewhere else"
+            loaddate="2009-10-05"
+            pmid="15361863"
+            curated="1"
+            private="0"
+            />
+
     <A2_ARRAYDESIGN
             arraydesignid="1"
             accession="A-ABCD-1234"
@@ -251,6 +263,13 @@
             accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
             experimentid="174501824"
             arraydesignid="2"
+            />
+
+    <A2_ASSAY
+            assayid="3"
+            accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
+            experimentid="3"
+            arraydesignid="1"
             />
 
     <A2_ASSAYPV
