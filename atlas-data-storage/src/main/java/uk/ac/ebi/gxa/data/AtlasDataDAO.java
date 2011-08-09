@@ -77,8 +77,4 @@ public class AtlasDataDAO {
     public void deleteExperiment(Experiment experiment) {
         FileUtil.deleteDirectory(getDataDirectory(experiment));
     }
-
-    NetCDFDescriptor getNetCDFDescriptor(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFDescriptor(this, experiment, arrayDesign);
-    }
 }
