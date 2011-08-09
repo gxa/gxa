@@ -96,8 +96,7 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
     public void testCreateAnalyticsForExperimentWithoutFactors () throws AnalyticsGeneratorException {
         TestingAnalyticsGeneratorListener agl = new TestingAnalyticsGeneratorListener();
         experimentAnalyticsGeneratorService.createAnalyticsForExperiment(E_GEOD_5035, agl);
-        assertTrue(agl.warnings.contains("No analytics were computed for " + E_GEOD_5035 + "/" +
-                            A_AFFY_45 + " as it contained no factors!"));
+        assertTrue(agl.warnings.contains("No analytics were computed for " + E_GEOD_5035 + " as it contained no factors!"));
     }
 
     private class TestingAnalyticsGeneratorListener implements AnalyticsGeneratorListener {
