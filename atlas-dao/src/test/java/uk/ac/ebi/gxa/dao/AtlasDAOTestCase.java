@@ -404,18 +404,18 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  LANGUAGE JAVA\n" +
                         "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.wmConcat'");
 
-        runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ORGANISM_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_PROPERTY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ORGANISM_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ START WITH 10000000");
 
         System.out.println("...done!");
         conn.close();
