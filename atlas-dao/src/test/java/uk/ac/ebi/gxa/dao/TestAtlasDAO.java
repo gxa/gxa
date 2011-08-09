@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -186,8 +185,14 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         removeAssayProperty();
 
-        experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
-        assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        checkRemovalResults(termsCount, propertyValue);
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void checkRemovalResults(long termsCount, PropertyValue propertyValue) {
+        Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertFalse("Property not removed", assay.hasProperty(propertyValue));
 
         assertEquals("Property are not deleted!", 0, assay.getProperties().size());
@@ -231,7 +236,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
-        assay.getProperties().remove(propertyValue);
+        assay.deleteProperty(propertyValue);
         experimentDAO.save(experiment);
     }
 }
