@@ -145,7 +145,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
                     // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
                     // TODO should change to experimentWithData.getUniqueValues()
-                    final List<KeyValuePair> uVals = experimentWithData.getProxy(ad).getUniqueFactorValues();
+                    final List<KeyValuePair> uVals = experimentWithData.getUniqueFactorValues(ad);
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
                 
                     if (uVals.size() == 0) {
