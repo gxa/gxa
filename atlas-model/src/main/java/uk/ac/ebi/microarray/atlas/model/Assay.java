@@ -221,7 +221,7 @@ public class Assay {
     public void deleteProperty(final PropertyValue propertyValue) {
         for (Iterator<AssayProperty> iterator = properties.iterator(); iterator.hasNext(); ) {
             AssayProperty property = iterator.next();
-            if (propertyValue.equals(property.getPropertyValue())) {
+            if (property.getPropertyValue().equals(propertyValue)) {
                 iterator.remove();
             }
         }
