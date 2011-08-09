@@ -21,8 +21,7 @@ public final class Property {
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-    @Immutable
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<PropertyValue> values = new ArrayList<PropertyValue>();
 
     Property() {
