@@ -183,17 +183,15 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         removeAssayProperty();
 
-        checkRemovalResults(propertyValue, oldCount);
+        checkRemovalResults(propertyValue);
     }
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void checkRemovalResults(PropertyValue propertyValue, int oldCount) {
+    private void checkRemovalResults(PropertyValue propertyValue) {
         Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertFalse("Property not removed", assay.hasProperty(propertyValue));
-
-        assertEquals("Property is not deleted!", oldCount - 1, assay.getProperties().size());
     }
 
     private long countOntologyTerms() {

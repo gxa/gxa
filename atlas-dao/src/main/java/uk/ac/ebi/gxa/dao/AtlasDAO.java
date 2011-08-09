@@ -198,21 +198,15 @@ public class AtlasDAO {
                                                 final String ontologyDescription,
                                                 final String ontologySourceUri,
                                                 final String ontologyVersion) {
-        Ontology ontology =
-                getOrCreateOntology(ontologyName, ontologyDescription, ontologySourceUri, ontologyVersion);
 
         OntologyTerm ontologyTerm = ontologyTermDAO.getByAccession(accession);
-        if(ontologyTerm == null) {
+        if (ontologyTerm == null) {
+            Ontology ontology =
+                    getOrCreateOntology(ontologyName, ontologyDescription, ontologySourceUri, ontologyVersion);
             ontologyTermDAO.save(ontologyTerm = new OntologyTerm(null, ontology, term, accession, description));
         }
 
         return ontologyTerm;
-    }
-
-    public void flushCurrentSession() {
-        log.debug("flush()");
-        Session session = sessionFactory.getCurrentSession();
-        session.flush();
     }
 
     public Ontology getOntologyByName(final String ontologyName) {
