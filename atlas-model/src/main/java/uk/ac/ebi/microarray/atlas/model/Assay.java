@@ -224,7 +224,7 @@ public class Assay {
 
     public boolean hasProperty(final PropertyValue propertyValue) {
         for (AssayProperty property : properties) {
-            if(property.getPropertyValue().equals(propertyValue))
+            if (property.getPropertyValue().equals(propertyValue))
                 return true;
         }
 
@@ -233,7 +233,7 @@ public class Assay {
 
     public AssayProperty getProperty(PropertyValue propertyValue) {
         for (AssayProperty property : properties) {
-            if(property.getPropertyValue().equals(propertyValue))
+            if (property.getPropertyValue().equals(propertyValue))
                 return property;
         }
 
@@ -241,7 +241,7 @@ public class Assay {
     }
 
     public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
-        if(!this.hasProperty(propertyValue)) {
+        if (!this.hasProperty(propertyValue)) {
             this.addProperty(propertyValue, terms);
         } else {
             AssayProperty assayProperty = this.getProperty(propertyValue);
