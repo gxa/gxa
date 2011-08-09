@@ -22,17 +22,16 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
+import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,6 +44,13 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     private static final String ABC_ABCXYZ_SOME_THING_1234_ABC123 = "abc:ABCxyz:SomeThing:1234.ABC123";
     private static final String E_MEXP_420 = "E-MEXP-420";
+    private static final String PROPERTY_NAME = "SEX";
+    private static final String PROPERTY_VALUE = "MALE";
+    private static final String ONTOLOGY_TERM = "EFO_0000107";
+    private static final String ONTOLOGY_NAME = "EFO";
+    private static final String ONTOLOGY_VERSION = "Thu Oct 02 2008";
+    private static final String ONTOLOGY_DESCRIPTION = "ArrayExpress Experimental Factor Ontology";
+
 
     @Override
     @Before
@@ -152,7 +158,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testDeleteAssayProperty() throws Exception {
+    public void testDeleteAssayProperties() throws Exception {
         final long termsCount = countOntologyTerms();
 
         removeAssayProperties();
@@ -161,6 +167,30 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
 
         assertEquals("Properties are not deleted!", 0, assay.getProperties().size());
+        assertEquals("Deleted the OntologyTerm - invalid cascading", termsCount,
+                countOntologyTerms());
+    }
+
+    @Test
+    public void testAddDeleteAssayProperty() throws Exception {
+        final long termsCount = countOntologyTerms();
+
+        final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+
+        addAssayProperty();
+
+
+        Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        assertTrue("Property not added", assay.hasProperty(propertyValue));
+
+        removeAssayProperty();
+
+        experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        assertFalse("Property not removed", assay.hasProperty(propertyValue));
+
+        assertEquals("Property are not deleted!", 0, assay.getProperties().size());
         assertEquals("Deleted the OntologyTerm - invalid cascading", termsCount,
                 countOntologyTerms());
     }
@@ -176,6 +206,32 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assay.getProperties().clear();
+        experimentDAO.save(experiment);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void addAssayProperty() {
+        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        List<OntologyTerm> terms = Collections.singletonList(atlasDAO.getOrCreateOntologyTerm(
+                ONTOLOGY_TERM,
+                null,
+                null,
+                ONTOLOGY_NAME,
+                ONTOLOGY_DESCRIPTION,
+                null,
+                ONTOLOGY_VERSION));
+        assay.addOrUpdateProperty(propertyValue, terms);
+        experimentDAO.save(experiment);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void removeAssayProperty() {
+        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        assay.getProperties().remove(propertyValue);
         experimentDAO.save(experiment);
     }
 }
