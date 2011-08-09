@@ -353,14 +353,12 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
 
         runStatement(conn,
                 "  CREATE TABLE A2_ASSAYPVONTOLOGY (\n" +
-                        "    ASSAYPVONTOLOGYID bigint not null\n" +
-                        "  , ONTOLOGYTERMID bigint not null\n" +
+                        "    ONTOLOGYTERMID bigint not null\n" +
                         "  , ASSAYPVID bigint not null)");
 
         runStatement(conn,
                 "  CREATE TABLE A2_SAMPLEPVONTOLOGY (\n" +
-                        "    SAMPLEPVONTOLOGYID bigint not null\n" +
-                        "  , ONTOLOGYTERMID bigint not null\n" +
+                        "    ONTOLOGYTERMID bigint not null\n" +
                         "  , SAMPLEPVID bigint not null)");
 
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");

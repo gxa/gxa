@@ -508,7 +508,6 @@
             DESCRIPTION="Just a term"/>
 
     <A2_ASSAYPVONTOLOGY
-            ASSAYPVONTOLOGYID="1"
             ONTOLOGYTERMID="1"
             ASSAYPVID="1"/>
 </dataset>
