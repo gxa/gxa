@@ -33,7 +33,9 @@ public class CurationService {
     public void saveExperiment(final ApiExperiment apiExperiment) {
         Experiment experiment = atlasDAO.getExperimentByAccession(apiExperiment.getAccession());
 
-        if(experiment != null) {
+        if (experiment != null) {
+            // TODO: 4ostolop: should we or should we not keep it?
+
 //            log.info("Deleting experiment " + experiment.getAccession() + " in order to update");
 //            experimentDAO.delete(experiment);
         }
@@ -48,16 +50,15 @@ public class CurationService {
         experiment.setPerformer(apiExperiment.getPerformer());
         experiment.setPrivate(apiExperiment.isPrivate());
         experiment.setPubmedId(apiExperiment.getPubmedId());
-        experiment.setReleaseDate(apiExperiment.getReleaseDate());
 
-        Map<String,Assay> assays = Maps.newHashMap();
+        Map<String, Assay> assays = Maps.newHashMap();
         for (ApiAssay apiAssay : apiExperiment.getAssays()) {
             Assay assay = new Assay(apiAssay.getAccession());
             // TODO: create ArrayDesign
             assay.setArrayDesign(atlasDAO.getArrayDesignShallowByAccession(apiAssay.getArrayDesign().getAccession()));
 
             for (ApiAssayProperty apiAssayProperty : apiAssay.getProperties()) {
-                PropertyValue propertyValue =  atlasDAO.getOrCreatePropertyValue(
+                PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                         apiAssayProperty.getPropertyValue().getProperty().getName(),
                         apiAssayProperty.getPropertyValue().getValue());
 
@@ -84,12 +85,12 @@ public class CurationService {
             Sample sample = new Sample(apiSample.getAccession());
             sample.setChannel(apiSample.getChannel());
 
-            if(apiSample.getOrganism() != null){
+            if (apiSample.getOrganism() != null) {
                 sample.setOrganism(atlasDAO.getOrganismByName(apiSample.getOrganism().getName()));
             }
 
             for (ApiSampleProperty apiSampleProperty : apiSample.getProperties()) {
-                PropertyValue propertyValue =  atlasDAO.getOrCreatePropertyValue(
+                PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                         apiSampleProperty.getPropertyValue().getProperty().getName(),
                         apiSampleProperty.getPropertyValue().getValue());
 

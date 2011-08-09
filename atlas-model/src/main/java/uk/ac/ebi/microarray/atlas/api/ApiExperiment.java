@@ -7,7 +7,6 @@ import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -22,7 +21,6 @@ public class ApiExperiment {
     private String performer;
     private String lab;
     private Date loadDate;
-    private Date releaseDate;
     private String pmid;
     private Collection<ApiAsset> assets;
     private Collection<ApiAssay> assays;
@@ -33,7 +31,7 @@ public class ApiExperiment {
     public ApiExperiment() {}
 
     public ApiExperiment(final String accession, final String description, final String performer, final String lab,
-                         final Date loadDate, final Date releaseDate, final String pmid, final Collection<ApiAsset> assets,
+                         final Date loadDate, final String pmid, final Collection<ApiAsset> assets,
                          final Collection<ApiAssay> assays, final Collection<ApiSample> samples, final Boolean isPrivate,
                          final Boolean curated) {
         this.accession = accession;
@@ -41,7 +39,6 @@ public class ApiExperiment {
         this.performer = performer;
         this.lab = lab;
         this.loadDate = loadDate;
-        this.releaseDate = releaseDate;
         this.pmid = pmid;
         this.assets = assets;
         this.assays = assays;
@@ -57,7 +54,6 @@ public class ApiExperiment {
         this.performer = experiment.getPerformer();
         this.lab = experiment.getLab();
         this.loadDate = experiment.getLoadDate();
-        this.releaseDate = experiment.getReleaseDate();
         this.pmid = experiment.getPubmedId();
 
         this.assets = Collections2.transform(experiment.getAssets(),
@@ -119,14 +115,6 @@ public class ApiExperiment {
 
     public void setLoadDate(Date loadDate) {
         this.loadDate = loadDate;
-    }
-
-    public Date getReleaseDate() {
-        return releaseDate;
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
     }
 
     public String getPubmedId() {
