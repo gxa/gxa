@@ -343,7 +343,7 @@ public class CurationService {
      * @param apiOntology
      */
     @Transactional
-    public void putOntology(final ApiOntology apiOntology) {
+    public void putOntology(@Nonnull final ApiOntology apiOntology) {
 
         Ontology ontology = atlasDAO.getOntologyByName(apiOntology.getName());
         if (ontology == null) {
@@ -396,7 +396,7 @@ public class CurationService {
      * @param apiOntology
      * @return existing Ontology corresponding to apiOntology.getName(); otherwise a new Ontology corresponding to apiOntology
      */
-    private Ontology getOrCreateOntology(ApiOntology apiOntology) {
+    private Ontology getOrCreateOntology(@Nonnull ApiOntology apiOntology) {
         return atlasDAO.getOrCreateOntology(
                 apiOntology.getName(),
                 apiOntology.getDescription(),
@@ -409,7 +409,7 @@ public class CurationService {
      * @return existing OntologyTerm corresponding to apiOntologyTerm.getAccession(); otherwise a new OntologyTerm
      *         corresponding to apiOntologyTerm
      */
-    private OntologyTerm getOrCreateOntologyTerm(ApiOntologyTerm apiOntologyTerm) {
+    private OntologyTerm getOrCreateOntologyTerm(@Nonnull ApiOntologyTerm apiOntologyTerm) {
         return atlasDAO.getOrCreateOntologyTerm(
                 apiOntologyTerm.getAccession(),
                 apiOntologyTerm.getTerm(),
