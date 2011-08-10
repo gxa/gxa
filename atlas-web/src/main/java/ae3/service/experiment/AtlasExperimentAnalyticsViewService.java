@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -64,7 +66,8 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      * (for more details of search implementation, please see analytics.R).
      *
-     * @param pathForR        the path to netCDF file
+     * @param ewd             experiment
+     * @param arrayDesign     arrayDesign
      * @param geneIds         list of geneIds to find best statistics for
      * @param factors         a list of factors to find best statistics for
      * @param factorValues    a list of factor values to find best statistics for
@@ -76,7 +79,8 @@ public class AtlasExperimentAnalyticsViewService {
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull String pathForR,
+            final @Nonnull ExperimentWithData ewd,
+            final @Nonnull ArrayDesign arrayDesign,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
@@ -85,12 +89,15 @@ public class AtlasExperimentAnalyticsViewService {
             final int limit) throws ComputeException {
 
         BestDesignElementsResult result = new BestDesignElementsResult();
+        if (arrayDesign == null) {
+            return result;
+        }
 
         long startTime = System.currentTimeMillis();
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(pathForR)
+                .addParam(ewd.getPathForR(arrayDesign))
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)

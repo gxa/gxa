@@ -76,10 +76,6 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         return Collections.unmodifiableCollection(genes);
     }
 
-    public static BestDesignElementsResult empty() {
-        return new BestDesignElementsResult();
-    }
-
     public static class Item {
         private final AtlasGene gene;
         private final int deIndex;

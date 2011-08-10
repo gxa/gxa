@@ -271,16 +271,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             ewd.closeAllDataSources();
         }
 
-        final BestDesignElementsResult res = (arrayDesign == null) ?
-                BestDesignElementsResult.empty() :
-                experimentAnalyticsService.findBestGenesForExperiment(
-                        ewd.getPathForR(arrayDesign),
-                        geneIds,
-                        isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                        isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                        updown,
-                        offset,
-                        limit);
+        final BestDesignElementsResult res =
+            experimentAnalyticsService.findBestGenesForExperiment(
+                ewd,
+                arrayDesign,
+                geneIds,
+                isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                updown,
+                offset,
+                limit
+            );
 
         model.addAttribute("arrayDesign", arrayDesign.getAccession());
         model.addAttribute("totalSize", res.getTotalSize());

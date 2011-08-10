@@ -215,7 +215,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 
                                         BestDesignElementsResult geneResults =
                                                 atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                        ewd.getPathForR(arrayDesign),
+                                                        ewd,
+                                                        arrayDesign,
                                                         geneIds,
                                                         factors,
                                                         factorValues,
@@ -227,7 +228,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     }
                                     expData = new ExperimentalData(ewd);
                                 } catch (AtlasDataException e) {
-                                    throw createUnexpected("AtlasDataException thrown", e);
+                                    log.warn("AtlasDataException thrown", e);
                                 } finally {
                                     ewd.closeAllDataSources();
                                 }
