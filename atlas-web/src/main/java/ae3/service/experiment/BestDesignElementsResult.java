@@ -10,6 +10,7 @@ import java.util.*;
  */
 public class BestDesignElementsResult implements Iterable<BestDesignElementsResult.Item> {
 
+    private String adAccession;
     private long total = 0;
     private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
     private final List<Integer> deIndices = new ArrayList<Integer>();
@@ -20,6 +21,14 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     private final List<String> efvs = new ArrayList<String>();
 
     BestDesignElementsResult() {
+    }
+
+    public String getArrayDesignAccession() {
+        return adAccession;
+    }
+
+    void setArrayDesignAccession(String adAccession) {
+        this.adAccession = adAccession;
     }
 
     void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, String ef, String efv) {

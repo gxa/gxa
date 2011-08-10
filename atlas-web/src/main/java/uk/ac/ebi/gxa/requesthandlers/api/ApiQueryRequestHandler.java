@@ -34,7 +34,6 @@ import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
@@ -50,9 +49,7 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -193,39 +190,27 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                 try {
-                                    ArrayDesign arrayDesign = null;
-                                    final Predicate<ArrayDesign> dataPredicate;
-                                    if (!isNullOrEmpty(arrayDesignAccession)) {
-                                        dataPredicate = new DataPredicates(ewd).hasArrayDesign(arrayDesignAccession);
-                                    } else if (!geneIds.isEmpty()) {
-                                        dataPredicate = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
-                                    } else {
-                                        dataPredicate = alwaysTrue();
+                                    //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
+                                    Collection<String> factors = Collections.emptyList();
+                                    Collection<String> factorValues = Collections.emptyList();
+                                    if (!conditions.isEmpty()) {
+                                        factors = Arrays.asList(conditions.iterator().next().getFactor());
+                                        factorValues = conditions.iterator().next().getFactorValues();
                                     }
-                                    arrayDesign = ewd.findArrayDesign(dataPredicate);
-
-                                    if (arrayDesign != null) {
-                                        //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                        Collection<String> factors = Collections.emptyList();
-                                        Collection<String> factorValues = Collections.emptyList();
-                                        if (!conditions.isEmpty()) {
-                                            factors = Arrays.asList(conditions.iterator().next().getFactor());
-                                            factorValues = conditions.iterator().next().getFactorValues();
-                                        }
                                 
-                                        BestDesignElementsResult geneResults =
-                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                        ewd,
-                                                        arrayDesign,
-                                                        geneIds,
-                                                        factors,
-                                                        factorValues,
-                                                        statFilter.asUpDownCondition(),
-                                                        0,
-                                                        10);
+                                    BestDesignElementsResult geneResults =
+                                        atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                            ewd,
+                                            arrayDesignAccession,
+                                            geneIds,
+                                            factors,
+                                            factorValues,
+                                            statFilter.asUpDownCondition(),
+                                            0,
+                                            10
+                                        );
                                 
-                                        genes = geneResults.getGenes();
-                                    }
+                                    genes = geneResults.getGenes();
                                     expData = new ExperimentalData(ewd);
                                 } catch (AtlasDataException e) {
                                     log.warn("AtlasDataException thrown", e);

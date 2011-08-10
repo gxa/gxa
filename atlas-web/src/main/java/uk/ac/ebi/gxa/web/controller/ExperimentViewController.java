@@ -28,7 +28,6 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -62,7 +61,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
@@ -250,50 +248,37 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
     ) throws AtlasDataException {
-
-        List<Long> geneIds = findGeneIds(gid);
-
+        final List<Long> geneIds = findGeneIds(gid);
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-        final Predicate<ArrayDesign> dataPredicate;
-        if (!isNullOrEmpty(adAcc)) {
-            dataPredicate = new DataPredicates(ewd).hasArrayDesign(adAcc);
-        } else if (!isNullOrEmpty(gid)) {
-            dataPredicate = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
-        } else {
-            dataPredicate = alwaysTrue();
-        }
 
-        ArrayDesign arrayDesign = null;
         try {
-            arrayDesign = ewd.findArrayDesign(dataPredicate);
+            final BestDesignElementsResult res =
+                experimentAnalyticsService.findBestGenesForExperiment(
+                    ewd,
+                    adAcc,
+                    geneIds,
+                    isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                    isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                    updown,
+                    offset,
+                    limit
+                );
+        
+            model.addAttribute("arrayDesign", res.getArrayDesignAccession());
+            model.addAttribute("totalSize", res.getTotalSize());
+            model.addAttribute("items", Iterables.transform(res,
+                    new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
+                        public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
+                            return new ExperimentTableRow(item);
+                        }
+                    })
+            );
+            model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
+            return UNSUPPORTED_HTML_VIEW;
         } finally {
             ewd.closeAllDataSources();
         }
-
-        final BestDesignElementsResult res =
-            experimentAnalyticsService.findBestGenesForExperiment(
-                ewd,
-                arrayDesign,
-                geneIds,
-                isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                updown,
-                offset,
-                limit
-            );
-
-        model.addAttribute("arrayDesign", arrayDesign.getAccession());
-        model.addAttribute("totalSize", res.getTotalSize());
-        model.addAttribute("items", Iterables.transform(res,
-                new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
-                    public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                        return new ExperimentTableRow(item);
-                    }
-                })
-        );
-        model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
-        return UNSUPPORTED_HTML_VIEW;
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
