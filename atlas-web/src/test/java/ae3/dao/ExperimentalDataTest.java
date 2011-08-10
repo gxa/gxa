@@ -112,16 +112,16 @@ public class ExperimentalDataTest {
 
     @Test
     public void testLoadExperiment() throws IOException, URISyntaxException, AtlasDataException {
+        final AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
         Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
         ArrayDesign ad1 = new ArrayDesign("A-AFFY-44");
         ad1.setArrayDesignID(160588088);
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
         eMexp1586.setSamples(eMexp1586Samples());
 
-        AtlasDataDAO dao = new AtlasDataDAO();
-        dao.setAtlasDataRepo(getTestNCDir());
+        atlasDataDAO.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc
-        ExperimentalData expData = new ExperimentalData(dao, eMexp1586);
+        ExperimentalData expData = new ExperimentalData(atlasDataDAO.createExperimentWithData(eMexp1586));
         assertNotNull(expData);
         assertEquals(1, expData.getArrayDesignDecorators().size());
     }
@@ -138,11 +138,11 @@ public class ExperimentalDataTest {
         eMexp1913.setAssays(assays);
         eMexp1913.setSamples(eMexp1913Samples());
 
-        AtlasDataDAO dao = new AtlasDataDAO();
-        dao.setAtlasDataRepo(getTestNCDir());
+        final AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
+        atlasDataDAO.setAtlasDataRepo(getTestNCDir());
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-33.nc
         // /atlas-web/target/test-classes/MEXP/1900/E-MEXP-1913/E-MEXP-1913_A-AFFY-34.nc
-        ExperimentalData expData = new ExperimentalData(dao, eMexp1913);
+        final ExperimentalData expData = new ExperimentalData(atlasDataDAO.createExperimentWithData(eMexp1913));
         assertNotNull(expData);
         assertEquals(2, expData.getArrayDesignDecorators().size());
     }

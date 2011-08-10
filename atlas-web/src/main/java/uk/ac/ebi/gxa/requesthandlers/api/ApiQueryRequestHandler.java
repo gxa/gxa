@@ -192,8 +192,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                             if (!experimentInfoOnly) {
 
                                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
-                                ArrayDesign arrayDesign = null;
                                 try {
+                                    ArrayDesign arrayDesign = null;
                                     final Predicate<ArrayDesign> dataPredicate;
                                     if (!isNullOrEmpty(arrayDesignAccession)) {
                                         dataPredicate = new DataPredicates(ewd).hasArrayDesign(arrayDesignAccession);
@@ -203,38 +203,33 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         dataPredicate = alwaysTrue();
                                     }
                                     arrayDesign = ewd.findArrayDesign(dataPredicate);
+
+                                    if (arrayDesign != null) {
+                                        //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
+                                        Collection<String> factors = Collections.emptyList();
+                                        Collection<String> factorValues = Collections.emptyList();
+                                        if (!conditions.isEmpty()) {
+                                            factors = Arrays.asList(conditions.iterator().next().getFactor());
+                                            factorValues = conditions.iterator().next().getFactorValues();
+                                        }
+                                
+                                        BestDesignElementsResult geneResults =
+                                                atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                        ewd.getPathForR(arrayDesign),
+                                                        geneIds,
+                                                        factors,
+                                                        factorValues,
+                                                        statFilter.asUpDownCondition(),
+                                                        0,
+                                                        10);
+                                
+                                        genes = geneResults.getGenes();
+                                    }
+                                    expData = new ExperimentalData(ewd);
                                 } catch (AtlasDataException e) {
-                                    log.info("Exception in findArrayDesign");
+                                    throw createUnexpected("AtlasDataException thrown", e);
                                 } finally {
                                     ewd.closeAllDataSources();
-                                }
-
-                                if (arrayDesign != null) {
-                                    //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                    Collection<String> factors = Collections.emptyList();
-                                    Collection<String> factorValues = Collections.emptyList();
-                                    if (!conditions.isEmpty()) {
-                                        factors = Arrays.asList(conditions.iterator().next().getFactor());
-                                        factorValues = conditions.iterator().next().getFactorValues();
-                                    }
-
-                                    BestDesignElementsResult geneResults =
-                                            atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                    ewd.getPathForR(arrayDesign),
-                                                    geneIds,
-                                                    factors,
-                                                    factorValues,
-                                                    statFilter.asUpDownCondition(),
-                                                    0,
-                                                    10);
-
-                                    genes = geneResults.getGenes();
-                                }
-
-                                try {
-                                    expData = new ExperimentalData(atlasDataDAO, experiment.getExperiment());
-                                } catch (AtlasDataException e) {
-                                    throw createUnexpected("Failed to read experimental data", e);
                                 }
                             }
 
