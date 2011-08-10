@@ -1,7 +1,7 @@
 package uk.ac.ebi.microarray.atlas.api;
 
 import com.google.common.collect.Collections2;
-import uk.ac.ebi.gxa.utils.GuavaUtil;
+import uk.ac.ebi.gxa.utils.TransformerUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
@@ -35,10 +35,10 @@ public class ApiSample {
         this.channel = sample.getChannel();
 
         this.assays = Collections2.transform(sample.getAssays(),
-                GuavaUtil.instanceTransformer(Assay.class, ApiAssay.class));
+                TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
 
         this.properties = Collections2.transform(sample.getProperties(),
-                GuavaUtil.instanceTransformer(SampleProperty.class, ApiSampleProperty.class));
+                TransformerUtil.instanceTransformer(SampleProperty.class, ApiSampleProperty.class));
 
     }
 

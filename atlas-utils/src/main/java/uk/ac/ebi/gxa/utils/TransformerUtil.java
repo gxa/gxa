@@ -10,13 +10,13 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * @author Misha Kapushesky
  */
-public class GuavaUtil {
+public class TransformerUtil {
     /**
      * Creates a {@link Function} that transforms instances of A to B using B's constructor
      * of the form <code>B(A a)</code>.
      */
-    public static <A,B> Function<A,B> instanceTransformer(final Class<A> fromA, final Class<B> toB) {
-        return new Function<A,B> () {
+    public static <A, B> Function<A, B> instanceTransformer(final Class<A> fromA, final Class<B> toB) {
+        return new Function<A, B>() {
             @Override
             public B apply(@Nullable A input) {
                 try {

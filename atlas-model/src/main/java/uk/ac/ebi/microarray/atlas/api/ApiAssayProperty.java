@@ -2,7 +2,7 @@ package uk.ac.ebi.microarray.atlas.api;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import uk.ac.ebi.gxa.utils.GuavaUtil;
+import uk.ac.ebi.gxa.utils.TransformerUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
@@ -32,7 +32,7 @@ public class ApiAssayProperty {
 
         this.terms = new HashSet<ApiOntologyTerm>
             (Collections2.transform(assayProperty.getTerms(),
-                GuavaUtil.instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
+                TransformerUtil.instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
     }
 
     public ApiPropertyValue getPropertyValue() {

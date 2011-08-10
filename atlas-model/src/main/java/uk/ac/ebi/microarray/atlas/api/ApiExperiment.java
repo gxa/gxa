@@ -1,7 +1,7 @@
 package uk.ac.ebi.microarray.atlas.api;
 
 import com.google.common.collect.Collections2;
-import uk.ac.ebi.gxa.utils.GuavaUtil;
+import uk.ac.ebi.gxa.utils.TransformerUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -57,13 +57,13 @@ public class ApiExperiment {
         this.pmid = experiment.getPubmedId();
 
         this.assets = Collections2.transform(experiment.getAssets(),
-                GuavaUtil.instanceTransformer(Asset.class, ApiAsset.class));
+                TransformerUtil.instanceTransformer(Asset.class, ApiAsset.class));
 
         this.assays = Collections2.transform(experiment.getAssays(),
-                 GuavaUtil.instanceTransformer(Assay.class, ApiAssay.class));
+                 TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
 
         this.samples = Collections2.transform(experiment.getSamples(),
-                GuavaUtil.instanceTransformer(Sample.class, ApiSample.class));
+                TransformerUtil.instanceTransformer(Sample.class, ApiSample.class));
 
         this.isPrivate = experiment.isPrivate();
         this.curated = experiment.isCurated();
