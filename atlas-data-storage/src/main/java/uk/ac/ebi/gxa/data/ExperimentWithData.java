@@ -386,6 +386,10 @@ public class ExperimentWithData {
         return geneIdsToEfToEfvToEA.get(geneId).get(ef);
     }
 
+    public String getPathForR(ArrayDesign arrayDesign) {
+        return atlasDataDAO.getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
+    }
+
     public void closeAllDataSources() {
         for (NetCDFProxy p : proxies.values()) {
             Closeables.closeQuietly(p);

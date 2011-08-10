@@ -60,10 +60,6 @@ public class AtlasDataDAO {
         return new NetCDFCreator(this, experiment, arrayDesign);
     }
 
-    public String getPathForR(Experiment experiment, ArrayDesign arrayDesign) {
-        return getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
-    }
-
     public File getDataDirectory(Experiment experiment) {
         final String[] parts = experiment.getAccession().split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {

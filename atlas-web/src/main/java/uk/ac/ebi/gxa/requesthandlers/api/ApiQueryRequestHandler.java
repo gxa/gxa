@@ -220,7 +220,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                                     BestDesignElementsResult geneResults =
                                             atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                    atlasDataDAO.getPathForR(experiment.getExperiment(), arrayDesign),
+                                                    ewd.getPathForR(arrayDesign),
                                                     geneIds,
                                                     factors,
                                                     factorValues,

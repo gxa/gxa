@@ -172,7 +172,7 @@ public class ExperimentAnalyticsGeneratorService {
                     return;
                 }
         
-                final String pathForR = atlasDataDAO.getPathForR(experiment, ad);
+                final String pathForR = ewd.getPathForR(ad);
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                     public Void compute(RServices rs) throws ComputeException {
                         try {

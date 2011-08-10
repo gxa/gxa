@@ -274,7 +274,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         final BestDesignElementsResult res = (arrayDesign == null) ?
                 BestDesignElementsResult.empty() :
                 experimentAnalyticsService.findBestGenesForExperiment(
-                        atlasDataDAO.getPathForR(experiment, arrayDesign),
+                        ewd.getPathForR(arrayDesign),
                         geneIds,
                         isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                         isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
