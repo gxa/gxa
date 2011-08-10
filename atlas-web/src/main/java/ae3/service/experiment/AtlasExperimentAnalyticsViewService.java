@@ -95,23 +95,21 @@ public class AtlasExperimentAnalyticsViewService {
         final BestDesignElementsResult result = new BestDesignElementsResult();
 
         ArrayDesign arrayDesign = null;
-        try {
-            Predicate<ArrayDesign> dataPredicate = null;
-            if (!Strings.isNullOrEmpty(arrayDesignAccession)) {
-                arrayDesign = ewd.getExperiment().getArrayDesign(arrayDesignAccession);
-            } else if (!geneIds.isEmpty()) {
-                dataPredicate = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
-            } else {
-                final Collection<ArrayDesign> allADs = ewd.getExperiment().getArrayDesigns();
-                if (!allADs.isEmpty()) {
-                    arrayDesign = allADs.iterator().next();
-                }
+        if (!Strings.isNullOrEmpty(arrayDesignAccession)) {
+            arrayDesign = ewd.getExperiment().getArrayDesign(arrayDesignAccession);
+        } else if (!geneIds.isEmpty()) {
+            try {
+                arrayDesign = ewd.findArrayDesign(
+                    new DataPredicates(ewd).containsAtLeastOneGene(geneIds)
+                );
+            } catch (AtlasDataException e) {
+                log.warn("AtlasDataException in findArrayDesign", e);
             }
-            if (dataPredicate != null) {
-                arrayDesign = ewd.findArrayDesign(dataPredicate);
+        } else {
+            final Collection<ArrayDesign> allADs = ewd.getExperiment().getArrayDesigns();
+            if (!allADs.isEmpty()) {
+                arrayDesign = allADs.iterator().next();
             }
-        } catch (AtlasDataException e) {
-            log.warn("AtlasDataException in findArrayDesign", e);
         }
         if (arrayDesign == null) {
             return result;
