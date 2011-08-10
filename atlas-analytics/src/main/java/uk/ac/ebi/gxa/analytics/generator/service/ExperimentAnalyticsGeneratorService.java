@@ -61,7 +61,8 @@ public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO,
+                                               AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
         this.atlasDataDAO = atlasDataDAO;
         this.atlasComputeService = atlasComputeService;
@@ -136,18 +137,18 @@ public class ExperimentAnalyticsGeneratorService {
 
     private class LogAnalyticsGeneratorListener implements AnalyticsGeneratorListener {
         public void buildSuccess() {
-		}
+        }
 
         public void buildError(AnalyticsGenerationEvent event) {
-		}
+        }
 
         public void buildProgress(String progressStatus) {
             log.info(progressStatus);
-		}
+        }
 
         public void buildWarning(String message) {
             log.warn(message);
-		}
+        }
     }
 
     public void createAnalyticsForExperiment(
@@ -161,8 +162,8 @@ public class ExperimentAnalyticsGeneratorService {
         for (NetCDFDescriptor netCDF : netCDFs) {
             count++;
 
-            if (!factorsCharacteristicsAvailable(netCDF)) {
-                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors or characteristics!");
+            if (!factorsAvailable(netCDF)) {
+                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors!");
                 return;
             }
 
@@ -184,7 +185,8 @@ public class ExperimentAnalyticsGeneratorService {
 
                             if (efScs != null)
                                 for (int i = 0; i < efScs.length; i++) {
-                                    log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
+                                    log.info("Performed analytics computation for netcdf {}: {} was {}",
+                                            new Object[]{pathForR, efScs[i], analysedOK[i]});
 
                                     if ("OK".equals(analysedOK[i]))
                                         analysedEFSCs.add(efScs[i]);
@@ -195,7 +197,8 @@ public class ExperimentAnalyticsGeneratorService {
                                     throw new ComputeException(rc);
                             }
                         } else
-                            throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
+                            throw new ComputeException(
+                                    "Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
                     } catch (RemoteException e) {
                         throw new ComputeException("Problem communicating with R service", e);
                     } catch (IOException e) {
@@ -217,7 +220,8 @@ public class ExperimentAnalyticsGeneratorService {
                     listener.buildWarning("No analytics were computed for this experiment!");
                 }
             } catch (ComputeException e) {
-                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF + " failed: " + e.getMessage(), e);
+                throw new AnalyticsGeneratorException(
+                        "Computation of analytics for " + netCDF + " failed: " + e.getMessage(), e);
             } catch (Exception e) {
                 throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF, e);
             }
@@ -232,17 +236,16 @@ public class ExperimentAnalyticsGeneratorService {
         return netCDFs;
     }
 
-    private boolean factorsCharacteristicsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {
+    private boolean factorsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {
         NetCDFProxy proxy = null;
         try {
             proxy = netCDF.createProxy();
-            return
-                proxy.getFactors().length > 0 ||
-                proxy.getCharacteristics().length > 0;
+            return proxy.getFactors().length > 0;
         } catch (AtlasDataException e) {
-            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
+            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained any factors",
+                    e);
         } catch (IOException e) {
-            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
+            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors", e);
         } finally {
             closeQuietly(proxy);
         }
