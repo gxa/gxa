@@ -164,14 +164,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
                     QueryExpression.parseFuzzyString(upDownParam);
 
-            Predicate<DataPredicates.Pair> genePredicate = alwaysTrue();
-
             final Set<Long> geneIds = new HashSet<Long>();
             if (!experimentInfoOnly) {
                 final String[] requestedGeneIds = request.getParameterValues("geneIs");
                 if (requestedGeneIds != null && requestedGeneIds.length > 0) {
                     geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
-                    genePredicate = new DataPredicates().containsAtLeastOneGene(geneIds);
                 }
             }
 
@@ -181,9 +178,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 setRestProfile(ExperimentAnalyticsRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
-
-            final Predicate<DataPredicates.Pair> dataPredicate = !isNullOrEmpty(arrayDesignAccession) ?
-                    new DataPredicates().hasArrayDesign(arrayDesignAccession) : genePredicate;
 
             return new ExperimentResults(
                 experiments,
@@ -200,6 +194,14 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                 ArrayDesign arrayDesign = null;
                                 try {
+                                    final Predicate<DataPredicates.Pair> dataPredicate;
+                                    if (!isNullOrEmpty(arrayDesignAccession)) {
+                                        dataPredicate = new DataPredicates(ewd).hasArrayDesign(arrayDesignAccession);
+                                    } else if (!geneIds.isEmpty()) {
+                                        dataPredicate = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
+                                    } else {
+                                        dataPredicate = alwaysTrue();
+                                    }
                                     arrayDesign = ewd.findArrayDesign(dataPredicate);
                                 } catch (AtlasDataException e) {
                                     log.info("Exception in findArrayDesign");

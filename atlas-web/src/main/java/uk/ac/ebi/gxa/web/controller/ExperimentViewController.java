@@ -253,17 +253,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         List<Long> geneIds = findGeneIds(gid);
 
+        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         final Predicate<DataPredicates.Pair> dataPredicate;
         if (!isNullOrEmpty(adAcc)) {
-            dataPredicate = new DataPredicates().hasArrayDesign(adAcc);
+            dataPredicate = new DataPredicates(ewd).hasArrayDesign(adAcc);
         } else if (!isNullOrEmpty(gid)) {
-            dataPredicate = new DataPredicates().containsAtLeastOneGene(geneIds);
+            dataPredicate = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
         } else {
             dataPredicate = alwaysTrue();
         }
 
-        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         ArrayDesign arrayDesign = null;
         try {
             arrayDesign = ewd.findArrayDesign(dataPredicate);

@@ -36,7 +36,12 @@ public class DataPredicates {
         }
     }
 
+    private final ExperimentWithData ewd;
     private final Logger log = LoggerFactory.getLogger(DataPredicates.class);
+
+    public DataPredicates(ExperimentWithData ewd) {
+        this.ewd = ewd;
+    }
 
     public Predicate<Pair> hasArrayDesign(@Nonnull final String arrayDesign) {
         return new Predicate<Pair>() {

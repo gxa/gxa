@@ -306,7 +306,7 @@ public class ExperimentWithData {
      * @throws AtlasDataException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
-        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<DataPredicates.Pair>and(new DataPredicates().containsGenes(geneIds), criteria));
+        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<DataPredicates.Pair>and(new DataPredicates(this).containsGenes(geneIds), criteria));
         if (arrayDesign == null) {
             return null;
         }
