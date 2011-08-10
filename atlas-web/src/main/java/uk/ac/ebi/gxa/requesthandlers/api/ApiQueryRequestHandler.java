@@ -194,7 +194,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                 ArrayDesign arrayDesign = null;
                                 try {
-                                    final Predicate<DataPredicates.Pair> dataPredicate;
+                                    final Predicate<ArrayDesign> dataPredicate;
                                     if (!isNullOrEmpty(arrayDesignAccession)) {
                                         dataPredicate = new DataPredicates(ewd).hasArrayDesign(arrayDesignAccession);
                                     } else if (!geneIds.isEmpty()) {

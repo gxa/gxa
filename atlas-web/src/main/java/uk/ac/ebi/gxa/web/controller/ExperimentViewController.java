@@ -255,7 +255,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-        final Predicate<DataPredicates.Pair> dataPredicate;
+        final Predicate<ArrayDesign> dataPredicate;
         if (!isNullOrEmpty(adAcc)) {
             dataPredicate = new DataPredicates(ewd).hasArrayDesign(adAcc);
         } else if (!isNullOrEmpty(gid)) {
