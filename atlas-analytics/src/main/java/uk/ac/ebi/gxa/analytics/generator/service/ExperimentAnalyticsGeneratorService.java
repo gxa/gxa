@@ -32,9 +32,10 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.NetCDFDescriptor;
+import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
@@ -54,15 +55,15 @@ import static com.google.common.io.Closeables.closeQuietly;
 
 public class ExperimentAnalyticsGeneratorService {
     private final AtlasDAO atlasDAO;
-    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
     private final AtlasComputeService atlasComputeService;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasComputeService = atlasComputeService;
         this.executor = executor;
     }
@@ -224,7 +225,7 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     private Collection<NetCDFDescriptor> getNetCDFs(Experiment experiment) throws AnalyticsGeneratorException {
-        Collection<NetCDFDescriptor> netCDFs = atlasNetCDFDAO.getNetCDFDescriptors(experiment);
+        Collection<NetCDFDescriptor> netCDFs = atlasDataDAO.createExperimentWithData(experiment).getNetCDFDescriptors();
         if (netCDFs.isEmpty()) {
             throw new AnalyticsGeneratorException("No NetCDF files present for " + experiment);
         }
@@ -235,7 +236,11 @@ public class ExperimentAnalyticsGeneratorService {
         NetCDFProxy proxy = null;
         try {
             proxy = netCDF.createProxy();
-            return proxy.getFactorsAndCharacteristics().length > 0;
+            return
+                proxy.getFactors().length > 0 ||
+                proxy.getCharacteristics().length > 0;
+        } catch (AtlasDataException e) {
+            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
         } catch (IOException e) {
             throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
         } finally {

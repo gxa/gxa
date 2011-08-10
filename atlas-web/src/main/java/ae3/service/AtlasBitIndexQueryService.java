@@ -383,8 +383,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             Set<EfvAttribute> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForBioEntity(bioEntityId, statType);
             for (EfvAttribute efv : scoringEfvIndexes) {
                 if (efv.getEfv() != null && !efv.getEfv().isEmpty()) {
-                    efv.setStatType(statType);
-                    scoringEfvs.add(efv);
+                    scoringEfvs.add(efv.withStatType(statType));
                 }
             }
         }
@@ -418,11 +417,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     private void collectScoringAttributes(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors,
                                           @Nullable Multiset<EfvAttribute> attrCounts, @Nullable Set<String> scoringEfos) {
         Set<EfvAttribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
-        for (EfvAttribute attr : allEfvAttributesForStat) {
-            if ((autoFactors != null && !autoFactors.contains(attr.getEf())) || attr.getEfv() == null) {
+        for (EfvAttribute efvAttr : allEfvAttributesForStat) {
+            if ((autoFactors != null && !autoFactors.contains(efvAttr.getEf())) || efvAttr.getEfv() == null) {
                 continue; // skip attribute if its factor is not of interest or it's an ef-only attribute
             }
-            attr.setStatType(statType);
+            EfvAttribute attr = efvAttr.withStatType(statType);
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIds);
             statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr), 1));
             Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();

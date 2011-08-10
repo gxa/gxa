@@ -4,7 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Class to represent efo Attributes at bit index query time
@@ -23,10 +27,14 @@ public class EfoAttribute extends Attribute {
      * @param statType
      */
     public EfoAttribute(final String value, final StatisticsType statType) {
+        super(statType);
         this.value = value.intern();
-        this.statType = statType;
     }
 
+    @Override
+    public EfoAttribute withStatType(StatisticsType statType) {
+        return new EfoAttribute(value, statType);
+    }
 
     /**
      * @param efo Efo

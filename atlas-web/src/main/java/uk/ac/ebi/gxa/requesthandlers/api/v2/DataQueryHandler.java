@@ -24,18 +24,19 @@ package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
-import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.TwoDFloatArray;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,13 +48,13 @@ class DataQueryHandler implements QueryHandler {
 
     private final BioEntityDAO bioEntityDAO;
     private final GeneSolrDAO geneSolrDAO;
-    private final AtlasNetCDFDAO atlasNetCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
     private final AtlasDAO atlasDAO;
 
-    DataQueryHandler(BioEntityDAO bioEntityDAO, GeneSolrDAO geneSolrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+    DataQueryHandler(BioEntityDAO bioEntityDAO, GeneSolrDAO geneSolrDAO, AtlasDataDAO atlasDataDAO, AtlasDAO atlasDAO) {
         this.bioEntityDAO = bioEntityDAO;
         this.geneSolrDAO = geneSolrDAO;
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasDAO = atlasDAO;
     }
 
@@ -74,10 +75,10 @@ class DataQueryHandler implements QueryHandler {
     }
 
     private static class TwoDDataProvider implements DataProvider {
-        private final NetCDFProxy.TwoDFloatArray array;
+        private final TwoDFloatArray array;
         private final int rowIndex;
 
-        TwoDDataProvider(NetCDFProxy.TwoDFloatArray array, int rowIndex) {
+        TwoDDataProvider(TwoDFloatArray array, int rowIndex) {
             this.array = array;
             this.rowIndex = rowIndex;
         }
@@ -221,89 +222,84 @@ class DataQueryHandler implements QueryHandler {
             if (experiment == null) {
                 return new Error("Experiment " + experimentAccession + " is not found");
             }
-            for (NetCDFDescriptor ncdf : atlasNetCDFDAO.getNetCDFDescriptors(experiment)) {
-                NetCDFProxy proxy = null;
-                try {
-                    proxy = ncdf.createProxy();
-                    final Map<Integer, String> assayAccessionByIndex = new TreeMap<Integer, String>();
-                    int index = 0;
-                    for (String aa : proxy.getAssayAccessions()) {
-                        if (assayAccessions.contains(aa)) {
-                            assayAccessionByIndex.put(index, aa);
-                        }
-                        ++index;
+            final ExperimentWithData experimentWithData =
+                atlasDataDAO.createExperimentWithData(experiment);
+            for (ArrayDesign ad : experiment.getArrayDesigns()) {
+                final Map<Integer, String> assayAccessionByIndex = new TreeMap<Integer, String>();
+                int index = 0;
+                for (Assay assay : experimentWithData.getAssays(ad)) {
+                    if (assayAccessions.contains(assay.getAccession())) {
+                        assayAccessionByIndex.put(index, assay.getAccession());
                     }
                     ++index;
+                }
 
-                    final DataDecorator d = new DataDecorator();
-                    data.add(d);
-                    d.assayAccessions = new String[assayAccessionByIndex.size()];
-                    index = 0;
-                    for (String aa : assayAccessionByIndex.values()) {
-                        d.assayAccessions[index++] = aa;
+                final DataDecorator d = new DataDecorator();
+                data.add(d);
+                d.assayAccessions = new String[assayAccessionByIndex.size()];
+                index = 0;
+                for (String aa : assayAccessionByIndex.values()) {
+                    d.assayAccessions[index++] = aa;
+                }
+                final long[] proxyGenes = experimentWithData.getGenes(ad);
+                final String[] proxyDEAccessions = experimentWithData.getDesignElementAccessions(ad);
+                if (genesById == null) {
+                    final TwoDFloatArray array = experimentWithData.getAllExpressionData(ad);
+                    final TreeMap<Long,String> allGenesById = new TreeMap<Long,String>();
+                    for (BioEntity g : bioEntityDAO.getAllGenesFast()) {
+                        allGenesById.put(g.getId(), useGeneNames ? g.getName() : g.getIdentifier());
                     }
-                    final long[] proxyGenes = proxy.getGenes();
-                    final String[] proxyDEAccessions = proxy.getDesignElementAccessions();
-                    if (genesById == null) {
-                        final NetCDFProxy.TwoDFloatArray array = proxy.getAllExpressionData();
-                        final TreeMap<Long,String> allGenesById = new TreeMap<Long,String>();
-                        for (BioEntity g : bioEntityDAO.getAllGenesFast()) {
-                            allGenesById.put(g.getId(), useGeneNames ? g.getName() : g.getIdentifier());
+                    for (int i = 0; i < proxyGenes.length; ++i) {
+                        String geneString = allGenesById.get(proxyGenes[i]);
+                        if (geneString == null) {
+                            geneString = "unknown gene";
                         }
-                        for (int i = 0; i < proxyGenes.length; ++i) {
-                            String geneString = allGenesById.get(proxyGenes[i]);
-                            if (geneString == null) {
-                                geneString = "unknown gene";
-                            }
-                            final GeneDataDecorator geneInfo;
-                            if (useGeneNames) {
-                                d.genes.add(new GeneDataDecoratorWithName(
-                                    geneString,
-                                    proxyDEAccessions[i],
-                                    new TwoDDataProvider(array, i),
-                                    assayAccessionByIndex.keySet()
-                                ));
-                            } else {
-                                d.genes.add(new GeneDataDecoratorWithIdentifier(
-                                    geneString,
-                                    proxyDEAccessions[i],
-                                    new TwoDDataProvider(array, i),
-                                    assayAccessionByIndex.keySet()
-                                ));
-                            }
-                        }
-                    } else {
-                        for (int i = 0; i < proxyGenes.length; ++i) {
-                            final AtlasGene gene = genesById.get(proxyGenes[i]);
-                            if (gene == null) {
-                                continue;
-                            }
-                            final float[] levels = proxy.getExpressionDataForDesignElementAtIndex(i);
-                            final GeneDataDecorator geneInfo;
-                            if (useGeneNames) {
-                                geneInfo = new GeneDataDecoratorWithName(
-                                        gene.getGeneName(),
-                                        proxyDEAccessions[i],
-                                        new SimpleDataProvider(levels),
-                                        assayAccessionByIndex.keySet()
-                                );
-                            } else {
-                                geneInfo = new GeneDataDecoratorWithIdentifier(
-                                        gene.getGeneIdentifier(),
-                                        proxyDEAccessions[i],
-                                        new SimpleDataProvider(levels),
-                                        assayAccessionByIndex.keySet()
-                                );
-                            }
-                            d.genes.add(geneInfo);
+                        final GeneDataDecorator geneInfo;
+                        if (useGeneNames) {
+                            d.genes.add(new GeneDataDecoratorWithName(
+                                geneString,
+                                proxyDEAccessions[i],
+                                new TwoDDataProvider(array, i),
+                                assayAccessionByIndex.keySet()
+                            ));
+                        } else {
+                            d.genes.add(new GeneDataDecoratorWithIdentifier(
+                                geneString,
+                                proxyDEAccessions[i],
+                                new TwoDDataProvider(array, i),
+                                assayAccessionByIndex.keySet()
+                            ));
                         }
                     }
-                } finally {
-                    Closeables.closeQuietly(proxy);
+                } else {
+                    for (int i = 0; i < proxyGenes.length; ++i) {
+                        final AtlasGene gene = genesById.get(proxyGenes[i]);
+                        if (gene == null) {
+                            continue;
+                        }
+                        final float[] levels = experimentWithData.getExpressionDataForDesignElementAtIndex(ad, i);
+                        final GeneDataDecorator geneInfo;
+                        if (useGeneNames) {
+                            geneInfo = new GeneDataDecoratorWithName(
+                                    gene.getGeneName(),
+                                    proxyDEAccessions[i],
+                                    new SimpleDataProvider(levels),
+                                    assayAccessionByIndex.keySet()
+                            );
+                        } else {
+                            geneInfo = new GeneDataDecoratorWithIdentifier(
+                                    gene.getGeneIdentifier(),
+                                    proxyDEAccessions[i],
+                                    new SimpleDataProvider(levels),
+                                    assayAccessionByIndex.keySet()
+                            );
+                        }
+                        d.genes.add(geneInfo);
+                    }
                 }
             }
             return data;
-        } catch (IOException e) {
+        } catch (AtlasDataException e) {
             return new Error(e.toString());
         }
     }

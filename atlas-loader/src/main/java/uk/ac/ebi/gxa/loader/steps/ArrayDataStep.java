@@ -340,6 +340,9 @@ public class ArrayDataStep {
             }
             files.append(")");
             scans.append(")");
+            log.info(files.toString());
+            log.info(scans.toString());
+            log.info("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(files.toString());
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");

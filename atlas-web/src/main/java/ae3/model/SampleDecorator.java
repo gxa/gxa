@@ -37,12 +37,11 @@ import java.util.Set;
 import static java.util.Collections.unmodifiableSet;
 
 /**
- * A class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}
- * Is used only in NetCDFReader and should be replaced with newer model class.
+ * A decorator class, representing an experiment sample for use in {@link ae3.model.ExperimentalData}
  *
  * @author pashky
  */
-class SampleDecorator {
+public class SampleDecorator {
     private final Sample sample;
     private final int number;
     private final Set<AssayDecorator> assays = new HashSet<AssayDecorator>();
@@ -111,6 +110,10 @@ class SampleDecorator {
      */
     String getAccession() {
         return sample.getAccession();
+    }
+
+    Sample getSample() {
+        return sample;
     }
 
     /**

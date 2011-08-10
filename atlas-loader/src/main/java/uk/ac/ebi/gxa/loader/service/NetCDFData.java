@@ -1,13 +1,25 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
+import uk.ac.ebi.gxa.data.KeyValuePair;
+import uk.ac.ebi.gxa.utils.CBitSet;
+import uk.ac.ebi.gxa.utils.CPair;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.Maker;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.sort;
 
@@ -27,8 +39,12 @@ class NetCDFData {
         storage.add(designElement, values);
     }
 
-    public void setUniqueValues(List<String> uniqueValues) {
-        this.uniqueValues = uniqueValues;
+    public void setUniqueValues(List<KeyValuePair> uniqueValues) {
+        // TODO: change this.uniqueValues to List of KeyValuePairs
+        this.uniqueValues = new ArrayList<String>(uniqueValues.size());
+        for (KeyValuePair pair : uniqueValues) {
+            this.uniqueValues.add(pair.key + "||" + pair.value);
+        }
     }
 
     public List<Assay> getAssays() {

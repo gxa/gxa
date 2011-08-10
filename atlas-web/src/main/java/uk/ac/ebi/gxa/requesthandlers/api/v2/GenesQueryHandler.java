@@ -22,17 +22,14 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
+import ae3.dao.GeneSolrDAO;
+import ae3.model.AtlasGene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasGene;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-
-import java.util.*;
-import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 class GenesQueryHandler implements QueryHandler {
     private Logger log = LoggerFactory.getLogger(getClass());

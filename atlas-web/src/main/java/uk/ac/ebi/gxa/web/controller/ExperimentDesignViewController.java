@@ -8,15 +8,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.google.common.io.Closeables.closeQuietly;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Olga Melnichuk
@@ -25,18 +31,18 @@ import static com.google.common.io.Closeables.closeQuietly;
 @Controller
 public class ExperimentDesignViewController extends ExperimentViewControllerBase {
 
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     @Autowired
-    public ExperimentDesignViewController(ExperimentSolrDAO solrDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasDAO atlasDAO) {
+    public ExperimentDesignViewController(ExperimentSolrDAO solrDAO, AtlasDataDAO atlasDataDAO, AtlasDAO atlasDAO) {
         super(solrDAO, atlasDAO);
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
     public String getExperimentDesign(
             @RequestParam("eid") String accession,
-            Model model) throws ResourceNotFoundException, IOException {
+            Model model) throws ResourceNotFoundException, AtlasDataException {
 
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
@@ -45,73 +51,66 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         return "experimentpage/experiment-design";
     }
 
-    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, IOException {
-        File[] netCDFs = getNetCDFs(exp);
-
-        List<ExperimentDesignUI> designs = new ArrayList<ExperimentDesignUI>();
-
-        for (File netCdfFile : netCDFs) {
-            ExperimentDesignUI experimentDesign = new ExperimentDesignUI();
-
-            NetCDFProxy netcdf = null;
-            try {
-                netcdf = new NetCDFProxy(netCdfFile);
-
-                String[] netCdfFactors = netcdf.getFactors();
-                Map<String, String[]> factorValues = new HashMap<String, String[]>();
-                for (String factor : netCdfFactors) {
+    private ExperimentDesignUI constructExperimentDesign(Experiment exp) throws ResourceNotFoundException, AtlasDataException {
+        final Collection<ArrayDesign> arrayDesigns = exp.getArrayDesigns();
+        if (arrayDesigns.isEmpty()) {
+            throw new ResourceNotFoundException("ArrayDesign for experiment " + exp.getAccession() + " is not found");
+        }
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(exp);
+        try {
+            final List<ExperimentDesignUI> designs = new ArrayList<ExperimentDesignUI>();
+        
+            for (ArrayDesign ad : arrayDesigns) {
+                final ExperimentDesignUI experimentDesign = new ExperimentDesignUI();
+        
+                final String[] adFactors = ewd.getFactors(ad);
+                final Map<String, String[]> factorValues = new HashMap<String, String[]>();
+                for (String factor : adFactors) {
                     experimentDesign.addFactor(factor);
-                    factorValues.put(factor, netcdf.getFactorValues(factor));
+                    factorValues.put(factor, ewd.getFactorValues(ad, factor));
                 }
-
-                List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
-
-                String[] netCdfSampleCharacteristics = netcdf.getCharacteristics();
-                Map<String, String[]> characteristicValues = new HashMap<String, String[]>();
-                for (String factor : netCdfSampleCharacteristics) {
-                    characteristicValues.put(factor, netcdf.getCharacteristicValues(factor));
+        
+                final List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
+        
+                final String[] sampleCharacteristics = ewd.getCharacteristics(ad);
+                final Map<String, String[]> characteristicValues = new HashMap<String, String[]>();
+                for (String factor : sampleCharacteristics) {
+                    characteristicValues.put(factor, ewd.getCharacteristicValues(ad, factor));
                     if (experimentDesign.addFactor(factor)) {
                         sampleCharacteristicsNotFactors.add(factor);
                     }
                 }
-
+        
                 int iAssay = 0;
-
-                for (String assayAccession : netcdf.getAssayAccessions()) {
+        
+                for (Assay a : ewd.getAssays(ad)) {
                     AssayInfo assay = new AssayInfo();
-                    assay.setName(assayAccession);
-                    assay.setArrayDesignAccession(netcdf.getArrayDesignAccession());
-
-                    for (String factor : netCdfFactors) {
+                    assay.setName(a.getAccession());
+                    assay.setArrayDesignAccession(ad.getAccession());
+        
+                    for (String factor : adFactors) {
                         experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
                     }
-
+        
                     for (String factor : sampleCharacteristicsNotFactors) {
                         StringBuilder allValuesOfThisFactor = new StringBuilder();
-                        for (int iSample : netcdf.getSamplesForAssay(iAssay)) {
-                            if (characteristicValues.get(factor).length > 0)
+                        for (int iSample : ewd.getSamplesForAssay(ad,iAssay)) {
+                            if (characteristicValues.get(factor).length > 0) {
                                 allValuesOfThisFactor.append(characteristicValues.get(factor)[iSample]);
+                            }
                         }
                         experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
                     }
-
+        
                     ++iAssay;
                 }
-            } finally {
-                closeQuietly(netcdf);
+                designs.add(experimentDesign);
             }
-            designs.add(experimentDesign);
+        
+            return mergeExperimentDesigns(designs);
+        } finally {
+            ewd.closeAllDataSources();
         }
-
-        return mergeExperimentDesigns(designs);
-    }
-
-    private File[] getNetCDFs(Experiment exp) throws ResourceNotFoundException {
-        File[] netCDFs = atlasNetCDFDAO.listNetCDFs(exp);
-        if (netCDFs.length == 0) {
-            throw new ResourceNotFoundException("NetCDF for experiment " + exp.getAccession() + " is not found");
-        }
-        return netCDFs;
     }
 
     //merge experimental factors from all designs, and create assays with factor values either blank (if factor

@@ -27,10 +27,10 @@ import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.Attribute;
@@ -72,7 +72,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     private Efo efo;
     private AtlasProperties atlasProperties;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
 
     public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
         this.geneSolrDAO = geneSolrDAO;
@@ -94,8 +94,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public Object process(HttpServletRequest request) {
@@ -141,7 +141,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             List<ExperimentResult> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
 
             // Now find non-de experiments
-            attr.setStatType(StatisticsType.NON_D_E);
+            attr = attr.withStatType(StatisticsType.NON_D_E);
             List<ExperimentResult> nonDEExps = toResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr));
             // ...and sort found nonDE experiments alphabetically by accession
             Collections.sort(nonDEExps, new Comparator<ExperimentResult>() {
@@ -178,7 +178,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
                 for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                    ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(experimentDAO.getExperimentByAccession(exp.getAccession()),
+                    ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(experimentDAO.getExperimentByAccession(exp.getAccession()),
                             (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                     if (ea != null) {
                         exp.setHighestRankAttribute(attrCandidate);
@@ -266,11 +266,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             // TODO: we might be better off with one entity encapsulating the expression stats
             long start = System.currentTimeMillis();
-            attr.setStatType(NON_D_E);
+            attr = attr.withStatType(NON_D_E);
             int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-            attr.setStatType(UP);
+
+            attr = attr.withStatType(UP);
             int numUp = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-            attr.setStatType(DOWN);
+
+            attr = attr.withStatType(DOWN);
             int numDn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
             log.debug("Obtained  counts for gene: " + bioEntityId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
 

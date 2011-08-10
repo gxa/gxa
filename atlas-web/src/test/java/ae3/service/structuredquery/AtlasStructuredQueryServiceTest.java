@@ -31,11 +31,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.statistics.Attribute;
@@ -50,9 +50,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.DOWN;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 
 /**
  * @author pashky
@@ -103,7 +111,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         gpService.setAtlasProperties(atlasProperties);
         gpService.setSolrServerAtlas(solrServerAtlas);
 
-        AtlasNetCDFDAO atlasNetCDFDAO = new AtlasNetCDFDAO();
+        AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
 
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
@@ -115,7 +123,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setEfo(efo);
         service.setAtlasProperties(atlasProperties);
         service.setGenePropService(gpService);
-        service.setAtlasNetCDFDAO(atlasNetCDFDAO);
+        service.setAtlasDataDAO(atlasDataDAO);
         service.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
     }
 

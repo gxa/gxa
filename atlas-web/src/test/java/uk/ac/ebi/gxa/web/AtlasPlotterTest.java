@@ -50,7 +50,7 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
         plotter = new AtlasPlotter();
         plotter.setAtlasDatabaseDAO(atlasDAO);
         plotter.setGeneSolrDAO(getAtlasSolrDao());
-        plotter.setAtlasNetCDFDAO(getNetCDFDAO());
+        plotter.setAtlasDataDAO(getDataDAO());
     }
 
     @Override

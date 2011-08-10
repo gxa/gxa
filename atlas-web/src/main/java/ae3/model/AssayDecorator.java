@@ -25,6 +25,7 @@ package ae3.model;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.MappingIterator;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
@@ -35,8 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
- * Is used only in NetCDFReader and should be replaced with newer model class.
+ * A decorator class, representing on experiment assay for use in {@link ae3.model.ExperimentalData}
  *
  * @author pashky
  */
@@ -60,6 +60,10 @@ public class AssayDecorator {
         this.number = number;
         this.arrayDesign = arrayDesign;
         this.positionInMatrix = positionInMatrix;
+    }
+
+    Assay getAssay() {
+        return assay;
     }
 
     /**

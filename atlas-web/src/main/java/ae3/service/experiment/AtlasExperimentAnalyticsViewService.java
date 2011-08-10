@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.data.NetCDFDescriptor;
+import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
-import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.CONDITION_ANY;
 
 /**
  * This class provides access to the statistical functions defined in R scripts.

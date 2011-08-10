@@ -26,11 +26,11 @@
     
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
         <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="atlasNetCDFDAO"/>
+        <constructor-arg ref="atlasDataDAO"/>
     </bean>
 
     <bean name="MAGETABLoader" class="uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader">
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="unloaderService" ref="experimentUnloaderService"/>
         <property name="loaderDAO" ref="loaderDAO"/>
@@ -38,7 +38,7 @@
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
     </bean>
 
 

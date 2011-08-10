@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -129,9 +128,8 @@ public class ArrayDesignDAO {
         private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.mappingswid";
 
         public ArrayDesign mapRow(ResultSet resultSet, int i) throws SQLException {
-            ArrayDesign array = new ArrayDesign();
+            ArrayDesign array = new ArrayDesign(resultSet.getString(1));
 
-            array.setAccession(resultSet.getString(1));
             array.setType(resultSet.getString(2));
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));

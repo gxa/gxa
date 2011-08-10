@@ -66,8 +66,7 @@ public class StatisticsQueryUtils {
                 // For efv Attributes we span all experiments
                 cond.inExperiments(Collections.singletonList(expToAttr.getKey()));
             for (EfvAttribute attr : expToAttr.getValue()) {
-                attr.setStatType(statType);
-                cond.inAttribute(attr);
+                cond.inAttribute(attr.withStatType(statType));
             }
             orConditions.orCondition(cond);
         }

@@ -57,9 +57,10 @@ public class ArrayDesignMappingLoader {
         try {
             csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
 
-            arrayDesign = new ArrayDesign();
+            final ArrayDesign arrayDesign = new ArrayDesign(
+                readValue("Array Design Accession", url, csvReader)
+            );
             arrayDesign.setName(readValue("Array Design Name", url, csvReader));
-            arrayDesign.setAccession(readValue("Array Design Accession", url, csvReader));
             arrayDesign.setType(readValue("Array Design Type", url, csvReader));
             arrayDesign.setProvider(readValue("Array Design Provider", url, csvReader));
 

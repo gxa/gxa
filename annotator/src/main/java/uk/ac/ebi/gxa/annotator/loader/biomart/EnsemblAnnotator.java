@@ -102,8 +102,8 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
             BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
 
-            readBioentities(csvReader, martConnection, attributesHandler);
-            writeBioentitiesToDB();
+//            readBioentities(csvReader, martConnection, attributesHandler);
+//            writeBioentitiesToDB();
 
             for (BioMartArrayDesign bioMartArrayDesign : annSrc.getBioMartArrayDesigns()) {
                 clearDesignElements();
