@@ -50,10 +50,9 @@ public class CurationService {
      * Saves apiExperiment
      *
      * @param apiExperiment
-     * @param response
      */
     @Transactional
-    public void saveExperiment(@Nonnull final ApiExperiment apiExperiment, final HttpServletResponse response) {
+    public void saveExperiment(@Nonnull final ApiExperiment apiExperiment) {
         Experiment experiment = atlasDAO.getExperimentByAccession(apiExperiment.getAccession());
 
         if (experiment != null) {
@@ -143,70 +142,58 @@ public class CurationService {
         experiment.setSamples(samples);
 
         experimentDAO.save(experiment);
-        response.setStatus(HttpServletResponse.SC_CREATED);
-
     }
 
     /**
      * @param experimentAccession
-     * @param response
      * @return ApiExperiment corresponding to experimentAccession
      * @throws ResourceNotFoundException if experiment not found
      */
-    public ApiExperiment getExperiment(final String experimentAccession, final HttpServletResponse response)
+    public ApiExperiment getExperiment(final String experimentAccession)
             throws ResourceNotFoundException {
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, response, experimentAccession);
+        checkIfFound(experiment, experimentAccession);
 
-        response.setStatus(HttpServletResponse.SC_FOUND);
         return new ApiExperiment(experiment);
     }
 
     /**
      * @param experimentAccession
      * @param assayAccession
-     * @param response
      * @return ApiAssay corresponding to assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
-    public ApiAssay getAssay(final String experimentAccession, final String assayAccession, final HttpServletResponse response)
+    public ApiAssay getAssay(final String experimentAccession, final String assayAccession)
             throws ResourceNotFoundException {
 
-        Assay assay = findAssay(experimentAccession, assayAccession, response);
-        response.setStatus(HttpServletResponse.SC_FOUND);
+        Assay assay = findAssay(experimentAccession, assayAccession);
         return new ApiAssay(assay);
     }
 
     /**
      * @param experimentAccession
      * @param sampleAccession
-     * @param response
      * @return ApiSample corresponding to sampleAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession in that experiment are not found
      */
-    public ApiSample getSample(final String experimentAccession, final String sampleAccession, final HttpServletResponse response)
+    public ApiSample getSample(final String experimentAccession, final String sampleAccession)
             throws ResourceNotFoundException {
-        Sample sample = findSample(experimentAccession, sampleAccession, response);
-        response.setStatus(HttpServletResponse.SC_FOUND);
+        Sample sample = findSample(experimentAccession, sampleAccession);
         return new ApiSample(sample);
     }
 
     /**
      * @param experimentAccession
      * @param assayAccession
-     * @param response
      * @return Collection of ApiAssayProperty for assay: assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
     public Collection<ApiAssayProperty> getAssayProperties(
             final String experimentAccession,
-            final String assayAccession,
-            final HttpServletResponse response)
+            final String assayAccession)
             throws ResourceNotFoundException {
-        Assay assay = findAssay(experimentAccession, assayAccession, response);
-
-        response.setStatus(HttpServletResponse.SC_FOUND);
+        Assay assay = findAssay(experimentAccession, assayAccession);
         return new ApiAssay(assay).getProperties();
     }
 
@@ -216,15 +203,13 @@ public class CurationService {
      * @param experimentAccession
      * @param assayAccession
      * @param assayProperties
-     * @param response
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
     @Transactional
     public void putAssayProperties(final String experimentAccession,
                                    final String assayAccession,
-                                   final ApiAssayProperty[] assayProperties,
-                                   HttpServletResponse response) throws ResourceNotFoundException {
-        Assay assay = findAssay(experimentAccession, assayAccession, response);
+                                   final ApiAssayProperty[] assayProperties) throws ResourceNotFoundException {
+        Assay assay = findAssay(experimentAccession, assayAccession);
 
         for (ApiAssayProperty apiAssayProperty : assayProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
@@ -240,7 +225,6 @@ public class CurationService {
         }
 
         assayDAO.save(assay);
-        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     /**
@@ -249,15 +233,13 @@ public class CurationService {
      * @param experimentAccession
      * @param assayAccession
      * @param assayProperties
-     * @param response
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
     @Transactional
     public void deleteAssayProperties(final String experimentAccession,
                                       final String assayAccession,
-                                      final ApiAssayProperty[] assayProperties,
-                                      HttpServletResponse response) throws ResourceNotFoundException {
-        Assay assay = findAssay(experimentAccession, assayAccession, response);
+                                      final ApiAssayProperty[] assayProperties) throws ResourceNotFoundException {
+        Assay assay = findAssay(experimentAccession, assayAccession);
 
         for (ApiAssayProperty apiAssayProperty : assayProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
@@ -268,25 +250,20 @@ public class CurationService {
         }
 
         assayDAO.save(assay);
-        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     /**
      * @param experimentAccession
      * @param sampleAccession
-     * @param response
      * @return Collection of ApiSampleProperty from sample: sampleAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
     public Collection<ApiSampleProperty> getSampleProperties(
             final String experimentAccession,
-            final String sampleAccession,
-            final HttpServletResponse response)
+            final String sampleAccession)
             throws ResourceNotFoundException {
-        Sample sample = findSample(experimentAccession, sampleAccession, response);
-
-        response.setStatus(HttpServletResponse.SC_FOUND);
+        Sample sample = findSample(experimentAccession, sampleAccession);
         return new ApiSample(sample).getProperties();
     }
 
@@ -297,16 +274,14 @@ public class CurationService {
      * @param experimentAccession
      * @param sampleAccession
      * @param sampleProperties
-     * @param response
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
     @Transactional
     public void putSampleProperties(final String experimentAccession,
                                     final String sampleAccession,
-                                    final ApiSampleProperty[] sampleProperties,
-                                    final HttpServletResponse response) throws ResourceNotFoundException {
-        Sample sample = findSample(experimentAccession, sampleAccession, response);
+                                    final ApiSampleProperty[] sampleProperties) throws ResourceNotFoundException {
+        Sample sample = findSample(experimentAccession, sampleAccession);
 
         for (ApiSampleProperty apiSampleProperty : sampleProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
@@ -322,7 +297,6 @@ public class CurationService {
         }
 
         sampleDAO.save(sample);
-        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     /**
@@ -331,16 +305,14 @@ public class CurationService {
      * @param experimentAccession
      * @param sampleAccession
      * @param sampleProperties
-     * @param response
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
     @Transactional
     public void deleteSampleProperties(final String experimentAccession,
                                        final String sampleAccession,
-                                       final ApiSampleProperty[] sampleProperties,
-                                       final HttpServletResponse response) throws ResourceNotFoundException {
-        Sample sample = findSample(experimentAccession, sampleAccession, response);
+                                       final ApiSampleProperty[] sampleProperties) throws ResourceNotFoundException {
+        Sample sample = findSample(experimentAccession, sampleAccession);
 
         for (ApiSampleProperty apiSampleProperty : sampleProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
@@ -351,19 +323,16 @@ public class CurationService {
         }
 
         sampleDAO.save(sample);
-        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     /**
      * @param ontologyName
-     * @param response
      * @return ApiOntology corresponding to ontologyName
      * @throws ResourceNotFoundException if ontology: ontologyName was not found
      */
-    public ApiOntology getOntology(final String ontologyName, final HttpServletResponse response) throws ResourceNotFoundException {
+    public ApiOntology getOntology(final String ontologyName) throws ResourceNotFoundException {
         Ontology ontology = atlasDAO.getOntologyByName(ontologyName);
-        checkIfFound(ontology, response, ontologyName);
-        response.setStatus(HttpServletResponse.SC_FOUND);
+        checkIfFound(ontology, ontologyName);
         return new ApiOntology(ontology);
     }
 
@@ -372,10 +341,9 @@ public class CurationService {
      * Adds or updates details for Ontology corresponding to apiOntology
      *
      * @param apiOntology
-     * @param response
      */
     @Transactional
-    public void putOntology(final ApiOntology apiOntology, final HttpServletResponse response) {
+    public void putOntology(final ApiOntology apiOntology) {
 
         Ontology ontology = atlasDAO.getOntologyByName(apiOntology.getName());
         if (ontology == null) {
@@ -387,21 +355,17 @@ public class CurationService {
             ontology.setSourceUri(apiOntology.getSourceUri());
         }
         ontologyDAO.save(ontology);
-        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     /**
      * @param ontologyTermAcc
-     * @param response
      * @return ApiOntologyTerm corresponding to ontologyTerm
      * @throws ResourceNotFoundException if ontology term: ontologyTerm was not found
      */
-    public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc,
-                                           final HttpServletResponse response) throws ResourceNotFoundException {
+    public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws ResourceNotFoundException {
 
         OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(ontologyTermAcc);
-        checkIfFound(ontologyTerm, response, ontologyTermAcc);
-        response.setStatus(HttpServletResponse.SC_FOUND);
+        checkIfFound(ontologyTerm, ontologyTermAcc);
         return new ApiOntologyTerm(ontologyTerm);
     }
 
@@ -409,11 +373,9 @@ public class CurationService {
      * Add (or update mappings to Ontology for) apiOntologyTerms
      *
      * @param apiOntologyTerms
-     * @param response
      */
     @Transactional
-    public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms,
-                                 final HttpServletResponse response) {
+    public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) {
         for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
             OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
             if (ontologyTerm == null) {
@@ -427,7 +389,6 @@ public class CurationService {
             }
             ontologyTermDAO.save(ontologyTerm);
         }
-        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
 
@@ -463,14 +424,12 @@ public class CurationService {
      * If entity == null, this method sets appropriate response status and then throws ResourceNotFoundException
      *
      * @param entity
-     * @param response
      * @param accession
      * @param <T>
      * @throws ResourceNotFoundException
      */
-    private <T> void checkIfFound(T entity, HttpServletResponse response, String accession) throws ResourceNotFoundException {
+    private <T> void checkIfFound(T entity, String accession) throws ResourceNotFoundException {
         if (entity == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             throw new ResourceNotFoundException("No records for " + entity.getClass().getName() + accession);
         }
     }
@@ -479,34 +438,32 @@ public class CurationService {
     /**
      * @param experimentAccession
      * @param assayAccession
-     * @param response
      * @return Assay corresponding to assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession
      *                                   in that experiment are not found
      */
-    private Assay findAssay(final String experimentAccession, final String assayAccession, final HttpServletResponse response) throws ResourceNotFoundException {
+    private Assay findAssay(final String experimentAccession, final String assayAccession) throws ResourceNotFoundException {
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, response, experimentAccession);
+        checkIfFound(experiment, experimentAccession);
 
         final Assay assay = experiment.getAssay(assayAccession);
-        checkIfFound(assay, response, assayAccession);
+        checkIfFound(assay, assayAccession);
         return assay;
     }
 
     /**
      * @param experimentAccession
      * @param sampleAccession
-     * @param response
      * @return Sample corresponding to sampleAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
-    private Sample findSample(final String experimentAccession, final String sampleAccession, final HttpServletResponse response) throws ResourceNotFoundException {
+    private Sample findSample(final String experimentAccession, final String sampleAccession) throws ResourceNotFoundException {
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, response, experimentAccession);
+        checkIfFound(experiment, experimentAccession);
 
         final Sample sample = experiment.getSample(sampleAccession);
-        checkIfFound(sample, response, sampleAccession);
+        checkIfFound(sample, sampleAccession);
         return sample;
     }
 

@@ -179,7 +179,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertTrue("Property not added", assay.hasProperty(propertyValue));
-        int oldCount = assay.getProperties().size();
 
         removeAssayProperty();
 

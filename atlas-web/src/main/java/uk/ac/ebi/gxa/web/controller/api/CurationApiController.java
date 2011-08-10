@@ -29,14 +29,22 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.GET)
     public ApiExperiment getExperiment(@PathVariable("experimentAccession") final String experimentAccession,
                                        HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getExperiment(experimentAccession, response);
+        try {
+            ApiExperiment apiExperiment = curationService.getExperiment(experimentAccession);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return apiExperiment;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}",
             method = RequestMethod.PUT)
     public void putExperiment(@RequestBody final ApiExperiment apiExperiment,
                               HttpServletResponse response) throws ResourceNotFoundException {
-        curationService.saveExperiment(apiExperiment, response);
+        curationService.saveExperiment(apiExperiment);
+        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}",
@@ -44,7 +52,14 @@ public class CurationApiController extends AtlasViewController {
     public ApiAssay getAssay(@PathVariable("experimentAccession") final String experimentAccession,
                              @PathVariable("assayAccession") final String assayAccession,
                              HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getAssay(experimentAccession, assayAccession, response);
+        try {
+            ApiAssay assay = curationService.getAssay(experimentAccession, assayAccession);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return assay;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}",
@@ -52,7 +67,14 @@ public class CurationApiController extends AtlasViewController {
     public ApiSample getSample(@PathVariable("experimentAccession") final String experimentAccession,
                                @PathVariable("sampleAccession") final String sampleAccession,
                                HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getSample(experimentAccession, sampleAccession, response);
+        try {
+            ApiSample sample = curationService.getSample(experimentAccession, sampleAccession);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return sample;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
@@ -61,7 +83,14 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("experimentAccession") final String experimentAccession,
             @PathVariable(value = "assayAccession") final String assayAccession,
             HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getAssayProperties(experimentAccession, assayAccession, response);
+        try {
+            Collection<ApiAssayProperty> assayProperties = curationService.getAssayProperties(experimentAccession, assayAccession);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return assayProperties;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
@@ -70,8 +99,13 @@ public class CurationApiController extends AtlasViewController {
                                    @PathVariable(value = "assayAccession") final String assayAccession,
                                    @RequestBody final ApiAssayProperty[] assayProperties,
                                    HttpServletResponse response) throws ResourceNotFoundException {
-
-        curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties, response);
+        try {
+            curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties);
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
@@ -80,7 +114,13 @@ public class CurationApiController extends AtlasViewController {
                                       @PathVariable(value = "assayAccession") final String assayAccession,
                                       @RequestBody final ApiAssayProperty[] assayProperties,
                                       HttpServletResponse response) throws ResourceNotFoundException {
-        curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties, response);
+        try {
+            curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
@@ -89,7 +129,14 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("experimentAccession") final String experimentAccession,
             @PathVariable(value = "sampleAccession") final String sampleAccession,
             HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getSampleProperties(experimentAccession, sampleAccession, response);
+        try {
+            Collection<ApiSampleProperty> sampleProperties = curationService.getSampleProperties(experimentAccession, sampleAccession);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return sampleProperties;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
@@ -98,7 +145,13 @@ public class CurationApiController extends AtlasViewController {
                                     @PathVariable(value = "sampleAccession") final String sampleAccession,
                                     @RequestBody final ApiSampleProperty[] sampleProperties,
                                     HttpServletResponse response) throws ResourceNotFoundException {
-        curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties, response);
+        try {
+            curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties);
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
 
     }
 
@@ -108,14 +161,28 @@ public class CurationApiController extends AtlasViewController {
                                       @PathVariable(value = "sampleAccession") String sampleAccession,
                                       @RequestBody ApiSampleProperty[] sampleProperties,
                                       HttpServletResponse response) throws ResourceNotFoundException {
-        curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties, response);
+        try {
+            curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
+            response.setStatus(HttpServletResponse.SC_CREATED);
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
+
     }
 
     @RequestMapping(value = "/ontologies/{ontologyName}",
             method = RequestMethod.GET)
     public ApiOntology getOntology(@PathVariable(value = "ontologyName") final String ontologyName,
                                    HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getOntology(ontologyName, response);
+        try {
+            ApiOntology ontology = curationService.getOntology(ontologyName);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return ontology;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
 
     }
 
@@ -123,20 +190,31 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.PUT)
     public void putOntology(@RequestBody final ApiOntology apiOntology,
                             HttpServletResponse response) {
-        curationService.putOntology(apiOntology, response);
+        curationService.putOntology(apiOntology);
+        response.setStatus(HttpServletResponse.SC_CREATED);
     }
 
     @RequestMapping(value = "/ontologyterms/{ontologyTerm}",
             method = RequestMethod.GET)
     public ApiOntologyTerm getOntologyTerm(@PathVariable(value = "ontologyTerm") final String ontologyTerm,
                                            HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getOntologyTerm(ontologyTerm, response);
+        try {
+            ApiOntologyTerm apiOntologyTerm = curationService.getOntologyTerm(ontologyTerm);
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            return apiOntologyTerm;
+        } catch (ResourceNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            throw e;
+        }
+
     }
 
     @RequestMapping(value = "/ontologyterms",
             method = RequestMethod.PUT)
     public void putOntologyTerms(@RequestBody final ApiOntologyTerm[] apiOntologyTerms,
-                                HttpServletResponse response) {
-        curationService.putOntologyTerms(apiOntologyTerms, response);
+                                 HttpServletResponse response) {
+        curationService.putOntologyTerms(apiOntologyTerms);
+        response.setStatus(HttpServletResponse.SC_CREATED);
     }
+
 }
