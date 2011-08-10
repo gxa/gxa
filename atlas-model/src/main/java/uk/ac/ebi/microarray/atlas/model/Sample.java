@@ -105,7 +105,7 @@ public class Sample {
 
 
 
-    public long getSampleID() {
+    public Long getSampleID() {
         return getId();
     }
 

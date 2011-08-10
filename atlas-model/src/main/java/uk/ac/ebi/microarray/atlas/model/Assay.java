@@ -136,7 +136,7 @@ public class Assay {
         return arrayDesign;
     }
 
-    public long getAssayID() {
+    public Long getAssayID() {
         return getId();
     }
 
@@ -219,21 +219,9 @@ public class Assay {
     }
 
     public void deleteProperty(final PropertyValue propertyValue) {
-        for (Iterator<AssayProperty> iterator = properties.iterator(); iterator.hasNext(); ) {
-            AssayProperty property = iterator.next();
-            if (property.getPropertyValue().equals(propertyValue)) {
-                iterator.remove();
-            }
-        }
-    }
-
-    public boolean hasProperty(final PropertyValue propertyValue) {
-        for (AssayProperty property : properties) {
-            if (property.getPropertyValue().equals(propertyValue))
-                return true;
-        }
-
-        return false;
+        // removeAll(Collection) removes all occurrences of propertyValue in properties, whereas
+        // remove(propertyValue) would have removed only the first occurrence of propertyValue
+        properties.removeAll(Collections.singletonList(propertyValue));
     }
 
     public AssayProperty getProperty(PropertyValue propertyValue) {
@@ -243,6 +231,10 @@ public class Assay {
         }
 
         return null;
+    }
+
+    public boolean hasProperty(final PropertyValue propertyValue) {
+        return getProperty(propertyValue) != null;
     }
 
     public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {

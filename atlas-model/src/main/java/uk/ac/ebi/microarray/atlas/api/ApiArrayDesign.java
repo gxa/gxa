@@ -11,9 +11,6 @@ public class ApiArrayDesign {
     private String name;
     private String provider;
     private String type;
-//    private Long mappingSoftwareId;
-//    private Map<String, Long> designElements = new HashMap<String, Long>();
-//    private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
 
     public ApiArrayDesign() {}
 
