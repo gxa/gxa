@@ -28,19 +28,6 @@ public class DataPredicates {
         this.ewd = ewd;
     }
 
-    public Predicate<ArrayDesign> hasArrayDesign(@Nonnull final String arrayDesignAccession) {
-        return new Predicate<ArrayDesign>() {
-            public boolean apply(@Nonnull ArrayDesign arrayDesign) {
-                return arrayDesign.getAccession().equals(arrayDesignAccession);
-            }
-
-            @Override
-            public String toString() {
-                return "HasArrayDesign(" + arrayDesignAccession + ")";
-            }
-        };
-    }
-
     public Predicate<ArrayDesign> containsGenes(final Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty()) {
             return Predicates.alwaysTrue();
