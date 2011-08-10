@@ -59,46 +59,29 @@ public class DataPredicates {
     }
 
     public Predicate<ArrayDesign> containsEfEfv(final String ef, final String efv) {
-        return isNullOrEmpty(efv) ?
-                new Predicate<ArrayDesign>() {
-                    public boolean apply(@Nonnull ArrayDesign arrayDesign) {
-                        try {
-                            for (KeyValuePair uefv : ewd.getUniqueFactorValues(arrayDesign)) {
-                                if (uefv.key.equals(ef))
-                                    return true;
+        return
+            new Predicate<ArrayDesign>() {
+                public boolean apply(@Nonnull ArrayDesign arrayDesign) {
+                    try {
+                        for (KeyValuePair uefv : ewd.getUniqueFactorValues(arrayDesign)) {
+                            if (uefv.key.equals(ef) &&
+                                (isNullOrEmpty(efv) || uefv.value.equals(efv))) {
+                                return true;
                             }
-                            return false;
-                        } catch (AtlasDataException e) {
-                            log.error("Cannot read pair " + pairToString(arrayDesign), e);
-                            return false;
                         }
+                        return false;
+                    } catch (AtlasDataException e) {
+                        log.error("Cannot read pair " + pairToString(arrayDesign), e);
+                        return false;
                     }
+                }
 
-                    @Override
-                    public String toString() {
-                        return "HasEF(" + ef + ")";
-                    }
-                } :
-                new Predicate<ArrayDesign>() {
-                    public boolean apply(@Nonnull ArrayDesign arrayDesign) {
-                        try {
-                            for (KeyValuePair uefv : ewd.getUniqueFactorValues(arrayDesign)) {
-                                if (uefv.key.equals(ef) && uefv.value.equals(efv)) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        } catch (AtlasDataException e) {
-                            log.error("Cannot read pair " + pairToString(arrayDesign), e);
-                            return false;
-                        }
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "HasEFV(" + ef + "||" + efv + ")";
-                    }
-                };
+                @Override
+                public String toString() {
+                    return isNullOrEmpty(efv)
+                        ? "HasEF(" + ef + ")" : "HasEFV(" + ef + "||" + efv + ")";
+                }
+            };
     }
 
     private String pairToString(ArrayDesign arrayDesign) {
