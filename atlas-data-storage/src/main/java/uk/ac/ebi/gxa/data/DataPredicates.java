@@ -41,7 +41,7 @@ public class DataPredicates {
     public Predicate<Pair> hasArrayDesign(@Nonnull final String arrayDesign) {
         return new Predicate<Pair>() {
             public boolean apply(@Nonnull Pair pair) {
-                return pair.arrayDesign.getAccession().equals(arrayDesign);
+                return arrayDesign.equals(pair.arrayDesign.getAccession());
             }
 
             @Override
