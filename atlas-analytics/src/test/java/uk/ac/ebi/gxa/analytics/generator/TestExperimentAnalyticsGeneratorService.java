@@ -65,7 +65,7 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
         final ExperimentAnalyticsGeneratorService experimentAnalyticsGeneratorService =
                 new ExperimentAnalyticsGeneratorService(
                 atlasDAO, atlasDataDAO, atlasComputeService,
-                EasyMock.<ExecutorService>anyObject());
+                createMock(ExecutorService.class));
 
         experimentAnalyticsGeneratorService.createAnalyticsForExperiment(E_GEOD_5035,
                 createMock(AnalyticsGeneratorListener.class));
