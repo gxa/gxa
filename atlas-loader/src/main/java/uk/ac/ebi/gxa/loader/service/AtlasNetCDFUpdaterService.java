@@ -89,9 +89,12 @@ public class AtlasNetCDFUpdaterService {
                 }
             }
 
-            if (assayAccessions.length == data.getAssays().size()) {
-                data.matchValuePatterns(getValuePatterns(proxy, data.getAssays()));
-            }
+            // TODO: this is commented out because it is *broken* and needs to be rewritten
+            // behaviour after commenting code below: *any* netcdf update will result in analytics reset
+
+//            if (assayAccessions.length == data.getAssays().size()) {
+//                data.matchValuePatterns(getValuePatterns(proxy, data.getAssays()));
+//            }
 
             // Get unique values
             List<KeyValuePair> uniqueValues = proxy.getUniqueValues();
