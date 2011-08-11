@@ -2133,13 +2133,13 @@
                 var expression = s.expression;
                 if (typeof(s.pvalue) !== undefined) {
                     pValue = s.pvalue;
-                    if (isNaN(pValue) || pValue === Infinity || pValue === -Infinity || typeof(pValue) !== "number") {
-                        // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
-                        pValue = 'NA';
-                    } else {
+                    if (typeof(pValue) === 'number' && isFinite(pValue)) {
                         if (options.legend.pValueFormatter != null) {
                             pValue = options.legend.pValueFormatter(pValue);
                         }
+                    } else {
+                         // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
+                        pValue = 'NA';
                     }
 
                     var expdict = { up: "&#8593;", dn: "&#8595;", no: "&#126;" };

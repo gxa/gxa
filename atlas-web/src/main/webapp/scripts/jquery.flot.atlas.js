@@ -1783,19 +1783,19 @@
                 var expression = series[i].expression;
                 if (typeof(series[i].pvalue) !== undefined) {
                     pValue = series[i].pvalue;
-                    if (isNaN(pValue) || pValue === Infinity || pValue === -Infinity || typeof(pValue) !== "number") {
-                        // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
-                        pValue = 'NA';
-                    } else {
+                    if (typeof(pValue) === 'number' && isFinite(pValue)) {
                         if (options.legend.pValueFormatter != null) {
                             pValue = options.legend.pValueFormatter(pValue);
                         }
+                    } else {
+                        // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
+                        pValue = 'NA';
                     }
 
                     var expdict = { up: '&#8593;', dn: '&#8595;', no: '&#126;' };
                     pValue = expdict[expression] + '&nbsp;' + pValue;
 
-                    if (series[i].legend.isefv) {                       
+                    if (series[i].legend.isefv) {
                         // Highlight the label and pValue if it belongs to an efv in focus, e.g. the plot is being output
                         // after the user clicked a cell in a heat map,
                         // in a column corresponding to an efv)
