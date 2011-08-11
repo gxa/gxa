@@ -1,6 +1,8 @@
 package uk.ac.ebi.gxa.loader.service;
 
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -12,6 +14,8 @@ import java.util.*;
 import static java.util.Collections.sort;
 
 class NetCDFData {
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
+
     // Note that matchedUniqueValues includes both ef-efvs ad sc-scvs
     private EfvTree<CPair<String, String>> matchedUniqueValues = null;
     private DataMatrixStorage storage;
@@ -149,14 +153,13 @@ class NetCDFData {
 
         EfvTree<CPair<String, String>> result = new EfvTree<CPair<String, String>>();
         for (EfvTree.Ef<CBitSet> toProperty : toTree) {
-            List<EfvTree.Efv<CBitSet>> dest = toProperty.getEfvs();
+            List<EfvTree.Efv<CBitSet>> dest = new ArrayList<EfvTree.Efv<CBitSet>>(toProperty.getEfvs());
+            Collections.sort(dest);
 
             boolean matched = false;
             for (EfvTree.Ef<CBitSet> fromProperty : fromTree) {
-                List<EfvTree.Efv<CBitSet>> src = fromProperty.getEfvs();
-                if (src.size() != dest.size()) {
-                    continue;
-                }
+                List<EfvTree.Efv<CBitSet>> src = new ArrayList<EfvTree.Efv<CBitSet>>(fromProperty.getEfvs());
+                Collections.sort(src);
 
                 // So basically for each EF/SC in the destination we find all the EF/SCs having the same number of EFVs/SCVs
                 // and assume these are the same EFs/SCs as proven by comparing payloads, i.e. bit patterns
@@ -165,16 +168,20 @@ class NetCDFData {
                 // and assays are assigned to EFVs in the same manner, statistics don't change, hence we should be
                 // safe to carry it over
                 if (!src.equals(dest))
-                    return null;
+                    continue;
 
                 for (int i = 0; i < src.size(); ++i)
                     result.putCaseSensitive(toProperty.getEf(), dest.get(i).getEfv(),
                             new CPair<String, String>(fromProperty.getEf(), src.get(i).getEfv()));
                 matched = true;
             }
-            if (!matched)
+
+            if (!matched) {
+                log.info("NetCDF and DB EF/SC values not matched -- will need to recompute statistics");
                 return null;
+            }
         }
+
         return result;
     }
 
