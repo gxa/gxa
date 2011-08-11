@@ -212,14 +212,12 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        final Ontology ontology = atlasDAO.getOrCreateOntology(ONTOLOGY_NAME, ONTOLOGY_DESCRIPTION, null, ONTOLOGY_VERSION);
         List<OntologyTerm> terms = Collections.singletonList(atlasDAO.getOrCreateOntologyTerm(
                 ONTOLOGY_TERM,
                 null,
                 null,
-                ONTOLOGY_NAME,
-                ONTOLOGY_DESCRIPTION,
-                null,
-                ONTOLOGY_VERSION));
+                ontology));
         assay.addOrUpdateProperty(propertyValue, terms);
         experimentDAO.save(experiment);
     }

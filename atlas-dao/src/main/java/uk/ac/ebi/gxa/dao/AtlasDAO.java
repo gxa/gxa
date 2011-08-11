@@ -194,15 +194,10 @@ public class AtlasDAO {
     public OntologyTerm getOrCreateOntologyTerm(final String accession,
                                                 final String term,
                                                 final String description,
-                                                final String ontologyName,
-                                                final String ontologyDescription,
-                                                final String ontologySourceUri,
-                                                final String ontologyVersion) {
+                                                final Ontology ontology) {
 
         OntologyTerm ontologyTerm = ontologyTermDAO.getByAccession(accession);
         if (ontologyTerm == null) {
-            Ontology ontology =
-                    getOrCreateOntology(ontologyName, ontologyDescription, ontologySourceUri, ontologyVersion);
             ontologyTermDAO.save(ontologyTerm = new OntologyTerm(null, ontology, term, accession, description));
         }
 

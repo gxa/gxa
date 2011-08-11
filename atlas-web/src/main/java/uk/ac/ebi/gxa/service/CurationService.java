@@ -101,9 +101,13 @@ public class CurationService {
      * Saves apiExperiment
      *
      * @param apiExperiment
+     * @throws ResourceNotFoundException if Ontology that at least one of apiOntologyTerms in apiExperiment's assay/sample properties
+     *                                   is assigned to doesn't exist -
+     *                                   the user needs to explicitly create the new ontology first
      */
     @Transactional
-    public void saveExperiment(@Nonnull final ApiExperiment apiExperiment) {
+    public void saveExperiment(@Nonnull final ApiExperiment apiExperiment)
+            throws ResourceNotFoundException {
         Experiment experiment = atlasDAO.getExperimentByAccession(apiExperiment.getAccession());
 
         if (experiment != null) {
@@ -137,14 +141,7 @@ public class CurationService {
 
                 List<OntologyTerm> terms = Lists.newArrayList();
                 for (ApiOntologyTerm apiOntologyTerm : apiAssayProperty.getTerms()) {
-                    terms.add(atlasDAO.getOrCreateOntologyTerm(
-                            apiOntologyTerm.getAccession(),
-                            apiOntologyTerm.getTerm(),
-                            apiOntologyTerm.getDescription(),
-                            apiOntologyTerm.getOntology().getName(),
-                            apiOntologyTerm.getOntology().getDescription(),
-                            apiOntologyTerm.getOntology().getSourceUri(),
-                            apiOntologyTerm.getOntology().getVersion()));
+                    terms.add(getOrCreateOntologyTerm(apiOntologyTerm));
                 }
 
                 assay.addOrUpdateProperty(propertyValue, terms);
@@ -169,14 +166,7 @@ public class CurationService {
 
                 List<OntologyTerm> terms = Lists.newArrayList();
                 for (ApiOntologyTerm apiOntologyTerm : apiSampleProperty.getTerms()) {
-                    terms.add(atlasDAO.getOrCreateOntologyTerm(
-                            apiOntologyTerm.getAccession(),
-                            apiOntologyTerm.getTerm(),
-                            apiOntologyTerm.getDescription(),
-                            apiOntologyTerm.getOntology().getName(),
-                            apiOntologyTerm.getOntology().getDescription(),
-                            apiOntologyTerm.getOntology().getSourceUri(),
-                            apiOntologyTerm.getOntology().getVersion()));
+                    terms.add(getOrCreateOntologyTerm(apiOntologyTerm));
                 }
 
                 sample.addOrUpdateProperty(propertyValue, terms);
@@ -424,9 +414,11 @@ public class CurationService {
      * Add (or update mappings to Ontology for) apiOntologyTerms
      *
      * @param apiOntologyTerms
+     * @throws ResourceNotFoundException if Ontology that at least one of apiOntologyTerms is assigned to doesn't exist -
+     *                                   the user needs to explicitly create the new ontology first
      */
     @Transactional
-    public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) {
+    public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) throws ResourceNotFoundException {
         for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
             OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
             if (ontologyTerm == null) {
@@ -459,25 +451,27 @@ public class CurationService {
      * @param apiOntologyTerm
      * @return existing OntologyTerm corresponding to apiOntologyTerm.getAccession(); otherwise a new OntologyTerm
      *         corresponding to apiOntologyTerm
+     * @throws ResourceNotFoundException if Ontology that apiOntologyTerm is assigned to doesn't exist - the user needs
+     *                                   to explicitly create the new ontology first
      */
-    private OntologyTerm getOrCreateOntologyTerm(@Nonnull ApiOntologyTerm apiOntologyTerm) {
+    private OntologyTerm getOrCreateOntologyTerm(@Nonnull ApiOntologyTerm apiOntologyTerm)
+            throws ResourceNotFoundException {
+        Ontology ontology = ontologyDAO.getByName(apiOntologyTerm.getOntology().getName());
+        // Note: user needs to create a new ontology first before assigning ontology terms to it
+        checkIfFound(ontology, Ontology.class, apiOntologyTerm.getAccession());
+
         return atlasDAO.getOrCreateOntologyTerm(
                 apiOntologyTerm.getAccession(),
                 apiOntologyTerm.getTerm(),
                 apiOntologyTerm.getDescription(),
-                apiOntologyTerm.getOntology().getName(),
-                apiOntologyTerm.getOntology().getDescription(),
-                apiOntologyTerm.getOntology().getSourceUri(),
-                apiOntologyTerm.getOntology().getVersion());
+                ontology);
     }
 
     /**
-     * If entity == null, this method sets appropriate response status and then throws ResourceNotFoundException
-     *
      * @param entity
      * @param accession
      * @param <T>
-     * @throws ResourceNotFoundException
+     * @throws ResourceNotFoundException if entity was not found
      */
     private <T> void checkIfFound(T entity, Class clazz, String accession) throws ResourceNotFoundException {
         if (entity == null) {
