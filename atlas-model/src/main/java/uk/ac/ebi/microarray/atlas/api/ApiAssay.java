@@ -15,11 +15,12 @@ import java.util.Collection;
 public class ApiAssay {
     private String accession;
     private ApiArrayDesign arrayDesign;
-    private Collection<ApiAssayProperty> properties;
+    private Collection<ApiProperty> properties;
 
-    public ApiAssay() {}
+    public ApiAssay() {
+    }
 
-    public ApiAssay(final String accession, final ApiArrayDesign arrayDesign, final Collection<ApiAssayProperty> properties) {
+    public ApiAssay(final String accession, final ApiArrayDesign arrayDesign, final Collection<ApiProperty> properties) {
         this.accession = accession;
         this.arrayDesign = arrayDesign;
         this.properties = properties;
@@ -30,7 +31,7 @@ public class ApiAssay {
         this.arrayDesign = new ApiArrayDesign(assay.getArrayDesign());
 
         this.properties = Collections2.transform(assay.getProperties(),
-                TransformerUtil.instanceTransformer(AssayProperty.class, ApiAssayProperty.class));
+                TransformerUtil.instanceTransformer(AssayProperty.class, ApiProperty.class));
     }
 
     public String getAccession() {
@@ -49,11 +50,11 @@ public class ApiAssay {
         this.arrayDesign = arrayDesign;
     }
 
-    public Collection<ApiAssayProperty> getProperties() {
+    public Collection<ApiProperty> getProperties() {
         return properties;
     }
 
-    public void setProperties(Collection<ApiAssayProperty> properties) {
+    public void setProperties(Collection<ApiProperty> properties) {
         this.properties = properties;
     }
 }

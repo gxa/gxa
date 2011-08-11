@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.service;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -13,10 +14,9 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.google.common.collect.Collections2.transform;
 
 /**
  * This class handles all Curation API requests, delegated from CurationApiController
@@ -44,6 +44,58 @@ public class CurationService {
 
     @Autowired
     private ExperimentDAO experimentDAO;
+
+    @Autowired
+    private PropertyDAO propertyDAO;
+
+
+    /**
+     * @return alphabetically sorted collection of all property names
+     */
+    public Collection<ApiPropertyName> getPropertyNames() {
+        List<Property> property = propertyDAO.getAll();
+
+        List<ApiPropertyName> propertyNames = Lists.newArrayList(transform(property,
+                new Function<Property, ApiPropertyName>() {
+                    public ApiPropertyName apply(@Nonnull Property p) {
+                        return new ApiPropertyName(p);
+                    }
+                }));
+
+        Collections.sort(propertyNames, new Comparator<ApiPropertyName>() {
+            public int compare(ApiPropertyName o1, ApiPropertyName o2) {
+                return o1.getName().compareToIgnoreCase(o2.getName());
+            }
+        });
+
+        return propertyNames;
+    }
+
+    /**
+     * @param propertyName
+     * @return alphabetically sorted collection of values for propertyName
+     * @throws ResourceNotFoundException
+     */
+    public Collection<ApiPropertyValue> getPropertyValues(final String propertyName)
+            throws ResourceNotFoundException {
+        Property property = propertyDAO.getByName(propertyName);
+        checkIfFound(property, Property.class, propertyName);
+        List<ApiPropertyValue> propertyValues = Lists.newArrayList(transform(property.getValues(),
+                new Function<PropertyValue, ApiPropertyValue>() {
+                    public ApiPropertyValue apply(@Nonnull PropertyValue pv) {
+                        return new ApiPropertyValue(pv);
+                    }
+                }));
+
+        Collections.sort(propertyValues, new Comparator<ApiPropertyValue>() {
+            public int compare(ApiPropertyValue o1, ApiPropertyValue o2) {
+                return o1.getValue().compareToIgnoreCase(o2.getValue());
+            }
+        });
+
+        return propertyValues;
+    }
+
 
     /**
      * Saves apiExperiment
@@ -78,7 +130,7 @@ public class CurationService {
             // TODO: create ArrayDesign
             assay.setArrayDesign(atlasDAO.getArrayDesignShallowByAccession(apiAssay.getArrayDesign().getAccession()));
 
-            for (ApiAssayProperty apiAssayProperty : apiAssay.getProperties()) {
+            for (ApiProperty apiAssayProperty : apiAssay.getProperties()) {
                 PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                         apiAssayProperty.getPropertyValue().getProperty().getName(),
                         apiAssayProperty.getPropertyValue().getValue());
@@ -110,7 +162,7 @@ public class CurationService {
                 sample.setOrganism(atlasDAO.getOrganismByName(apiSample.getOrganism().getName()));
             }
 
-            for (ApiSampleProperty apiSampleProperty : apiSample.getProperties()) {
+            for (ApiProperty apiSampleProperty : apiSample.getProperties()) {
                 PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                         apiSampleProperty.getPropertyValue().getProperty().getName(),
                         apiSampleProperty.getPropertyValue().getValue());
@@ -188,7 +240,7 @@ public class CurationService {
      * @return Collection of ApiAssayProperty for assay: assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
-    public Collection<ApiAssayProperty> getAssayProperties(
+    public Collection<ApiProperty> getAssayProperties(
             final String experimentAccession,
             final String assayAccession)
             throws ResourceNotFoundException {
@@ -207,10 +259,10 @@ public class CurationService {
     @Transactional
     public void putAssayProperties(final String experimentAccession,
                                    final String assayAccession,
-                                   final ApiAssayProperty[] assayProperties) throws ResourceNotFoundException {
+                                   final ApiProperty[] assayProperties) throws ResourceNotFoundException {
         Assay assay = findAssay(experimentAccession, assayAccession);
 
-        for (ApiAssayProperty apiAssayProperty : assayProperties) {
+        for (ApiProperty apiAssayProperty : assayProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                     apiAssayProperty.getPropertyValue().getProperty().getName(),
                     apiAssayProperty.getPropertyValue().getValue());
@@ -237,13 +289,13 @@ public class CurationService {
     @Transactional
     public void deleteAssayProperties(final String experimentAccession,
                                       final String assayAccession,
-                                      final ApiAssayProperty[] assayProperties) throws ResourceNotFoundException {
+                                      final ApiProperty[] assayProperties) throws ResourceNotFoundException {
         Assay assay = findAssay(experimentAccession, assayAccession);
 
-        for (ApiAssayProperty apiAssayProperty : assayProperties) {
+        for (ApiProperty apiProperty : assayProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                    apiAssayProperty.getPropertyValue().getProperty().getName(),
-                    apiAssayProperty.getPropertyValue().getValue());
+                    apiProperty.getPropertyValue().getProperty().getName(),
+                    apiProperty.getPropertyValue().getValue());
 
             assay.deleteProperty(propertyValue);
         }
@@ -258,7 +310,7 @@ public class CurationService {
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
-    public Collection<ApiSampleProperty> getSampleProperties(
+    public Collection<ApiProperty> getSampleProperties(
             final String experimentAccession,
             final String sampleAccession)
             throws ResourceNotFoundException {
@@ -279,10 +331,10 @@ public class CurationService {
     @Transactional
     public void putSampleProperties(final String experimentAccession,
                                     final String sampleAccession,
-                                    final ApiSampleProperty[] sampleProperties) throws ResourceNotFoundException {
+                                    final ApiProperty[] sampleProperties) throws ResourceNotFoundException {
         Sample sample = findSample(experimentAccession, sampleAccession);
 
-        for (ApiSampleProperty apiSampleProperty : sampleProperties) {
+        for (ApiProperty apiSampleProperty : sampleProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                     apiSampleProperty.getPropertyValue().getProperty().getName(),
                     apiSampleProperty.getPropertyValue().getValue());
@@ -310,10 +362,10 @@ public class CurationService {
     @Transactional
     public void deleteSampleProperties(final String experimentAccession,
                                        final String sampleAccession,
-                                       final ApiSampleProperty[] sampleProperties) throws ResourceNotFoundException {
+                                       final ApiProperty[] sampleProperties) throws ResourceNotFoundException {
         Sample sample = findSample(experimentAccession, sampleAccession);
 
-        for (ApiSampleProperty apiSampleProperty : sampleProperties) {
+        for (ApiProperty apiSampleProperty : sampleProperties) {
             PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
                     apiSampleProperty.getPropertyValue().getProperty().getName(),
                     apiSampleProperty.getPropertyValue().getValue());
@@ -429,7 +481,7 @@ public class CurationService {
      */
     private <T> void checkIfFound(T entity, Class clazz, String accession) throws ResourceNotFoundException {
         if (entity == null) {
-            throw new ResourceNotFoundException("No records for " + clazz.getName() + ": "+ accession);
+            throw new ResourceNotFoundException("No records for " + clazz.getName() + ": " + accession);
         }
     }
 
@@ -465,5 +517,4 @@ public class CurationService {
         checkIfFound(sample, Sample.class, sampleAccession);
         return sample;
     }
-
 }

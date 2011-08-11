@@ -25,6 +25,27 @@ public class CurationApiController extends AtlasViewController {
     @Autowired
     private CurationService curationService;
 
+    @RequestMapping(value = "/properties",
+            method = RequestMethod.GET)
+    public Collection<ApiPropertyName> getPropertyNames(
+            HttpServletResponse response)
+            throws ResourceNotFoundException {
+        Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        return propertyNames;
+    }
+
+
+    @RequestMapping(value = "/properties/{propertyName}",
+            method = RequestMethod.GET)
+    public Collection<ApiPropertyValue> getPropertyValues(
+            @PathVariable("propertyName") final String propertyName, HttpServletResponse response)
+            throws ResourceNotFoundException {
+        Collection<ApiPropertyValue> properties = curationService.getPropertyValues(propertyName);
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        return properties;
+    }
+
     @RequestMapping(value = "/experiments/{experimentAccession}",
             method = RequestMethod.GET)
     public ApiExperiment getExperiment(@PathVariable("experimentAccession") final String experimentAccession,
@@ -79,12 +100,12 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.GET)
-    public Collection<ApiAssayProperty> getAssayProperties(
+    public Collection<ApiProperty> getAssayProperties(
             @PathVariable("experimentAccession") final String experimentAccession,
             @PathVariable(value = "assayAccession") final String assayAccession,
             HttpServletResponse response) throws ResourceNotFoundException {
         try {
-            Collection<ApiAssayProperty> assayProperties = curationService.getAssayProperties(experimentAccession, assayAccession);
+            Collection<ApiProperty> assayProperties = curationService.getAssayProperties(experimentAccession, assayAccession);
             response.setStatus(HttpServletResponse.SC_FOUND);
             return assayProperties;
         } catch (ResourceNotFoundException e) {
@@ -97,7 +118,7 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.PUT)
     public void putAssayProperties(@PathVariable(value = "experimentAccession") final String experimentAccession,
                                    @PathVariable(value = "assayAccession") final String assayAccession,
-                                   @RequestBody final ApiAssayProperty[] assayProperties,
+                                   @RequestBody final ApiProperty[] assayProperties,
                                    HttpServletResponse response) throws ResourceNotFoundException {
         try {
             curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties);
@@ -112,7 +133,7 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.DELETE)
     public void deleteAssayProperties(@PathVariable(value = "experimentAccession") final String experimentAccession,
                                       @PathVariable(value = "assayAccession") final String assayAccession,
-                                      @RequestBody final ApiAssayProperty[] assayProperties,
+                                      @RequestBody final ApiProperty[] assayProperties,
                                       HttpServletResponse response) throws ResourceNotFoundException {
         try {
             curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
@@ -125,12 +146,12 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.GET)
-    public Collection<ApiSampleProperty> getSampleProperties(
+    public Collection<ApiProperty> getSampleProperties(
             @PathVariable("experimentAccession") final String experimentAccession,
             @PathVariable(value = "sampleAccession") final String sampleAccession,
             HttpServletResponse response) throws ResourceNotFoundException {
         try {
-            Collection<ApiSampleProperty> sampleProperties = curationService.getSampleProperties(experimentAccession, sampleAccession);
+            Collection<ApiProperty> sampleProperties = curationService.getSampleProperties(experimentAccession, sampleAccession);
             response.setStatus(HttpServletResponse.SC_FOUND);
             return sampleProperties;
         } catch (ResourceNotFoundException e) {
@@ -143,7 +164,7 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.PUT)
     public void putSampleProperties(@PathVariable(value = "experimentAccession") final String experimentAccession,
                                     @PathVariable(value = "sampleAccession") final String sampleAccession,
-                                    @RequestBody final ApiSampleProperty[] sampleProperties,
+                                    @RequestBody final ApiProperty[] sampleProperties,
                                     HttpServletResponse response) throws ResourceNotFoundException {
         try {
             curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties);
@@ -157,10 +178,10 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.DELETE)
-    public void deleteAssayProperties(@PathVariable(value = "experimentAccession") String experimentAccession,
-                                      @PathVariable(value = "sampleAccession") String sampleAccession,
-                                      @RequestBody ApiSampleProperty[] sampleProperties,
-                                      HttpServletResponse response) throws ResourceNotFoundException {
+    public void deleteSampleProperties(@PathVariable(value = "experimentAccession") String experimentAccession,
+                                       @PathVariable(value = "sampleAccession") String sampleAccession,
+                                       @RequestBody ApiProperty[] sampleProperties,
+                                       HttpServletResponse response) throws ResourceNotFoundException {
         try {
             curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
             response.setStatus(HttpServletResponse.SC_CREATED);

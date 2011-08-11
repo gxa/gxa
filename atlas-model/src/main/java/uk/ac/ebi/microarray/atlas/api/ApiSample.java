@@ -17,12 +17,12 @@ public class ApiSample {
     private ApiOrganism organism;
     private String channel;
     private Collection<ApiAssay> assays;
-    private Collection<ApiSampleProperty> properties;
+    private Collection<ApiProperty> properties;
 
     public ApiSample() {}
 
     public ApiSample(final String accession, final ApiOrganism organism, final String channel,
-                     final Collection<ApiAssay> assays, final Collection<ApiSampleProperty> properties) {
+                     final Collection<ApiAssay> assays, final Collection<ApiProperty> properties) {
         this.accession = accession;
         this.organism = organism;
         this.channel = channel;
@@ -38,7 +38,7 @@ public class ApiSample {
                 TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
 
         this.properties = Collections2.transform(sample.getProperties(),
-                TransformerUtil.instanceTransformer(SampleProperty.class, ApiSampleProperty.class));
+                TransformerUtil.instanceTransformer(SampleProperty.class, ApiProperty.class));
 
     }
 
@@ -74,11 +74,11 @@ public class ApiSample {
         this.assays = assays;
     }
 
-    public Collection<ApiSampleProperty> getProperties() {
+    public Collection<ApiProperty> getProperties() {
         return properties;
     }
 
-    public void setProperties(Collection<ApiSampleProperty> properties) {
+    public void setProperties(Collection<ApiProperty> properties) {
         this.properties = properties;
     }
 }
