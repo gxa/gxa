@@ -36,10 +36,6 @@ import static com.google.common.io.ByteStreams.copy;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
- * Created by IntelliJ IDEA.
- * User: rpetry
- * Date: 6/2/11
- * Time: 3:31 PM
  * This class stores an enumeration of valid resource mime types and their corresponding file extensions.
  * Its handle() method returns the requested experiment asset provided that its mime type matches one of the
  * mime types enumerated in this class.
