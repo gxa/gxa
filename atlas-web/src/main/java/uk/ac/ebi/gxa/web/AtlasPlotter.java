@@ -261,11 +261,11 @@ public class AtlasPlotter {
         }
 
         public boolean isUp() {
-            return this.upDown.isUp();
+            return upDown.isUp();
         }
 
         public boolean isDown() {
-            return this.upDown.isDown();
+            return upDown.isDown();
         }
 
         public boolean isUpOrDown() {
