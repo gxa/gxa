@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.File;

@@ -8,12 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.*;
-import uk.ac.ebi.gxa.web.controller.ResourceNotFoundException;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -153,7 +152,7 @@ public class CurationService {
             throws ResourceNotFoundException {
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, experimentAccession);
+        checkIfFound(experiment, Experiment.class, experimentAccession);
 
         return new ApiExperiment(experiment);
     }
@@ -332,7 +331,7 @@ public class CurationService {
      */
     public ApiOntology getOntology(final String ontologyName) throws ResourceNotFoundException {
         Ontology ontology = atlasDAO.getOntologyByName(ontologyName);
-        checkIfFound(ontology, ontologyName);
+        checkIfFound(ontology, Ontology.class, ontologyName);
         return new ApiOntology(ontology);
     }
 
@@ -365,7 +364,7 @@ public class CurationService {
     public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws ResourceNotFoundException {
 
         OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(ontologyTermAcc);
-        checkIfFound(ontologyTerm, ontologyTermAcc);
+        checkIfFound(ontologyTerm, OntologyTerm.class, ontologyTermAcc);
         return new ApiOntologyTerm(ontologyTerm);
     }
 
@@ -428,9 +427,9 @@ public class CurationService {
      * @param <T>
      * @throws ResourceNotFoundException
      */
-    private <T> void checkIfFound(T entity, String accession) throws ResourceNotFoundException {
+    private <T> void checkIfFound(T entity, Class clazz, String accession) throws ResourceNotFoundException {
         if (entity == null) {
-            throw new ResourceNotFoundException("No records for " + entity.getClass().getName() + accession);
+            throw new ResourceNotFoundException("No records for " + clazz.getName() + ": "+ accession);
         }
     }
 
@@ -444,10 +443,10 @@ public class CurationService {
      */
     private Assay findAssay(final String experimentAccession, final String assayAccession) throws ResourceNotFoundException {
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, experimentAccession);
+        checkIfFound(experiment, Experiment.class, experimentAccession);
 
         final Assay assay = experiment.getAssay(assayAccession);
-        checkIfFound(assay, assayAccession);
+        checkIfFound(assay, Assay.class, assayAccession);
         return assay;
     }
 
@@ -460,10 +459,10 @@ public class CurationService {
      */
     private Sample findSample(final String experimentAccession, final String sampleAccession) throws ResourceNotFoundException {
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, experimentAccession);
+        checkIfFound(experiment, Experiment.class, experimentAccession);
 
         final Sample sample = experiment.getSample(sampleAccession);
-        checkIfFound(sample, sampleAccession);
+        checkIfFound(sample, Sample.class, sampleAccession);
         return sample;
     }
 

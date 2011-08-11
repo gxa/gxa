@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import uk.ac.ebi.gxa.service.CurationService;
 import uk.ac.ebi.gxa.web.controller.AtlasViewController;
-import uk.ac.ebi.gxa.web.controller.ResourceNotFoundException;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
 
 import javax.servlet.http.HttpServletResponse;

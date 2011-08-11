@@ -1,9 +1,5 @@
 package uk.ac.ebi.microarray.atlas.api;
 
-import com.google.common.collect.Collections2;
-import uk.ac.ebi.gxa.utils.GuavaUtil;
-import uk.ac.ebi.microarray.atlas.model.AssayProperty;
-import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 /**
