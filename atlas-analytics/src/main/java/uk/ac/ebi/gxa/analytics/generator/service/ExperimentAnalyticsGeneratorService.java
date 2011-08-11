@@ -88,50 +88,56 @@ public class ExperimentAnalyticsGeneratorService {
         // the first error encountered whilst generating analytics, if any
         Exception firstError = null;
 
-        // process each experiment to build the netcdfs
-        for (final Experiment experiment : experiments) {
-            // run each experiment in parallel
-            tasks.add(executor.<Void>submit(new Callable<Void>() {
+        atlasDAO.startSession();
 
-                public Void call() throws Exception {
-                    long start = System.currentTimeMillis();
-                    try {
-                        createAnalyticsForExperiment(experiment.getAccession(), new LogAnalyticsGeneratorListener());
-                    } finally {
-                        timer.completed(experiment.getId());
+        try {
+            // process each experiment to build the netcdfs
+            for (final Experiment experiment : experiments) {
+                // run each experiment in parallel
+                tasks.add(executor.<Void>submit(new Callable<Void>() {
 
-                        long end = System.currentTimeMillis();
-                        String total = new DecimalFormat("#.##").format((end - start) / 1000);
-                        String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
+                    public Void call() throws Exception {
+                        long start = System.currentTimeMillis();
+                        try {
+                            createAnalyticsForExperiment(experiment.getAccession(), new LogAnalyticsGeneratorListener());
+                        } finally {
+                            timer.completed(experiment.getId());
 
-                        log.info("\n\tAnalytics for " + experiment.getAccession() +
-                                " created in " + total + "s." +
-                                "\n\tCompleted " + timer.getCompletedExperimentCount() + "/" +
-                                timer.getTotalExperimentCount() + "." +
-                                "\n\tEstimated time remaining: " + estimate + " mins.");
+                            long end = System.currentTimeMillis();
+                            String total = new DecimalFormat("#.##").format((end - start) / 1000);
+                            String estimate = new DecimalFormat("#.##").format(timer.getCurrentEstimate() / 60000);
+
+                            log.info("\n\tAnalytics for " + experiment.getAccession() +
+                                    " created in " + total + "s." +
+                                    "\n\tCompleted " + timer.getCompletedExperimentCount() + "/" +
+                                    timer.getTotalExperimentCount() + "." +
+                                    "\n\tEstimated time remaining: " + estimate + " mins.");
+                        }
+
+                        return null;
                     }
+                }));
+            }
 
-                    return null;
-                }
-            }));
-        }
-
-        // block until completion, and throw the first error we see
-        for (Future task : tasks) {
-            try {
-                task.get();
-            } catch (Exception e) {
-                // print the stacktrace, but swallow this exception to rethrow at the very end
-                log.error("An error occurred whilst generating analytics:\n{}", e);
-                if (firstError == null) {
-                    firstError = e;
+            // block until completion, and throw the first error we see
+            for (Future task : tasks) {
+                try {
+                    task.get();
+                } catch (Exception e) {
+                    // print the stacktrace, but swallow this exception to rethrow at the very end
+                    log.error("An error occurred whilst generating analytics:\n{}", e);
+                    if (firstError == null) {
+                        firstError = e;
+                    }
                 }
             }
-        }
 
-        // if we have encountered an exception, throw the first error
-        if (firstError != null) {
-            throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
+            // if we have encountered an exception, throw the first error
+            if (firstError != null) {
+                throw new AnalyticsGeneratorException("An error occurred whilst generating analytics", firstError);
+            }
+        } finally {
+            atlasDAO.finishSession();
         }
     }
 
