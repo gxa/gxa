@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -210,7 +211,7 @@ public class AtlasPlotter {
 
     private static class FactorValueInfo {
         private String name;
-        private Boolean isUpOrDown;
+        private UpDownExpression upDown;
         private Float pValue;
         private List<AssayInfo> assays = new ArrayList<AssayInfo>();
         private boolean isInsignificant;
@@ -251,8 +252,8 @@ public class AtlasPlotter {
             this.pValue = pValue;
         }
 
-        public void setUpDown(Boolean upDown) {
-            this.isUpOrDown = upDown;
+        public void setUpDown(UpDownExpression upDown) {
+            this.upDown = upDown;
         }
 
         public void setInsignificant(boolean insignificant) {
@@ -260,11 +261,11 @@ public class AtlasPlotter {
         }
 
         public boolean isUp() {
-            return this.isUpOrDown != null && this.isUpOrDown;
+            return this.upDown.isUp();
         }
 
         public boolean isDown() {
-            return this.isUpOrDown != null && !this.isUpOrDown;
+            return this.upDown.isDown();
         }
 
         public boolean isUpOrDown() {
@@ -367,7 +368,7 @@ public class AtlasPlotter {
             getFvInfo(fv).setPValue(pValAdjusted);
         }
 
-        public void setUpDown(String fv, Boolean upDown) {
+        public void setUpDown(String fv, UpDownExpression upDown) {
             getFvInfo(fv).setUpDown(upDown);
         }
 
@@ -585,7 +586,7 @@ public class AtlasPlotter {
 
                 barPlotData.setExpressions(factorValue, expressions);
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
-                barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
+                barPlotData.setUpDown(factorValue, bestEA.getUpDownExpression());
                 barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
                 if (!efvsToPlot.contains(factorValue))
                     log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
