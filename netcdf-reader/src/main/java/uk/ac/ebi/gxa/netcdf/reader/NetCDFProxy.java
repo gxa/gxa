@@ -397,7 +397,6 @@ public class NetCDFProxy implements Closeable {
         return (int[])uVALnumVar.read().get1DJavaArray(int.class);
     }
 
-
     public List<String> getUniqueFactorValues() throws IOException {
         List<String> uniqueEFVs = new ArrayList<String>();
         List<String> factors = Arrays.asList(getFactors());
@@ -510,7 +509,7 @@ public class NetCDFProxy implements Closeable {
      * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException {
+            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException, AtlasDataException {
         return getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, null, null, UpDownCondition.CONDITION_ANY);
     }
 
@@ -535,7 +534,7 @@ public class NetCDFProxy implements Closeable {
             @Nullable final String efVal,
             @Nullable final String efvVal,
             final UpDownCondition upDownCondition)
-            throws IOException {
+            throws IOException, AtlasDataException {
 
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
@@ -596,7 +595,7 @@ public class NetCDFProxy implements Closeable {
         return geneIdsToEfToEfvToEA;
     }
 
-    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException {
+    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException, AtlasDataException {
         return (new ExpressionAnalysisHelper()).prepare();
     }
 
@@ -762,7 +761,7 @@ public class NetCDFProxy implements Closeable {
         return ExpressionStatistics.create(deIndices, this);
     }
 
-    public Map<String, Collection<String>> getActualEfvTree() throws IOException {
+    public Map<String, Collection<String>> getActualEfvTree() throws IOException, AtlasDataException {
         Multimap<String, String> efvs = HashMultimap.create();
 
         for (String s : getUniqueFactorValues()) {
