@@ -212,8 +212,12 @@ public class Sample {
         properties.add(new SampleProperty(this, pv, efoTerms));
     }
 
-    public void deleteProperty(final PropertyValue property) {
-        properties.remove(new SampleProperty(this, property, Collections.<OntologyTerm>emptyList()));
+    public void deleteProperty(final PropertyValue propertyValue) {
+        SampleProperty property = getProperty(propertyValue);
+        while (property != null) {
+            properties.remove(property);
+            property = getProperty(propertyValue);
+        }
     }
 
     public void setOrganism(Organism organism) {

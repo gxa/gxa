@@ -218,12 +218,6 @@ public class Assay {
         properties.add(new AssayProperty(null, this, property, terms));
     }
 
-    public void deleteProperty(final PropertyValue propertyValue) {
-        // removeAll(Collection) removes all occurrences of propertyValue in properties, whereas
-        // remove(propertyValue) would have removed only the first occurrence of propertyValue
-        properties.removeAll(Collections.singletonList(propertyValue));
-    }
-
     public AssayProperty getProperty(PropertyValue propertyValue) {
         for (AssayProperty property : properties) {
             if (property.getPropertyValue().equals(propertyValue))
@@ -235,6 +229,14 @@ public class Assay {
 
     public boolean hasProperty(final PropertyValue propertyValue) {
         return getProperty(propertyValue) != null;
+    }
+
+    public void deleteProperty(final PropertyValue propertyValue) {
+        AssayProperty property = getProperty(propertyValue);
+        while (property != null) {
+            properties.remove(property);
+            property = getProperty(propertyValue);
+        }
     }
 
     public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
