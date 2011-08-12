@@ -21,7 +21,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     @SuppressWarnings("unchecked")
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
-        return template.find("from Experiment left join assays a where a.arrayDesign.accession = ? ", accession);
+        return template.find("select e from Experiment e left join e.assays a where a.arrayDesign.accession = ? ", accession);
     }
 
     long getTotalCount() {

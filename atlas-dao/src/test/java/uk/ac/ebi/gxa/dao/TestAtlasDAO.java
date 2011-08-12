@@ -42,9 +42,12 @@ import java.util.List;
 public class TestAtlasDAO extends AtlasDAOTestCase {
 
     private static final String ABC_ABCXYZ_SOME_THING_1234_ABC123 = "abc:ABCxyz:SomeThing:1234.ABC123";
+    private static final String ARRAY_DESIGN_ACCESSION = "A-ABCD-1234";
     private static final String E_MEXP_420 = "E-MEXP-420";
     private static final String PROPERTY_NAME = "SEX";
     private static final String PROPERTY_VALUE = "MALE";
+    private static final String PROPERTY_VALUE1 = "value007";
+    private static final String PROPERTY_VALUE2 = "value005";
     private static final String ONTOLOGY_TERM = "EFO_0000107";
     private static final String ONTOLOGY_NAME = "EFO";
     private static final String ONTOLOGY_VERSION = "Thu Oct 02 2008";
@@ -111,6 +114,38 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
             assertNotNull(assay);
             assertEquals("Accessions don't match", assay.getExperiment().getAccession(),
                     accession);
+        }
+    }
+
+    @Test
+    public void testGetExperimentsByArrayDesignAccession() throws Exception {
+        final List<Experiment> experiments = experimentDAO.getExperimentsByArrayDesignAccession(ARRAY_DESIGN_ACCESSION);
+        assertTrue("No experiment containing assays with array design accession: " + ARRAY_DESIGN_ACCESSION + " was found", experiments.size() > 0);
+    }
+
+    @Test
+    public void testGetAssayPropertiesByPropertyValue() throws Exception {
+        final List<Assay> assays = assayDAO.getAssaysByPropertyValue(PROPERTY_VALUE1);
+        for (Assay assay : assays) {
+            boolean found = false;
+            for (AssayProperty prop : assay.getProperties()) {
+                if (PROPERTY_VALUE1.equals(prop.getValue()))
+                    found = true;
+            }
+            assertTrue("Assay property did not contain property value: " + PROPERTY_VALUE, found);
+        }
+    }
+
+    @Test
+    public void testGetSamplePropertiesByPropertyValue() throws Exception {
+        final List<Sample> samples = sampleDAO.getSamplesByPropertyValue(PROPERTY_VALUE2);
+        for (Sample sample : samples) {
+            boolean found = false;
+            for (SampleProperty prop : sample.getProperties()) {
+                if (PROPERTY_VALUE2.equals(prop.getValue()))
+                    found = true;
+            }
+            assertTrue("Sample did not contain property value: " + PROPERTY_VALUE2, found);
         }
     }
 
