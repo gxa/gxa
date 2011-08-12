@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.utils;
 import static java.lang.Math.*;
 
 public final class FloatFormatter {
+    private static final double EPSILON = 1e-10;
+
     private FloatFormatter() {
     }
 
@@ -49,7 +51,7 @@ public final class FloatFormatter {
     }
 
     private static double trimSignificantDigits(double value, int significantDigits) {
-        if (abs(value) < pow(10.0, -significantDigits))
+        if (abs(value) < EPSILON)
             return 0;
 
         int order = (int) ceil(log10(abs(value)));
