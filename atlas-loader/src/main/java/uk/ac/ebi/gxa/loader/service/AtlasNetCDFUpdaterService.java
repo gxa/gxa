@@ -92,7 +92,8 @@ public class AtlasNetCDFUpdaterService {
             // TODO: this is commented out because it is *broken* and needs to be rewritten
             // behaviour after commenting code below: *any* netcdf update will result in analytics reset
             // TODO: the getValuePatterns(proxy, data.getAssays()) code, would you need it,
-            // can be found in rev. 48f0df44ce1fbaea42dff50167827d0138bd4eb1
+            // see rev. 48f0df44ce1fbaea42dff50167827d0138bd4eb1 for an attempt to fix it
+            // and rev. 05be531ebb5a93df06d6045f982d0b25e4008a11 for nearly-original version
 
 //            if (assayAccessions.length == data.getAssays().size()) {
 //                data.matchValuePatterns(getValuePatterns(proxy, data.getAssays()));
