@@ -70,7 +70,7 @@
                     <a href="${pageContext.request.contextPath}/experiment/${experiment.accession}">${experiment.accession}</a>
                 </display:column>
                 <display:column property="loadDate" sortable="true" sortName="loaddate"
-                                title="Loaded" class="nowrap"/>
+                                title="Loaded" class="nowrap" format="{0,date,dd-MM-yyyy}"/>
                 <display:column property="description" sortable="false"/>
                 <display:column sortable="true" sortName="pmid" title="PubMed ID"
                                 class="number">

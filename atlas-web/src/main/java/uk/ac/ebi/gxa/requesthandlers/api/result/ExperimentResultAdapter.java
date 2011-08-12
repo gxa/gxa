@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.model.*;
 import org.apache.commons.lang.StringUtils;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOuts;
@@ -31,8 +33,6 @@ import uk.ac.ebi.gxa.requesthandlers.base.restutil.XmlRestResultRenderer;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.util.*;
 
@@ -57,8 +57,7 @@ public class ExperimentResultAdapter {
 
     public ExperimentResultAdapter(AtlasExperiment experiment,
                                    Collection<AtlasGene> genes,
-                                   ExperimentalData expData
-    ) {
+                                   ExperimentalData expData) {
         this.experiment = experiment;
         this.expData = expData;
         this.genes.addAll(genes);
@@ -218,10 +217,10 @@ public class ExperimentResultAdapter {
                             if (!efefvList.isEmpty())
                                 deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
                         }
-            
+
                         geneMap.put(gene.getGeneIdentifier(), deMap);
                     }
-                } 
+                }
             } catch (AtlasDataException e) {
                 throw LogUtil.createUnexpected("API does not expect to receive incorrect data", e);
             }
@@ -232,10 +231,11 @@ public class ExperimentResultAdapter {
     @RestOut(name = "geneExpressionStatistics", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
-        if (!genes.isEmpty())
+        if (expressionDataIsAvailable()) {
             for (ArrayDesign ad : expData.getExperiment().getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignStats(this, genes, ad));
             }
+        }
         return adExpMap;
     }
 
@@ -243,10 +243,15 @@ public class ExperimentResultAdapter {
     public Map<String, ArrayDesignExpression> getExpression() {
 
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();
-        if (!genes.isEmpty())
+        if (expressionDataIsAvailable()) {
             for (ArrayDesign ad : expData.getExperiment().getArrayDesigns()) {
                 adExpMap.put(ad.getAccession(), new ArrayDesignExpression(this, ad));
             }
+        }
         return adExpMap;
+    }
+
+    private boolean expressionDataIsAvailable() {
+        return !genes.isEmpty() && expData != null;
     }
 }
