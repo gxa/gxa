@@ -96,6 +96,10 @@ class NetCDFData {
         return result;
     }
 
+    /**
+     * FUBAR, see  http://bar.ebi.ac.uk:8080/trac/ticket/3057
+     */
+    @Deprecated
     void matchValuePatterns(EfvTree<CBitSet> oldEfvPats) {
         matchedUniqueValues = matchUniqueValues(oldEfvPats, getValuePatterns());
     }
@@ -151,8 +155,11 @@ class NetCDFData {
         return efvTree;
     }
 
-    private EfvTree<CPair<String, String>> matchUniqueValues
-            (EfvTree<CBitSet> from, EfvTree<CBitSet> to) {
+    /**
+     * FUBAR, see  http://bar.ebi.ac.uk:8080/trac/ticket/3057
+     */
+    @Deprecated
+    private EfvTree<CPair<String, String>> matchUniqueValues(EfvTree<CBitSet> from, EfvTree<CBitSet> to) {
         final List<EfvTree.Ef<CBitSet>> fromTree = matchValuesSort(from);
         final List<EfvTree.Ef<CBitSet>> toTree = matchValuesSort(to);
 
