@@ -33,9 +33,9 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.NetCDFDescriptor;
 import uk.ac.ebi.gxa.data.NetCDFProxy;
-import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
@@ -70,6 +70,15 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
+        atlasDAO.startSession();
+        try {
+            generateInternal();
+        } finally {
+            atlasDAO.finishSession();
+        }
+    }
+
+    private void generateInternal() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
