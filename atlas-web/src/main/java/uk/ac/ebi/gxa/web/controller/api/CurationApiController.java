@@ -44,6 +44,31 @@ public class CurationApiController extends AtlasViewController {
         return properties;
     }
 
+    @RequestMapping(value = "/experiments/assays/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
+            method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void replacePropertyValueInAssays(
+            @PathVariable("propertyName") final String propertyName,
+            @PathVariable("oldPropertyValue") final String oldPropertyValue,
+            @PathVariable("newPropertyValue") final String newPropertyValue,
+            HttpServletResponse response)
+            throws ResourceNotFoundException {
+        curationService.replacePropertyValueInAssays(propertyName, oldPropertyValue, newPropertyValue);
+    }
+
+    @RequestMapping(value = "/experiments/sample/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
+            method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void replacePropertyValueInSamples(
+            @PathVariable("propertyName") final String propertyName,
+            @PathVariable("oldPropertyValue") final String oldPropertyValue,
+            @PathVariable("newPropertyValue") final String newPropertyValue,
+            HttpServletResponse response)
+            throws ResourceNotFoundException {
+        curationService.replacePropertyValueInSamples(propertyName, oldPropertyValue, newPropertyValue);
+    }
+
+
     @RequestMapping(value = "/experiments/{experimentAccession}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

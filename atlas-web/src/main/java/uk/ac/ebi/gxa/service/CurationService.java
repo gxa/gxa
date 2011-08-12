@@ -48,6 +48,23 @@ public class CurationService {
     @Autowired
     private PropertyDAO propertyDAO;
 
+    @Autowired
+    private PropertyValueDAO propertyValueDAO;
+
+    private static final Function<Property, ApiPropertyName> PROPERTY_NAME =
+            new Function<Property, ApiPropertyName>() {
+                public ApiPropertyName apply(@Nonnull Property p) {
+                    return new ApiPropertyName(p);
+                }
+            };
+
+    private static final Function<PropertyValue, ApiPropertyValue> PROPERTY_VALUE =
+            new Function<PropertyValue, ApiPropertyValue>() {
+                public ApiPropertyValue apply(@Nonnull PropertyValue pv) {
+                    return new ApiPropertyValue(pv);
+                }
+            };
+
 
     /**
      * @return alphabetically sorted collection of all property names
@@ -55,12 +72,7 @@ public class CurationService {
     public Collection<ApiPropertyName> getPropertyNames() {
         List<Property> property = propertyDAO.getAll();
 
-        List<ApiPropertyName> propertyNames = Lists.newArrayList(transform(property,
-                new Function<Property, ApiPropertyName>() {
-                    public ApiPropertyName apply(@Nonnull Property p) {
-                        return new ApiPropertyName(p);
-                    }
-                }));
+        List<ApiPropertyName> propertyNames = Lists.newArrayList(transform(property, PROPERTY_NAME));
 
         Collections.sort(propertyNames, new Comparator<ApiPropertyName>() {
             public int compare(ApiPropertyName o1, ApiPropertyName o2) {
@@ -80,12 +92,7 @@ public class CurationService {
             throws ResourceNotFoundException {
         Property property = propertyDAO.getByName(propertyName);
         checkIfFound(property, Property.class, propertyName);
-        List<ApiPropertyValue> propertyValues = Lists.newArrayList(transform(property.getValues(),
-                new Function<PropertyValue, ApiPropertyValue>() {
-                    public ApiPropertyValue apply(@Nonnull PropertyValue pv) {
-                        return new ApiPropertyValue(pv);
-                    }
-                }));
+        List<ApiPropertyValue> propertyValues = Lists.newArrayList(transform(property.getValues(), PROPERTY_VALUE));
 
         Collections.sort(propertyValues, new Comparator<ApiPropertyValue>() {
             public int compare(ApiPropertyValue o1, ApiPropertyValue o2) {
@@ -94,6 +101,74 @@ public class CurationService {
         });
 
         return propertyValues;
+    }
+
+    /**
+     * Replaces oldValue of property: propertyName with newValue in all assays in which propertyName-oldValue exists.
+     * In cases when a given assay contains both oldValue and newValue, the retained newValue inherits the superset of OntologyTerms
+     * assigned to oldValue and newValue.
+     *
+     * @param propertyName
+     * @param oldValue
+     * @param newValue
+     * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
+     */
+    public void replacePropertyValueInAssays(
+            final String propertyName,
+            final String oldValue,
+            final String newValue)
+            throws ResourceNotFoundException {
+        Property property = propertyDAO.getByName(propertyName);
+        checkIfFound(property, Property.class, propertyName);
+        PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
+        checkIfFound(oldPropertyValue, PropertyValue.class, oldValue);
+        PropertyValue newPropertyValue = atlasDAO.getOrCreatePropertyValue(propertyName, newValue);
+
+        List<Assay> assays = assayDAO.getAssaysByPropertyValue(oldValue);
+        for (Assay assay : assays) {
+            AssayProperty oldAssayProperty = assay.getProperty(oldPropertyValue);
+            AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
+            List<OntologyTerm> terms = oldAssayProperty.getTerms();
+            assay.deleteProperty(oldPropertyValue);
+            if (newAssayProperty != null) {
+                terms.addAll(newAssayProperty.getTerms());
+            }
+            assay.addOrUpdateProperty(newPropertyValue, terms);
+        }
+    }
+
+    /**
+     * Replaces oldValue of property: propertyName with newValue in all samples in which propertyName-oldValue exists.
+     * In cases when a given sample contains both oldValue and newValue, the retained newValue inherits the superset of OntologyTerms
+     * assigned to oldValue and newValue.
+     *
+     * @param propertyName
+     * @param oldValue
+     * @param newValue
+     * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
+     */
+    public void replacePropertyValueInSamples(
+            final String propertyName,
+            final String oldValue,
+            final String newValue)
+            throws ResourceNotFoundException {
+        Property property = propertyDAO.getByName(propertyName);
+        checkIfFound(property, Property.class, propertyName);
+        PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
+        checkIfFound(oldPropertyValue, PropertyValue.class, oldValue);
+        PropertyValue newPropertyValue = atlasDAO.getOrCreatePropertyValue(propertyName, newValue);
+
+        List<Sample> samples = sampleDAO.getSamplesByPropertyValue(oldValue);
+        for (Sample sample : samples) {
+            SampleProperty oldSampleProperty = sample.getProperty(oldPropertyValue);
+            SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
+            List<OntologyTerm> terms = oldSampleProperty.getTerms();
+            sample.deleteProperty(oldPropertyValue);
+            if (newSampleProperty != null) {
+                terms.addAll(newSampleProperty.getTerms());
+            }
+            sample.addOrUpdateProperty(newPropertyValue, terms);
+        }
     }
 
 
