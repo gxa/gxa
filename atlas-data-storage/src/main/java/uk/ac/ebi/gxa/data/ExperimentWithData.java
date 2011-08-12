@@ -65,7 +65,6 @@ public class ExperimentWithData {
     }
 
     /**
-     * @param experiment the experiment to find arrayDesign for
      * @param criteria   the criteria to choose arrayDesign
      * @return first arrayDesign used in experiment, that matches criteria;
      *         or null if no arrayDesign has been found

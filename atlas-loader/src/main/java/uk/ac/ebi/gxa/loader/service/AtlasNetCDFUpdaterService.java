@@ -13,7 +13,6 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -77,6 +76,8 @@ public class AtlasNetCDFUpdaterService {
             final NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
+            // WARNING! do not change to ewd.getAssays(arrayDesign) because this method expects assays to come in
+            // NetCDF-storage order.
             final String[] assayAccessions = ewd.getProxy(arrayDesign).getAssayAccessions();
             for (int i = 0; i < assayAccessions.length; ++i) {
                 final Assay assay = knownAssays.get(assayAccessions[i]);

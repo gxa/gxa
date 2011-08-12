@@ -23,10 +23,14 @@ public class EfoAttribute extends Attribute {
      * @param statType
      */
     public EfoAttribute(final String value, final StatisticsType statType) {
+        super(statType);
         this.value = value.intern();
-        this.statType = statType;
     }
 
+    @Override
+    public EfoAttribute withStatType(StatisticsType statType) {
+        return new EfoAttribute(value, statType);
+    }
 
     /**
      * @param efo Efo

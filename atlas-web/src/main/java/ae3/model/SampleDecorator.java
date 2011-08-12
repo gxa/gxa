@@ -30,7 +30,6 @@ import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.*;
 
-import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 
 /**
@@ -38,7 +37,7 @@ import static java.util.Collections.unmodifiableSet;
  *
  * @author pashky
  */
-class SampleDecorator {
+public class SampleDecorator {
     private final Sample sample;
     private final int number;
     private final Set<AssayDecorator> assays = new HashSet<AssayDecorator>();
