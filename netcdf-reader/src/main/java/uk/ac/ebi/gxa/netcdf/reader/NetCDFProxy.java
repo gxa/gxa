@@ -509,7 +509,7 @@ public class NetCDFProxy implements Closeable {
      * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException, AtlasDataException {
+            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException {
         return getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, null, null, UpDownCondition.CONDITION_ANY);
     }
 
@@ -534,7 +534,7 @@ public class NetCDFProxy implements Closeable {
             @Nullable final String efVal,
             @Nullable final String efvVal,
             final UpDownCondition upDownCondition)
-            throws IOException, AtlasDataException {
+            throws IOException {
 
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
@@ -595,7 +595,7 @@ public class NetCDFProxy implements Closeable {
         return geneIdsToEfToEfvToEA;
     }
 
-    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException, AtlasDataException {
+    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException {
         return (new ExpressionAnalysisHelper()).prepare();
     }
 
@@ -761,7 +761,7 @@ public class NetCDFProxy implements Closeable {
         return ExpressionStatistics.create(deIndices, this);
     }
 
-    public Map<String, Collection<String>> getActualEfvTree() throws IOException, AtlasDataException {
+    public Map<String, Collection<String>> getActualEfvTree() throws IOException {
         Multimap<String, String> efvs = HashMultimap.create();
 
         for (String s : getUniqueFactorValues()) {

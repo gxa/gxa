@@ -78,9 +78,6 @@ public class NetCDFPredicates {
                         } catch (IOException e) {
                             log.error("Cannot read NetCDF proxy " + input, e);
                             return false;
-                        } catch (AtlasDataException e) {
-                            log.error("Cannot read NetCDF proxy " + input, e);
-                            return false;
                         }
                     }
 
@@ -99,9 +96,6 @@ public class NetCDFPredicates {
                             }
                             return false;
                         } catch (IOException e) {
-                            log.error("Cannot read NetCDF proxy " + input, e);
-                            return false;
-                        } catch (AtlasDataException e) {
                             log.error("Cannot read NetCDF proxy " + input, e);
                             return false;
                         }
