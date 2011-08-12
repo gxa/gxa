@@ -131,9 +131,9 @@ public class NetCDFCreator {
         }
 
         for (String propertyName : propertyNames) {
-            final ArrayList<String> propertyList = new ArrayList<String>(samples.size());
+            final List<String> propertyList = new ArrayList<String>(samples.size());
 
-            for(final Assay a : assays) {
+            for (final Assay a : assays) {
                 propertyList.add(a.getPropertySummary(propertyName));
             }
 
@@ -153,9 +153,9 @@ public class NetCDFCreator {
         }
 
         for (final String propertyName : propertyNames) {
-            final ArrayList<String> propertyList = new ArrayList<String>(samples.size());
+            final List<String> propertyList = new ArrayList<String>(samples.size());
 
-            for(final Sample s : samples) {
+            for (final Sample s : samples) {
                 propertyList.add(s.getPropertySummary(propertyName));
             }
 
@@ -689,22 +689,6 @@ public class NetCDFCreator {
     }
 
     private void writeSamplesAssays() throws IOException, InvalidRangeException {
-        /*
-        ArrayInt as = new ArrayInt.D1(assays.size());
-        IndexIterator asIt = as.getIndexIterator();
-        for (Assay assay : assays) {
-            asIt.setLongNext(assay.getAssayID());
-        }
-        netCdf.write("AS", as);
-
-        ArrayInt bs = new ArrayInt.D1(samples.size());
-        IndexIterator bsIt = bs.getIndexIterator();
-        for (Sample sample : samples) {
-            bsIt.setLongNext(sample.getSampleID());
-        }
-        netCdf.write("BS", bs);
-        */
-
         ArrayInt bs2as = new ArrayInt.D2(samples.size(), assays.size());
         IndexIterator bs2asIt = bs2as.getIndexIterator();
 
@@ -796,9 +780,7 @@ public class NetCDFCreator {
         try {
             final File targetFile = dataDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!targetFile.getParentFile().exists() && !targetFile.getParentFile().mkdirs()) {
-                throw new NetCDFCreatorException(
-                    "Cannot create folder for the output file" + targetFile
-                );
+                throw new NetCDFCreatorException("Cannot create folder for the output file" + targetFile);
             }
 
             final File tempFile = File.createTempFile(targetFile.getName(), ".tmp");
@@ -852,13 +834,12 @@ public class NetCDFCreator {
     }
 
     /**
-     *
      * @param efs
      * @param scs
      * @return merged LinkedHashSet of efs and scs keySets
      */
-    private LinkedHashSet<String> getEfScs(
-            LinkedHashMap<String, List<String>> efs, LinkedHashMap<String, List<String>> scs) {
+    private LinkedHashSet<String> getEfScs(LinkedHashMap<String, List<String>> efs,
+                                           LinkedHashMap<String, List<String>> scs) {
         LinkedHashSet<String> result = new LinkedHashSet<String>();
         result.addAll(efs.keySet());
         result.addAll(scs.keySet());
