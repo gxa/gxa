@@ -403,9 +403,8 @@ public class NetCDFProxy implements Closeable {
         List<String> factors = Arrays.asList(getFactors());
 
         for (String propVal : getUniqueValues()) {
-            String[] nameValue = propVal.split(NCDF_PROP_VAL_SEP_REGEX);
-            String name = nameValue[0];
-            if (factors.contains(name)) {
+            String[] nameValue = propVal.split(NCDF_PROP_VAL_SEP_REGEX, -1);
+            if (factors.contains(nameValue[0]) && !"".equals(nameValue[1])) {
                 // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
                 uniqueEFVs.add(propVal);
             }

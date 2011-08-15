@@ -68,6 +68,15 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
+        atlasDAO.startSession();
+        try {
+            generateInternal();
+        } finally {
+            atlasDAO.finishSession();
+        }
+    }
+
+    private void generateInternal() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
