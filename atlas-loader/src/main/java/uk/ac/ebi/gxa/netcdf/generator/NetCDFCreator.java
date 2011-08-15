@@ -64,8 +64,6 @@ public class NetCDFCreator {
     private ListMultimap<String, String> efvOntologies;
     private int maxAssayLength;
     private int maxSampleLength;
-    private int maxEfvoLength;
-    private int maxScvoLength;
 
     private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
     private ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
@@ -144,7 +142,7 @@ public class NetCDFCreator {
         for (String propertyName : propertyNames) {
             final ArrayList<String> propertyList = new ArrayList<String>(samples.size());
 
-            for(final Assay a : assays) {
+            for (final Assay a : assays) {
                 propertyList.add(a.getPropertySummary(propertyName));
             }
 
@@ -176,7 +174,7 @@ public class NetCDFCreator {
         for (final String propertyName : propertyNames) {
             final ArrayList<String> propertyList = new ArrayList<String>(samples.size());
 
-            for(final Sample s : samples) {
+            for (final Sample s : samples) {
                 propertyList.add(s.getPropertySummary(propertyName));
             }
 
@@ -251,33 +249,25 @@ public class NetCDFCreator {
         }
 
         efScs = getEfScs(efvMap, scvMap);
-        efvOntologies = extractAssayOntologies(assays);
-        scvOntologies = extractSampleOntologies(samplesList);
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
         maxEfScLength = 0;
         maxEfvLength = 0;
-        maxEfvoLength = 0;
         for (String ef : efvMap.keySet()) {
             maxEfLength = Math.max(maxEfLength, ef.length());
             maxEfScLength = Math.max(maxEfScLength, ef.length());
             for (String efv : efvMap.get(ef))
                 maxEfvLength = Math.max(maxEfvLength, efv.length());
-            for (String efvo : efvOntologies.get(ef))
-                maxEfvoLength = Math.max(maxEfvoLength, efvo.length());
         }
 
         maxScLength = 0;
         maxScvLength = 0;
-        maxScvoLength = 0;
         for (String sc : scvMap.keySet()) {
             maxScLength = Math.max(maxScLength, sc.length());
             maxEfScLength = Math.max(maxEfScLength, sc.length());
             for (String scv : scvMap.get(sc))
                 maxScvLength = Math.max(maxScvLength, scv.length());
-            for (String scvo : scvOntologies.get(sc))
-                maxScvoLength = Math.max(maxScvoLength, scvo.length());
         }
 
         totalUniqueValues = populateUniqueValues(propertyToUnsortedUniqueValues, propertyToSortedUniqueValues, pvalDataMap);
@@ -407,11 +397,6 @@ public class NetCDFCreator {
 
                 Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
                 netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
-
-                if (maxScvoLength > 0) {
-                    Dimension scvolenDimension = netCdf.addDimension("SCVOlen", maxScvoLength);
-                    netCdf.addVariable("SCVO", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvolenDimension});
-                }
             }
 
             if (!efvMap.isEmpty()) {
@@ -422,11 +407,6 @@ public class NetCDFCreator {
 
                 Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
                 netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
-
-                if (maxEfvoLength > 0) {
-                    Dimension efvolenDimension = netCdf.addDimension("EFVOlen", maxEfvoLength);
-                    netCdf.addVariable("EFVO", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvolenDimension});
-                }
             }
 
             // Now add unique values and stats dimensions
@@ -483,8 +463,6 @@ public class NetCDFCreator {
         writeSamplesAssays();
         writeSampleAccessions();
         writeAssayAccessions();
-        writeAssayOntologies();
-        writeSampleOntologies();
 
         if (!efvMap.isEmpty())
             writeEfvs();
@@ -724,16 +702,6 @@ public class NetCDFCreator {
         writeList("BSacc", sampleAccessions);
     }
 
-    private void writeSampleOntologies() throws IOException, InvalidRangeException {
-        if ((null != scvOntologies) && (maxScvoLength > 0))
-            writeMap("SCVO", scvOntologies, scvOntologies.keySet().size(), samples.size(), maxScvoLength);
-    }
-
-    private void writeAssayOntologies() throws IOException, InvalidRangeException {
-        if ((null != efvOntologies) && (maxEfvoLength > 0))
-            writeMap("EFVO", efvOntologies, efvOntologies.keySet().size(), assays.size(), maxEfvoLength);
-    }
-
     private void writeList(String variable, List<String> values) throws IOException, InvalidRangeException {
 
         int maxValueLength = 0;
@@ -921,7 +889,6 @@ public class NetCDFCreator {
     }
 
     /**
-     *
      * @param efs
      * @param scs
      * @return merged LinkedHashSet of efs and scs keySets
