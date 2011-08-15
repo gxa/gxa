@@ -36,6 +36,9 @@ import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -58,6 +61,8 @@ public class AtlasDAO {
     private final ExperimentDAO experimentDAO;
     private final AssayDAO assayDAO;
     private final SessionFactory sessionFactory;
+
+    private final Map<String, ArrayDesign> ad = newHashMap();
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
                     ExperimentDAO experimentDAO, AssayDAO assayDAO, SessionFactory sessionFactory) {
@@ -88,7 +93,13 @@ public class AtlasDAO {
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        return arrayDesignDAO.getArrayDesignByAccession(accession);
+        synchronized (ad) {
+            ArrayDesign result = ad.get(accession);
+            if (result == null) {
+                ad.put(accession, result = arrayDesignDAO.getArrayDesignByAccession(accession));
+            }
+            return result;
+        }
     }
 
     /**
