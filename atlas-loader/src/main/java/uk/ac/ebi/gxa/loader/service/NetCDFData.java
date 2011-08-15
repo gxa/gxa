@@ -88,11 +88,6 @@ class NetCDFData {
         return result;
     }
 
-    private EfvTree<CPair<String, String>> matchUniqueValues
-            (EfvTree<CBitSet> from, EfvTree<CBitSet> to) {
-        return null;
-    }
-
     private List<EfvTree.Ef<CBitSet>> matchValuesSort(EfvTree<CBitSet> efvTree) {
         final List<EfvTree.Ef<CBitSet>> fromTree = efvTree.getNameSortedTree();
         for (EfvTree.Ef<CBitSet> ef : fromTree) {
