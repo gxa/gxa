@@ -397,6 +397,7 @@ public class NetCDFProxy implements Closeable {
         return (int[])uVALnumVar.read().get1DJavaArray(int.class);
     }
 
+
     public List<String> getUniqueFactorValues() throws IOException {
         List<String> uniqueEFVs = new ArrayList<String>();
         List<String> factors = Arrays.asList(getFactors());

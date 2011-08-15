@@ -10,8 +10,6 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.CBitSet;
-import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -19,13 +17,15 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Iterators.concat;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.distinct;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
 
 /**
@@ -94,13 +94,6 @@ public class AtlasNetCDFUpdaterService {
                 }
             }
 
-            // TODO: this is commented out because it is *broken* and needs to be rewritten
-            // behaviour after commenting code below: *any* netcdf update will result in analytics reset
-
-//            if (assayAccessions.length == data.getAssays().size()) {
-//                data.matchValuePatterns(getValuePatterns(proxy, data.getAssays()));
-//            }
-
             // Get unique values
             List<String> uniqueValues = proxy.getUniqueValues();
             data.setUniqueValues(uniqueValues);
@@ -168,58 +161,6 @@ public class AtlasNetCDFUpdaterService {
             log.error("Error writing NetCDF file: " + target, e);
             throw new AtlasLoaderException(e);
         }
-    }
-
-    private static EfvTree<CBitSet> getValuePatterns(NetCDFProxy reader, List<Assay> assays) throws IOException {
-        EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
-
-        // Store ef-efv patterns
-        List<String> factorNames = Arrays.asList(reader.getFactors());
-        for (String ef : factorNames) {
-            final List<String> factorValues = Arrays.asList(reader.getFactorValues(ef));
-            // assume assays.size() == factorValues.size()
-
-            for (final String value : distinct(factorValues)) {
-                final CBitSet pattern = new CBitSet(factorValues.size());
-                for (int i = 0; i < factorValues.size(); i++)
-                    pattern.set(i, factorValues.get(i).equals(value));
-                patterns.putCaseSensitive(ef, value, pattern);
-            }
-        }
-
-        // Store sc-scv patterns
-        final String[] sampleAccessions = reader.getSampleAccessions();
-        List<String> characteristicNames = new ArrayList<String>(Arrays.asList(reader.getCharacteristics()));
-
-        characteristicNames.removeAll(factorNames); // process only scs that aren't also efs
-
-        for (final String cName : characteristicNames) {
-            final Map<String,String> accessionsToValues = new HashMap<String, String>();
-
-            final List<String> characteristicValues = Arrays.asList(reader.getCharacteristicValues(cName));
-
-            for (int i = 0; i < characteristicValues.size(); i++)
-                accessionsToValues.put(sampleAccessions[i], characteristicValues.get(i));
-
-            for (final String value : distinct(characteristicValues)) {
-                final CBitSet pattern = new CBitSet(assays.size());
-
-                int i = 0;
-                for (final Assay a : assays) {
-                    for (final Sample s : a.getSamples()) {
-                        if (accessionsToValues.get(s.getAccession()).equals(value)) {
-                            pattern.set(i, true);
-                            break;
-                        }
-                    }
-                    ++i;
-                }
-
-                patterns.putCaseSensitive(cName, value, pattern);
-            }
-        }
-
-        return patterns;
     }
 
     public void setAtlasDAO(AtlasDAO atlasDAO) {

@@ -100,6 +100,7 @@ public class ExperimentPlot {
     }
 
     private void load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
+
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
         expressions = proxy.getExpressionValues(deIndices);
