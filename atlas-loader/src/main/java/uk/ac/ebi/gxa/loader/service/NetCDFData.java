@@ -1,13 +1,14 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.*;
+import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
+import uk.ac.ebi.gxa.utils.CBitSet;
+import uk.ac.ebi.gxa.utils.CPair;
+import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.*;
 
@@ -89,61 +90,6 @@ class NetCDFData {
             i++;
         }
         return result;
-    }
-
-    void matchValuePatterns(EfvTree<CBitSet> oldEfvPats) {
-        matchedUniqueValues = matchUniqueValues(oldEfvPats, getValuePatterns());
-    }
-
-    EfvTree<CBitSet> getValuePatterns() {
-        Set<String> properties = new HashSet<String>();
-
-        // First store assay patterns
-        final Set<Assay> assays = assayToSamples.keySet();
-        for (Assay assay : assays)
-            for (AssayProperty property : assay.getProperties())
-                properties.add(property.getName());
-
-        EfvTree<CBitSet> efvTree = new EfvTree<CBitSet>();
-        int i = 0;
-        for (Assay assay : assays) {
-            for (final String propName : properties) {
-                String value = assay.getPropertySummary(propName);
-                efvTree.getOrCreateCaseSensitive(propName, value, new Maker<CBitSet>() {
-                    public CBitSet make() {
-                        return new CBitSet(assays.size());
-                    }
-                }).set(i, true);
-            }
-            ++i;
-        }
-
-        // Now add to efvTree sample patterns
-        properties = new HashSet<String>();
-        for (Map.Entry<Assay, List<Sample>> entry : assayToSamples.entrySet()) {
-            for (Sample sample : entry.getValue()) {
-                for (SampleProperty property : sample.getProperties())
-                    properties.add(property.getName());
-            }
-        }
-
-        i = 0;
-        for (Map.Entry<Assay, List<Sample>> entry : assayToSamples.entrySet()) {
-            final List<Sample> samples = entry.getValue();
-            for (Sample sample : samples) {
-                for (final String propName : properties) {
-                    String value = sample.getPropertySummary(propName);
-                    efvTree.getOrCreateCaseSensitive(propName, value, new Maker<CBitSet>() {
-                        public CBitSet make() {
-                            return new CBitSet(samples.size());
-                        }
-                    }).set(i, true);
-                }
-                ++i;
-            }
-        }
-
-        return efvTree;
     }
 
     private EfvTree<CPair<String, String>> matchUniqueValues
