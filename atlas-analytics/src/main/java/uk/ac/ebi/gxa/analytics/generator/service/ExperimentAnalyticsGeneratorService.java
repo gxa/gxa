@@ -144,18 +144,18 @@ public class ExperimentAnalyticsGeneratorService {
 
     private class LogAnalyticsGeneratorListener implements AnalyticsGeneratorListener {
         public void buildSuccess() {
-        }
+		}
 
         public void buildError(AnalyticsGenerationEvent event) {
-        }
+		}
 
         public void buildProgress(String progressStatus) {
             log.info(progressStatus);
-        }
+		}
 
         public void buildWarning(String message) {
             log.warn(message);
-        }
+		}
     }
 
     public void createAnalyticsForExperiment(
