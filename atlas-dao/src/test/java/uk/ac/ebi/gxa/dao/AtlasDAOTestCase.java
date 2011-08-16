@@ -196,10 +196,9 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAYSAMPLE " +
-                        "(ASSAYSAMPLEID bigint not null, " +
-                        "ASSAYID bigint, " +
+                        "(ASSAYID bigint, " +
                         "SAMPLEID bigint, " +
-                        "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
+                        "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYID, SAMPLEID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_GENE " +
