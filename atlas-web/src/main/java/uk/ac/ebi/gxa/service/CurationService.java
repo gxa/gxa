@@ -104,8 +104,42 @@ public class CurationService {
     }
 
     /**
+     * Remove propertyName:propertyValue from all assays and samples that are mapped to it; then remove propertyValue from
+     * the list of values assigned to propertyName
+     *
+     * @param propertyName
+     * @param propertyValue
+     * @throws ResourceNotFoundException
+     */
+    @Transactional
+    public void removePropertyValue(final String propertyName,
+                                    final String propertyValue) throws ResourceNotFoundException {
+
+        Property property = propertyDAO.getByName(propertyName);
+        checkIfFound(property, Property.class, propertyName);
+        PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
+        checkIfFound(propValue, PropertyValue.class, propertyValue);
+
+        // First delete propertyName:propertyValue from all assays, samples that point to it
+        List<Assay> assays = assayDAO.getAssaysByPropertyValue(propertyValue);
+        for (Assay assay : assays) {
+            assay.deleteProperty(propValue);
+            assayDAO.save(assay);
+        }
+        List<Sample> samples = sampleDAO.getSamplesByPropertyValue(propertyValue);
+        for (Sample sample : samples) {
+            sample.deleteProperty(propValue);
+            sampleDAO.save(sample);
+        }
+
+        // Now delete propertyName:propertyValue itself
+        propertyDAO.delete(property, propValue);
+        propertyDAO.save(property);
+    }
+
+    /**
      * Replaces oldValue of property: propertyName with newValue in all assays in which propertyName-oldValue exists.
-     * In cases when a given assay contains both oldValue and newValue, the retained newValue inherits the superset of OntologyTerms
+     * In cases when a given assay contains both oldValue and newValue, the retained newValue gets mapped to the superset of OntologyTerms
      * assigned to oldValue and newValue.
      *
      * @param propertyName
@@ -113,6 +147,7 @@ public class CurationService {
      * @param newValue
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
+    @Transactional
     public void replacePropertyValueInAssays(
             final String propertyName,
             final String oldValue,
@@ -134,12 +169,13 @@ public class CurationService {
                 terms.addAll(newAssayProperty.getTerms());
             }
             assay.addOrUpdateProperty(newPropertyValue, terms);
+            assayDAO.save(assay);
         }
     }
 
     /**
      * Replaces oldValue of property: propertyName with newValue in all samples in which propertyName-oldValue exists.
-     * In cases when a given sample contains both oldValue and newValue, the retained newValue inherits the superset of OntologyTerms
+     * In cases when a given sample contains both oldValue and newValue, the retained newValue gets mapped to the superset of OntologyTerms
      * assigned to oldValue and newValue.
      *
      * @param propertyName
@@ -147,6 +183,7 @@ public class CurationService {
      * @param newValue
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
+    @Transactional
     public void replacePropertyValueInSamples(
             final String propertyName,
             final String oldValue,
@@ -168,96 +205,8 @@ public class CurationService {
                 terms.addAll(newSampleProperty.getTerms());
             }
             sample.addOrUpdateProperty(newPropertyValue, terms);
+            sampleDAO.save(sample);
         }
-    }
-
-
-    /**
-     * Saves apiExperiment
-     *
-     * @param apiExperiment
-     * @throws ResourceNotFoundException if Ontology that at least one of apiOntologyTerms in apiExperiment's assay/sample properties
-     *                                   is assigned to doesn't exist -
-     *                                   the user needs to explicitly create the new ontology first
-     */
-    @Transactional
-    public void saveExperiment(@Nonnull final ApiExperiment apiExperiment)
-            throws ResourceNotFoundException {
-        Experiment experiment = atlasDAO.getExperimentByAccession(apiExperiment.getAccession());
-
-        if (experiment != null) {
-            // TODO: 4ostolop: should we or should we not keep it?
-
-//            log.info("Deleting experiment " + experiment.getAccession() + " in order to update");
-//            experimentDAO.delete(experiment);
-        }
-
-        experiment = new Experiment(apiExperiment.getAccession());
-
-        experiment.setAbstract(apiExperiment.getArticleAbstract());
-        experiment.setCurated(apiExperiment.isCurated());
-        experiment.setDescription(apiExperiment.getDescription());
-        experiment.setLab(apiExperiment.getLab());
-        experiment.setLoadDate(apiExperiment.getLoadDate());
-        experiment.setPerformer(apiExperiment.getPerformer());
-        experiment.setPrivate(apiExperiment.isPrivate());
-        experiment.setPubmedId(apiExperiment.getPubmedId());
-
-        Map<String, Assay> assays = Maps.newHashMap();
-        for (ApiAssay apiAssay : apiExperiment.getAssays()) {
-            Assay assay = new Assay(apiAssay.getAccession());
-            // TODO: create ArrayDesign
-            assay.setArrayDesign(atlasDAO.getArrayDesignShallowByAccession(apiAssay.getArrayDesign().getAccession()));
-
-            for (ApiProperty apiAssayProperty : apiAssay.getProperties()) {
-                PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                        apiAssayProperty.getPropertyValue().getProperty().getName(),
-                        apiAssayProperty.getPropertyValue().getValue());
-
-                List<OntologyTerm> terms = Lists.newArrayList();
-                for (ApiOntologyTerm apiOntologyTerm : apiAssayProperty.getTerms()) {
-                    terms.add(getOrCreateOntologyTerm(apiOntologyTerm));
-                }
-
-                assay.addOrUpdateProperty(propertyValue, terms);
-            }
-
-            assays.put(apiAssay.getAccession(), assay);
-        }
-
-        List<Sample> samples = Lists.newArrayList();
-        for (ApiSample apiSample : apiExperiment.getSamples()) {
-            Sample sample = new Sample(apiSample.getAccession());
-            sample.setChannel(apiSample.getChannel());
-
-            if (apiSample.getOrganism() != null) {
-                sample.setOrganism(atlasDAO.getOrganismByName(apiSample.getOrganism().getName()));
-            }
-
-            for (ApiProperty apiSampleProperty : apiSample.getProperties()) {
-                PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                        apiSampleProperty.getPropertyValue().getProperty().getName(),
-                        apiSampleProperty.getPropertyValue().getValue());
-
-                List<OntologyTerm> terms = Lists.newArrayList();
-                for (ApiOntologyTerm apiOntologyTerm : apiSampleProperty.getTerms()) {
-                    terms.add(getOrCreateOntologyTerm(apiOntologyTerm));
-                }
-
-                sample.addOrUpdateProperty(propertyValue, terms);
-            }
-
-            for (ApiAssay apiAssay : apiSample.getAssays()) {
-                sample.addAssay(assays.get(apiAssay.getAccession()));
-            }
-
-            samples.add(sample);
-        }
-
-        experiment.setAssays(new ArrayList<Assay>(assays.values()));
-        experiment.setSamples(samples);
-
-        experimentDAO.save(experiment);
     }
 
     /**

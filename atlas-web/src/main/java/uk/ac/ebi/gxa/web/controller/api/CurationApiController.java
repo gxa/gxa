@@ -44,6 +44,17 @@ public class CurationApiController extends AtlasViewController {
         return properties;
     }
 
+    @RequestMapping(value = "/properties/{propertyName}/{propertyValue}",
+            method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void removePropertyValue(
+            @PathVariable("propertyName") final String propertyName,
+            @PathVariable("propertyValue") final String propertyValue,
+            HttpServletResponse response)
+            throws ResourceNotFoundException {
+        curationService.removePropertyValue(propertyName, propertyValue);
+    }
+
     @RequestMapping(value = "/experiments/assays/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
@@ -56,7 +67,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.replacePropertyValueInAssays(propertyName, oldPropertyValue, newPropertyValue);
     }
 
-    @RequestMapping(value = "/experiments/sample/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
+    @RequestMapping(value = "/experiments/samples/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void replacePropertyValueInSamples(
@@ -75,14 +86,6 @@ public class CurationApiController extends AtlasViewController {
     public ApiExperiment getExperiment(@PathVariable("experimentAccession") final String experimentAccession,
                                        HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getExperiment(experimentAccession);
-    }
-
-    @RequestMapping(value = "/experiments/{experimentAccession}",
-            method = RequestMethod.PUT)
-    @ResponseStatus(HttpStatus.CREATED)
-    public void putExperiment(@RequestBody final ApiExperiment apiExperiment,
-                              HttpServletResponse response) throws ResourceNotFoundException {
-        curationService.saveExperiment(apiExperiment);
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}",
