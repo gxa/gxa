@@ -30,12 +30,14 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.transform;
 import static java.util.Collections.unmodifiableList;
-import static java.util.Collections.unmodifiableSet;
 
 @Entity
 @Table(name = "A2_SAMPLEPV")
@@ -43,7 +45,7 @@ import static java.util.Collections.unmodifiableSet;
 public final class SampleProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "samplePVSeq")
-    @SequenceGenerator(name = "samplePVSeq", sequenceName = "A2_SAMPLEPV_SEQ")
+    @SequenceGenerator(name = "samplePVSeq", sequenceName = "A2_SAMPLEPV_SEQ", allocationSize = 1)
     private Long samplepvid;
     @ManyToOne
     @Fetch(FetchMode.SELECT)

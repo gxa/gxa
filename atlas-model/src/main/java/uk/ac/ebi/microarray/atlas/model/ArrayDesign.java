@@ -35,7 +35,7 @@ import static java.util.Collections.singletonList;
 public class ArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")
-    @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ")
+    @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ", allocationSize = 1)
     private Long arrayDesignID;
     private String accession;
     private String name;

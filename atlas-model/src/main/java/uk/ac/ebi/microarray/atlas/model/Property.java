@@ -14,7 +14,7 @@ import java.util.List;
 public final class Property {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
-    @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ")
+    @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ", allocationSize = 1)
     private Long propertyid;
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)

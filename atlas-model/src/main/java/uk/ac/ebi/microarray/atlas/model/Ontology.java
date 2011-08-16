@@ -2,7 +2,6 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
 
@@ -11,7 +10,7 @@ import javax.persistence.*;
 public class Ontology {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologySeq")
-    @SequenceGenerator(name = "ontologySeq", sequenceName = "A2_ONTOLOGY_SEQ")
+    @SequenceGenerator(name = "ontologySeq", sequenceName = "A2_ONTOLOGY_SEQ", allocationSize = 1)
     private Long ontologyid;
     private String name;
     @Column(name = "SOURCE_URI")

@@ -2,7 +2,6 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Immutable;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.persistence.*;
@@ -12,7 +11,7 @@ import javax.persistence.*;
 public class OntologyTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")
-    @SequenceGenerator(name = "ontologyTermSeq", sequenceName = "A2_ONTOLOGYTERM_SEQ")
+    @SequenceGenerator(name = "ontologyTermSeq", sequenceName = "A2_ONTOLOGYTERM_SEQ", allocationSize = 1)
     private Long ontologytermid;
     @ManyToOne
     private Ontology ontology;

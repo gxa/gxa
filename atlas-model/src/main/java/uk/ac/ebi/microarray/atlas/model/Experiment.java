@@ -43,7 +43,7 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 public class Experiment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "experimentSeq")
-    @SequenceGenerator(name = "experimentSeq", sequenceName = "A2_EXPERIMENT_SEQ")
+    @SequenceGenerator(name = "experimentSeq", sequenceName = "A2_EXPERIMENT_SEQ", allocationSize = 1)
     private Long experimentid;
     private String accession;
 
