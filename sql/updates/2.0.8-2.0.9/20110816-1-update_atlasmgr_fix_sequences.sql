@@ -183,5 +183,7 @@ END;
 END;
 /
 
+call ATLASMGR.RebuildSequences();
+
 -- Will be done by script runner from the next version on
 insert into A2_SCHEMACHANGES values (null, '20110816-1-update_atlasmgr_fix_sequences.sql', 'alf', CURRENT_TIMESTAMP);
