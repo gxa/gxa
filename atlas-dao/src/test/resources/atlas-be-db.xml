@@ -73,13 +73,13 @@
 
     <A2_PROPERTY
             propertyid="2"
-            name="PROP2"
+            name="prop2"
             accession="PropAcc2"
             />
 
     <A2_PROPERTY
             propertyid="3"
-            name="PROP3"
+            name="prop3"
             accession="PropAcc3"
             />
 
@@ -355,13 +355,11 @@
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="1"
             assayid="1"
             sampleid="1"
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="2"
             assayid="2"
             sampleid="2"
             />
@@ -418,19 +416,16 @@
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="10"
             assayid="10"
             sampleid="10"
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="11"
             assayid="10"
             sampleid="11"
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="12"
             assayid="11"
             sampleid="10"
             />
