@@ -42,6 +42,10 @@ public final class Property {
         return Collections.unmodifiableList(values);
     }
 
+    public void deleteValue(PropertyValue propertyValue) {
+        values.remove(propertyValue);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

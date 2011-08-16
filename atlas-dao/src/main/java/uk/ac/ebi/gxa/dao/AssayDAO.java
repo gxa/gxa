@@ -22,4 +22,10 @@ public class AssayDAO extends AbstractDAO<Assay> {
     public List<Assay> getAssaysByPropertyValue(String propertyValue) {
         return template.find("select a from Experiment e left join e.assays a left join a.properties p where p.propertyValue.value = ? ", propertyValue);
     }
+
+    @Override
+    public void save(Assay object) {
+        super.save(object);
+        template.flush();
+    }
 }

@@ -4,7 +4,6 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.List;
 
@@ -25,5 +24,11 @@ public class SampleDAO extends AbstractDAO<Sample> {
     @SuppressWarnings("unchecked")
     public List<Sample> getSamplesByPropertyValue(String propertyValue) {
         return template.find("select s from Experiment e left join e.samples s left join s.properties p where p.propertyValue.value = ? ", propertyValue);
+    }
+
+    @Override
+    public void save(Sample object) {
+        super.save(object);
+        template.flush();
     }
 }
