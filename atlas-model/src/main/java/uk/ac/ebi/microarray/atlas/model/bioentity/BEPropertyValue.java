@@ -6,8 +6,6 @@ public class BEPropertyValue {
     private String value;
     private BioEntityProperty property;
 
-    private Software software;
-
 
     BEPropertyValue() {
     }

@@ -42,6 +42,8 @@ public class BioMartAnnotationSourceLoader {
     private static final String software_version_propName = "software.version";
     private static final String types_propName = "types";
     private static final String url_propName = "url";
+    private static final String mySqlDbName_propName = "mySqlDbName";
+    private static final String mySqlDbUrl_propName = "mySqlDbUrl";
     private static final String datasetName_propName = "datasetName";
     private static final String databaseName_propName = "databaseName";
     private static final String biomartProperty_propName = "biomartProperty";
@@ -89,6 +91,8 @@ public class BioMartAnnotationSourceLoader {
             annotationSource.setUrl(getProperty(url_propName, properties));
             annotationSource.setDatabaseName(getProperty(databaseName_propName, properties));
             annotationSource.setDatasetName(getProperty(datasetName_propName, properties));
+            annotationSource.setMySqlDbName(getProperty(mySqlDbName_propName, properties));
+            annotationSource.setMySqlDbUrl(getProperty(mySqlDbUrl_propName, properties));
 
             updateBioMartProperties(properties, annotationSource);
 
@@ -109,6 +113,8 @@ public class BioMartAnnotationSourceLoader {
         properties.addProperty(url_propName, annSrc.getUrl());
         properties.addProperty(databaseName_propName, annSrc.getDatabaseName());
         properties.addProperty(datasetName_propName, annSrc.getDatasetName());
+        properties.addProperty(mySqlDbName_propName, annSrc.getMySqlDbName());
+        properties.addProperty(mySqlDbUrl_propName, annSrc.getMySqlDbUrl());
 
         //Write beioentity types
         StringBuffer types = new StringBuffer();

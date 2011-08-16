@@ -52,33 +52,6 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
         this.annSrcDAO = annSrcDAO;
     }
 
-//    @Test
-//    public void testSave() throws Exception {
-//        Software software = annSrcDAO.findOrCreateSoftware("Ens", "60");
-//
-//        Organism organism = organismDAO.getById(1);
-//        BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
-//
-//        AbstractDAO<BioMartProperty> bmPropertyDAO = new AbstractDAO<BioMartProperty>(sessionFactory, BioMartProperty.class) {
-//        };
-//        List<BioMartProperty> bioMartProperties = bmPropertyDAO.getAll();
-//        Assert.assertTrue(bioMartProperties.size() > 0);
-//
-//        for (BioMartProperty bioMartProperty : bioMartProperties) {
-//            annotationSource.addBioMartProperty(bioMartProperty);
-//        }
-//
-//        annSrcDAO.save(annotationSource);
-//        Assert.assertNotNull(annotationSource.getAnnotationSrcId());
-//
-//        BioMartAnnotationSource annotationSourceCopy = annotationSource.createCopyForNewSoftware(new Software("Ens", "61"));
-//        Assert.assertNull(annotationSourceCopy.getAnnotationSrcId());
-//        annSrcDAO.save(annotationSourceCopy);
-//        Assert.assertNotNull(annotationSourceCopy.getAnnotationSrcId());
-//
-//        System.out.println("annotationSourceCopy = " + annotationSourceCopy);
-//    }
-
     @Test
     public void testSaveNew() throws Exception {
         Software software = annSrcDAO.findOrCreateSoftware("plants", "8");
@@ -89,7 +62,7 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
         annotationSource.setDatasetName("athaliana_eg_gene");
         annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
 
-        BioEntityProperty goterm = propertyDAO.getByName("goterm");
+        BioEntityProperty goterm = propertyDAO.findOrCreate("goterm");
         Assert.assertNotNull(goterm);
         annotationSource.addBioMartProperty("name_1006", goterm);
 
@@ -108,11 +81,9 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
         annotationSource.setDatasetName("athaliana_eg_gene");
         annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
 
-        BioEntityProperty goterm = propertyDAO.getByName("goterm");
+        BioEntityProperty goterm = propertyDAO.findOrCreate("goterm");
         annotationSource.addBioMartProperty("name_1006", goterm);
 
-//        BioEntityType type1 = new BioEntityType(null, "new_type", 0);
-//        annotationSource.addBioentityType(type1);
 
         BioEntityType type2 = bioEntityDAO.findOrCreateBioEntityType("enstranscript");
         annotationSource.addBioentityType(type2);

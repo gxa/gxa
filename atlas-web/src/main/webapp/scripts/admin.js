@@ -76,7 +76,8 @@ var $msg = {
         makeexperimentpublic: 'Make experiment public',
         indexexperiment: 'Index experiment',
         repairexperiment: 'Repair experiment',
-        orgupdate: 'Ensembl annotations update'
+        orgupdate: 'Bioentity annotations update',
+        mappingupdate: 'Design element mapping update'
     },
     runMode: {
         RESTART: '[Restart]',

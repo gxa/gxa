@@ -90,7 +90,7 @@ public class AnnotationDAO {
         annSrcDAO.save(annotationSource);
     }
 
-    public Software findOrCreateSoftware(String name, String newVersion) {
-        return softwareDAO.findOrCreate(name, newVersion);
+    public boolean isAnnSrcApplied(AnnotationSource annSrc) {
+        return annSrcDAO.isAnnSrcApplied(annSrc);
     }
 }

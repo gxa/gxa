@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import au.com.bytecode.opencsv.CSVReader;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,6 +180,8 @@ public class BioMartConnection {
     public URL getAttributesURL(Collection<String> attributes) throws BioMartAccessException {
         return getMartURL(getAttributesURLLocation(attributes));
     }
+
+    
     private String parseOutValue(String nameProp, String line) {
         return line.substring(line.indexOf(nameProp) + nameProp.length(), line.indexOf("\"", line.indexOf(nameProp) + nameProp.length()));
     }
@@ -217,6 +220,10 @@ public class BioMartConnection {
         } finally {
             log.info("Finished reading from " + url + ", closing");
             closeQuietly(bufferedReader);
+        }
+
+        if (StringUtils.isEmpty(bioMartName) || StringUtils.isEmpty(serverVirtualSchema)) {
+            throw new BioMartAccessException("Problem when reading registry. Check annotation source configuration. " + url);
         }
     }
 }

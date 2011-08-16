@@ -303,7 +303,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processSearchAnnSrc(String annSrcId) {
-        System.out.println("annSrcId = " + annSrcId);
         String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
         if (!StringUtils.EMPTY.equals(annSrcId)) {
             annSrcString = annSrcController.getAnnSrcString(annSrcId);

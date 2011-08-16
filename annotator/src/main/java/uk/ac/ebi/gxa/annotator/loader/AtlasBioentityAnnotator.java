@@ -69,7 +69,7 @@ public abstract class AtlasBioentityAnnotator {
 
         writeBEPropertyValueMappingsToDB();
 
-        writeGeneToBioentityRelationsToDB();
+//        writeGeneToBioentityRelationsToDB();
 
         //ToDo:software should be set active outside of annotator
         setSoftwareAsActive();
@@ -163,6 +163,14 @@ public abstract class AtlasBioentityAnnotator {
             propertyValues.add(pv);
         }
     }
+
+//    protected void addPropertiesForBEType(BioEntityType type, BioEntityProperty property, Set<List<String>> beToPropertyValues) {
+//        for (List<String> propertyValueList : beToPropertyValues) {
+//            BEPropertyValue propertyValue
+//            this.propertyValues.add(propertyValue.get(3))
+//
+//        }
+//    }
 
     protected void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {
         if (StringUtils.isNotBlank(deAccession) && deAccession.length() < 1000 && !"NA".equals(deAccession)) {

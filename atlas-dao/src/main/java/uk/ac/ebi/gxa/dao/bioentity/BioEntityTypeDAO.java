@@ -26,8 +26,10 @@ public class BioEntityTypeDAO extends AbstractDAO<BioEntityType> {
     public BioEntityType findOrCreate(String typeName) {
        BioEntityType type = find(typeName);
         if (type == null) {
-            BioEntityProperty beProperty = propertyDAO.findOrCreate(typeName);
+            System.out.println("create typeName = " + typeName);
+            BioEntityProperty beProperty = propertyDAO.getByName(typeName);
             type = new BioEntityType(null, typeName, 0, beProperty, beProperty);
+            save(type);
         }
 
         return type;

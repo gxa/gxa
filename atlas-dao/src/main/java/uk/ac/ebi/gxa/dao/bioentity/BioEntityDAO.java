@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.dao.bioentity;
 import com.google.common.collect.ArrayListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -37,16 +38,9 @@ import static com.google.common.collect.Iterables.partition;
  * @author Nataliya Sklyar
  */
 public class BioEntityDAO {
-    public static final String ALL_GENE_DESIGN_ELEMENT_DIRECT = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
-            "  FROM a2_designelement de\n" +
-            "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
-            "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid and  debe.softwareid = ad.mappingswid\n" +
-            "  join a2_bioentity be on be.bioentityid = debe.bioentityid\n" +
-            "  join a2_bioentitytype bet on bet.bioentitytypeid = be.bioentitytypeid and bet.ID_FOR_INDEX = 1";
-
 
     public static final int MAX_QUERY_PARAMS = 15;
-    public static final int SUB_BATCH_SIZE = 50;
+    public static final int SUB_BATCH_SIZE = 70;
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private SoftwareDAO softwareDAO;
@@ -55,6 +49,7 @@ public class BioEntityDAO {
     protected JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
+    private static Map<String, BioEntityProperty> bePropertyCache = new HashMap<String, BioEntityProperty>();
 
     public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template, BioEntityPropertyDAO propertyDAO, BioEntityTypeDAO typeDAO) {
         this.template = template;
@@ -74,7 +69,7 @@ public class BioEntityDAO {
                 "FROM a2_bioentity be \n" +
                 "JOIN a2_organism o ON o.organismid = be.organismid\n" +
                 "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
-                "WHERE bet.id_for_index = 1",
+                "WHERE bet.id_for_index = 1 and be.organismid=20",
                 new GeneMapper());
     }
 
@@ -118,7 +113,17 @@ public class BioEntityDAO {
 //                new Object[]{annotationsSW},
 //                mapper);
 
-        template.query(ALL_GENE_DESIGN_ELEMENT_DIRECT,
+        String query = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
+                "  FROM a2_designelement de\n" +
+                "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid \n" +
+                "  JOIN a2_bioentity be ON be.bioentityid = debe.bioentityid\n" +
+                "  join a2_software sw on sw.softwareid = debe.softwareid\n" +
+                "  JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid \n" +
+                "  WHERE bet.ID_FOR_INDEX = 1\n" +
+                "  and sw.isactive = 1";
+
+        template.query(query,
                 mapper);
         return beToDe;
     }
@@ -211,13 +216,12 @@ public class BioEntityDAO {
 
         ListStatementSetter<List<String>> statementSetter = new ListStatementSetter<List<String>>() {
             long softwareId = software.getSoftwareid();
-            List<BioEntityProperty> properties = getAllBEProperties();
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).get(0));
                 ps.setLong(2, beType.getId());
                 ps.setString(3, list.get(i).get(2));
-                ps.setLong(4, properties.get(i).getBioentitypropertyid());
+                ps.setLong(4, getBioEntityPropertyByName(list.get(i).get(1)).getBioentitypropertyid());
                 ps.setLong(5, softwareId);
             }
 
@@ -345,7 +349,9 @@ public class BioEntityDAO {
         writeBatchInChunks(query, deToBeMappings, setter);
     }
 
-    private <T> int writeBatchInChunks(String query, final Collection<T> entityList, ListStatementSetter<T> statementSetter) {
+    private <T> int writeBatchInChunks(String query,
+                                       final Collection<T> entityList,
+                                       ListStatementSetter<T> statementSetter) throws DataAccessException {
         int loadedRecordsNumber = 0;
 
         for (List<T> subList : partition(entityList, SUB_BATCH_SIZE)) {
@@ -397,8 +403,14 @@ public class BioEntityDAO {
         }
     }
 
-    private List<BioEntityProperty> getAllBEProperties() {
-        return propertyDAO.getAll();
+
+    private BioEntityProperty getBioEntityPropertyByName(String name) {
+        BioEntityProperty bioEntityProperty = bePropertyCache.get(name);
+        if (bioEntityProperty == null) {
+            bioEntityProperty = propertyDAO.findOrCreate(name);
+            bePropertyCache.put(bioEntityProperty.getName(), bioEntityProperty);
+        }
+        return bioEntityProperty;
     }
 
     public void setJdbcTemplate(JdbcTemplate template) {

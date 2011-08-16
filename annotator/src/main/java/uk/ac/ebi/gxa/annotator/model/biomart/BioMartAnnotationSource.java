@@ -68,6 +68,10 @@ public class BioMartAnnotationSource extends AnnotationSource {
     @Cascade({org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
     private Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
 
+    private String mySqlDbName;
+
+    private String mySqlDbUrl;
+
     BioMartAnnotationSource() {
     }
 
@@ -158,6 +162,21 @@ public class BioMartAnnotationSource extends AnnotationSource {
         this.databaseName = databaseName;
     }
 
+    public String getMySqlDbName() {
+        return mySqlDbName;
+    }
+
+    public void setMySqlDbName(String mySqlDbName) {
+        this.mySqlDbName = mySqlDbName;
+    }
+
+    public String getMySqlDbUrl() {
+        return mySqlDbUrl;
+    }
+
+    public void setMySqlDbUrl(String mySqlDbUrl) {
+        this.mySqlDbUrl = mySqlDbUrl;
+    }
 
     @Override
     public boolean isUpdatable() {
@@ -179,6 +198,8 @@ public class BioMartAnnotationSource extends AnnotationSource {
         }
 //        result.bioMartProperties = new HashSet<BioMartProperty>(this.bioMartProperties);
         result.setDatabaseName(this.databaseName);
+        result.setMySqlDbName(this.mySqlDbName);
+        result.setMySqlDbUrl(this.mySqlDbUrl);
 
         return result;
     }

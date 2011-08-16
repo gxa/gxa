@@ -22,13 +22,13 @@
                 <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
                 <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
-                <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
+                <!--<value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>-->
 
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
-                <value>uk.ac.ebi.gxa.annotator.model.FileAnnotationSource</value>
+                <!--<value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>-->
+                <!--<value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>-->
+                <!--<value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>-->
+                <!--<value>uk.ac.ebi.gxa.annotator.model.FileAnnotationSource</value>-->
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType</value>
 

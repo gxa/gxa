@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import au.com.bytecode.opencsv.CSVReader;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -18,8 +19,11 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +65,9 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
             readBioentities(csvReader, martConnection, attributesHandler);
 
+            //read synonyms
+            fetchSynonyms(annSrc);
+
             for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
                 //List of Attributes contains for example: {"ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"}
                 List<String> attributes = new ArrayList<String>(attributesHandler.getMartBEIdentifiers());
@@ -69,7 +76,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
                     reportProgress("Reading property " + bioMartProperty.getBioEntityProperty().getName() + " (" + bioMartProperty.getName() + ") for " + targetOrganism.getName());
-                    csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
+                    csvReader = new CSVReader(getReader(url, annSrc.getDatasetName(), bioMartProperty.getName()), '\t', '"');
                     readProperty(csvReader, bioMartProperty.getBioEntityProperty(), attributesHandler);
                     csvReader.close();
                 }
@@ -102,38 +109,49 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
             BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
 
-//            readBioentities(csvReader, martConnection, attributesHandler);
-//            writeBioentitiesToDB();
+            if (!annotationDAO.isAnnSrcApplied(annSrc)) {
+                readBioentities(csvReader, martConnection, attributesHandler);
+                writeBioentitiesToDB();
+            }
 
             for (BioMartArrayDesign bioMartArrayDesign : annSrc.getBioMartArrayDesigns()) {
                 clearDesignElements();
                 clearTypeToDesignElementBEMapping();
-                
+
                 List<String> attributes = new ArrayList<String>(attributesHandler.getMartBEIdentifiers());
                 attributes.add(bioMartArrayDesign.getName());
 
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
                     reportProgress("Reading design elements for " + bioMartArrayDesign.getArrayDesign().getAccession() + " (" + bioMartArrayDesign.getName() + ") for " + targetOrganism.getName());
-                    csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
+                    csvReader = new CSVReader(getReader(url, annSrc.getDatasetName(), bioMartArrayDesign.getName()), '\t', '"');
+
+                    log.debug("Parsing property " + bioMartArrayDesign.getName());
+                    long startTime = System.currentTimeMillis();
+
                     String[] line;
+                    int count = 0;
                     while ((line = csvReader.readNext()) != null) {
                         if (line.length < attributesHandler.martBEIdentifiers.size() + 1 || line[0].contains("Exception")) {
                             log.info("Cannot get property " + bioMartArrayDesign.getName());
                             break;
                         }
                         parseDesignElement(attributesHandler, line);
+                        if (count++ % 3000 == 0) {
+                            log.info("Parsed " + count + " design elements");
+                        }
                     }
                     csvReader.close();
+                    log.debug("Done. " + (new Long(System.currentTimeMillis() - startTime).toString()) + " millseconds).\n");
                 }
 
                 writeDesignElementBEMappingsToDB(bioMartArrayDesign.getArrayDesign());
             }
 
         } catch (IOException e) {
-            throw new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e);
+            throw new AtlasAnnotationException("Cannot update mappings for Organism. Problem when connecting to biomart." + annSrc.getDatasetName(), e);
         } catch (BioMartAccessException e) {
-            throw new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e);
+            throw new AtlasAnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e);
         } catch (AtlasAnnotationException e) {
             throw new AtlasAnnotationException("Cannot update mappings for Organism " + annSrc.getDatasetName(), e);
         } finally {
@@ -172,6 +190,32 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
         }
     }
 
+    private void fetchSynonyms(BioMartAnnotationSource annSrc) throws BioMartAccessException {
+        reportProgress("Reading synonyms for " + targetOrganism.getName());
+        BioMartDbDAO bioMartDbDAO = new BioMartDbDAO(annSrc.getMySqlDbUrl());
+
+        BioEntityType geneType = null;
+        for (BioEntityType type : annSrc.getTypes()) {
+            //Synonyms belong to genes
+            if (type.getName().equals(BioEntityType.ENSGENE)) {
+                geneType = type;
+                break;
+            }
+        }
+
+        if (geneType != null) {
+            Set<List<String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+            BioEntityProperty propSynonym = annotationDAO.getPropertyByName("synonym");
+            for (List<String> geneToSynonym : geneToSynonyms) {
+                BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.get(1));
+                addPropertyValue(geneToSynonym.get(0), geneType, pv);
+            }
+
+        } else {
+            log.error("Annoation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
+        }
+    }
+
     private void parseBioentities(Organism organism, BETypeMartAttributesHandler attributesHandler, String[] line) {
         List<BioEntity> rowBioEntities = new ArrayList<BioEntity>(attributesHandler.getTypes().length);
         BioEntity gene = null;
@@ -200,7 +244,11 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
     private void readProperty(CSVReader csvReader, BioEntityProperty property, BETypeMartAttributesHandler attributesHandler) throws IOException {
 
+        log.debug("Parsing property " + property.getName());
+        long startTime = System.currentTimeMillis();
+
         String[] line;
+        int lineCount = 0;
         while ((line = csvReader.readNext()) != null) {
             if (line.length < attributesHandler.martBEIdentifiers.size() + 1 || line[0].contains("Exception")) {
                 log.info("Cannot get property " + property.getName());
@@ -213,7 +261,13 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
                 addPropertyValue(line[count++], type, propertyValue);
             }
 
+            if (lineCount++ % 1000 == 0) {
+                log.info("Parsed " + lineCount + " properties values");
+            }
+
         }
+
+        log.debug("Done. " + (new Long(System.currentTimeMillis() - startTime).toString()) + " millseconds).\n");
     }
 
     private void parseDesignElement(BETypeMartAttributesHandler attributesHandler, String[] line) {
@@ -222,6 +276,25 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
         for (BioEntityType type : attributesHandler.getTypes()) {
             addBEDesignElementMapping(line[count++], type, deAccession);
         }
+    }
+
+    private File getFile(String organismName, String propertyName) {
+        return new File(organismName, propertyName);
+    }
+
+    private Reader getReader(URL url, String organismName, String propertyName) throws IOException {
+        log.debug("Connecting to biomart site...\n" + propertyName);
+        long startTime = System.currentTimeMillis();
+
+        File file = getFile(organismName, propertyName);
+        if (!file.exists()) {
+            FileUtils.copyURLToFile(url, file);
+        }
+        long endTime = System.currentTimeMillis();
+        log.debug("Done. " + (new Long(endTime - startTime).toString()) + " millseconds).\n");
+
+
+        return new FileReader(file);
     }
 
     private static class BETypeMartAttributesHandler {
