@@ -84,7 +84,7 @@ public class ArrayDesign {
         this.type = type;
     }
 
-    public long getArrayDesignID() {
+    public Long getArrayDesignID() {
         return arrayDesignID;
     }
 
@@ -92,7 +92,7 @@ public class ArrayDesign {
         this.arrayDesignID = arrayDesignID;
     }
 
-    public long getMappingSoftwareId() {
+    public Long getMappingSoftwareId() {
         return mappingSoftwareId;
     }
 

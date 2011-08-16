@@ -385,7 +385,7 @@ public class NetCDFCreator {
                 arrayDesign.getAccession());
         safeAddGlobalAttribute(
                 "ADid",
-                (double) arrayDesign.getArrayDesignID()); // netcdf doesn't know how to store longs
+                arrayDesign.getArrayDesignID().doubleValue()); // netcdf doesn't know how to store longs
         safeAddGlobalAttribute(
                 "ADname",
                 arrayDesign.getName());
