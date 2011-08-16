@@ -123,8 +123,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         String accession =
                 getDataSet().getTable("A2_ARRAYDESIGN").getValue(0, "accession")
                         .toString();
-        long id =
-                Long.parseLong(getDataSet().getTable("A2_ARRAYDESIGN")
+        Long id =
+                Long.valueOf(getDataSet().getTable("A2_ARRAYDESIGN")
                         .getValue(0, "arraydesignid")
                         .toString());
 
