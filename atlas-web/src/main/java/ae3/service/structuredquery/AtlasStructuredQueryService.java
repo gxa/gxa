@@ -1774,13 +1774,24 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         SolrQuery q = new SolrQuery(qstate.getSolrq().toString());
 
         q.setRows(rowsPerPage);
-        q.setIncludeScore(true);
+        q.setFacet(true);
+
+        int max = 0;
+        q.addField("score");
         q.addField("id");
         q.addField("name");
         q.addField("identifier");
         q.addField("species");
         for (String p : genePropService.getIdNameDescProperties())
             q.addField("property_" + p);
+        q.setFacetLimit(5 + max);
+        q.setFacetMinCount(2);
+
+        for (String p : genePropService.getDrilldownProperties()) {
+            q.addFacetField("property_f_" + p);
+        }
+
+        q.addFacetField("species");
 
         q.setHighlight(true);
         q.setHighlightSnippets(100);
