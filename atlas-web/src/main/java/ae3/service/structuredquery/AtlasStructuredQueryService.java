@@ -26,7 +26,6 @@ import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
 import ae3.service.AtlasStatisticsQueryService;
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
@@ -65,6 +64,7 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
@@ -690,7 +690,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 controlCache();
 
                 SolrQuery q = setupSolrQuery(query.getRowsPerPage(), qstate);
-                q.addFilterQuery("id:(" + Joiner.on(" ").join(genesByConditions) + ")");
+                q.addFilterQuery("id:(" + on(" ").join(genesByConditions) + ")");
                 long timeStart = System.currentTimeMillis();
 
                 QueryResponse response = solrServerAtlas.query(q);
