@@ -45,7 +45,7 @@ import static java.util.Collections.unmodifiableList;
 public final class SampleProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "samplePVSeq")
-    @SequenceGenerator(name = "samplePVSeq", sequenceName = "A2_SAMPLEPV_SEQ")
+    @SequenceGenerator(name = "samplePVSeq", sequenceName = "A2_SAMPLEPV_SEQ", allocationSize = 1)
     private Long samplepvid;
     @ManyToOne
     @Fetch(FetchMode.SELECT)

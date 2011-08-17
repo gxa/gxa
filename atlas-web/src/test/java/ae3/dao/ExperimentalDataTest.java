@@ -29,8 +29,8 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +113,7 @@ public class ExperimentalDataTest {
     public void testLoadExperiment() throws IOException, URISyntaxException {
         Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
         ArrayDesign ad1 = new ArrayDesign();
-        ad1.setArrayDesignID(160588088);
+        ad1.setArrayDesignID(160588088L);
         ad1.setAccession("A-AFFY-44");
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
         eMexp1586.setSamples(eMexp1586Samples());
@@ -130,10 +130,10 @@ public class ExperimentalDataTest {
     public void testMultiArrayDesign() throws IOException, URISyntaxException {
         Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
         ArrayDesign ad21 = new ArrayDesign();
-        ad21.setArrayDesignID(153069949);
+        ad21.setArrayDesignID(153069949L);
         ad21.setAccession("A-AFFY-33");
         ArrayDesign ad22 = new ArrayDesign();
-        ad22.setArrayDesignID(165554923);
+        ad22.setArrayDesignID(165554923L);
         ad22.setAccession("A-AFFY-44");
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
