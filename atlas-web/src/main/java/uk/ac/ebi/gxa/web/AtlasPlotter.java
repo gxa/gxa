@@ -101,7 +101,7 @@ public class AtlasPlotter {
             final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
             try {
                 geneIdsToEfToEfvToEA =
-                    ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates().containsEfEfv(ef, efv));
+                    ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
             } finally {
                 ewd.closeAllDataSources();
             }

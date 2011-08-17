@@ -6,11 +6,18 @@ import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
 import com.google.common.primitives.Ints;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.DataPredicates;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -64,7 +71,8 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      * (for more details of search implementation, please see analytics.R).
      *
-     * @param pathForR        the path to netCDF file
+     * @param ewd             experiment
+     * @param arrayDesign     arrayDesign
      * @param geneIds         list of geneIds to find best statistics for
      * @param factors         a list of factors to find best statistics for
      * @param factorValues    a list of factor values to find best statistics for
@@ -76,21 +84,43 @@ public class AtlasExperimentAnalyticsViewService {
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull String pathForR,
+            final @Nonnull ExperimentWithData ewd,
+            final @Nonnull String arrayDesignAccession,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
             final @Nonnull UpDownCondition upDownCondition,
             final int offset,
             final int limit) throws ComputeException {
+        final BestDesignElementsResult result = new BestDesignElementsResult();
 
-        BestDesignElementsResult result = new BestDesignElementsResult();
+        ArrayDesign arrayDesign = null;
+        if (!Strings.isNullOrEmpty(arrayDesignAccession)) {
+            arrayDesign = ewd.getExperiment().getArrayDesign(arrayDesignAccession);
+        } else if (!geneIds.isEmpty()) {
+            try {
+                arrayDesign = ewd.findArrayDesign(
+                    new DataPredicates(ewd).containsAtLeastOneGene(geneIds)
+                );
+            } catch (AtlasDataException e) {
+                log.warn("AtlasDataException in findArrayDesign", e);
+            }
+        } else {
+            final Collection<ArrayDesign> allADs = ewd.getExperiment().getArrayDesigns();
+            if (!allADs.isEmpty()) {
+                arrayDesign = allADs.iterator().next();
+            }
+        }
+        if (arrayDesign == null) {
+            return result;
+        }
+        result.setArrayDesignAccession(arrayDesign.getAccession());
 
         long startTime = System.currentTimeMillis();
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(pathForR)
+                .addParam(ewd.getPathForR(arrayDesign))
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)

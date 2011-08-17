@@ -63,13 +63,13 @@ public class ExperimentalData {
      *
      * @param experiment
      */
-    public ExperimentalData(AtlasDataDAO atlasDataDAO, Experiment experiment) throws AtlasDataException {
-        log.info("loading data for experiment" + experiment.getAccession());
-        experimentWithData = atlasDataDAO.createExperimentWithData(experiment);
+    public ExperimentalData(ExperimentWithData experimentWithData) throws AtlasDataException {
+        log.info("loading data for experiment" + experimentWithData.getExperiment().getAccession());
+        this.experimentWithData = experimentWithData;
 
         ResourceWatchdogFilter.register(new Closeable() {
             public void close() {
-                experimentWithData.closeAllDataSources();
+                ExperimentalData.this.experimentWithData.closeAllDataSources();
             }
         });
 

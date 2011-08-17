@@ -69,9 +69,9 @@ public class ExperimentWithData {
      * @return first arrayDesign used in experiment, that matches criteria;
      *         or null if no arrayDesign has been found
      */
-    public ArrayDesign findArrayDesign(Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
+    public ArrayDesign findArrayDesign(Predicate<ArrayDesign> criteria) throws AtlasDataException {
         for (ArrayDesign ad : experiment.getArrayDesigns()) {
-            if (criteria.apply(new DataPredicates.Pair(this, ad))) {
+            if (criteria.apply(ad)) {
                 return ad;
             }
         }
@@ -82,7 +82,11 @@ public class ExperimentWithData {
     public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
-            p = atlasDataDAO.getNetCDFDescriptor(experiment, arrayDesign).createProxy();
+            try {
+                p = new NetCDFProxy(atlasDataDAO.getNetCDFLocation(experiment, arrayDesign));
+            } catch (IOException e) {
+                throw new AtlasDataException(e);
+            }
             proxies.put(arrayDesign, p);
         }
         return p;
@@ -300,8 +304,8 @@ public class ExperimentWithData {
      *         the actual expression values can be easily retrieved later
      * @throws AtlasDataException in case of I/O errors
      */
-    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<DataPredicates.Pair> criteria) throws AtlasDataException {
-        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<DataPredicates.Pair>and(new DataPredicates().containsGenes(geneIds), criteria));
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<ArrayDesign> criteria) throws AtlasDataException {
+        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<ArrayDesign>and(new DataPredicates(this).containsGenes(geneIds), criteria));
         if (arrayDesign == null) {
             return null;
         }
@@ -379,6 +383,10 @@ public class ExperimentWithData {
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                 getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
         return geneIdsToEfToEfvToEA.get(geneId).get(ef);
+    }
+
+    public String getPathForR(ArrayDesign arrayDesign) {
+        return atlasDataDAO.getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
     }
 
     public void closeAllDataSources() {
