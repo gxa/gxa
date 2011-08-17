@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
@@ -161,13 +162,19 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // disease_state:normal (expression: UP) and cell_type:normal (expression: NON_D_E). If we considered just one
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
-                for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                    ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(experimentDAO.getExperimentByAccession(exp.getAccession()),
-                            (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
-                    if (ea != null) {
-                        exp.setHighestRankAttribute(attrCandidate);
-                        break;
+                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(
+                    experimentDAO.getExperimentByAccession(exp.getAccession())
+                );
+                try {
+                    for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
+                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                        if (ea != null) {
+                            exp.setHighestRankAttribute(attrCandidate);
+                            break;
+                        }
                     }
+                } finally {
+                    ewd.closeAllDataSources();
                 }
 
                 if (ea != null) {

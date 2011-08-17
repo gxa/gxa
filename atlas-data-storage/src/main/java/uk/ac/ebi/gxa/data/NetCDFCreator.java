@@ -773,14 +773,14 @@ public class NetCDFCreator {
         netCdf.write("EFSC", efscAC);
     }
 
-    public void createNetCdf() throws NetCDFCreatorException {
+    public void createNetCdf() throws AtlasDataException {
         warnings.clear();
         prepareData();
 
         try {
             final File targetFile = dataDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!targetFile.getParentFile().exists() && !targetFile.getParentFile().mkdirs()) {
-                throw new NetCDFCreatorException("Cannot create folder for the output file" + targetFile);
+                throw new AtlasDataException("Cannot create folder for the output file" + targetFile);
             }
 
             final File tempFile = File.createTempFile(targetFile.getName(), ".tmp");
@@ -790,16 +790,16 @@ public class NetCDFCreator {
                 create();
                 write();
             } catch (InvalidRangeException e) {
-                throw new NetCDFCreatorException(e);
+                throw new AtlasDataException(e);
             } finally {
                 netCdf.close();
             }
             log.info("Renaming " + tempFile + " to " + targetFile);
             if (!tempFile.renameTo(targetFile)) {
-                throw new NetCDFCreatorException("Can't rename " + tempFile + " to " + targetFile);
+                throw new AtlasDataException("Can't rename " + tempFile + " to " + targetFile);
             }
         } catch (IOException e) {
-            throw new NetCDFCreatorException(e);
+            throw new AtlasDataException(e);
         }
     }
 

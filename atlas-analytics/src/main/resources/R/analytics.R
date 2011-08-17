@@ -635,13 +635,16 @@ find.best.design.elements <<-
     # minpvals[1:length(minpvals)] <- NA
     # maxtstats[1:length(maxtstats)] <- NA
 
+    uvalMatrix = sapply(c, function(str) { strsplit(str, "\\|\\|")[[1]] })
+
     res <-  data.frame(
         deindexes = as.integer(wde[idxs]),
         deaccessions = as.character(deAcc[wde[idxs]]),
         geneids = as.integer(gn[wde[idxs]]),
         minpvals = minpvals,
         maxtstats = maxtstats,
-        uvals = uvals
+        uvalNames = uvalMatrix[1,],
+        uvalValues = uvalMatrix[2,]
       )
     attr(res, "total") <- as.integer(max(totalRowCount, totalCount))
     return(res)
