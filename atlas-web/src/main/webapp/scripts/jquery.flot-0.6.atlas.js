@@ -2131,7 +2131,7 @@
 
                 var pValue = "";
                 var expression = s.expression;
-                if (typeof(s.pvalue) !== undefined) {
+                if (s.pvalue !== undefined) {
                     pValue = s.pvalue;
                     if (typeof(pValue) === 'number' && isFinite(pValue)) {
                         if (options.legend.pValueFormatter != null) {
