@@ -1781,7 +1781,7 @@
                 }
                 var pValue = '';
                 var expression = series[i].expression;
-                if (typeof(series[i].pvalue) !== undefined) {
+                if (series[i].pvalue !== undefined) {
                     pValue = series[i].pvalue;
                     if (typeof(pValue) === 'number' && isFinite(pValue)) {
                         if (options.legend.pValueFormatter != null) {
