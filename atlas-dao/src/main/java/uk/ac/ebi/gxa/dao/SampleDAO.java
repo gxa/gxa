@@ -11,6 +11,8 @@ import java.util.List;
  * @author Robert Petryszak
  */
 public class SampleDAO extends AbstractDAO<Sample> {
+    public static final String NAME_COL = "accession";
+
     public static final Logger log = LoggerFactory.getLogger(SampleDAO.class);
 
     public SampleDAO(SessionFactory sessionFactory) {
@@ -30,5 +32,13 @@ public class SampleDAO extends AbstractDAO<Sample> {
     public void save(Sample object) {
         super.save(object);
         template.flush();
+    }
+
+    /**
+     * @return Name of the column for hibernate to match searched objects against - c.f. super.getByName()
+     */
+    @Override
+    public String getNameColumn() {
+        return NAME_COL;
     }
 }

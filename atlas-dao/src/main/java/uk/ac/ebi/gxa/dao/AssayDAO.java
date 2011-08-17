@@ -8,6 +8,8 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import java.util.List;
 
 public class AssayDAO extends AbstractDAO<Assay> {
+    public static final String NAME_COL = "accession";
+
     public static final Logger log = LoggerFactory.getLogger(AssayDAO.class);
 
     public AssayDAO(SessionFactory sessionFactory) {
@@ -27,5 +29,13 @@ public class AssayDAO extends AbstractDAO<Assay> {
     public void save(Assay object) {
         super.save(object);
         template.flush();
+    }
+
+    /**
+     * @return Name of the column for hibernate to match searched objects against - c.f. super.getByName()
+     */
+    @Override
+    public String getNameColumn() {
+        return NAME_COL;
     }
 }

@@ -174,7 +174,9 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "(ASSAYPVID bigint not null, " +
                         "ASSAYID bigint, " +
                         "PROPERTYVALUEID bigint, " +
-                        "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
+                        "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID)," +
+                        "CONSTRAINT FK_ASSAYPV_PROPERTY FOREIGN KEY (PROPERTYVALUEID) " +
+                        "REFERENCES A2_PROPERTYVALUE (PROPERTYVALUEID) ON DELETE CASCADE) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_SAMPLE " +
@@ -192,7 +194,9 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "(SAMPLEPVID bigint not null, " +
                         "SAMPLEID bigint not null, " +
                         "PROPERTYVALUEID bigint, " +
-                        "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
+                        "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)," +
+                        "CONSTRAINT FK_SAMPLEPV_PROPERTY FOREIGN KEY (PROPERTYVALUEID) " +
+                        "REFERENCES A2_PROPERTYVALUE (PROPERTYVALUEID) ON DELETE CASCADE) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAYSAMPLE " +

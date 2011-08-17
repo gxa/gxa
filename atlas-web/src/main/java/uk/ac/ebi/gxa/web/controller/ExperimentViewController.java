@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.NetCDFDescriptor;
 import uk.ac.ebi.gxa.data.NetCDFProxy;
@@ -175,13 +176,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
-        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = atlasDataDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
-        model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
-        if (assayPropertiesRequired) {
-            model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+            NetCDFDescriptor proxyDescr = atlasDataDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
+            model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
+            if (assayPropertiesRequired) {
+                model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
+            }
+            return UNSUPPORTED_HTML_VIEW;
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage());
         }
-        return UNSUPPORTED_HTML_VIEW;
     }
 
     /**
@@ -203,9 +208,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     ) throws IOException, ResourceNotFoundException {
 
         if (!Strings.isNullOrEmpty(accession) && !Strings.isNullOrEmpty(assetFileName)) {
-            Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-
-            if (experiment != null) {
+            try {
+                Experiment experiment = atlasDAO.getExperimentByAccession(accession);
                 for (Asset asset : experiment.getAssets()) {
                     if (assetFileName.equals(asset.getFileName())) {
                         for (ResourcePattern rp : ResourcePattern.values()) {
@@ -215,8 +219,9 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                         }
                         break;
                     }
-
                 }
+            } catch (DAOException e) {
+                throw new ResourceNotFoundException(e.getMessage());
             }
         }
         throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
@@ -249,7 +254,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws IOException, AtlasDataException {
+    ) throws IOException, AtlasDataException, ResourceNotFoundException {
 
         List<Long> geneIds = findGeneIds(gid);
 
@@ -262,31 +267,35 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             ncdfPredicate = alwaysTrue();
         }
 
-        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = atlasDataDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+            NetCDFDescriptor ncdfDescr = atlasDataDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
 
-        final BestDesignElementsResult res = (ncdfDescr == null) ?
-                BestDesignElementsResult.empty() :
-                experimentAnalyticsService.findBestGenesForExperiment(
-                        ncdfDescr,
-                        geneIds,
-                        isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                        isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                        updown,
-                        offset,
-                        limit);
+            final BestDesignElementsResult res = (ncdfDescr == null) ?
+                    BestDesignElementsResult.empty() :
+                    experimentAnalyticsService.findBestGenesForExperiment(
+                            ncdfDescr,
+                            geneIds,
+                            isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                            isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                            updown,
+                            offset,
+                            limit);
 
-        model.addAttribute("arrayDesign", getArrayDesignAccession(ncdfDescr));
-        model.addAttribute("totalSize", res.getTotalSize());
-        model.addAttribute("items", Iterables.transform(res,
-                new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
-                    public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                        return new ExperimentTableRow(item);
-                    }
-                })
-        );
-        model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
-        return UNSUPPORTED_HTML_VIEW;
+            model.addAttribute("arrayDesign", getArrayDesignAccession(ncdfDescr));
+            model.addAttribute("totalSize", res.getTotalSize());
+            model.addAttribute("items", Iterables.transform(res,
+                    new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
+                        public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
+                            return new ExperimentTableRow(item);
+                        }
+                    })
+            );
+            model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
+            return UNSUPPORTED_HTML_VIEW;
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage());
+        }
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {

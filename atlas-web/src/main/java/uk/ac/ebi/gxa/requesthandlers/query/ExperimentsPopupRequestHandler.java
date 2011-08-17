@@ -27,6 +27,7 @@ import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -162,11 +163,16 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
                 for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                    ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(experimentDAO.getExperimentByAccession(exp.getAccession()),
-                            (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
-                    if (ea != null) {
-                        exp.setHighestRankAttribute(attrCandidate);
-                        break;
+                    try {
+                        Experiment experiment = experimentDAO.getByName(exp.getAccession());
+                        ea = atlasDataDAO.getBestEAForGeneEfEfvInExperiment(experiment,
+                                (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                        if (ea != null) {
+                            exp.setHighestRankAttribute(attrCandidate);
+                            break;
+                        }
+                    } catch (DAOException e) {
+                        throw LogUtil.createUnexpected(e.getMessage());
                     }
                 }
 

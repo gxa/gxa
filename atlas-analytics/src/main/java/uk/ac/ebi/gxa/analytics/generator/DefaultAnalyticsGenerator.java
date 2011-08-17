@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +47,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
     private ExperimentAnalyticsGeneratorService analyticsService;
 
     private ExecutorService executor;
+    private ExperimentDAO experimentDAO;
 
     // logging
     private final Logger log =
@@ -55,6 +59,10 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
 
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;
+    }
+
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void startup() throws AnalyticsGeneratorException {
@@ -92,10 +100,13 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                         analyticsService.generateAnalytics();
                         log.info("Finished analytics generations for all experiments");
                     } else {
-                        analyticsService.createAnalyticsForExperiment(experimentAccession, listener);
+                        final Experiment experiment = experimentDAO.getByName(experimentAccession);
+                        analyticsService.createAnalyticsForExperiment(experiment, listener);
                     }
 
                     return true;
+                } catch (DAOException e) {
+                    throw new AnalyticsGeneratorException(e);
                 } catch (AnalyticsGeneratorException e) {
                     throw e;
                 } catch (Exception e) {

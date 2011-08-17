@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.Collections;
@@ -197,7 +198,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         removeAssayProperties();
 
-        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
 
         assertEquals("Properties are not deleted!", 0, assay.getProperties().size());
@@ -211,7 +212,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
         addAssayProperty();
 
-        Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertTrue("Property not added", assay.hasProperty(propertyValue));
 
@@ -222,8 +223,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void checkRemovalResults(PropertyValue propertyValue) {
-        Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+    private void checkRemovalResults(PropertyValue propertyValue) throws DAOException {
+        Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assertFalse("Property not removed", assay.hasProperty(propertyValue));
     }
@@ -235,16 +236,16 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void removeAssayProperties() {
-        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+    private void removeAssayProperties() throws DAOException {
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assay.getProperties().clear();
         experimentDAO.save(experiment);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void addAssayProperty() {
-        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+    private void addAssayProperty() throws DAOException {
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
         final Ontology ontology = atlasDAO.getOrCreateOntology(ONTOLOGY_NAME, ONTOLOGY_DESCRIPTION, null, ONTOLOGY_VERSION);
@@ -258,8 +259,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void removeAssayProperty() {
-        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+    private void removeAssayProperty() throws DAOException {
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
         assay.deleteProperty(propertyValue);

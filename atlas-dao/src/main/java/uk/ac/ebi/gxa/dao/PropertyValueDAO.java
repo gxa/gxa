@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
@@ -11,8 +12,28 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         super(sessionFactory, PropertyValue.class);
     }
 
-    public PropertyValue find(Property property, String value) {
-        final List results = template.find("from PropertyValue where property = ? and value = ?", property, value);
-        return results.isEmpty() ? null : (PropertyValue) results.get(0);
+    /**
+     *
+     * @param property
+     * @param value
+     * @return PropertyValue matching property:value
+     * @throws DAOException if no PropertyValue matching property:value was found
+     */
+    public PropertyValue find(Property property, String value) throws DAOException {
+        @SuppressWarnings("unchecked")
+        final List<PropertyValue> results = template.find("from PropertyValue where property = ? and value = ?", property, value);
+        return getFirst(results, property + ":" + value);
+    }
+
+    /**
+     * @return This method overrides an abstract method, but is not used.
+     */
+    @Override
+    public String getNameColumn() {
+        return null;
+    }
+
+    public void delete(PropertyValue propertyValue) {
+        template.delete(propertyValue);
     }
 }

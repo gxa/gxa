@@ -145,9 +145,9 @@ public class TestCurationService extends AtlasDAOTestCase {
         curationService.removePropertyValue(CELL_TYPE, VALUE007);
         curationService.removePropertyValue(PROP3, VALUE004);
 
-        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
+        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
                 propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
-        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in sample properties",
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
                 propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
 
         Collection<ApiPropertyValue> propertyValues = curationService.getPropertyValues(CELL_TYPE);

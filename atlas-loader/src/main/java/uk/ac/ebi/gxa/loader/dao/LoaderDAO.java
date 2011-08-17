@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.loader.dao;
 
 import uk.ac.ebi.gxa.dao.*;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.Collection;
@@ -27,7 +28,13 @@ public class LoaderDAO {
 
     public Organism getOrCreateOrganism(String name) {
         // TODO: 4alf: track newly-created values
-        Organism organism = organismDAO.getByName(name);
+        Organism organism = null;
+        try {
+            organism = organismDAO.getByName(name);
+        } catch (DAOException e) {
+            // do nothing - valid situation
+        }
+
         if (organism == null) {
             organismDAO.save(organism = new Organism(null, name));
         }
@@ -36,11 +43,22 @@ public class LoaderDAO {
 
     public PropertyValue getOrCreateProperty(String name, String value) {
         // TODO: 4alf: track newly-created values
-        Property property = propertyDAO.getByName(name);
+        Property property = null;
+        try {
+            property = propertyDAO.getByName(name);
+        } catch (DAOException e) {
+            // do nothing - valid situation
+        }
         if (property == null) {
             propertyDAO.save(property = new Property(null, name));
         }
-        PropertyValue propertyValue = propertyValueDAO.find(property, value);
+        PropertyValue propertyValue = null;
+
+        try {
+            propertyValue = propertyValueDAO.find(property, value);
+        } catch (DAOException e) {
+            // do nothing - valid situation
+        }
         if (propertyValue == null) {
             propertyValueDAO.save(propertyValue = new PropertyValue(null, property, value));
         }
@@ -61,7 +79,7 @@ public class LoaderDAO {
         experimentDAO.save(experiment);
     }
 
-    public Experiment getExperiment(String accession) {
-        return experimentDAO.getExperimentByAccession(accession);
+    public Experiment getExperiment(String accession) throws DAOException {
+        return experimentDAO.getByName(accession);
     }
 }

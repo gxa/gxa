@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
@@ -89,8 +90,8 @@ public class AtlasDAO {
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
      * @return an object modelling this experiment
      */
-    public Experiment getExperimentByAccession(String accession) {
-        return experimentDAO.getExperimentByAccession(accession);
+    public Experiment getExperimentByAccession(String accession) throws DAOException {
+        return experimentDAO.getByName(accession);
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
@@ -166,11 +167,24 @@ public class AtlasDAO {
 
     public PropertyValue getOrCreatePropertyValue(final String name, final String value) {
         // TODO: 4alf: track newly-created values
-        Property property = propertyDAO.getByName(name);
+
+        Property property = null;
+        try {
+            property = propertyDAO.getByName(name);
+        } catch (DAOException e) {
+            // Do nothing - valid situation
+        }
+
         if (property == null) {
             propertyDAO.save(property = new Property(null, name));
         }
-        PropertyValue propertyValue = propertyValueDAO.find(property, value);
+
+        PropertyValue propertyValue = null;
+        try {
+            propertyValue = propertyValueDAO.find(property, value);
+        } catch (DAOException e) {
+            // Do nothing - valid situation
+        }
         if (propertyValue == null) {
             propertyValueDAO.save(propertyValue = new PropertyValue(null, property, value));
         }
@@ -182,7 +196,14 @@ public class AtlasDAO {
             final String ontologyDescription,
             final String ontologySourceUri,
             final String ontologyVersion) {
-        Ontology ontology = ontologyDAO.getByName(ontologyName);
+        Ontology ontology = null;
+
+        try {
+            ontology = ontologyDAO.getByName(ontologyName);
+        } catch (DAOException e) {
+            // Do nothing - valid situation
+        }
+
         if (ontology == null) {
             ontologyDAO.save(ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
                     ontologyVersion));
@@ -196,7 +217,13 @@ public class AtlasDAO {
                                                 final String description,
                                                 final Ontology ontology) {
 
-        OntologyTerm ontologyTerm = ontologyTermDAO.getByAccession(accession);
+        OntologyTerm ontologyTerm = null;
+        try {
+            ontologyTerm = ontologyTermDAO.getByName(accession);
+        } catch (DAOException e) {
+            // Do nothing - valid situation
+        }
+
         if (ontologyTerm == null) {
             ontologyTermDAO.save(ontologyTerm = new OntologyTerm(null, ontology, term, accession, description));
         }
@@ -204,16 +231,16 @@ public class AtlasDAO {
         return ontologyTerm;
     }
 
-    public Ontology getOntologyByName(final String ontologyName) {
+    public Ontology getOntologyByName(final String ontologyName) throws DAOException {
         return ontologyDAO.getByName(ontologyName);
     }
 
 
-    public OntologyTerm getOntologyTermByAccession(final String accession) {
-        return ontologyTermDAO.getByAccession(accession);
+    public OntologyTerm getOntologyTermByAccession(final String accession) throws DAOException {
+        return ontologyTermDAO.getByName(accession);
     }
 
-    public Organism getOrganismByName(final String name) {
+    public Organism getOrganismByName(final String name) throws DAOException {
         return organismDAO.getByName(name);
     }
 

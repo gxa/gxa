@@ -41,6 +41,7 @@ import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
@@ -95,7 +96,7 @@ public class ExperimentAnalyticsGeneratorService {
                 public Void call() throws Exception {
                     long start = System.currentTimeMillis();
                     try {
-                        createAnalyticsForExperiment(experiment.getAccession(), new LogAnalyticsGeneratorListener());
+                        createAnalyticsForExperiment(experiment, new LogAnalyticsGeneratorListener());
                     } finally {
                         timer.completed(experiment.getId());
 
@@ -151,11 +152,10 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     public void createAnalyticsForExperiment(
-            String experimentAccession,
-            AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
-        log.info("Generating analytics for experiment " + experimentAccession);
-
-        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(atlasDAO.getExperimentByAccession(experimentAccession));
+            @Nonnull final Experiment experiment,
+            final AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
+        log.info("Generating analytics for experiment " + experiment.getAccession());
+        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(experiment);
         final List<String> analysedEFSCs = new ArrayList<String>();
         int count = 0;
         for (NetCDFDescriptor netCDF : netCDFs) {
@@ -207,10 +207,10 @@ public class ExperimentAnalyticsGeneratorService {
 
             // now run this compute task
             try {
-                listener.buildProgress("Computing analytics for " + experimentAccession);
+                listener.buildProgress("Computing analytics for " + experiment.getAccession());
                 // computeAnalytics writes analytics data back to NetCDF
                 atlasComputeService.computeTask(computeAnalytics);
-                log.debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
+                log.debug("Compute task " + count + "/" + netCDFs.size() + " for " + experiment.getAccession() +
                         " has completed.");
 
                 if (analysedEFSCs.size() == 0) {

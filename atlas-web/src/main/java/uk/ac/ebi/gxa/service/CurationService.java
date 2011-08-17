@@ -2,13 +2,13 @@ package uk.ac.ebi.gxa.service;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.*;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -41,9 +41,6 @@ public class CurationService {
 
     @Autowired
     private OntologyTermDAO ontologyTermDAO;
-
-    @Autowired
-    private ExperimentDAO experimentDAO;
 
     @Autowired
     private PropertyDAO propertyDAO;
@@ -90,21 +87,24 @@ public class CurationService {
      */
     public Collection<ApiPropertyValue> getPropertyValues(final String propertyName)
             throws ResourceNotFoundException {
-        Property property = propertyDAO.getByName(propertyName);
-        checkIfFound(property, Property.class, propertyName);
-        List<ApiPropertyValue> propertyValues = Lists.newArrayList(transform(property.getValues(), PROPERTY_VALUE));
+        try {
+            Property property = propertyDAO.getByName(propertyName);
+            List<ApiPropertyValue> propertyValues = Lists.newArrayList(transform(property.getValues(), PROPERTY_VALUE));
 
-        Collections.sort(propertyValues, new Comparator<ApiPropertyValue>() {
-            public int compare(ApiPropertyValue o1, ApiPropertyValue o2) {
-                return o1.getValue().compareToIgnoreCase(o2.getValue());
-            }
-        });
+            Collections.sort(propertyValues, new Comparator<ApiPropertyValue>() {
+                public int compare(ApiPropertyValue o1, ApiPropertyValue o2) {
+                    return o1.getValue().compareToIgnoreCase(o2.getValue());
+                }
+            });
 
-        return propertyValues;
+            return propertyValues;
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
+        }
     }
 
     /**
-     * Remove propertyName:propertyValue from all assays and samples that are mapped to it; then remove propertyValue from
+     * Remove propertyName:propertyValue from all assays and samples that are mapped to it (via FK cascading in Oracle) and remove propertyValue from
      * the list of values assigned to propertyName
      *
      * @param propertyName
@@ -114,27 +114,13 @@ public class CurationService {
     @Transactional
     public void removePropertyValue(final String propertyName,
                                     final String propertyValue) throws ResourceNotFoundException {
-
-        Property property = propertyDAO.getByName(propertyName);
-        checkIfFound(property, Property.class, propertyName);
-        PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
-        checkIfFound(propValue, PropertyValue.class, propertyValue);
-
-        // First delete propertyName:propertyValue from all assays, samples that point to it
-        List<Assay> assays = assayDAO.getAssaysByPropertyValue(propertyValue);
-        for (Assay assay : assays) {
-            assay.deleteProperty(propValue);
-            assayDAO.save(assay);
+        try {
+            Property property = propertyDAO.getByName(propertyName);
+            PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
+            propertyDAO.delete(property, propValue);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
         }
-        List<Sample> samples = sampleDAO.getSamplesByPropertyValue(propertyValue);
-        for (Sample sample : samples) {
-            sample.deleteProperty(propValue);
-            sampleDAO.save(sample);
-        }
-
-        // Now delete propertyName:propertyValue itself
-        propertyDAO.delete(property, propValue);
-        propertyDAO.save(property);
     }
 
     /**
@@ -153,23 +139,25 @@ public class CurationService {
             final String oldValue,
             final String newValue)
             throws ResourceNotFoundException {
-        Property property = propertyDAO.getByName(propertyName);
-        checkIfFound(property, Property.class, propertyName);
-        PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
-        checkIfFound(oldPropertyValue, PropertyValue.class, oldValue);
-        PropertyValue newPropertyValue = atlasDAO.getOrCreatePropertyValue(propertyName, newValue);
+        try {
+            Property property = propertyDAO.getByName(propertyName);
+            PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
+            PropertyValue newPropertyValue = atlasDAO.getOrCreatePropertyValue(propertyName, newValue);
 
-        List<Assay> assays = assayDAO.getAssaysByPropertyValue(oldValue);
-        for (Assay assay : assays) {
-            AssayProperty oldAssayProperty = assay.getProperty(oldPropertyValue);
-            AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
-            List<OntologyTerm> terms = oldAssayProperty.getTerms();
-            assay.deleteProperty(oldPropertyValue);
-            if (newAssayProperty != null) {
-                terms.addAll(newAssayProperty.getTerms());
+            List<Assay> assays = assayDAO.getAssaysByPropertyValue(oldValue);
+            for (Assay assay : assays) {
+                AssayProperty oldAssayProperty = assay.getProperty(oldPropertyValue);
+                AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
+                List<OntologyTerm> terms = oldAssayProperty.getTerms();
+                assay.deleteProperty(oldPropertyValue);
+                if (newAssayProperty != null) {
+                    terms.addAll(newAssayProperty.getTerms());
+                }
+                assay.addOrUpdateProperty(newPropertyValue, terms);
+                assayDAO.save(assay);
             }
-            assay.addOrUpdateProperty(newPropertyValue, terms);
-            assayDAO.save(assay);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
         }
     }
 
@@ -189,23 +177,25 @@ public class CurationService {
             final String oldValue,
             final String newValue)
             throws ResourceNotFoundException {
-        Property property = propertyDAO.getByName(propertyName);
-        checkIfFound(property, Property.class, propertyName);
-        PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
-        checkIfFound(oldPropertyValue, PropertyValue.class, oldValue);
-        PropertyValue newPropertyValue = atlasDAO.getOrCreatePropertyValue(propertyName, newValue);
+        try {
+            Property property = propertyDAO.getByName(propertyName);
+            PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
+            PropertyValue newPropertyValue = atlasDAO.getOrCreatePropertyValue(propertyName, newValue);
 
-        List<Sample> samples = sampleDAO.getSamplesByPropertyValue(oldValue);
-        for (Sample sample : samples) {
-            SampleProperty oldSampleProperty = sample.getProperty(oldPropertyValue);
-            SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
-            List<OntologyTerm> terms = oldSampleProperty.getTerms();
-            sample.deleteProperty(oldPropertyValue);
-            if (newSampleProperty != null) {
-                terms.addAll(newSampleProperty.getTerms());
+            List<Sample> samples = sampleDAO.getSamplesByPropertyValue(oldValue);
+            for (Sample sample : samples) {
+                SampleProperty oldSampleProperty = sample.getProperty(oldPropertyValue);
+                SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
+                List<OntologyTerm> terms = oldSampleProperty.getTerms();
+                sample.deleteProperty(oldPropertyValue);
+                if (newSampleProperty != null) {
+                    terms.addAll(newSampleProperty.getTerms());
+                }
+                sample.addOrUpdateProperty(newPropertyValue, terms);
+                sampleDAO.save(sample);
             }
-            sample.addOrUpdateProperty(newPropertyValue, terms);
-            sampleDAO.save(sample);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
         }
     }
 
@@ -217,10 +207,13 @@ public class CurationService {
     public ApiExperiment getExperiment(final String experimentAccession)
             throws ResourceNotFoundException {
 
-        final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, Experiment.class, experimentAccession);
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
 
-        return new ApiExperiment(experiment);
+            return new ApiExperiment(experiment);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -396,11 +389,13 @@ public class CurationService {
      * @throws ResourceNotFoundException if ontology: ontologyName was not found
      */
     public ApiOntology getOntology(final String ontologyName) throws ResourceNotFoundException {
-        Ontology ontology = atlasDAO.getOntologyByName(ontologyName);
-        checkIfFound(ontology, Ontology.class, ontologyName);
-        return new ApiOntology(ontology);
+        try {
+            Ontology ontology = atlasDAO.getOntologyByName(ontologyName);
+            return new ApiOntology(ontology);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
+        }
     }
-
 
     /**
      * Adds or updates details for Ontology corresponding to apiOntology
@@ -410,7 +405,13 @@ public class CurationService {
     @Transactional
     public void putOntology(@Nonnull final ApiOntology apiOntology) {
 
-        Ontology ontology = atlasDAO.getOntologyByName(apiOntology.getName());
+        Ontology ontology = null;
+        try {
+            ontology = atlasDAO.getOntologyByName(apiOntology.getName());
+        } catch (DAOException e) {
+            // Do nothing - valid situation
+        }
+
         if (ontology == null) {
             ontology = getOrCreateOntology(apiOntology);
         } else {
@@ -429,9 +430,12 @@ public class CurationService {
      */
     public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws ResourceNotFoundException {
 
-        OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(ontologyTermAcc);
-        checkIfFound(ontologyTerm, OntologyTerm.class, ontologyTermAcc);
-        return new ApiOntologyTerm(ontologyTerm);
+        try {
+            OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(ontologyTermAcc);
+            return new ApiOntologyTerm(ontologyTerm);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -443,18 +447,22 @@ public class CurationService {
      */
     @Transactional
     public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) throws ResourceNotFoundException {
-        for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
-            OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
-            if (ontologyTerm == null) {
-                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
-            } else {
-                ontologyTerm.setAccession(apiOntologyTerm.getAccession());
-                ontologyTerm.setDescription(apiOntologyTerm.getDescription());
-                Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
-                ontologyTerm.setOntology(ontology);
-                ontologyTerm.setTerm(apiOntologyTerm.getTerm());
+        try {
+            for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
+                OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
+                if (ontologyTerm == null) {
+                    ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
+                } else {
+                    ontologyTerm.setAccession(apiOntologyTerm.getAccession());
+                    ontologyTerm.setDescription(apiOntologyTerm.getDescription());
+                    Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
+                    ontologyTerm.setOntology(ontology);
+                    ontologyTerm.setTerm(apiOntologyTerm.getTerm());
+                }
+                ontologyTermDAO.save(ontologyTerm);
             }
-            ontologyTermDAO.save(ontologyTerm);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
         }
     }
 
@@ -480,26 +488,17 @@ public class CurationService {
      */
     private OntologyTerm getOrCreateOntologyTerm(@Nonnull ApiOntologyTerm apiOntologyTerm)
             throws ResourceNotFoundException {
-        Ontology ontology = ontologyDAO.getByName(apiOntologyTerm.getOntology().getName());
-        // Note: user needs to create a new ontology first before assigning ontology terms to it
-        checkIfFound(ontology, Ontology.class, apiOntologyTerm.getAccession());
+        try {
+            // N.B. user needs to create a new ontology first before assigning ontology terms to it
+            Ontology ontology = ontologyDAO.getByName(apiOntologyTerm.getOntology().getName());
 
-        return atlasDAO.getOrCreateOntologyTerm(
-                apiOntologyTerm.getAccession(),
-                apiOntologyTerm.getTerm(),
-                apiOntologyTerm.getDescription(),
-                ontology);
-    }
-
-    /**
-     * @param entity
-     * @param accession
-     * @param <T>
-     * @throws ResourceNotFoundException if entity was not found
-     */
-    private <T> void checkIfFound(T entity, Class clazz, String accession) throws ResourceNotFoundException {
-        if (entity == null) {
-            throw new ResourceNotFoundException("No records for " + clazz.getName() + ": " + accession);
+            return atlasDAO.getOrCreateOntologyTerm(
+                    apiOntologyTerm.getAccession(),
+                    apiOntologyTerm.getTerm(),
+                    apiOntologyTerm.getDescription(),
+                    ontology);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
         }
     }
 
@@ -512,12 +511,13 @@ public class CurationService {
      *                                   in that experiment are not found
      */
     private Assay findAssay(final String experimentAccession, final String assayAccession) throws ResourceNotFoundException {
-        final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, Experiment.class, experimentAccession);
-
-        final Assay assay = experiment.getAssay(assayAccession);
-        checkIfFound(assay, Assay.class, assayAccession);
-        return assay;
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            final Assay assay = experiment.getAssay(assayAccession);
+            return assay;
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -528,11 +528,12 @@ public class CurationService {
      *                                   in that experiment are not found
      */
     private Sample findSample(final String experimentAccession, final String sampleAccession) throws ResourceNotFoundException {
-        final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-        checkIfFound(experiment, Experiment.class, experimentAccession);
-
-        final Sample sample = experiment.getSample(sampleAccession);
-        checkIfFound(sample, Sample.class, sampleAccession);
-        return sample;
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            final Sample sample = experiment.getSample(sampleAccession);
+            return sample;
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage(), e);
+        }
     }
 }
