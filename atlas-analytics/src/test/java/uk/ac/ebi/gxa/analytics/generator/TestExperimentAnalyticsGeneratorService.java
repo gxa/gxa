@@ -22,38 +22,52 @@
 
 package uk.ac.ebi.gxa.analytics.generator;
 
-import junit.framework.TestCase;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import junit.framework.AssertionFailedError;
+import org.easymock.EasyMock;
+import org.junit.Test;
+import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
+import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
+import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.concurrent.ExecutorService;
 
-public class TestExperimentAnalyticsGeneratorService extends TestCase {
-    public void testDoublePipeEscape() {
-        String uefv = "diseasestate||normal 9";
-        String[] values = uefv.split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-        String ef = values[0];
-        if (values.length > 1) {
-            String efv = values[1];
+import static org.easymock.EasyMock.*;
 
-            assertEquals("ef is wrong!", "diseasestate", ef);
-            assertEquals("efv is wrong!", "normal 9", efv);
-        }
-    }
+public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
+    private final static String E_GEOD_5035 = "E-GEOD-5035";
 
+    @Test
     public void testGetRCodeFromResource() throws IOException {
         // open a stream to the resource
         InputStream in = getClass().getClassLoader().getResourceAsStream("R/analytics.R");
+        assertNotNull(in);
+        in.close();
+    }
 
-        // create a reader to read in code
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+    @Test
+    public void testCreateAnalyticsForExperimentWithoutFactors() throws AnalyticsGeneratorException {
+        final AtlasNetCDFDAO atlasDataDAO = new AtlasNetCDFDAO();
+        atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
 
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
-        }
+        final AtlasComputeService atlasComputeService = createMock(AtlasComputeService.class);
+        expect(atlasComputeService
+                .computeTask(EasyMock.<ComputeTask<Object>>anyObject()))
+                .andThrow(new AssertionFailedError("Unexpected call to computeTask"))
+                .anyTimes();
+        replay(atlasComputeService);
+
+        final ExperimentAnalyticsGeneratorService experimentAnalyticsGeneratorService =
+                new ExperimentAnalyticsGeneratorService(
+                        atlasDAO, atlasDataDAO, atlasComputeService,
+                        createMock(ExecutorService.class));
+
+        experimentAnalyticsGeneratorService.createAnalyticsForExperiment(E_GEOD_5035,
+                createMock(AnalyticsGeneratorListener.class));
     }
 }

@@ -39,7 +39,7 @@ import javax.persistence.*;
 public class Asset {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assetSeq")
-    @SequenceGenerator(name = "assetSeq", sequenceName = "A2_ASSET_SEQ")
+    @SequenceGenerator(name = "assetSeq", sequenceName = "A2_ASSET_SEQ", allocationSize = 1)
     private Long experimentassetid;
     @ManyToOne
     @Fetch(FetchMode.SELECT)
