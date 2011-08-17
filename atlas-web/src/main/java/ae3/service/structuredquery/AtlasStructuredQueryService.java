@@ -64,6 +64,7 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.util.*;
 
+import static com.google.common.base.Joiner.on;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
@@ -674,7 +675,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             }
         }
 
-        appendGeneQuery(genesByConditions, qstate.getSolrq());
+        appendGeneQuery(query.getGeneConditions(), qstate.getSolrq());
 
         result.setConditions(conditions);
 
@@ -689,6 +690,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 controlCache();
 
                 SolrQuery q = setupSolrQuery(query.getRowsPerPage(), qstate);
+                q.addFilterQuery("id:(" + on(" ").join(genesByConditions) + ")");
                 long timeStart = System.currentTimeMillis();
 
                 QueryResponse response = solrServerAtlas.query(q);
@@ -1010,21 +1012,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         if (!species.isEmpty()) {
             solrq.appendAnd().append("species:(").append(EscapeUtil.escapeSolrValueList(species)).append(")");
-        }
-    }
-
-
-    /**
-     * Appends gene part of the query. Parses query conditions and appends them to SOLR query string.
-     *
-     * @param geneIds
-     * @param solrq   solr query
-     */
-    private void appendGeneQuery(List<Integer> geneIds, SolrQueryBuilder solrq) {
-        solrq.appendAnd();
-        for (Integer geneId : geneIds) {
-            solrq.append("(id:(").append(geneId).append(")").append(") ");
-
         }
     }
 
