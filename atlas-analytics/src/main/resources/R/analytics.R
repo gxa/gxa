@@ -536,7 +536,7 @@ find.best.design.elements <<-
     }
     wuval <- c()
 
-    if ((!is.null(ef) && ef != "") && (ais.null(efv) || efv == "" || efv == "(empty)")) {
+    if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "" || efv == "(empty)")) {
       wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
 
     } else if ((!is.null(ef) && ef != "") && (!is.null(efv) && efv != "" && efv != "(empty)")) {
