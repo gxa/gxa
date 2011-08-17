@@ -138,13 +138,14 @@ public class ArrayDesign {
 
         ArrayDesign that = (ArrayDesign) o;
 
-        return arrayDesignID == that.arrayDesignID && !(accession != null ? !accession.equals(that.accession) : that.accession != null);
+        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
 
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (arrayDesignID ^ (arrayDesignID >>> 32));
+        int result = 17;
         result = 31 * result + (accession != null ? accession.hashCode() : 0);
         return result;
     }
