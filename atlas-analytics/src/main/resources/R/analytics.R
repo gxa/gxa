@@ -141,6 +141,9 @@ log2.safe <-
     tmp
 }
 
+### function to check if factor value is empty
+isEmptyEFV <- function(value) return (is.null(value) || value == "" || value == "(empty)")
+
 ### Omnibus one-way ANOVA (with moderated t) F-statistic computation
 fstat.eset <-
   function(eset, design = NULL, varLabel = NULL,lg = FALSE) {
@@ -188,8 +191,7 @@ allupdn <-
       try({
         print(paste("Calculating lmFit and F-stats for", varLabel))
 
-        nonEmptyFactorValues = intersect(which(eset[[varLabel, exact = TRUE]] != ""),
-          which(eset[[varLabel, exact = TRUE]] != "(empty)"))
+        nonEmptyFactorValues = which(!sapply(eset[[varLabel, exact = TRUE]], isEmptyEFV))
 
         esetForVariable = eset[, nonEmptyFactorValues]
         esetForVariable[[varLabel, exact = TRUE]] = factor(esetForVariable[[varLabel, exact = TRUE]])
@@ -536,10 +538,10 @@ find.best.design.elements <<-
     }
     wuval <- c()
 
-    if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "" || efv == "(empty)")) {
+    if ((!is.null(ef) && ef != "") && isEmptyEFV(efv)) {
       wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
 
-    } else if ((!is.null(ef) && ef != "") && (!is.null(efv) && efv != "" && efv != "(empty)")) {
+    } else if ((!is.null(ef) && ef != "") && !isEmptyEFV(efv)) {
       efv <- paste(ef, efv, sep = "||")
       wuval <- which(uval %in% efv)
 
