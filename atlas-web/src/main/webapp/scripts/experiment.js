@@ -1531,9 +1531,9 @@
             function decode(opts) {
                 s = newState();
 
-                var array = location.href.split("?");
-                if (array.length > 1) {
-                    var params = array[1].split("&");
+                var paramStr = location.search;
+                if (paramStr) {
+                    var params = paramStr.substring(1).split("&");
 
                     for (var i = 0; i < params.length; i++) {
                         var p = params[i].split("=");
