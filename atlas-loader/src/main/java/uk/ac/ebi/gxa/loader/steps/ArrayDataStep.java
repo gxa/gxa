@@ -57,7 +57,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 /**
- * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
+ * Experiment loading step that prepares data matrix to be stored in data files.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin

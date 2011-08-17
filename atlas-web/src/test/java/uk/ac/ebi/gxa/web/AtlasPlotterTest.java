@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
 import org.junit.Test;
-import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
+import uk.ac.ebi.gxa.AbstractIndexDataTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * @author Tony Burdett
  */
-public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
+public class AtlasPlotterTest extends AbstractIndexDataTestCase {
     private AtlasPlotter plotter;
     private GeneSolrDAO geneSolrDAO;
 

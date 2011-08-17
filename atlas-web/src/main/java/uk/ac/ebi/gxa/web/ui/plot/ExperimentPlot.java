@@ -25,21 +25,19 @@ package uk.ac.ebi.gxa.web.ui.plot;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.ExpressionStatistics;
 import uk.ac.ebi.gxa.data.FloatMatrixProxy;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Ints.asList;
 import static java.util.Collections.unmodifiableList;
 
@@ -86,30 +84,23 @@ public class ExperimentPlot {
         return efEfvAssays;
     }
 
-    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException, AtlasDataException {
-        NetCDFProxy proxy = null;
-
-        try {
-            proxy = proxyDescr.createProxy();
-            ExperimentPlot plot = new ExperimentPlot();
-            plot.load(deIndices, proxy, stringConverter);
-            return plot;
-        } finally {
-            closeQuietly(proxy);
-        }
+    public static ExperimentPlot create(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
+        ExperimentPlot plot = new ExperimentPlot();
+        plot.load(deIndices, ewd, ad, stringConverter);
+        return plot;
     }
 
-    private void load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, AtlasDataException {
+    private void load(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
 
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
-        expressions = proxy.getExpressionValues(deIndices);
+        expressions = ewd.getExpressionValues(ad, deIndices);
 
-        efNames = createEfNames(proxy.getFactors(), stringConverter);
+        efNames = createEfNames(ewd.getFactors(ad), stringConverter);
         efvNames = Lists.newArrayList();
         efEfvAssays = Maps.newHashMap();
 
-        String[][] factorValues = proxy.getFactorValues();
+        String[][] factorValues = ewd.getFactorValues(ad);
 
         for (int i = 0; i < efNames.size(); i++) {
             String[] efvs = factorValues[i];
@@ -148,7 +139,7 @@ public class ExperimentPlot {
             }
         }
 
-        prepareBoxAndWhiskerData(proxy.getExpressionStatistics(deIndices));
+        prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
     }
 
     private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {

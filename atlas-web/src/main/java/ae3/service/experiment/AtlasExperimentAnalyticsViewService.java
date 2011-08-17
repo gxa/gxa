@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
@@ -66,7 +64,7 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      * (for more details of search implementation, please see analytics.R).
      *
-     * @param ncdfDescr       the netCDF file descriptor
+     * @param pathForR        the path to netCDF file
      * @param geneIds         list of geneIds to find best statistics for
      * @param factors         a list of factors to find best statistics for
      * @param factorValues    a list of factor values to find best statistics for
@@ -78,7 +76,7 @@ public class AtlasExperimentAnalyticsViewService {
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull NetCDFDescriptor ncdfDescr,
+            final @Nonnull String pathForR,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
@@ -92,7 +90,7 @@ public class AtlasExperimentAnalyticsViewService {
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(ncdfDescr.getPathForR())
+                .addParam(pathForR)
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)
@@ -110,7 +108,8 @@ public class AtlasExperimentAnalyticsViewService {
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
-            String[] uvals = rResult.getStringValues("uvals");
+            String[] uvalNames = rResult.getStringValues("uvalNames");
+            String[] uvalValues = rResult.getStringValues("uvalValues");
             long total = (long) rResult.getIntAttribute("total")[0];
 
             result.setTotalSize(total);
@@ -129,13 +128,8 @@ public class AtlasExperimentAnalyticsViewService {
                     continue;
                 }
 
-                String[] uval = uvals[i].split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-                if (uval.length < 2) {
-                    log.error("Illegal <ef||efv> value: " + uvals[i]);
-                    continue;
-                }
-                String ef = uval[0];
-                String efv = uval[1];
+                String ef = uvalNames[i];
+                String efv = uvalValues[i];
 
                 result.add(gene, deIndexes[i] - 1, deAccessions[i], pvals[i], tstats[i], ef, efv);
             }
