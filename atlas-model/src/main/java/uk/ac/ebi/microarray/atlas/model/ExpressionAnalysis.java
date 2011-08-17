@@ -131,6 +131,10 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return UpDownExpression.isDown(pValAdjusted, tStatistic);
     }
 
+    public UpDownExpression getUpDownExpression() {
+        return UpDownExpression.valueOf(pValAdjusted, tStatistic);
+    }
+
     @Override
     public String toString() {
         return "ExpressionAnalysis{" +

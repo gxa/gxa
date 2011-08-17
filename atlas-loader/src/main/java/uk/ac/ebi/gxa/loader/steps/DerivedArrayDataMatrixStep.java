@@ -43,7 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Experiment loading step that prepares derived data matrix to be stored into a NetCDF file.
+ * Experiment loading step that prepares derived data matrix to be stored in data files.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin

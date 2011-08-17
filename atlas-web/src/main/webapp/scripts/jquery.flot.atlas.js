@@ -1781,26 +1781,26 @@
                 }
                 var pValue = '';
                 var expression = series[i].expression;
-                if (series[i].pvalue === null // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null
-                        || series[i].pvalue) {
-                    if (series[i].pvalue) {
+                if (series[i].pvalue !== undefined) {
+                    pValue = series[i].pvalue;
+                    if (typeof(pValue) === 'number' && isFinite(pValue)) {
                         if (options.legend.pValueFormatter != null) {
-                            pValue = options.legend.pValueFormatter(series[i].pvalue);
-                        } else {
-                            pValue = series[i].pvalue;
+                            pValue = options.legend.pValueFormatter(pValue);
                         }
-                    } else { // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
-                           pValue = '';
+                    } else {
+                        // 'NA' pValues in ncdfs are stored with Float.NaN on the server side and come here as null, and should be shown in legend as blank
+                        pValue = 'NA';
                     }
+
                     var expdict = { up: '&#8593;', dn: '&#8595;', no: '&#126;' };
                     pValue = expdict[expression] + '&nbsp;' + pValue;
 
-                    if (series[i].legend.isefv) {                       
+                    if (series[i].legend.isefv) {
                         // Highlight the label and pValue if it belongs to an efv in focus, e.g. the plot is being output
                         // after the user clicked a cell in a heat map,
                         // in a column corresponding to an efv)
-                        pValue = '<span class="exp' + expression + '">' + pValue + '</span>'
-                        label = '<span class="exp' + expression + '">' + label + '</span>'
+                        pValue = '<span class="exp' + expression + '">' + pValue + '</span>';
+                        label = '<span class="exp' + expression + '">' + label + '</span>';
                     }
                 }
                 if (label && options.legend.labelFormatter != null) {
@@ -2590,21 +2590,22 @@
         var arr = auxValue.split('e');
         var mantissa = arr[0];
         var exponent = arr[1];
-        if (exponent >= -3 && exponent <= 0) {
-            return fValue.toFixed(3);
-        }
-        // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
-        if (exponent.match('^\\+')) {
-            // Exponent starts with +
-            exponent = exponent.substring(1);
-        }
-        var pre = mantissa + ' &#0215; ';
-        if (fValue < 1e-10) {
+
+        if (Math.abs(fValue) > 1e-10) {
+            if (exponent >= -3 && exponent <= 0) {
+                return fValue.toFixed(3);
+            }
+            // Don't show '+' in non-negative exponents, '10^+2' should be shown as '10^2'
+            if (exponent.match('^\\+')) {
+                // Exponent starts with +
+                exponent = exponent.substring(1);
+            }
+            var pre = mantissa + ' &#0215; ';
+        } else {
             pre = '< ';
             exponent = '-10';
         }
-        var prettyFormatted = "<nobr>" + pre + ' 10 <span style="vertical-align: super;">' + exponent + '</span></nobr>';
-        return prettyFormatted;
+        return "<nobr>" + pre + ' 10 <span style="vertical-align: super;">' + exponent + '</span></nobr>';
     }
 
 

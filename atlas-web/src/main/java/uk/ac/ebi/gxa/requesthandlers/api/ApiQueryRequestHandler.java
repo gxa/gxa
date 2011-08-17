@@ -34,33 +34,24 @@ import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
-import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.hasArrayDesign;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -170,14 +161,11 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
                     QueryExpression.parseFuzzyString(upDownParam);
 
-            Predicate<NetCDFProxy> genePredicate = alwaysTrue();
-
             final Set<Long> geneIds = new HashSet<Long>();
             if (!experimentInfoOnly) {
                 final String[] requestedGeneIds = request.getParameterValues("geneIs");
                 if (requestedGeneIds != null && requestedGeneIds.length > 0) {
                     geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
-                    genePredicate = containsAtLeastOneGene(geneIds);
                 }
             }
 
@@ -187,9 +175,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 setRestProfile(ExperimentAnalyticsRestProfile.class);
             else if (experimentPageData)
                 setRestProfile(ExperimentPageRestProfile.class);
-
-            final Predicate<NetCDFProxy> netCDFProxyPredicate = !isNullOrEmpty(arrayDesignAccession) ?
-                    hasArrayDesign(arrayDesignAccession) : genePredicate;
 
             return new ExperimentResults(
                 experiments,
@@ -203,10 +188,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
                             if (!experimentInfoOnly) {
 
-                                NetCDFDescriptor ncdfDescr =
-                                        atlasDataDAO.getNetCDFDescriptor(experiment.getExperiment(), netCDFProxyPredicate);
-
-                                if (ncdfDescr != null) {
+                                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
+                                try {
                                     //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                     Collection<String> factors = Collections.emptyList();
                                     Collection<String> factorValues = Collections.emptyList();
@@ -214,24 +197,25 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         factors = Arrays.asList(conditions.iterator().next().getFactor());
                                         factorValues = conditions.iterator().next().getFactorValues();
                                     }
-
+                                
                                     BestDesignElementsResult geneResults =
-                                            atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                    ncdfDescr,
-                                                    geneIds,
-                                                    factors,
-                                                    factorValues,
-                                                    statFilter.asUpDownCondition(),
-                                                    0,
-                                                    10);
-
+                                        atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                            ewd,
+                                            arrayDesignAccession,
+                                            geneIds,
+                                            factors,
+                                            factorValues,
+                                            statFilter.asUpDownCondition(),
+                                            0,
+                                            10
+                                        );
+                                
                                     genes = geneResults.getGenes();
-                                }
-
-                                try {
-                                    expData = new ExperimentalData(atlasDataDAO, experiment.getExperiment());
+                                    expData = new ExperimentalData(ewd);
                                 } catch (AtlasDataException e) {
-                                    throw createUnexpected("Failed to read experimental data", e);
+                                    log.warn("AtlasDataException thrown", e);
+                                } finally {
+                                    ewd.closeAllDataSources();
                                 }
                             }
 
