@@ -44,7 +44,7 @@ public class ExpressionStatistics {
     private ExpressionStatistics() {
     }
 
-    private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException {
+    private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException, AtlasDataException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
         List<KeyValuePair> values = proxy.getUniqueValues();
@@ -58,7 +58,7 @@ public class ExpressionStatistics {
         return this;
     }
 
-    public static ExpressionStatistics create(int[] deIndices, NetCDFProxy proxy) throws IOException {
+    public static ExpressionStatistics create(int[] deIndices, NetCDFProxy proxy) throws IOException, AtlasDataException {
         return (new ExpressionStatistics()).load(deIndices, proxy);
     }
 

@@ -3,23 +3,23 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
-import uk.ac.ebi.gxa.data.*;
-import uk.ac.ebi.gxa.utils.CBitSet;
-import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Iterators.concat;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.primitives.Floats.asList;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.distinct;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
 
 /**
@@ -87,9 +87,11 @@ public class AtlasNetCDFUpdaterService {
                 }
             }
 
-            if (assayAccessions.length == data.getAssays().size()) {
-                data.matchValuePatterns(getValuePatterns(ewd, arrayDesign));
-            }
+            // TODO: this is commented out because it is *broken* and needs to be rewritten
+            // behaviour after commenting code below: *any* netcdf update will result in analytics reset
+            // TODO: the getValuePatterns(proxy, data.getAssays()) code, would you need it,
+            // see rev. 48f0df44ce1fbaea42dff50167827d0138bd4eb1 for an attempt to fix it
+            // and rev. 05be531ebb5a93df06d6045f982d0b25e4008a11 for nearly-original version
 
             // Get unique values
             final List<KeyValuePair> uniqueValues = ewd.getUniqueValues(arrayDesign);
@@ -152,41 +154,6 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static EfvTree<CBitSet> getValuePatterns(ExperimentWithData ewd, ArrayDesign ad) throws AtlasDataException {
-        final EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
-
-        // Store ef-efv patterns
-        final List<String> efs = Arrays.asList(ewd.getFactors(ad));
-        for (String ef : efs) {
-            final List<String> efvs = Arrays.asList(ewd.getFactorValues(ad, ef));
-            final Set<String> distinctEfvs = distinct(efvs);
-            for (String value : distinctEfvs) {
-                final CBitSet pattern = new CBitSet(efvs.size());
-                for (int i = 0; i < efvs.size(); i++) {
-                    pattern.set(i, efvs.get(i).equals(value));
-                }
-                patterns.putCaseSensitive(ef, value, pattern);
-            }
-        }
-
-        // Store sc-scv patterns
-        final List<String> scs = new ArrayList<String>(Arrays.asList(ewd.getCharacteristics(ad)));
-        scs.removeAll(efs); // process only scs that aren't also efs
-        for (String sc : scs) {
-            final List<String> scvs = Arrays.asList(ewd.getCharacteristicValues(ad, sc));
-            final Set<String> distinctScvs = distinct(scvs);
-            for (String value : distinctScvs) {
-                final CBitSet pattern = new CBitSet(scvs.size());
-                for (int i = 0; i < scvs.size(); i++) {
-                    pattern.set(i, scvs.get(i).equals(value));
-                }
-                patterns.putCaseSensitive(sc, value, pattern);
-            }
-        }
-
-        return patterns;
-    }
-
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
@@ -194,5 +161,4 @@ public class AtlasNetCDFUpdaterService {
     public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
         this.atlasDataDAO = atlasDataDAO;
     }
-
 }

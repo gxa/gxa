@@ -187,10 +187,10 @@ public class GeneViewController extends AtlasViewController {
             @RequestParam("gid") String geneId,
             @RequestParam(value = "from", required = false) Integer from,
             @RequestParam(value = "to", required = false) Integer to,
-            @RequestParam(value = "ef", required = false) String ef,
-            @RequestParam(value = "efv", required = false) String efv,
-            @RequestParam(value = "efo", required = false) String efoId,
-            @RequestParam(value = "needPaging", required = false) Boolean needPaging,
+            @RequestParam(value = "ef", required = false, defaultValue = "") String ef,
+            @RequestParam(value = "efv", required = false, defaultValue = "") String efv,
+            @RequestParam(value = "efo", required = false, defaultValue = "") String efoId,
+            @RequestParam(value = "needPaging", required = false, defaultValue = "false") Boolean needPaging,
             Model model
     ) throws ResourceNotFoundException {
 
@@ -204,7 +204,7 @@ public class GeneViewController extends AtlasViewController {
 
         AtlasGene gene = result.getGene();
         Attribute attr =
-                efoId != null ?
+                efoId.length() > 0 ?
                         new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
                         new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
 
@@ -212,9 +212,10 @@ public class GeneViewController extends AtlasViewController {
 
         model.addAttribute("exps", exps)
                 .addAttribute("atlasGene", gene)
-                .addAttribute("target", efoId == null ?
-                        (ef == null ? "" : ef) + (efv == null ? "" : ":" + efv) :
-                        efoId + ": " + efo.getTermById(efoId).getTerm());
+                .addAttribute("target", efoId.length() > 0 ?
+                        efoId + ": " + efo.getTermById(efoId).getTerm() :
+                        ef + (efv.length() > 0 ? ":" + efv : efv)
+                );
 
         if (needPaging != null && needPaging) {
             model.addAttribute("noAtlasExps", getNumberOfExperiments(gene, attr));
@@ -226,6 +227,8 @@ public class GeneViewController extends AtlasViewController {
 
     private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
         if (attr instanceof EfvAttribute) {
+            //TODO temporary workaround see Ticket #3048: Refactoring of StatisticsStorage & Efv/Efo Attributes is needed
+            attr = attr.isEmpty() ? null : attr;
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
 
