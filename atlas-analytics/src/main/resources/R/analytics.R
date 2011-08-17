@@ -187,36 +187,36 @@ allupdn <-
     for(varLabel in evars){
       try({
         print(paste("Calculating lmFit and F-stats for", varLabel))
-          if (length(levels(eset[[varLabel, exact = TRUE]])) < 2
-            || length(levels(eset[[varLabel, exact = TRUE]])) == ncol(exprs) ) { next }
 
-          esetForVariable = eset[,which(eset[[varLabel, exact = TRUE]] != "")]
-          esetForVariable[[varLabel, exact = TRUE]] = factor(esetForVariable[[varLabel, exact = TRUE]])
+        nonEmptyFactorValues = intersect(which(eset[[varLabel, exact = TRUE]] != ""),
+          which(eset[[varLabel, exact = TRUE]] != "(empty)"))
 
-          thisFit = fstat.eset(esetForVariable, varLabel = varLabel)
+        esetForVariable = eset[, nonEmptyFactorValues]
+        esetForVariable[[varLabel, exact = TRUE]] = factor(esetForVariable[[varLabel, exact = TRUE]])
 
-          print("Adjusting p-values")
-          # pp = p.adjust(thisFit$F.p.value, method = "fdr")
-          # w = which(pp <= alpha)
-          #
-          # thisFit$F.p.value.adj = pp
+        numVariableFactorLevels <- nlevels(esetForVariable[[varLabel, exact=TRUE]])
+        if (numVariableFactorLevels == ncol(exprs(esetForVariable)) || numVariableFactorLevels < 2) {
+          print("Can't compute statistics for poorly conditioned data: too few or too many factor levels.")
+          next
+        }
 
-          n = ncol(thisFit$design)
-          cm = diag(n) - 1/n
+        thisFit = fstat.eset(esetForVariable, varLabel = varLabel)
 
-          contr.fit = contrasts.fit(thisFit, cm)
-          contr.fit = eBayes(contr.fit)
+        n = ncol(thisFit$design)
+        cm = diag(n) - 1/n
 
-          dec = decideTests(contr.fit, method = "global", adjust.method = "fdr")
-          colnames(dec) = levels(esetForVariable[[varLabel, exact = TRUE]])
+        contr.fit = contrasts.fit(thisFit, cm)
+        contr.fit = eBayes(contr.fit)
 
-          # thisFit$which = w
-          thisFit$boolupdn = dec
-          thisFit$contr.fit = contr.fit
+        dec = decideTests(contr.fit, method = "global", adjust.method = "fdr")
+        colnames(dec) = levels(esetForVariable[[varLabel, exact = TRUE]])
 
-          allFits[[varLabel]] = thisFit
-          print("Done.")
-        })
+        thisFit$boolupdn = dec
+        thisFit$contr.fit = contr.fit
+
+        allFits[[varLabel]] = thisFit
+        print("Done.")
+      })
     }
 
     allFits
@@ -536,10 +536,10 @@ find.best.design.elements <<-
     }
     wuval <- c()
 
-    if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "")) {
+    if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "" || efv == "(empty)")) {
       wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
 
-    } else if ((!is.null(ef) && ef != "") && (!is.null(efv) && efv != "")) {
+    } else if ((!is.null(ef) && ef != "") && (!is.null(efv) && efv != "" && efv != "(empty)")) {
       efv <- paste(ef, efv, sep = "||")
       wuval <- which(uval %in% efv)
 
