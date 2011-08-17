@@ -144,18 +144,18 @@ public class ExperimentAnalyticsGeneratorService {
 
     private class LogAnalyticsGeneratorListener implements AnalyticsGeneratorListener {
         public void buildSuccess() {
-		}
+        }
 
         public void buildError(AnalyticsGenerationEvent event) {
-		}
+        }
 
         public void buildProgress(String progressStatus) {
             log.info(progressStatus);
-		}
+        }
 
         public void buildWarning(String message) {
             log.warn(message);
-		}
+        }
     }
 
     public void createAnalyticsForExperiment(
@@ -169,8 +169,8 @@ public class ExperimentAnalyticsGeneratorService {
         for (NetCDFDescriptor netCDF : netCDFs) {
             count++;
 
-            if (!factorsCharacteristicsAvailable(netCDF)) {
-                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors or characteristics!");
+            if (!factorsAvailable(netCDF)) {
+                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors!");
                 return;
             }
 
@@ -240,13 +240,13 @@ public class ExperimentAnalyticsGeneratorService {
         return netCDFs;
     }
 
-    private boolean factorsCharacteristicsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {
+    private boolean factorsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {
         NetCDFProxy proxy = null;
         try {
             proxy = netCDF.createProxy();
-            return proxy.getFactorsAndCharacteristics().length > 0;
+            return proxy.getFactors().length > 0;
         } catch (IOException e) {
-            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
+            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors", e);
         } finally {
             closeQuietly(proxy);
         }
