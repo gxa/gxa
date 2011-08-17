@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class OntologyTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")
-    @SequenceGenerator(name = "ontologyTermSeq", sequenceName = "A2_ONTOLOGYTERM_SEQ")
+    @SequenceGenerator(name = "ontologyTermSeq", sequenceName = "A2_ONTOLOGYTERM_SEQ", allocationSize = 1)
     private Long ontologytermid;
     @ManyToOne
     private Ontology ontology;

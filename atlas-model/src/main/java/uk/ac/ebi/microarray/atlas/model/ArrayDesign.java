@@ -35,8 +35,8 @@ import static java.util.Collections.singletonList;
 public class ArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")
-    @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ")
-    private long arrayDesignID;
+    @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ", allocationSize = 1)
+    private Long arrayDesignID;
     private String accession;
     private String name;
     private String provider;
@@ -87,11 +87,11 @@ public class ArrayDesign {
         this.type = type;
     }
 
-    public long getArrayDesignID() {
+    public Long getArrayDesignID() {
         return arrayDesignID;
     }
 
-    public void setArrayDesignID(long arrayDesignID) {
+    public void setArrayDesignID(Long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
     }
 
