@@ -1532,7 +1532,7 @@
                 s = newState();
 
                 var array = location.href.split("?");
-                if (array.length > 2) {
+                if (array.length > 1) {
                     var params = array[1].split("&");
 
                     for (var i = 0; i < params.length; i++) {
