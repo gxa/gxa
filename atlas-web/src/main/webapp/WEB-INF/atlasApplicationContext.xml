@@ -38,7 +38,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
-        <constructor-arg type="int" value="32"/>
+        <constructor-arg type="int" value="6"/>
     </bean>
     <!-- Spring config for Atlas -->
 
