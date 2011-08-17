@@ -36,7 +36,7 @@
   </logger>
 
   <root>
-      <priority value="TRACE"/>
+      <priority value="INFO"/>
       <appender-ref ref="console"/>
   </root>
 

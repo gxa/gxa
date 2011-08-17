@@ -72,8 +72,8 @@ public class NetCDFCreator {
     private boolean canWriteFirstFull;
 
     // maps of properties
-    private Multimap<String, String> efvMap;
-    private Multimap<String, String> scvMap;
+    private LinkedHashMap<String, List<String>> efvMap;
+    private LinkedHashMap<String, List<String>> scvMap;
     private LinkedHashSet<String> efScs; // efs/scs
     private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
     private Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
@@ -121,23 +121,47 @@ public class NetCDFCreator {
         this.tstatDataMap = tstatDataMap;
     }
 
-    private ListMultimap<String, String> extractAssayProperties(List<Assay> objects) {
-        ListMultimap<String, String> result = ArrayListMultimap.create();
-        for (Assay o : objects) {
-            for (String name : o.getPropertyNames()) {
-                result.put(name, o.getPropertySummary(name));
-            }
+    private LinkedHashMap<String, List<String>> extractAssayProperties(List<Assay> assays) {
+        final LinkedHashMap<String, List<String>> result = new LinkedHashMap<String, List<String>>();
+
+        final SortedSet<String> propertyNames = new TreeSet<String>();
+
+        for (Assay a : assays) {
+            propertyNames.addAll(a.getPropertyNames());
         }
+
+        for (String propertyName : propertyNames) {
+            final List<String> propertyList = new ArrayList<String>(samples.size());
+
+            for (final Assay a : assays) {
+                propertyList.add(a.getPropertySummary(propertyName));
+            }
+
+            result.put(propertyName, propertyList);
+        }
+
         return result;
     }
 
-    private ListMultimap<String, String> extractSampleProperties(List<Sample> objects) {
-        ListMultimap<String, String> result = ArrayListMultimap.create();
-        for (Sample o : objects) {
-            for (String name : o.getPropertyNames()) {
-                result.put(name, o.getPropertySummary(name));
-            }
+    private LinkedHashMap<String, List<String>> extractSampleProperties(final List<Sample> samples) {
+        final LinkedHashMap<String, List<String>> result = new LinkedHashMap<String, List<String>>();
+
+        final SortedSet<String> propertyNames = new TreeSet<String>();
+
+        for (final Sample s : samples) {
+            propertyNames.addAll(s.getPropertyNames());
         }
+
+        for (final String propertyName : propertyNames) {
+            final List<String> propertyList = new ArrayList<String>(samples.size());
+
+            for (final Sample s : samples) {
+                propertyList.add(s.getPropertySummary(propertyName));
+            }
+
+            result.put(propertyName, propertyList);
+        }
+
         return result;
     }
 
@@ -188,10 +212,10 @@ public class NetCDFCreator {
         scvMap = extractSampleProperties(samplesList);
 
         // Merge efvMap and scvMap into propertyToUnsortedUniqueValues that will store all scv/efv properties
-        for (Map.Entry<String, Collection<String>> efToEfvs : efvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> efToEfvs : efvMap.entrySet()) {
             propertyToUnsortedUniqueValues.putAll(efToEfvs.getKey(), efToEfvs.getValue());
         }
-        for (Map.Entry<String, Collection<String>> scToScvs : scvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> scToScvs : scvMap.entrySet()) {
             propertyToUnsortedUniqueValues.putAll(scToScvs.getKey(), scToScvs.getValue());
         }
 
@@ -665,22 +689,6 @@ public class NetCDFCreator {
     }
 
     private void writeSamplesAssays() throws IOException, InvalidRangeException {
-        /*
-        ArrayInt as = new ArrayInt.D1(assays.size());
-        IndexIterator asIt = as.getIndexIterator();
-        for (Assay assay : assays) {
-            asIt.setLongNext(assay.getAssayID());
-        }
-        netCdf.write("AS", as);
-
-        ArrayInt bs = new ArrayInt.D1(samples.size());
-        IndexIterator bsIt = bs.getIndexIterator();
-        for (Sample sample : samples) {
-            bsIt.setLongNext(sample.getSampleID());
-        }
-        netCdf.write("BS", bs);
-        */
-
         ArrayInt bs2as = new ArrayInt.D2(samples.size(), assays.size());
         IndexIterator bs2asIt = bs2as.getIndexIterator();
 
@@ -720,7 +728,7 @@ public class NetCDFCreator {
 
         // Populate non-unique efvs
         int ei = 0;
-        for (Map.Entry<String, Collection<String>> e : efvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> e : efvMap.entrySet()) {
             ef.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())
@@ -737,7 +745,7 @@ public class NetCDFCreator {
         ArrayChar scv = new ArrayChar.D3(scvMap.keySet().size(), samples.size(), maxScvLength);
 
         int ei = 0;
-        for (Map.Entry<String, Collection<String>> e : scvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> e : scvMap.entrySet()) {
             sc.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())
@@ -772,9 +780,7 @@ public class NetCDFCreator {
         try {
             final File targetFile = dataDAO.getNetCDFLocation(experiment, arrayDesign);
             if (!targetFile.getParentFile().exists() && !targetFile.getParentFile().mkdirs()) {
-                throw new AtlasDataException(
-                    "Cannot create folder for the output file" + targetFile
-                );
+                throw new AtlasDataException("Cannot create folder for the output file" + targetFile);
             }
 
             final File tempFile = File.createTempFile(targetFile.getName(), ".tmp");
@@ -832,7 +838,8 @@ public class NetCDFCreator {
      * @param scs
      * @return merged LinkedHashSet of efs and scs keySets
      */
-    private LinkedHashSet<String> getEfScs(Multimap<String, String> efs, Multimap<String, String> scs) {
+    private LinkedHashSet<String> getEfScs(LinkedHashMap<String, List<String>> efs,
+                                           LinkedHashMap<String, List<String>> scs) {
         LinkedHashSet<String> result = new LinkedHashSet<String>();
         result.addAll(efs.keySet());
         result.addAll(scs.keySet());

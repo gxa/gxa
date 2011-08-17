@@ -61,7 +61,8 @@ public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO,
+                                               AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
         this.atlasDataDAO = atlasDataDAO;
         this.atlasComputeService = atlasComputeService;
@@ -69,6 +70,15 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
+        atlasDAO.startSession();
+        try {
+            generateInternal();
+        } finally {
+            atlasDAO.finishSession();
+        }
+    }
+
+    private void generateInternal() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
@@ -136,18 +146,18 @@ public class ExperimentAnalyticsGeneratorService {
 
     private class LogAnalyticsGeneratorListener implements AnalyticsGeneratorListener {
         public void buildSuccess() {
-		}
+        }
 
         public void buildError(AnalyticsGenerationEvent event) {
-		}
+        }
 
         public void buildProgress(String progressStatus) {
             log.info(progressStatus);
-		}
+        }
 
         public void buildWarning(String message) {
             log.warn(message);
-		}
+        }
     }
 
     public void createAnalyticsForExperiment(
@@ -167,7 +177,7 @@ public class ExperimentAnalyticsGeneratorService {
             for (ArrayDesign ad : arrayDesigns) {
                 count++;
         
-                if (!factorsCharacteristicsAvailable(ewd, ad)) {
+                if (!factorsAvailable(ewd, ad)) {
                     listener.buildWarning("No analytics were computed for " + experimentAccession + "/" + ad.getAccession() + " as it contained no factors or characteristics!");
                     return;
                 }
@@ -233,13 +243,12 @@ public class ExperimentAnalyticsGeneratorService {
         }
     }
 
-    private boolean factorsCharacteristicsAvailable(ExperimentWithData ewd, ArrayDesign ad) throws AnalyticsGeneratorException {
+
+    private boolean factorsAvailable(ExperimentWithData ewd, ArrayDesign ad) throws AnalyticsGeneratorException {
         try {
-            return
-                ewd.getFactors(ad).length > 0 ||
-                ewd.getCharacteristics(ad).length > 0;
+            return ewd.getFactors(ad).length > 0;
         } catch (AtlasDataException e) {
-            throw new AnalyticsGeneratorException("Failed to open " + ewd.getExperiment().getAccession() + "/" + ad.getAccession() + " to check if it contained factors or characteristics", e);
+            throw new AnalyticsGeneratorException("Failed to open " + ewd.getExperiment().getAccession() + "/" + ad.getAccession() + " to check if it contained factors", e);
         }
     }
 
