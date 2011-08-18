@@ -138,9 +138,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                 final ExperimentInfo experiment = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
-                // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
-                // TODO should change to ncdf.getUniqueValues()
-                List<String> uVals = ncdf.getUniqueFactorValues();
+                final List<String> uVals = ncdf.getUniqueValues();
+
+                // TODO to switch on inclusion of sc-scv stats in bit index, remove getFactors & !contains filter below
+                final Set<String> factorNames = new HashSet<String>(Arrays.asList(ncdf.getFactors()));
+
                 int car = 0; // count of all Statistics records added for this ncdf
 
                 if (uVals.size() == 0) {
@@ -156,9 +158,17 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                 final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
                 for (int j = 0; j < uVals.size(); j++) {
-                    String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX);
-                    String ef = internedCopy(stringPool, arr[0]);
-                    String efv = arr.length == 1 ? "" : internedCopy(stringPool, arr[1]);
+                    final String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, -1);
+
+                    if(arr.length != 2 || "".equals(arr[1]) || "(empty)".equals(arr[1]))
+                        continue;
+
+                    final String ef = internedCopy(stringPool, arr[0]);
+                    final String efv = internedCopy(stringPool, arr[1]);
+
+                    // TODO - only indexing EFVs
+                    if(!factorNames.contains(ef))
+                        continue;
 
                     final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(ef, efv, null));
                     final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(ef, null));
