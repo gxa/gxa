@@ -23,8 +23,8 @@
 package uk.ac.ebi.gxa.analytics.generator;
 
 /**
- * An exception that occurs whenever something went wrong during NetCDF
- * generation
+ * An exception that occurs whenever something went wrong during
+ * analytics generation
  *
  * @author Tony Burdett
  */

@@ -34,8 +34,8 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
@@ -51,8 +51,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import static com.google.common.io.Closeables.closeQuietly;
-
 public class ExperimentAnalyticsGeneratorService {
     private final AtlasDAO atlasDAO;
     private final AtlasDataDAO atlasDataDAO;
@@ -61,7 +59,8 @@ public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
-    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
+    public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO,
+                                               AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
         this.atlasDataDAO = atlasDataDAO;
         this.atlasComputeService = atlasComputeService;
@@ -69,6 +68,15 @@ public class ExperimentAnalyticsGeneratorService {
     }
 
     public void generateAnalytics() throws AnalyticsGeneratorException {
+        atlasDAO.startSession();
+        try {
+            generateInternal();
+        } finally {
+            atlasDAO.finishSession();
+        }
+    }
+
+    private void generateInternal() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
@@ -136,18 +144,18 @@ public class ExperimentAnalyticsGeneratorService {
 
     private class LogAnalyticsGeneratorListener implements AnalyticsGeneratorListener {
         public void buildSuccess() {
-		}
+        }
 
         public void buildError(AnalyticsGenerationEvent event) {
-		}
+        }
 
         public void buildProgress(String progressStatus) {
             log.info(progressStatus);
-		}
+        }
 
         public void buildWarning(String message) {
             log.warn(message);
-		}
+        }
     }
 
     public void createAnalyticsForExperiment(
@@ -155,96 +163,90 @@ public class ExperimentAnalyticsGeneratorService {
             AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
         log.info("Generating analytics for experiment " + experimentAccession);
 
-        final Collection<NetCDFDescriptor> netCDFs = getNetCDFs(atlasDAO.getExperimentByAccession(experimentAccession));
+        final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
+        if (arrayDesigns.isEmpty()) {
+            throw new AnalyticsGeneratorException("No array designs present for " + experiment);
+        }
         final List<String> analysedEFSCs = new ArrayList<String>();
         int count = 0;
-        for (NetCDFDescriptor netCDF : netCDFs) {
-            count++;
-
-            if (!factorsCharacteristicsAvailable(netCDF)) {
-                listener.buildWarning("No analytics were computed for " + netCDF + " as it contained no factors or characteristics!");
-                return;
-            }
-
-            final String pathForR = netCDF.getPathForR();
-            ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
-                public Void compute(RServices rs) throws ComputeException {
-                    try {
-                        // first, make sure we load the R code that runs the analytics
-                        rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/analytics.R"));
-
-                        // note - the netCDF file MUST be on the same file system where the workers run
-                        log.debug("Starting compute task for " + pathForR);
-                        RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
-                        log.debug("Completed compute task for " + pathForR);
-
-                        if (r instanceof RChar) {
-                            String[] efScs = ((RChar) r).getNames();
-                            String[] analysedOK = ((RChar) r).getValue();
-
-                            if (efScs != null)
-                                for (int i = 0; i < efScs.length; i++) {
-                                    log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
-
-                                    if ("OK".equals(analysedOK[i]))
-                                        analysedEFSCs.add(efScs[i]);
-                                }
-
-                            for (String rc : analysedOK) {
-                                if (rc.contains("Error"))
-                                    throw new ComputeException(rc);
-                            }
-                        } else
-                            throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
-                    } catch (RemoteException e) {
-                        throw new ComputeException("Problem communicating with R service", e);
-                    } catch (IOException e) {
-                        throw new ComputeException("Unable to load R source from R/analytics.R", e);
-                    }
-                    return null;
-                }
-            };
-
-            // now run this compute task
-            try {
-                listener.buildProgress("Computing analytics for " + experimentAccession);
-                // computeAnalytics writes analytics data back to NetCDF
-                atlasComputeService.computeTask(computeAnalytics);
-                log.debug("Compute task " + count + "/" + netCDFs.size() + " for " + experimentAccession +
-                        " has completed.");
-
-                if (analysedEFSCs.size() == 0) {
-                    listener.buildWarning("No analytics were computed for this experiment!");
-                }
-            } catch (ComputeException e) {
-                throw new AnalyticsGeneratorException("Computation of analytics for " + netCDF + " failed: " + e.getMessage(), e);
-            } catch (Exception e) {
-                throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + netCDF, e);
-            }
-        }
-    }
-
-    private Collection<NetCDFDescriptor> getNetCDFs(Experiment experiment) throws AnalyticsGeneratorException {
-        Collection<NetCDFDescriptor> netCDFs = atlasDataDAO.createExperimentWithData(experiment).getNetCDFDescriptors();
-        if (netCDFs.isEmpty()) {
-            throw new AnalyticsGeneratorException("No NetCDF files present for " + experiment);
-        }
-        return netCDFs;
-    }
-
-    private boolean factorsCharacteristicsAvailable(NetCDFDescriptor netCDF) throws AnalyticsGeneratorException {
-        NetCDFProxy proxy = null;
         try {
-            proxy = netCDF.createProxy();
-            return
-                proxy.getFactors().length > 0 ||
-                proxy.getCharacteristics().length > 0;
-        } catch (AtlasDataException e) {
-            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
-        } catch (IOException e) {
-            throw new AnalyticsGeneratorException("Failed to open " + netCDF + " to check if it contained factors or characteristics", e);
+            for (ArrayDesign ad : arrayDesigns) {
+                count++;
+        
+                if (!factorsAvailable(ewd, ad)) {
+                    listener.buildWarning("No analytics were computed for " + experimentAccession + "/" + ad.getAccession() + " as it contained no factors or characteristics!");
+                    return;
+                }
+        
+                final String pathForR = ewd.getPathForR(ad);
+                ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
+                    public Void compute(RServices rs) throws ComputeException {
+                        try {
+                            // first, make sure we load the R code that runs the analytics
+                            rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/analytics.R"));
+        
+                            // note - the netCDF file MUST be on the same file system where the workers run
+                            log.debug("Starting compute task for " + pathForR);
+                            RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
+                            log.debug("Completed compute task for " + pathForR);
+        
+                            if (r instanceof RChar) {
+                                String[] efScs = ((RChar) r).getNames();
+                                String[] analysedOK = ((RChar) r).getValue();
+        
+                                if (efScs != null)
+                                    for (int i = 0; i < efScs.length; i++) {
+                                        log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
+        
+                                        if ("OK".equals(analysedOK[i]))
+                                            analysedEFSCs.add(efScs[i]);
+                                    }
+        
+                                for (String rc : analysedOK) {
+                                    if (rc.contains("Error"))
+                                        throw new ComputeException(rc);
+                                }
+                            } else
+                                throw new ComputeException("Analytics returned unrecognized status of class " + r.getClass().getSimpleName() + ", string value: " + r.toString());
+                        } catch (RemoteException e) {
+                            throw new ComputeException("Problem communicating with R service", e);
+                        } catch (IOException e) {
+                            throw new ComputeException("Unable to load R source from R/analytics.R", e);
+                        }
+                        return null;
+                    }
+                };
+        
+                // now run this compute task
+                try {
+                    listener.buildProgress("Computing analytics for " + experimentAccession);
+                    // computeAnalytics writes analytics data back to NetCDF
+                    atlasComputeService.computeTask(computeAnalytics);
+                    log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experimentAccession +
+                            " has completed.");
+        
+                    if (analysedEFSCs.size() == 0) {
+                        listener.buildWarning("No analytics were computed for this experiment!");
+                    }
+                } catch (ComputeException e) {
+                    throw new AnalyticsGeneratorException("Computation of analytics for " + experimentAccession + "/" + ad.getAccession() + " failed: " + e.getMessage(), e);
+                } catch (Exception e) {
+                    throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + experimentAccession + "/" + ad.getAccession(), e);
+                }
+            }
         } finally {
-            closeQuietly(proxy);
+            ewd.closeAllDataSources();
+        }
+    }
+
+
+    private boolean factorsAvailable(ExperimentWithData ewd, ArrayDesign ad) throws AnalyticsGeneratorException {
+        try {
+            return ewd.getFactors(ad).length > 0;
+        } catch (AtlasDataException e) {
+            throw new AnalyticsGeneratorException("Failed to open " + ewd.getExperiment().getAccession() + "/" + ad.getAccession() + " to check if it contained factors", e);
         }
     }
 

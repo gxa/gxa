@@ -103,7 +103,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueFactorValues() throws IOException {
+    public void testGetUniqueFactorValues() throws IOException, AtlasDataException {
         final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         for (KeyValuePair uefv : netCDF.getUniqueFactorValues()) {
             if (uniques.contains(uefv)) {
@@ -114,7 +114,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueValues() throws IOException {
+    public void testGetUniqueValues() throws IOException, AtlasDataException {
         Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         List<KeyValuePair> uVals = netCDF.getUniqueValues();
         List<KeyValuePair> uefvs = netCDF.getUniqueFactorValues();

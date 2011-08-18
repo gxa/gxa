@@ -2,7 +2,11 @@ package ae3.service.experiment;
 
 import ae3.model.AtlasGene;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Olga Melnichuk
@@ -10,6 +14,7 @@ import java.util.*;
  */
 public class BestDesignElementsResult implements Iterable<BestDesignElementsResult.Item> {
 
+    private String adAccession;
     private long total = 0;
     private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
     private final List<Integer> deIndices = new ArrayList<Integer>();
@@ -20,6 +25,14 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     private final List<String> efvs = new ArrayList<String>();
 
     BestDesignElementsResult() {
+    }
+
+    public String getArrayDesignAccession() {
+        return adAccession;
+    }
+
+    void setArrayDesignAccession(String adAccession) {
+        this.adAccession = adAccession;
     }
 
     void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, String ef, String efv) {
@@ -74,10 +87,6 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     public Collection<AtlasGene> getGenes() {
         return Collections.unmodifiableCollection(genes);
-    }
-
-    public static BestDesignElementsResult empty() {
-        return new BestDesignElementsResult();
     }
 
     public static class Item {

@@ -34,6 +34,7 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
@@ -69,7 +70,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 /**
- * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
+ * Experiment loading step that prepares data matrix to be stored in data files.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
@@ -156,8 +157,15 @@ public class ArrayDataStep {
             // ftp link will be used
             // set this variable to true to try local files firstly
             boolean useLocalCopy = true;
+            final Collection<ArrayDataNode> dataNodes =
+                investigation.SDRF.lookupNodes(ArrayDataNode.class);
+            if (dataNodes.isEmpty()) {
+                log.warn("No data nodes for raw data are defined in " + sdrfURL);
+                return false;
+            }
+
             listener.setProgress("Loading CEL files");
-            for (ArrayDataNode node : investigation.SDRF.lookupNodes(ArrayDataNode.class)) {
+            for (ArrayDataNode node : dataNodes) {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
 
                 final Collection<HybridizationNode> hybridizationNodes = SDRFUtils.findUpstreamNodes(node, HybridizationNode.class);
@@ -189,7 +197,8 @@ public class ArrayDataStep {
                 // We check if this sample is made on Affymetrics chip
                 // TODO: use better way to check this if such way exists
                 if (!arrayDesignName.toLowerCase().contains("affy")) {
-                    throw new AtlasLoaderException("Array design " + arrayDesignName + " is not an Affymetrics");
+                    log.warn("Array design " + arrayDesignName + " is not an Affymetrix");
+                    return false;
                 }
 
                 if (dataFileName == null || dataFileName.length() == 0) {
@@ -202,7 +211,8 @@ public class ArrayDataStep {
                     dataByArrayDesign.put(arrayDesignName, adData);
                 }
                 if (adData.celFiles.get(dataFileName) != null) {
-                    throw new AtlasLoaderException("File '" + dataFileName + "' is used twice");
+                    log.warn("File '" + dataFileName + "' is used twice");
+                    return false;
                 }
                 adData.celFiles.put(dataFileName, scanName);
                 adData.assays.put(dataFileName, assay);
@@ -240,7 +250,8 @@ public class ArrayDataStep {
                                 if (localZipFile != null && !localZipFile.delete()) {
                                     log.error("Cannot delete " + localZipFile.getAbsolutePath());
                                 }
-                                throw new AtlasLoaderException(e);
+                                log.warn("IOException is thrown: " + e.getMessage());
+                                return false;
                             }
                         }
                         try {
@@ -248,47 +259,47 @@ public class ArrayDataStep {
                             //ZipFile zip = new ZipFile(localZipFile);
                             //copyFile(zip.getInputStream(zip.getEntry(dataFileName)), tempFile);
                         } catch (IOException e) {
-                            throw new AtlasLoaderException(e);
+                            log.warn("IOException is thrown: " + e.getMessage());
+                            return false;
                         }
                     }
                 }
                 if (!tempFile.exists()) {
-                    throw new AtlasLoaderException("File '" + dataFileName + "' is not found");
+                    log.warn("File '" + dataFileName + "' is not found");
+                    return false;
                 }
             }
 
             listener.setProgress("Processing data in R");
             for (Map.Entry<String, RawData> entry : dataByArrayDesign.entrySet()) {
-                DataNormalizer normalizer = new DataNormalizer(entry.getValue());
+                final DataNormalizer normalizer = new DataNormalizer(entry.getValue());
                 // this method returns null if computation was finished successfully
                 // or an instance of "try-error" R class in case of failure
                 // currently we receive instances of "try-error" as RChar objects
                 final RObject result = computeService.computeTask(normalizer);
                 if (result != null) {
-                    if (result instanceof RChar) {
-                        throw new AtlasLoaderException(((RChar)result).getValue()[0]);
-                    } else {
-                        throw new AtlasLoaderException("Something unexpected happens in our R code; returned " + result);
-                    }
+                    log.warn(
+                        result instanceof RChar
+                            ? ((RChar)result).getValue()[0]
+                            : "Something unexpected happens in our R code; returned " + result
+                    );
+                    return false;
                 }
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);
-                    DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(mergedFile.toURL(), null);
+                    final DataMatrixFileBuffer buffer = cache.getDataMatrixFileBuffer(mergedFile.toURL(), null);
                     final HashMap<String, Assay> assayMap = entry.getValue().assays;
                     final ArrayList<String> fileNames = normalizer.fileNames;
                     for (int i = 0; i < fileNames.size(); ++i) {
-                        Assay assay = assayMap.get(fileNames.get(i));
+                        final Assay assay = assayMap.get(fileNames.get(i));
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
                         cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     }
-                    if (!mergedFile.delete())
+                    if (!mergedFile.delete()) {
                         log.warn("Cannot delete" + mergedFile.getAbsolutePath());
+                    }
                 } catch (MalformedURLException e) {
-                    throw new AtlasLoaderException(e.getMessage());
-                }
-
-                for (String name : entry.getValue().celFiles.keySet()) {
-                    log.info("  file " + name);
+                    throw LogUtil.createUnexpected("MalformedURLException is thrown: " + e.getMessage());
                 }
             }
 
@@ -298,8 +309,9 @@ public class ArrayDataStep {
                 deleteDirectory(data.dataDir);
             }
             for (File z : zipFiles.values()) {
-                if (!z.delete())
+                if (!z.delete()) {
                     log.warn("Cannot delete " + z.getAbsolutePath());
+                }
             }
         }
     }

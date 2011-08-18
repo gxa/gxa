@@ -45,3 +45,6 @@ SELECT * FROM A2_SAMPLEPV            spv WHERE EXISTS (
 SELECT * FROM A2_SAMPLEPVONTOLOGY    spvo WHERE EXISTS (SELECT * FROM A2_SAMPLEPV spv JOIN A2_SAMPLE s on s.sampleid = spv.sampleid JOIN A2_ASSAYSAMPLE asmpl ON s.SAMPLEID = asmpl.SAMPLEID JOIN A2_ASSAY a ON a.assayid = asmpl.assayid JOIN A2_EXPERIMENT e
   ON e.experimentid = a.experimentid
   WHERE spvo.samplepvid = spv.samplepvid AND e.private = 0);
+
+SELECT * FROM A2_SCHEMACHANGES       sc
+  WHERE sc.changeid IN (SELECT MAX(changeid) FROM A2_SCHEMACHANGES);

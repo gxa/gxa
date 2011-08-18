@@ -28,7 +28,6 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -45,12 +44,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.NetCDFDescriptor;
-import uk.ac.ebi.gxa.data.NetCDFProxy;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
@@ -69,11 +68,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Joiner.on;
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.data.NetCDFPredicates.hasArrayDesign;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -156,14 +151,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * Returns experiment plots for given set of design elements.
      * (JSON view only supported)
      *
-     * @param accession               an experiment accession to find out the required netCDF
-     * @param adAcc                   an array design accession to find out the required netCDF
+     * @param accession               an experiment accession to find out the required data
+     * @param adAcc                   an array design accession to find out the required data
      * @param des                     an array of design element indexes to get plot data for
      * @param assayPropertiesRequired a boolean value to specify if assay properties ard needed
      * @param model                   a model for the view to render
      * @return the view path
      * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws IOException                    if any netCDF file reading error happened (including index out of range)
+     * @throws AtlasDataException     if any data reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -172,18 +167,23 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, IOException, AtlasDataException {
+    ) throws ResourceNotFoundException, AtlasDataException {
 
-        ExperimentPage page = createExperimentPage(accession);
-        if (page.getExperiment().getArrayDesign(adAcc) == null) {
+        final ExperimentPage page = createExperimentPage(accession);
+        final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
+        if (ad == null) {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = atlasDataDAO.getNetCDFDescriptor(experiment, hasArrayDesign(adAcc));
-        model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
-        if (assayPropertiesRequired) {
-            model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        try {
+            model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
+            if (assayPropertiesRequired) {
+                model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
+            }
+        } finally {
+            ewd.closeAllDataSources();
         }
         return UNSUPPORTED_HTML_VIEW;
     }
@@ -230,8 +230,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * Returns experiment table data for given search parameters.
      * (JSON view only supported)
      *
-     * @param accession an experiment accession to find out the required netCDF
-     * @param adAcc     an array design accession to find out the required netCDF
+     * @param accession an experiment accession to find out the required data
+     * @param adAcc     an array design accession to find out the required data
      * @param gid       a gene param to search with
      * @param ef        an experiment factor param to search with
      * @param efv       an experiment factor value param to search with
@@ -240,7 +240,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param limit     a size of result set to take
      * @param model     a model for the view to render
      * @return the view path
-     * @throws java.io.IOException if netCDF file could not be read
+     * @throws AtlasDataException if data could not be read
      */
     @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
     public String getExperimentTable(
@@ -253,44 +253,38 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws IOException, AtlasDataException {
-
-        List<Long> geneIds = findGeneIds(gid);
-
-        final Predicate<NetCDFProxy> ncdfPredicate;
-        if (!isNullOrEmpty(adAcc)) {
-            ncdfPredicate = hasArrayDesign(adAcc);
-        } else if (!isNullOrEmpty(gid)) {
-            ncdfPredicate = containsAtLeastOneGene(geneIds);
-        } else {
-            ncdfPredicate = alwaysTrue();
-        }
-
+    ) throws AtlasDataException {
+        final List<Long> geneIds = findGeneIds(gid);
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = atlasDataDAO.getNetCDFDescriptor(experiment, ncdfPredicate);
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-        final BestDesignElementsResult res = (ncdfDescr == null) ?
-                BestDesignElementsResult.empty() :
+        try {
+            final BestDesignElementsResult res =
                 experimentAnalyticsService.findBestGenesForExperiment(
-                        ncdfDescr,
-                        geneIds,
-                        isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                        isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                        updown,
-                        offset,
-                        limit);
-
-        model.addAttribute("arrayDesign", getArrayDesignAccession(ncdfDescr));
-        model.addAttribute("totalSize", res.getTotalSize());
-        model.addAttribute("items", Iterables.transform(res,
-                new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
-                    public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                        return new ExperimentTableRow(item);
-                    }
-                })
-        );
-        model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
-        return UNSUPPORTED_HTML_VIEW;
+                    ewd,
+                    adAcc,
+                    geneIds,
+                    isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                    isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                    updown,
+                    offset,
+                    limit
+                );
+        
+            model.addAttribute("arrayDesign", res.getArrayDesignAccession());
+            model.addAttribute("totalSize", res.getTotalSize());
+            model.addAttribute("items", Iterables.transform(res,
+                    new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
+                        public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
+                            return new ExperimentTableRow(item);
+                        }
+                    })
+            );
+            model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
+            return UNSUPPORTED_HTML_VIEW;
+        } finally {
+            ewd.closeAllDataSources();
+        }
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
@@ -299,20 +293,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
-    }
-
-    private String getArrayDesignAccession(NetCDFDescriptor descr) throws IOException, AtlasDataException {
-        if (descr == null) {
-            return null;
-        }
-
-        NetCDFProxy proxy = null;
-        try {
-            proxy = descr.createProxy();
-            return proxy.getArrayDesignAccession();
-        } finally {
-            closeQuietly(proxy);
-        }
     }
 
     private List<Long> findGeneIds(String... query) {

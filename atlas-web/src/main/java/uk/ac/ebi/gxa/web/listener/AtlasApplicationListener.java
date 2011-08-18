@@ -134,7 +134,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // read versioning info
 
-        // read index, netcdf directory locations
+        // read index, data directory locations
         String atlasIndex = context.getBean("atlasIndex", File.class).getAbsolutePath();
         String atlasDataRepo = context.getBean("atlasDataRepo", File.class).getAbsolutePath();
 

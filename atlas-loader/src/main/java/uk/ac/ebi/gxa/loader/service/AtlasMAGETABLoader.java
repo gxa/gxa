@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.NetCDFCreator;
-import uk.ac.ebi.gxa.data.NetCDFCreatorException;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -247,7 +247,7 @@ public class AtlasMAGETABLoader {
         return DECIMAL_FORMAT.get().format((end - start) / 1000);
     }
 
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
 
         for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {

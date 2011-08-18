@@ -369,7 +369,7 @@ public final class NetCDFProxy implements Closeable {
         return result;
     }
 
-    public List<KeyValuePair> getUniqueValues() throws IOException {
+    public List<KeyValuePair> getUniqueValues() throws IOException, AtlasDataException {
         Variable uVALVar;
         uVALVar = netCDF.findVariable("uVAL");
 
@@ -385,17 +385,20 @@ public final class NetCDFProxy implements Closeable {
         ArrayChar uVal = (ArrayChar)uVALVar.read();
 
         final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
-        for (Object text : (Object[])uVal.make1DStringArray().get1DJavaArray(String.class)) {
-            final String[] data = ((String)text).split(NCDF_PROP_VAL_SEP_REGEX);
+        for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
+	        final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
             if (data.length != 2) {
-                throw new RuntimeException("Invalid uVAL element: " + text);
+                throw new AtlasDataException("Invalid uVAL element: " + text);
             }
-            list.add(new KeyValuePair(data[0], data[1]));
+
+            if (!"".equals(data[1])) {
+                list.add(new KeyValuePair(data[0], data[1]));
+            }
         }
         return list;
     }
 
-    public List<KeyValuePair> getUniqueFactorValues() throws IOException {
+    public List<KeyValuePair> getUniqueFactorValues() throws IOException, AtlasDataException {
         List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
         List<String> factors = Arrays.asList(getFactors());
 
@@ -486,7 +489,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException in case of I/O errors
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException {
+            final Map<Long, List<Integer>> geneIdsToDEIndexes) throws IOException, AtlasDataException {
         return getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, null, null, UpDownCondition.CONDITION_ANY);
     }
 
@@ -511,7 +514,7 @@ public final class NetCDFProxy implements Closeable {
             @Nullable final String efVal,
             @Nullable final String efvVal,
             final UpDownCondition upDownCondition)
-            throws IOException {
+            throws IOException, AtlasDataException {
 
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
         ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
@@ -572,7 +575,7 @@ public final class NetCDFProxy implements Closeable {
         return geneIdsToEfToEfvToEA;
     }
 
-    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException {
+    public ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException, AtlasDataException {
         return (new ExpressionAnalysisHelper()).prepare();
     }
 
@@ -638,7 +641,7 @@ public final class NetCDFProxy implements Closeable {
         private ExpressionAnalysisHelper() {
         }
 
-        private ExpressionAnalysisHelper prepare() throws IOException {
+        private ExpressionAnalysisHelper prepare() throws IOException, AtlasDataException {
             uniquePropertyValues.addAll(getUniqueValues());
             designElementAccessions = getDesignElementAccessions();
             return this;
@@ -723,11 +726,11 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    public ExpressionStatistics getExpressionStatistics(int[] deIndices) throws IOException {
+    public ExpressionStatistics getExpressionStatistics(int[] deIndices) throws IOException, AtlasDataException {
         return ExpressionStatistics.create(deIndices, this);
     }
 
-    public Map<String, Collection<String>> getActualEfvTree() throws IOException {
+    public Map<String, Collection<String>> getActualEfvTree() throws IOException, AtlasDataException {
         Multimap<String, String> efvs = HashMultimap.create();
 
         for (KeyValuePair pair : getUniqueFactorValues()) {
