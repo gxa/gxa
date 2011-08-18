@@ -24,8 +24,6 @@ package uk.ac.ebi.gxa.netcdf.reader;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +94,7 @@ public class NetCDFProxy implements Closeable {
      * @return true if the version inside ncdf file is not the same as NCDF_VERSION; false otherwise
      * @throws IOException
      */
-    public boolean isOutOfDate()  {
+    public boolean isOutOfDate() {
         return !NCDF_VERSION.equals(getNcdfVersion());
     }
 
@@ -205,26 +203,6 @@ public class NetCDFProxy implements Closeable {
         return null == a ? null : a.getStringValue();
     }
 
-    public String getExperimentDescription() {
-        return getGlobalAttribute("experiment_description");
-    }
-
-    public String getExperimentLab() {
-        return getGlobalAttribute("experiment_lab");
-    }
-
-    public String getExperimentPerformer() {
-        return getGlobalAttribute("experiment_performer");
-    }
-
-    public String getExperimentPubmedID() {
-        return getGlobalAttribute("experiment_pmid");
-    }
-
-    public String getAbstract() {
-        return getGlobalAttribute("experiment_abstract");
-    }
-
     /**
      * Gets the array of gene IDs from this NetCDF
      *
@@ -296,6 +274,7 @@ public class NetCDFProxy implements Closeable {
 
     /**
      * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
+     *
      * @return an array of strings - an array of factor values per assay
      * @throws IOException if data could not be read form the netCDF file
      */
@@ -312,11 +291,6 @@ public class NetCDFProxy implements Closeable {
             }
         }
         return result;
-    }
-
-    public String[] getFactorValueOntologies(String factor) throws IOException {
-        Integer efIndex = findEfIndex(factor);
-        return efIndex == null ? new String[0] : getSlice3D("EFVO", efIndex);
     }
 
     private Integer findEfIndex(String factor) throws IllegalArgumentException, IOException {
@@ -394,7 +368,7 @@ public class NetCDFProxy implements Closeable {
             return new int[0];
         }
 
-        return (int[])uVALnumVar.read().get1DJavaArray(int.class);
+        return (int[]) uVALnumVar.read().get1DJavaArray(int.class);
     }
 
 
@@ -417,11 +391,6 @@ public class NetCDFProxy implements Closeable {
         return scIndex == null ? new String[0] : getSlice3D("SCV", scIndex);
     }
 
-    public String[] getCharacteristicValueOntologies(String characteristic) throws IOException {
-        Integer scIndex = findScIndex(characteristic);
-        return scIndex == null ? new String[0] : getSlice3D("SCVO", scIndex);
-    }
-
     /**
      * Gets a single row from the expression data matrix representing all expression data for a single design element.
      * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
@@ -441,7 +410,7 @@ public class NetCDFProxy implements Closeable {
      *
      * @param deIndices an array of design element indices to get expression values for
      * @return a float matrix - a list of expressions per design element index
-     * @throws IOException if the expression data could not be read from the netCDF file
+     * @throws IOException           if the expression data could not be read from the netCDF file
      * @throws InvalidRangeException if the file doesn't contain given deIndices
      */
     public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException, InvalidRangeException {
@@ -458,13 +427,13 @@ public class NetCDFProxy implements Closeable {
 
         TwoDFloatArray(Array array) {
             this.array = array;
-            this.shape = new int[] {1, array.getShape()[1]};
+            this.shape = new int[]{1, array.getShape()[1]};
         }
 
         public float[] getRow(int index) {
             final int[] origin = {index, 0};
             try {
-                return (float[])array.section(origin, shape).get1DJavaArray(float.class);
+                return (float[]) array.section(origin, shape).get1DJavaArray(float.class);
             } catch (InvalidRangeException e) {
                 return new float[0];
             }
@@ -759,18 +728,6 @@ public class NetCDFProxy implements Closeable {
      */
     public ExpressionStatistics getExpressionStatistics(int[] deIndices) throws IOException, InvalidRangeException {
         return ExpressionStatistics.create(deIndices, this);
-    }
-
-    public Map<String, Collection<String>> getActualEfvTree() throws IOException {
-        Multimap<String, String> efvs = HashMultimap.create();
-
-        for (String s : getUniqueFactorValues()) {
-            String[] nameValue = s.split(NCDF_PROP_VAL_SEP_REGEX);
-            String name = nameValue[0];
-            String value = nameValue.length > 1 ? nameValue[1] : "";
-            efvs.put(name, value);
-        }
-        return efvs.asMap();
     }
 
     @Override
