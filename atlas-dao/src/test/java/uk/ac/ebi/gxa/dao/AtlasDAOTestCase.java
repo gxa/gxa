@@ -333,6 +333,8 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  , url VARCHAR(512)\n" +
                         "  , biomartorganismname VARCHAR(255)\n" +
                         "  , databaseName VARCHAR(255)\n" +
+                        "  , mySqlDbName VARCHAR(255)\n" +
+                        "  , mySqlDbUrl VARCHAR(255)\n" +
                         "  , annsrctype VARCHAR(255) NOT NULL\n" +
                         "  , LOADDATE DATE\n" +
                         ");");

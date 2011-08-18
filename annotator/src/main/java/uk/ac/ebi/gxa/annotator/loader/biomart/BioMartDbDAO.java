@@ -43,25 +43,6 @@ public class BioMartDbDAO {
         return new HashSet<List<String>>(result);
     }
 
-//    protected List<List<String>> getSynonymsByDbName(String dbName) {
-//        String query = "SELECT gene_stable_id.stable_id,  external_synonym.synonym \n" +
-//                "FROM " + dbName + ".gene_stable_id, " + dbName + ".gene, " + dbName + ".xref, " + dbName + ".external_synonym \n" +
-//                "WHERE gene_stable_id.gene_id = gene.gene_id \n" +
-//                "AND gene.display_xref_id = xref.xref_id \n" +
-//                "AND external_synonym.xref_id = xref.xref_id \n" +
-//                "ORDER BY gene_stable_id.stable_id; ";
-//        List<List<String>> result = template.query(query, new RowMapper<List<String>>() {
-//            @Override
-//            public List<String> mapRow(ResultSet rs, int rowNum) throws SQLException {
-//                List<String> answer = new ArrayList<String>(2);
-//                answer.add(rs.getString(1));
-//                answer.add(rs.getString(2));
-//
-//                return answer;
-//            }
-//        });
-//        return result;
-//    }
 
     protected String findDBName(String dbNameTemplate, String version) throws BioMartAccessException {
         String query = "SHOW DATABASES LIKE \"" + dbNameTemplate + "_core_" + version + "%\"";

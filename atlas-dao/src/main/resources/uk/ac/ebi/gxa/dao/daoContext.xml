@@ -5,10 +5,10 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="hibernateClasses" class="org.springframework.beans.factory.config.ListFactoryBean">
-        <property name="sourceList">
+        <property name="sourceList" >
             <list>
                 <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
@@ -22,13 +22,7 @@
                 <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
                 <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
-                <!--<value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>-->
-
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty</value>
-                <!--<value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>-->
-                <!--<value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>-->
-                <!--<value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>-->
-                <!--<value>uk.ac.ebi.gxa.annotator.model.FileAnnotationSource</value>-->
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType</value>
 

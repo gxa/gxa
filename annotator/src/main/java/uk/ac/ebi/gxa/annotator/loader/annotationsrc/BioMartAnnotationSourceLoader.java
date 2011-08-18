@@ -63,6 +63,7 @@ public class BioMartAnnotationSourceLoader {
         return writer.toString();
     }
 
+//    @Transactional
     public void saveAnnSrc(String text) throws AnnotationLoaderException {
         Reader reader = new StringReader(text);
 

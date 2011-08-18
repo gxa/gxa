@@ -69,7 +69,7 @@ public class BioEntityDAO {
                 "FROM a2_bioentity be \n" +
                 "JOIN a2_organism o ON o.organismid = be.organismid\n" +
                 "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
-                "WHERE bet.id_for_index = 1 and be.organismid=20",
+                "WHERE bet.id_for_index = 1",
                 new GeneMapper());
     }
 

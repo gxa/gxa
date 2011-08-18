@@ -493,7 +493,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader">
         <constructor-arg ref="annSrcDAO"/>
     </bean>
-     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
+
+    <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
         <constructor-arg ref="annSrcDAO"/>
     </bean>
 

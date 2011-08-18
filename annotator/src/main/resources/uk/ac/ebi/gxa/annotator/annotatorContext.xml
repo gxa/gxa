@@ -1,7 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <bean id="annotatorHibernateClasses" parent="hibernateClasses">
+        <property name="sourceList">
+            <list merge="true">
+
+                <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
+                <value>uk.ac.ebi.gxa.annotator.model.FileAnnotationSource</value>
+
+            </list>
+        </property>
+    </bean>
+
+    <bean id="annotatorSessionFactory" parent="sessionFactory">
+
+        <property name="annotatedClasses" ref="annotatorHibernateClasses" />
+
+    </bean>
 
     <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
         <constructor-arg index="0" ref="bioentityAnnotationDAO"/>
@@ -16,23 +36,23 @@
     </bean>
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO">
-        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="annotatorSessionFactory"/>
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
     <!--<bean id="mysqlDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">-->
-        <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
-        <!--<property name="url" value="jdbc:mysql://ensembldb.ensembl.org:5306"/>-->
-        <!--<property name="username" value="anonymous"/>-->
-        <!--<property name="password" value=""/>-->
+    <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
+    <!--<property name="url" value="jdbc:mysql://ensembldb.ensembl.org:5306"/>-->
+    <!--<property name="username" value="anonymous"/>-->
+    <!--<property name="password" value=""/>-->
     <!--</bean>-->
 
     <!--<bean name="mysqlJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">-->
-        <!--&lt;!&ndash; datasource bean, from JNDI &ndash;&gt;-->
-        <!--<property name="dataSource" ref="mysqlDataSource"/>-->
+    <!--&lt;!&ndash; datasource bean, from JNDI &ndash;&gt;-->
+    <!--<property name="dataSource" ref="mysqlDataSource"/>-->
     <!--</bean>-->
 
     <!--<bean name="bioMartDbDAO" class="uk.ac.ebi.gxa.annotator.loader.biomart.BioMartDbDAO">-->
-        <!--<constructor-arg ref="mysqlJdbcTemplate"/>-->
+    <!--<constructor-arg ref="mysqlJdbcTemplate"/>-->
     <!--</bean>-->
 </beans>

@@ -166,6 +166,7 @@
             organismid="1"
             identifier="ENSMUSG00000020275"
             BIOENTITYTYPEID="200"
+            NAME="testGene"
             />
 
     <A2_BIOENTITY

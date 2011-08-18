@@ -80,7 +80,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Indexing all genes...");
         indexGenes(progressUpdater, bioEntityDAO.getAllGenesFast());
-    }
+        }
 
     @Override
     public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
