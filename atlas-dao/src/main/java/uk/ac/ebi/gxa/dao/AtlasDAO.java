@@ -73,7 +73,7 @@ public class AtlasDAO {
         this.sessionFactory = sessionFactory;
 
         CacheManager cacheManager = CacheManager.getInstance();
-        if (!cacheManager.cacheExists(AtlasDAO.class.getSimpleName() + ".ad"))
+        if (!cacheManager.cacheExists(AD_CACHE))
             cacheManager.addCache(AD_CACHE);
     }
 
@@ -101,9 +101,7 @@ public class AtlasDAO {
         Element element = cache.get(accession);
 
         ArrayDesign result;
-        if (element == null || element.isExpired() ||
-                element.getObjectValue() == null ||
-                !ArrayDesign.class.isInstance(element.getObjectValue())) {
+        if (element == null || element.isExpired() || element.getObjectValue() == null) {
             result = arrayDesignDAO.getArrayDesignByAccession(accession);
             cache.putIfAbsent(new Element(accession, result));
         } else {
