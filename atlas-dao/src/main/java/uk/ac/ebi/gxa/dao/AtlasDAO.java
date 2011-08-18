@@ -99,7 +99,7 @@ public class AtlasDAO {
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        return arrayDesignDAO.getArrayDesignByAccession(accession);
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
 
     /**

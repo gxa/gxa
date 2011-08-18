@@ -41,10 +41,8 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.*;
 
-import static java.lang.System.arraycopy;
-
 /**
- * NetCDF experiment data representation class
+ * A wrapper for ExperimentWithData class that is used in API v1
  *
  * @author pashky
  */
@@ -65,13 +63,13 @@ public class ExperimentalData {
      *
      * @param experiment
      */
-    public ExperimentalData(AtlasDataDAO atlasDataDAO, Experiment experiment) throws AtlasDataException {
-        log.info("loading data for experiment" + experiment.getAccession());
-        experimentWithData = atlasDataDAO.createExperimentWithData(experiment);
+    public ExperimentalData(ExperimentWithData experimentWithData) throws AtlasDataException {
+        log.info("loading data for experiment" + experimentWithData.getExperiment().getAccession());
+        this.experimentWithData = experimentWithData;
 
         ResourceWatchdogFilter.register(new Closeable() {
             public void close() {
-                experimentWithData.closeAllDataSources();
+                ExperimentalData.this.experimentWithData.closeAllDataSources();
             }
         });
 
@@ -217,7 +215,7 @@ public class ExperimentalData {
             return new int[]{a};
         }
         int[] result = new int[array.length + 1];
-        arraycopy(array, 0, result, 0, array.length);
+        System.arraycopy(array, 0, result, 0, array.length);
         result[result.length - 1] = a;
         return result;
     }

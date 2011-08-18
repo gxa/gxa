@@ -96,7 +96,7 @@ public class ArrayDesign {
         return mappingSoftwareId;
     }
 
-    public void setMappingSoftwareId(long mappingSoftwareId) {
+    public void setMappingSoftwareId(final Long mappingSoftwareId) {
         this.mappingSoftwareId = mappingSoftwareId;
     }
 
