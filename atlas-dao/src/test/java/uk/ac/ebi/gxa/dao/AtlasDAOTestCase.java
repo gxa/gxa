@@ -361,12 +361,17 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn,
                 "  CREATE TABLE A2_ASSAYPVONTOLOGY (\n" +
                         "    ONTOLOGYTERMID bigint not null\n" +
-                        "  , ASSAYPVID bigint not null)");
+                        "  , ASSAYPVID bigint not null, " +
+                        "CONSTRAINT FK_ASSAYPV FOREIGN KEY (ASSAYPVID) " +
+                        "REFERENCES A2_ASSAYPV (ASSAYPVID)  ON DELETE CASCADE) ;");
+
 
         runStatement(conn,
                 "  CREATE TABLE A2_SAMPLEPVONTOLOGY (\n" +
                         "    ONTOLOGYTERMID bigint not null\n" +
-                        "  , SAMPLEPVID bigint not null)");
+                        "  , SAMPLEPVID bigint not null, " +
+                        "CONSTRAINT FK_SAMPLEV FOREIGN KEY (SAMPLEPVID) " +
+                        "REFERENCES A2_SAMPLEPV (SAMPLEPVID)  ON DELETE CASCADE) ;");
 
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
 
