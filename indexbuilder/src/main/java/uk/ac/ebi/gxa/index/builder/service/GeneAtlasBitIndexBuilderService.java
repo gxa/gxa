@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Collections.sort;
 
@@ -143,9 +144,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
-                    // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
-                    // TODO should change to experimentWithData.getUniqueValues()
-                    final List<KeyValuePair> uVals = experimentWithData.getUniqueFactorValues(ad);
+                    final List<KeyValuePair> uVals = experimentWithData.getUniqueValues(ad);
+
+                    // TODO to switch on inclusion of sc-scv stats in bit index, remove getFactors & !contains filter below
+                    final Set<String> factorNames = new HashSet<String>(Arrays.asList(experimentWithData.getFactors(ad)));
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
                 
                     if (uVals.size() == 0) {
@@ -162,6 +164,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
                     for (int j = 0; j < uVals.size(); j++) {
                         final KeyValuePair efv = uVals.get(j);
+
+                        if(!factorNames.contains(efv.key) || // TODO: remove this to process all uVALs
+                                isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
+                            continue;
+
                         final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value, null));
                         final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key, null));
                 
