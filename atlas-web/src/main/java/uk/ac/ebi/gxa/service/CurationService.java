@@ -442,27 +442,27 @@ public class CurationService {
      * Add (or update mappings to Ontology for) apiOntologyTerms
      *
      * @param apiOntologyTerms
-     * @throws ResourceNotFoundException if Ontology that at least one of apiOntologyTerms is assigned to doesn't exist -
-     *                                   the user needs to explicitly create the new ontology first
      */
     @Transactional
-    public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) throws ResourceNotFoundException {
-        try {
-            for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
-                OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
-                if (ontologyTerm == null) {
-                    ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
-                } else {
-                    ontologyTerm.setAccession(apiOntologyTerm.getAccession());
-                    ontologyTerm.setDescription(apiOntologyTerm.getDescription());
-                    Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
-                    ontologyTerm.setOntology(ontology);
-                    ontologyTerm.setTerm(apiOntologyTerm.getTerm());
-                }
-                ontologyTermDAO.save(ontologyTerm);
+    public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) {
+        for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
+            OntologyTerm ontologyTerm = null;
+            try {
+                ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
+            } catch (DAOException e) {
+                // do nothing - valid situation
             }
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+
+            if (ontologyTerm == null) {
+                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
+            } else {
+                ontologyTerm.setAccession(apiOntologyTerm.getAccession());
+                ontologyTerm.setDescription(apiOntologyTerm.getDescription());
+                Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
+                ontologyTerm.setOntology(ontology);
+                ontologyTerm.setTerm(apiOntologyTerm.getTerm());
+            }
+            ontologyTermDAO.save(ontologyTerm);
         }
     }
 
@@ -483,23 +483,17 @@ public class CurationService {
      * @param apiOntologyTerm
      * @return existing OntologyTerm corresponding to apiOntologyTerm.getAccession(); otherwise a new OntologyTerm
      *         corresponding to apiOntologyTerm
-     * @throws ResourceNotFoundException if Ontology that apiOntologyTerm is assigned to doesn't exist - the user needs
-     *                                   to explicitly create the new ontology first
      */
-    private OntologyTerm getOrCreateOntologyTerm(@Nonnull ApiOntologyTerm apiOntologyTerm)
-            throws ResourceNotFoundException {
-        try {
-            // N.B. user needs to create a new ontology first before assigning ontology terms to it
-            Ontology ontology = ontologyDAO.getByName(apiOntologyTerm.getOntology().getName());
+    private OntologyTerm getOrCreateOntologyTerm(@Nonnull ApiOntologyTerm apiOntologyTerm) {
 
-            return atlasDAO.getOrCreateOntologyTerm(
-                    apiOntologyTerm.getAccession(),
-                    apiOntologyTerm.getTerm(),
-                    apiOntologyTerm.getDescription(),
-                    ontology);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
-        }
+        Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
+
+        return atlasDAO.getOrCreateOntologyTerm(
+                apiOntologyTerm.getAccession(),
+                apiOntologyTerm.getTerm(),
+                apiOntologyTerm.getDescription(),
+                ontology);
+
     }
 
 

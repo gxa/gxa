@@ -194,7 +194,7 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void putOntologyTerms(@RequestBody final ApiOntologyTerm[] apiOntologyTerms,
-                                 HttpServletResponse response) throws ResourceNotFoundException {
+                                 HttpServletResponse response) {
         curationService.putOntologyTerms(apiOntologyTerms);
 
     }
