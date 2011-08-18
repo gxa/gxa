@@ -103,7 +103,7 @@ public class AtlasDAO {
         ArrayDesign result;
         if (element == null || element.isExpired() || element.getObjectValue() == null) {
             result = arrayDesignDAO.getArrayDesignByAccession(accession);
-            cache.putIfAbsent(new Element(accession, result));
+            cache.put(new Element(accession, result));
         } else {
             result = ArrayDesign.class.cast(element.getObjectValue());
         }
