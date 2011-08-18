@@ -15,6 +15,10 @@ public class PropertyDAO extends AbstractDAO<Property> {
     public void delete(Property property, PropertyValue propertyValue) {
         property.deleteValue(propertyValue);
         save(property);
+        // Clear hibernate session cache to force a re-load of assays/samples from the database. When a propertyValue is removed via hibernate,
+        // foreign key constraints' 'ON DELETE CASCADES' in Oracle remove the corresponding Assay/SampleProperties. Since this is invisible to
+        // hibernate, it does not refresh these objects in its session (L1) cache - hence the need to explicitly clear the cache.
+        template.getSessionFactory().getCurrentSession().clear();
     }
 
     @Override
