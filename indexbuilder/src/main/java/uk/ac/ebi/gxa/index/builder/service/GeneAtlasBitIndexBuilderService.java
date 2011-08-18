@@ -160,14 +160,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 for (int j = 0; j < uVals.size(); j++) {
                     final String[] arr = uVals.get(j).split(NetCDFProxy.NCDF_PROP_VAL_SEP_REGEX, -1);
 
-                    if(arr.length != 2 || "".equals(arr[1]) || "(empty)".equals(arr[1]))
+                    if (arr.length != 2 || "".equals(arr[1]) || "(empty)".equals(arr[1]))
                         continue;
 
                     final String ef = internedCopy(stringPool, arr[0]);
                     final String efv = internedCopy(stringPool, arr[1]);
 
                     // TODO - only indexing EFVs
-                    if(!factorNames.contains(ef))
+                    if (!factorNames.contains(ef))
                         continue;
 
                     final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(ef, efv, null));
