@@ -101,12 +101,13 @@ public class AtlasDAO {
         Element element = cache.get(accession);
 
         ArrayDesign result;
-        if (element == null || element.isExpired() || element.getObjectValue() == null) {
+        if (element == null || element.isExpired() ||
+                element.getObjectValue() == null ||
+                !ArrayDesign.class.isInstance(element.getObjectValue())) {
             result = arrayDesignDAO.getArrayDesignByAccession(accession);
             cache.putIfAbsent(new Element(accession, result));
         } else {
-            @SuppressWarnings("unchecked")
-                    result = (ArrayDesign) element.getObjectValue();
+            result = ArrayDesign.class.cast(element.getObjectValue());
         }
         return result;
     }
