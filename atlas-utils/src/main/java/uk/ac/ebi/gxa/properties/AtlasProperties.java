@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.LazyKeylessMap;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
@@ -54,6 +55,7 @@ public class AtlasProperties {
 
     private final List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
     private final List<VetoableChangeListener> vetoableChangeListeners = new ArrayList<VetoableChangeListener>();
+    @GuardedBy("this")
     private final Map<String, String> cache = new HashMap<String, String>();
 
     /**
