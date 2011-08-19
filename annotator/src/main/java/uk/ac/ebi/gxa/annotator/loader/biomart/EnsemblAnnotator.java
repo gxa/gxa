@@ -76,7 +76,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
                     reportProgress("Reading property " + bioMartProperty.getBioEntityProperty().getName() + " (" + bioMartProperty.getName() + ") for " + targetOrganism.getName());
-                    csvReader = new CSVReader(getReader(url, annSrc.getDatasetName(), bioMartProperty.getName()), '\t', '"');
+                    csvReader = new CSVReader(getReader(url), '\t', '"');
                     readProperty(csvReader, bioMartProperty.getBioEntityProperty(), attributesHandler);
                     csvReader.close();
                 }
@@ -124,7 +124,7 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
                     reportProgress("Reading design elements for " + bioMartArrayDesign.getArrayDesign().getAccession() + " (" + bioMartArrayDesign.getName() + ") for " + targetOrganism.getName());
-                    csvReader = new CSVReader(getReader(url, annSrc.getDatasetName(), bioMartArrayDesign.getName()), '\t', '"');
+                    csvReader = new CSVReader(getReader(url), '\t', '"');
 
                     log.debug("Parsing property " + bioMartArrayDesign.getName());
                     long startTime = System.currentTimeMillis();
@@ -279,10 +279,11 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
     }
 
     private File getFile(String organismName, String propertyName) {
-        return new File(organismName, propertyName);
+        //ToDo: create file in temp directory
+        return new File(organismName + "_" + annotationSource.getSoftware().getVersion(), propertyName);
     }
 
-    private Reader getReader(URL url, String organismName, String propertyName) throws IOException {
+    private Reader getFileReader(URL url, String organismName, String propertyName) throws IOException {
         log.debug("Connecting to biomart site...\n" + propertyName);
         long startTime = System.currentTimeMillis();
 
@@ -295,6 +296,10 @@ public class EnsemblAnnotator extends AtlasBioentityAnnotator {
 
 
         return new FileReader(file);
+    }
+
+    private Reader getReader(URL url) throws IOException {
+        return new InputStreamReader(url.openStream());
     }
 
     private static class BETypeMartAttributesHandler {

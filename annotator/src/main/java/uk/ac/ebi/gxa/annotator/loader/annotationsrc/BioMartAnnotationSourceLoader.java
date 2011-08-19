@@ -207,9 +207,10 @@ public class BioMartAnnotationSourceLoader {
 
             if (propName.startsWith(arrayDesign_propName)) {
                 ArrayDesign arrayDesign = annSrcDAO.getArrayDesignShallowByAccession(propName.substring(arrayDesign_propName.length() + 1));
-                StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
-                while (tokenizer.hasMoreElements()) {
-                    bioMartArrayDesigns.add(new BioMartArrayDesign(null, tokenizer.nextToken().trim(), arrayDesign, annotationSource));
+                if (arrayDesign != null) {
+                    bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
+                } else {
+                    //ToDo: Create new array design
                 }
             }
         }
