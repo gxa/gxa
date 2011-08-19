@@ -1909,7 +1909,7 @@
                 }
             }
             var s = url.split("?");
-            return  s[0] + "?" + (s.length > 1 ? s[1] + "&" : "") + paramString.join("&");
+            return  s[0] + "?" + (s.length > 1 ? s[1] : "") + (paramString.length > 0 ? "&" : "") + paramString.join("&");
         }
     }
 }());
