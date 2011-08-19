@@ -35,7 +35,11 @@ import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -91,7 +95,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info("Found " + total + " genes to index");
 
         final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAO.getAllDesignElementsForGene();
-        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
+//        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
 
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
@@ -118,7 +122,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                             SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
 
                             Set<String> designElements = new HashSet<String>();
-                            for (DesignElement de : allDesignElementsForGene.get(gene.getId())) {
+                            List<DesignElement> elementList = allDesignElementsForGene.get(gene.getId());
+                            for (DesignElement de : elementList) {
 // for (DesignElement de : bioEntityDAO.getDesignElementsByGeneID(gene.getId())) {
                                 designElements.add(de.getName());
                                 designElements.add(de.getAccession());
@@ -159,7 +164,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         }
 
         bioEntities.clear();
-        allDesignElementsForGene.clear();
 
         try {
             List<Future<Boolean>> results = executor.invokeAll(tasks);
@@ -173,6 +177,8 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
             getLog().error("Indexing interrupted!", e);
         } catch (ExecutionException e) {
             throw new IndexBuilderException("Error in indexing!", e.getCause());
+        } finally {
+            allDesignElementsForGene.clear();
         }
     }
 
