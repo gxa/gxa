@@ -29,5 +29,7 @@ public class FloatFormatterTest {
         assertEquals("-2.75E-6", FloatFormatter.formatFloat(-2.748345E-6F, 3));
         assertEquals("0.0", FloatFormatter.formatFloat(2.748345E-11F, 3));
         assertEquals("0.0", FloatFormatter.formatFloat(-2.748345E-11F, 3));
+        assertEquals("69.1", FloatFormatter.formatFloat(69.12F, 3));
+        assertEquals("86.6", FloatFormatter.formatFloat(86.6F, 3));
     }
 }
