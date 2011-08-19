@@ -698,7 +698,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         result.setConditions(conditions);
 
-        if (!qstate.isEmpty()) {
+        //TODO Ticket #3069 Solr querying code should be refactored; classes QueryState, SolrQueryBuilder only interfere
+        if (!qstate.isEmpty() || !genesByConditions.isEmpty()) {
 
             // scoringEfos is used for deciding if an efo term in heatmap header should be made expandable
             Set<String> scoringEfos = atlasStatisticsQueryService.getScoringEfosForBioEntities(new HashSet<Integer>(genesByConditions), statsQuery.getStatisticsType());
@@ -709,6 +710,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 controlCache();
 
                 SolrQuery q = setupSolrQuery(query.getRowsPerPage(), qstate);
+                if (qstate.isEmpty()) {
+                    q.setQuery("*:*");
+                }
                 q.addFilterQuery("id:(" + on(" ").join(genesByConditions) + ")");
                 long timeStart = System.currentTimeMillis();
 
