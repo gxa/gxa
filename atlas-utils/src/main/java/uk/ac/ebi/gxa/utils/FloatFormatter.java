@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.utils;
 
+import java.math.BigDecimal;
+
 import static java.lang.Math.*;
 
 public final class FloatFormatter {
@@ -55,7 +57,9 @@ public final class FloatFormatter {
             return 0;
 
         int order = (int) ceil(log10(abs(value)));
-        final double precision = pow(10.0, order - significantDigits);
-        return round(value / precision) * precision;
+        return (new BigDecimal(value))
+                .scaleByPowerOfTen(-order)
+                .setScale(significantDigits, BigDecimal.ROUND_HALF_UP)
+                .scaleByPowerOfTen(order).doubleValue();
     }
 }
