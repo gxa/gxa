@@ -64,6 +64,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Predicates.alwaysFalse;
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
@@ -252,11 +253,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     ) throws IOException {
 
         List<Long> geneIds = findGeneIds(gid);
+        boolean noGenesFound = !isNullOrEmpty(gid) && geneIds.isEmpty();
 
         final Predicate<NetCDFProxy> ncdfPredicate;
-        if (!isNullOrEmpty(adAcc)) {
+        if (noGenesFound) {
+            ncdfPredicate = alwaysFalse();
+        } else if (!isNullOrEmpty(adAcc)) {
             ncdfPredicate = hasArrayDesign(adAcc);
-        } else if (!isNullOrEmpty(gid)) {
+        } else if (!geneIds.isEmpty()) {
             ncdfPredicate = containsAtLeastOneGene(geneIds);
         } else {
             ncdfPredicate = alwaysTrue();
