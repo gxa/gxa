@@ -391,7 +391,7 @@ $(document).ready(function() {
                     <td class="geneAnnotHeader">Search EB-eye</td>
                     <td align="left">
                         <a title="Show gene annotation" target="_blank"
-                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=${atlasGene.geneIdentifier}">
+                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=${atlasGene.geneIdentifier}&requestFrom=ebi_index&submit=+FIND+">
                             ${atlasGene.geneIdentifier}
                         </a>
                     </td>
