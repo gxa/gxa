@@ -86,7 +86,7 @@ public class TestAnnotationSourceDAO extends AtlasDAOTestCase {
 
 
         BioEntityType type2 = bioEntityDAO.findOrCreateBioEntityType("enstranscript");
-        annotationSource.addBioentityType(type2);
+        annotationSource.addBioEntityType(type2);
         
         org.hibernate.Session session = SessionFactoryUtils.getSession(sessionFactory, true);
         Transaction transaction = session.getTransaction();

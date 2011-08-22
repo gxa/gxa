@@ -461,6 +461,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ANNOTATIONSRC_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ");
         runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ");

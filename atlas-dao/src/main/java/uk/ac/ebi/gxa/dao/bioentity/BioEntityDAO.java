@@ -144,7 +144,7 @@ public class BioEntityDAO {
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
-    public void writeBioentities(final Collection<BioEntity> bioEntities) {
+    public void writeBioEntities(final Collection<BioEntity> bioEntities) {
         String query = "merge into a2_bioentity p\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
@@ -183,9 +183,9 @@ public class BioEntityDAO {
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setString(1, list.get(i).getValue());
-                ps.setLong(2, list.get(i).getProperty().getBioentitypropertyid());
+                ps.setLong(2, list.get(i).getProperty().getBioEntitypropertyId());
                 ps.setString(3, list.get(i).getValue());
-                ps.setLong(4, list.get(i).getProperty().getBioentitypropertyid());
+                ps.setLong(4, list.get(i).getProperty().getBioEntitypropertyId());
             }
         };
 
@@ -221,7 +221,7 @@ public class BioEntityDAO {
                 ps.setString(1, list.get(i).get(0));
                 ps.setLong(2, beType.getId());
                 ps.setString(3, list.get(i).get(2));
-                ps.setLong(4, getBioEntityPropertyByName(list.get(i).get(1)).getBioentitypropertyid());
+                ps.setLong(4, getBioEntityPropertyByName(list.get(i).get(1)).getBioEntitypropertyId());
                 ps.setLong(5, softwareId);
             }
 
@@ -236,7 +236,7 @@ public class BioEntityDAO {
      *                  [1] - transcript
      * @param software
      */
-    public void writeGeneToBioentityRelations(final Set<List<BioEntity>> relations,
+    public void writeGeneToBioEntityRelations(final Set<List<BioEntity>> relations,
                                               final Software software) {
 
         String query = "INSERT INTO a2_bioentity2bioentity "
@@ -321,7 +321,7 @@ public class BioEntityDAO {
 
     }
 
-    public void writeDesignElementBioentityMappings(final Collection<List<String>> deToBeMappings, final BioEntityType beType,
+    public void writeDesignElementBioEntityMappings(final Collection<List<String>> deToBeMappings, final BioEntityType beType,
                                                     final Software software,
                                                     final ArrayDesign arrayDesign) {
 

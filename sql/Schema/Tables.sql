@@ -1817,7 +1817,7 @@ end if;
 END;
 /
 
--- Link table AnnotationSource to Bioentity type
+-- Link table AnnotationSource to BioEntity type
 CREATE TABLE A2_ANNSRC_BIOENTITYTYPE(
   annotationsrcid NUMBER(22,0) CONSTRAINT NN_ANNSRCBET_ANNSRCID NOT NULL
   , BIOENTITYTYPEID NUMBER(22,0) CONSTRAINT NN_ANNSRCBET_BETID NOT NULL

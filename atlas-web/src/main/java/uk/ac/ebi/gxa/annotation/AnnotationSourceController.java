@@ -4,7 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationLoaderException;
 import uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
@@ -22,13 +22,13 @@ import java.util.Set;
  * Date: 21/06/2011
  */
 public class AnnotationSourceController {
-    // logging
+
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
     private BioMartAnnotationSourceLoader loader;
 
-    public AnnotationSourceController(AnnotationSourceDAO annotationSourceDAO) {
-        loader = new BioMartAnnotationSourceLoader(annotationSourceDAO);
+    public AnnotationSourceController() {
     }
 
     public Collection<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
@@ -85,7 +85,7 @@ public class AnnotationSourceController {
             return annSrc.getOrganism().getName();
         }
 
-        public String getBioentityTypes() {
+        public String getBioEntityTypes() {
             StringBuilder sb = new StringBuilder();
             int count = 1;
             for (BioEntityType type : annSrc.getTypes()) {

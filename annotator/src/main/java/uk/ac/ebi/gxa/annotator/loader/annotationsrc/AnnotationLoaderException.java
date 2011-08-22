@@ -6,14 +6,14 @@ package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
  */
 public class AnnotationLoaderException extends Exception{
     public AnnotationLoaderException(String s) {
-        super(s);    //To change body of overridden methods use File | Settings | File Templates.
+        super(s);
     }
 
     public AnnotationLoaderException(String s, Throwable throwable) {
-        super(s, throwable);    //To change body of overridden methods use File | Settings | File Templates.
+        super(s, throwable);
     }
 
     public AnnotationLoaderException(Throwable throwable) {
-        super(throwable);    //To change body of overridden methods use File | Settings | File Templates.
+        super(throwable);
     }
 }

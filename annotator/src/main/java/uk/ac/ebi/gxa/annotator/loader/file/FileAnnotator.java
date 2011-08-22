@@ -9,7 +9,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
-import uk.ac.ebi.gxa.annotator.loader.AtlasBioentityAnnotator;
+import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityAnnotator;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.FileAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -30,8 +30,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 * User: nsklyar
 * Date: 13/04/2011
 */
-public class FileAnnotator extends AtlasBioentityAnnotator {
-    // logging
+public class FileAnnotator extends AtlasBioEntityAnnotator {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
 
@@ -129,7 +128,7 @@ public class FileAnnotator extends AtlasBioentityAnnotator {
 
             log.info("Parsed " + count + " bioentities with annotations");
 
-            writeBioentitiesAndAnnotations();
+            writeBioEntitiesAndAnnotations();
 
         } catch (IOException e) {
             log.error("Problem when reading bioentity annotations file " + url);

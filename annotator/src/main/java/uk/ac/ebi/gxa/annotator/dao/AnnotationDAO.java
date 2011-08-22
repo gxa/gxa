@@ -34,8 +34,8 @@ public class AnnotationDAO {
         this.softwareDAO = softwareDAO;
     }
 
-    public void writeBioentities(Collection<BioEntity> bioEntities) {
-        bioEntityDAO.writeBioentities(bioEntities);
+    public void writeBioEntities(Collection<BioEntity> bioEntities) {
+        bioEntityDAO.writeBioEntities(bioEntities);
     }
 
     public void writePropertyValues(Collection<BEPropertyValue> propertyValues) {
@@ -46,8 +46,8 @@ public class AnnotationDAO {
         bioEntityDAO.writeBioEntityToPropertyValues(beProperties, beType, software);
     }
 
-    public void writeGeneToBioentityRelations(Set<List<BioEntity>> relations, Software software) {
-        bioEntityDAO.writeGeneToBioentityRelations(relations, software);
+    public void writeGeneToBioEntityRelations(Set<List<BioEntity>> relations, Software software) {
+        bioEntityDAO.writeGeneToBioEntityRelations(relations, software);
     }
 
     public void writeArrayDesign(ArrayDesign arrayDesign, Software software) {
@@ -58,8 +58,8 @@ public class AnnotationDAO {
         bioEntityDAO.writeDesignElements(designElements, arrayDesign);
     }
 
-    public void writeDesignElementBioentityMappings(Collection<List<String>> deToBeMappings, BioEntityType beType, Software software, ArrayDesign arrayDesign) {
-        bioEntityDAO.writeDesignElementBioentityMappings(deToBeMappings, beType, software, arrayDesign);
+    public void writeDesignElementBioEntityMappings(Collection<List<String>> deToBeMappings, BioEntityType beType, Software software, ArrayDesign arrayDesign) {
+        bioEntityDAO.writeDesignElementBioEntityMappings(deToBeMappings, beType, software, arrayDesign);
     }
 
     public AnnotationSource getAnnSrcById(long id) {

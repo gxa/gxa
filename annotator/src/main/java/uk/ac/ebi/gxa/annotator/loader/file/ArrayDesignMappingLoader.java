@@ -45,7 +45,7 @@ public class ArrayDesignMappingLoader {
 
     protected Software software;
     protected ArrayDesign arrayDesign;
-    // logging
+
     final private Logger log = LoggerFactory.getLogger(this.getClass());
     private AnnotationSourceDAO annSrcDAO;
 
@@ -146,14 +146,14 @@ public class ArrayDesignMappingLoader {
                 }
             }
 
-            final BioEntityType finalBioentityType = annSrcDAO.findOrCreateBioEntityType(bioentityType);
+            final BioEntityType finalBioEntityType = annSrcDAO.findOrCreateBioEntityType(bioentityType);
             transactionTemplate.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus transactionStatus) {
                     bioEntityDAO.writeArrayDesign(arrayDesign, software);
                     bioEntityDAO.writeDesignElements(designElements, arrayDesign);
-                    bioEntityDAO.writeBioentities(bioentities);
-                    bioEntityDAO.writeDesignElementBioentityMappings(deTobeMappings, finalBioentityType, software,
+                    bioEntityDAO.writeBioEntities(bioentities);
+                    bioEntityDAO.writeDesignElementBioEntityMappings(deTobeMappings, finalBioEntityType, software,
                             arrayDesign);
                 }
             });

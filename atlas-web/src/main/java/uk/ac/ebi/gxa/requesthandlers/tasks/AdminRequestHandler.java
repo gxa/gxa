@@ -286,7 +286,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             results.add(
                     makeMap("organismName", sourceView.getOrganismName()
                             , "id", sourceView.getAnnSrcId()
-                            , "beTypes", sourceView.getBioentityTypes()
+                            , "beTypes", sourceView.getBioEntityTypes()
                             , "currName", sourceView.getSoftware()
                             , "validation", sourceView.getValidationMessage()
                             , "applied", sourceView.getApplied()

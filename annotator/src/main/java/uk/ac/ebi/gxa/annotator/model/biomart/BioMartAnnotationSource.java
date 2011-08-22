@@ -194,7 +194,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
             result.addBioMartProperty(bioMartProperty.getName(), bioMartProperty.getBioEntityProperty());
         }
         for (BioEntityType type : types) {
-            result.addBioentityType(type);
+            result.addBioEntityType(type);
         }
 //        result.bioMartProperties = new HashSet<BioMartProperty>(this.bioMartProperties);
         result.setDatabaseName(this.databaseName);

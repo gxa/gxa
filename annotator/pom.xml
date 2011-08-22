@@ -12,7 +12,7 @@
     <version>2.0.9-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>annotator</name>
+    <name>Gene Expression Atlas Annotator</name>
     <url>http://maven.apache.org</url>
 
     <properties>

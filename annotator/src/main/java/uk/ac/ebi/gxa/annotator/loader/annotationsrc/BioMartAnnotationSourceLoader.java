@@ -6,6 +6,9 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
@@ -33,29 +36,31 @@ import java.util.StringTokenizer;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.io.Closeables.closeQuietly;
 
+@Service
 public class BioMartAnnotationSourceLoader {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private static final String organism_propName = "organism";
-    private static final String software_name_propName = "software.name";
-    private static final String software_version_propName = "software.version";
-    private static final String types_propName = "types";
-    private static final String url_propName = "url";
-    private static final String mySqlDbName_propName = "mySqlDbName";
-    private static final String mySqlDbUrl_propName = "mySqlDbUrl";
-    private static final String datasetName_propName = "datasetName";
-    private static final String databaseName_propName = "databaseName";
-    private static final String biomartProperty_propName = "biomartProperty";
-    private static final String arrayDesign_propName = "arrayDesign";
+    private static final String ORGANISM_PROPNAME = "organism";
+    private static final String SOFTWARE_NAME_PROPNAME = "software.name";
+    private static final String SOFTWARE_VERSION_PROPNAME = "software.version";
+    private static final String TYPES_PROPNAME = "types";
+    private static final String URL_PROPNAME = "url";
+    private static final String MYSQLDBNAME_PROPNAME = "mySqlDbName";
+    private static final String MYSQLDBURL_PROPNAME = "mySqlDbUrl";
+    private static final String DATASET_NAME_PROPNAME = "datasetName";
+    private static final String DATABASE_NAME_PROPNAME = "databaseName";
+    private static final String BIOMARTPROPERTY_PROPNAME = "biomartProperty";
+    private static final String ARRAYDESIGN_PROPNAME = "arrayDesign";
 
+    @Autowired
     private AnnotationSourceDAO annSrcDAO;
 
-    public BioMartAnnotationSourceLoader(AnnotationSourceDAO annSrcDAO) {
+    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
     }
 
-     public String getAnnSrcAsStringById(String id) {
+    public String getAnnSrcAsStringById(String id) {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
         Writer writer = new CharArrayWriter();
@@ -63,7 +68,7 @@ public class BioMartAnnotationSourceLoader {
         return writer.toString();
     }
 
-//    @Transactional
+    @Transactional
     public void saveAnnSrc(String text) throws AnnotationLoaderException {
         Reader reader = new StringReader(text);
 
@@ -74,13 +79,14 @@ public class BioMartAnnotationSourceLoader {
             annSrcDAO.finishSession();
 
     }
-    public BioMartAnnotationSource readSource(Reader input) throws AnnotationLoaderException {
+
+    protected BioMartAnnotationSource readSource(Reader input) throws AnnotationLoaderException {
         Properties properties = new Properties();
         BioMartAnnotationSource annotationSource = null;
         try {
             properties.load(input);
-            Organism organism = annSrcDAO.findOrCreateOrganism(getProperty(organism_propName, properties));
-            Software software = annSrcDAO.findOrCreateSoftware(getProperty(software_name_propName, properties), getProperty(software_version_propName, properties));
+            Organism organism = annSrcDAO.findOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
+            Software software = annSrcDAO.findOrCreateSoftware(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
             annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
             if (annotationSource == null) {
@@ -89,11 +95,11 @@ public class BioMartAnnotationSourceLoader {
 
             updateTypes(properties, annotationSource);
 
-            annotationSource.setUrl(getProperty(url_propName, properties));
-            annotationSource.setDatabaseName(getProperty(databaseName_propName, properties));
-            annotationSource.setDatasetName(getProperty(datasetName_propName, properties));
-            annotationSource.setMySqlDbName(getProperty(mySqlDbName_propName, properties));
-            annotationSource.setMySqlDbUrl(getProperty(mySqlDbUrl_propName, properties));
+            annotationSource.setUrl(getProperty(URL_PROPNAME, properties));
+            annotationSource.setDatabaseName(getProperty(DATABASE_NAME_PROPNAME, properties));
+            annotationSource.setDatasetName(getProperty(DATASET_NAME_PROPNAME, properties));
+            annotationSource.setMySqlDbName(getProperty(MYSQLDBNAME_PROPNAME, properties));
+            annotationSource.setMySqlDbUrl(getProperty(MYSQLDBURL_PROPNAME, properties));
 
             updateBioMartProperties(properties, annotationSource);
 
@@ -106,18 +112,18 @@ public class BioMartAnnotationSourceLoader {
         return annotationSource;
     }
 
-    private void writeSource(BioMartAnnotationSource annSrc, Writer out) {
+    protected void writeSource(BioMartAnnotationSource annSrc, Writer out) {
         PropertiesConfiguration properties = new PropertiesConfiguration();
-        properties.addProperty(organism_propName, annSrc.getOrganism().getName());
-        properties.addProperty(software_name_propName, annSrc.getSoftware().getName());
-        properties.addProperty(software_version_propName, annSrc.getSoftware().getVersion());
-        properties.addProperty(url_propName, annSrc.getUrl());
-        properties.addProperty(databaseName_propName, annSrc.getDatabaseName());
-        properties.addProperty(datasetName_propName, annSrc.getDatasetName());
-        properties.addProperty(mySqlDbName_propName, annSrc.getMySqlDbName());
-        properties.addProperty(mySqlDbUrl_propName, annSrc.getMySqlDbUrl());
+        properties.addProperty(ORGANISM_PROPNAME, annSrc.getOrganism().getName());
+        properties.addProperty(SOFTWARE_NAME_PROPNAME, annSrc.getSoftware().getName());
+        properties.addProperty(SOFTWARE_VERSION_PROPNAME, annSrc.getSoftware().getVersion());
+        properties.addProperty(URL_PROPNAME, annSrc.getUrl());
+        properties.addProperty(DATABASE_NAME_PROPNAME, annSrc.getDatabaseName());
+        properties.addProperty(DATASET_NAME_PROPNAME, annSrc.getDatasetName());
+        properties.addProperty(MYSQLDBNAME_PROPNAME, annSrc.getMySqlDbName());
+        properties.addProperty(MYSQLDBURL_PROPNAME, annSrc.getMySqlDbUrl());
 
-        //Write beioentity types
+        //Write bioentity types
         StringBuffer types = new StringBuffer();
         int count = 1;
         for (BioEntityType type : annSrc.getTypes()) {
@@ -126,7 +132,7 @@ public class BioMartAnnotationSourceLoader {
                 types.append(",");
             }
         }
-        properties.addProperty(types_propName, types.toString());
+        properties.addProperty(TYPES_PROPNAME, types.toString());
 
         writeBioMartProperties(annSrc, properties);
 
@@ -180,8 +186,8 @@ public class BioMartAnnotationSourceLoader {
         Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
         for (String propName : properties.stringPropertyNames()) {
 
-            if (propName.startsWith(biomartProperty_propName)) {
-                BioEntityProperty beProperty = annSrcDAO.findOrCreateBEProperty(propName.substring(biomartProperty_propName.length() + 1));
+            if (propName.startsWith(BIOMARTPROPERTY_PROPNAME)) {
+                BioEntityProperty beProperty = annSrcDAO.findOrCreateBEProperty(propName.substring(BIOMARTPROPERTY_PROPNAME.length() + 1));
                 StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
                 while (tokenizer.hasMoreElements()) {
                     bioMartProperties.add(new BioMartProperty(tokenizer.nextToken().trim(), beProperty, annotationSource));
@@ -205,8 +211,8 @@ public class BioMartAnnotationSourceLoader {
         Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
         for (String propName : properties.stringPropertyNames()) {
 
-            if (propName.startsWith(arrayDesign_propName)) {
-                ArrayDesign arrayDesign = annSrcDAO.getArrayDesignShallowByAccession(propName.substring(arrayDesign_propName.length() + 1));
+            if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
+                ArrayDesign arrayDesign = annSrcDAO.getArrayDesignShallowByAccession(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
                 if (arrayDesign != null) {
                     bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
                 } else {
@@ -228,7 +234,7 @@ public class BioMartAnnotationSourceLoader {
     }
 
     private void updateTypes(Properties properties, BioMartAnnotationSource annotationSource) throws AnnotationLoaderException {
-        String typesString = getProperty(types_propName, properties);
+        String typesString = getProperty(TYPES_PROPNAME, properties);
         Set<BioEntityType> newTypes = new HashSet<BioEntityType>();
 
         StringTokenizer tokenizer = new StringTokenizer(typesString, ",");
@@ -238,12 +244,12 @@ public class BioMartAnnotationSourceLoader {
 
         Set<BioEntityType> removedTypes = new HashSet<BioEntityType>(difference(annotationSource.getTypes(), newTypes));
         for (BioEntityType removedType : removedTypes) {
-            annotationSource.removeBioentityType(removedType);
+            annotationSource.removeBioEntityType(removedType);
         }
 
         Set<BioEntityType> addedTypes = new HashSet<BioEntityType>(difference(newTypes, annotationSource.getTypes()));
         for (BioEntityType addedType : addedTypes) {
-            annotationSource.addBioentityType(addedType);
+            annotationSource.addBioEntityType(addedType);
         }
     }
 
@@ -253,7 +259,7 @@ public class BioMartAnnotationSourceLoader {
             bePropToBmProp.put(bioMartProperty.getBioEntityProperty().getName(), bioMartProperty.getName());
         }
 
-        addCommaSeparatedProperties(biomartProperty_propName, properties, bePropToBmProp);
+        addCommaSeparatedProperties(BIOMARTPROPERTY_PROPNAME, properties, bePropToBmProp);
 
     }
 
@@ -264,7 +270,7 @@ public class BioMartAnnotationSourceLoader {
             bePropToBmProp.put(bioMartArrayDesign.getArrayDesign().getAccession(), bioMartArrayDesign.getName());
         }
 
-        addCommaSeparatedProperties(arrayDesign_propName, properties, bePropToBmProp);
+        addCommaSeparatedProperties(ARRAYDESIGN_PROPNAME, properties, bePropToBmProp);
     }
 
     private void addCommaSeparatedProperties(String propNamePrefix, PropertiesConfiguration properties, Multimap<String, String> bePropToBmProp) {
@@ -291,34 +297,5 @@ public class BioMartAnnotationSourceLoader {
         }
         return property;
     }
-
-
-    private static final String input = "organism=gallus gallus\n" +
-            "software.name=Ensembl\n" +
-            "software.version=63\n" +
-            "types=ensgene,enstranscript\n" +
-            "url=http://www.ensembl.org/biomart/martservice?\n" +
-            "datasetName=ggallus_gene_ensembl\n" +
-            "databaseName=ensembl\n" +
-            "biomartProperty.ensgene=ensembl_gene_id\n" +
-            "biomartProperty.enstranscript=ensembl_transcript_id\n" +
-            "biomartProperty.ensprotein=ensembl_peptide_id\n" +
-            "biomartProperty.description=description\n" +
-            "biomartProperty.symbol=external_gene_id\n" +
-            "biomartProperty.goterm=name_1006\n" +
-            "biomartProperty.go=go_id\n" +
-            "biomartProperty.interpro=interpro\n" +
-            "biomartProperty.interproterm=interpro_short_description\n" +
-            "biomartProperty.hgnc_symbol=hgnc_symbol\n" +
-            "biomartProperty.uniprot=uniprot_sptrembl, uniprot_swissprot_accession\n" +
-            "biomartProperty.unigene=unigene\n" +
-            "biomartProperty.refseq=refseq_dna, refseq_peptide\n" +
-            "biomartProperty.embl=embl\n" +
-            "biomartProperty.ensfamily_description=family_description\n" +
-            "biomartProperty.ortholog=cow_ensembl_gene, ciona_intestinalis_ensembl_gene, zebrafish_ensembl_gene, drosophila_ensembl_gene, human_ensembl_gene, mouse_ensembl_gene, rat_ensembl_gene, yeast_ensembl_gene, xenopus_ensembl_gene\n" +
-            "biomartProperty.entrezgene=entrezgene\n" +
-            "biomartProperty.ensfamily=family\n" +
-            "biomartProperty.mirbase_id=mirbase_id\n" +
-            "biomartProperty.mirbase_accession=mirbase_accession";
 }
 

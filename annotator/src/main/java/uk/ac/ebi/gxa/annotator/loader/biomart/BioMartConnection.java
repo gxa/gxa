@@ -24,7 +24,6 @@ import static com.google.common.io.Closeables.closeQuietly;
  * Date: 14/04/2011
  */
 public class BioMartConnection {
-    // logging
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final String MART_NAME_PH = "$MART_NAME";

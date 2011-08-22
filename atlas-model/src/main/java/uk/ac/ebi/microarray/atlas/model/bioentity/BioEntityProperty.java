@@ -19,19 +19,19 @@ public class BioEntityProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bePropSeq")
     @SequenceGenerator(name = "bePropSeq", sequenceName = "A2_BIOENTITYPROPERTY_SEQ")
-    private Long bioentitypropertyid;
+    private Long bioEntitypropertyId;
     private String name;
 
     BioEntityProperty() {
     }
 
-    public BioEntityProperty(Long bioentitypropertyid, String name) {
-        this.bioentitypropertyid = bioentitypropertyid;
+    public BioEntityProperty(Long bioEntitypropertyId, String name) {
+        this.bioEntitypropertyId = bioEntitypropertyId;
         this.name = name;
     }
 
-    public Long getBioentitypropertyid() {
-        return bioentitypropertyid;
+    public Long getBioEntitypropertyId() {
+        return bioEntitypropertyId;
     }
 
     public String getName() {

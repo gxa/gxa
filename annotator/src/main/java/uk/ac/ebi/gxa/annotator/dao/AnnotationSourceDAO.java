@@ -29,7 +29,6 @@ import java.util.List;
  */
 public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
-    private SessionFactory sessionFactory;
     private JdbcTemplate atlasJdbcTemplate;
 
     @Autowired
@@ -46,7 +45,6 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     public AnnotationSourceDAO(SessionFactory sessionFactory, JdbcTemplate atlasJdbcTemplate) {
         super(sessionFactory, AnnotationSource.class);
 
-        this.sessionFactory = sessionFactory;
         this.atlasJdbcTemplate = atlasJdbcTemplate;
     }
 
@@ -59,7 +57,6 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
     public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
         List<T> result = template.find("from " + type.getSimpleName());
-//        List<T> result = template.find("from " + type.getSimpleName() + " where software.isActive = ?", true);
         return result;
     }
 
@@ -85,10 +82,13 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public Organism findOrCreateOrganism(String organismName) {
+        //ToDo: Urgent: create a single session factory
+        organismDAO = new OrganismDAO(template.getSessionFactory());
         Organism organism = organismDAO.getByName(organismName);
         if (organism == null) {
             organism = new Organism(null, organismName);
             organismDAO.save(organism);
+            template.flush();
         }
         return organism;
     }
@@ -116,12 +116,13 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public void startSession() {
+        SessionFactory sessionFactory = template.getSessionFactory();
         SessionFactoryUtils.initDeferredClose(sessionFactory);
         sessionFactory.getCurrentSession().setFlushMode(FlushMode.COMMIT);
     }
 
     public void finishSession() {
-        SessionFactoryUtils.processDeferredClose(sessionFactory);
+        SessionFactoryUtils.processDeferredClose(template.getSessionFactory());
     }
 
 }

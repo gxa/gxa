@@ -34,13 +34,7 @@ public interface AtlasLoaderCommandVisitor {
 
     void process(UpdateNetCDFForExperimentCommand cmd) throws AtlasLoaderException;
 
-//    void process(LoadBioentityCommand cmd) throws AtlasLoaderException;
-
-//    void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException;
-
     void process(MakeExperimentPrivateCommand cmd) throws AtlasLoaderException;
 
     void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException;
-    
-//    void process(BioMartUpdateCommand cmd) throws AtlasLoaderException;
 }

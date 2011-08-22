@@ -76,11 +76,11 @@ public abstract class AnnotationSource implements Serializable{
         return Collections.unmodifiableSet(types);
     }
 
-    public void addBioentityType(BioEntityType type) {
+    public void addBioEntityType(BioEntityType type) {
         types.add(type);
     }
 
-    public boolean removeBioentityType(BioEntityType type) {
+    public boolean removeBioEntityType(BioEntityType type) {
        return types.remove(type);
     }
 

@@ -22,7 +22,6 @@ public class DefaultAnnotationLoader implements AnnotationLoader {
     private AnnotatorFactory annotatorFactory;
     private ExecutorService executor;
 
-    // logging
     private final Logger log = LoggerFactory.getLogger(DefaultAnnotationLoader.class);
 
     public DefaultAnnotationLoader(AnnotatorFactory annotatorFactory, ExecutorService executor) {
@@ -47,11 +46,12 @@ public class DefaultAnnotationLoader implements AnnotationLoader {
                 public void run() {
                     boolean success = true;
                     Throwable observedError = null;
-
                     try {
                         task.get();
                     } catch (InterruptedException e) {
                         log.error("Interrupted", e);
+                        observedError = e;
+                        success = false;
                     } catch (ExecutionException e) {
                         observedError = e.getCause() != null ? e.getCause() : e;
                         success = false;
