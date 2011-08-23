@@ -34,7 +34,10 @@ import javax.annotation.Nonnull;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.SortedSet;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
@@ -102,7 +105,6 @@ public class Sample {
     public String getChannel() {
         return channel;
     }
-
 
 
     public Long getSampleID() {
@@ -234,7 +236,7 @@ public class Sample {
 
     public boolean hasProperty(final PropertyValue propertyValue) {
         for (SampleProperty property : properties) {
-            if(property.getPropertyValue().equals(propertyValue))
+            if (property.getPropertyValue().equals(propertyValue))
                 return true;
         }
 
@@ -243,7 +245,7 @@ public class Sample {
 
     public SampleProperty getProperty(PropertyValue propertyValue) {
         for (SampleProperty property : properties) {
-            if(property.getPropertyValue().equals(propertyValue))
+            if (property.getPropertyValue().equals(propertyValue))
                 return property;
         }
 
@@ -251,7 +253,7 @@ public class Sample {
     }
 
     public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
-        if(!this.hasProperty(propertyValue)) {
+        if (!this.hasProperty(propertyValue)) {
             this.addProperty(propertyValue, terms);
         } else {
             SampleProperty sampleProperty = this.getProperty(propertyValue);
