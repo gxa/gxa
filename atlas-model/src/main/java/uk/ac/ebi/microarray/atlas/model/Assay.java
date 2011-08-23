@@ -160,16 +160,12 @@ public class Assay {
 
         Assay assay = (Assay) o;
 
-        if (accession != null ? !accession.equals(assay.accession) : assay.accession != null) return false;
-        return !(assayID != null ? !assayID.equals(assay.assayID) : assay.assayID != null);
-
+        return accession == null ? assay.accession == null : accession.equals(assay.accession);
     }
 
     @Override
     public int hashCode() {
-        int result = assayID != null ? assayID.hashCode() : 0;
-        result = 31 * result + (accession != null ? accession.hashCode() : 0);
-        return result;
+        return accession != null ? accession.hashCode() : 0;
     }
 
     public List<AssayProperty> getProperties() {
