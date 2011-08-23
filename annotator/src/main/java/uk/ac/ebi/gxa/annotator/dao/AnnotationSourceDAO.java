@@ -82,8 +82,6 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public Organism findOrCreateOrganism(String organismName) {
-        //ToDo: Urgent: create a single session factory
-        organismDAO = new OrganismDAO(template.getSessionFactory());
         Organism organism = organismDAO.getByName(organismName);
         if (organism == null) {
             organism = new Organism(null, organismName);

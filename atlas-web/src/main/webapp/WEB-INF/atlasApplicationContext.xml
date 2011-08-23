@@ -33,7 +33,7 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
-    <import resource="classpath*:uk/ac/ebi/gxa/dao/hibernateContext.xml"/>
+    <import resource="classpath*:/uk/ac/ebi/gxa/web/hibernate/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
 

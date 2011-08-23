@@ -17,11 +17,11 @@
         </property>
     </bean>
 
-    <bean id="annotatorSessionFactory" parent="sessionFactory">
+    <!--<bean id="annotatorSessionFactory" parent="sessionFactory">-->
 
-        <property name="annotatedClasses" ref="annotatorHibernateClasses" />
+        <!--<property name="annotatedClasses" ref="annotatorHibernateClasses" />-->
 
-    </bean>
+    <!--</bean>-->
 
     <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
         <constructor-arg index="0" ref="bioentityAnnotationDAO"/>
@@ -36,23 +36,8 @@
     </bean>
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO">
-        <constructor-arg ref="annotatorSessionFactory"/>
+        <constructor-arg ref="sessionFactory"/>
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
-    <!--<bean id="mysqlDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">-->
-    <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
-    <!--<property name="url" value="jdbc:mysql://ensembldb.ensembl.org:5306"/>-->
-    <!--<property name="username" value="anonymous"/>-->
-    <!--<property name="password" value=""/>-->
-    <!--</bean>-->
-
-    <!--<bean name="mysqlJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">-->
-    <!--&lt;!&ndash; datasource bean, from JNDI &ndash;&gt;-->
-    <!--<property name="dataSource" ref="mysqlDataSource"/>-->
-    <!--</bean>-->
-
-    <!--<bean name="bioMartDbDAO" class="uk.ac.ebi.gxa.annotator.loader.biomart.BioMartDbDAO">-->
-    <!--<constructor-arg ref="mysqlJdbcTemplate"/>-->
-    <!--</bean>-->
 </beans>
