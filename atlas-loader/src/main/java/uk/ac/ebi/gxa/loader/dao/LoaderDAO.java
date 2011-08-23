@@ -28,14 +28,10 @@ public class LoaderDAO {
 
     public Organism getOrCreateOrganism(String name) {
         // TODO: 4alf: track newly-created values
-        Organism organism = null;
+        Organism organism;
         try {
             organism = organismDAO.getByName(name);
-        } catch (DAOException e) {
-            // do nothing - valid situation
-        }
-
-        if (organism == null) {
+        } catch (DAOException e) { // organism not found - create a new one
             organismDAO.save(organism = new Organism(null, name));
         }
         return organism;
@@ -43,23 +39,16 @@ public class LoaderDAO {
 
     public PropertyValue getOrCreateProperty(String name, String value) {
         // TODO: 4alf: track newly-created values
-        Property property = null;
+        Property property;
         try {
             property = propertyDAO.getByName(name);
-        } catch (DAOException e) {
-            // do nothing - valid situation
-        }
-        if (property == null) {
+        } catch (DAOException e) { // property not found - create a new one
             propertyDAO.save(property = new Property(null, name));
         }
-        PropertyValue propertyValue = null;
-
+        PropertyValue propertyValue;
         try {
             propertyValue = propertyValueDAO.find(property, value);
-        } catch (DAOException e) {
-            // do nothing - valid situation
-        }
-        if (propertyValue == null) {
+        } catch (DAOException e) { // property value not found - create a new one
             propertyValueDAO.save(propertyValue = new PropertyValue(null, property, value));
         }
         return propertyValue;

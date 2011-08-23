@@ -400,16 +400,14 @@ public class CurationService {
     @Transactional
     public void putOntology(@Nonnull final ApiOntology apiOntology) {
 
-        Ontology ontology = null;
+        Ontology ontology;
         try {
             ontology = atlasDAO.getOntologyByName(apiOntology.getName());
-        } catch (DAOException e) {
-            // Do nothing - valid situation
+        } catch (DAOException e) { // ontology not found - create a new one
+            ontology = getOrCreateOntology(apiOntology);
         }
 
-        if (ontology == null) {
-            ontology = getOrCreateOntology(apiOntology);
-        } else {
+        if (ontology == null) { // ontology already exists - update it
             ontology.setDescription(apiOntology.getDescription());
             ontology.setName(apiOntology.getName());
             ontology.setVersion(apiOntology.getVersion());
@@ -441,16 +439,14 @@ public class CurationService {
     @Transactional
     public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) {
         for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
-            OntologyTerm ontologyTerm = null;
+            OntologyTerm ontologyTerm;
             try {
                 ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
-            } catch (DAOException e) {
-                // do nothing - valid situation
+            } catch (DAOException e) { // ontology term not found - create a new one
+                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
             }
 
-            if (ontologyTerm == null) {
-                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
-            } else {
+            if (ontologyTerm == null) { // ontology term already exists - update it
                 ontologyTerm.setAccession(apiOntologyTerm.getAccession());
                 ontologyTerm.setDescription(apiOntologyTerm.getDescription());
                 Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());

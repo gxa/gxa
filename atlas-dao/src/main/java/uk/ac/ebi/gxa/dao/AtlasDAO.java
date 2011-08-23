@@ -168,24 +168,17 @@ public class AtlasDAO {
     public PropertyValue getOrCreatePropertyValue(final String name, final String value) {
         // TODO: 4alf: track newly-created values
 
-        Property property = null;
+        Property property;
         try {
             property = propertyDAO.getByName(name);
-        } catch (DAOException e) {
-            // Do nothing - valid situation
-        }
-
-        if (property == null) {
+        } catch (DAOException e) { // property not found - create a new one
             propertyDAO.save(property = new Property(null, name));
         }
 
-        PropertyValue propertyValue = null;
+        PropertyValue propertyValue;
         try {
             propertyValue = propertyValueDAO.find(property, value);
-        } catch (DAOException e) {
-            // Do nothing - valid situation
-        }
-        if (propertyValue == null) {
+        } catch (DAOException e) { // property value not found - create a new one
             propertyValueDAO.save(propertyValue = new PropertyValue(null, property, value));
         }
         return propertyValue;
@@ -196,15 +189,11 @@ public class AtlasDAO {
             final String ontologyDescription,
             final String ontologySourceUri,
             final String ontologyVersion) {
-        Ontology ontology = null;
+        Ontology ontology;
 
         try {
             ontology = ontologyDAO.getByName(ontologyName);
-        } catch (DAOException e) {
-            // Do nothing - valid situation
-        }
-
-        if (ontology == null) {
+        } catch (DAOException e) { // ontology not found - create a new one
             ontologyDAO.save(ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
                     ontologyVersion));
         }
@@ -217,14 +206,10 @@ public class AtlasDAO {
                                                 final String description,
                                                 final Ontology ontology) {
 
-        OntologyTerm ontologyTerm = null;
+        OntologyTerm ontologyTerm;
         try {
             ontologyTerm = ontologyTermDAO.getByName(accession);
-        } catch (DAOException e) {
-            // Do nothing - valid situation
-        }
-
-        if (ontologyTerm == null) {
+        } catch (DAOException e) { // ontology term not found - create new one
             ontologyTermDAO.save(ontologyTerm = new OntologyTerm(null, ontology, term, accession, description));
         }
 
