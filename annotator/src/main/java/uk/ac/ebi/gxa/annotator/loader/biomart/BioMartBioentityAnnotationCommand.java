@@ -8,10 +8,10 @@ import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
  * User: nsklyar
  * Date: 28/07/2011
  */
-public class BioMartBioentityAnnotationCommand extends AnnotationCommand {
+public class BioMartBioEntityAnnotationCommand extends AnnotationCommand {
     private String annSrcId;
 
-    public BioMartBioentityAnnotationCommand(String annSrcId) {
+    public BioMartBioEntityAnnotationCommand(String annSrcId) {
         this.annSrcId = annSrcId;
     }
 
