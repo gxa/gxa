@@ -14,4 +14,9 @@ public class OntologyDAO extends AbstractDAO<Ontology> {
     OntologyDAO(SessionFactory sessionFactory) {
         super(sessionFactory, Ontology.class);
     }
+
+    @Override
+    protected String getNameColumn() {
+        return "name";
+    }
 }

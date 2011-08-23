@@ -27,6 +27,11 @@ public class PropertyDAO extends AbstractDAO<Property> {
         template.flush();
     }
 
+    @Override
+    protected String getNameColumn() {
+        return "name";
+    }
+
     /**
      * @return lower case matching required in getByName() queries
      */

@@ -8,18 +8,13 @@ import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import java.util.List;
 
 abstract class AbstractDAO<T> {
-    public static final String NAME_COL = "name";
-
     final HibernateTemplate template;
     private final Class<T> clazz;
 
-
     /**
-     * @return NAME_COL used as default column in getByName() queries
+     * @return the name of column used as name for {@link #getByName} method
      */
-    protected String getNameColumn() {
-        return NAME_COL;
-    }
+    protected abstract String getNameColumn();
 
     /**
      * @return false by default - case should match as is by default in getByName() queries

@@ -25,6 +25,11 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         return getFirst(results, property + ":" + value);
     }
 
+    /**
+     * Not implemented
+     *
+     * @return nothing. Throws {@link NotImplementedException}
+     */
     @Override
     public String getNameColumn() {
         throw new NotImplementedException();
