@@ -14,7 +14,10 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static com.google.common.collect.Collections2.transform;
 
@@ -270,9 +273,7 @@ public class CurationService {
         Assay assay = findAssay(experimentAccession, assayAccession);
 
         for (ApiProperty apiAssayProperty : assayProperties) {
-            PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                    apiAssayProperty.getPropertyValue().getProperty().getName(),
-                    apiAssayProperty.getPropertyValue().getValue());
+            PropertyValue propertyValue = getOrCreatePropertyValue(apiAssayProperty.getPropertyValue());
 
             List<OntologyTerm> terms = Lists.newArrayList();
             for (ApiOntologyTerm apiOntologyTerm : apiAssayProperty.getTerms()) {
@@ -300,9 +301,7 @@ public class CurationService {
         Assay assay = findAssay(experimentAccession, assayAccession);
 
         for (ApiProperty apiProperty : assayProperties) {
-            PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                    apiProperty.getPropertyValue().getProperty().getName(),
-                    apiProperty.getPropertyValue().getValue());
+            PropertyValue propertyValue = getOrCreatePropertyValue(apiProperty.getPropertyValue());
 
             assay.deleteProperty(propertyValue);
         }
@@ -342,9 +341,7 @@ public class CurationService {
         Sample sample = findSample(experimentAccession, sampleAccession);
 
         for (ApiProperty apiSampleProperty : sampleProperties) {
-            PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                    apiSampleProperty.getPropertyValue().getProperty().getName(),
-                    apiSampleProperty.getPropertyValue().getValue());
+            PropertyValue propertyValue = getOrCreatePropertyValue(apiSampleProperty.getPropertyValue());
 
             List<OntologyTerm> terms = Lists.newArrayList();
             for (ApiOntologyTerm apiOntologyTerm : apiSampleProperty.getTerms()) {
@@ -373,9 +370,7 @@ public class CurationService {
         Sample sample = findSample(experimentAccession, sampleAccession);
 
         for (ApiProperty apiSampleProperty : sampleProperties) {
-            PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(
-                    apiSampleProperty.getPropertyValue().getProperty().getName(),
-                    apiSampleProperty.getPropertyValue().getValue());
+            PropertyValue propertyValue = getOrCreatePropertyValue(apiSampleProperty.getPropertyValue());
 
             sample.deleteProperty(propertyValue);
         }
@@ -529,5 +524,9 @@ public class CurationService {
         } catch (DAOException e) {
             throw new ResourceNotFoundException(e.getMessage(), e);
         }
+    }
+
+    private PropertyValue getOrCreatePropertyValue(ApiPropertyValue apv) {
+        return atlasDAO.getOrCreatePropertyValue(apv.getProperty().getName(), apv.getValue());
     }
 }
