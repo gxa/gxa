@@ -502,8 +502,7 @@ public class CurationService {
     private Assay findAssay(final String experimentAccession, final String assayAccession) throws ResourceNotFoundException {
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-            final Assay assay = experiment.getAssay(assayAccession);
-            return assay;
+            return experiment.getAssay(assayAccession);
         } catch (DAOException e) {
             throw new ResourceNotFoundException(e.getMessage(), e);
         }
@@ -519,8 +518,7 @@ public class CurationService {
     private Sample findSample(final String experimentAccession, final String sampleAccession) throws ResourceNotFoundException {
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-            final Sample sample = experiment.getSample(sampleAccession);
-            return sample;
+            return experiment.getSample(sampleAccession);
         } catch (DAOException e) {
             throw new ResourceNotFoundException(e.getMessage(), e);
         }
