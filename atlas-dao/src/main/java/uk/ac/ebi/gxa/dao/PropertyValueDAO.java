@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
@@ -28,11 +27,11 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     /**
      * Not implemented
      *
-     * @return nothing. Throws {@link NotImplementedException}
+     * @return nothing. Throws {@link UnsupportedOperationException}
      */
     @Override
     public String getNameColumn() {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     public void delete(PropertyValue propertyValue) {
