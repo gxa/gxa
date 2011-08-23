@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
@@ -13,7 +14,6 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     }
 
     /**
-     *
      * @param property
      * @param value
      * @return PropertyValue matching property:value
@@ -25,12 +25,9 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         return getFirst(results, property + ":" + value);
     }
 
-    /**
-     * @return This method overrides an abstract method, but is not used.
-     */
     @Override
     public String getNameColumn() {
-        return null;
+        throw new NotImplementedException();
     }
 
     public void delete(PropertyValue propertyValue) {
