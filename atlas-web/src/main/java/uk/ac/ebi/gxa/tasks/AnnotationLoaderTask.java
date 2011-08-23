@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationCommand;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartBioEntityAnnotationCommand;
+import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateBioEntityAnnotationCommand;
 import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateMappingCommand;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderEvent;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
@@ -38,7 +38,7 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
 
     private AnnotationCommand getAnnotationCommand() {
         if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
-            return new BioMartBioEntityAnnotationCommand(getTaskSpec().getAccession());
+            return new UpdateBioEntityAnnotationCommand(getTaskSpec().getAccession());
         else if (TYPE_UPDATEMAPPINGS.endsWith(getTaskSpec().getType()))
             return new UpdateMappingCommand(getTaskSpec().getAccession());
         throw new IllegalStateException();

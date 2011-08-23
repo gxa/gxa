@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.annotator.loader;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
-import uk.ac.ebi.gxa.annotator.loader.biomart.EnsemblAnnotator;
+import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotator;
 
 /**
  * User: nsklyar
@@ -19,8 +19,8 @@ public class AnnotatorFactory {
         this.transactionTemplate = new TransactionTemplate(txManager);
     }
 
-    public EnsemblAnnotator getEnsemblAnnotator() {
-        return new EnsemblAnnotator(annotationDAO, transactionTemplate);
+    public BioMartAnnotator getEnsemblAnnotator() {
+        return new BioMartAnnotator(annotationDAO, transactionTemplate);
     }
 
 }

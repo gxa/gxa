@@ -17,7 +17,7 @@ public class UpdateMappingCommand extends AnnotationCommand {
 
     @Override
     public void execute(AnnotationLoaderListener listener) throws AtlasAnnotationException {
-        EnsemblAnnotator ensemblAnnotator = factory.getEnsemblAnnotator();
-        ensemblAnnotator.updateMappings(annSrcId, listener);
+        BioMartAnnotator bioMartAnnotator = factory.getEnsemblAnnotator();
+        bioMartAnnotator.updateMappings(annSrcId, listener);
     }
 }

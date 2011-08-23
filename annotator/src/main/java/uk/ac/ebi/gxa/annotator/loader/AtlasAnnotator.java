@@ -28,7 +28,7 @@ import java.util.Set;
  * User: nsklyar
  * Date: Oct 21, 2010
  */
-public abstract class AtlasBioEntityAnnotator {
+public abstract class AtlasAnnotator {
 
     private final Set<List<BioEntity>> geneBioetityMapping = new HashSet<List<BioEntity>>();
 
@@ -51,13 +51,13 @@ public abstract class AtlasBioEntityAnnotator {
 
     protected final AnnotationDAO annotationDAO;
 
-    private static Logger log = LoggerFactory.getLogger(AtlasBioEntityAnnotator.class);
+    private static Logger log = LoggerFactory.getLogger(AtlasAnnotator.class);
 
     public void setListener(AnnotationLoaderListener listener) {
         this.listener = listener;
     }
 
-    protected AtlasBioEntityAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
+    protected AtlasAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
         this.annotationDAO = annotationDAO;
         this.transactionTemplate = transactionTemplate;
     }

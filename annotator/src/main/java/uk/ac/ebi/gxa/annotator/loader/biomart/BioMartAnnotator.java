@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
-import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityAnnotator;
+import uk.ac.ebi.gxa.annotator.loader.AtlasAnnotator;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
@@ -39,10 +39,10 @@ import static com.google.common.io.Closeables.closeQuietly;
  * nsklyar
  * Date: 11/04/2011
  */
-public class EnsemblAnnotator extends AtlasBioEntityAnnotator {
+public class BioMartAnnotator extends AtlasAnnotator {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public EnsemblAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
+    public BioMartAnnotator(AnnotationDAO annotationDAO, TransactionTemplate transactionTemplate) {
         super(annotationDAO, transactionTemplate);
     }
 
