@@ -21,11 +21,7 @@ ln -sf $ATLAS_NCDF_PATH ./ncdf
 # E-GEOD-7149	E-GEOD-7149_A-AFFY-102.nc
 # E-GEOD-7177	E-GEOD-7177_A-AFFY-44.nc
 sqlplus -S $ATLAS_CONNECTION @ncdfs-to-export.sql | \
-  awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" $2 }'  | \
-  xargs tar rvf $ATLAS_RELEASE-ncdf.tar
-
-sqlplus -S $ATLAS_CONNECTION @experiment-assets-to-export.sql | \
-  awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/assets/" $2 }'  | \
+  awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" }'  | \
   xargs tar rvf $ATLAS_RELEASE-ncdf.tar
 
 rm ncdf
