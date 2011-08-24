@@ -13,5 +13,4 @@ select distinct e.accession || chr(9) || e.accession || '_' || ad.accession || '
   join a2_assay a on a.experimentid = e.experimentid
   join a2_arraydesign ad on a.arraydesignid = ad.arraydesignid
   where e.private = 0;
-/
 exit;

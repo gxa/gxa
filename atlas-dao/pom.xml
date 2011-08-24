@@ -21,17 +21,16 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.9-SNAPSHOT</version>
+        <version>2.0.10-SNAPSHOT</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-dao</artifactId>
-    <version>2.0.9-SNAPSHOT</version>
+    <version>2.0.10-SNAPSHOT</version>
     <name>Gene Expression Atlas Database Access Layer</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -58,7 +57,7 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-model</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>

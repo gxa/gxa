@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class Ontology {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologySeq")
-    @SequenceGenerator(name = "ontologySeq", sequenceName = "A2_ONTOLOGY_SEQ")
+    @SequenceGenerator(name = "ontologySeq", sequenceName = "A2_ONTOLOGY_SEQ", allocationSize = 1)
     private Long ontologyid;
     private String name;
     @Column(name = "SOURCE_URI")

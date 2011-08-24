@@ -42,16 +42,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
-import uk.ac.ebi.microarray.atlas.model.Asset;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,7 +60,6 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 

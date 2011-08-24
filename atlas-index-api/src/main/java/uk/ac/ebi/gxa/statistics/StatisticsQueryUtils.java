@@ -3,6 +3,8 @@ package uk.ac.ebi.gxa.statistics;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.FastSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +115,7 @@ public class StatisticsQueryUtils {
                 // only once for a single experiment - across all OR attributes in this query. Once all attributes have been traversed for a single experiment,
                 // add ConciseSet to Multiset results
                 for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
-                    ConciseSet statsForExperiment = new ConciseSet();
+                    FastSet statsForExperiment = new FastSet();
                     for (EfvAttribute attr : attributes) {
                         Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
                         if (expsToStats != null) {
@@ -325,10 +327,10 @@ public class StatisticsQueryUtils {
      * @param restrictionSet
      * @return intersection of set (ConciseSet) and restrictionSet (if restrictionSet non-null & non-empty); otherwise return set
      */
-    private static ConciseSet intersect(final ConciseSet set, final Set<Integer> restrictionSet) {
+    private static ExtendedSet<Integer> intersect(final ExtendedSet<Integer> set, final Set<Integer> restrictionSet) {
         if (restrictionSet != null && !restrictionSet.isEmpty()) {
             int prevSize = set.size();
-            ConciseSet intersection = new ConciseSet(set);
+            FastSet intersection = new FastSet(set);
             intersection.retainAll(restrictionSet);
             log.debug(prevSize != 0 ? ("Size saving by retainAll = " + (((prevSize - intersection.size()) * 100) / prevSize)) + "%" : "");
             return intersection;
