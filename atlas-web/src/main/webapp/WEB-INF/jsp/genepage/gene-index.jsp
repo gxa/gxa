@@ -133,7 +133,7 @@
 
         <c:set var="url"><c:url value="/gene/index.htm"/></c:set>
         <div class="alphabetIndex">
-            <c:forTokens items="123 a b c d e f j h i j k l m n o p q r s t u v w x y z" delims=" " var="letter">
+            <c:forTokens items="123 a b c d e f g h i j k l m n o p q r s t u v w x y z" delims=" " var="letter">
                <c:set var="prefix" value="${letter == '123' ? '0' : letter}"/>
                <a ${param.prefix == prefix ? 'class="current"' : ''} href="${url}?prefix=${prefix}"
                   title ="Gene Expression Atlas Genes Starting With ${f:toUpperCase(letter)}">${f:toUpperCase(letter)}</a>

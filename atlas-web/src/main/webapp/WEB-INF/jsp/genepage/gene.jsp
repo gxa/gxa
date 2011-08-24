@@ -85,11 +85,9 @@ function drawPlot(jsonObj, plot_id) {
 
         var plotted_ef = jsonObj.options.ef;
         var tokens = plot_id.split('_');
-        var eid = tokens[0];
-        var eacc = tokens[1];
-        var gid = tokens[2];
-        var efv;
-        drawEFpagination(eid, eacc, gid, plotted_ef, efv);
+        var eacc = tokens[0];
+        var gid = tokens[1];
+        drawEFpagination(eacc, gid, plotted_ef, "");
 
         var plot = $.plot($('#' + plot_id), jsonObj.series, jsonObj.options);
 
@@ -115,39 +113,39 @@ function drawPlot(jsonObj, plot_id) {
     return null;
 }
 
-function redrawPlotForFactor(eid, eacc, gid, ef, mark, efv) {
+function redrawPlotForFactor(eacc, gid, ef, mark, efv) {
     var plot_id = eacc + "_" + gid + "_plot";
     var el = $("#" + plot_id);
     if (el) {
         atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef || el.attr("name"), efv: efv, plot: 'bar' }, function(o) {
             var plot = drawPlot(o, plot_id);
             if (mark && ef && efv) {
-                markClicked(eid, eacc, gid, ef, efv, plot, o);
+                markClicked(eacc, gid, ef, efv, plot, o);
             }
         });
     }
 }
 
-function drawEFpagination(eid, eacc, gid, currentEF, plotType, efv) {
+function drawEFpagination(eacc, gid, currentEF, plotType, efv) {
     var panelContent = [];
 
-    $("#" + eid + "_EFpagination *").each(function() {
+    $("#" + eacc + "_EFpagination *").each(function() {
         var ef = $(this).attr("id");
         var ef_txt = $(this).html();
         if (ef == currentEF) {
             panelContent.push("<span id='" + ef + "' class='current'>" + ef_txt + "</span>")
         }
         else {
-            panelContent.push('<a id="' + ef + '" onclick="redrawPlotForFactor( \'' + eid + '\',\'' + eacc + '\',\'' + gid + '\',\'' + ef + '\',\'' + efv + '\',\'' + plotType + '\',false)">' + ef_txt + '</a>');
+            panelContent.push('<a id="' + ef + '" onclick="redrawPlotForFactor(\'' + eacc + '\',\'' + gid + '\',\'' + ef + '\',\'' + efv + '\',\'' + plotType + '\',false)">' + ef_txt + '</a>');
         }
     });
 
-    $("#" + eid + "_EFpagination").empty();
-    $("#" + eid + "_EFpagination").html(panelContent.join(""));
+    $("#" + eacc + "_EFpagination").empty();
+    $("#" + eacc + "_EFpagination").html(panelContent.join(""));
 }
 
 
-function markClicked(eid, eacc, gid, ef, efv, plot, jsonObj) {
+function markClicked(eacc, gid, ef, efv, plot, jsonObj) {
 
     var plot_id = eacc + '_' + gid + '_plot';
     var allSeries = plot.getData();
@@ -262,9 +260,8 @@ var ExperimentList = (function(geneId) {
 
     function redrawPlots(exps) {
         for (var i = 0; i < exps.length; ++i) {
-            var eid = jQuery.trim(exps[i].id);
             var eacc = jQuery.trim(exps[i].acc);
-            redrawPlotForFactor(eid, eacc, geneId, currentParams.ef, true, currentParams.efv);
+            redrawPlotForFactor(eacc, geneId, currentParams.ef, true, currentParams.efv);
         }
     }
 
@@ -391,7 +388,7 @@ $(document).ready(function() {
                     <td class="geneAnnotHeader">Search EB-eye</td>
                     <td align="left">
                         <a title="Show gene annotation" target="_blank"
-                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=genomes&t=${atlasGene.geneIdentifier}">
+                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=${atlasGene.geneIdentifier}&requestFrom=ebi_index&submit=+FIND+">
                             ${atlasGene.geneIdentifier}
                         </a>
                     </td>
