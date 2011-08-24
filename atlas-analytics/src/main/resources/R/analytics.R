@@ -16,11 +16,11 @@ read.atlas.nc <<-
 
     nc = open.ncdf(filename)
 
-    as = get.var.ncdf(nc, "AS")
-    bs = get.var.ncdf(nc, "BS")
+    as = as.vector(get.var.ncdf(nc, "ASacc"))
+    bs = as.vector(get.var.ncdf(nc, "BSacc"))
     b2a = fixMatrix(get.var.ncdf(nc, "BS2AS"), nRows = length(as), nCols = length(bs))
 
-    de = get.var.ncdf(nc, "DE")
+    de = as.vector(get.var.ncdf(nc, "DEacc"))
     bdc = fixMatrix(get.var.ncdf(nc, "BDC"), nRows = length(as), nCols = length(de))
 
     if ("EF" %in% names(nc$dim)) {
@@ -47,7 +47,7 @@ read.atlas.nc <<-
     gn = get.var.ncdf(nc, "GN")
 
     # make de's unique
-    de[de == 0] <- -(1:length(which(de == 0)))
+    #de[de == 0] <- -(1:length(which(de == 0)))
 
     accnum = att.get.ncdf(nc,varid = 0,"experiment_accession")$value
     qt = att.get.ncdf(nc,varid = 0,"quantitationType")$value
@@ -141,6 +141,9 @@ log2.safe <-
     tmp
 }
 
+### function to check if factor value is empty
+isEmptyEFV <- function(value) return (is.null(value) || value == "" || value == "(empty)")
+
 ### Omnibus one-way ANOVA (with moderated t) F-statistic computation
 fstat.eset <-
   function(eset, design = NULL, varLabel = NULL,lg = FALSE) {
@@ -187,36 +190,35 @@ allupdn <-
     for(varLabel in evars){
       try({
         print(paste("Calculating lmFit and F-stats for", varLabel))
-          if (length(levels(eset[[varLabel, exact = TRUE]])) < 2
-            || length(levels(eset[[varLabel, exact = TRUE]])) == ncol(exprs) ) { next }
 
-          esetForVariable = eset[,which(eset[[varLabel, exact = TRUE]] != "")]
-          esetForVariable[[varLabel, exact = TRUE]] = factor(esetForVariable[[varLabel, exact = TRUE]])
+        nonEmptyFactorValues = which(!sapply(eset[[varLabel, exact = TRUE]], isEmptyEFV))
 
-          thisFit = fstat.eset(esetForVariable, varLabel = varLabel)
+        esetForVariable = eset[, nonEmptyFactorValues]
+        esetForVariable[[varLabel, exact = TRUE]] = factor(esetForVariable[[varLabel, exact = TRUE]])
 
-          print("Adjusting p-values")
-          # pp = p.adjust(thisFit$F.p.value, method = "fdr")
-          # w = which(pp <= alpha)
-          #
-          # thisFit$F.p.value.adj = pp
+        numVariableFactorLevels <- nlevels(esetForVariable[[varLabel, exact=TRUE]])
+        if (numVariableFactorLevels == ncol(exprs(esetForVariable)) || numVariableFactorLevels < 2) {
+          print("Can't compute statistics for poorly conditioned data: too few or too many factor levels.")
+          next
+        }
 
-          n = ncol(thisFit$design)
-          cm = diag(n) - 1/n
+        thisFit = fstat.eset(esetForVariable, varLabel = varLabel)
 
-          contr.fit = contrasts.fit(thisFit, cm)
-          contr.fit = eBayes(contr.fit)
+        n = ncol(thisFit$design)
+        cm = diag(n) - 1/n
 
-          dec = decideTests(contr.fit, method = "global", adjust.method = "fdr")
-          colnames(dec) = levels(esetForVariable[[varLabel, exact = TRUE]])
+        contr.fit = contrasts.fit(thisFit, cm)
+        contr.fit = eBayes(contr.fit)
 
-          # thisFit$which = w
-          thisFit$boolupdn = dec
-          thisFit$contr.fit = contr.fit
+        dec = decideTests(contr.fit, method = "global", adjust.method = "fdr")
+        colnames(dec) = levels(esetForVariable[[varLabel, exact = TRUE]])
 
-          allFits[[varLabel]] = thisFit
-          print("Done.")
-        })
+        thisFit$boolupdn = dec
+        thisFit$contr.fit = contr.fit
+
+        allFits[[varLabel]] = thisFit
+        print("Done.")
+      })
     }
 
     allFits
@@ -525,7 +527,7 @@ find.best.design.elements <<-
 
     gn <- get.var.ncdf(nc, "GN")
 
-    de <- nc$dim$DE$vals
+    deAcc <- get.var.ncdf(nc, "DEacc")
 
     wde <- which(gn > 0)
 
@@ -536,10 +538,10 @@ find.best.design.elements <<-
     }
     wuval <- c()
 
-    if ((!is.null(ef) && ef != "") && (is.null(efv) || efv == "")) {
+    if ((!is.null(ef) && ef != "") && isEmptyEFV(efv)) {
       wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
 
-    } else if ((!is.null(ef) && ef != "") && (!is.null(efv) && efv != "")) {
+    } else if ((!is.null(ef) && ef != "") && !isEmptyEFV(efv)) {
       efv <- paste(ef, efv, sep = "||")
       wuval <- which(uval %in% efv)
 
@@ -635,8 +637,8 @@ find.best.design.elements <<-
 
     res <-  data.frame(
         deindexes = as.integer(wde[idxs]),
+        deaccessions = as.character(deAcc[wde[idxs]]),
         geneids = as.integer(gn[wde[idxs]]),
-        designelements = as.integer(de[wde[idxs]]),
         minpvals = minpvals,
         maxtstats = maxtstats,
         uvals = uvals

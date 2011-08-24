@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.Collection;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * Helper functions for parsing and managing structured query
@@ -69,7 +69,7 @@ public class HtmlHelper {
                 try {
                     method = o.getClass().getMethod(prop, (Class[]) null);
                 } catch (Exception e) {
-                    throw logUnexpected("Cannot obtain method", e);
+                    throw createUnexpected("Cannot obtain method", e);
                 }
             }
             try {
@@ -78,7 +78,7 @@ public class HtmlHelper {
                     r = v;
                 }
             } catch (Exception e) {
-                throw logUnexpected("Cannot invoke method", e);
+                throw createUnexpected("Cannot invoke method", e);
             }
         }
         return r;

@@ -47,6 +47,18 @@
             private="0"
             />
 
+    <A2_EXPERIMENT
+            experimentid="3"
+            accession="E-GEOD-5035"
+            description="Another test experiment"
+            performer="Someone else"
+            lab="Somewhere else"
+            loaddate="2009-10-05"
+            pmid="15361863"
+            curated="1"
+            private="0"
+            />
+
     <A2_ARRAYDESIGN
             arraydesignid="1"
             accession="A-ABCD-1234"
@@ -192,16 +204,6 @@
             SOFTWAREID='1'
             />
 
-    <!--<A2_BE2BE_UNFOLDED-->
-    <!--BEIDFROM="1"-->
-    <!--BEIDTO="2"-->
-    <!--/>-->
-
-    <!--<A2_BE2BE_UNFOLDED-->
-    <!--BEIDFROM="2"-->
-    <!--BEIDTO="1"-->
-    <!--/>-->
-
     <A2_GENEPROPERTY
             genepropertyid="1"
             name="goterm"
@@ -261,6 +263,13 @@
             accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
             experimentid="174501824"
             arraydesignid="2"
+            />
+
+    <A2_ASSAY
+            assayid="3"
+            accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
+            experimentid="3"
+            arraydesignid="1"
             />
 
     <A2_ASSAYPV
@@ -324,6 +333,7 @@
 
     <A2_SAMPLE
             sampleid="1"
+            experimentid="174501824"
             accession="abc:some/Sample:ABC_DEFG_123a"
             organismid="1"
             channel=""
@@ -331,6 +341,7 @@
 
     <A2_SAMPLE
             sampleid="2"
+            experimentid="174501824"
             accession="xyz:other/Sample2:XYZ_TUVW_789x"
             organismid="2"
             channel=""
@@ -397,6 +408,7 @@
     <!-- Test for one to many sample-to-assay mapping -->
     <A2_SAMPLE
             sampleid="10"
+            experimentid="174501824"
             accession="one:ToMany:TestSample1"
             organismid="1"
             channel=""
@@ -404,6 +416,7 @@
 
     <A2_SAMPLE
             sampleid="11"
+            experimentid="174501824"
             accession="one:ToMany:TestSample2"
             organismid="1"
             channel=""
@@ -500,4 +513,21 @@
             organismid="1"
             />
 
+    <A2_ONTOLOGY
+            ONTOLOGYID="1"
+            name="EFO"
+            SOURCE_URI="/dev/null"
+            version="unknown-alpha"
+            DESCRIPTION="Sample experimental factor ontology"/>
+
+    <A2_ONTOLOGYTERM
+            ONTOLOGYTERMID="1"
+            ONTOLOGYID="1"
+            ACCESSION="EFO_0000827"
+            DESCRIPTION="Just a term"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ASSAYPVONTOLOGYID="1"
+            ONTOLOGYTERMID="1"
+            ASSAYPVID="1"/>
 </dataset>

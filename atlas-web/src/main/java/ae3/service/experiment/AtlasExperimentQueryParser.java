@@ -43,9 +43,10 @@ public class AtlasExperimentQueryParser {
     public static AtlasExperimentQuery parse(HttpServletRequest request, Iterable<String> factors, AtlasProperties atlasProperties) {
         AtlasExperimentQuery query = new AtlasExperimentQuery();
 
-        for(Object e  : request.getParameterMap().entrySet()) {
-            String name = ((Map.Entry)e).getKey().toString();
-            for(String v : ((String[])((Map.Entry)e).getValue())) {
+        final Map<String,String[]> parameters = request.getParameterMap();
+        for(Map.Entry<String,String[]> e : parameters.entrySet()) {
+            final String name = e.getKey();
+            for(String v : e.getValue()) {
                 if(name.matches("^experiment(Text|Id|Accession)?$")) {
                     if(v.equalsIgnoreCase("listAll"))
                         query.listAll();
@@ -67,10 +68,6 @@ public class AtlasExperimentQueryParser {
                     query.rows(parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize()));
                 } else if(name.equalsIgnoreCase("start")) {
                     query.start(parseNumber(v, 0, 0, Integer.MAX_VALUE));
-                } else if(name.equalsIgnoreCase("dateReleaseFrom")){
-                    query.addDateReleaseFrom(v);
-                } else if(name.equalsIgnoreCase("dateReleaseTo")){
-                    query.addDateReleaseTo(v);
                 } else if(name.equalsIgnoreCase("dateLoadFrom")){
                     query.addDateLoadFrom(v);
                 } else if(name.equalsIgnoreCase("dateLoadTo")){

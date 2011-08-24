@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.displaytag.tags.TableTagParameters;
 import org.displaytag.util.ParamEncoder;
@@ -10,6 +11,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+
+import javax.annotation.Nullable;
+
+import static com.google.common.collect.Lists.transform;
 
 /**
  * @author Alexey Filippov
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ExperimentIndexViewController extends AtlasViewController {
     public static final int PAGE_SIZE = 20;
 
+    // TODO: 4alf: migrate it to ExperimentDAO?
     private final ExperimentSolrDAO experimentSolrDAO;
 
     @Autowired
@@ -34,7 +41,12 @@ public class ExperimentIndexViewController extends AtlasViewController {
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
                 experimentSolrDAO.getExperimentsByQuery(query,
                         (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
-        model.addAttribute("experiments", experiments.getExperiments());
+        model.addAttribute("experiments", transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
+            @Override
+            public ExperimentIndexLine apply(@Nullable Experiment experiment) {
+                return new ExperimentIndexLine(experiment);
+            }
+        }));
         model.addAttribute("total", experiments.getTotalResults());
         model.addAttribute("count", PAGE_SIZE);
         return "experimentpage/experiment-index";
@@ -56,9 +68,9 @@ public class ExperimentIndexViewController extends AtlasViewController {
     private static final String DIR_PARAM = "d-2529291-o";
 
     static {
-        assert PAGE_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_PAGE));
-        assert SORT_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_SORT));
-        assert DIR_PARAM.equals(new ParamEncoder("experiment").encodeParameterName(TableTagParameters.PARAMETER_ORDER));
+        ParamEncoder encoder = new ParamEncoder("experiment");
+        assert PAGE_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_PAGE));
+        assert SORT_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_SORT));
+        assert DIR_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_ORDER));
     }
-
 }

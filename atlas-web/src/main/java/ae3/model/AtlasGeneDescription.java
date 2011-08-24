@@ -39,7 +39,7 @@ public class AtlasGeneDescription {
     final public static int MAX_EF = 5;
     private static final String PIPE = "|";
 
-    // This constant is used to prevent empty efvs from being displayed in EB-eye dumps (cf. SDRFWritingUtils)
+    // This constant is used to prevent empty efvs from being displayed in EB-eye dumps
     private static final String EMTPY_EFV = "(empty)";
 
     private String text;

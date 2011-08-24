@@ -22,19 +22,38 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import javax.persistence.*;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
 
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class ArrayDesign {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")
+    @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ", allocationSize = 1)
+    private Long arrayDesignID;
     private String accession;
     private String name;
     private String provider;
     private String type;
-    private long arrayDesignID;
-    private long mappingSoftwareId;
+    @Column(name = "MAPPINGSWID")
+    private Long mappingSoftwareId;
+    @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
+    @Transient
     private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
+
+    public ArrayDesign() {
+    }
+
+    public ArrayDesign(String accession) {
+        this.accession = accession;
+    }
 
     public String getAccession() {
         return accession;
@@ -68,11 +87,11 @@ public class ArrayDesign {
         this.type = type;
     }
 
-    public long getArrayDesignID() {
+    public Long getArrayDesignID() {
         return arrayDesignID;
     }
 
-    public void setArrayDesignID(long arrayDesignID) {
+    public void setArrayDesignID(Long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
     }
 
@@ -80,7 +99,7 @@ public class ArrayDesign {
         return mappingSoftwareId;
     }
 
-    public void setMappingSoftwareId(long mappingSoftwareId) {
+    public void setMappingSoftwareId(final Long mappingSoftwareId) {
         this.mappingSoftwareId = mappingSoftwareId;
     }
 
@@ -110,5 +129,24 @@ public class ArrayDesign {
 
     public boolean hasGenes() {
         return this.genes.size() > 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ArrayDesign that = (ArrayDesign) o;
+
+        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
+        return result;
     }
 }

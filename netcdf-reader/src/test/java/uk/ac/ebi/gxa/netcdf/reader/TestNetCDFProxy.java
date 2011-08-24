@@ -39,7 +39,7 @@ public class TestNetCDFProxy extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/1036805754_160588088.nc").toURI());
+        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI());
         netCDF = new NetCDFProxy(netCDFfile);
     }
 
@@ -55,13 +55,14 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetExperiment() throws IOException {
-        System.out.println("Experiment: " + netCDF.getExperiment());
+        System.out.println("Experiment: " + netCDF.getExperimentAccession());
     }
 
     public void testGetArrayDesign() throws IOException {
         System.out.println("ArrayDesign: " + netCDF.getArrayDesignAccession());
     }
 
+    /*
     public void testGetAssays() throws IOException {
         System.out.print("Assays: {");
         for (long assay : netCDF.getAssays()) {
@@ -77,6 +78,7 @@ public class TestNetCDFProxy extends TestCase {
         }
         System.out.println("}");
     }
+    */
 
     public void testGetFactors() throws IOException {
         System.out.print("EFs: {");

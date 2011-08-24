@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * String escaping utility functions
@@ -143,7 +143,7 @@ public class EscapeUtil {
                 }
             }
         } catch (IOException e) {
-            throw logUnexpected("Unexpected exception!", e);
+            throw createUnexpected("Unexpected exception!", e);
         }
         return values;
     }

@@ -22,12 +22,9 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 /**
@@ -37,24 +34,12 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
  *
  * @author Nikolay Pultsin
  */
-public class CreateExperimentStep implements Step {
-    private final MAGETABInvestigation investigation;
-    private Multimap<String, String> userData;
-
-    public CreateExperimentStep(MAGETABInvestigation investigation) {
-        this(investigation, HashMultimap.<String, String>create());
-    }
-
-    public CreateExperimentStep(MAGETABInvestigation investigation, Multimap<String, String> userData) {
-        this.investigation = investigation;
-        this.userData = userData;
-    }
-
-    public String displayName() {
+public class CreateExperimentStep {
+    public static String displayName() {
         return "Setting up an experiment data";
     }
 
-    public void run() throws AtlasLoaderException {
+    public Experiment readExperiment(MAGETABInvestigation investigation, Multimap<String, String> userData) throws AtlasLoaderException {
         if (investigation.accession == null) {
             throw new AtlasLoaderException(
                     "There is no accession number defined - " +
@@ -63,8 +48,7 @@ public class CreateExperimentStep implements Step {
             );
         }
 
-        Experiment experiment = new Experiment();
-        experiment.setAccession(investigation.accession);
+        Experiment experiment = new Experiment(investigation.accession);
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
@@ -94,11 +78,9 @@ public class CreateExperimentStep implements Step {
         experiment.setPerformer(performer);
 
         if (investigation.IDF.pubMedId != null && investigation.IDF.pubMedId.size() > 0) {
-            experiment.setPubmedID(investigation.IDF.pubMedId.get(0));
+            experiment.setPubmedId(investigation.IDF.pubMedId.get(0));
         }
 
-        // add the experiment to the cache
-        AtlasLoadCache cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
-        cache.setExperiment(experiment);
+        return experiment;
     }
 }

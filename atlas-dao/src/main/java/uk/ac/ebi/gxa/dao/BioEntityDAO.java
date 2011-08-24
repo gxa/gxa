@@ -19,11 +19,11 @@ import java.util.*;
 import static com.google.common.collect.Iterables.partition;
 
 /**
- * TODO: Rename me to JdbcBioEntityDAO
- *
  * @author Nataliya Sklyar
  */
-public class BioEntityDAO implements BioEntityDAOInterface {
+public class BioEntityDAO {
+    private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
+
     public static final String ALL_GENE_DESIGN_ELEMENT_LINKED = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
             "  FROM a2_designelement de\n" +
             "          join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
@@ -49,11 +49,11 @@ public class BioEntityDAO implements BioEntityDAOInterface {
     public static final int MAX_QUERY_PARAMS = 15;
     public static final int SUB_BATCH_SIZE = 50;
 
-    private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
-    private SoftwareDAO softwareDAO;
-    protected JdbcTemplate template;
+    private final JdbcTemplate template;
+    private final SoftwareDAO softwareDAO;
 
-    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+    public BioEntityDAO(JdbcTemplate template, SoftwareDAO softwareDAO) {
+        this.template = template;
         this.softwareDAO = softwareDAO;
     }
 
@@ -148,17 +148,6 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
     private long getArrayDesignIdByAccession(String arrayDesignAccession) {
         return template.queryForLong(ARRAYDESIGN_ID, arrayDesignAccession);
-    }
-
-    public List<String> getSpeciesForExperiment(long experimentId) {
-        return template.query("select distinct o.name\n" +
-                "  from A2_ORGANISM o\n" +
-                "          join A2_SAMPLE s on s.organismid = o.organismid\n" +
-                "          join A2_ASSAYSAMPLE ass on ass.SAMPLEID = s.SAMPLEID\n" +
-                "          join A2_ASSAY a on ass.ASSAYID = a.ASSAYID\n" +
-                "  where a.EXPERIMENTID = ?",
-                new Object[]{experimentId},
-                new SingleColumnRowMapper<String>());
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -467,10 +456,6 @@ public class BioEntityDAO implements BioEntityDAOInterface {
         }
     }
 
-    public void setJdbcTemplate(JdbcTemplate template) {
-        this.template = template;
-    }
-
 
     private static class GenePropertyMapper implements RowMapper<BEPropertyValue> {
         public static String FIELDS = "bebepv.bioentityid as id, bep.name as property, bepv.value as propertyvalue";
@@ -513,14 +498,19 @@ public class BioEntityDAO implements BioEntityDAOInterface {
 
 
     private static class GeneMapper implements RowMapper<BioEntity> {
-        public static final String FIELDS_CLEAN = "bioentityid, identifier, species";
-        public static final String FIELDS = "be.bioentityid, be.identifier, o.name AS species";
+        public static final String FIELDS_CLEAN = "bioentityid, identifier, name, species";
+        public static final String FIELDS = "be.bioentityid, be.identifier, be.name, o.name AS species";
+
+        private static String intern(String str) {
+            return str != null ? str.intern() : null;
+        }
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntity gene = new BioEntity(resultSet.getString(2));
 
             gene.setId(resultSet.getLong(1));
-            gene.setSpecies(resultSet.getString(3));
+            gene.setName(resultSet.getString(3));
+            gene.setSpecies(intern(resultSet.getString(4)));
 
             return gene;
         }

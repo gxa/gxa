@@ -22,18 +22,19 @@
 
 package uk.ac.ebi.gxa.requesthandlers.query;
 
-import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
-import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -41,16 +42,17 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Maps.newLinkedHashMap;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
  * @author pashky
  */
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
-
     private GeneSolrDAO geneSolrDAO;
-    private ExperimentSolrDAO experimentSolrDAO;
+    private ExperimentDAO experimentDAO;
     private Efo efo;
     private AtlasProperties atlasProperties;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -60,8 +62,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         this.geneSolrDAO = geneSolrDAO;
     }
 
-    public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     public void setEfo(Efo efo) {
@@ -81,9 +83,6 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     }
 
     public Object process(HttpServletRequest request) {
-
-        final Map<Long, AtlasExperiment> expsCache = new HashMap<Long, AtlasExperiment>();
-
         Map<String, Object> jsResult = new HashMap<String, Object>();
 
         String bioEntityIdKey = request.getParameter("gene");
@@ -123,35 +122,35 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            List<ExperimentInfo> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
+            List<ExperimentResult> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
 
             // Now find non-de experiments
-            attr.setStatType(StatisticsType.NON_D_E);
-            List<ExperimentInfo> nonDEExps = new ArrayList<ExperimentInfo>(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr));
+            attr = attr.withStatType(StatisticsType.NON_D_E);
+            List<ExperimentResult> nonDEExps = toResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr));
             // ...and sort found nonDE experiments alphabetically by accession
-            Collections.sort(nonDEExps, new Comparator<ExperimentInfo>() {
-                public int compare(ExperimentInfo e1, ExperimentInfo e2) {
+            Collections.sort(nonDEExps, new Comparator<ExperimentResult>() {
+                public int compare(ExperimentResult e1, ExperimentResult e2) {
                     return e1.getAccession().compareTo(e2.getAccession());
                 }
             });
 
-            // Now retrieve (from ncdfs) PvalTstatRank for each exp in nonDEExps and then add to allExperiments
-            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new HashMap<ExperimentInfo, Set<EfvAttribute>>();
+            // Now retrieve (from ncdfs) PTRank for each exp in nonDEExps and then add to allExperiments
+            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = newHashMap();
             // Gather all experiment-efefv mappings for attr and all its children (if efo)
             Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
             for (Attribute attribute : attrAndChildren) {
                 atlasStatisticsQueryService.getEfvExperimentMappings(attribute, allExpsToAttrs);
             }
-            for (ExperimentInfo exp : nonDEExps) {
+            for (ExperimentResult exp : nonDEExps) {
                 ExperimentInfo key;
-                if (allExpsToAttrs.containsKey(exp)) { // attr is an efo
-                    key = exp;
+                if (allExpsToAttrs.containsKey(exp.getExperimentInfo())) { // attr is an efo
+                    key = exp.getExperimentInfo();
                 } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)) { // attr is an ef-efv
                     key = EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER;
                 } else {
                     // We know that gene is non-differentially expressed in exp for attr, and yet we cannot find exp
                     // in attr's efv-experiment mappings - report an error
-                    throw logUnexpected(
+                    throw LogUtil.createUnexpected(
                             gene.getGeneName() + " is non-differentially expressed in " + exp + " for " + attr +
                                     " but this experiment cannot be found in efv-experiment mappings for this Attribute");
                 }
@@ -163,8 +162,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
                 for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                    ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(
-                            exp.getAccession(), (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                    ea = atlasNetCDFDAO.getBestEAForGeneEfEfvInExperiment(experimentDAO.getExperimentByAccession(exp.getAccession()),
+                            (long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                     if (ea != null) {
                         exp.setHighestRankAttribute(attrCandidate);
                         break;
@@ -172,49 +171,51 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
 
                 if (ea != null) {
-                    exp.setPvalTstatRank(new PvalTstatRank(ea.getPValAdjusted(), StatisticsQueryUtils.getTStatRank(ea.getTStatistic())));
+                    final float p = ea.getPValAdjusted();
+                    final float t = ea.getTStatistic();
+                    exp.setPValTstatRank(PTRank.of(p, t));
                     allExperiments.add(exp); // Add nonDE expression statistic to allExperiments
                 } else {
-                    throw logUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
+                    throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
                             " and any attribute in: " + allExpsToAttrs.get(key));
                 }
             }
 
             // Group all expression statistics per each experiment (Use LinkedHashMap to preserve ordering of experiment stat entries in allExperiments)
-            Map<Long, Map<String, List<ExperimentInfo>>> exmap = new LinkedHashMap<Long, Map<String, List<ExperimentInfo>>>();
-            for (ExperimentInfo experimentInfo : allExperiments) {
+            Map<Long, Map<String, List<ExperimentResult>>> exmap = newLinkedHashMap();
+            for (ExperimentResult experimentInfo : allExperiments) {
                 Long experimentId = experimentInfo.getExperimentId();
-                Map<String, List<ExperimentInfo>> efmap = exmap.get(experimentId);
+                Map<String, List<ExperimentResult>> efmap = exmap.get(experimentId);
                 if (efmap == null) {
-                    exmap.put(experimentId, efmap = new HashMap<String, List<ExperimentInfo>>());
+                    exmap.put(experimentId, efmap = new HashMap<String, List<ExperimentResult>>());
                 }
-                List<ExperimentInfo> list = efmap.get(experimentInfo.getHighestRankAttribute().getEf());
+                List<ExperimentResult> list = efmap.get(experimentInfo.getHighestRankAttribute().getEf());
                 if (list == null) {
-                    efmap.put(experimentInfo.getHighestRankAttribute().getEf(), list = new ArrayList<ExperimentInfo>());
+                    efmap.put(experimentInfo.getHighestRankAttribute().getEf(), list = new ArrayList<ExperimentResult>());
                 }
 
                 list.add(experimentInfo);
             }
 
             // Within each experiment entry, sort expression stats for each ef in asc order (non-de 'NA' pVals last)
-            for (Map<String, List<ExperimentInfo>> efToExpressionStats : exmap.values()) {
-                for (List<ExperimentInfo> expressionStatsForEf : efToExpressionStats.values()) {
-                    Collections.sort(expressionStatsForEf, new Comparator<ExperimentInfo>() {
-                        public int compare(ExperimentInfo o1, ExperimentInfo o2) {
-                            if (Float.isNaN(o2.getpValTStatRank().getPValue()))
+            for (Map<String, List<ExperimentResult>> efToExpressionStats : exmap.values()) {
+                for (List<ExperimentResult> expressionStatsForEf : efToExpressionStats.values()) {
+                    Collections.sort(expressionStatsForEf, new Comparator<ExperimentResult>() {
+                        public int compare(ExperimentResult o1, ExperimentResult o2) {
+                            if (Float.isNaN(o2.getPValTStatRank().getPValue()))
                                 return -1;
-                            return o1.getpValTStatRank().compareTo(o2.getpValTStatRank());
+                            return o1.getPValTStatRank().compareTo(o2.getPValTStatRank());
                         }
                     });
                 }
             }
 
-            List<Map.Entry<Long, Map<String, List<ExperimentInfo>>>> exps =
-                    new ArrayList<Map.Entry<Long, Map<String, List<ExperimentInfo>>>>(exmap.entrySet());
+            List<Map.Entry<Long, Map<String, List<ExperimentResult>>>> exps =
+                    newArrayList(exmap.entrySet());
             List<Map> jsExps = new ArrayList<Map>();
-            for (Map.Entry<Long, Map<String, List<ExperimentInfo>>> e : exps) {
-                AtlasExperiment aexp = experimentSolrDAO.getExperimentById(e.getKey());
+            for (Map.Entry<Long, Map<String, List<ExperimentResult>>> e : exps) {
+                Experiment aexp = experimentDAO.getById(e.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());
@@ -222,18 +223,18 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     jsExp.put("id", e.getKey());
 
                     List<Map> jsEfs = new ArrayList<Map>();
-                    for (Map.Entry<String, List<ExperimentInfo>> ef : e.getValue().entrySet()) {
+                    for (Map.Entry<String, List<ExperimentResult>> ef : e.getValue().entrySet()) {
                         Map<String, Object> jsEf = new HashMap<String, Object>();
                         jsEf.put("ef", ef.getKey());
                         jsEf.put("eftext", atlasProperties.getCuratedEf(ef.getKey()));
 
                         List<Map> jsEfvs = new ArrayList<Map>();
-                        for (ExperimentInfo exp : ef.getValue()) {
+                        for (ExperimentResult exp : ef.getValue()) {
                             Map<String, Object> jsEfv = new HashMap<String, Object>();
-                            UpDownExpression upDown = UpDownExpression.valueOf(exp.getpValTStatRank().getPValue(), exp.getpValTStatRank().getTStatRank());
+                            UpDownExpression upDown = UpDownExpression.valueOf(exp.getPValTStatRank().getPValue(), exp.getPValTStatRank().getTStatRank());
                             jsEfv.put("efv", exp.getHighestRankAttribute().getEfv());
                             jsEfv.put("isexp", upDown.isUpOrDown() ? (upDown.isUp() ? "up" : "dn") : "no");
-                            jsEfv.put("pvalue", exp.getpValTStatRank().getPValue());
+                            jsEfv.put("pvalue", exp.getPValTStatRank().getPValue());
                             jsEfvs.add(jsEfv);
                         }
                         jsEf.put("efvs", jsEfvs);
@@ -249,11 +250,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             // TODO: we might be better off with one entity encapsulating the expression stats
             long start = System.currentTimeMillis();
-            attr.setStatType(NON_D_E);
+            attr = attr.withStatType(NON_D_E);
             int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-            attr.setStatType(UP);
+
+            attr = attr.withStatType(UP);
             int numUp = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-            attr.setStatType(DOWN);
+
+            attr = attr.withStatType(DOWN);
             int numDn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
             log.debug("Obtained  counts for gene: " + bioEntityId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
 
@@ -264,5 +267,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         }
 
         return jsResult;
+    }
+
+    private List<ExperimentResult> toResults(Collection<ExperimentInfo> experimentInfos) {
+        ArrayList<ExperimentResult> results = newArrayList();
+        for (ExperimentInfo ei : experimentInfos) {
+            results.add(new ExperimentResult(ei));
+        }
+        return results;
     }
 }

@@ -26,11 +26,11 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.8.1</version>
+        <version>2.0.9</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-dao</artifactId>
-    <version>2.0.8.1</version>
+    <version>2.0.9</version>
     <name>Gene Expression Atlas Database Access Layer</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -57,14 +57,41 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-model</artifactId>
-            <version>2.0.8.1</version>
+            <version>2.0.9</version>
         </dependency>
-        <!-- oracle JDBC drivers for specific oracle stored procedures -->
+
         <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.2.0</version>
-            <scope>provided</scope>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>3.5.1-Final</version>
+        </dependency>
+        <dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.11.0.GA</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-annotations</artifactId>
+            <version>3.5.1-Final</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache-core</artifactId>
+            <version>2.4.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
         </dependency>
         <!-- also need dbunit jars, transitive deps don't work on tests? -->
         <dependency>

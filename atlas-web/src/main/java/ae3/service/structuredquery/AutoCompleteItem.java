@@ -36,7 +36,7 @@ import java.util.List;
 public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
     private final String property;
     private final String value;
-    private final Long count;
+    private final long count;
     private final String id;
     private final Rank rank;
     private final List<AutoCompleteItem> path = new ArrayList<AutoCompleteItem>();
@@ -51,7 +51,7 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
      * @param rank     rank of an item to sort list of items by
      * @param path     a tree path if applicable
      */
-    public AutoCompleteItem(String property, String id, String value, Long count, Rank rank, @Nonnull Collection<? extends AutoCompleteItem> path) {
+    public AutoCompleteItem(String property, String id, String value, long count, Rank rank, @Nonnull Collection<? extends AutoCompleteItem> path) {
         this.property = property;
         this.value = value;
         this.count = count;
@@ -60,11 +60,11 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
         this.path.addAll(path);
     }
 
-    public AutoCompleteItem(String property, String id, String value, Long count, Rank rank) {
+    public AutoCompleteItem(String property, String id, String value, long count, Rank rank) {
         this(property, id, value, count, rank, Collections.<AutoCompleteItem>emptyList());
     }
 
-    public AutoCompleteItem(String property, String id, String value, Long count) {
+    public AutoCompleteItem(String property, String id, String value, long count) {
         this(property, id, value, count, null, Collections.<AutoCompleteItem>emptyList());
     }
 
@@ -98,17 +98,17 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
         if (compareByValue != 0) {
             return compareByValue;
         }
-        return -Long.valueOf(count).compareTo(o.count);
+        return -Double.compare(count, o.count);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AutoCompleteItem)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
         AutoCompleteItem that = (AutoCompleteItem) o;
 
-        if (count != null ? !count.equals(that.count) : that.count != null) return false;
+        if (count != that.count) return false;
         if (id != null ? !id.equals(that.id) : that.id != null) return false;
         if (path != null ? !path.equals(that.path) : that.path != null) return false;
         if (property != null ? !property.equals(that.property) : that.property != null) return false;
@@ -122,7 +122,7 @@ public class AutoCompleteItem implements Comparable<AutoCompleteItem> {
     public int hashCode() {
         int result = property != null ? property.hashCode() : 0;
         result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (count != null ? count.hashCode() : 0);
+        result = 31 * result + (int) (count ^ (count >>> 32));
         result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (rank != null ? rank.hashCode() : 0);
         result = 31 * result + (path != null ? path.hashCode() : 0);

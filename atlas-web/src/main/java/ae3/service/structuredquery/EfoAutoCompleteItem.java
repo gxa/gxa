@@ -36,12 +36,12 @@ public class EfoAutoCompleteItem extends AutoCompleteItem {
 
     private final List<String> alternativeTerms = new ArrayList<String>();
 
-    public EfoAutoCompleteItem(String property, String id, String value, Long count, Collection<String> alternativeTerms, Rank rank, Collection<EfoAutoCompleteItem> path) {
+    public EfoAutoCompleteItem(String property, String id, String value, long count, Collection<String> alternativeTerms, Rank rank, Collection<EfoAutoCompleteItem> path) {
         super(property, id, value, count, rank, path);
         this.alternativeTerms.addAll(alternativeTerms);
     }
 
-    public EfoAutoCompleteItem(String property, String id, String value, Long count, Collection<String> alternativeTerms) {
+    public EfoAutoCompleteItem(String property, String id, String value, long count, Collection<String> alternativeTerms) {
         this(property, id, value, count, alternativeTerms, null, Collections.<EfoAutoCompleteItem>emptyList());
     }
 

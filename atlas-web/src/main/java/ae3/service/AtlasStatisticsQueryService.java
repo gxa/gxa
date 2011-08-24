@@ -29,7 +29,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     /**
      * @param attribute
      * @param bioEntityId
-     * @return Experiment count for statisticsType, attributes and bioEntityId
+     * @return ExperimentInfo count for statisticsType, attributes and bioEntityId
      */
     public Integer getExperimentCountsForBioEntity(Attribute attribute, Integer bioEntityId);
 
@@ -38,7 +38,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param bioEntityId
      * @param bioEntityIdRestrictionSet
      * @param scoresCache
-     * @return Experiment count for statisticsType, attributes and bioEntityId
+     * @return ExperimentInfo count for statisticsType, attributes and geneId
      */
     public Integer getExperimentCountsForBioEntity(
             Attribute attribute,
@@ -54,19 +54,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
             List<Attribute> orAttributes,
             int minExperiments);
-
-    /**
-     * @param attribute
-     * @return Index of Attribute within bit index
-     */
-    public Integer getIndexForAttribute(EfvAttribute attribute);
-
-    /**
-     * @param attributeIndex
-     * @return Attribute corresponding to attributeIndex bit index
-     */
-    public EfvAttribute getAttributeForIndex(Integer attributeIndex);
-
 
     /**
      * @param statsQuery
@@ -85,12 +72,13 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             List<Integer> sortedBioEntitiesChunk);
 
     /**
+     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
      * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
      */
-    public List<Multiset.Entry<Integer>> getScoringAttributesForBioEntities(
+    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(
             Set<Integer> bioEntityIds,
             StatisticsType statType,
             Collection<String> autoFactors);
@@ -107,9 +95,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param attribute
      * @return Set of Experiments in which bioEntityId-ef-efv have statType expression
      */
-    public Set<ExperimentInfo> getScoringExperimentsForBioEntityAndAttribute(
-            Integer bioEntityId, @Nonnull Attribute attribute);
-
+    public Set<ExperimentInfo> getScoringExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nonnull Attribute attribute);
 
     /**
      * @param efoTerm
@@ -121,13 +107,14 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public Set<EfvAttribute> getAttributesForEfo(String efoTerm);
 
     /**
+     *
      * @param bioEntityId BioEntity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
-    public List<ExperimentInfo> getExperimentsSortedByPvalueTRank(
+    public List<ExperimentResult> getExperimentsSortedByPvalueTRank(
             final Integer bioEntityId,
             final Attribute attribute,
             final int fromRow,
@@ -164,7 +151,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
 
     /**
      * @param attribute
-     * @param allExpsToAttrs Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     * @param allExpsToAttrs Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
     public void getEfvExperimentMappings(
             final Attribute attribute,

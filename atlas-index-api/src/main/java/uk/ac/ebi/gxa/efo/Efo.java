@@ -25,7 +25,10 @@ package uk.ac.ebi.gxa.efo;
 import java.io.Closeable;
 import java.io.File;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface API to EFO hierarchy

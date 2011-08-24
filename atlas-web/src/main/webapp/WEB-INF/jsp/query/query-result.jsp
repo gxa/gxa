@@ -319,7 +319,8 @@
                     <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
                     <c:forEach var="i" items="${efoSubTree}" varStatus="s">
                         <c:if test="${!i.expandable && i.depth == 0 && !i.root}">
-                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
+                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:default;" alt=""
+                                 src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
                         </c:if>
                     </c:forEach>
                 </div></td>
@@ -619,18 +620,26 @@
                     <b class="expaccession">E-ACC</b>:
                     <span class="expname"></span>
 
-                    <table class="oneplot" border="0" cellpadding="0" cellspacing="0"><tr>
-                        <td class="atlastable"><img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter" border="0" alt="Loading...">
-                            <a class="proflink" title="Show expression profile" href="" style="border:none;outline:none;text-decoration:none">
-                                <div style="display:none" class="plot"></div></a>
-                        </td>
-                        <td class="atlastable"><div style="display:none" class="efname"></div><div class="legend"></div></td>
-                    </tr>
-                    <tr>
-                        <td align="left" colspan="2">
-                            <div align="left" id="" class="arraydesign"></div>
-                        </td>
-                    </tr>
+                    <table class="oneplot" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td width="250px">
+                                <img src="${pageContext.request.contextPath}/images/indicator.gif" class="plotwaiter"
+                                     border="0" alt="Loading...">
+                                <a class="proflink" title="Show expression profile" href=""
+                                   style="border:none;outline:none;text-decoration:none">
+                                    <div style="display:none" class="plot"></div>
+                                </a>
+                            </td>
+                            <td>
+                                <div style="display:none" class="efname"></div>
+                                <div class="legend"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div align="left" id="" class="arraydesign"></div>
+                            </td>
+                        </tr>
                     </table>
 
                     <div style="margin-top:5px;font-size:10px;">

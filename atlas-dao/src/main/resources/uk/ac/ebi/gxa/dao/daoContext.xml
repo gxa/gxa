@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <bean id="hibernateClasses" class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
+            <list>
+                <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
+                <value>uk.ac.ebi.microarray.atlas.model.AssayProperty</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Asset</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Experiment</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Ontology</value>
+                <value>uk.ac.ebi.microarray.atlas.model.OntologyTerm</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Organism</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Property</value>
+                <value>uk.ac.ebi.microarray.atlas.model.PropertyValue</value>
+                <value>uk.ac.ebi.microarray.atlas.model.Sample</value>
+                <value>uk.ac.ebi.microarray.atlas.model.SampleProperty</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="atlasTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="atlasDataSource"/>
+    </bean>
+
+    <bean name="atlasJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <!-- datasource bean, from JNDI -->
+        <property name="dataSource" ref="atlasDataSource"/>
+        <property name="nativeJdbcExtractor" ref="nativeJdbcExtractor"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="atlasTxManager"/>
+
+    <context:component-scan base-package="uk.ac.ebi.gxa.dao"/>
+    <context:annotation-config/>
+
+    <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
+
+    <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="arrayDesignDAO"/>
+        <constructor-arg ref="bioEntityDAO"/>
+        <constructor-arg ref="experimentDAO"/>
+        <constructor-arg ref="assayDAO"/>
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="softwareDAO"/>
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="softwareDAO"/>
+    </bean>
+
+    <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="propertyDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
+        <constructor-arg ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <!-- Common spring-drive data access configuration -->
+    <!-- native extractor for fetching oracle connections from pool wrapper etc -->
+    <bean name="nativeJdbcExtractor"
+          class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
+</beans>

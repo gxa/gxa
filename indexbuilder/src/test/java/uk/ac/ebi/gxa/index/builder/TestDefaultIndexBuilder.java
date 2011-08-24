@@ -30,6 +30,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.core.CoreContainer;
 import org.dbunit.dataset.DataSetException;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -46,6 +47,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.LogManager;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -63,7 +65,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
     private CoreContainer coreContainer;
     private SolrServer exptServer;
 
-    private volatile boolean buildFinished = false;
+    private CountDownLatch buildFinished = new CountDownLatch(1);
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public void setUp() throws Exception {
@@ -83,9 +85,9 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
         createSOLRServers();
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
-        eaibs.setAtlasDAO(getAtlasDAO());
+        eaibs.setAtlasDAO(atlasDAO);
+        eaibs.setExperimentDAO(experimentDAO);
         eaibs.setSolrServer(exptServer);
-        eaibs.setExecutor(newSingleThreadExecutor());
 
         indexBuilder = new DefaultIndexBuilder();
         indexBuilder.setIncludeIndexes(Collections.singletonList("experiments"));
@@ -121,6 +123,7 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
 
     }
 
+    @Test
     public void testBuildIndex() throws InterruptedException, IndexBuilderException {
         // run buildIndex
         indexBuilder.doCommand(new IndexAllCommand(), new IndexBuilderAdapter() {
@@ -157,19 +160,17 @@ public class TestDefaultIndexBuilder extends AtlasDAOTestCase {
                     e.printStackTrace();
                     fail(e.getMessage());
                 } finally {
-                    buildFinished = true;
+                    buildFinished.countDown();
                 }
             }
 
             @Override
             public void buildError(IndexBuilderEvent event) {
-                buildFinished = true;
+                buildFinished.countDown();
                 fail("Build error: " + event);
             }
         });
 
-        while (!buildFinished) {
-            Thread.sleep(100);
-        }
+        buildFinished.await();
     }
 }

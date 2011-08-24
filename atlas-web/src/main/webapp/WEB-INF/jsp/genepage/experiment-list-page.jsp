@@ -21,7 +21,7 @@
   --%>
 <%@include file="../includes/global-inc.jsp" %>
 
-<jsp:useBean id="exps" type="java.util.List<ae3.model.AtlasExperiment>" scope="request"/>
+<jsp:useBean id="exps" type="java.util.List<uk.ac.ebi.gxa.web.controller.GenePageExperiment>" scope="request"/>
 <jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
 
 <script type="text/javascript">
@@ -64,10 +64,10 @@
                     <div class="header" style="padding-top: 5px;padding-bottom: 5px; valign:middle">
                         <span>Experimental Factors</span>
 
-                        <div id="${exp.id}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
+                        <div id="${exp.accession}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
                             <c:forEach var="EF" items="${exp.experimentFactors}">
                                 <a id="${EF}"
-                                   onclick="redrawPlotForFactor('${exp.id}','${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
+                                   onclick="redrawPlotForFactor('${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
                             </c:forEach>
                         </div>
                     </div>
@@ -90,7 +90,7 @@
                                            href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}"
                                            style="border:none;text-decoration:none;outline:none;">
                                             <div id="${exp.accession}_${atlasGene.geneId}_plot" class="plot"
-                                                 name="${exp.highestRankEF}"
+                                                 name="${exp.highestRankAttribute.ef}"
                                                  style="width: 300px; height: 150px; background:url('${pageContext.request.contextPath}/images/indicator.gif'); background-repeat:no-repeat; background-position:center;">
                                             </div>
                                         </a>

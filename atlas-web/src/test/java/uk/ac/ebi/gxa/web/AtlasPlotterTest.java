@@ -23,60 +23,56 @@
 package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
+import org.junit.Test;
 import uk.ac.ebi.gxa.AbstractIndexNetCDFTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.services.ExperimentDAO;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.easymock.EasyMock.*;
-
 /**
-* @author Tony Burdett
-*/
+ * @author Tony Burdett
+ */
 public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
     private AtlasPlotter plotter;
     private GeneSolrDAO geneSolrDAO;
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
 
         geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(getSolrServerAtlas());
 
         plotter = new AtlasPlotter();
-        plotter.setAtlasDatabaseDAO(getAtlasDAO());
+        plotter.setAtlasDatabaseDAO(atlasDAO);
         plotter.setGeneSolrDAO(getAtlasSolrDao());
         plotter.setAtlasNetCDFDAO(getNetCDFDAO());
     }
 
     @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-
+    public void tearDown() throws Exception {
         plotter = null;
+        super.tearDown();
     }
 
+    @Test
     public void testGetGeneInExpPlotData() throws Exception {
+        atlasDAO.startSession();
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
-        Experiment experiment = new Experiment();
-        experiment.setExperimentID(Long.parseLong(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "experimentid").toString()));
-        experiment.setAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
-        getNetCDFDAO().setExperimentDAO(createExperimentDAO(experiment));
+        Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
 
+        List<Assay> assays = experiment.getAssays();
 
-        List<Assay> assays = getAtlasDAO().getAssaysByExperimentAccession(experiment.getAccession());
-        final Property property = assays.get(0).getProperties("cell_type").get(0);
+        final AssayProperty property = assays.get(0).getProperties("cell_type").iterator().next();
         final String ef = property.getName();
         final String efv = property.getValue();
 
-        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment.getAccession(), ef, efv, "thumb");
+        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment, ef, efv, "thumb");
         assertNotNull("Plot object was not constructed", plot);
 
         @SuppressWarnings("unchecked")
@@ -85,17 +81,10 @@ public class AtlasPlotterTest extends AbstractIndexNetCDFTestCase {
 
         ArrayList data = (ArrayList) series.get("data");
         assertTrue("Data retrieved was empty", data.size() > 0);
+        atlasDAO.finishSession();
     }
 
     public GeneSolrDAO getAtlasSolrDao() {
         return geneSolrDAO;
-    }
-
-
-    private ExperimentDAO createExperimentDAO(Experiment experiment) {
-        final ExperimentDAO experimentDAO = createMock(ExperimentDAO.class);
-        expect(experimentDAO.getExperimentByAccession(experiment.getAccession())).andReturn(experiment).anyTimes();
-        replay(experimentDAO);
-        return experimentDAO;
     }
 }

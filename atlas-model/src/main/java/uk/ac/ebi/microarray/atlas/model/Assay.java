@@ -22,60 +22,208 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-public class Assay extends ObjectWithProperties {
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import javax.annotation.Nonnull;
+import javax.persistence.*;
+import java.util.*;
+
+import static com.google.common.base.Joiner.on;
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.newTreeSet;
+
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+public class Assay {
+    private static final Function<AssayProperty, String> PROPERTY_NAME =
+            new Function<AssayProperty, String>() {
+                @Override
+                public String apply(@Nonnull AssayProperty input) {
+                    return input.getName();
+                }
+            };
+    private static final Function<AssayProperty, String> PROPERTY_VALUE =
+            new Function<AssayProperty, String>() {
+                @Override
+                public String apply(@Nonnull AssayProperty input) {
+                    return input.getValue();
+                }
+            };
+    private static final Function<AssayProperty, Collection<OntologyTerm>> PROPERTY_TERMS =
+            new Function<AssayProperty, Collection<OntologyTerm>>() {
+                @Override
+                public Collection<OntologyTerm> apply(@Nonnull AssayProperty input) {
+                    return input.getTerms();
+                }
+            };
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")
+    @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ", allocationSize = 1)
+    private Long assayID;
     private String accession;
-    private String experimentAccession;
-    private String arrayDesignAccession;
-    private long assayID;
+
+    @ManyToOne
+    @Fetch(FetchMode.SELECT)
+    private Experiment experiment;
+
+    @ManyToOne
+    @Fetch(FetchMode.SELECT)
+    private ArrayDesign arrayDesign;
+
+    @ManyToMany
+    // TODO: 4alf: this can be expressed in NamingStrategy
+    @JoinTable(name = "A2_ASSAYSAMPLE",
+            joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
+            inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
+    @Fetch(FetchMode.SUBSELECT)
+    private List<Sample> samples = new ArrayList<Sample>();
+
+    @OneToMany(targetEntity = AssayProperty.class, mappedBy = "assay",
+            orphanRemoval = true, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    private List<AssayProperty> properties = new ArrayList<AssayProperty>();
+
+    Assay() {
+    }
+
+    public Assay(Long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
+        if (accession == null)
+            throw new IllegalArgumentException("Cannot add assay with null accession!");
+        this.assayID = assayID;
+        this.accession = accession;
+        this.experiment = experiment;
+        this.arrayDesign = arrayDesign;
+    }
+
+    public Assay(String accession) {
+        this(null, accession, null, null);
+    }
+
+    public Long getId() {
+        return assayID;
+    }
 
     public String getAccession() {
         return accession;
     }
 
-    public void setAccession(String accession) {
-        this.accession = accession;
+    /**
+     * @param experiment the new owning experiment
+     * @see Experiment#addAssay(Assay)
+     */
+    void setExperiment(Experiment experiment) {
+        this.experiment = experiment;
     }
 
-    public String getExperimentAccession() {
-        return experimentAccession;
+    public void setArrayDesign(ArrayDesign arrayDesign) {
+        this.arrayDesign = arrayDesign;
     }
 
-    public void setExperimentAccession(String experimentAccession) {
-        this.experimentAccession = experimentAccession;
+    public Experiment getExperiment() {
+        return experiment;
     }
 
-    public String getArrayDesignAccession() {
-        return arrayDesignAccession;
-    }
-
-    public void setArrayDesignAccession(String arrayDesignAccession) {
-        this.arrayDesignAccession = arrayDesignAccession;
+    public ArrayDesign getArrayDesign() {
+        return arrayDesign;
     }
 
     public long getAssayID() {
-        return assayID;
+        return getId();
     }
 
-    public void setAssayID(long assayID) {
-        this.assayID = assayID;
+    public List<Sample> getSamples() {
+        return samples;
     }
 
     @Override
     public String toString() {
         return "Assay{" +
-                "accession='" + accession + '\'' +
-                ", experimentAccession='" + experimentAccession + '\'' +
-                ", arrayDesignAcession='" + arrayDesignAccession + '\'' +
+                "accession='" + getAccession() + '\'' +
+                ", experiment='" + experiment + '\'' +
+                ", arrayDesign='" + arrayDesign + '\'' +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof Assay && ((Assay) o).assayID == assayID;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Assay assay = (Assay) o;
+
+        if (accession != null ? !accession.equals(assay.accession) : assay.accession != null) return false;
+        return !(assayID != null ? !assayID.equals(assay.assayID) : assay.assayID != null);
+
     }
 
     @Override
     public int hashCode() {
-        return Long.valueOf(assayID).hashCode();
+        int result = assayID != null ? assayID.hashCode() : 0;
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
+        return result;
+    }
+
+    public List<AssayProperty> getProperties() {
+        return properties;
+    }
+
+    public void addProperty(String type, String nodeName, String s) {
+        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
+    }
+
+    public boolean hasNoProperties() {
+        return properties.isEmpty();
+    }
+
+    public String getPropertySummary(final String propName) {
+        return on(",").join(transform(getProperties(propName), PROPERTY_VALUE));
+    }
+
+    public Collection<AssayProperty> getProperties(final String type) {
+        return filter(properties, new PropertyNamePredicate(type));
+    }
+
+    public SortedSet<String> getPropertyNames() {
+        return newTreeSet(transform(properties, PROPERTY_NAME));
+    }
+
+    public String getEfoSummary(String name) {
+        return on(",").join(concat(transform(getProperties(name), PROPERTY_TERMS)));
+    }
+
+    /**
+     * Adds a sample to assay. This method is intentionally package local, please use {@link Sample#addAssay(Assay)}
+     * instead - it's a {@link Sample}'s responsibility to update its list of assays.
+     *
+     * @param sample a sample to add
+     */
+    void addSample(Sample sample) {
+        samples.add(sample);
+    }
+
+    public void addProperty(PropertyValue property) {
+        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
+    }
+
+    private static class PropertyNamePredicate implements Predicate<AssayProperty> {
+        private final String type;
+
+        public PropertyNamePredicate(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public boolean apply(@Nonnull AssayProperty input) {
+            return input.getName().equals(type);
+        }
     }
 }

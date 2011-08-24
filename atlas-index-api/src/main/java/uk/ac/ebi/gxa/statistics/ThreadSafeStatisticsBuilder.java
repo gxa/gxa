@@ -3,94 +3,66 @@ package uk.ac.ebi.gxa.statistics;
 import com.google.common.collect.Multiset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.GCFriendlyThreadLocal;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.concurrent.*;
-
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import java.util.List;
 
 @ThreadSafe
 public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     private static final Logger log = LoggerFactory.getLogger(ThreadSafeStatisticsBuilder.class);
 
-    private final Statistics statistics = new Statistics();
-    private final ExecutorService executor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<Runnable>(100, false), new BlockOnRejectedExecutionHandler());
+    /**
+     * Special kind of {@link ThreadLocal}, it allows GC not to wait until the thread is gone.
+     */
+    private final GCFriendlyThreadLocal<Statistics> statistics = new GCFriendlyThreadLocal<Statistics>(Statistics.class);
 
     @Override
-    public void addStatistics(final Integer attributeIndex, final Integer experimentIndex, final Collection<Integer> bioEntityIds) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                statistics.addStatistics(attributeIndex, experimentIndex, bioEntityIds);
-            }
-        });
+    public void addStatistics(final EfvAttribute attribute, final ExperimentInfo experiment, final Collection<Integer> bioEntityIds) {
+        get().addStatistics(attribute, experiment, bioEntityIds);
     }
 
     @Override
-    public void addBioEntitiesForEfAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                statistics.addBioEntitiesForEfAttribute(attributeIndex, bioEntityIds);
-            }
-        });
+    public void addBioEntitiesForEfAttribute(final EfvAttribute attribute, final Collection<Integer> bioEntityIds) {
+        get().addBioEntitiesForEfAttribute(attribute, bioEntityIds);
     }
 
     @Override
-    public void addBioEntitiesForEfvAttribute(final Integer attributeIndex, final Collection<Integer> bioEntityIds) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                statistics.addBioEntitiesForEfvAttribute(attributeIndex, bioEntityIds);
-            }
-        });
+    public void addBioEntitiesForEfvAttribute(final EfvAttribute attribute, final Collection<Integer> bioEntityIds) {
+        get().addBioEntitiesForEfvAttribute(attribute, bioEntityIds);
     }
 
     @Override
     public void setScoresAcrossAllEfos(final Multiset<Integer> scores) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                statistics.setScoresAcrossAllEfos(scores);
-            }
-        });
+        get().setScoresAcrossAllEfos(scores);
     }
 
     @Override
-    public void addPvalueTstatRank(final Integer attributeIndex, final Float pValue, final Short tStatRank, final Integer experimentIndex, final Integer bioEntityId) {
-        enqueue(new Runnable() {
-            @Override
-            public void run() {
-                statistics.addPvalueTstatRank(attributeIndex, pValue, tStatRank, experimentIndex, bioEntityId);
-            }
-        });
+    public void addPvalueTstatRank(final EfvAttribute attribute, final PTRank ptRank, final ExperimentInfo experiment, final Integer bioEntityId) {
+        get().addPvalueTstatRank(attribute, ptRank, experiment, bioEntityId);
+    }
+
+    private Statistics get() {
+        return statistics.get();
     }
 
     @Override
     public Statistics getStatistics() {
-        try {
-            executor.shutdown();
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            return statistics;
-        } catch (InterruptedException e) {
-            throw logUnexpected("Interrupted, returning incomplete result", e);
+        final List<Statistics> partialResults = statistics.getAll();
+        if (partialResults.isEmpty())
+            return new Statistics();
+
+        // We don't want to create empty Statistics and copy it over, so we reuse the first one
+        Statistics result = partialResults.get(0);
+        for (int i = 1; i < partialResults.size(); i++) {
+            final Statistics s = partialResults.get(i);
+            result.addAll(s);
         }
+        return result;
     }
 
-    private void enqueue(Runnable task) {
-        executor.submit(task);
-    }
-
-    private static class BlockOnRejectedExecutionHandler implements RejectedExecutionHandler {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            try {
-                executor.getQueue().put(r);
-            } catch (InterruptedException e) {
-                throw logUnexpected("Interrupted: " + e.getMessage(), e);
-            }
-        }
+    public void destroy() {
+        statistics.destroyAndAllowGC();
     }
 }

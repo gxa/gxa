@@ -51,13 +51,10 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private ExecutorService executor;
 
     private AtlasMAGETABLoader magetabLoader;
-    private AtlasArrayDesignLoader arrayDesignLoader;
     private AtlasExperimentUnloaderService experimentUnloaderService;
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
-    private AtlasVirtualArrayDesignLoader virtualArrayDesignLoader;
     private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
     private ArrayDesignMappingLoader designMappingLoader;
-    private AtlasDataReleaseService dataReleaseService;
     private ExperimentEditorService experimentEditorService;
 
     public void setExecutor(ExecutorService executor) {
@@ -99,10 +96,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             magetabLoader.process(cmd, this);
                         }
 
-                        public void process(LoadArrayDesignCommand cmd) throws AtlasLoaderException {
-                            arrayDesignLoader.process(cmd, this);
-                        }
-
                         public void process(UnloadExperimentCommand cmd) throws AtlasLoaderException {
                             experimentUnloaderService.process(cmd, this);
                         }
@@ -111,20 +104,12 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             netCDFUpdaterService.process(cmd, this);
                         }
 
-                        public void process(LoadVirtualArrayDesignCommand cmd) throws AtlasLoaderException {
-                            virtualArrayDesignLoader.process(cmd, this);
-                        }
-
                         public void process(LoadBioentityCommand cmd) throws AtlasLoaderException {
                             bioentityAnnotationLoader.process(cmd, this);
                         }
 
                         public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
                             designMappingLoader.process(cmd);
-                        }
-
-                        public void process(DataReleaseCommand cmd) throws AtlasLoaderException {
-                            dataReleaseService.process(cmd);
                         }
 
                         public void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException {
@@ -155,10 +140,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.magetabLoader = magetabLoader;
     }
 
-    public void setArrayDesignLoader(AtlasArrayDesignLoader arrayDesignLoader) {
-        this.arrayDesignLoader = arrayDesignLoader;
-    }
-
     public void setExperimentUnloaderService(AtlasExperimentUnloaderService experimentUnloaderService) {
         this.experimentUnloaderService = experimentUnloaderService;
     }
@@ -167,20 +148,12 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.netCDFUpdaterService = netCDFUpdaterService;
     }
 
-    public void setVirtualArrayDesignLoader(AtlasVirtualArrayDesignLoader virtualArrayDesignLoader) {
-        this.virtualArrayDesignLoader = virtualArrayDesignLoader;
-    }
-
     public void setBioentityAnnotationLoader(AtlasBioentityAnnotationLoader bioentityAnnotationLoader) {
         this.bioentityAnnotationLoader = bioentityAnnotationLoader;
     }
 
     public void setDesignMappingLoader(ArrayDesignMappingLoader designMappingLoader) {
         this.designMappingLoader = designMappingLoader;
-    }
-
-    public void setDataReleaseService(AtlasDataReleaseService dataReleaseService) {
-        this.dataReleaseService = dataReleaseService;
     }
 
     public void setExperimentEditorService(ExperimentEditorService experimentEditorService) {

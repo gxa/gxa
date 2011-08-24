@@ -23,9 +23,6 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import java.io.Serializable;
-import java.util.Arrays;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author Tony Burdett
@@ -35,13 +32,12 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
 
     private String efName;
     private String efvName;
-    private long experimentID;
-    private long designElementID;  // we don't care about it
+    //private long experimentID;
+    private String designElementAccession;  // we don't care about it
     private float tStatistic;
     private float pValAdjusted;
     private transient long efId;  // TODO: make it properly
     private transient long efvId; // TODO: make it properly
-    private String[] efoAccessions;
     // Id (i.e. filename) of the proxy in which data to populate this object were found
     private String proxyId;
     // Index of a design element (in proxyId) in which data to populate this object were found
@@ -79,6 +75,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         this.efvName = efvName;
     }
 
+    /*
     public long getExperimentID() {
         return experimentID;
     }
@@ -86,13 +83,14 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     public void setExperimentID(long experimentID) {
         this.experimentID = experimentID;
     }
+    */
 
-    public long getDesignElementID() {
-        return designElementID;
+    public String getDesignElementAccession() {
+        return designElementAccession;
     }
 
-    public void setDesignElementID(long designElementID) {
-        this.designElementID = designElementID;
+    public void setDesignElementAccession(String designElementAccession) {
+        this.designElementAccession = designElementAccession;
     }
 
     public float getPValAdjusted() {
@@ -115,24 +113,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return efId;
     }
 
-    public void setEfId(long efId) {
-        this.efId = efId;
-    }
-
     public long getEfvId() {
         return efvId;
-    }
-
-    public void setEfvId(long efvId) {
-        this.efvId = efvId;
-    }
-
-    public String[] getEfoAccessions() {
-        return (efoAccessions == null) ? null : asList(efoAccessions).toArray(new String[efoAccessions.length]);
-    }
-
-    public void setEfoAccessions(String[] efoAccessions) {
-        this.efoAccessions = (efoAccessions == null) ? null : asList(efoAccessions).toArray(new String[efoAccessions.length]);
     }
 
     public int compareTo(ExpressionAnalysis o) {
@@ -151,13 +133,17 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return UpDownExpression.isDown(pValAdjusted, tStatistic);
     }
 
+    public UpDownExpression getUpDownExpression() {
+        return UpDownExpression.valueOf(pValAdjusted, tStatistic);
+    }
+
     @Override
     public String toString() {
         return "ExpressionAnalysis{" +
                 "efName='" + efName + '\'' +
                 ", efvName='" + efvName + '\'' +
-                ", experimentID=" + experimentID +
-                ", designElementID=" + designElementID +
+                //", experimentID=" + experimentID +
+                ", designElementAccession=" + designElementAccession +
                 ", tStatistic=" + tStatistic +
                 ", pValAdjusted=" + pValAdjusted +
                 ", efId=" + efId +
@@ -174,14 +160,13 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
 
         ExpressionAnalysis that = (ExpressionAnalysis) o;
 
-        if (designElementID != that.designElementID) return false;
+        if (!designElementAccession.equals(that.designElementAccession)) return false;
         if (efId != that.efId) return false;
         if (efvId != that.efvId) return false;
-        if (experimentID != that.experimentID) return false;
+        //if (experimentID != that.experimentID) return false;
         if (Float.compare(that.pValAdjusted, pValAdjusted) != 0) return false;
         if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
         if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
-        if (!Arrays.equals(efoAccessions, that.efoAccessions)) return false;
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
         if (proxyId != null ? !proxyId.equals(that.proxyId) : that.proxyId != null) return false;
         if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null)
@@ -194,13 +179,12 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     public int hashCode() {
         int result = efName != null ? efName.hashCode() : 0;
         result = 31 * result + (efvName != null ? efvName.hashCode() : 0);
-        result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
-        result = 31 * result + (int) (designElementID ^ (designElementID >>> 32));
+        //result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
+        result = 31 * result + designElementAccession.hashCode();
         result = 31 * result + (tStatistic != +0.0f ? Float.floatToIntBits(tStatistic) : 0);
         result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
         result = 31 * result + (int) (efId ^ (efId >>> 32));
         result = 31 * result + (int) (efvId ^ (efvId >>> 32));
-        result = 31 * result + (efoAccessions != null ? Arrays.hashCode(efoAccessions) : 0);
         result = 31 * result + (proxyId != null ? proxyId.hashCode() : 0);
         result = 31 * result + (designElementIndex != null ? designElementIndex : 0);
 

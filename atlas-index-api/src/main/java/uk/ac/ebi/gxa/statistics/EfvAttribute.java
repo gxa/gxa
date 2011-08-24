@@ -4,8 +4,12 @@ import uk.ac.ebi.gxa.efo.Efo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
@@ -13,24 +17,26 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
 /**
  * Serializable representation of ef-efv for the purpose of ConciseSet storage.
  * This class also represents ef-efvs at bit index query time.
+ * <p/>
+ * TODO: this is generally a bad idea to use the class in three different ways, and is extremely bug-prone one
  */
 public class EfvAttribute extends Attribute implements Serializable {
-
-    private static final long serialVersionUID = 4484057956622518618L;
+    private static final long serialVersionUID = 201106071345L;
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
-    // experiments (c.f. same mathod in EfoAttribute)
-    public final static ExperimentInfo ALL_EXPERIMENTS_PLACEHOLDER = null;
+    // experiments (c.f. same method in EfoAttribute)
+    public static final ExperimentInfo ALL_EXPERIMENTS_PLACEHOLDER = null;
     private static final String EF_EFV_SEP = "_";
 
-    private String ef;
-    private String efv;
-    private String value;
+    private final String ef;
+    private final String efv;
+    private transient String value;
 
     /**
      * Constructor used for ef object stored in bit index
      *
-     * @param ef
+     * @param ef  an experiment factor name
+     * @param statType statistics type
      */
     public EfvAttribute(@Nonnull final String ef, StatisticsType statType) {
         this(ef, null, statType);
@@ -39,15 +45,15 @@ public class EfvAttribute extends Attribute implements Serializable {
     /**
      * Constructor used for ef-efv tuple stored in bit index
      *
-     * @param ef
-     * @param efv
+     * @param ef an experiment factor name
+     * @param efv an experiment factor value
+     * @param statType statistics type
      */
     public EfvAttribute(@Nonnull final String ef, @Nullable final String efv, @Nullable StatisticsType statType) {
+        super(statType);
         this.ef = ef;
         this.efv = efv;
         this.value = encodePair(ef, efv);
-        if (statType != null)
-            this.statType = statType;
     }
 
     public String getEf() {
@@ -63,6 +69,11 @@ public class EfvAttribute extends Attribute implements Serializable {
         return value;
     }
 
+    @Override
+    public EfvAttribute withStatType(StatisticsType statType) {
+        return new EfvAttribute(ef, efv, statType);
+    }
+
     /**
      * @param efo Efo
      * @return Set containing just this Attribute
@@ -74,7 +85,7 @@ public class EfvAttribute extends Attribute implements Serializable {
 
     /**
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
+     * @param allExpsToAttrs    Map: ExperimentInfo -> Set<Attribute> to which mappings for efo term represented by this Attribute are to be added
      *                          Unlike for EfoAttribute, the only experiment key used is ALL_EXPERIMENTS_PLACEHOLDER
      */
     @Override
@@ -94,5 +105,16 @@ public class EfvAttribute extends Attribute implements Serializable {
             return null;
         final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
         return encode(pair).intern();
+    }
+
+    /**
+     * Restores the transient fields on deserialization
+     *
+     * @return <code>this</code>
+     * @throws ObjectStreamException in case of I/O errors during deserialization
+     */
+    private Object readResolve() throws ObjectStreamException {
+        this.value = encodePair(ef, efv);
+        return this;
     }
 }

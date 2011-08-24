@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.sql.ResultSet;
@@ -50,10 +51,12 @@ import java.util.List;
  */
 public class DbStorage implements PersistentStorage {
     private Logger log = LoggerFactory.getLogger(getClass());
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+    private final ExperimentDAO experimentDAO;
 
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+    public DbStorage(JdbcTemplate jdbcTemplate, ExperimentDAO experimentDAO) {
         this.jdbcTemplate = jdbcTemplate;
+        this.experimentDAO = experimentDAO;
     }
 
     private static String decodeAccession(String accession) {
@@ -302,10 +305,10 @@ public class DbStorage implements PersistentStorage {
         results.setTypeFacet(jdbcTemplate.queryForList("SELECT DISTINCT type from A2_TASKMAN_LOG ORDER BY type", null, String.class));
         results.setEventFacet((List<TaskEvent>) jdbcTemplate.query("SELECT DISTINCT event from A2_TASKMAN_LOG ORDER BY event",
                 new Object[0], new RowMapper() {
-                    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return TaskEvent.valueOf(rs.getString(1));
-                    }
-                }));
+            public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return TaskEvent.valueOf(rs.getString(1));
+            }
+        }));
 
         return results;
     }
@@ -337,73 +340,6 @@ public class DbStorage implements PersistentStorage {
         }
     }
 
-
-    public static class ExperimentWithStatus extends Experiment {
-        private boolean netcdfComplete;
-        private boolean analyticsComplete;
-        private boolean indexComplete;
-
-        public boolean isNetcdfComplete() {
-            return netcdfComplete;
-        }
-
-        public void setNetcdfComplete(boolean netcdfComplete) {
-            this.netcdfComplete = netcdfComplete;
-        }
-
-        public boolean isAnalyticsComplete() {
-            return analyticsComplete;
-        }
-
-        public void setAnalyticsComplete(boolean analyticsComplete) {
-            this.analyticsComplete = analyticsComplete;
-        }
-
-        public boolean isIndexComplete() {
-            return indexComplete;
-        }
-
-        public void setIndexComplete(boolean indexComplete) {
-            this.indexComplete = indexComplete;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
-
-            ExperimentWithStatus that = (ExperimentWithStatus) o;
-
-            if (analyticsComplete != that.analyticsComplete) return false;
-            if (indexComplete != that.indexComplete) return false;
-            if (netcdfComplete != that.netcdfComplete) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (netcdfComplete ? 1 : 0);
-            result = 31 * result + (analyticsComplete ? 1 : 0);
-            result = 31 * result + (indexComplete ? 1 : 0);
-            return result;
-        }
-    }
-
-    public static class ExperimentList extends ArrayList<ExperimentWithStatus> {
-        private int numTotal;
-
-        public int getNumTotal() {
-            return numTotal;
-        }
-
-        private void setNumTotal(int numTotal) {
-            this.numTotal = numTotal;
-        }
-    }
-
     public enum ExperimentIncompleteness {
         ALL,
         COMPLETE,
@@ -418,12 +354,14 @@ public class DbStorage implements PersistentStorage {
                                           ExperimentIncompleteness incompleteness,
                                           int start, int number) {
         StringBuilder sql = new StringBuilder(
-                "SELECT * FROM (SELECT e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, " +
+                "SELECT experimentid, incanalytics, incnetcdf, incindex " +
+                        " FROM (SELECT e.experimentid, " +
                         "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as incanalytics, " +
                         "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as incnetcdf, " +
-                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex, " +
-                        "e.private, e.curated " +
-                        "FROM a2_experiment e LEFT JOIN a2_taskman_status s " +
+                        "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex," +
+                        " e.accession, e.description, e.performer, e.lab, e.loaddate, e.private, e.curated " +
+                        "FROM a2_experiment e " +
+                        "LEFT JOIN a2_taskman_status s " +
                         "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='INCOMPLETE'" +
                         "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.private, e.curated " +
                         "ORDER BY e.loaddate DESC NULLS LAST, e.accession) " +
@@ -499,22 +437,11 @@ public class DbStorage implements PersistentStorage {
                         ExperimentList results = new ExperimentList();
                         int total = 0;
                         while (resultSet.next()) {
-                            ExperimentWithStatus experiment = new ExperimentWithStatus();
-
-                            experiment.setAccession(resultSet.getString(1));
-                            experiment.setDescription(resultSet.getString(2));
-                            experiment.setPerformer(resultSet.getString(3));
-                            experiment.setLab(resultSet.getString(4));
-                            experiment.setExperimentID(resultSet.getLong(5));
-                            experiment.setLoadDate(resultSet.getDate(6));
-                            //we are not setting Abstract, PMID, ReleaseDate here
-
-                            experiment.setAnalyticsComplete(resultSet.getInt(7) == 0);
-                            experiment.setNetcdfComplete(resultSet.getInt(8) == 0);
-                            experiment.setIndexComplete(resultSet.getInt(9) == 0);
-                            experiment.setPrivate(resultSet.getBoolean(10));
-                            experiment.setCurated(resultSet.getBoolean(11));
-                            results.add(experiment);
+                            final Experiment experiment = experimentDAO.getById(resultSet.getLong(1));
+                            results.add(new ExperimentLine(experiment,
+                                    resultSet.getInt(2) == 0,
+                                    resultSet.getInt(3) == 0,
+                                    resultSet.getInt(4) == 0));
                             ++total;
                         }
                         results.setNumTotal(numTotal == -1 ? total : numTotal);
@@ -523,13 +450,8 @@ public class DbStorage implements PersistentStorage {
                 });
     }
 
-    public String getMaxReleaseDate() {
-        String sql = "select TO_CHAR(MAX(RELEASEDATE),'DD/MM/YYYY') FROM a2_experiment";
-
-        return jdbcTemplate.queryForObject(sql, String.class);
-    }
-
     private static String likeifyString(String searchStr) {
         return "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
     }
+
 }

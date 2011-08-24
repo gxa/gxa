@@ -41,9 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Properties;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
-
-
 /**
  * @author pashky
  */

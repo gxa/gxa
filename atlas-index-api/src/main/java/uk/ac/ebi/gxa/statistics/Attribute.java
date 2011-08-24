@@ -10,10 +10,20 @@ import java.util.Set;
  */
 public abstract class Attribute {
 
-    protected StatisticsType statType;
+    private transient final StatisticsType statType;
 
     /**
-     *
+     * Note: Default constructor is required for serializable descendants of the abstract class.
+     */
+    protected Attribute() {
+        this.statType = null;
+    }
+
+    protected Attribute(StatisticsType statType) {
+        this.statType = statType;
+    }
+
+    /**
      * @param efo
      * @return Set containing this Attribute (and all its children if applicable - c.f. EfoAttribute)
      */
@@ -21,7 +31,7 @@ public abstract class Attribute {
 
     /**
      * @param statisticsStorage - used to obtain indexes of attributes and experiments, needed finding experiment counts in bit index
-     * @param allExpsToAttrs    Map: Experiment -> Set<Attribute> to which mappings for an Attribute are to be added.
+     * @param allExpsToAttrs    Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
     public abstract void getEfvExperimentMappings(
             final StatisticsStorage statisticsStorage,
@@ -30,9 +40,12 @@ public abstract class Attribute {
 
     public abstract String getValue();
 
-    public void setStatType(StatisticsType statType) {
-        this.statType = statType;
-    }
+    /**
+     * TODO: Temporary solution to make Attribute immutable. See ticket #3048
+     * @param statType new statistics type
+     * @return a copy of current object but with new statistics type
+     */
+    public abstract Attribute withStatType(StatisticsType statType);
 
     public StatisticsType getStatType() {
         return statType;
@@ -50,9 +63,7 @@ public abstract class Attribute {
 
         Attribute attribute = (Attribute) o;
 
-        if (getValue() != null ? !getValue().equals(attribute.getValue()) : attribute.getValue() != null) return false;
-
-        return true;
+        return getValue() == null ? attribute.getValue() == null : getValue().equals(attribute.getValue());
     }
 
     @Override
@@ -61,4 +72,7 @@ public abstract class Attribute {
     }
 
 
+    public boolean isEmpty() {
+        return getValue() == null;
+    }
 }

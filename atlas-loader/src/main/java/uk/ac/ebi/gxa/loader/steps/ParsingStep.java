@@ -42,25 +42,16 @@ import java.util.concurrent.Executors;
  * Based on the original code by Tony Burdett.
  *
  * @author Nikolay Pultsin
- * @date Aug-2010
  */
+public class ParsingStep {
+    private final static Logger log = LoggerFactory.getLogger(ParsingStep.class);
 
-
-public class ParsingStep implements Step {
-    private final URL idfFileLocation;
-    private final MAGETABInvestigation investigation;
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
-    public ParsingStep(URL idfFileLocation, MAGETABInvestigation investigation) {
-        this.idfFileLocation = idfFileLocation;
-        this.investigation = investigation;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Parsing IDF & SDRF files";
     }
 
-    public void run() throws AtlasLoaderException {
+    public MAGETABInvestigation parse(URL idfFileLocation) throws AtlasLoaderException {
+        MAGETABInvestigation investigation = new MAGETABInvestigation();
         MAGETABParser parser = new MAGETABParser();
         parser.setParsingMode(ParserMode.READ_AND_WRITE);
         parser.setStripEscaping(true);
@@ -87,20 +78,17 @@ public class ParsingStep implements Step {
                 // todo: this should go to a different log stream, part of loader report -
                 // probably should dynamically creating an appender that writes to the magetab directory
                 log.error(
-                    "Parser reported:\n\t" +
-                    item.getErrorCode() + ": " + message + "\n\t\t- " +
-                    "occurred in parsing " + item.getParsedFile() + " " +
-                    "[line " + item.getLine() + ", column " + item.getCol() + "].", item
+                        "Parser reported:\n\t" +
+                                item.getErrorCode() + ": " + message + "\n\t\t- " +
+                                "occurred in parsing " + item.getParsedFile() + " " +
+                                "[line " + item.getLine() + ", column " + item.getCol() + "].", item
                 );
             }
         });
 
-        ExecutorService parseService =
-                Executors.newFixedThreadPool(2);
-        ExecutorService idfService =
-                Executors.newFixedThreadPool(2);
-        ExecutorService sdrfService =
-                Executors.newFixedThreadPool(2);
+        ExecutorService parseService = Executors.newFixedThreadPool(2);
+        ExecutorService idfService = Executors.newFixedThreadPool(2);
+        ExecutorService sdrfService = Executors.newFixedThreadPool(2);
         try {
             parser.parse(idfFileLocation, investigation, parseService, idfService, sdrfService);
             log.info("Parsing finished");
@@ -113,5 +101,7 @@ public class ParsingStep implements Step {
             idfService.shutdownNow();
             sdrfService.shutdownNow();
         }
+
+        return investigation;
     }
 }

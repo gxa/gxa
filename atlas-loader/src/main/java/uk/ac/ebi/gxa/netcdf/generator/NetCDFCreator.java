@@ -32,7 +32,10 @@ import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -61,8 +64,6 @@ public class NetCDFCreator {
     private ListMultimap<String, String> efvOntologies;
     private int maxAssayLength;
     private int maxSampleLength;
-    private int maxEfvoLength;
-    private int maxScvoLength;
 
     private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
     private ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
@@ -72,8 +73,8 @@ public class NetCDFCreator {
     private boolean canWriteFirstFull;
 
     // maps of properties
-    private Multimap<String, String> efvMap;
-    private Multimap<String, String> scvMap;
+    private LinkedHashMap<String, List<String>> efvMap;
+    private LinkedHashMap<String, List<String>> scvMap;
     private LinkedHashSet<String> efScs; // efs/scs
     private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
     private Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
@@ -108,8 +109,8 @@ public class NetCDFCreator {
         this.arrayDesign = arrayDesign;
     }
 
-    public void setAssays(List<Assay> assays) {
-        this.assays = assays;
+    public void setAssays(Collection<Assay> assays) {
+        this.assays = new ArrayList<Assay>(assays);
     }
 
     public void setSample(Assay assay, Sample sample) {
@@ -129,19 +130,63 @@ public class NetCDFCreator {
         this.tstatDataMap = tstatDataMap;
     }
 
-    private ListMultimap<String, String> extractProperties(List<? extends ObjectWithProperties> objects) {
+    private LinkedHashMap<String, List<String>> extractAssayProperties(List<Assay> assays) {
+        final LinkedHashMap<String, List<String>> result = new LinkedHashMap<String, List<String>>();
+
+        final SortedSet<String> propertyNames = new TreeSet<String>();
+
+        for (Assay a : assays) {
+            propertyNames.addAll(a.getPropertyNames());
+        }
+
+        for (String propertyName : propertyNames) {
+            final ArrayList<String> propertyList = new ArrayList<String>(samples.size());
+
+            for (final Assay a : assays) {
+                propertyList.add(a.getPropertySummary(propertyName));
+            }
+
+            result.put(propertyName, propertyList);
+        }
+
+        return result;
+    }
+
+    private static ListMultimap<String, String> extractAssayOntologies(List<Assay> objects) {
         ListMultimap<String, String> result = ArrayListMultimap.create();
-        for (ObjectWithProperties o : objects) {
+        for (Assay o : objects) {
             for (String name : o.getPropertyNames()) {
-                result.put(name, o.getPropertySummary(name));
+                result.put(name, o.getEfoSummary(name));
             }
         }
         return result;
     }
 
-    private static ListMultimap<String, String> extractOntologies(List<? extends ObjectWithProperties> objects) {
+    private LinkedHashMap<String, List<String>> extractSampleProperties(final List<Sample> samples) {
+        final LinkedHashMap<String, List<String>> result = new LinkedHashMap<String, List<String>>();
+
+        final SortedSet<String> propertyNames = new TreeSet<String>();
+
+        for (final Sample s : samples) {
+            propertyNames.addAll(s.getPropertyNames());
+        }
+
+        for (final String propertyName : propertyNames) {
+            final ArrayList<String> propertyList = new ArrayList<String>(samples.size());
+
+            for (final Sample s : samples) {
+                propertyList.add(s.getPropertySummary(propertyName));
+            }
+
+            result.put(propertyName, propertyList);
+        }
+
+        return result;
+    }
+
+    private static ListMultimap<String, String> extractSampleOntologies(List<Sample> objects) {
         ListMultimap<String, String> result = ArrayListMultimap.create();
-        for (ObjectWithProperties o : objects) {
+        for (Sample o : objects) {
             for (String name : o.getPropertyNames()) {
                 result.put(name, o.getEfoSummary(name));
             }
@@ -191,46 +236,38 @@ public class NetCDFCreator {
             storageAssaysMap.put(assayDataMap.get(a.getAccession()).storage, a);
 
         // reshape available properties to match assays & samples
-        final List<ObjectWithProperties> samplesList = new ArrayList<ObjectWithProperties>(samples);
-        efvMap = extractProperties(assays);
-        scvMap = extractProperties(samplesList);
+        final List<Sample> samplesList = new ArrayList<Sample>(samples);
+        efvMap = extractAssayProperties(assays);
+        scvMap = extractSampleProperties(samplesList);
 
         // Merge efvMap and scvMap into propertyToUnsortedUniqueValues that will store all scv/efv properties
-        for (Map.Entry<String, Collection<String>> efToEfvs : efvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> efToEfvs : efvMap.entrySet()) {
             propertyToUnsortedUniqueValues.putAll(efToEfvs.getKey(), efToEfvs.getValue());
         }
-        for (Map.Entry<String, Collection<String>> scToScvs : scvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> scToScvs : scvMap.entrySet()) {
             propertyToUnsortedUniqueValues.putAll(scToScvs.getKey(), scToScvs.getValue());
         }
 
         efScs = getEfScs(efvMap, scvMap);
-        efvOntologies = extractOntologies(assays);
-        scvOntologies = extractOntologies(samplesList);
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
         maxEfScLength = 0;
         maxEfvLength = 0;
-        maxEfvoLength = 0;
         for (String ef : efvMap.keySet()) {
             maxEfLength = Math.max(maxEfLength, ef.length());
             maxEfScLength = Math.max(maxEfScLength, ef.length());
             for (String efv : efvMap.get(ef))
                 maxEfvLength = Math.max(maxEfvLength, efv.length());
-            for (String efvo : efvOntologies.get(ef))
-                maxEfvoLength = Math.max(maxEfvoLength, efvo.length());
         }
 
         maxScLength = 0;
         maxScvLength = 0;
-        maxScvoLength = 0;
         for (String sc : scvMap.keySet()) {
             maxScLength = Math.max(maxScLength, sc.length());
             maxEfScLength = Math.max(maxEfScLength, sc.length());
             for (String scv : scvMap.get(sc))
                 maxScvLength = Math.max(maxScvLength, scv.length());
-            for (String scvo : scvOntologies.get(sc))
-                maxScvoLength = Math.max(maxScvoLength, scvo.length());
         }
 
         totalUniqueValues = populateUniqueValues(propertyToUnsortedUniqueValues, propertyToSortedUniqueValues, pvalDataMap);
@@ -280,7 +317,6 @@ public class NetCDFCreator {
     }
 
     /**
-     *
      * @param unsortedUniqueValueMap source of non-unique data from which sortedUniqueValueMap is populated;
      *                               ef or sc -> list of non-unique efvs/scvs corresponding to ef/sc key respectively
      * @param sortedUniqueValueMap   populated by this method; ef or sc -> list of unique efvs/scvs corresponding to ef/sc key respectively
@@ -325,10 +361,10 @@ public class NetCDFCreator {
         // NetCDF doesn't know how to store longs, so we use DataType.DOUBLE for internal DB ids
 
         Dimension assayDimension = netCdf.addDimension("AS", assays.size());
-        netCdf.addVariable("AS", DataType.DOUBLE, new Dimension[]{assayDimension});
+        //netCdf.addVariable("AS", DataType.DOUBLE, new Dimension[]{assayDimension});
 
         Dimension sampleDimension = netCdf.addDimension("BS", samples.size());
-        netCdf.addVariable("BS", DataType.DOUBLE, new Dimension[]{sampleDimension});
+        //netCdf.addVariable("BS", DataType.DOUBLE, new Dimension[]{sampleDimension});
 
         netCdf.addVariable("BS2AS", DataType.INT,
                 new Dimension[]{sampleDimension, assayDimension});
@@ -338,7 +374,7 @@ public class NetCDFCreator {
         Dimension designElementLenDimension = netCdf.addDimension("DElen", maxDesignElementLength);
 
         netCdf.addVariable("DEacc", DataType.CHAR, new Dimension[]{designElementDimension, designElementLenDimension});
-        netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
+        //netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
         netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
 
         //accessions for Assays and Samples
@@ -361,11 +397,6 @@ public class NetCDFCreator {
 
                 Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
                 netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
-
-                if (maxScvoLength > 0) {
-                    Dimension scvolenDimension = netCdf.addDimension("SCVOlen", maxScvoLength);
-                    netCdf.addVariable("SCVO", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvolenDimension});
-                }
             }
 
             if (!efvMap.isEmpty()) {
@@ -376,11 +407,6 @@ public class NetCDFCreator {
 
                 Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
                 netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
-
-                if (maxEfvoLength > 0) {
-                    Dimension efvolenDimension = netCdf.addDimension("EFVOlen", maxEfvoLength);
-                    netCdf.addVariable("EFVO", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvolenDimension});
-                }
             }
 
             // Now add unique values and stats dimensions
@@ -425,10 +451,10 @@ public class NetCDFCreator {
                 experiment.getPerformer());
         safeAddGlobalAttribute(
                 "experiment_pmid",
-                experiment.getPubmedID());
+                experiment.getPubmedId());
         safeAddGlobalAttribute(
                 "experiment_abstract",
-                experiment.getArticleAbstract());
+                experiment.getAbstract());
 
         netCdf.create();
     }
@@ -437,8 +463,6 @@ public class NetCDFCreator {
         writeSamplesAssays();
         writeSampleAccessions();
         writeAssayAccessions();
-        writeAssayOntologies();
-        writeSampleOntologies();
 
         if (!efvMap.isEmpty())
             writeEfvs();
@@ -510,10 +534,11 @@ public class NetCDFCreator {
                                     };
                                 }
                             }, new Predicate<Pair<String, String>>() {
-                                public boolean apply(@Nullable Pair<String, String> input) {
-                                    return getMap().get(input).storage == storage;
-                                }
-                            });
+                        public boolean apply(@Nullable Pair<String, String> input) {
+                            return getMap().get(input).storage == storage;
+                        }
+                    }
+                    );
                 }
             };
         }
@@ -660,7 +685,7 @@ public class NetCDFCreator {
             ++i;
         }
 
-        netCdf.write("DE", deIds);
+        //netCdf.write("DE", deIds);
         netCdf.write("GN", gnIds);
 
         if (!deMapped)
@@ -675,16 +700,6 @@ public class NetCDFCreator {
 
     private void writeSampleAccessions() throws IOException, InvalidRangeException {
         writeList("BSacc", sampleAccessions);
-    }
-
-    private void writeSampleOntologies() throws IOException, InvalidRangeException {
-        if ((null != scvOntologies) && (maxScvoLength > 0))
-            writeMap("SCVO", scvOntologies, scvOntologies.keySet().size(), samples.size(), maxScvoLength);
-    }
-
-    private void writeAssayOntologies() throws IOException, InvalidRangeException {
-        if ((null != efvOntologies) && (maxEfvoLength > 0))
-            writeMap("EFVO", efvOntologies, efvOntologies.keySet().size(), assays.size(), maxEfvoLength);
     }
 
     private void writeList(String variable, List<String> values) throws IOException, InvalidRangeException {
@@ -720,6 +735,7 @@ public class NetCDFCreator {
     }
 
     private void writeSamplesAssays() throws IOException, InvalidRangeException {
+        /*
         ArrayInt as = new ArrayInt.D1(assays.size());
         IndexIterator asIt = as.getIndexIterator();
         for (Assay assay : assays) {
@@ -733,6 +749,7 @@ public class NetCDFCreator {
             bsIt.setLongNext(sample.getSampleID());
         }
         netCdf.write("BS", bs);
+        */
 
         ArrayInt bs2as = new ArrayInt.D2(samples.size(), assays.size());
         IndexIterator bs2asIt = bs2as.getIndexIterator();
@@ -748,6 +765,7 @@ public class NetCDFCreator {
 
     /**
      * Write out unique ef-efvs/sc-scvs
+     *
      * @throws IOException
      * @throws InvalidRangeException
      */
@@ -775,7 +793,7 @@ public class NetCDFCreator {
 
         // Populate non-unique efvs
         int ei = 0;
-        for (Map.Entry<String, Collection<String>> e : efvMap.asMap().entrySet()) {
+        for (Map.Entry<String, List<String>> e : efvMap.entrySet()) {
             ef.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())
@@ -788,12 +806,11 @@ public class NetCDFCreator {
     }
 
     private void writeScvs() throws IOException, InvalidRangeException {
-        int ei;// sample charactristics
         ArrayChar sc = new ArrayChar.D2(scvMap.keySet().size(), maxScLength);
         ArrayChar scv = new ArrayChar.D3(scvMap.keySet().size(), samples.size(), maxScvLength);
 
-        ei = 0;
-        for (Map.Entry<String, Collection<String>> e : scvMap.asMap().entrySet()) {
+        int ei = 0;
+        for (Map.Entry<String, List<String>> e : scvMap.entrySet()) {
             sc.setString(ei, e.getKey());
             int vi = 0;
             for (String v : e.getValue())
@@ -858,6 +875,12 @@ public class NetCDFCreator {
     }
 
     private void safeAddGlobalAttribute(String attribute, Number value) {
+        // geometer: according NetcdfFileWriteable documentation,
+        // Long value cannot be stored in NetCDF
+        if (value instanceof Long) {
+            safeAddGlobalAttribute(attribute, value.toString());
+            return;
+        }
         if ((null != attribute) && (null != value)) {
             netCdf.addGlobalAttribute(
                     attribute,
@@ -870,7 +893,8 @@ public class NetCDFCreator {
      * @param scs
      * @return merged LinkedHashSet of efs and scs keySets
      */
-    private LinkedHashSet<String> getEfScs(Multimap<String, String> efs, Multimap<String, String> scs) {
+    private LinkedHashSet<String> getEfScs(
+            LinkedHashMap<String, List<String>> efs, LinkedHashMap<String, List<String>> scs) {
         LinkedHashSet<String> result = new LinkedHashSet<String>();
         result.addAll(efs.keySet());
         result.addAll(scs.keySet());

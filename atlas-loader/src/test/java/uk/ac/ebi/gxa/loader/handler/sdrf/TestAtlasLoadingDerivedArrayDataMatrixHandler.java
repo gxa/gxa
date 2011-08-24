@@ -22,17 +22,19 @@
 
 package uk.ac.ebi.gxa.loader.handler.sdrf;
 
+import com.google.common.collect.HashMultimap;
 import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
 import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
+import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
@@ -41,36 +43,21 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
 
-/**
- * Javadocs go here.
- *
- * @author Junit Generation Plugin for Maven, written by Tony Burdett
- * @date 07-10-2009
- */
 public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
-    private MAGETABInvestigationExt investigation;
     private AtlasLoadCache cache;
 
     private URL parseURL;
 
     public void setUp() {
-        // now, create an investigation
-        investigation = new MAGETABInvestigationExt();
         cache = new AtlasLoadCache();
         cache.setAvailQTypes(
                 Arrays.asList("AFFYMETRIX_VALUE,CHPSignal,rma_normalized,gcRMA,signal,value,quantification".toLowerCase().split(",")));
-
-        AtlasLoadCacheRegistry.getRegistry().registerExperiment(investigation, cache);
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
-    }
-
-    public void tearDown() throws Exception {
-        AtlasLoadCacheRegistry.getRegistry().deregisterExperiment(investigation);
     }
 
     public void testWriteValues() throws AtlasLoaderException {
@@ -104,8 +91,7 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
                         } else {
                             message = "Unknown error";
                         }
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         message = "Unknown error";
                     }
                 }
@@ -120,16 +106,12 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
             }
         });
 
-        Step step0 = new ParsingStep(parseURL, investigation);
-        Step step1 = new CreateExperimentStep(investigation);
-        Step step2 = new SourceStep(investigation);
-        Step step3 = new AssayAndHybridizationStep(investigation);
-        Step step4 = new DerivedArrayDataMatrixStep(investigation);
-        step0.run();
-        step1.run();
-        step2.run();
-        step3.run();
-        step4.run();
+        final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
+        cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
+        final LoaderDAO dao = MockFactory.createLoaderDAO();
+        new SourceStep().readSamples(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
 
         System.out.println("Parsing done");
 

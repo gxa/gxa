@@ -47,7 +47,6 @@
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.flot.selection.js"></script>
 
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.pagination.js"></script>
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-ui-1.7.2.atlas.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tmpl.min.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/common-query.js"></script>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/experiment.js"></script>
@@ -57,7 +56,6 @@
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/jquery-ui-1.7.2.atlas.css" type="text/css"/>
 
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/scripts/jquery-lightbox/css/lightbox.css" media="screen"/>
 <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-lightbox/jquery.lightbox.js"></script>
@@ -418,11 +416,11 @@
                         </td>
                         <td class="padded">
                             <select id="updownFilter" style="width:100%;">
-                                <option value="ANY">All expressions</option>
-                                <option value="UP_DOWN">up or down</option>
-                                <option value="UP">up</option>
-                                <option value="DOWN">down</option>
-                                <option value="NON_D_E">non d.e.</option>
+                                <option value="CONDITION_ANY">All expressions</option>
+                                <option value="CONDITION_UP_OR_DOWN">up or down</option>
+                                <option value="CONDITION_UP">up</option>
+                                <option value="CONDITION_DOWN">down</option>
+                                <option value="CONDITION_NONDE">non d.e.</option>
                             </select>
                         </td>
                         <td class="padded" colspan="2">

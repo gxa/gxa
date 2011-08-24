@@ -22,15 +22,12 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import ae3.service.structuredquery.AutoCompleteItem;
 import ae3.service.structuredquery.AutoCompleter;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
+import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -87,13 +84,7 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
             List<AutoCompleteItem> res = new ArrayList<AutoCompleteItem>();
             if (listers != null) {
                 for (AutoCompleter lister : listers) {
-                    res.addAll(
-                            lister.autoCompleteValues(
-                                    factor,
-                                    q,
-                                    nlimit,
-                                    filters
-                            ));
+                    res.addAll(lister.autoCompleteValues(factor, q, nlimit, filters));
                 }
             }
 

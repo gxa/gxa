@@ -1,9 +1,9 @@
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
@@ -12,53 +12,34 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
+import uk.ac.ebi.gxa.analytics.compute.RUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
-import uk.ac.ebi.gxa.loader.cache.AtlasLoadCacheRegistry;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.service.MAGETABInvestigationExt;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * User: nsklyar
- * Date: Oct 4, 2010
- */
-public class HTSArrayDataStep implements Step {
+public class HTSArrayDataStep {
+    private final static Logger log = LoggerFactory.getLogger(HTSArrayDataStep.class);
 
     private static final String RDATA = "eset_notstd_rpkm.RData";
-    //    private static final String RDATA = "esetcount.RData";
-    private final MAGETABInvestigationExt investigation;
-    private final AtlasLoadCache cache;
-    private final AtlasComputeService computeService;
 
-    private final Log log = LogFactory.getLog(this.getClass());
-
-
-    public HTSArrayDataStep(MAGETABInvestigationExt investigation, AtlasComputeService computeService) {
-        this.investigation = investigation;
-        this.cache = AtlasLoadCacheRegistry.getRegistry().retrieveAtlasLoadCache(investigation);
-        this.computeService = computeService;
-    }
-
-    public String displayName() {
+    public static String displayName() {
         return "Processing HTS data";
     }
 
-    public void run() throws AtlasLoaderException {
+    public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must be present)
@@ -80,7 +61,7 @@ public class HTSArrayDataStep implements Step {
 
 
         //run files through the pipeline
-        File outFilePath = runPipeline(sdrfURL);
+        File outFilePath = runPipeline(sdrfURL, computeService);
 
 
         // try to get the relative filename
@@ -100,7 +81,7 @@ public class HTSArrayDataStep implements Step {
             String refName = refNames.get(refIndex);
 
             log.debug("Attempting to attach expression values to next reference " + refName);
-            Assay assay;
+
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
@@ -112,17 +93,15 @@ public class HTSArrayDataStep implements Step {
                 }
 
                 String enaRunName = refNode.comments.get("ENA_RUN");
-                assay = cache.fetchAssay(enaRunName);
-
+                Assay assay = cache.fetchAssay(enaRunName);
 
                 if (assay != null) {
-                    log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
-                            "must be stored first...");
+                    log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                    cache.setDesignElements(assay.getArrayDesignAccession(), buffer.getDesignElements());
-                    if (StringUtils.isEmpty(assay.getArrayDesignAccession())) {
-                        assay.setArrayDesignAccession(findArrayDesignName(refNode));
+                    if (assay.getArrayDesign() == null) {
+                        assay.setArrayDesign(dao.getArrayDesign(findArrayDesignName(refNode)));
                     }
+                    cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                 } else {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");
@@ -149,7 +128,7 @@ public class HTSArrayDataStep implements Step {
         return null;
     }
 
-    private URL convertPathToULR(URL sdrfURL, File outFilePath) throws AtlasLoaderException {
+    private static URL convertPathToULR(URL sdrfURL, File outFilePath) throws AtlasLoaderException {
         URL dataMatrixURL;// NB. making sure we replace File separators with '/' to guard against windows issues
         try {
             dataMatrixURL = sdrfURL.getPort() == -1
@@ -174,7 +153,7 @@ public class HTSArrayDataStep implements Step {
         return dataMatrixURL;
     }
 
-    private File runPipeline(URL sdrfURL) throws AtlasLoaderException {
+    private static File runPipeline(URL sdrfURL, AtlasComputeService computeService) throws AtlasLoaderException {
 
         //ToDo: this code will be removed once a whole pipeline is integrated
         // The  directory structure is like that:
@@ -224,19 +203,18 @@ public class HTSArrayDataStep implements Step {
                 }
             }
         } catch (InterruptedException e) {
-            log.info(e);
+            log.info(e.getMessage(), e);
             //this exception can be ignored
         }
         if (!fileExists) {
             throw new AtlasLoaderException("File " + outFilePath + " hasn't been created");
         }
 
-
         return outFilePath;
     }
 
     //ToDo: this is only temp solution! Array design will not be user for RNA-seq experiments
-    private String findArrayDesignName(SDRFNode node) {
+    private static String findArrayDesignName(SDRFNode node) {
         Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
         for (SourceNode sourceNode : nodeCollection) {
             for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
@@ -269,19 +247,10 @@ public class HTSArrayDataStep implements Step {
 
             rs.sourceFromBuffer("infname = '" + infname + "'");
             rs.sourceFromBuffer("outfname = '" + outfname + "'");
-            rs.sourceFromBuffer(getRCodeFromResource("R/htsProcessPipeline.R"));
+            rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/htsProcessPipeline.R"));
             rs.sourceFromBuffer("esetToTextFile(infname = infname, outfname = outfname)");
 
             return null;
-        }
-
-        // TODO: copy-pasted from atlas-analitics; should be extracted to an utility function
-        private String getRCodeFromResource(String resourcePath) throws ComputeException {
-            try {
-                return Resources.toString(getClass().getClassLoader().getResource(resourcePath), Charset.defaultCharset());
-            } catch (IOException e) {
-                throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-            }
         }
     }
 }

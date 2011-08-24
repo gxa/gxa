@@ -23,7 +23,7 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
-<jsp:useBean id="experiments" type="java.util.Collection" scope="request"/>
+<jsp:useBean id="experiments" type="java.util.Collection<ae3.model.AtlasExperiment>" scope="request"/>
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
 
@@ -97,7 +97,7 @@
                     <a href="${pageContext.request.contextPath}/experiment/${experiment.accession}">${experiment.accession}</a>
                 </display:column>
                 <display:column property="loadDate" sortable="true" sortName="loaddate"
-                                title="Loaded" class="nowrap"/>
+                                title="Loaded" class="nowrap" format="{0,date,dd-MM-yyyy}"/>
                 <display:column property="description" sortable="false"/>
                 <display:column sortable="true" sortName="pmid" title="PubMed ID"
                                 class="number">

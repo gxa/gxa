@@ -23,6 +23,7 @@
 package ae3.dao;
 
 import ae3.model.AtlasExperiment;
+import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -31,13 +32,16 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static com.google.common.collect.Lists.transform;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * Atlas basic model elements access class
@@ -48,26 +52,21 @@ public class ExperimentSolrDAO {
     private static final Logger log = LoggerFactory.getLogger(ExperimentSolrDAO.class);
 
     private SolrServer experimentSolr;
+    private ExperimentDAO experimentDAO;
 
     public void setExperimentSolr(SolrServer experimentSolr) {
         this.experimentSolr = experimentSolr;
     }
 
-    /**
-     * Retrieve experiment by ID
-     *
-     * @param id experiment ID
-     * @return experiment if found, null if not
-     */
-    public AtlasExperiment getExperimentById(long id) {
-        return getExperimentByQuery("id:" + id);
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
     }
 
     /**
-     * Returns an AtlasExperiment that contains all information from index.
+     * Returns an Experiment that contains all information from index.
      *
      * @param accessionId - an experiment accession/identifier.
-     * @return an AtlasExperiment that contains all information from index.
+     * @return an Experiment that contains all information from index.
      */
     public AtlasExperiment getExperimentByAccession(String accessionId) {
         return getExperimentByQuery("accession:" + EscapeUtil.escapeSolr(accessionId));
@@ -86,9 +85,9 @@ public class ExperimentSolrDAO {
             }
 
             SolrDocument exptDoc = documentList.get(0);
-            return AtlasExperiment.createExperiment(exptDoc);
+            return AtlasExperiment.createExperiment(experimentDAO, exptDoc);
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiment", e);
+            throw createUnexpected("Error querying for experiment", e);
         }
     }
 
@@ -111,15 +110,6 @@ public class ExperimentSolrDAO {
             this.experiments = experiments;
             this.totalResults = totalResults;
             this.startingFrom = startingFrom;
-        }
-
-        /**
-         * Returns list of experiments
-         *
-         * @return list of experiments
-         */
-        public List<AtlasExperiment> getExperiments() {
-            return experiments;
         }
 
         /**
@@ -147,6 +137,20 @@ public class ExperimentSolrDAO {
          */
         public int getNumberOfResults() {
             return experiments.size();
+        }
+
+        public List<AtlasExperiment> getAtlasExperiments() {
+            return experiments;
+        }
+
+        public List<Experiment> getExperiments() {
+            return transform(experiments,
+                    new Function<AtlasExperiment, Experiment>() {
+                        @Override
+                        public Experiment apply(@Nonnull AtlasExperiment experiment) {
+                            return experiment.getExperiment();
+                        }
+                    });
         }
     }
 
@@ -187,29 +191,12 @@ public class ExperimentSolrDAO {
 
             if (documentList != null)
                 for (SolrDocument exptDoc : documentList)
-                    result.add(AtlasExperiment.createExperiment(exptDoc));
+                    result.add(AtlasExperiment.createExperiment(experimentDAO, exptDoc));
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for experiments", e);
+            throw createUnexpected("Error querying for experiments", e);
         }
     }
 
-    /**
-     * List all experiments
-     *
-     * @param ids
-     * @return list of all experiments with UP/DOWN expressions
-     */
-    public Collection<AtlasExperiment> getExperiments(Collection<Long> ids) {
-        List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
-        for (long id : ids) {
-            AtlasExperiment atlasExp = getExperimentById(id);
-            if (atlasExp != null)
-                result.add(atlasExp);
-            else
-                throw logUnexpected("Failed to find experiment: " + id + " in Solr experiment index!");
-        }
-        return result;
-    }
 }

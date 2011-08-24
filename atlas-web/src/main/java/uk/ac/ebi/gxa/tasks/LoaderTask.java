@@ -49,7 +49,6 @@ public class LoaderTask extends AbstractWorkingTask {
     public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
     public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
     public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
-    public static final String TYPE_DATARELEASE = "datarelease";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -62,10 +61,6 @@ public class LoaderTask extends AbstractWorkingTask {
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), getTaskSpec().getUserData());
 
-        else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType()))
-            return new LoadArrayDesignCommand(getTaskSpec().getAccession(),
-                    taskMan.getAtlasProperties().getLoaderGeneIdPriority());
-
         else if (TYPE_LOADANNOTATIONS.equals(getTaskSpec().getType()))
             return new LoadBioentityCommand(getTaskSpec().getAccession());
 
@@ -77,9 +72,6 @@ public class LoaderTask extends AbstractWorkingTask {
 
         else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());
-
-        else if (TYPE_DATARELEASE.equals(getTaskSpec().getType()))
-            return new DataReleaseCommand(getTaskSpec().getAccession());
 
         else if (TYPE_PRIVATEEXPERIMENT.equals(getTaskSpec().getType()))
             return new MakeExperimentPrivateCommand(getTaskSpec().getAccession());
@@ -144,13 +136,13 @@ public class LoaderTask extends AbstractWorkingTask {
                     } else if (TYPE_LOADARRAYDESIGN.equals(getTaskSpec().getType())) {
                         taskMan.addTaskTag(LoaderTask.this, TaskTagType.ARRAYDESIGN, accession);
 
-                        for (Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                        for (Experiment experiment : taskMan.getAtlasDAO().getExperimentsByArrayDesignAccession(accession)) {
                             taskMan.addTaskTag(LoaderTask.this, TaskTagType.EXPERIMENT, experiment.getAccession());
                             taskMan.updateTaskStage(LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()), TaskStatus.INCOMPLETE);
                         }
 
                         if (!stop && isRunningAutoDependencies()) {
-                            for (Experiment experiment : taskMan.getAtlasDAO().getExperimentByArrayDesign(accession)) {
+                            for (Experiment experiment : taskMan.getAtlasDAO().getExperimentsByArrayDesignAccession(accession)) {
                                 taskMan.scheduleTask(LoaderTask.this, LoaderTask.SPEC_UPDATEEXPERIMENT(experiment.getAccession()),
                                         TaskRunMode.CONTINUE, getUser(), true,
                                         "Automatically added by array design " + getTaskSpec().getAccession() + " loading task");
@@ -224,12 +216,10 @@ public class LoaderTask extends AbstractWorkingTask {
                     || TYPE_LOADMAPPING.equals(taskSpec.getType())
                     || TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
-                    || TYPE_DATARELEASE.equals(taskSpec.getType())
                     || TYPE_PRIVATEEXPERIMENT.equals(taskSpec.getType())
                     || TYPE_PUBLICEXPERIMENT.equals(taskSpec.getType())
                     ;
         }
-
     };
 
 }

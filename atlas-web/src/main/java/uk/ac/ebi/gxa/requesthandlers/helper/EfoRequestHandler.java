@@ -90,7 +90,7 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
                     bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
                     if (bioEntityCount > 0)
                         break;
-                    attr.setStatType(StatisticsType.NON_D_E);
+                    attr = attr.withStatType(StatisticsType.NON_D_E);
                     bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.NON_D_E);
                     if (bioEntityCount > 0)
                         break;

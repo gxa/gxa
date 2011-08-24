@@ -1,7 +1,5 @@
 package uk.ac.ebi.gxa.statistics;
 
-import it.uniroma3.mat.extendedset.ConciseSet;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -52,7 +50,7 @@ public class StatisticsQueryCondition {
      *
      * @param bioEntityIdRestrictionSet
      */
-    public StatisticsQueryCondition(Set bioEntityIdRestrictionSet) {
+    public StatisticsQueryCondition(Set<Integer> bioEntityIdRestrictionSet) {
         this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
     }
 
@@ -76,7 +74,6 @@ public class StatisticsQueryCondition {
     }
 
     /**
-     *
      * @param statisticsQueryOrConditions
      * @return StatisticsQueryCondition containing an OR clause of statisticsQueryOrConditions, restricted to geneRestrictionSet
      */
@@ -91,7 +88,6 @@ public class StatisticsQueryCondition {
     }
 
     /**
-     *
      * @param experiments
      * @return this query condition with experiments added to its experiments OR clause
      */
@@ -105,7 +101,6 @@ public class StatisticsQueryCondition {
     }
 
     /**
-     *
      * @param attribute
      * @return this query condition with attribute added to its attributes OR clause
      */

@@ -38,6 +38,7 @@ function sendFeedback(v,m){
         var email = m.children('#feedback_email').val();
         if (email && !validateEmail(email)) {
             alert('Invalid email address = ' + email);
+            m.children('#feedback_email').val(''); // reset the email field
             return false;
         }
 
@@ -54,7 +55,7 @@ function sendFeedback(v,m){
                     $("#feedback_thanks").show();
                     setTimeout(resetFeedback, 3000);
                 } else {
-                    alert("Failed to send feedback due to an internal error, but the query has been logged. Apologies for the inconvenience.");
+                    alert("Failed to send feedback! Sorry!");
                     return false;
                 }
           }

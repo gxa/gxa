@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+@Deprecated
 public class OntologyMapping {
     private long experimentId;
     private String experimentAccession;

@@ -10,8 +10,6 @@ import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
 import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
-import uk.ac.ebi.gxa.utils.CBitSet;
-import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -19,12 +17,15 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Iterators.concat;
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Floats.asList;
-import static uk.ac.ebi.gxa.utils.CollectionUtil.distinct;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
 
 /**
@@ -33,81 +34,77 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.multiget;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService {
-
     private static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        Experiment experiment = getAtlasDAO().getExperimentByAccession(cmd.getAccession());
-        String experimentAccession = experiment.getAccession();
+        atlasDAO.startSession();
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
 
-        listener.setAccession(experimentAccession);
+            listener.setAccession(experiment.getAccession());
 
-        List<Assay> allAssays = getAtlasDAO().getAssaysByExperimentAccession(experimentAccession);
-
-        Map<String, Map<Long, Assay>> assaysByArrayDesign = new HashMap<String, Map<Long, Assay>>();
-        for (Assay assay : allAssays) {
-            Map<Long, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesignAccession());
-            if (assays == null) {
-                assaysByArrayDesign.put(assay.getArrayDesignAccession(), assays = new HashMap<Long, Assay>());
+            Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
+            for (Assay assay : experiment.getAssays()) {
+                Map<String, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
+                if (assays == null) {
+                    assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = newHashMap());
+                }
+                assays.put(assay.getAccession(), assay);
             }
-            assays.put(assay.getAssayID(), assay);
-        }
 
-        for (Map.Entry<String, Map<Long, Assay>> entry : assaysByArrayDesign.entrySet()) {
-            ArrayDesign arrayDesign = getAtlasDAO().getArrayDesignByAccession(entry.getKey());
+            for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
+                ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
 
-            final File netCDFLocation = getNetCDFDAO().getNetCDFLocation(experiment, arrayDesign);
-            listener.setProgress("Reading existing NetCDF");
+                final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
+                listener.setProgress("Reading existing NetCDF");
 
-            final Map<Long, Assay> assayMap = entry.getValue();
-            log.info("Starting NetCDF for " + experimentAccession +
-                    " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
-            NetCDFData data = readNetCDF(getAtlasDAO(), netCDFLocation, assayMap);
+                final Map<String, Assay> assayMap = entry.getValue();
+                log.info("Starting NetCDF for " + experiment.getAccession() +
+                        " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
+                NetCDFData data = readNetCDF(netCDFLocation, assayMap);
 
-            listener.setProgress("Writing updated NetCDF");
-            writeNetCDF(getAtlasDAO(), netCDFLocation, data, experiment, arrayDesign);
+                listener.setProgress("Writing updated NetCDF");
+                writeNetCDF(atlasDAO, netCDFLocation, data, experiment, arrayDesign);
 
-            if (data.isAnalyticsTransferred())
-                listener.setRecomputeAnalytics(false);
-            listener.setProgress("Successfully updated the NetCDF");
+                if (data.isAnalyticsTransferred())
+                    listener.setRecomputeAnalytics(false);
+                listener.setProgress("Successfully updated the NetCDF");
+            }
+        } finally {
+            atlasDAO.finishSession();
         }
     }
 
-    private static NetCDFData readNetCDF(AtlasDAO dao, File source, Map<Long, Assay> knownAssays) throws AtlasLoaderException {
-        NetCDFProxy reader = null;
+    private static NetCDFData readNetCDF(File source, Map<String, Assay> knownAssays) throws AtlasLoaderException {
+        NetCDFProxy proxy = null;
         try {
-            reader = new NetCDFProxy(source);
+            proxy = new NetCDFProxy(source);
 
             NetCDFData data = new NetCDFData();
 
             final List<Integer> usedAssays = new ArrayList<Integer>();
-            final long[] assays = reader.getAssays();
-            for (int i = 0; i < assays.length; ++i) {
-                Assay assay = knownAssays.get(assays[i]);
+            final String[] assayAccessions = proxy.getAssayAccessions();
+            for (int i = 0; i < assayAccessions.length; ++i) {
+                Assay assay = knownAssays.get(assayAccessions[i]);
                 if (assay != null) {
-                    List<Sample> samples = dao.getSamplesByAssayAccession(reader.getExperiment(), assay.getAccession());
-                    data.addAssay(assay, samples);
+                    data.addAssay(assay);
                     usedAssays.add(i);
                 }
             }
 
-            if (assays.length == data.getAssays().size()) {
-                data.matchValuePatterns(getValuePatterns(reader));
-            }
-
             // Get unique values
-            List<String> uniqueValues = reader.getUniqueValues();
+            List<String> uniqueValues = proxy.getUniqueValues();
             data.setUniqueValues(uniqueValues);
 
-            String[] deAccessions = reader.getDesignElementAccessions();
+            String[] deAccessions = proxy.getDesignElementAccessions();
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
             for (int i = 0; i < deAccessions.length; ++i) {
-                final float[] values = reader.getExpressionDataForDesignElementAtIndex(i);
-                final float[] pval = reader.getPValuesForDesignElement(i);
-                final float[] tstat = reader.getTStatisticsForDesignElement(i);
-                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than reader.getUniqueFactorValues()
+                final float[] values = proxy.getExpressionDataForDesignElementAtIndex(i);
+                final float[] pval = proxy.getPValuesForDesignElement(i);
+                final float[] tstat = proxy.getTStatisticsForDesignElement(i);
+                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than proxy.getUniqueFactorValues()
                 // i.e. we are in the process of enlarging the uniqueValues set from just efvs to efvs+scvs
                 List<Float> pVals = new ArrayList<Float>(asList(pval));
                 while (pVals.size() < uniqueValues.size())
@@ -126,7 +123,7 @@ public class AtlasNetCDFUpdaterService {
             log.error("Error reading NetCDF file: " + source, e);
             throw new AtlasLoaderException(e);
         } finally {
-            closeQuietly(reader);
+            closeQuietly(proxy);
         }
     }
 
@@ -134,11 +131,11 @@ public class AtlasNetCDFUpdaterService {
         try {
             NetCDFCreator netCdfCreator = new NetCDFCreator();
 
+            // TODO: 4alf: we cannot use experiment.getAssays() as we're bound by the ArrayDesign
             netCdfCreator.setAssays(data.getAssays());
 
             for (Assay assay : data.getAssays()) {
-                List<Sample> samples = dao.getSamplesByAssayAccession(experiment.getAccession(), assay.getAccession());
-                for (Sample sample : samples) {
+                for (Sample sample : assay.getSamples()) {
                     netCdfCreator.setSample(assay, sample);
                 }
             }
@@ -166,46 +163,6 @@ public class AtlasNetCDFUpdaterService {
         }
     }
 
-    private static EfvTree<CBitSet> getValuePatterns(NetCDFProxy reader) throws IOException {
-        EfvTree<CBitSet> patterns = new EfvTree<CBitSet>();
-
-        // Store ef-efv patterns
-        List<String> efs = Arrays.asList(reader.getFactors());
-        for (String ef : efs) {
-            List<String> efvs = Arrays.asList(reader.getFactorValues(ef));
-            final Set<String> distinctEfvs = distinct(efvs);
-            for (String value : distinctEfvs) {
-                CBitSet pattern = new CBitSet(efvs.size());
-                for (int i = 0; i < efvs.size(); i++)
-                    pattern.set(i, efvs.get(i).equals(value));
-                patterns.putCaseSensitive(ef, value, pattern);
-            }
-        }
-
-        // Store sc-scv patterns
-        List<String> scs = new ArrayList<String>(Arrays.asList(reader.getCharacteristics()));
-        scs.removeAll(efs); // process only scs that aren't also efs
-        for (String sc : scs) {
-            List<String> scvs = Arrays.asList(reader.getCharacteristicValues(sc));
-            final Set<String> distinctScvs = distinct(scvs);
-            for (String value : distinctScvs) {
-                CBitSet pattern = new CBitSet(scvs.size());
-                for (int i = 0; i < scvs.size(); i++)
-                    pattern.set(i, scvs.get(i).equals(value));
-                patterns.putCaseSensitive(sc, value, pattern);
-            }
-        }
-        return patterns;
-    }
-
-    AtlasDAO getAtlasDAO() {
-        return atlasDAO;
-    }
-
-    AtlasNetCDFDAO getNetCDFDAO() {
-        return atlasNetCDFDAO;
-    }
-
     public void setAtlasDAO(AtlasDAO atlasDAO) {
         this.atlasDAO = atlasDAO;
     }
@@ -213,5 +170,4 @@ public class AtlasNetCDFUpdaterService {
     public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
         this.atlasNetCDFDAO = atlasNetCDFDAO;
     }
-
 }

@@ -31,11 +31,12 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
 
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * Atlas basic model elements access class
@@ -97,7 +98,7 @@ public class GeneSolrDAO {
 
             return new AtlasGeneResult(new AtlasGene(documentList.get(0)), documentList.getNumFound() > 1);
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying for gene " + query, e);
+            throw createUnexpected("Error querying for gene " + query, e);
         }
     }
 
@@ -116,7 +117,7 @@ public class GeneSolrDAO {
 
             return documentList.getNumFound();
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying list of genes");
+            throw LogUtil.createUnexpected("Error querying list of genes");
         }
     }
 
@@ -195,7 +196,7 @@ public class GeneSolrDAO {
 
             total = documentList.getNumFound();
         } catch (SolrServerException e) {
-            throw logUnexpected("Error querying list of genes");
+            throw LogUtil.createUnexpected("Error querying list of genes");
         }
 
         return new Iterable<AtlasGene>() {
@@ -246,7 +247,7 @@ public class GeneSolrDAO {
 
                             genes = geneList.iterator();
                         } catch (SolrServerException e) {
-                            throw logUnexpected("Error querying list of genes");
+                            throw LogUtil.createUnexpected("Error querying list of genes");
                         }
 
                     }

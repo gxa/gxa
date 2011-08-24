@@ -44,7 +44,7 @@ import java.util.*;
 
 import static ae3.service.structuredquery.Constants.GENE_PROPERTY_NAME;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.StringUtil.upcaseFirst;
 
 /**
@@ -217,7 +217,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                     }
                     prefixTrees.put(field, root);
                 } catch (SolrServerException e) {
-                    throw logUnexpected("General Solr problem", e);
+                    throw createUnexpected("General Solr problem", e);
                 }
                 log.info("Done loading gene property values and counts for " + field);
             }
@@ -425,7 +425,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 }
             }
         } catch (SolrServerException e) {
-            throw logUnexpected("General Solr problem", e);
+            throw createUnexpected("General Solr problem", e);
         }
     }
 
@@ -498,7 +498,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                         allProperties.add(ffc.getName());
                     }
             } catch (SolrServerException e) {
-                throw logUnexpected("Can't fetch all factors", e);
+                throw createUnexpected("Can't fetch all factors", e);
             }
         }
         return allProperties;

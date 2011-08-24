@@ -25,13 +25,21 @@ package uk.ac.ebi.gxa.web;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -40,7 +48,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.logUnexpected;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsEfEfv;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -54,7 +62,7 @@ public class AtlasPlotter {
     private static final String[] altColors = {"#D8D8D8", "#E8E8E8"};
 
     private static final Pattern startsOrEndsWithDigits = java.util.regex.Pattern.compile("^\\d+|\\d+$");
-    // This constant is used to prevent empty efvs from being displayed in plots (cf. SDRFWritingUtils)
+    // This constant is used to prevent empty efvs from being displayed in plots
     private static final String EMPTY_EFV = "(empty)";
 
     private static final int MAX_POINTS_IN_THUMBNAIL = 500;
@@ -73,12 +81,13 @@ public class AtlasPlotter {
     }
 
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
-                                                    final String experimentAccession,
+                                                    final Experiment experiment,
                                                     final String ef,
                                                     final String efv,
                                                     final String plotType) {
 
-        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experimentAccession, ef});
+        log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experiment, ef});
+
         try {
             final List<AtlasGene> genes = parseGenes(geneIdKey);
 
@@ -91,7 +100,7 @@ public class AtlasPlotter {
                 }
             });
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experimentAccession, geneIds, containsEfEfv(ef, efv));
+                    atlasNetCDFDAO.getExpressionAnalysesForGeneIds(experiment, geneIds, containsEfEfv(ef, efv));
             if (geneIdsToEfToEfvToEA == null)
                 return null;
 
@@ -106,33 +115,33 @@ public class AtlasPlotter {
             }
 
             if (efToPlot == null)
-                throw logUnexpected("Can't find EF to plot");
+                throw LogUtil.createUnexpected("Can't find EF to plot");
 
             if (plotType.equals("thumb")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = (long) geneToPlot.getGeneId();
                 final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
                 if (geneDetails == null)
-                    throw logUnexpected("Can't find analysis data for gene " + geneId);
+                    throw LogUtil.createUnexpected("Can't find analysis data for gene " + geneId);
                 final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
                 if (analysisForEF == null)
-                    throw logUnexpected("Can't find analysis data for gene " + geneId + ", " +
+                    throw LogUtil.createUnexpected("Can't find analysis data for gene " + geneId + ", " +
                             " EF '" + efToPlot + "'");
                 ExpressionAnalysis bestEA = analysisForEF.get(efv);
                 if (bestEA == null)
-                    throw logUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
+                    throw LogUtil.createUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
                             " EF '" + efToPlot + "', value '" + efv + "'");
-                return createThumbnailPlot(efToPlot, efv, bestEA, experimentAccession);
+                return createThumbnailPlot(efToPlot, efv, bestEA, experiment);
             } else if (plotType.equals("bar")) {
                 AtlasGene geneToPlot = genes.get(0);
                 Long geneId = (long) geneToPlot.getGeneId();
                 Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
                 if (!efvToBestEA.isEmpty())
-                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experimentAccession);
+                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experiment);
             }
 
         } catch (IOException e) {
-            throw logUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experimentAccession, e);
+            throw createUnexpected("IOException whilst trying to read from NetCDFs for experiment " + experiment, e);
         }
         return null;
     }
@@ -149,7 +158,7 @@ public class AtlasPlotter {
             }
         }
         if (genes.isEmpty()) {
-            throw logUnexpected("No existing genes specified by query: geneIdKey = '" + geneIdKey + "'");
+            throw LogUtil.createUnexpected("No existing genes specified by query: geneIdKey = '" + geneIdKey + "'");
         }
 
         return genes;
@@ -189,49 +198,29 @@ public class AtlasPlotter {
         return bestProxyId;
     }
 
-    private static class AssayInfo {
-        private int assayIndex;
-        private Float expression;
+    protected static class FactorValueInfo {
+        private final String name;
+        private final UpDownExpression upDown;
+        private final Float pValue;
+        private final List<Float> assayValues = new ArrayList<Float>();
+        private final boolean isInsignificant;
 
-        private AssayInfo(int assayIndex) {
-            this.assayIndex = assayIndex;
-        }
-
-        public void setExpression(List<Float> expressions) {
-            if (expressions.size() <= assayIndex) {
-                throw new IllegalStateException("No expression for assayIndex: " + assayIndex);
-            }
-            expression = expressions.get(assayIndex);
-        }
-    }
-
-    private static class FactorValueInfo {
-        private String name;
-        private Boolean isUpOrDown;
-        private Float pValue;
-        private List<AssayInfo> assays = new ArrayList<AssayInfo>();
-        private boolean isInsignificant;
-
-        public FactorValueInfo(String name) {
+        public FactorValueInfo(@Nonnull String name, @Nonnull UpDownExpression upDown, @Nonnull Float pValue, boolean isInsignificant) {
             this.name = name;
+            this.upDown = upDown;
+            this.pValue = pValue;
+            this.isInsignificant = isInsignificant;
         }
 
-        public void addAssayIndex(int assayIndex) {
-            assays.add(new AssayInfo(assayIndex));
-        }
+        public void setAssayValues(Collection<Float> assayValues) {
+            this.assayValues.addAll(assayValues);
 
-        public void setExpressions(List<Float> expressions) {
-            for (AssayInfo assayInfo : assays) {
-                assayInfo.setExpression(expressions);
-            }
-            Collections.sort(assays, new Comparator<AssayInfo>() {
-                public int compare(AssayInfo o1, AssayInfo o2) {
-                    return -1 * compareExpressions(o1, o2);
+            Collections.sort(this.assayValues, new Comparator<Float>() {
+                public int compare(Float e1, Float e2) {
+                    return -1 * compareExpressions(e1, e2);
                 }
 
-                private int compareExpressions(AssayInfo o1, AssayInfo o2) {
-                    Float e1 = o1.expression;
-                    Float e2 = o2.expression;
+                private int compareExpressions(Float e1, Float e2) {
                     if (e1 == null && e2 == null) {
                         return 0;
                     } else if (e2 == null) {
@@ -244,24 +233,16 @@ public class AtlasPlotter {
             });
         }
 
-        public void setPValue(float pValue) {
-            this.pValue = pValue;
-        }
-
-        public void setUpDown(Boolean upDown) {
-            this.isUpOrDown = upDown;
-        }
-
-        public void setInsignificant(boolean insignificant) {
-            isInsignificant = insignificant;
+        public Collection<Float> getAssayValues() {
+            return Collections.unmodifiableCollection(assayValues);
         }
 
         public boolean isUp() {
-            return this.isUpOrDown != null && this.isUpOrDown;
+            return upDown.isUp();
         }
 
         public boolean isDown() {
-            return this.isUpOrDown != null && !this.isUpOrDown;
+            return upDown.isDown();
         }
 
         public boolean isUpOrDown() {
@@ -269,112 +250,106 @@ public class AtlasPlotter {
         }
 
         public Float maxValue() {
-            return assays.get(0).expression;
+            if (assayValues.isEmpty()) {
+                throw new IllegalStateException("Can't get max value for an empty list of assays");
+            }
+            return assayValues.get(0);
         }
 
         public boolean isEmpty() {
-            return assays.isEmpty();
+            return assayValues.isEmpty();
         }
 
         public void reduce(double reduceFactor) {
-            int n = (int) Math.floor(reduceFactor * assays.size());
-            if (n >= assays.size()) {
+            int n = (int) Math.floor(reduceFactor * assayValues.size());
+            if (n >= assayValues.size()) {
                 return;
             }
 
-            List<AssayInfo> list = new ArrayList<AssayInfo>();
+            List<Float> list = new ArrayList<Float>();
 
-            if (n > 0 && !assays.isEmpty()) {
-                float max = assays.get(0).expression;
-                float min = assays.get(assays.size() - 1).expression;
+            if (n > 0 && !assayValues.isEmpty()) {
+                float max = assayValues.get(0);
+                float min = assayValues.get(assayValues.size() - 1);
                 float dv = Math.abs((max - min) / n);
 
                 float v = max;
                 float prevDx = 0;
-                AssayInfo prev = null;
+                Float prev = null;
 
-                for (AssayInfo assay : assays) {
-                    float x = assay.expression;
+                for (Float x : assayValues) {
                     float dx = Math.abs(x - v);
                     if (prev != null && dx > prevDx) {
                         list.add(prev);
                         v -= dv;
                     }
                     prevDx = dx;
-                    prev = assay;
+                    prev = x;
                 }
             }
 
-            assays.clear();
-            assays.addAll(list);
+            assayValues.clear();
+            assayValues.addAll(list);
         }
 
         public int size() {
-            return assays.size();
+            return assayValues.size();
         }
     }
 
-    private static class BarPlotDataBuilder {
-        Map<String, FactorValueInfo> fvMap = new HashMap<String, FactorValueInfo>();
-        private int numberOfValues = 0;
+    protected static class AssayFactorValues {
 
-        public BarPlotDataBuilder(String[] allFactorValues) {
+        private Multimap<String, Integer> fvMap = Multimaps.newListMultimap(
+                Maps.<String, Collection<Integer>>newHashMap(),
+                new Supplier<List<Integer>>() {
+                    @Override
+                    public List<Integer> get() {
+                       return Lists.newArrayList();
+                    }
+                }
+        );
+
+        public AssayFactorValues(String[] allFactorValues) {
             for (int i = 0; i < allFactorValues.length; i++) {
                 String factorValue = allFactorValues[i];
                 if (factorValue.equals(EMPTY_EFV)) {
                     continue;
                 }
-                addFactorValue(factorValue, i);
+                fvMap.put(factorValue, i);
             }
         }
 
-        private void addFactorValue(String fv, int assayIndex) {
-            FactorValueInfo fvInfo = fvMap.get(fv);
-            if (fvInfo == null) {
-                fvInfo = new FactorValueInfo(fv);
-                fvMap.put(fv, fvInfo);
+        public Collection<String> getUniqueValues() {
+            return Collections.unmodifiableCollection(fvMap.keySet());
+        }
+
+        public Collection<Float> getAssayExpressionsFor(String factorValue, List<Float> expressions) {
+            List<Float> assays = new ArrayList<Float>();
+            Collection<Integer> assayIndices = fvMap.get(factorValue);
+            for(Integer i : assayIndices) {
+                if (expressions.size() <= i) {
+                    throw new IllegalArgumentException("No expression for assayIndex: " + i + ", assayExpressions.size = " + expressions.size());
+                }
+                assays.add(expressions.get(i));
             }
-            fvInfo.addAssayIndex(assayIndex);
-            numberOfValues++;
+            return assays;
         }
+    }
 
-        private FactorValueInfo getFvInfo(String fv) {
-            FactorValueInfo fvInfo = fvMap.get(fv);
-            if (fvInfo == null) {
-                throw new IllegalStateException("Factor value: " + fv + " not found in the BarPlotData");
-            }
-            return fvInfo;
-        }
+    private static class BarPlotDataBuilder {
+        private List<FactorValueInfo> factorValues = new ArrayList<FactorValueInfo>();
+        private int numberOfValues = 0;
 
-        public List<String> getUniqueFactorValues() {
-            List<String> uniqValues = new ArrayList<String>();
-            uniqValues.addAll(fvMap.keySet());
-            return uniqValues;
-        }
-
-        public void removeFactorValue(String fv) {
-            fvMap.remove(fv);
-        }
-
-        public void setExpressions(String fv, List<Float> expressions) {
-            getFvInfo(fv).setExpressions(expressions);
-        }
-
-        public void setPValue(String fv, float pValAdjusted) {
-            getFvInfo(fv).setPValue(pValAdjusted);
-        }
-
-        public void setUpDown(String fv, Boolean upDown) {
-            getFvInfo(fv).setUpDown(upDown);
-        }
-
-        public void setInsignificant(String fv, boolean b) {
-            getFvInfo(fv).setInsignificant(b);
+        private void addFactorValue(String fv, ExpressionAnalysis bestEA, boolean isInsignificant, Collection<Float> assayValues) {
+            FactorValueInfo fvInfo = new FactorValueInfo(fv, bestEA.getUpDownExpression(), bestEA.getPValAdjusted(), isInsignificant);
+            fvInfo.setAssayValues(assayValues);
+            numberOfValues += assayValues.size();
+            factorValues.add(fvInfo);
         }
 
         public Map<String, Object> toSeries(Map<String, Object> addToOptions) {
             List<FactorValueInfo> list = new ArrayList<FactorValueInfo>();
-            list.addAll(fvMap.values());
+            list.addAll(factorValues);
 
             Collections.sort(list, new Comparator<FactorValueInfo>() {
                 public int compare(FactorValueInfo o1, FactorValueInfo o2) {
@@ -443,8 +418,7 @@ public class AtlasPlotter {
                 int meanCount = 0;
                 int startPosition = position;
 
-                for (AssayInfo assayInfo : fvInfo.assays) {
-                    Float value = assayInfo.expression;
+                for (Float value : fvInfo.assayValues) {
                     // TODO Why -1E+6 threshold is used here?
                     seriesData.add(Arrays.<Number>asList(position++, value <= -1E+6 ? null : value));
                     if (value > -1E+6) {
@@ -528,7 +502,7 @@ public class AtlasPlotter {
             String ef,
             String efvClickedOn,
             final Map<String, ExpressionAnalysis> efvToBestEA,
-            final String experimentAccession)
+            final Experiment experiment)
             throws IOException {
 
         if (efvToBestEA.containsKey(EMPTY_EFV)) {
@@ -551,7 +525,7 @@ public class AtlasPlotter {
 
         NetCDFProxy proxy = null;
         try {
-            proxy = atlasNetCDFDAO.getNetCDFProxy(experimentAccession, bestProxyId);
+            proxy = atlasNetCDFDAO.getNetCDFProxy(experiment, bestProxyId);
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
             String arrayDesignAcc = proxy.getArrayDesignAccession();
@@ -561,31 +535,41 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experimentAccession, bestProxyId, geneId, ef);
+                    atlasNetCDFDAO.getBestEAsPerEfvInProxy(experiment, bestProxyId, geneId, ef);
 
-            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder(proxy.getFactorValues(ef));
+            AssayFactorValues factorValues = new AssayFactorValues(proxy.getFactorValues(ef));
+
+            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();
 
 
-            for (String factorValue : barPlotData.getUniqueFactorValues()) {
+            for (String factorValue : factorValues.getUniqueValues()) {
                 ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
 
                 if (bestEA == null) {
                     // If no bestEA expression analysis for factorValue could be found in proxy
                     // (e.g. factorValue is present, but only with pVal == 0) then don't
                     // plot this factorValue for proxyId
-                    barPlotData.removeFactorValue(factorValue);
                     continue;
                 }
 
                 // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, bestProxyId, bestEA.getDesignElementIndex());
+                List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, bestProxyId, bestEA.getDesignElementIndex());
 
-                barPlotData.setExpressions(factorValue, expressions);
+                Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, expressions);
+
+                barPlotData.addFactorValue(
+                        factorValue,
+                        bestEA,
+                        efvsToPlot.contains(factorValue),
+                        assays);
+
+                /*barPlotData.setExpressions(factorValue, expressions);
                 barPlotData.setPValue(factorValue, bestEA.getPValAdjusted());
-                barPlotData.setUpDown(factorValue, bestEA.isNo() ? null : bestEA.isUp());
-                barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));
+                barPlotData.setUpDown(factorValue, bestEA.getUpDownExpression());
+                barPlotData.setInsignificant(factorValue, efvsToPlot.contains(factorValue));*/
+
                 if (!efvsToPlot.contains(factorValue))
-                    log.debug(experimentAccession + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                    log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
                             "flagging this series insignificant");
             }
 
@@ -600,7 +584,7 @@ public class AtlasPlotter {
     }
 
 
-    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, String experimentAccession)
+    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment)
             throws IOException {
         log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, ExpressionAnalysis: {}",
                 new Object[]{ef, efv, ea});
@@ -609,10 +593,10 @@ public class AtlasPlotter {
         int startMark = 0;
         int endMark = 0;
         // Get assayFVs from the proxy from which ea came
-        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experimentAccession, ea.getProxyId(), ef);
+        List<String> assayFVs = atlasNetCDFDAO.getFactorValues(experiment, ea.getProxyId(), ef);
         List<String> uniqueFVs = sortUniqueFVs(assayFVs);
         // Get actual expression data from the design element stored in ea
-        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experimentAccession, ea.getProxyId(), ea.getDesignElementIndex());
+        List<Float> expressions = atlasNetCDFDAO.getExpressionData(experiment, ea.getProxyId(), ea.getDesignElementIndex());
 
 
         // iterate over each factor value (in sorted order)

@@ -26,18 +26,23 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.8.1</version>
+        <version>2.0.9</version>
     </parent>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-model</artifactId>
-    <version>2.0.8.1</version>
+    <version>2.0.9</version>
     <name>Gene Expression Atlas Database Object Model</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-utils</artifactId>
-            <version>2.0.8.1</version>
+            <version>2.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-annotations</artifactId>
+            <version>3.5.1-Final</version>
         </dependency>
     </dependencies>
 </project>

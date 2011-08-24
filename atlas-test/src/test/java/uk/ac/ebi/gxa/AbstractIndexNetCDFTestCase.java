@@ -69,7 +69,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
 
         try {
@@ -92,7 +92,7 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
     }
 
 
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
 
         // delete the repo
@@ -131,14 +131,14 @@ public abstract class AbstractIndexNetCDFTestCase extends AtlasDAOTestCase {
         createSOLRServers();
 
         ExperimentAtlasIndexBuilderService eaibs = new ExperimentAtlasIndexBuilderService();
-        eaibs.setAtlasDAO(getAtlasDAO());
+        eaibs.setAtlasDAO(atlasDAO);
+        eaibs.setExperimentDAO(experimentDAO);
         eaibs.setSolrServer(exptServer);
-        eaibs.setExecutor(executor());
 
         GeneAtlasIndexBuilderService gaibs = new GeneAtlasIndexBuilderService();
-        gaibs.setAtlasDAO(getAtlasDAO());
+        gaibs.setAtlasDAO(atlasDAO);
         gaibs.setSolrServer(atlasServer);
-        gaibs.setBioEntityDAO(getBioEntityDAO());
+        gaibs.setBioEntityDAO(bioEntityDAO);
         AtlasProperties atlasProperties = new AtlasProperties();
         ResourceFileStorage storage = new ResourceFileStorage();
         storage.setResourcePath("atlas.properties");
