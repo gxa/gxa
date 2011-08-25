@@ -522,6 +522,9 @@
             ORGANISMID="1000"
             url="http://www.ensembl.org/biomart/martservice?"
             biomartorganismname="hsapiens_gene_ensembl"
+            databasename="ensembl"
+            mySqlDbName = "homo_sapiens"
+            mySqlDbUrl = "ensembldb.ensembl.org:5306"
             annsrctype="biomart"
             LOADDATE="2011-01-06"
             />
@@ -549,14 +552,14 @@
             NAME="ensembl_gene_id"
             />
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="2000"
+            BIOMARTPROPERTYID="3000"
             annotationsrcid="1000"
             BIOENTITYPROPERTYID="100"
             NAME="go_cellular_component__dm_name_1006"
             />
 
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="2000"
+            BIOMARTPROPERTYID="4000"
             annotationsrcid="1000"
             BIOENTITYPROPERTYID="200"
             NAME="ensembl_transcript_id"

@@ -4,7 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
 import javax.persistence.SequenceGenerator;
 
 /**
@@ -19,7 +18,7 @@ public class Software {
     private Long softwareid;
     private String name;
     private String version;
-    private boolean isActive = false;
+    private Boolean isActive = false;
 
     Software() {
     }
@@ -52,7 +51,7 @@ public class Software {
     }
 
     public boolean isActive() {
-        return isActive;
+        return isActive== null?false:isActive;
     }
 
     public void setActive(boolean active) {

@@ -5,5 +5,5 @@
   <import resource="classpath*:/uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
   <import resource="classpath*:/uk/ac/ebi/gxa/annotator/testAnnotatorContext.xml"/>
 
-    <bean name="annSrcTest" class="uk.ac.ebi.gxa.annotator.dao.TestAnnotationSourceDAO" />
+    <bean name="annSrcTest" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAOTest" />
 </beans>

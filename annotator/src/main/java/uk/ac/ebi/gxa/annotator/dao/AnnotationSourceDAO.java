@@ -1,10 +1,8 @@
 package uk.ac.ebi.gxa.annotator.dao;
 
-import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AbstractDAO;
@@ -68,6 +66,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
 
     public void remove(BioMartAnnotationSource annSrc) {
         template.delete(annSrc);
+        template.flush();
     }
 
     public boolean isAnnSrcApplied(AnnotationSource annSrc) {
@@ -112,15 +111,4 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
         return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
-
-    public void startSession() {
-        SessionFactory sessionFactory = template.getSessionFactory();
-        SessionFactoryUtils.initDeferredClose(sessionFactory);
-        sessionFactory.getCurrentSession().setFlushMode(FlushMode.COMMIT);
-    }
-
-    public void finishSession() {
-        SessionFactoryUtils.processDeferredClose(template.getSessionFactory());
-    }
-
 }

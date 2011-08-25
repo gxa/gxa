@@ -734,7 +734,6 @@ function saveAnnSrc() {
     var asText = $('#txtAnnSrc').val();
 
     function switchToAnnSrcList() {
-        updateAnnSrcs();
         $('#tabs').tabs('select', $tab.annSrc);
     }
 

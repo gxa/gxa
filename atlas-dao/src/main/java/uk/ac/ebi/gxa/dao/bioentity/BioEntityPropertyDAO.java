@@ -32,7 +32,8 @@ public class BioEntityPropertyDAO extends AbstractDAO<BioEntityProperty> {
         BioEntityProperty property = getByName(propertyName);
         if (property == null) {
             property = new BioEntityProperty(null, propertyName);
-            save(property);
+            super.save(property);
+            template.flush();
         }
         return property;
     }

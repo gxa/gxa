@@ -71,13 +71,8 @@ public class BioMartAnnotationSourceLoader {
     @Transactional
     public void saveAnnSrc(String text) throws AnnotationLoaderException {
         Reader reader = new StringReader(text);
-
-            annSrcDAO.startSession();
-            BioMartAnnotationSource annotationSource = readSource(reader);
-
-            annSrcDAO.save(annotationSource);
-            annSrcDAO.finishSession();
-
+        BioMartAnnotationSource annotationSource = readSource(reader);
+        annSrcDAO.save(annotationSource);
     }
 
     protected BioMartAnnotationSource readSource(Reader input) throws AnnotationLoaderException {
@@ -148,10 +143,11 @@ public class BioMartAnnotationSourceLoader {
         }
     }
 
+    @Transactional
     public Collection<BioMartAnnotationSource> getCurrentAnnotationSources() {
-        Collection<BioMartAnnotationSource> result = new HashSet<BioMartAnnotationSource>();
-        annSrcDAO.startSession();
-        Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        final Collection<BioMartAnnotationSource> result = new HashSet<BioMartAnnotationSource>();
+        final Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        final Collection<BioMartAnnotationSource> oldSources = new HashSet<BioMartAnnotationSource>(currentAnnSrcs.size());
         for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
             try {
                 BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
@@ -169,17 +165,23 @@ public class BioMartAnnotationSourceLoader {
                     if (newAnnSrc == null) {
                         newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
                         annSrcDAO.save(newAnnSrc);
-                        annSrcDAO.remove(annSrc);
                     }
+                    oldSources.add(annSrc);
                     result.add(newAnnSrc);
                 }
-
             } catch (BioMartAccessException e) {
                 log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
-        annSrcDAO.finishSession();
+        removeAnnSrcs(oldSources);
         return result;
+    }
+
+    @Transactional
+    private void removeAnnSrcs(final Collection<BioMartAnnotationSource> annSrcs) {
+        for (BioMartAnnotationSource annSrc : annSrcs) {
+            annSrcDAO.remove(annSrc);
+        }
     }
 
     private void updateBioMartProperties(Properties properties, BioMartAnnotationSource annotationSource) {
