@@ -67,7 +67,7 @@ public class AtlasExperimentAnalyticsViewService {
      * (for more details of search implementation, please see analytics.R).
      *
      * @param ewd             experiment
-     * @param arrayDesignAcc  an arrayDesign accession
+     * @param arrayDesignAccession  an arrayDesign accession
      * @param geneIdentifiers a collection of gene names or identifiers to search for
      * @param factors         a list of factors to find best statistics for
      * @param factorValues    a list of factor values to find best statistics for
@@ -80,7 +80,7 @@ public class AtlasExperimentAnalyticsViewService {
      */
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull ExperimentWithData ewd,
-            final @Nullable String arrayDesignAcc,
+            final @Nullable String arrayDesignAccession,
             final @Nonnull Collection<String> geneIdentifiers,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
@@ -93,8 +93,8 @@ public class AtlasExperimentAnalyticsViewService {
 
         ArrayDesign arrayDesign = null;
         if (hasAnyGenes) {
-            if (!isNullOrEmpty(arrayDesignAcc)) {
-                arrayDesign = ewd.getExperiment().getArrayDesign(arrayDesignAcc);
+            if (!isNullOrEmpty(arrayDesignAccession)) {
+                arrayDesign = ewd.getExperiment().getArrayDesign(arrayDesignAccession);
             } else if (!geneIds.isEmpty()) {
                 try {
                     arrayDesign = ewd.findArrayDesign(

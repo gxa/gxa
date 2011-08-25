@@ -396,7 +396,7 @@ if(!atlas)
                         return (a.pos != a.items.length - 1) ? ' notlast' : '';
                     },
                     'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
-                    'a.detailink@href': '/microarray-as/ae/browse.html?keywords=#{experiment.accession}&detailedview=on'
+                    'a.detailink@href': 'http://www.ebi.ac.uk/arrayexpress/browse.html?keywords=#{experiment.accession}&detailedview=on'
                 }
             }
         });

@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class Organism {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organismSeq")
-    @SequenceGenerator(name = "organismSeq", sequenceName = "A2_ORGANISM_SEQ")
+    @SequenceGenerator(name = "organismSeq", sequenceName = "A2_ORGANISM_SEQ", allocationSize = 1)
     private Long organismid;
     private String name;
 

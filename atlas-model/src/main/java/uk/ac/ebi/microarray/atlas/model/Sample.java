@@ -51,7 +51,7 @@ public class Sample {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sampleSeq")
-    @SequenceGenerator(name = "sampleSeq", sequenceName = "A2_SAMPLE_SEQ")
+    @SequenceGenerator(name = "sampleSeq", sequenceName = "A2_SAMPLE_SEQ", allocationSize = 1)
     private Long sampleid;
     private String accession;
     @ManyToOne

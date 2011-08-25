@@ -9,8 +9,6 @@ set wrap off
 set feedback off
 set verify off
 
-select distinct e.accession || chr(9) || e.experimentId || '_' || a.arraydesignid || '.nc' from a2_experiment e
-  join a2_assay a on a.experimentid = e.experimentid
+select distinct e.accession from a2_experiment e
   where e.private = 0;
-/
 exit;
