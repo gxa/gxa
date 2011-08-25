@@ -130,13 +130,18 @@ public class Sample {
     }
 
     @Override
-    public int hashCode() {
-        return sampleid == null ? 0 : sampleid.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Sample sample = (Sample) o;
+
+        return accession == null ? sample.accession == null : accession.equals(sample.accession);
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o instanceof Sample && ((Sample) o).sampleid.equals(sampleid);
+    public int hashCode() {
+        return accession != null ? accession.hashCode() : 0;
     }
 
     public void addAssay(Assay assay) {
