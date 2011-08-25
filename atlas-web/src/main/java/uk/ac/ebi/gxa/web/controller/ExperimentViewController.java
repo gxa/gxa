@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
@@ -31,7 +30,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,16 +40,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
-import uk.ac.ebi.microarray.atlas.model.Asset;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,7 +58,6 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -77,8 +72,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     private final AtlasDataDAO atlasDataDAO;
 
     private final AtlasProperties atlasProperties;
-
-    private final GeneSolrDAO geneSolrDAO;
 
     private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
 
@@ -95,12 +88,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     AtlasProperties atlasProperties,
-                                    GeneSolrDAO geneSolrDAO,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
-        this.geneSolrDAO = geneSolrDAO;
         this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
@@ -248,7 +239,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
     ) throws AtlasDataException {
-        final List<Long> geneIds = findGeneIds(gid);
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
@@ -257,7 +247,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 experimentAnalyticsService.findBestGenesForExperiment(
                     ewd,
                     adAcc,
-                    geneIds,
+                    isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.split("\\s+")),
                     isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                     isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
                     updown,
@@ -287,25 +277,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
-    }
-
-    private List<Long> findGeneIds(String... query) {
-        List<Long> genes = Lists.newArrayList();
-
-        for (String text : query) {
-            if (Strings.isNullOrEmpty(text)) {
-                continue;
-            }
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
-            if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
-                    genes.add((long) gene.getGeneId());
-                }
-            } else {
-                genes.add((long) res.getGene().getGeneId());
-            }
-        }
-        return genes;
     }
 
     private class GeneToolTip {
