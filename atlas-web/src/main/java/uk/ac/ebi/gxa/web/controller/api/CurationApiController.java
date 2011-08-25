@@ -45,7 +45,7 @@ public class CurationApiController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/properties/{propertyName}/{propertyValue}",
-            method = RequestMethod.PUT)
+            method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.CREATED)
     public void removePropertyValue(
             @PathVariable("propertyName") final String propertyName,
