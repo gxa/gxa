@@ -58,4 +58,14 @@ public class ApiOntology {
     public void setVersion(String version) {
         this.version = version;
     }
+
+    @Override
+    public String toString() {
+        return "ApiOntology{" +
+                "name=" + name +
+                ", description='" + description + "'" +
+                ", sourceUri=" + sourceUri +
+                ", version=" + version +
+                '}';
+    }
 }

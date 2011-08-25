@@ -88,7 +88,7 @@ public class ArrayDesign {
         return arrayDesignID;
     }
 
-    public void setArrayDesignID(long arrayDesignID) {
+    public void setArrayDesignID(Long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
     }
 
@@ -130,17 +130,20 @@ public class ArrayDesign {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ArrayDesign)) {
-            return false;
-        }
-        return accession.equals(((ArrayDesign)o).accession);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ArrayDesign that = (ArrayDesign) o;
+
+        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return accession.hashCode();
+        int result = 17;
+        result = 31 * result + (accession != null ? accession.hashCode() : 0);
+        return result;
     }
 }

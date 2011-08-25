@@ -12,7 +12,8 @@ public class ApiOntologyTerm {
     private String description;
     private String term;
 
-    public ApiOntologyTerm() {}
+    public ApiOntologyTerm() {
+    }
 
     public ApiOntologyTerm(final ApiOntology ontology, final String accession, final String description, final String term) {
         this.ontology = ontology;
@@ -58,5 +59,30 @@ public class ApiOntologyTerm {
 
     public void setTerm(String term) {
         this.term = term;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ApiOntologyTerm term = (ApiOntologyTerm) o;
+
+        return accession == null ? term.accession == null : accession.equals(term.accession);
+    }
+
+    @Override
+    public int hashCode() {
+        return accession != null ? accession.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "ApiOntologyTerm{" +
+                "accession=" + accession +
+                ", description='" + description + "'" +
+                ", ontology=" + ontology +
+                ", term=" + term +
+                '}';
     }
 }

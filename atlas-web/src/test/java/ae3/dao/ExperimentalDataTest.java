@@ -30,8 +30,8 @@ import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,19 +88,19 @@ public class ExperimentalDataTest {
 
     private List<Sample> eMexp1913Samples() {
         final List<Sample> result = new ArrayList<Sample>();
-        final String[] accessions = new String[] {
-            "C99V50F 5-43",
-            "C99WT 5-23",
-            "mock 2-67_3. Negative control",
-            "C99I45F 4-25a",
-            "C99V50F 4-52",
-            "C99WT 4-2",
-            "C99I45F 4-13",
-            "mock 2-67_2. Negative control",
-            "C99V50F 5-59a",
-            "mock 2-67_1. Negative control",
-            "C99WT 5-12",
-            "C99I45F 4-17"
+        final String[] accessions = new String[]{
+                "C99V50F 5-43",
+                "C99WT 5-23",
+                "mock 2-67_3. Negative control",
+                "C99I45F 4-25a",
+                "C99V50F 4-52",
+                "C99WT 4-2",
+                "C99I45F 4-13",
+                "mock 2-67_2. Negative control",
+                "C99V50F 5-59a",
+                "mock 2-67_1. Negative control",
+                "C99WT 5-12",
+                "C99I45F 4-17"
         };
 
         for (String s : accessions) {
@@ -115,7 +115,7 @@ public class ExperimentalDataTest {
         final AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
         Experiment eMexp1586 = new Experiment(1036805754L, "E-MEXP-1586");
         ArrayDesign ad1 = new ArrayDesign("A-AFFY-44");
-        ad1.setArrayDesignID(160588088);
+        ad1.setArrayDesignID(160588088L);
         eMexp1586.setAssays(eMexp1586Assays(eMexp1586, ad1));
         eMexp1586.setSamples(eMexp1586Samples());
 
@@ -130,9 +130,9 @@ public class ExperimentalDataTest {
     public void testMultiArrayDesign() throws IOException, URISyntaxException, AtlasDataException {
         Experiment eMexp1913 = new Experiment(1036804993L, "E-MEXP-1913");
         ArrayDesign ad21 = new ArrayDesign("A-AFFY-33");
-        ad21.setArrayDesignID(153069949);
+        ad21.setArrayDesignID(153069949L);
         ArrayDesign ad22 = new ArrayDesign("A-AFFY-34");
-        ad22.setArrayDesignID(165554923);
+        ad22.setArrayDesignID(165554923L);
         List<Assay> assays = eMexp1913Assays1(eMexp1913, ad21);
         assays.addAll(eMexp1913Assays2(eMexp1913, ad22));
         eMexp1913.setAssays(assays);

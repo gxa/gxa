@@ -1,4 +1,3 @@
-cat experiment-assets-to-export.sql
 set head off
 set newp none
 set recsep off

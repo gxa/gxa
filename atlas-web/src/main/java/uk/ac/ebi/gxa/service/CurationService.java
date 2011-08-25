@@ -14,10 +14,7 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
 
@@ -151,7 +148,7 @@ public class CurationService {
             for (Assay assay : assays) {
                 AssayProperty oldAssayProperty = assay.getProperty(oldPropertyValue);
                 AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
-                List<OntologyTerm> terms = oldAssayProperty.getTerms();
+                List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldAssayProperty.getTerms());
                 assay.deleteProperty(oldPropertyValue);
                 if (newAssayProperty != null) {
                     terms.addAll(newAssayProperty.getTerms());
@@ -189,7 +186,7 @@ public class CurationService {
             for (Sample sample : samples) {
                 SampleProperty oldSampleProperty = sample.getProperty(oldPropertyValue);
                 SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
-                List<OntologyTerm> terms = oldSampleProperty.getTerms();
+                List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldSampleProperty.getTerms());
                 sample.deleteProperty(oldPropertyValue);
                 if (newSampleProperty != null) {
                     terms.addAll(newSampleProperty.getTerms());
@@ -403,15 +400,12 @@ public class CurationService {
         Ontology ontology;
         try {
             ontology = atlasDAO.getOntologyByName(apiOntology.getName());
-        } catch (DAOException e) { // ontology not found - create a new one
-            ontology = getOrCreateOntology(apiOntology);
-        }
-
-        if (ontology == null) { // ontology already exists - update it
             ontology.setDescription(apiOntology.getDescription());
             ontology.setName(apiOntology.getName());
             ontology.setVersion(apiOntology.getVersion());
             ontology.setSourceUri(apiOntology.getSourceUri());
+        } catch (DAOException e) { // ontology not found - create a new one
+            ontology = getOrCreateOntology(apiOntology);
         }
         ontologyDAO.save(ontology);
     }
@@ -442,17 +436,15 @@ public class CurationService {
             OntologyTerm ontologyTerm;
             try {
                 ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
-            } catch (DAOException e) { // ontology term not found - create a new one
-                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
-            }
-
-            if (ontologyTerm == null) { // ontology term already exists - update it
                 ontologyTerm.setAccession(apiOntologyTerm.getAccession());
                 ontologyTerm.setDescription(apiOntologyTerm.getDescription());
                 Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
                 ontologyTerm.setOntology(ontology);
                 ontologyTerm.setTerm(apiOntologyTerm.getTerm());
+            } catch (DAOException e) { // ontology term not found - create a new one
+                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
             }
+
             ontologyTermDAO.save(ontologyTerm);
         }
     }

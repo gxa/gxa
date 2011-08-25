@@ -521,6 +521,12 @@
             ACCESSION="EFO_0000827"
             DESCRIPTION="Just a term"/>
 
+    <A2_ONTOLOGYTERM
+            ONTOLOGYTERMID="2"
+            ONTOLOGYID="1"
+            ACCESSION="EFO_0000828"
+            DESCRIPTION="Another term"/>
+
     <A2_ASSAYPVONTOLOGY
             ONTOLOGYTERMID="1"
             ASSAYPVID="1"/>

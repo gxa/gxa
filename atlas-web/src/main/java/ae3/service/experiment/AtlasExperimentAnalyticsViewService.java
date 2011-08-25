@@ -5,19 +5,17 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
-import com.google.common.primitives.Ints;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.DataPredicates;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.DataPredicates;
-import uk.ac.ebi.gxa.data.AtlasDataException;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -26,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
-import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.CONDITION_ANY;
 
 /**
  * This class provides access to the statistical functions defined in R scripts.
@@ -71,14 +68,14 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      * (for more details of search implementation, please see analytics.R).
      *
-     * @param ewd             experiment
-     * @param arrayDesign     arrayDesign
-     * @param geneIds         list of geneIds to find best statistics for
-     * @param factors         a list of factors to find best statistics for
-     * @param factorValues    a list of factor values to find best statistics for
-     * @param upDownCondition an up/down expression filter
-     * @param offset          Start position within the result set
-     * @param limit           how many design elements to return
+     * @param ewd                  experiment
+     * @param arrayDesignAccession array design
+     * @param geneIds              list of geneIds to find best statistics for
+     * @param factors              a list of factors to find best statistics for
+     * @param factorValues         a list of factor values to find best statistics for
+     * @param upDownCondition      an up/down expression filter
+     * @param offset               Start position within the result set
+     * @param limit                how many design elements to return
      * @return an instance of {@link BestDesignElementsResult}
      * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
      *          if an error happened during R function call
@@ -100,7 +97,7 @@ public class AtlasExperimentAnalyticsViewService {
         } else if (!geneIds.isEmpty()) {
             try {
                 arrayDesign = ewd.findArrayDesign(
-                    new DataPredicates(ewd).containsAtLeastOneGene(geneIds)
+                        new DataPredicates(ewd).containsAtLeastOneGene(geneIds)
                 );
             } catch (AtlasDataException e) {
                 log.warn("AtlasDataException in findArrayDesign", e);
