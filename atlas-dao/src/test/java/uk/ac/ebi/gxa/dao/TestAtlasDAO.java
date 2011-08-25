@@ -43,7 +43,7 @@ import java.util.List;
 public class TestAtlasDAO extends AtlasDAOTestCase {
 
     private static final String ABC_ABCXYZ_SOME_THING_1234_ABC123 = "abc:ABCxyz:SomeThing:1234.ABC123";
-    private static final String ARRAY_DESIGN_ACCESSION = "A-ABCD-1234";
+    private static final String ARRAY_DESIGN_ACCESSION = "A-AFFY-45";
     private static final String E_MEXP_420 = "E-MEXP-420";
     private static final String PROPERTY_NAME = "SEX";
     private static final String PROPERTY_VALUE = "MALE";
