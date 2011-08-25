@@ -11,7 +11,6 @@ ATLAS_NCDF_PATH=$2
 ATLAS_RELEASE=$3
 
 echo "Packing the NetCDFs"
-ln -sf $ATLAS_NCDF_PATH ./ncdf
 
 # ncdfs-to-export.sql prints the list of (public) experiment data files in the following format:
 # experiment_accession
@@ -22,6 +21,4 @@ ln -sf $ATLAS_NCDF_PATH ./ncdf
 # E-GEOD-7177
 sqlplus -S $ATLAS_CONNECTION @ncdfs-to-export.sql | \
   awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" }'  | \
-  xargs tar rvf $ATLAS_RELEASE-ncdf.tar
-
-rm ncdf
+  xargs tar rv -C $ATLAS_NCDF_PATH/.. -f $ATLAS_RELEASE-ncdf.tar
