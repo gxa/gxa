@@ -37,7 +37,6 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.util.*;
 
 /**
@@ -60,17 +59,13 @@ public class ExperimentalData {
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
      *
-     * @param experiment
+     * @param experimentWithData the containing experiment
      */
     public ExperimentalData(ExperimentWithData experimentWithData) throws AtlasDataException {
         log.info("loading data for experiment" + experimentWithData.getExperiment().getAccession());
         this.experimentWithData = experimentWithData;
 
-        ResourceWatchdogFilter.register(new Closeable() {
-            public void close() {
-                ExperimentalData.this.experimentWithData.close();
-            }
-        });
+        ResourceWatchdogFilter.register(experimentWithData);
 
         collectSamples();
         collectAssays();
@@ -80,8 +75,8 @@ public class ExperimentalData {
     private void collectSamples() throws AtlasDataException {
         for (Sample sample : getExperiment().getSamples()) {
             sampleDecorators.add(new SampleDecorator(
-                sample,
-                sampleDecorators.size()
+                    sample,
+                    sampleDecorators.size()
             ));
         }
     }
@@ -91,10 +86,10 @@ public class ExperimentalData {
             int index = 0;
             for (Assay assay : experimentWithData.getAssays(ad)) {
                 assayDecorators.add(new AssayDecorator(
-                    assay,
-                    assayDecorators.size(),
-                    ad,
-                    index++ // position in matrix
+                        assay,
+                        assayDecorators.size(),
+                        ad,
+                        index++ // position in matrix
                 ));
             }
         }
@@ -106,11 +101,11 @@ public class ExperimentalData {
             sampleMap.put(sd.getSample(), sd);
         }
         for (AssayDecorator ad : assayDecorators) {
-            for (Sample sample: ad.getAssay().getSamples()) {
+            for (Sample sample : ad.getAssay().getSamples()) {
                 final SampleDecorator sd = sampleMap.get(sample);
                 ad.addSample(sd);
                 sd.addAssay(ad);
-            } 
+            }
         }
     }
 
@@ -127,7 +122,7 @@ public class ExperimentalData {
      *
      * @param arrayDesign array design, this matrix applies to
      */
-    private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) throws AtlasDataException {
+    private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
         ExpressionMatrix matrix = expressionMatrices.get(arrayDesign);
         if (matrix == null) {
             matrix = new ExpressionMatrix(experimentWithData, arrayDesign);
@@ -160,6 +155,8 @@ public class ExperimentalData {
      * @param assay              assay, for which show the value
      * @param designElementIndex design element index
      * @return expression value
+     * @throws uk.ac.ebi.gxa.data.AtlasDataException
+     *          if there's no ExpressionMatrix for assay   or no data on the design element specified
      */
     public float getExpression(AssayDecorator assay, int designElementIndex) throws AtlasDataException {
         final ExpressionMatrix matrix = getExpressionMatrix(assay.getArrayDesign());
@@ -178,14 +175,15 @@ public class ExperimentalData {
      */
     public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
         final ExpressionStats stats = getExpressionStats(ad);
-        
-        if (stats != null) {
-            try {
-                return stats.getExpressionStats(designElement);
-            } catch (AtlasDataException e) {
-            }
+        if (stats == null) {
+            return new EfvTree<ExpressionStats.Stat>();
         }
-        return new EfvTree<ExpressionStats.Stat>();
+
+        try {
+            return stats.getExpressionStats(designElement);
+        } catch (AtlasDataException e) {
+            return new EfvTree<ExpressionStats.Stat>();
+        }
     }
 
     /**
