@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
@@ -38,5 +39,16 @@ public class PropertyDAO extends AbstractDAO<Property> {
     @Override
     protected boolean lowerCaseNameMatch() {
         return true;
+    }
+
+    public Property getOrCreateProperty(String name) {
+        try {
+            return getByName(name);
+        } catch (RecordNotFoundException e) {
+            // property not found - create a new one
+            Property property = new Property(null, name);
+            save(property);
+            return property;
+        }
     }
 }

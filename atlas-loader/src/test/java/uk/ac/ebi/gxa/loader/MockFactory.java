@@ -18,7 +18,7 @@ public class MockFactory {
 
     static class MockLoaderDAO extends LoaderDAO {
         public MockLoaderDAO() {
-            super(null, null, null, null, null);
+            super(null, null, null, null);
         }
 
         private Map<String, Organism> os = newHashMap();

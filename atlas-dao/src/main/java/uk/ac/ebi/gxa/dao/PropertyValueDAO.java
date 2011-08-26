@@ -8,15 +8,19 @@ import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import java.util.List;
 
 public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
-    public PropertyValueDAO(SessionFactory sessionFactory) {
+    private PropertyDAO propertyDAO;
+
+    public PropertyValueDAO(SessionFactory sessionFactory, PropertyDAO propertyDAO) {
         super(sessionFactory, PropertyValue.class);
+        this.propertyDAO = propertyDAO;
     }
 
     /**
      * @param property
      * @param value
      * @return PropertyValue matching property:value
-     * @throws uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException if no PropertyValue matching property:value was found
+     * @throws uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException
+     *          if no PropertyValue matching property:value was found
      */
     public PropertyValue find(Property property, String value) throws RecordNotFoundException {
         @SuppressWarnings("unchecked")
@@ -36,5 +40,17 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
 
     public void delete(PropertyValue propertyValue) {
         template.delete(propertyValue);
+    }
+
+    public PropertyValue getOrCreatePropertyValue(String name, String value) {
+        Property property = propertyDAO.getOrCreateProperty(name);
+        try {
+            return find(property, value);
+        } catch (RecordNotFoundException e) {
+            // property value not found - create a new one
+            PropertyValue propertyValue = new PropertyValue(null, property, value);
+            save(propertyValue);
+            return propertyValue;
+        }
     }
 }

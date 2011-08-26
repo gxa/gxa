@@ -1,6 +1,8 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.model.Ontology;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 /**
@@ -19,5 +21,18 @@ public class OntologyTermDAO extends AbstractDAO<OntologyTerm> {
     @Override
     public String getNameColumn() {
         return NAME_COL;
+    }
+
+    public OntologyTerm getOrCreateOntologyTerm(final String accession,
+                                                final String term,
+                                                final String description,
+                                                final Ontology ontology) {
+        try {
+            return getByName(accession);
+        } catch (RecordNotFoundException e) { // ontology term not found - create new one
+            OntologyTerm ontologyTerm = new OntologyTerm(null, ontology, term, accession, description);
+            save(ontologyTerm);
+            return ontologyTerm;
+        }
     }
 }

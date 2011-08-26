@@ -61,15 +61,13 @@ public class AtlasDAO {
     private final AssayDAO assayDAO;
     private final SessionFactory sessionFactory;
     private final OntologyDAO ontologyDAO;
-    private PropertyDAO propertyDAO;
     private PropertyValueDAO propertyValueDAO;
     private OntologyTermDAO ontologyTermDAO;
-    private OrganismDAO organismDAO;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
                     ExperimentDAO experimentDAO, AssayDAO assayDAO, OntologyDAO ontologyDAO,
-                    OntologyTermDAO ontologyTermDAO, PropertyDAO propertyDAO, PropertyValueDAO propertyValueDAO,
-                    OrganismDAO organismDAO, SessionFactory sessionFactory) {
+                    OntologyTermDAO ontologyTermDAO, PropertyValueDAO propertyValueDAO,
+                    SessionFactory sessionFactory) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
@@ -77,9 +75,7 @@ public class AtlasDAO {
         this.assayDAO = assayDAO;
         this.ontologyDAO = ontologyDAO;
         this.ontologyTermDAO = ontologyTermDAO;
-        this.propertyDAO = propertyDAO;
         this.propertyValueDAO = propertyValueDAO;
-        this.organismDAO = organismDAO;
         this.sessionFactory = sessionFactory;
 
         CacheManager cacheManager = CacheManager.getInstance();
@@ -192,59 +188,21 @@ public class AtlasDAO {
     }
 
     public PropertyValue getOrCreatePropertyValue(final String name, final String value) {
-        Property property = getOrCreateProperty(name);
-        return getorCreateProperty(value, property);
+        return propertyValueDAO.getOrCreatePropertyValue(name, value);
     }
 
-    private PropertyValue getorCreateProperty(String value, Property property) {
-        try {
-            return propertyValueDAO.find(property, value);
-        } catch (RecordNotFoundException e) {
-            // property value not found - create a new one
-            PropertyValue propertyValue = new PropertyValue(null, property, value);
-            propertyValueDAO.save(propertyValue);
-            return propertyValue;
-        }
-    }
-
-    private Property getOrCreateProperty(String name) {
-        try {
-            return propertyDAO.getByName(name);
-        } catch (RecordNotFoundException e) {
-            // property not found - create a new one
-            Property property = new Property(null, name);
-            propertyDAO.save(property);
-            return property;
-        }
-    }
-
-    public Ontology getOrCreateOntology(
-            final String ontologyName,
-            final String ontologyDescription,
-            final String ontologySourceUri,
-            final String ontologyVersion) {
-        try {
-            return ontologyDAO.getByName(ontologyName);
-        } catch (RecordNotFoundException e) {
-            // ontology not found - create a new one
-            Ontology ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
-                    ontologyVersion);
-            ontologyDAO.save(ontology);
-            return ontology;
-        }
+    public Ontology getOrCreateOntology(final String ontologyName,
+                                        final String ontologyDescription,
+                                        final String ontologySourceUri,
+                                        final String ontologyVersion) {
+        return ontologyDAO.getOrCreateOntology(ontologyName, ontologySourceUri, ontologyDescription, ontologyVersion);
     }
 
     public OntologyTerm getOrCreateOntologyTerm(final String accession,
                                                 final String term,
                                                 final String description,
                                                 final Ontology ontology) {
-        try {
-            return ontologyTermDAO.getByName(accession);
-        } catch (RecordNotFoundException e) { // ontology term not found - create new one
-            OntologyTerm ontologyTerm = new OntologyTerm(null, ontology, term, accession, description);
-            ontologyTermDAO.save(ontologyTerm);
-            return ontologyTerm;
-        }
+        return ontologyTermDAO.getOrCreateOntologyTerm(accession, term, description, ontology);
     }
 
     public Ontology getOntologyByName(final String ontologyName) throws RecordNotFoundException {
