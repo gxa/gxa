@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.*;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -98,8 +98,8 @@ public class CurationService {
             });
 
             return propertyValues;
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -118,8 +118,8 @@ public class CurationService {
             Property property = propertyDAO.getByName(propertyName);
             PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
             propertyDAO.delete(property, propValue);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -156,8 +156,8 @@ public class CurationService {
                 assay.addOrUpdateProperty(newPropertyValue, terms);
                 assayDAO.save(assay);
             }
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -194,8 +194,8 @@ public class CurationService {
                 sample.addOrUpdateProperty(newPropertyValue, terms);
                 sampleDAO.save(sample);
             }
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -211,8 +211,8 @@ public class CurationService {
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
 
             return new ApiExperiment(experiment);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -384,8 +384,8 @@ public class CurationService {
         try {
             Ontology ontology = atlasDAO.getOntologyByName(ontologyName);
             return new ApiOntology(ontology);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -396,18 +396,16 @@ public class CurationService {
      */
     @Transactional
     public void putOntology(@Nonnull final ApiOntology apiOntology) {
-
-        Ontology ontology;
         try {
-            ontology = atlasDAO.getOntologyByName(apiOntology.getName());
+            Ontology ontology = atlasDAO.getOntologyByName(apiOntology.getName());
             ontology.setDescription(apiOntology.getDescription());
             ontology.setName(apiOntology.getName());
             ontology.setVersion(apiOntology.getVersion());
             ontology.setSourceUri(apiOntology.getSourceUri());
-        } catch (DAOException e) { // ontology not found - create a new one
-            ontology = getOrCreateOntology(apiOntology);
+            ontologyDAO.save(ontology);
+        } catch (RecordNotFoundException e) { // ontology not found - create a new one
+            getOrCreateOntology(apiOntology);
         }
-        ontologyDAO.save(ontology);
     }
 
     /**
@@ -420,8 +418,8 @@ public class CurationService {
         try {
             OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(ontologyTermAcc);
             return new ApiOntologyTerm(ontologyTerm);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -433,19 +431,17 @@ public class CurationService {
     @Transactional
     public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) {
         for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
-            OntologyTerm ontologyTerm;
             try {
-                ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
+                OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
                 ontologyTerm.setAccession(apiOntologyTerm.getAccession());
                 ontologyTerm.setDescription(apiOntologyTerm.getDescription());
-                Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
-                ontologyTerm.setOntology(ontology);
+                ontologyTerm.setOntology(getOrCreateOntology(apiOntologyTerm.getOntology()));
                 ontologyTerm.setTerm(apiOntologyTerm.getTerm());
-            } catch (DAOException e) { // ontology term not found - create a new one
-                ontologyTerm = getOrCreateOntologyTerm(apiOntologyTerm);
+                ontologyTermDAO.save(ontologyTerm);
+            } catch (RecordNotFoundException e) {
+                // ontology term not found - create a new one
+                getOrCreateOntologyTerm(apiOntologyTerm);
             }
-
-            ontologyTermDAO.save(ontologyTerm);
         }
     }
 
@@ -491,8 +487,8 @@ public class CurationService {
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
             return experiment.getAssay(assayAccession);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
@@ -507,12 +503,16 @@ public class CurationService {
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
             return experiment.getSample(sampleAccession);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage(), e);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
         }
     }
 
     private PropertyValue getOrCreatePropertyValue(ApiPropertyValue apv) {
         return atlasDAO.getOrCreatePropertyValue(apv.getProperty().getName(), apv.getValue());
+    }
+
+    private static ResourceNotFoundException convert(RecordNotFoundException e) {
+        return new ResourceNotFoundException(e.getMessage(), e);
     }
 }

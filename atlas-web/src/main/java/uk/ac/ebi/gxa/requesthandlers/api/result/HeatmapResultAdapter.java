@@ -30,7 +30,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.statistics.*;
@@ -118,7 +118,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                             return new ListResultRowExperiment(exp,
                                                     e.getPValTStatRank().getPValue(),
                                                     toExpression(e.getPValTStatRank()));
-                                        } catch (DAOException daoe) {
+                                        } catch (RecordNotFoundException rnfe) {
                                             // Quiesce - no experiment matching e.getAccession() was found
                                         }
                                         return null;
@@ -236,7 +236,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
      * @param accession experiment accession
      * @return Experiment corresponding to the accession
      */
-    private Experiment getExperiment(String accession) throws DAOException {
+    private Experiment getExperiment(String accession) throws RecordNotFoundException {
         Experiment experiment = experimentsCache.get(accession);
         if (experiment == null) {
             experimentsCache.put(accession, experiment = experimentDAO.getByName(accession));

@@ -35,7 +35,7 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -165,7 +165,7 @@ public class ExperimentAnalyticsGeneratorService {
     @Transactional(propagation = Propagation.REQUIRED)
     public void createAnalyticsForExperiment(
             String experimentAccession,
-            AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException, DAOException {
+            AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException, RecordNotFoundException {
         log.info("Generating analytics for experiment " + experimentAccession);
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);

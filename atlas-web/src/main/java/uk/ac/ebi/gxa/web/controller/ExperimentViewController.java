@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -154,7 +154,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, AtlasDataException {
+    ) throws ResourceNotFoundException, AtlasDataException, RecordNotFoundException {
 
         final ExperimentPage page = createExperimentPage(accession);
         final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
@@ -162,21 +162,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
+        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        ExperimentWithData ewd = null;
         try {
-            final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-            ExperimentWithData ewd = null;
-            try {
-                ewd = atlasDataDAO.createExperimentWithData(experiment);
-                model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
-                if (assayPropertiesRequired) {
-                    model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
-                }
-                return UNSUPPORTED_HTML_VIEW;
-            } finally {
-                closeQuietly(ewd);
+            ewd = atlasDataDAO.createExperimentWithData(experiment);
+            model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
+            if (assayPropertiesRequired) {
+                model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
             }
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage());
+            return UNSUPPORTED_HTML_VIEW;
+        } finally {
+            closeQuietly(ewd);
         }
     }
 
@@ -195,29 +191,26 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public void getExperimentAsset(
             @RequestParam("eid") String accession,
             @RequestParam("asset") String assetFileName,
-            HttpServletResponse response) throws IOException, ResourceNotFoundException {
-        try {
-            if (isNullOrEmpty(accession) || isNullOrEmpty(assetFileName))
-                throw new ResourceNotFoundException("Incomplete request");
+            HttpServletResponse response) throws IOException, ResourceNotFoundException, RecordNotFoundException {
 
-            Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        if (isNullOrEmpty(accession) || isNullOrEmpty(assetFileName))
+            throw new ResourceNotFoundException("Incomplete request");
 
-            Asset asset = experiment.getAsset(assetFileName);
-            if (asset == null)
-                throw assetNotFound(accession, assetFileName);
+        Experiment experiment = atlasDAO.getExperimentByAccession(accession);
 
-            final File assetFile = new File(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), asset.getFileName());
-            if (!assetFile.exists())
-                throw assetNotFound(accession, assetFileName);
+        Asset asset = experiment.getAsset(assetFileName);
+        if (asset == null)
+            throw assetNotFound(accession, assetFileName);
 
-            ResourceType type = ResourceType.getByFileName(assetFileName);
-            if (type == null)
-                throw assetNotFound(accession, assetFileName);
+        final File assetFile = new File(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), asset.getFileName());
+        if (!assetFile.exists())
+            throw assetNotFound(accession, assetFileName);
 
-            send(response, assetFile, type);
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage());
-        }
+        ResourceType type = ResourceType.getByFileName(assetFileName);
+        if (type == null)
+            throw assetNotFound(accession, assetFileName);
+
+        send(response, assetFile, type);
     }
 
     private ResourceNotFoundException assetNotFound(String accession, String assetFileName) {
@@ -251,7 +244,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws AtlasDataException, ResourceNotFoundException {
+    ) throws ResourceNotFoundException, RecordNotFoundException {
         ExperimentWithData ewd = null;
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
@@ -279,8 +272,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             );
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
-        } catch (DAOException e) {
-            throw new ResourceNotFoundException(e.getMessage());
         } finally {
             closeQuietly(ewd);
         }

@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.dao;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -40,7 +40,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     }
 
     @Deprecated
-    public void delete(String experimentAccession) throws DAOException {
+    public void delete(String experimentAccession) throws RecordNotFoundException {
         template.delete(getByName(experimentAccession, NAME_COL));
     }
 

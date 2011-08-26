@@ -27,7 +27,7 @@ public class MockFactory {
         private Map<String, ArrayDesign> ads = newHashMap();
 
         @Override
-        public PropertyValue getOrCreateProperty(String name, String value) {
+        public PropertyValue getOrCreatePropertyValue(String name, String value) {
             PropertyValue pv = pvs.get(Pair.create(name, value));
             if (pv == null) {
                 Property p = ps.get(name);

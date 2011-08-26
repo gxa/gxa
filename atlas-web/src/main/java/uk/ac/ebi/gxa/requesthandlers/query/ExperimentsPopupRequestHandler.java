@@ -27,7 +27,7 @@ import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -175,7 +175,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                             break;
                         }
                     }
-                } catch (DAOException e) {
+                } catch (RecordNotFoundException e) {
                     throw LogUtil.createUnexpected(e.getMessage());
                 } finally {
                     if (ewd != null)

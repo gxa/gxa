@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +31,10 @@ public class AtlasViewController {
 
     private static final String ERROR = "error";
 
-    @ExceptionHandler({ResourceNotFoundException.class})
+    @ExceptionHandler({
+            ResourceNotFoundException.class,
+            RecordNotFoundException.class
+    })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ModelAndView handleError(ResourceNotFoundException e) {
         log.info(e.getMessage());

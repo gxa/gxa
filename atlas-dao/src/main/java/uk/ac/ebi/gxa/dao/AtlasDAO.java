@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.sql.ResultSet;
@@ -97,7 +97,7 @@ public class AtlasDAO {
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
      * @return an object modelling this experiment
      */
-    public Experiment getExperimentByAccession(String accession) throws DAOException {
+    public Experiment getExperimentByAccession(String accession) throws RecordNotFoundException {
         return experimentDAO.getByName(accession);
     }
 
@@ -192,22 +192,30 @@ public class AtlasDAO {
     }
 
     public PropertyValue getOrCreatePropertyValue(final String name, final String value) {
-        // TODO: 4alf: track newly-created values
+        Property property = getOrCreateProperty(name);
+        return getorCreateProperty(value, property);
+    }
 
-        Property property;
+    private PropertyValue getorCreateProperty(String value, Property property) {
         try {
-            property = propertyDAO.getByName(name);
-        } catch (DAOException e) { // property not found - create a new one
-            propertyDAO.save(property = new Property(null, name));
+            return propertyValueDAO.find(property, value);
+        } catch (RecordNotFoundException e) {
+            // property value not found - create a new one
+            PropertyValue propertyValue = new PropertyValue(null, property, value);
+            propertyValueDAO.save(propertyValue);
+            return propertyValue;
         }
+    }
 
-        PropertyValue propertyValue;
+    private Property getOrCreateProperty(String name) {
         try {
-            propertyValue = propertyValueDAO.find(property, value);
-        } catch (DAOException e) { // property value not found - create a new one
-            propertyValueDAO.save(propertyValue = new PropertyValue(null, property, value));
+            return propertyDAO.getByName(name);
+        } catch (RecordNotFoundException e) {
+            // property not found - create a new one
+            Property property = new Property(null, name);
+            propertyDAO.save(property);
+            return property;
         }
-        return propertyValue;
     }
 
     public Ontology getOrCreateOntology(
@@ -215,44 +223,37 @@ public class AtlasDAO {
             final String ontologyDescription,
             final String ontologySourceUri,
             final String ontologyVersion) {
-        Ontology ontology;
-
         try {
-            ontology = ontologyDAO.getByName(ontologyName);
-        } catch (DAOException e) { // ontology not found - create a new one
-            ontologyDAO.save(ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
-                    ontologyVersion));
+            return ontologyDAO.getByName(ontologyName);
+        } catch (RecordNotFoundException e) {
+            // ontology not found - create a new one
+            Ontology ontology = new Ontology(null, ontologyName, ontologySourceUri, ontologyDescription,
+                    ontologyVersion);
+            ontologyDAO.save(ontology);
+            return ontology;
         }
-        return ontology;
-
     }
 
     public OntologyTerm getOrCreateOntologyTerm(final String accession,
                                                 final String term,
                                                 final String description,
                                                 final Ontology ontology) {
-
-        OntologyTerm ontologyTerm;
         try {
-            ontologyTerm = ontologyTermDAO.getByName(accession);
-        } catch (DAOException e) { // ontology term not found - create new one
-            ontologyTermDAO.save(ontologyTerm = new OntologyTerm(null, ontology, term, accession, description));
+            return ontologyTermDAO.getByName(accession);
+        } catch (RecordNotFoundException e) { // ontology term not found - create new one
+            OntologyTerm ontologyTerm = new OntologyTerm(null, ontology, term, accession, description);
+            ontologyTermDAO.save(ontologyTerm);
+            return ontologyTerm;
         }
-
-        return ontologyTerm;
     }
 
-    public Ontology getOntologyByName(final String ontologyName) throws DAOException {
+    public Ontology getOntologyByName(final String ontologyName) throws RecordNotFoundException {
         return ontologyDAO.getByName(ontologyName);
     }
 
 
-    public OntologyTerm getOntologyTermByAccession(final String accession) throws DAOException {
+    public OntologyTerm getOntologyTermByAccession(final String accession) throws RecordNotFoundException {
         return ontologyTermDAO.getByName(accession);
-    }
-
-    public Organism getOrganismByName(final String name) throws DAOException {
-        return organismDAO.getByName(name);
     }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {

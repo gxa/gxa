@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -104,7 +104,7 @@ class AssaysQueryHandler implements QueryHandler {
                 decorators.add(new AssayDecorator(a));
             }
             return decorators;
-        } catch (DAOException e) {
+        } catch (RecordNotFoundException e) {
             return new Error(e.getMessage());
         }
     }

@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
@@ -180,7 +180,7 @@ public class WiggleRequestHandler implements HttpRequestHandler {
                 creator.addRegion(read.start, read.end);
                 creator.printRegions(read.start);
             }
-        } catch (DAOException e) {
+        } catch (RecordNotFoundException e) {
             throw new ServletException(e.getMessage());
         }
     }

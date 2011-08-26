@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -135,7 +135,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                     }
                     prefixTrees.put(property, root);
                     log.info("Done loading factor values and counts for " + property);
-                } catch (DAOException e) {
+                } catch (RecordNotFoundException e) {
                     throw createUnexpected(e.getMessage(), e);
                 }
             }

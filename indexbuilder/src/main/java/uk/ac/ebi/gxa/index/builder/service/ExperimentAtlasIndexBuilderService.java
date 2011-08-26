@@ -26,7 +26,7 @@ import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -99,7 +99,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         } catch (IOException e) {
             throw new IndexBuilderException(e);
-        } catch (DAOException e) {
+        } catch (RecordNotFoundException e) {
             throw new IndexBuilderException(e);
         } finally {
             getAtlasDAO().finishSession();
