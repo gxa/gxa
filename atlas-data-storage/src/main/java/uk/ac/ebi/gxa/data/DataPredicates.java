@@ -6,20 +6,16 @@ import com.google.common.base.Predicates;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-
 import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 
-/**
- * @author Alexey Filippov
- */
 public class DataPredicates {
     private final ExperimentWithData ewd;
     private final Logger log = LoggerFactory.getLogger(DataPredicates.class);
@@ -60,28 +56,28 @@ public class DataPredicates {
 
     public Predicate<ArrayDesign> containsEfEfv(final String ef, final String efv) {
         return
-            new Predicate<ArrayDesign>() {
-                public boolean apply(@Nonnull ArrayDesign arrayDesign) {
-                    try {
-                        for (KeyValuePair uefv : ewd.getUniqueFactorValues(arrayDesign)) {
-                            if (uefv.key.equals(ef) &&
-                                (isNullOrEmpty(efv) || uefv.value.equals(efv))) {
-                                return true;
+                new Predicate<ArrayDesign>() {
+                    public boolean apply(@Nonnull ArrayDesign arrayDesign) {
+                        try {
+                            for (KeyValuePair uefv : ewd.getUniqueFactorValues(arrayDesign)) {
+                                if (uefv.key.equals(ef) &&
+                                        (isNullOrEmpty(efv) || uefv.value.equals(efv))) {
+                                    return true;
+                                }
                             }
+                            return false;
+                        } catch (AtlasDataException e) {
+                            log.error("Cannot read pair " + pairToString(arrayDesign), e);
+                            return false;
                         }
-                        return false;
-                    } catch (AtlasDataException e) {
-                        log.error("Cannot read pair " + pairToString(arrayDesign), e);
-                        return false;
                     }
-                }
 
-                @Override
-                public String toString() {
-                    return isNullOrEmpty(efv)
-                        ? "HasEF(" + ef + ")" : "HasEFV(" + ef + "||" + efv + ")";
-                }
-            };
+                    @Override
+                    public String toString() {
+                        return isNullOrEmpty(efv)
+                                ? "HasEF(" + ef + ")" : "HasEFV(" + ef + "||" + efv + ")";
+                    }
+                };
     }
 
     private String pairToString(ArrayDesign arrayDesign) {

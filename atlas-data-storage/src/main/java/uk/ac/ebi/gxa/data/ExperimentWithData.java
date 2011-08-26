@@ -22,27 +22,17 @@
 
 package uk.ac.ebi.gxa.data;
 
-import java.util.*;
-
-import java.io.IOException;
-
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.io.Closeables;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.microarray.atlas.model.*;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.util.*;
 
 public class ExperimentWithData {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -69,7 +59,7 @@ public class ExperimentWithData {
      * @return first arrayDesign used in experiment, that matches criteria;
      *         or null if no arrayDesign has been found
      */
-    public ArrayDesign findArrayDesign(Predicate<ArrayDesign> criteria) throws AtlasDataException {
+    public ArrayDesign findArrayDesign(Predicate<ArrayDesign> criteria) {
         for (ArrayDesign ad : experiment.getArrayDesigns()) {
             if (criteria.apply(ad)) {
                 return ad;
