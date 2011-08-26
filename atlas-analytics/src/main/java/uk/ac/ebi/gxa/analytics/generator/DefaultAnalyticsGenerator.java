@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
-import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 
 import java.util.ArrayList;
@@ -46,7 +45,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
     private ExperimentAnalyticsGeneratorService analyticsService;
 
     private ExecutorService executor;
-    private ExperimentDAO experimentDAO;
 
     // logging
     private final Logger log =
@@ -58,10 +56,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
 
     public void setExecutor(ExecutorService executor) {
         this.executor = executor;
-    }
-
-    public void setExperimentDAO(ExperimentDAO experimentDAO) {
-        this.experimentDAO = experimentDAO;
     }
 
     public void startup() throws AnalyticsGeneratorException {
