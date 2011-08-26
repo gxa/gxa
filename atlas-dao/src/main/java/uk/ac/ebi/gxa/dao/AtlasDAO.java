@@ -60,21 +60,14 @@ public class AtlasDAO {
     private final JdbcTemplate template;
     private final ExperimentDAO experimentDAO;
     private final AssayDAO assayDAO;
-    private final OntologyDAO ontologyDAO;
-    private PropertyValueDAO propertyValueDAO;
-    private OntologyTermDAO ontologyTermDAO;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, OntologyDAO ontologyDAO,
-                    OntologyTermDAO ontologyTermDAO, PropertyValueDAO propertyValueDAO) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
-        this.ontologyDAO = ontologyDAO;
-        this.ontologyTermDAO = ontologyTermDAO;
-        this.propertyValueDAO = propertyValueDAO;
 
         CacheManager cacheManager = CacheManager.getInstance();
         if (!cacheManager.cacheExists(AD_CACHE))

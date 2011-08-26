@@ -50,9 +50,6 @@
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="assayDAO"/>
-        <constructor-arg ref="ontologyDAO"/>
-        <constructor-arg ref="ontologyTermDAO"/>
-        <constructor-arg ref="propertyValueDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
