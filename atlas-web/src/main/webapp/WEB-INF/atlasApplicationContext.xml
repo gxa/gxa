@@ -204,7 +204,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
           init-method="startup">
         <property name="executor" ref="threadPool"/>
         <property name="analyticsService" ref="experimentAnalyticsService"/>
-        <property name="ExperimentDAO" ref="experimentDAO"/>
+        <property name="experimentDAO" ref="experimentDAO"/>
     </bean>
 
     <!-- Web interface component -->
