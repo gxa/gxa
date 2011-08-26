@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
-import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,8 +96,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                     }
 
                     return true;
-                } catch (DAOException e) {
-                    throw new AnalyticsGeneratorException(e);
                 } catch (AnalyticsGeneratorException e) {
                     throw e;
                 } catch (Exception e) {
