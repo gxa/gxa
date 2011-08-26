@@ -122,7 +122,7 @@ public class ExperimentalData {
      *
      * @param arrayDesign array design, this matrix applies to
      */
-    private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) {
+    private ExpressionMatrix getExpressionMatrix(ArrayDesign arrayDesign) throws AtlasDataException {
         ExpressionMatrix matrix = expressionMatrices.get(arrayDesign);
         if (matrix == null) {
             matrix = new ExpressionMatrix(experimentWithData, arrayDesign);

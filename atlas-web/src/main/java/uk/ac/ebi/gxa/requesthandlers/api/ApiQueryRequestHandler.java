@@ -134,7 +134,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        final AtlasExperimentQuery query = new AtlasExperimentQueryParser(atlasProperties, queryService.getAllFactors()).parse((Map<String, String[]>)request.getParameterMap());
+        final AtlasExperimentQuery query = new AtlasExperimentQueryParser(atlasProperties, queryService.getAllFactors()).parse((Map<String, String[]>) request.getParameterMap());
         if (query.isValid()) {
             final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query);
             if (experiments.getTotalResults() == 0)
@@ -150,43 +150,43 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             }
 
             return new ExperimentResults(
-                experiments,
-                transform(experiments.getAtlasExperiments(),
-                    new Function<AtlasExperiment, ExperimentResultAdapter>() {
-                        public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
+                    experiments,
+                    transform(experiments.getAtlasExperiments(),
+                            new Function<AtlasExperiment, ExperimentResultAdapter>() {
+                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
 
-                            Collection<AtlasGene> genes = Collections.emptyList();
+                                    Collection<AtlasGene> genes = Collections.emptyList();
 
-                            ExperimentalData expData = null;
+                                    ExperimentalData expData = null;
 
-                            if (!experimentInfoOnly) {
-                                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
-                                try {
-                                    //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                    BestDesignElementsResult geneResults =
-                                        atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                ewd,
-                                                null,
-                                                query.getGeneIdentifiers(),
-                                                Collections.<String>emptyList(),
-                                                Collections.<String>emptyList(),
-                                                QueryExpression.ANY.asUpDownCondition(),
-                                                0,
-                                                10
-                                        );
-                                
-                                    genes = geneResults.getGenes();
-                                    expData = new ExperimentalData(ewd);
-                                } catch (AtlasDataException e) {
-                                    log.warn("AtlasDataException thrown", e);
-                                } finally {
-                                    ewd.close();
+                                    if (!experimentInfoOnly) {
+                                        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
+                                        try {
+                                            //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
+                                            BestDesignElementsResult geneResults =
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            ewd,
+                                                            null,
+                                                            query.getGeneIdentifiers(),
+                                                            Collections.<String>emptyList(),
+                                                            Collections.<String>emptyList(),
+                                                            QueryExpression.ANY.asUpDownCondition(),
+                                                            0,
+                                                            10
+                                                    );
+
+                                            genes = geneResults.getGenes();
+                                            expData = new ExperimentalData(ewd);
+                                        } catch (AtlasDataException e) {
+                                            log.warn("AtlasDataException thrown", e);
+                                        } finally {
+                                            ewd.close();
+                                        }
+                                    }
+
+                                    return new ExperimentResultAdapter(experiment, genes, expData);
                                 }
-                            }
-
-                            return new ExperimentResultAdapter(experiment, genes, expData);
-                        }
-                    })
+                            })
             );
             //Heatmap page
         } else {
