@@ -29,7 +29,6 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,8 +99,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                         analyticsService.generateAnalytics();
                         log.info("Finished analytics generations for all experiments");
                     } else {
-                        final Experiment experiment = experimentDAO.getByName(experimentAccession);
-                        analyticsService.createAnalyticsForExperiment(experiment.getAccession(), listener);
+                        analyticsService.createAnalyticsForExperiment(experimentAccession, listener);
                     }
 
                     return true;
@@ -112,7 +110,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                 } catch (Exception e) {
                     throw new AnalyticsGeneratorException("Error", e);
                 }
-
             }
         }));
 
