@@ -1758,6 +1758,7 @@
             var tableItems = {};
             var tableSize = 0;
             var geneToolTips = {};
+            var arrayDesign = null;
 
             if (!data || data.totalSize == 0) {
                 $("#divErrorMessage").css("visibility", "visible");
@@ -1768,6 +1769,7 @@
                 tableSize = data.totalSize;
                 geneToolTips = data.geneToolTips;
                 $('#arrayDesign').html(data.arrayDesign);
+                arrayDesign = data.arrayDesign;
             }
 
             $("#expressionTableBody").data("json", data);
@@ -1809,7 +1811,7 @@
                 updatePagination(tableSize);
 
                 var ef = tableItems.length > 0 ? tableItems[0].ef : "";
-                updatePlot(_designElements.slice(0, 3), ef, data.arrayDesign);
+                updatePlot(_designElements.slice(0, 3), ef, arrayDesign);
             }
         }
 

@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
@@ -31,7 +30,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,8 +73,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasProperties atlasProperties;
 
-    private final GeneSolrDAO geneSolrDAO;
-
     private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
 
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
@@ -92,12 +88,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     AtlasProperties atlasProperties,
-                                    GeneSolrDAO geneSolrDAO,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
-        this.geneSolrDAO = geneSolrDAO;
         this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
@@ -245,7 +239,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
     ) throws AtlasDataException {
-        final List<Long> geneIds = findGeneIds(gid);
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
@@ -254,7 +247,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 experimentAnalyticsService.findBestGenesForExperiment(
                     ewd,
                     adAcc,
-                    geneIds,
+                    isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
                     isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                     isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
                     updown,
@@ -284,25 +277,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
-    }
-
-    private List<Long> findGeneIds(String... query) {
-        List<Long> genes = Lists.newArrayList();
-
-        for (String text : query) {
-            if (Strings.isNullOrEmpty(text)) {
-                continue;
-            }
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
-            if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
-                    genes.add((long) gene.getGeneId());
-                }
-            } else {
-                genes.add((long) res.getGene().getGeneId());
-            }
-        }
-        return genes;
     }
 
     private class GeneToolTip {

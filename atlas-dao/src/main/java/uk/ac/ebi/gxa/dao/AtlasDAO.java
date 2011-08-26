@@ -163,11 +163,19 @@ public class AtlasDAO {
         return stats;
     }
 
+    /**
+     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
+     */
+    @Deprecated
     public void startSession() {
         log.debug("startSession()");
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
+    /**
+     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
+     */
+    @Deprecated
     public void finishSession() {
         log.debug("finishSession()");
         SessionFactoryUtils.processDeferredClose(sessionFactory);
