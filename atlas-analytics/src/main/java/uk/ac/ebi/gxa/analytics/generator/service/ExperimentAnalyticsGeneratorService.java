@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.hibernate.DAOException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -44,7 +45,6 @@ import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.text.DecimalFormat;
@@ -79,16 +79,8 @@ public class ExperimentAnalyticsGeneratorService {
         this.executor = executor;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void generateAnalytics() throws AnalyticsGeneratorException {
-        atlasDAO.startSession();
-        try {
-            generateInternal();
-        } finally {
-            atlasDAO.finishSession();
-        }
-    }
-
-    private void generateInternal() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
@@ -115,7 +107,7 @@ public class ExperimentAnalyticsGeneratorService {
                 public Void call() throws Exception {
                     long start = System.currentTimeMillis();
                     try {
-                        createAnalyticsForExperiment(experiment, new LogAnalyticsGeneratorListener());
+                        createAnalyticsForExperiment(experiment.getAccession(), new LogAnalyticsGeneratorListener());
                     } finally {
                         timer.completed(experiment.getId());
 
@@ -172,9 +164,11 @@ public class ExperimentAnalyticsGeneratorService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void createAnalyticsForExperiment(
-            @Nonnull final Experiment experiment,
-            final AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
-        log.info("Generating analytics for experiment " + experiment.getAccession());
+            String experimentAccession,
+            AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException, DAOException {
+        log.info("Generating analytics for experiment " + experimentAccession);
+
+        final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
         if (arrayDesigns.isEmpty()) {
@@ -187,7 +181,7 @@ public class ExperimentAnalyticsGeneratorService {
                 count++;
 
                 if (!factorsAvailable(ewd, ad)) {
-                    listener.buildWarning("No analytics were computed for " + experiment.getAccession() + "/" + ad.getAccession() + " as it contained no factors or characteristics!");
+                    listener.buildWarning("No analytics were computed for " + experimentAccession + "/" + ad.getAccession() + " as it contained no factors or characteristics!");
                     return;
                 }
 
@@ -232,19 +226,19 @@ public class ExperimentAnalyticsGeneratorService {
 
                 // now run this compute task
                 try {
-                listener.buildProgress("Computing analytics for " + experiment.getAccession());
+                    listener.buildProgress("Computing analytics for " + experimentAccession);
                     // computeAnalytics writes analytics data back to NetCDF
                     atlasComputeService.computeTask(computeAnalytics);
-                    log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experiment.getAccession() +
+                    log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experimentAccession +
                             " has completed.");
 
                     if (analysedEFSCs.size() == 0) {
                         listener.buildWarning("No analytics were computed for this experiment!");
                     }
                 } catch (ComputeException e) {
-                    throw new AnalyticsGeneratorException("Computation of analytics for " + experiment.getAccession() + "/" + ad.getAccession() + " failed: " + e.getMessage(), e);
+                    throw new AnalyticsGeneratorException("Computation of analytics for " + experimentAccession + "/" + ad.getAccession() + " failed: " + e.getMessage(), e);
                 } catch (Exception e) {
-                    throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + experiment.getAccession() + "/" + ad.getAccession(), e);
+                    throw new AnalyticsGeneratorException("An error occurred while generating analytics for " + experimentAccession + "/" + ad.getAccession(), e);
                 }
             }
         } finally {

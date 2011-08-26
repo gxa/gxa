@@ -101,7 +101,7 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                         log.info("Finished analytics generations for all experiments");
                     } else {
                         final Experiment experiment = experimentDAO.getByName(experimentAccession);
-                        analyticsService.createAnalyticsForExperiment(experiment, listener);
+                        analyticsService.createAnalyticsForExperiment(experiment.getAccession(), listener);
                     }
 
                     return true;
