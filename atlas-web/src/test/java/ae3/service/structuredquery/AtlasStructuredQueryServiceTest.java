@@ -31,11 +31,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.statistics.Attribute;
@@ -64,7 +64,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     @Before
     public void createService() throws Exception {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
-        EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
 
         ResourceFileStorage storage = new ResourceFileStorage();
@@ -107,7 +106,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
-        service.setSolrServerExpt(expt);
         service.setSolrServerProp(serverProp);
         service.setExperimentDAO(experimentDAO);
         service.setEfoService(efoService);

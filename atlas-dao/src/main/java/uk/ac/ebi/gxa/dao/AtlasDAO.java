@@ -26,7 +26,6 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import org.hibernate.SessionFactory;
-import org.hibernate.classic.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -174,11 +173,19 @@ public class AtlasDAO {
         return stats;
     }
 
+    /**
+     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
+     */
+    @Deprecated
     public void startSession() {
         log.debug("startSession()");
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
+    /**
+     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
+     */
+    @Deprecated
     public void finishSession() {
         log.debug("finishSession()");
         SessionFactoryUtils.processDeferredClose(sessionFactory);

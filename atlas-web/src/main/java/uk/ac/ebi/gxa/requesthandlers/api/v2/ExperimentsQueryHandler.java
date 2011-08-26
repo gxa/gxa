@@ -23,10 +23,13 @@
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import ae3.dao.ExperimentSolrDAO;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
+import ae3.service.experiment.AtlasExperimentQuery;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 class ExperimentsQueryHandler implements QueryHandler {
     private final ExperimentSolrDAO experimentSolrDAO;
@@ -35,8 +38,11 @@ class ExperimentsQueryHandler implements QueryHandler {
         this.experimentSolrDAO = experimentSolrDAO;
     }
 
-    private String solrQuery(Map query) {
-        final StringBuilder builder = new StringBuilder();
+    private AtlasExperimentQuery toExperimentQuery(Map query, int start, int rows) {
+        AtlasExperimentQuery.Builder qb = new AtlasExperimentQuery.Builder();
+        qb.setStart(start);
+        qb.setRows(rows);
+
         final Object o = query.get("hasFactor");
         if (o instanceof List) {
             final LinkedList<String> factors = new LinkedList<String>();
@@ -49,12 +55,10 @@ class ExperimentsQueryHandler implements QueryHandler {
                 }
             }
             if (factors.size() > 0) {
-                builder.append("a_properties:(");
-                builder.append(EscapeUtil.escapeSolrValueList(factors));
-                builder.append(")");
+                qb.withFactors(factors);
             }
         }
-        return builder.toString();
+        return qb.toQuery();
     }
 
     private static class ExperimentDecorator {
@@ -70,12 +74,12 @@ class ExperimentsQueryHandler implements QueryHandler {
     }
 
     public Object getResponse(Map query) {
-        final String sQuery = solrQuery(query);
-        if (sQuery.length() == 0) {    
-            return new Error("Empty query");
+        final AtlasExperimentQuery expQuery = toExperimentQuery(query, 0, 200);
+        if (!expQuery.isValid()) {
+            return new Error("Invalid experiment query: " + expQuery);
         }
         final List<Experiment> experiments =
-            experimentSolrDAO.getExperimentsByQuery(sQuery, 0, 200).getExperiments();
+            experimentSolrDAO.getExperimentsByQuery(expQuery).getExperiments();
         final List<ExperimentDecorator> decorators = new ArrayList<ExperimentDecorator>(experiments.size());
         for (Experiment e : experiments) {
             decorators.add(new ExperimentDecorator(e));

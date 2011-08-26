@@ -35,10 +35,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.DataPredicates;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.data.*;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -103,7 +106,7 @@ public class AtlasPlotter {
                 geneIdsToEfToEfvToEA =
                     ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
             } finally {
-                ewd.closeAllDataSources();
+                ewd.close();
             }
             if (geneIdsToEfToEfvToEA == null) {
                 return null;
@@ -569,7 +572,7 @@ public class AtlasPlotter {
 
             return barPlotData.toSeries(options);
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
@@ -593,7 +596,7 @@ public class AtlasPlotter {
             uniqueFVs = sortUniqueFVs(assayFVs);
             expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
 
 

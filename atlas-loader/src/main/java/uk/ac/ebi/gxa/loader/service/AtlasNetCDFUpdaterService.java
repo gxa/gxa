@@ -3,8 +3,8 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -128,7 +128,7 @@ public class AtlasNetCDFUpdaterService {
             log.error("Error reading NetCDF file for: " + experiment.getAccession() + "/" + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 

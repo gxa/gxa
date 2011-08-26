@@ -258,7 +258,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
-        <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="efoService" ref="atlasEfoService"/>
         <property name="efvService" ref="atlasEfvService"/>
@@ -356,7 +355,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
-        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>

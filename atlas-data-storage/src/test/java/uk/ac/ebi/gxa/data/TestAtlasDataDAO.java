@@ -2,9 +2,9 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -59,7 +59,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertNotSame(fvs.length, 0);
             assertTrue(Arrays.asList(fvs).contains(efv));
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
@@ -91,7 +91,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
             assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 }

@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
@@ -148,19 +148,6 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
         } catch (RestResultRenderException e) {
             log.error(e.getMessage());
         }
-    }
-
-    private Object process(HttpServletRequest request) {
-        final Request r;
-        try {
-            r = new ObjectMapper().readValue(request.getReader(), Request.class);
-            log.info(r.toString());
-        } catch (IOException e) {
-            // TODO: envelop error message into standard API format
-            return e.toString();
-        }
-        final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
-        return experiments;
     }
 
     public void destroy() throws Exception {

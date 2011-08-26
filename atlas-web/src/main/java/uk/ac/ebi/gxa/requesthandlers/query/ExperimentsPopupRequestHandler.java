@@ -28,11 +28,11 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
@@ -179,7 +179,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     throw LogUtil.createUnexpected(e.getMessage());
                 } finally {
                     if (ewd != null)
-                        ewd.closeAllDataSources();
+                        ewd.close();
                 }
 
                 if (ea != null) {

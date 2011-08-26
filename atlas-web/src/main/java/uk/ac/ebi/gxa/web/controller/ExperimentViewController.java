@@ -23,15 +23,12 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
-import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +40,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.hibernate.DAOException;
-import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
@@ -60,6 +59,7 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -74,8 +74,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     private final AtlasDataDAO atlasDataDAO;
 
     private final AtlasProperties atlasProperties;
-
-    private final GeneSolrDAO geneSolrDAO;
 
     private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
 
@@ -92,12 +90,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     AtlasProperties atlasProperties,
-                                    GeneSolrDAO geneSolrDAO,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
-        this.geneSolrDAO = geneSolrDAO;
         this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
@@ -165,27 +161,29 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         if (ad == null) {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
-        ExperimentWithData ewd = null;
+
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-            ewd = atlasDataDAO.createExperimentWithData(experiment);
-            model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
-            if (assayPropertiesRequired) {
-                model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
+            ExperimentWithData ewd = null;
+            try {
+                ewd = atlasDataDAO.createExperimentWithData(experiment);
+                model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
+                if (assayPropertiesRequired) {
+                    model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
+                }
+                return UNSUPPORTED_HTML_VIEW;
+            } finally {
+                closeQuietly(ewd);
             }
-            return UNSUPPORTED_HTML_VIEW;
         } catch (DAOException e) {
             throw new ResourceNotFoundException(e.getMessage());
-        } finally {
-            if (ewd != null)
-                ewd.closeAllDataSources();
         }
     }
 
     /**
      * This method HTTP GET's assetFileName's content for a given experiment provided that
      * 1. assetFileName is listed against that experiment in DB
-     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourcePattern)
+     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourceType)
      *
      * @param accession     experiment accession
      * @param assetFileName asset file name
@@ -197,27 +195,33 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public void getExperimentAsset(
             @RequestParam("eid") String accession,
             @RequestParam("asset") String assetFileName,
-            HttpServletResponse response
-    ) throws IOException, ResourceNotFoundException {
+            HttpServletResponse response) throws IOException, ResourceNotFoundException {
+        try {
+            if (isNullOrEmpty(accession) || isNullOrEmpty(assetFileName))
+                throw new ResourceNotFoundException("Incomplete request");
 
-        if (!Strings.isNullOrEmpty(accession) && !Strings.isNullOrEmpty(assetFileName)) {
-            try {
-                Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-                for (Asset asset : experiment.getAssets()) {
-                    if (assetFileName.equals(asset.getFileName())) {
-                        for (ResourcePattern rp : ResourcePattern.values()) {
-                            if (rp.handle(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), assetFileName, response)) {
-                                return;
-                            }
-                        }
-                        break;
-                    }
-                }
-            } catch (DAOException e) {
-                throw new ResourceNotFoundException(e.getMessage());
-            }
+            Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+
+            Asset asset = experiment.getAsset(assetFileName);
+            if (asset == null)
+                throw assetNotFound(accession, assetFileName);
+
+            final File assetFile = new File(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), asset.getFileName());
+            if (!assetFile.exists())
+                throw assetNotFound(accession, assetFileName);
+
+            ResourceType type = ResourceType.getByFileName(assetFileName);
+            if (type == null)
+                throw assetNotFound(accession, assetFileName);
+
+            send(response, assetFile, type);
+        } catch (DAOException e) {
+            throw new ResourceNotFoundException(e.getMessage());
         }
-        throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
+    }
+
+    private ResourceNotFoundException assetNotFound(String accession, String assetFileName) {
+        return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
 
     /**
@@ -247,18 +251,16 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws IOException, AtlasDataException, ResourceNotFoundException {
-        final List<Long> geneIds = findGeneIds(gid);
+    ) throws AtlasDataException, ResourceNotFoundException {
         ExperimentWithData ewd = null;
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
-
             final BestDesignElementsResult res =
                     experimentAnalyticsService.findBestGenesForExperiment(
                             ewd,
                             adAcc,
-                            geneIds,
+                            isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
                             isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                             isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
                             updown,
@@ -280,8 +282,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         } catch (DAOException e) {
             throw new ResourceNotFoundException(e.getMessage());
         } finally {
-            if (ewd != null)
-                ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 
@@ -291,25 +292,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
-    }
-
-    private List<Long> findGeneIds(String... query) {
-        List<Long> genes = Lists.newArrayList();
-
-        for (String text : query) {
-            if (Strings.isNullOrEmpty(text)) {
-                continue;
-            }
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
-            if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
-                    genes.add((long) gene.getGeneId());
-                }
-            } else {
-                genes.add((long) res.getGene().getGeneId());
-            }
-        }
-        return genes;
     }
 
     private class GeneToolTip {

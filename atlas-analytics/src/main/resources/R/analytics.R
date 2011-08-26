@@ -635,7 +635,7 @@ find.best.design.elements <<-
     # minpvals[1:length(minpvals)] <- NA
     # maxtstats[1:length(maxtstats)] <- NA
 
-    uvalMatrix = sapply(c, function(str) { strsplit(str, "\\|\\|")[[1]] })
+    uvalMatrix = sapply(uvals, function(str) { strsplit(str, "\\|\\|")[[1]] })
 
     res <-  data.frame(
         deindexes = as.integer(wde[idxs]),

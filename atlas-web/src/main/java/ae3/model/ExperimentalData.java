@@ -26,16 +26,15 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -69,7 +68,7 @@ public class ExperimentalData {
 
         ResourceWatchdogFilter.register(new Closeable() {
             public void close() {
-                ExperimentalData.this.experimentWithData.closeAllDataSources();
+                ExperimentalData.this.experimentWithData.close();
             }
         });
 

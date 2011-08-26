@@ -321,4 +321,13 @@ public class Experiment {
             }
         });
     }
+
+    public Asset getAsset(String filename) {
+        for (Asset asset : getAssets()) {
+            if (filename.equals(asset.getFileName())) {
+                return asset;
+            }
+        }
+        return null;
+    }
 }

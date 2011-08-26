@@ -24,6 +24,9 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -33,10 +36,10 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
@@ -52,15 +55,21 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import static com.google.common.io.Closeables.closeQuietly;
-
 public class ExperimentAnalyticsGeneratorService {
-    private final AtlasDAO atlasDAO;
-    private final AtlasDataDAO atlasDataDAO;
-    private final AtlasComputeService atlasComputeService;
-
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private AtlasDAO atlasDAO;
+    @Autowired
+    private AtlasDataDAO atlasDataDAO;
+    @Autowired
+    private AtlasComputeService atlasComputeService;
+    @Autowired
     private ExecutorService executor;
+
+    // for CGLIB only
+    ExperimentAnalyticsGeneratorService() {
+    }
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO,
                                                AtlasComputeService atlasComputeService, ExecutorService executor) {
@@ -161,6 +170,7 @@ public class ExperimentAnalyticsGeneratorService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void createAnalyticsForExperiment(
             @Nonnull final Experiment experiment,
             final AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
@@ -238,7 +248,7 @@ public class ExperimentAnalyticsGeneratorService {
                 }
             }
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
