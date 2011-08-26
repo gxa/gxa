@@ -30,7 +30,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -161,33 +164,6 @@ public class AtlasDAO {
         ));
 
         return stats;
-    }
-
-    public PropertyValue getOrCreatePropertyValue(final String name, final String value) {
-        return propertyValueDAO.getOrCreatePropertyValue(name, value);
-    }
-
-    public Ontology getOrCreateOntology(final String ontologyName,
-                                        final String ontologyDescription,
-                                        final String ontologySourceUri,
-                                        final String ontologyVersion) {
-        return ontologyDAO.getOrCreateOntology(ontologyName, ontologySourceUri, ontologyDescription, ontologyVersion);
-    }
-
-    public OntologyTerm getOrCreateOntologyTerm(final String accession,
-                                                final String term,
-                                                final String description,
-                                                final Ontology ontology) {
-        return ontologyTermDAO.getOrCreateOntologyTerm(accession, term, description, ontology);
-    }
-
-    public Ontology getOntologyByName(final String ontologyName) throws RecordNotFoundException {
-        return ontologyDAO.getByName(ontologyName);
-    }
-
-
-    public OntologyTerm getOntologyTermByAccession(final String accession) throws RecordNotFoundException {
-        return ontologyTermDAO.getByName(accession);
     }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {

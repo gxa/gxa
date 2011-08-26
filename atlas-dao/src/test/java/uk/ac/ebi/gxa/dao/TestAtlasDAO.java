@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
@@ -53,19 +51,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     private static final String ONTOLOGY_NAME = "EFO";
     private static final String ONTOLOGY_VERSION = "Thu Oct 02 2008";
     private static final String ONTOLOGY_DESCRIPTION = "ArrayExpress Experimental Factor Ontology";
-
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    @After
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
 
     @Test
     public void testGetAllExperiments() throws Exception {
@@ -208,7 +193,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     @Test
     public void testAddDeleteAssayProperty() throws Exception {
-        final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        final PropertyValue propertyValue = propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
 
         addAssayProperty();
 
@@ -247,9 +232,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     private void addAssayProperty() throws RecordNotFoundException {
         final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
-        final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
-        final Ontology ontology = atlasDAO.getOrCreateOntology(ONTOLOGY_NAME, ONTOLOGY_DESCRIPTION, null, ONTOLOGY_VERSION);
-        List<OntologyTerm> terms = Collections.singletonList(atlasDAO.getOrCreateOntologyTerm(
+        final PropertyValue propertyValue = propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        final Ontology ontology = ontologyDAO.getOrCreateOntology(ONTOLOGY_NAME, ONTOLOGY_DESCRIPTION, null, ONTOLOGY_VERSION);
+        List<OntologyTerm> terms = Collections.singletonList(ontologyTermDAO.getOrCreateOntologyTerm(
                 ONTOLOGY_TERM,
                 null,
                 null,
@@ -262,7 +247,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     private void removeAssayProperty() throws RecordNotFoundException {
         final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
-        final PropertyValue propertyValue = atlasDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        final PropertyValue propertyValue = propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
         assay.deleteProperty(propertyValue);
         experimentDAO.save(experiment);
     }

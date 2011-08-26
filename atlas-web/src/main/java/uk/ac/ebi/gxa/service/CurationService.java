@@ -2,8 +2,6 @@ package uk.ac.ebi.gxa.service;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +23,6 @@ import static com.google.common.collect.Collections2.transform;
  */
 @Service
 public class CurationService {
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
     @Autowired
     private AtlasDAO atlasDAO;
 
@@ -382,7 +378,7 @@ public class CurationService {
      */
     public ApiOntology getOntology(final String ontologyName) throws ResourceNotFoundException {
         try {
-            Ontology ontology = atlasDAO.getOntologyByName(ontologyName);
+            Ontology ontology = ontologyDAO.getByName(ontologyName);
             return new ApiOntology(ontology);
         } catch (RecordNotFoundException e) {
             throw convert(e);
@@ -397,7 +393,7 @@ public class CurationService {
     @Transactional
     public void putOntology(@Nonnull final ApiOntology apiOntology) {
         try {
-            Ontology ontology = atlasDAO.getOntologyByName(apiOntology.getName());
+            Ontology ontology = ontologyDAO.getByName(apiOntology.getName());
             ontology.setDescription(apiOntology.getDescription());
             ontology.setName(apiOntology.getName());
             ontology.setVersion(apiOntology.getVersion());
@@ -416,7 +412,7 @@ public class CurationService {
     public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws ResourceNotFoundException {
 
         try {
-            OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(ontologyTermAcc);
+            OntologyTerm ontologyTerm = ontologyTermDAO.getByName(ontologyTermAcc);
             return new ApiOntologyTerm(ontologyTerm);
         } catch (RecordNotFoundException e) {
             throw convert(e);
@@ -432,7 +428,7 @@ public class CurationService {
     public void putOntologyTerms(final ApiOntologyTerm[] apiOntologyTerms) {
         for (ApiOntologyTerm apiOntologyTerm : apiOntologyTerms) {
             try {
-                OntologyTerm ontologyTerm = atlasDAO.getOntologyTermByAccession(apiOntologyTerm.getAccession());
+                OntologyTerm ontologyTerm = ontologyTermDAO.getByName(apiOntologyTerm.getAccession());
                 ontologyTerm.setAccession(apiOntologyTerm.getAccession());
                 ontologyTerm.setDescription(apiOntologyTerm.getDescription());
                 ontologyTerm.setOntology(getOrCreateOntology(apiOntologyTerm.getOntology()));
@@ -451,7 +447,7 @@ public class CurationService {
      * @return existing Ontology corresponding to apiOntology.getName(); otherwise a new Ontology corresponding to apiOntology
      */
     private Ontology getOrCreateOntology(@Nonnull ApiOntology apiOntology) {
-        return atlasDAO.getOrCreateOntology(
+        return ontologyDAO.getOrCreateOntology(
                 apiOntology.getName(),
                 apiOntology.getDescription(),
                 apiOntology.getSourceUri(),
@@ -467,7 +463,7 @@ public class CurationService {
 
         Ontology ontology = getOrCreateOntology(apiOntologyTerm.getOntology());
 
-        return atlasDAO.getOrCreateOntologyTerm(
+        return ontologyTermDAO.getOrCreateOntologyTerm(
                 apiOntologyTerm.getAccession(),
                 apiOntologyTerm.getTerm(),
                 apiOntologyTerm.getDescription(),
@@ -509,7 +505,7 @@ public class CurationService {
     }
 
     private PropertyValue getOrCreatePropertyValue(ApiPropertyValue apv) {
-        return atlasDAO.getOrCreatePropertyValue(apv.getProperty().getName(), apv.getValue());
+        return propertyValueDAO.getOrCreatePropertyValue(apv.getProperty().getName(), apv.getValue());
     }
 
     private static ResourceNotFoundException convert(RecordNotFoundException e) {

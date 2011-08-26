@@ -67,6 +67,12 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     @Autowired
     protected SampleDAO sampleDAO;
     @Autowired
+    protected OntologyDAO ontologyDAO;
+    @Autowired
+    protected OntologyTermDAO ontologyTermDAO;
+    @Autowired
+    protected PropertyValueDAO propertyValueDAO;
+    @Autowired
     protected SessionFactory sessionFactory;
 
     protected IDataSet getDataSet() throws Exception {
