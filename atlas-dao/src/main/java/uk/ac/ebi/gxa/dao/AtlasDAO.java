@@ -25,12 +25,10 @@ package uk.ac.ebi.gxa.dao;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -59,15 +57,13 @@ public class AtlasDAO {
     private final JdbcTemplate template;
     private final ExperimentDAO experimentDAO;
     private final AssayDAO assayDAO;
-    private final SessionFactory sessionFactory;
     private final OntologyDAO ontologyDAO;
     private PropertyValueDAO propertyValueDAO;
     private OntologyTermDAO ontologyTermDAO;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
                     ExperimentDAO experimentDAO, AssayDAO assayDAO, OntologyDAO ontologyDAO,
-                    OntologyTermDAO ontologyTermDAO, PropertyValueDAO propertyValueDAO,
-                    SessionFactory sessionFactory) {
+                    OntologyTermDAO ontologyTermDAO, PropertyValueDAO propertyValueDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
@@ -76,7 +72,6 @@ public class AtlasDAO {
         this.ontologyDAO = ontologyDAO;
         this.ontologyTermDAO = ontologyTermDAO;
         this.propertyValueDAO = propertyValueDAO;
-        this.sessionFactory = sessionFactory;
 
         CacheManager cacheManager = CacheManager.getInstance();
         if (!cacheManager.cacheExists(AD_CACHE))
@@ -106,14 +101,13 @@ public class AtlasDAO {
         Cache cache = CacheManager.getInstance().getCache(AD_CACHE);
         Element element = cache.get(accession);
 
-        ArrayDesign result;
         if (element == null || element.isExpired() || element.getObjectValue() == null) {
-            result = arrayDesignDAO.getArrayDesignByAccession(accession);
+            ArrayDesign result = arrayDesignDAO.getArrayDesignByAccession(accession);
             cache.put(new Element(accession, result));
+            return result;
         } else {
-            result = ArrayDesign.class.cast(element.getObjectValue());
+            return ArrayDesign.class.cast(element.getObjectValue());
         }
-        return result;
     }
 
     /**
@@ -167,24 +161,6 @@ public class AtlasDAO {
         ));
 
         return stats;
-    }
-
-    /**
-     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
-     */
-    @Deprecated
-    public void startSession() {
-        log.debug("startSession()");
-        SessionFactoryUtils.initDeferredClose(sessionFactory);
-    }
-
-    /**
-     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
-     */
-    @Deprecated
-    public void finishSession() {
-        log.debug("finishSession()");
-        SessionFactoryUtils.processDeferredClose(sessionFactory);
     }
 
     public PropertyValue getOrCreatePropertyValue(final String name, final String value) {

@@ -2,6 +2,8 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.*;
@@ -33,8 +35,8 @@ public class AtlasNetCDFUpdaterService {
     private AtlasDAO atlasDAO;
     private AtlasDataDAO atlasDataDAO;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        atlasDAO.startSession();
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
 
@@ -68,8 +70,6 @@ public class AtlasNetCDFUpdaterService {
             }
         } catch (RecordNotFoundException e) {
             throw new AtlasLoaderException(e.getMessage(), e);
-        } finally {
-            atlasDAO.finishSession();
         }
     }
 
