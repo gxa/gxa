@@ -130,6 +130,20 @@ public class AtlasExperimentQueryParserTest {
         assertEquals(DEFAULT_ROWS, query.getRows());
     }
 
+    @Test
+    public void experimentApiQueryTest7() {
+        AtlasExperimentQuery query = parse("experimentHasAnyFactor=factorValue");
+        assertTrue(query.isValid());
+        assertCollectionEqualsTo(query.getAnyFactorValues(), "factorValue");
+
+        assertFalse(query.isListAll());
+        assertTrue(query.getExperimentKeywords().isEmpty());
+        assertTrue(query.getFactors().isEmpty());
+        assertTrue(query.getGeneIdentifiers().isEmpty());
+        assertEquals(0, query.getStart());
+        assertEquals(DEFAULT_ROWS, query.getRows());
+    }
+
     private void assertMultimapsEquals(Multimap<String, String> m1, Multimap<String, String> m2) {
         assertEquals(m1.size(), m2.size());
         for (String k : m1.keySet()) {
