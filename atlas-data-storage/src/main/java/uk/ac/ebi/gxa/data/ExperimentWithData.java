@@ -31,16 +31,17 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
-public class ExperimentWithData {
+public class ExperimentWithData implements Closeable {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
 
-    private final Map<ArrayDesign,NetCDFProxy> proxies = new HashMap<ArrayDesign,NetCDFProxy>();
+    private final Map<ArrayDesign, NetCDFProxy> proxies = new HashMap<ArrayDesign, NetCDFProxy>();
 
     // cached data
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
@@ -55,7 +56,7 @@ public class ExperimentWithData {
     }
 
     /**
-     * @param criteria   the criteria to choose arrayDesign
+     * @param criteria the criteria to choose arrayDesign
      * @return first arrayDesign used in experiment, that matches criteria;
      *         or null if no arrayDesign has been found
      */
@@ -151,7 +152,7 @@ public class ExperimentWithData {
 
     public long[] getGenes(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getGenes(); 
+            return getProxy(arrayDesign).getGenes();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -159,7 +160,7 @@ public class ExperimentWithData {
 
     public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getUniqueFactorValues(); 
+            return getProxy(arrayDesign).getUniqueFactorValues();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -167,7 +168,7 @@ public class ExperimentWithData {
 
     public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getUniqueValues(); 
+            return getProxy(arrayDesign).getUniqueValues();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -175,7 +176,7 @@ public class ExperimentWithData {
 
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getFactors(); 
+            return getProxy(arrayDesign).getFactors();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -183,7 +184,7 @@ public class ExperimentWithData {
 
     public String[] getCharacteristics(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getCharacteristics(); 
+            return getProxy(arrayDesign).getCharacteristics();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -191,7 +192,7 @@ public class ExperimentWithData {
 
     public String[] getCharacteristicValues(ArrayDesign arrayDesign, String characteristic) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getCharacteristicValues(characteristic); 
+            return getProxy(arrayDesign).getCharacteristicValues(characteristic);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -199,7 +200,7 @@ public class ExperimentWithData {
 
     public String[][] getFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getFactorValues(); 
+            return getProxy(arrayDesign).getFactorValues();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -207,7 +208,7 @@ public class ExperimentWithData {
 
     public String[] getFactorValues(ArrayDesign arrayDesign, String factor) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getFactorValues(factor); 
+            return getProxy(arrayDesign).getFactorValues(factor);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -215,7 +216,7 @@ public class ExperimentWithData {
 
     public FloatMatrixProxy getExpressionValues(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getExpressionValues(deIndices); 
+            return getProxy(arrayDesign).getExpressionValues(deIndices);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -223,7 +224,7 @@ public class ExperimentWithData {
 
     public float[] getExpressionDataForDesignElementAtIndex(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getExpressionDataForDesignElementAtIndex(designElementIndex); 
+            return getProxy(arrayDesign).getExpressionDataForDesignElementAtIndex(designElementIndex);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -231,7 +232,7 @@ public class ExperimentWithData {
 
     public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getExpressionStatistics(deIndices); 
+            return getProxy(arrayDesign).getExpressionStatistics(deIndices);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -239,7 +240,7 @@ public class ExperimentWithData {
 
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(ArrayDesign arrayDesign, Map<Long, List<Integer>> geneIdsToDEIndexes) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes); 
+            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -253,7 +254,7 @@ public class ExperimentWithData {
             final UpDownCondition upDownCondition)
             throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, efVal, efvVal, upDownCondition); 
+            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, efVal, efvVal, upDownCondition);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -287,8 +288,8 @@ public class ExperimentWithData {
     }
 
     /**
-     * @param geneIds    ids of genes to plot
-     * @param criteria   other criteria to choose NetCDF to plot
+     * @param geneIds  ids of genes to plot
+     * @param criteria other criteria to choose NetCDF to plot
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
@@ -306,7 +307,7 @@ public class ExperimentWithData {
 
     public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex); 
+            return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -314,7 +315,7 @@ public class ExperimentWithData {
 
     public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex); 
+            return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex);
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -322,7 +323,7 @@ public class ExperimentWithData {
 
     public TwoDFloatArray getAllExpressionData(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getAllExpressionData(); 
+            return getProxy(arrayDesign).getAllExpressionData();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -379,7 +380,7 @@ public class ExperimentWithData {
         return atlasDataDAO.getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
     }
 
-    public void closeAllDataSources() {
+    public void close() {
         for (NetCDFProxy p : proxies.values()) {
             Closeables.closeQuietly(p);
         }

@@ -35,10 +35,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.DataPredicates;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.data.*;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -97,13 +100,13 @@ public class AtlasPlotter {
                     return (long) input.getGeneId();
                 }
             });
-            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
+            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
             final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
             try {
                 geneIdsToEfToEfvToEA =
-                    ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
+                        ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
             } finally {
-                ewd.closeAllDataSources();
+                ewd.close();
             }
             if (geneIdsToEfToEfvToEA == null) {
                 return null;
@@ -301,7 +304,7 @@ public class AtlasPlotter {
                 new Supplier<List<Integer>>() {
                     @Override
                     public List<Integer> get() {
-                       return Lists.newArrayList();
+                        return Lists.newArrayList();
                     }
                 }
         );
@@ -323,7 +326,7 @@ public class AtlasPlotter {
         public Collection<Float> getAssayExpressionsFor(String factorValue, List<Float> expressions) {
             List<Float> assays = new ArrayList<Float>();
             Collection<Integer> assayIndices = fvMap.get(factorValue);
-            for(Integer i : assayIndices) {
+            for (Integer i : assayIndices) {
                 if (expressions.size() <= i) {
                     throw new IllegalArgumentException("No expression for assayIndex: " + i + ", assayExpressions.size = " + expressions.size());
                 }
@@ -521,7 +524,7 @@ public class AtlasPlotter {
         }
 
         final ArrayDesign ad = new ArrayDesign(bestArrayDesignAccession);
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
@@ -531,7 +534,7 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
+                    ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
 
             AssayFactorValues factorValues = new AssayFactorValues(ewd.getFactorValues(ad, ef));
             BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();
@@ -569,7 +572,7 @@ public class AtlasPlotter {
 
             return barPlotData.toSeries(options);
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
@@ -584,7 +587,7 @@ public class AtlasPlotter {
         // Get assayFVs from the proxy from which ea came
         final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
         // Get actual expression data from the design element stored in ea
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment); 
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         final String[] assayFVs;
         final List<String> uniqueFVs;
         final float[] expressions;
@@ -593,7 +596,7 @@ public class AtlasPlotter {
             uniqueFVs = sortUniqueFVs(assayFVs);
             expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
 
 

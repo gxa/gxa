@@ -1646,7 +1646,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 // different design elements
                 if (counter.getUps() > 0) {
                     start = System.currentTimeMillis();
-                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
+                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
                     totalDataQueryTime += System.currentTimeMillis() - start;
                     if (ea != null) {
                         upDnEAs.add(ea);
@@ -1654,7 +1654,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
                 if (counter.getDowns() > 0) {
                     start = System.currentTimeMillis();
-                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
+                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
                     totalDataQueryTime += System.currentTimeMillis() - start;
                     if (ea != null) {
                         upDnEAs.add(ea);
@@ -1665,21 +1665,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if (designElementAccession == null) {
                         designElementAccession = ea.getDesignElementAccession();
                     }
-            
+
                     if (ea.isUp()) {
                         pup = Math.min(pup, ea.getPValAdjusted());
                     } else if (ea.isDown()) {
                         pdn = Math.min(pdn, ea.getPValAdjusted());
                     }
-            
+
                     ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                             ea.getPValAdjusted(),
                             UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
-            
+
                     experimentsForRow.add(experiment);
                 }
             } finally {
-                ewd.closeAllDataSources();
+                ewd.close();
             }
         }
 
@@ -1704,7 +1704,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                 try {
                     start = System.currentTimeMillis();
-                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
+                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
                     totalDataQueryTime += System.currentTimeMillis() - start;
                     if (ea != null) {
                         ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
@@ -1715,7 +1715,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         experimentsForRow.add(experiment);
                     }
                 } finally {
-                    ewd.closeAllDataSources();
+                    ewd.close();
                 }
             }
         }

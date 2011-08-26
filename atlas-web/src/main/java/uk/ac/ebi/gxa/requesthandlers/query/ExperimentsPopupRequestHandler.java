@@ -27,11 +27,11 @@ import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
@@ -163,18 +163,18 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(
-                    experimentDAO.getExperimentByAccession(exp.getAccession())
+                        experimentDAO.getExperimentByAccession(exp.getAccession())
                 );
                 try {
                     for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                         if (ea != null) {
                             exp.setHighestRankAttribute(attrCandidate);
                             break;
                         }
                     }
                 } finally {
-                    ewd.closeAllDataSources();
+                    ewd.close();
                 }
 
                 if (ea != null) {

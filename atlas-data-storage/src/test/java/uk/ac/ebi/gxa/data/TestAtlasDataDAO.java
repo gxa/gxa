@@ -2,9 +2,9 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicates;
 import junit.framework.TestCase;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.io.File;
@@ -59,7 +59,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertNotSame(fvs.length, 0);
             assertTrue(Arrays.asList(fvs).contains(efv));
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
@@ -67,13 +67,13 @@ public class TestAtlasDataDAO extends TestCase {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                ewd.getExpressionAnalysesForGeneIds(geneIds, Predicates.<ArrayDesign>alwaysTrue());
-        
+                    ewd.getExpressionAnalysesForGeneIds(geneIds, Predicates.<ArrayDesign>alwaysTrue());
+
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId).get(ef));
             ExpressionAnalysis ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
-        
+
             assertNotNull(ea);
             assertNotNull("Got null for design element ID", ea.getDesignElementAccession());
             //assertNotNull("Got null for experiment ID", ea.getExperimentID());
@@ -86,12 +86,12 @@ public class TestAtlasDataDAO extends TestCase {
             assertNotNull("Got null for arrayDesign accession", ea.getArrayDesignAccession());
             assertNotNull("Got null for design element index", ea.getDesignElementIndex());
             System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
-        
-        
+
+
             assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
             assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 }

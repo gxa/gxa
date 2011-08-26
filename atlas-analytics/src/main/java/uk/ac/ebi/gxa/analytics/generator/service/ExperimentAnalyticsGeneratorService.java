@@ -249,7 +249,7 @@ public class ExperimentAnalyticsGeneratorService {
                 }
             }
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 

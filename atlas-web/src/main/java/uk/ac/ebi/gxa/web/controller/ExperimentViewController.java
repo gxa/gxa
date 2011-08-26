@@ -142,8 +142,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param assayPropertiesRequired a boolean value to specify if assay properties ard needed
      * @param model                   a model for the view to render
      * @return the view path
-     * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws AtlasDataException     if any data reading error happened (including index out of range)
+     * @throws ResourceNotFoundException if an experiment or array design is not found
+     * @throws AtlasDataException        if any data reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -168,7 +168,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
             }
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
         return UNSUPPORTED_HTML_VIEW;
     }
@@ -244,17 +244,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         try {
             final BestDesignElementsResult res =
-                experimentAnalyticsService.findBestGenesForExperiment(
-                    ewd,
-                    adAcc,
-                    isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
-                    isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                    isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                    updown,
-                    offset,
-                    limit
-                );
-        
+                    experimentAnalyticsService.findBestGenesForExperiment(
+                            ewd,
+                            adAcc,
+                            isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
+                            isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                            isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                            updown,
+                            offset,
+                            limit
+                    );
+
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
             model.addAttribute("totalSize", res.getTotalSize());
             model.addAttribute("items", Iterables.transform(res,
@@ -267,7 +267,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 

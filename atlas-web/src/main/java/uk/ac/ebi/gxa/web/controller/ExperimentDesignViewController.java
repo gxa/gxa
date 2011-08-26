@@ -11,14 +11,11 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.io.File;
 import java.util.*;
-
-import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * @author Olga Melnichuk
@@ -105,7 +102,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         
             return mergeExperimentDesigns(designs);
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
