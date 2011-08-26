@@ -231,7 +231,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public String getExperimentTable(
             @RequestParam("eid") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
-            @RequestParam(value = "gid", required = false, defaultValue = "") String gid,
+            @RequestParam(value = "gid", required = false) String gid,
             @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "updown", required = false, defaultValue = "CONDITION_ANY") UpDownCondition updown,
@@ -247,7 +247,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 experimentAnalyticsService.findBestGenesForExperiment(
                     ewd,
                     adAcc,
-                    isNullOrEmpty(gid.trim()) ? Collections.<String>emptyList() : Arrays.asList(gid.split("\\s+")),
+                    isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
                     isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
                     isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
                     updown,
