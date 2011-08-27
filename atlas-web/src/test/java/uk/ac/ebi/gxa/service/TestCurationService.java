@@ -3,8 +3,6 @@ package uk.ac.ebi.gxa.service;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
@@ -71,18 +69,6 @@ public class TestCurationService extends AtlasDAOTestCase {
 
     @Autowired
     private CurationService curationService;
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    @After
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
 
     @Test
     public void testGetProperties() throws Exception {
