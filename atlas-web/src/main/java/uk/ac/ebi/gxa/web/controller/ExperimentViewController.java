@@ -391,7 +391,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         public ExperimentTableRow(BestDesignElementsResult.Item item) {
             geneName = item.getGene().getGeneName();
-            geneIdentifier = item.getGene().getGeneIdentifier();
+            geneIdentifier = item.getGene().getUrlRewriteEncodedGeneIdentifier();
             deAccession = item.getDeAccession();
             deIndex = item.getDeIndex();
             factor = item.getEf();

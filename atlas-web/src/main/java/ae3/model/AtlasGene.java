@@ -24,6 +24,7 @@ package ae3.model;
 
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
+import ae3.util.HtmlHelper;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
@@ -265,6 +266,17 @@ public class AtlasGene {
     }
 
     /**
+     * Returns primary gene identifier, first url-encoded, then all percent characters url-encoded again
+     * Both encodings are needed to make urlrewrite rules work with gene identifiers containing e.g. '+'
+     * and ':' characters in gene/<geneid> and experiment/<expacc>/<geneid> types of urls.
+     *
+     * @return gene identifier
+     */
+    public String getUrlRewriteEncodedGeneIdentifier() {
+        return HtmlHelper.escapeURL(getGeneIdentifier()).replaceAll("\\%", "%25");
+    }
+
+    /**
      * Returns gene organism
      *
      * @return organism
@@ -315,7 +327,7 @@ public class AtlasGene {
     /**
      * Returns number of experiments gene studied in
      *
-     * @param attribute                          ef or ef-efv for which to retrieve experiments; if null, return all experiments for this gene
+     * @param attribute                   ef or ef-efv for which to retrieve experiments; if null, return all experiments for this gene
      * @param atlasStatisticsQueryService
      * @return number
      */
@@ -337,7 +349,7 @@ public class AtlasGene {
     /**
      * Returns number of experiments gene studied in
      *
-     * @param attribute                          Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @param attribute                   Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
      * @param atlasStatisticsQueryService
      * @return number
      */
