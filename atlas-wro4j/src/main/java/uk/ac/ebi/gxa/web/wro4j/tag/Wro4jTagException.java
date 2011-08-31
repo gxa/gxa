@@ -30,4 +30,8 @@ public class Wro4jTagException extends Exception {
     public Wro4jTagException(String message) {
         super(message);
     }
+
+    public Wro4jTagException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

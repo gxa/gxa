@@ -22,29 +22,26 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import org.junit.Test;
+import ro.isdc.wro.model.factory.XmlModelFactory;
 
-import static org.junit.Assert.assertEquals;
-import static uk.ac.ebi.gxa.web.wro4j.tag.WebResourcePath.joinPaths;
-import static uk.ac.ebi.gxa.web.wro4j.tag.WebResourcePath.normalizePath;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author Olga Melnichuk
  */
-public class WebResourcePathTest {
+class Wro4jXmlModelFactory extends XmlModelFactory {
 
-    @Test
-    public void normalizePathTest() {
-        assertEquals("one/two", normalizePath("one///two"));
-        assertEquals("one/two", normalizePath("/one///two"));
-        assertEquals("one/two", normalizePath("/one///two/"));
-        assertEquals("one/two", normalizePath("///one///two///"));
+    private final File wro4jConfigPath;
+
+    public Wro4jXmlModelFactory(File wro4jConfigPath) {
+       this.wro4jConfigPath = wro4jConfigPath;
     }
 
-    @Test
-    public void joinPathsTest() {
-        assertEquals("one/two/three/four", joinPaths("one///two", "three///four"));
-        assertEquals("/one/two/three/four", joinPaths("///one///two", "three///four"));
-        assertEquals("/one/two/three/four", joinPaths("///one///two///", "///three///four///"));
+    @Override
+    protected InputStream getConfigResourceAsStream() throws IOException {
+        return new FileInputStream(wro4jConfigPath);
     }
 }

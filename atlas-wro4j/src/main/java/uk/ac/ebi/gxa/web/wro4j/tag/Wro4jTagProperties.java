@@ -22,13 +22,14 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
+import ro.isdc.wro.model.resource.ResourceType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 /**
  * @author Olga Melnichuk
@@ -37,7 +38,7 @@ class Wro4jTagProperties {
 
     private boolean debug;
     private String namePattern;
-    private Map<WebResourceType, String> resourcePaths = Collections.emptyMap();
+    private Map<ResourceType, String> resourcePaths = Collections.emptyMap();
 
     Wro4jTagProperties() {
     }
@@ -57,8 +58,8 @@ class Wro4jTagProperties {
     }
 
     public void load(Properties props) {
-        resourcePaths = new HashMap<WebResourceType, String>();
-        for (WebResourceType type : WebResourceType.values()) {
+        resourcePaths = new HashMap<ResourceType, String>();
+        for (ResourceType type : ResourceType.values()) {
             String path = props.getProperty(aggregationPathPropertyName(type));
             if (path != null) {
                 resourcePaths.put(type, path);
@@ -66,18 +67,12 @@ class Wro4jTagProperties {
         }
 
         debug = Boolean.parseBoolean(props.getProperty(debugPropertyName(), "false"));
-        namePattern = props.getProperty(aggregationNamePatternPropertyName(), "@groupName@\\.@extension@");
+        namePattern = props.getProperty(aggregationNamePatternPropertyName(), null);
     }
 
-    public String getAggregationPath(WebResourceType type) {
+    public AggregatedResourcePath getAggregationPath(ResourceType type) {
         String path = resourcePaths.get(type);
-        return path == null ? "" : path;
-    }
-
-    public Pattern getAggregationNamePattern(String groupName, WebResourceType resourceType) {
-        String p = namePattern.replace("@groupName@", groupName);
-        p = p.replace("@extension@", resourceType.ext());
-        return Pattern.compile(p);
+        return new AggregatedResourcePath(path, new AggregatedResourceNamePattern(namePattern, type));
     }
 
     public boolean isDebugOn() {
@@ -88,7 +83,7 @@ class Wro4jTagProperties {
         return "wro4j.tag.debug";
     }
 
-    static String aggregationPathPropertyName(WebResourceType type) {
+    static String aggregationPathPropertyName(ResourceType type) {
         return "wro4j.tag.aggregation.path." + type;
     }
 

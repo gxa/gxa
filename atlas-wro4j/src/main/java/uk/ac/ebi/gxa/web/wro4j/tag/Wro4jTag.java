@@ -24,22 +24,19 @@ package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.web.wro4j.tag.config.Wro4jConfig;
-import uk.ac.ebi.gxa.web.wro4j.tag.config.Wro4jConfigException;
+import ro.isdc.wro.WroRuntimeException;
+import ro.isdc.wro.model.WroModel;
+import ro.isdc.wro.model.group.InvalidGroupNameException;
+import ro.isdc.wro.model.resource.ResourceType;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author Olga Melnichuk
@@ -50,30 +47,15 @@ public class Wro4jTag extends TagSupport {
 
     private final static Logger log = LoggerFactory.getLogger(Wro4jTag.class);
 
-    private static final Wro4jTagProperties properties = new Wro4jTagProperties();
-
-    static {
-        String tagProperties = "wro4j-tag.properties";
-        try {
-            InputStream in = Wro4jTag.class.getClassLoader().getResourceAsStream(tagProperties);
-            if (in == null) {
-                log.error(tagProperties + " not found in the classpath");
-            } else {
-                properties.load(in);
-            }
-        } catch (IOException e) {
-            log.error("Wro4jTag error: " + tagProperties + " not loaded", e);
-        }
-    }
-
     private String name;
-    private final List<WebResourceType> resourceTypes = new ArrayList<WebResourceType>();
+
+    private final List<ResourceType> resourceTypes = new ArrayList<ResourceType>();
 
     public Wro4jTag() {
-        this(WebResourceType.values());
+        this(ResourceType.values());
     }
 
-    Wro4jTag(WebResourceType... types) {
+    Wro4jTag(ResourceType... types) {
         resourceTypes.addAll(Arrays.asList(types));
     }
 
@@ -87,10 +69,8 @@ public class Wro4jTag extends TagSupport {
 
     public int doStartTag() throws JspException {
         try {
-            pageContext.getOut().write(html());
+            writeHtml();
         } catch (IOException e) {
-            throw jspTagException(e);
-        } catch (Wro4jConfigException e) {
             throw jspTagException(e);
         } catch (Wro4jTagException e) {
             throw jspTagException(e);
@@ -107,58 +87,23 @@ public class Wro4jTag extends TagSupport {
         return new JspTagException("Wro4jTag threw an exception; see logs for details");
     }
 
-    private String html() throws Wro4jConfigException, Wro4jTagException {
-        Wro4jConfig config = loadWro4jConfig();
-        String contextPath = ((HttpServletRequest) pageContext.getRequest()).getContextPath();
-        return properties.isDebugOn() ? notAggregatedVersion(config, contextPath) : aggregatedVersion(config, contextPath);
-    }
-
-    private String aggregatedVersion(Wro4jConfig config, String contextPath) throws Wro4jConfigException, Wro4jTagException {
-        StringBuilder sb = new StringBuilder();
-        for (WebResourceType type : resourceTypes) {
-            if (config.hasResources(name, type)) {
-                String fullPath = WebResourcePath.joinPaths(contextPath, aggregationFullName(name, type));
-                sb.append(type.toHtml(fullPath)).append("\n");
-            }
+    private void writeHtml() throws Wro4jTagException, IOException {
+        WroModel wroModel = loadWro4jConfig();
+        Wro4jTagRenderer renderer = Wro4jTagRenderer.create(pageContext, resourceTypes);
+        try {
+            renderer.render(wroModel.getGroupByName(name));
+        } catch (InvalidGroupNameException e) {
+            throw new Wro4jTagException("Group is not in the config file: " + name);
         }
-        return sb.toString();
     }
 
-    private String notAggregatedVersion(Wro4jConfig config, String contextPath) throws Wro4jConfigException {
-        Collection<WebResource> resources = config.getResources(name, resourceTypes);
-        StringBuilder sb = new StringBuilder();
-        for (WebResource res : resources) {
-            sb.append(res.asHtml(contextPath)).append("\n");
-        }
-        return sb.toString();
-    }
-
-    private Wro4jConfig loadWro4jConfig() throws Wro4jConfigException {
+    private WroModel loadWro4jConfig() throws Wro4jTagException {
         File webInf = new File(pageContext.getServletContext().getRealPath("/"), "WEB-INF");
         File wro4jConfigPath = new File(webInf, "wro.xml");
-
-        Wro4jConfig config = new Wro4jConfig();
-        config.load(wro4jConfigPath);
-        return config;
-    }
-
-    private String aggregationFullName(String groupName, WebResourceType type) throws Wro4jTagException {
-        String aggregationPath = properties.getAggregationPath(type);
-        final Pattern namePattern = properties.getAggregationNamePattern(groupName, type);
-
-        File folder = new File(pageContext.getServletContext().getRealPath("/"), aggregationPath);
-        String[] names = folder.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return namePattern.matcher(name).matches();
-            }
-        });
-
-        if (names.length == 1) {
-            return WebResourcePath.joinPaths(aggregationPath, names[0]);
-        } else if (names.length > 1) {
-            throw new Wro4jTagException("More than one file matches the pattern '" + namePattern + "': " + Arrays.toString(names));
+        try {
+            return new Wro4jXmlModelFactory(wro4jConfigPath).create();
+        } catch (WroRuntimeException e) {
+            throw new Wro4jTagException("Can't load wro4j config file", e);
         }
-        throw new Wro4jTagException("No file matching the pattern: '" + namePattern + "' found in the path: " + folder.getAbsolutePath());
     }
 }

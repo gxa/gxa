@@ -20,29 +20,31 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.wro4j.tag.config;
+package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.annotations.DigesterLoader;
-import org.apache.commons.digester.annotations.DigesterLoaderBuilder;
-import org.xml.sax.SAXException;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
+import static org.junit.Assert.assertEquals;
+import static uk.ac.ebi.gxa.web.wro4j.tag.ResourcePath.join;
+import static uk.ac.ebi.gxa.web.wro4j.tag.ResourcePath.normalizePath;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jConfigParser {
+public class ResourcePathTest {
 
-    private Wro4jConfigParser() {
+    @Test
+    public void normalizePathTest() {
+        assertEquals("one/two", normalizePath("one///two"));
+        assertEquals("one/two", normalizePath("/one///two"));
+        assertEquals("one/two", normalizePath("/one///two/"));
+        assertEquals("one/two", normalizePath("///one///two///"));
     }
 
-    public static Wro4jGroups parse(InputStream in) throws IOException, SAXException {
-        DigesterLoader digesterLoader = new DigesterLoaderBuilder()
-                .useDefaultAnnotationRuleProviderFactory()
-                .useDefaultDigesterLoaderHandlerFactory();
-        Digester digester = digesterLoader.createDigester(Wro4jGroups.class);
-        return (Wro4jGroups) digester.parse(in);
+    @Test
+    public void joinPathsTest() {
+        assertEquals("one/two/three/four", join("one///two", "three///four"));
+        assertEquals("/one/two/three/four", join("///one///two", "three///four"));
+        assertEquals("/one/two/three/four", join("///one///two///", "///three///four///"));
     }
 }

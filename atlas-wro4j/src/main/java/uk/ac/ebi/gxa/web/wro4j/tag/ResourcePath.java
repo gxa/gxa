@@ -27,11 +27,11 @@ import java.util.StringTokenizer;
 /**
  * @author Olga Melnichuk
  */
-public class WebResourcePath {
+class ResourcePath {
 
     private static final String PATH_SEPARATOR = "/";
 
-    private WebResourcePath() {
+    private ResourcePath() {
     }
 
     /**
@@ -61,7 +61,7 @@ public class WebResourcePath {
      * @param path2 a second path to add to the first one
      * @return a joined path string
      */
-    public static String joinPaths(String path1, String... path2) {
+    public static String join(String path1, String... path2) {
         StringBuilder sb = new StringBuilder();
         if (path1.startsWith(PATH_SEPARATOR)) {
             sb.append(PATH_SEPARATOR);
