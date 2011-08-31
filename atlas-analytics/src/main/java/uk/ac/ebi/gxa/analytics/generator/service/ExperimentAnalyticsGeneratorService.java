@@ -24,6 +24,9 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -33,10 +36,10 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RChar;
 import uk.ac.ebi.rcloud.server.RType.RObject;
@@ -51,15 +54,21 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import static com.google.common.io.Closeables.closeQuietly;
-
 public class ExperimentAnalyticsGeneratorService {
-    private final AtlasDAO atlasDAO;
-    private final AtlasDataDAO atlasDataDAO;
-    private final AtlasComputeService atlasComputeService;
-
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private AtlasDAO atlasDAO;
+    @Autowired
+    private AtlasDataDAO atlasDataDAO;
+    @Autowired
+    private AtlasComputeService atlasComputeService;
+    @Autowired
     private ExecutorService executor;
+
+    // for CGLIB only
+    ExperimentAnalyticsGeneratorService() {
+    }
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO,
                                                AtlasComputeService atlasComputeService, ExecutorService executor) {
@@ -160,6 +169,7 @@ public class ExperimentAnalyticsGeneratorService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void createAnalyticsForExperiment(
             String experimentAccession,
             AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
@@ -176,36 +186,36 @@ public class ExperimentAnalyticsGeneratorService {
         try {
             for (ArrayDesign ad : arrayDesigns) {
                 count++;
-        
+
                 if (!factorsAvailable(ewd, ad)) {
                     listener.buildWarning("No analytics were computed for " + experimentAccession + "/" + ad.getAccession() + " as it contained no factors or characteristics!");
                     return;
                 }
-        
+
                 final String pathForR = ewd.getPathForR(ad);
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                     public Void compute(RServices rs) throws ComputeException {
                         try {
                             // first, make sure we load the R code that runs the analytics
                             rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/analytics.R"));
-        
+
                             // note - the netCDF file MUST be on the same file system where the workers run
                             log.debug("Starting compute task for " + pathForR);
                             RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
                             log.debug("Completed compute task for " + pathForR);
-        
+
                             if (r instanceof RChar) {
                                 String[] efScs = ((RChar) r).getNames();
                                 String[] analysedOK = ((RChar) r).getValue();
-        
+
                                 if (efScs != null)
                                     for (int i = 0; i < efScs.length; i++) {
                                         log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
-        
+
                                         if ("OK".equals(analysedOK[i]))
                                             analysedEFSCs.add(efScs[i]);
                                     }
-        
+
                                 for (String rc : analysedOK) {
                                     if (rc.contains("Error"))
                                         throw new ComputeException(rc);
@@ -220,7 +230,7 @@ public class ExperimentAnalyticsGeneratorService {
                         return null;
                     }
                 };
-        
+
                 // now run this compute task
                 try {
                     listener.buildProgress("Computing analytics for " + experimentAccession);
@@ -228,7 +238,7 @@ public class ExperimentAnalyticsGeneratorService {
                     atlasComputeService.computeTask(computeAnalytics);
                     log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experimentAccession +
                             " has completed.");
-        
+
                     if (analysedEFSCs.size() == 0) {
                         listener.buildWarning("No analytics were computed for this experiment!");
                     }
@@ -239,7 +249,7 @@ public class ExperimentAnalyticsGeneratorService {
                 }
             }
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 

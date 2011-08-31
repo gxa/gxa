@@ -319,7 +319,8 @@
                     <div id="efoheader" style="position:absolute;bottom:0;left:-1px;"><img onload="fixpng(this);" src="${efoImgUrl}" usemap="#efomap" alt=""></div>
                     <c:forEach var="i" items="${efoSubTree}" varStatus="s">
                         <c:if test="${!i.expandable && i.depth == 0 && !i.root}">
-                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:pointer;" alt="" title="Broaden your search with EFO" onclick="atlas.expandEfo(${s.index*27},${efohgt},'${u:escapeJS(i.id)}');return false;" src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
+                            <img style="position:absolute;left:${s.index*27}px;bottom:0;cursor:default;" alt=""
+                                 src="${pageContext.request.contextPath}/images/goup.gif" width="5" height="12">
                         </c:if>
                     </c:forEach>
                 </div></td>

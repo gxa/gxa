@@ -26,9 +26,9 @@ import ae3.model.ExperimentalFactorsCompactData;
 import ae3.model.SampleCharacteristicsCompactData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -94,7 +94,7 @@ public class AssayProperties {
         try {
             return new AssayProperties().load(ewd, ad, nameConverter);
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 }

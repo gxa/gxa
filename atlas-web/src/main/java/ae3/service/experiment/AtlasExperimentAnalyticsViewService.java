@@ -5,28 +5,24 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
-import com.google.common.primitives.Ints;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Strings;
+import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
+import uk.ac.ebi.gxa.data.DataPredicates;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.DataPredicates;
-import uk.ac.ebi.gxa.data.AtlasDataException;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.*;
 
+import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
-import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.CONDITION_ANY;
 
 /**
  * This class provides access to the statistical functions defined in R scripts.
@@ -37,6 +33,7 @@ import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.CONDITION_ANY;
 
 public class AtlasExperimentAnalyticsViewService {
 
+    private static final BestDesignElementsResult EMPTY_DESIGN_ELEMENT_RESULT = new BestDesignElementsResult();
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static EnumMap<UpDownCondition, String> upDownConditionInR =
@@ -71,21 +68,61 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      * (for more details of search implementation, please see analytics.R).
      *
-     * @param ewd             experiment
-     * @param arrayDesign     arrayDesign
-     * @param geneIds         list of geneIds to find best statistics for
-     * @param factors         a list of factors to find best statistics for
-     * @param factorValues    a list of factor values to find best statistics for
-     * @param upDownCondition an up/down expression filter
-     * @param offset          Start position within the result set
-     * @param limit           how many design elements to return
+     * @param ewd                  experiment
+     * @param arrayDesignAccession an arrayDesign accession
+     * @param geneIdentifierQuery  a collection of gene names or identifiers to search for
+     * @param factors              a list of factors to find best statistics for
+     * @param factorValues         a list of factor values to find best statistics for
+     * @param upDownCondition      an up/down expression filter
+     * @param offset               Start position within the result set
+     * @param limit                how many design elements to return
      * @return an instance of {@link BestDesignElementsResult}
      * @throws uk.ac.ebi.gxa.analytics.compute.ComputeException
      *          if an error happened during R function call
      */
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull ExperimentWithData ewd,
-            final @Nonnull String arrayDesignAccession,
+            final @Nullable String arrayDesignAccession,
+            final @Nonnull Collection<String> geneIdentifierQuery,
+            final @Nonnull Collection<String> factors,
+            final @Nonnull Collection<String> factorValues,
+            final @Nonnull UpDownCondition upDownCondition,
+            final int offset,
+            final int limit) throws ComputeException {
+
+        final boolean genesSpecified = !geneIdentifierQuery.isEmpty();
+
+        final List<Long> geneIds = genesSpecified
+                ? geneSolrDAO.findGeneIds(geneIdentifierQuery)
+                : Collections.<Long>emptyList();
+        if (genesSpecified && geneIds.isEmpty()) {
+            return EMPTY_DESIGN_ELEMENT_RESULT;
+        }
+
+        final Predicate<ArrayDesign> adQuery;
+        if (!isNullOrEmpty(arrayDesignAccession)) {
+            adQuery = new Predicate<ArrayDesign>() {
+                @Override
+                public boolean apply(@Nullable ArrayDesign input) {
+                    return input != null && input.getAccession().equals(arrayDesignAccession);
+                }
+            };
+        } else if (!geneIds.isEmpty()) {
+            adQuery = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
+        } else {
+            adQuery = alwaysTrue();
+        }
+
+        final ArrayDesign arrayDesign = ewd.findArrayDesign(adQuery);
+        if (arrayDesign == null)
+            return EMPTY_DESIGN_ELEMENT_RESULT;
+
+        return findBestGenesForExperiment(ewd, arrayDesign, geneIds, factors, factorValues, upDownCondition, offset, limit);
+    }
+
+    private BestDesignElementsResult findBestGenesForExperiment(
+            final @Nonnull ExperimentWithData ewd,
+            final @Nonnull ArrayDesign arrayDesign,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
@@ -93,27 +130,6 @@ public class AtlasExperimentAnalyticsViewService {
             final int offset,
             final int limit) throws ComputeException {
         final BestDesignElementsResult result = new BestDesignElementsResult();
-
-        ArrayDesign arrayDesign = null;
-        if (!Strings.isNullOrEmpty(arrayDesignAccession)) {
-            arrayDesign = ewd.getExperiment().getArrayDesign(arrayDesignAccession);
-        } else if (!geneIds.isEmpty()) {
-            try {
-                arrayDesign = ewd.findArrayDesign(
-                    new DataPredicates(ewd).containsAtLeastOneGene(geneIds)
-                );
-            } catch (AtlasDataException e) {
-                log.warn("AtlasDataException in findArrayDesign", e);
-            }
-        } else {
-            final Collection<ArrayDesign> allADs = ewd.getExperiment().getArrayDesigns();
-            if (!allADs.isEmpty()) {
-                arrayDesign = allADs.iterator().next();
-            }
-        }
-        if (arrayDesign == null) {
-            return result;
-        }
         result.setArrayDesignAccession(arrayDesign.getAccession());
 
         long startTime = System.currentTimeMillis();

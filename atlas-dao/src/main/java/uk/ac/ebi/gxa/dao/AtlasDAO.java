@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +55,7 @@ import java.util.List;
  */
 public class AtlasDAO {
     private static final Logger log = LoggerFactory.getLogger(AtlasDAO.class);
+    public static final String AD_CACHE = AtlasDAO.class.getSimpleName() + ".ad";
     private final ArrayDesignDAO arrayDesignDAO;
     private final BioEntityDAO bioEntityDAO;
     private final JdbcTemplate template;
@@ -67,6 +71,10 @@ public class AtlasDAO {
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
         this.sessionFactory = sessionFactory;
+
+        CacheManager cacheManager = CacheManager.getInstance();
+        if (!cacheManager.cacheExists(AD_CACHE))
+            cacheManager.addCache(AD_CACHE);
     }
 
     public List<Experiment> getAllExperiments() {
@@ -88,7 +96,18 @@ public class AtlasDAO {
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+        // TODO: 4alf: all this can be done with a single @Cache directive.
+        Cache cache = CacheManager.getInstance().getCache(AD_CACHE);
+        Element element = cache.get(accession);
+
+        ArrayDesign result;
+        if (element == null || element.isExpired() || element.getObjectValue() == null) {
+            result = arrayDesignDAO.getArrayDesignByAccession(accession);
+            cache.put(new Element(accession, result));
+        } else {
+            result = ArrayDesign.class.cast(element.getObjectValue());
+        }
+        return result;
     }
 
     /**
@@ -144,11 +163,19 @@ public class AtlasDAO {
         return stats;
     }
 
+    /**
+     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
+     */
+    @Deprecated
     public void startSession() {
         log.debug("startSession()");
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
+    /**
+     * @deprecated Use {@link org.springframework.transaction.annotation.Transactional} instead
+     */
+    @Deprecated
     public void finishSession() {
         log.debug("finishSession()");
         SessionFactoryUtils.processDeferredClose(sessionFactory);

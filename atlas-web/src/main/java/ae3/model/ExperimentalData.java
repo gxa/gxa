@@ -26,19 +26,17 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.util.*;
 
 /**
@@ -67,11 +65,7 @@ public class ExperimentalData {
         log.info("loading data for experiment" + experimentWithData.getExperiment().getAccession());
         this.experimentWithData = experimentWithData;
 
-        ResourceWatchdogFilter.register(new Closeable() {
-            public void close() {
-                ExperimentalData.this.experimentWithData.closeAllDataSources();
-            }
-        });
+        ResourceWatchdogFilter.register(experimentWithData);
 
         collectSamples();
         collectAssays();
@@ -81,8 +75,8 @@ public class ExperimentalData {
     private void collectSamples() throws AtlasDataException {
         for (Sample sample : getExperiment().getSamples()) {
             sampleDecorators.add(new SampleDecorator(
-                sample,
-                sampleDecorators.size()
+                    sample,
+                    sampleDecorators.size()
             ));
         }
     }
@@ -92,10 +86,10 @@ public class ExperimentalData {
             int index = 0;
             for (Assay assay : experimentWithData.getAssays(ad)) {
                 assayDecorators.add(new AssayDecorator(
-                    assay,
-                    assayDecorators.size(),
-                    ad,
-                    index++ // position in matrix
+                        assay,
+                        assayDecorators.size(),
+                        ad,
+                        index++ // position in matrix
                 ));
             }
         }
@@ -107,11 +101,11 @@ public class ExperimentalData {
             sampleMap.put(sd.getSample(), sd);
         }
         for (AssayDecorator ad : assayDecorators) {
-            for (Sample sample: ad.getAssay().getSamples()) {
+            for (Sample sample : ad.getAssay().getSamples()) {
                 final SampleDecorator sd = sampleMap.get(sample);
                 ad.addSample(sd);
                 sd.addAssay(ad);
-            } 
+            }
         }
     }
 
@@ -179,7 +173,7 @@ public class ExperimentalData {
      */
     public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
         final ExpressionStats stats = getExpressionStats(ad);
-        
+
         if (stats != null) {
             try {
                 return stats.getExpressionStats(designElement);

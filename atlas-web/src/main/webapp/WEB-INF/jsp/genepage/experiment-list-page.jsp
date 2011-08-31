@@ -62,10 +62,10 @@
                     <div style="padding-top:5px;padding-bottom:5px;vertical-align:middle">
                         <div style="padding-bottom:5px;"><span class="section-header-2">Experimental Factors</span></div>
 
-                        <div id="${exp.id}_EFpagination" class="pagination_ef">
+                        <div id="${exp.accession}_EFpagination" class="pagination_ef">
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <div><a id="${EF}"
-                                       onclick="redrawPlotForFactor('${exp.id}','${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a></div>
+                                       onclick="redrawPlotForFactor('${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a></div>
                                 </c:forEach>
                         </div>
                         <div class="clean"></div>

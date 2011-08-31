@@ -12,7 +12,7 @@ import javax.persistence.*;
 public final class PropertyValue {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertyValueSeq")
-    @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ")
+    @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ", allocationSize = 1)
     private Long propertyvalueid;
     @ManyToOne
     private Property property;

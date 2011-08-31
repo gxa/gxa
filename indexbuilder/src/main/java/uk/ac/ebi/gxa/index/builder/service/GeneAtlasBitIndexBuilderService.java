@@ -2,13 +2,13 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import it.uniroma3.mat.extendedset.FastSet;
 import ucar.ma2.ArrayFloat;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.KeyValuePair;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.KeyValuePair;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Collections.sort;
 
@@ -123,7 +124,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
         final ObjectPool<EfvAttribute> attributePool = new ObjectPool<EfvAttribute>();
-        final ObjectPool<String> stringPool = new ObjectPool<String>();
 
         final ThreadSafeStatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
         final ThreadSafeStatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
@@ -143,55 +143,61 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
-                    // TODO when we switch on inclusion of sc-scv stats in bit index, the call below
-                    // TODO should change to experimentWithData.getUniqueValues()
-                    final List<KeyValuePair> uVals = experimentWithData.getUniqueFactorValues(ad);
+                    final List<KeyValuePair> uVals = experimentWithData.getUniqueValues(ad);
+
+                    // TODO to switch on inclusion of sc-scv stats in bit index, remove getFactors & !contains filter below
+                    final Set<String> factorNames = new HashSet<String>(Arrays.asList(experimentWithData.getFactors(ad)));
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
-                
+
                     if (uVals.size() == 0) {
                         //task.skipEmpty(f);
                         getLog().info("Skipping empty " + exp.getAccession() + "/" + ad.getAccession());
                         continue;
                     }
-                
+
                     final long[] bioEntityIdsArr = experimentWithData.getGenes(ad);
                     final ArrayFloat.D2 tstat = experimentWithData.getProxy(ad).getTStatistics();
                     final ArrayFloat.D2 pvals = experimentWithData.getProxy(ad).getPValues();
                     final int[] shape = tstat.getShape();
-                
+
                     final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
                     for (int j = 0; j < uVals.size(); j++) {
                         final KeyValuePair efv = uVals.get(j);
+
+                        if (!factorNames.contains(efv.key) || // TODO: remove this to process all uVALs
+                                isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
+                            continue;
+
                         final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value, null));
                         final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key, null));
-                
+
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
                         final Set<Integer> noBioEntityIds = new FastSet();
-                
+
                         // Initialise if necessary pval/tstat storage for ef
                         MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttribute);
                         if (ptUpDownForEf == null) {
                             efToPTUpDown.put(efAttribute, ptUpDownForEf = new MinPMaxT());
                         }
-                
+
                         // Initialise pval/tstat storage for ef-efv/sc-scv
                         final MinPMaxT ptUpDown = new MinPMaxT();
                         final MinPMaxT ptUp = new MinPMaxT();
                         final MinPMaxT ptDown = new MinPMaxT();
-                
+
                         for (int i = 0; i < shape[0]; i++) {
                             int bioEntityId = safelyCastToInt(bioEntityIdsArr[i]);
-                
+
                             // in order to create a resource used for unit tests,
                             // use <code>|| (bioEntityId != 516248 && bioEntityId != 838592)</code>
                             // so that you would only index the bio entities used in tests
                             if (bioEntityId == 0) continue;
-                
+
                             float t = tstat.get(i, j);
                             float p = pvals.get(i, j);
                             UpDownExpression upDown = UpDownExpression.valueOf(p, t);
-                
+
                             car++;
                             if (upDown.isNonDe()) {
                                 noBioEntityIds.add(bioEntityId);
@@ -211,7 +217,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 ptUpDownForEf.update(bioEntityId, p, t);
                             }
                         }
-                
+
                         summarizer.submit(new Runnable() {
                             @Override
                             public void run() {
@@ -223,30 +229,30 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 ptUpDown.storeStats(updnStats, experimentInfo, efvAttribute);
                             }
                         });
-                
+
                         // Store stats for ef-efv/sc-scv
                         upStats.addStatistics(efvAttribute, experimentInfo, upBioEntityIds);
                         dnStats.addStatistics(efvAttribute, experimentInfo, dnBioEntityIds);
                         updnStats.addStatistics(efvAttribute, experimentInfo, upBioEntityIds);
                         updnStats.addStatistics(efvAttribute, experimentInfo, dnBioEntityIds);
                         noStats.addStatistics(efvAttribute, experimentInfo, noBioEntityIds);
-                
+
                         // Store stats for ef/sc
                         upStats.addStatistics(efAttribute, experimentInfo, upBioEntityIds);
                         dnStats.addStatistics(efAttribute, experimentInfo, dnBioEntityIds);
                         updnStats.addStatistics(efAttribute, experimentInfo, upBioEntityIds);
                         updnStats.addStatistics(efAttribute, experimentInfo, dnBioEntityIds);
                         noStats.addStatistics(efAttribute, experimentInfo, noBioEntityIds);
-                
+
                         // Add genes for ef/sc attributes across all experiments
                         updnStats.addBioEntitiesForEfAttribute(efAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfAttribute(efAttribute, dnBioEntityIds);
-                
+
                         // Add genes for ef-efv/sc-scv attributes across all experiments
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, dnBioEntityIds);
                     }
-                
+
                     summarizer.submit(new Runnable() {
                         @Override
                         public void run() {
@@ -257,7 +263,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             }
                         }
                     });
-                
+
                     task.processedStats(car);
                     if (car == 0) {
                         getLog().debug(exp.getAccession() + "/" + ad.getAccession() + " num uVals : " + uVals.size() + " [" + car + "]");
@@ -271,7 +277,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             } catch (IOException e) {
                 throw new IndexBuilderException(e.getMessage(), e);
             } finally {
-                experimentWithData.closeAllDataSources();
+                experimentWithData.close();
             }
         }
 
