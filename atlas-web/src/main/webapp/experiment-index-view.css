@@ -28,6 +28,8 @@
 
 .experiment-index th {
     font-size: 11px;
+    padding-top: 3px;
+    padding-bottom: 3px;
 }
 
 .experiment-index td {
