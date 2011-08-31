@@ -27,6 +27,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
+import ae3.util.HtmlHelper;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
@@ -391,7 +392,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         public ExperimentTableRow(BestDesignElementsResult.Item item) {
             geneName = item.getGene().getGeneName();
-            geneIdentifier = item.getGene().getUrlRewriteEncodedGeneIdentifier();
+            geneIdentifier = item.getGene().getGeneIdentifier();
             deAccession = item.getDeAccession();
             deIndex = item.getDeIndex();
             factor = item.getEf();
@@ -409,6 +410,11 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         @JsonProperty("geneIdentifier")
         public String getGeneIdentifier() {
             return geneIdentifier;
+        }
+
+        @JsonProperty("urlRewriteEncodedGeneIdentifier")
+        public String getUrlRewriteEncodedGeneIdentifier() {
+            return HtmlHelper.urlRewriteEncode(geneIdentifier);
         }
 
         @JsonProperty("deAcc")

@@ -24,70 +24,70 @@ var atlas;
 var resultEfvs;
 var resultGenes;
 
-if(!atlas)
+if (!atlas)
     atlas = {};
 
-(function($){
+(function($) {
 
     function adjustPosition(el) {
-         var v = {
-             x: $(window).scrollLeft(),
-             y: $(window).scrollTop(),
-             cx: $(window).width(),
-             cy: $(window).height()
-         };
+        var v = {
+            x: $(window).scrollLeft(),
+            y: $(window).scrollTop(),
+            cx: $(window).width(),
+            cy: $(window).height()
+        };
 
-         var h = el.get(0);
-         // check horizontal position
-         if (v.x + v.cx < h.offsetLeft + h.offsetWidth) {
-             var left = h.offsetLeft - (h.offsetWidth + 20 + 15);
-             el.css({left: left + 'px'});
-         }
-         // check vertical position
-         if (v.y + v.cy < h.offsetTop + h.offsetHeight) {
-             var top = h.offsetTop - (h.offsetHeight + 20 + 15);
-             el.css({top: top + 'px'});
-         }
-     }
+        var h = el.get(0);
+        // check horizontal position
+        if (v.x + v.cx < h.offsetLeft + h.offsetWidth) {
+            var left = h.offsetLeft - (h.offsetWidth + 20 + 15);
+            el.css({left: left + 'px'});
+        }
+        // check vertical position
+        if (v.y + v.cy < h.offsetTop + h.offsetHeight) {
+            var top = h.offsetTop - (h.offsetHeight + 20 + 15);
+            el.css({top: top + 'px'});
+        }
+    }
 
-    function drawPlot(jsonObj,root, efvs, eid, eacc, gid){
-        if(jsonObj.series) {
+    function drawPlot(jsonObj, root, efvs, eid, eacc, gid) {
+        if (jsonObj.series) {
             var efvsh = {};
-            for(var iefv in efvs)
+            for (var iefv in efvs)
                 efvsh[efvs[iefv].efv.toLowerCase()] = efvs[iefv];
 
-            if(!jsonObj.options)
+            if (!jsonObj.options)
                 jsonObj.options = {};
-            if(!jsonObj.options.legend)
+            if (!jsonObj.options.legend)
                 jsonObj.options.legend = {};
             jsonObj.options.legend.container = root.find('.legend');
             jsonObj.options.legend.extContainer = null;
             jsonObj.options.selection = null;
 
-            jsonObj.options.arrayDesignContainer = '#' + eid + '_' + gid +'_arraydesign';
+            jsonObj.options.arrayDesignContainer = '#' + eid + '_' + gid + '_arraydesign';
             var height = 1;
             var nlegs = 0;
             var markings = [];
-            for (var i = 0; i < jsonObj.series.length; ++i){
-                if(jsonObj.series[i].label) {
+            for (var i = 0; i < jsonObj.series.length; ++i) {
+                if (jsonObj.series[i].label) {
                     var series = jsonObj.series[i];
                     var efv = efvsh[jsonObj.series[i].label.toLowerCase()];
-                    if(efv) {
+                    if (efv) {
                         var data = series.data;
-                        var xMin= data[0][0] - 0.5;
-                        var xMax= data[data.length-1][0] + 0.5;
+                        var xMin = data[0][0] - 0.5;
+                        var xMax = data[data.length - 1][0] + 0.5;
 
                         markings.push({ xaxis: { from: xMin, to: xMax }, color: '#FFFFCC' });
 
-                        if(series.label.length > 30)
+                        if (series.label.length > 30)
                             series.label = series.label.substring(0, 30) + '...';
                         series.legend.show = true;
                         series.legend.isefv = true;
                         height += 2;
                         nlegs += 1;
-                    } else if(series.legend.show) {
-                        if(nlegs < 6) {
-                            if(series.label.length > 30)
+                    } else if (series.legend.show) {
+                        if (nlegs < 6) {
+                            if (series.label.length > 30)
                                 series.label = series.label.substring(0, 30) + '...';
                             height += 1;
                             nlegs += 1;
@@ -99,7 +99,7 @@ if(!atlas)
 
             for (i = 0; nlegs > 6 && i < jsonObj.series.length; ++i) {
                 series = jsonObj.series[i];
-                if(!series.legend.isefv && series.legend.show) {
+                if (!series.legend.isefv && series.legend.show) {
                     series.legend.show = false;
                     --nlegs;
                     --height;
@@ -107,12 +107,12 @@ if(!atlas)
             }
 
             var plotel = root.find('.plot');
-            if(height > 5) {
-                if(height > 10)
+            if (height > 5) {
+                if (height > 10)
                     height = 10;
                 plotel.css({ height: (height * 16 + 20) + 'px' });
             }
-            
+
             root.find('.plotwaiter').remove();
             root.find('.efname,.plot').show();
 
@@ -123,88 +123,92 @@ if(!atlas)
     }
 
     atlas.hmc = function (igene, iefv, event) {
-         $("#expopup").remove();
+        $("#expopup").remove();
 
-         var gene = resultGenes[igene];
+        var gene = resultGenes[igene];
 
-         var efv; var efo;
-         if(isNaN(iefv))
-             efo = iefv;
-         else
-             efv = resultEfvs[iefv];
+        var efv;
+        var efo;
+        if (isNaN(iefv))
+            efo = iefv;
+        else
+            efv = resultEfvs[iefv];
 
-         var left;
-         var top;
-         if ( event.pageX == null && event.clientX != null ) {
-             var e = document.documentElement, b = document.body;
-             left = event.clientX + (e && e.scrollLeft || b.scrollLeft || 0);
-             top = event.clientY + (e && e.scrollTop || b.scrollTop || 0);
-         } else {
-             left = event.pageX;
-             top = event.pageY;
-         }         
-         left += 15;
-         top += 15;
+        var left;
+        var top;
+        if (event.pageX == null && event.clientX != null) {
+            var e = document.documentElement, b = document.body;
+            left = event.clientX + (e && e.scrollLeft || b.scrollLeft || 0);
+            top = event.clientY + (e && e.scrollTop || b.scrollTop || 0);
+        } else {
+            left = event.pageX;
+            top = event.pageY;
+        }
+        left += 15;
+        top += 15;
 
-         var waiter = $('<div class="waiter" />')
-                 .css({ left: left + 'px', top: top + 'px' });
+        var waiter = $('<div class="waiter" />')
+                .css({ left: left + 'px', top: top + 'px' });
 
-         $('body').append(waiter);
-         adjustPosition(waiter);
+        $('body').append(waiter);
+        adjustPosition(waiter);
 
-         atlas.ajaxCall('experiments', {
-             gene:gene,
-             ef: efo ? 'efo' : efv.ef,
-             efv: efo ? efo : efv.efv
-         }, function(resp) {
-             resp.counter = 0;
-             var tpl = $('<div/>');
-             var popup = $('<div id="expopup" />')
-                     .append($("<div/>").addClass('closebox')
-                     .click(
-                     function(e) {
-                         popup.remove();
-                         e.stopPropagation();
-                         return false;
-                     }).text('close'))
-                     .append(tpl)
-                     .click(function(e){e.stopPropagation();})
-                     .attr('title','')
-                     .css({ left: left + 'px', top: top + 'px' });
+        atlas.ajaxCall('experiments', {
+            gene:gene,
+            ef: efo ? 'efo' : efv.ef,
+            efv: efo ? efo : efv.efv
+        }, function(resp) {
+            resp.counter = 0;
+            var tpl = $('<div/>');
+            var popup = $('<div id="expopup" />')
+                    .append($("<div/>").addClass('closebox')
+                    .click(
+                    function(e) {
+                        popup.remove();
+                        e.stopPropagation();
+                        return false;
+                    }).text('close'))
+                    .append(tpl)
+                    .click(function(e) {
+                e.stopPropagation();
+            })
+                    .attr('title', '')
+                    .css({ left: left + 'px', top: top + 'px' });
 
-             $('body').append(popup);
-             tpl.render(resp, atlas.experimentsTemplate);
+            $('body').append(popup);
+            resp.gene.urlRewriteEncodedIdentifier = atlas.urlRewriteEncode(resp.gene.identifier);
+            tpl.render(resp, atlas.experimentsTemplate);
 
-             // adjust for viewport
-             adjustPosition(popup);
+            // adjust for viewport
+            adjustPosition(popup);
 
-             var plots = popup.find('.oneplot');
-             var c = 0;
-             var iexp, ief;
-             for(iexp = 0; iexp < resp.experiments.length; ++iexp)
-                 for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
-                     atlas.ajaxCall("plot", {
-                         gid: gene,
-                         eacc: resp.experiments[iexp].accession,
-                         ef: resp.experiments[iexp].efs[ief].ef,
-                         plot: 'bar'
-                     }, (function(eid, eacc, gid, x, cc) {
-                         return function(o) {
-                             drawPlot(o, plots.filter(cc), x, eid, eacc, gid);
-                         };
-                     })(resp.experiments[iexp].id, resp.experiments[iexp].accession, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
-                             );
-                 }
-         });
+            var plots = popup.find('.oneplot');
+            var c = 0;
+            var iexp, ief;
+            for (iexp = 0; iexp < resp.experiments.length; ++iexp)
+                for (ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
+                    atlas.ajaxCall("plot", {
+                        gid: gene,
+                        eacc: resp.experiments[iexp].accession,
+                        ef: resp.experiments[iexp].efs[ief].ef,
+                        plot: 'bar'
+                    }, (function(eid, eacc, gid, x, cc) {
+                        return function(o) {
+                            drawPlot(o, plots.filter(cc), x, eid, eacc, gid);
+                        };
+                    })(resp.experiments[iexp].id, resp.experiments[iexp].accession, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
+                            );
+                }
+        });
     };
 
     atlas.popup = function  (url) {
-        var width  = 700;
+        var width = 700;
         var height = 200;
-        var left   = (screen.width  - width)/2;
-        var top    = (screen.height - height)/2;
-        var params = 'width='+width+', height='+height;
-        params += ', top='+top+', left='+left;
+        var left = (screen.width - width) / 2;
+        var top = (screen.height - height) / 2;
+        var params = 'width=' + width + ', height=' + height;
+        params += ', top=' + top + ', left=' + left;
         params += ', directories=no';
         params += ', location=no';
         params += ', menubar=no';
@@ -212,8 +216,10 @@ if(!atlas)
         params += ', scrollbars=no';
         params += ', status=no';
         params += ', toolbar=no';
-        newwin=window.open(url,'windowname5', params);
-        if (window.focus) {newwin.focus()}
+        newwin = window.open(url, 'windowname5', params);
+        if (window.focus) {
+            newwin.focus()
+        }
         return false;
     };
 
@@ -222,13 +228,13 @@ if(!atlas)
         offset.top += yoffset;
         offset.left += xoffset;
 
-        $('<div class="waiter"/>').append($('<img/>').attr('src','images/indicator.gif'))
+        $('<div class="waiter"/>').append($('<img/>').attr('src', 'images/indicator.gif'))
                 .css({ left: offset.left + 'px', top: offset.top + 'px' }).appendTo($('body'));
 
         var f = {};
         f[parentsOrChildrenOf] = id;
 
-        atlas.ajaxCall('efo', f , function(resp) {
+        atlas.ajaxCall('efo', f, function(resp) {
             var entered = false;
             var timeout;
             var popup = $('<div/>')
@@ -319,7 +325,7 @@ if(!atlas)
                 var allChildrenLi;
                 if (i == 0 && parentsOrChildrenOf == 'childrenOf') {
                     allChildrenLi = $('<li />')
-                        .html(indent).append($('<span/>').text("all children")).addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2').appendTo(ul);
+                            .html(indent).append($('<span/>').text("all children")).addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2').appendTo(ul);
                     $.data(allChildrenLi.get(0), "efoup", '@' + id); // '@' preamble indicates that efo id's children should be included
                 }
                 var li = $('<li />')
@@ -335,6 +341,14 @@ if(!atlas)
 
         });
     };
+
+    // Returns identifier, first url-encoded, then all percent characters url-encoded again
+    // Both encodings are needed to make urlrewrite rules work with gene identifiers containing e.g. '+'
+    // and ':' characters in gene/<geneid> and experiment/<expacc>/<geneid> types of urls.
+    atlas.urlRewriteEncode = function(identifier) {
+        var urlEncodedIdentifier = encodeURIComponent(identifier);
+        return urlEncodedIdentifier.replace(/\%/g, '%25');
+    }
 
     atlas.showListThumbs = function (row) {
         var efv = $("#" + row.id + " .lvrowefv").text();
@@ -371,7 +385,7 @@ if(!atlas)
             '.@id+': function () {
                 return Math.random(10000);
             },
-            'div.head a@href': 'gene/#{gene.identifier}',
+            'div.head a@href': 'gene/#{gene.urlRewriteEncodedIdentifier}',
             '.gname': 'gene.name',
             '.numup': 'numUp',
             '.numdn': 'numDn',
@@ -388,14 +402,14 @@ if(!atlas)
                             '.@id': function(a) {
                                 return 'oneplot_' + a.context.counter++;
                             },
-                            'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
+                            'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.urlRewriteEncodedIdentifier}',
                             '.arraydesign@id': '#{experiment.id}_#{gene.id}_arraydesign'
                         }
                     },
                     '.@class+': function(a) {
                         return (a.pos != a.items.length - 1) ? ' notlast' : '';
                     },
-                    'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
+                    'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.urlRewriteEncodedIdentifier}',
                     'a.detailink@href': 'http://www.ebi.ac.uk/arrayexpress/browse.html?keywords=#{experiment.accession}&detailedview=on'
                 }
             }
@@ -403,4 +417,4 @@ if(!atlas)
 
         $('#experimentsTemplate').remove();
     });
- })(jQuery);
+})(jQuery);

@@ -350,7 +350,7 @@ $(document).ready(function() {
                         <td align="left">
                             <c:set var="orthoIds" value=""/>
                             <c:forEach var="ortholog" items="${orthologs}">
-                                <a href="${pageContext.request.contextPath}/gene/${ortholog.urlRewriteEncodedGeneIdentifier}"
+                                <a href="${pageContext.request.contextPath}/gene/${u:urlRewriteEncode(ortholog.geneIdentifier)}"
                                    target="_self"
                                    title="Gene Atlas Data For ${ortholog.geneName} (${ortholog.geneSpecies})">${ortholog.geneName}
                                     (${ortholog.geneSpecies})</a>&nbsp;
@@ -384,18 +384,15 @@ $(document).ready(function() {
                     </c:if>
                 </c:forEach>
 
-                <c:if test="${f:indexOf(atlasGene.geneIdentifier,':')==-1}">
-                    <!-- EN-eye cannot cope with colons in its search - exclude EB-eye search links for gene identifiers containing colons -->
-                    <tr>
-                        <td class="geneAnnotHeader">Search EB-eye</td>
-                        <td align="left">
-                            <a title="Show gene annotation" target="_blank"
-                               href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=${atlasGene.geneIdentifier}&requestFrom=ebi_index&submit=+FIND+">
-                                    ${atlasGene.geneIdentifier}
-                            </a>
-                        </td>
-                    </tr>
-                </c:if>
+                <tr>
+                    <td class="geneAnnotHeader">Search EB-eye</td>
+                    <td align="left">
+                        <a title="Show gene annotation" target="_blank"
+                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=&quot;${atlasGene.geneIdentifier}&quot;&requestFrom=ebi_index&submit=+FIND+">
+                            ${atlasGene.geneIdentifier}
+                        </a>
+                    </td>
+                </tr>
 
                 <tr>
                     <td colspan="2" style="padding-top:5px">
@@ -427,7 +424,7 @@ $(document).ready(function() {
             <c:when test="${not empty ef}">
                 ${f:escapeXml(atlasProperties.curatedEfs[ef])}
                 <div style="font-size:10px; font-weight:normal;"><a
-                        href="${pageContext.request.contextPath}/gene/${atlasGene.urlRewriteEncodedGeneIdentifier}">&lt;&lt;view all
+                        href="${pageContext.request.contextPath}/gene/${u:urlRewriteEncode(atlasGene.geneIdentifier)}">&lt;&lt;view all
                     experimental factors</a></div>
             </c:when>
             <c:otherwise>
@@ -458,7 +455,7 @@ $(document).ready(function() {
             studied in
             <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
                 <c:if test="${(i_e.index<5)||(not empty ef)}">
-                    <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.urlRewriteEncodedGeneIdentifier}"
+                    <a href="${pageContext.request.contextPath}/experiment/${experiment}/${u:urlRewriteEncode(atlasGene.geneIdentifier)}"
                        title="${experiment}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
                 </c:if>
                 <c:if test="${i_e.last}">
@@ -500,18 +497,18 @@ $(document).ready(function() {
                     </c:forEach>
                 </map>
 
-                <img src="${pageContext.request.contextPath}/webanatomogram/${atlasGene.urlRewriteEncodedGeneIdentifier}.png"
+                <img src="${pageContext.request.contextPath}/webanatomogram/${u:urlRewriteEncode(atlasGene.geneIdentifier)}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
 
                 <c:if test="${empty ef}">
                     <div style="padding-left:0px; font-size:10px;">
                        <c:choose>
                            <c:when test="${experimentalFactor.name != 'organism_part'}">
-                                <a href="${pageContext.request.contextPath}/gene/${atlasGene.urlRewriteEncodedGeneIdentifier}?ef=${experimentalFactor.name}">show
+                                <a href="${pageContext.request.contextPath}/gene/${u:urlRewriteEncode(atlasGene.geneIdentifier)}?ef=${experimentalFactor.name}">show
                             this factor only&gt;&gt;</a>
                             </c:when>
                             <c:otherwise>
-                                 <a href="${pageContext.request.contextPath}/gene/${atlasGene.urlRewriteEncodedGeneIdentifier}?ef=${experimentalFactor.name}">show
+                                 <a href="${pageContext.request.contextPath}/gene/${u:urlRewriteEncode(atlasGene.geneIdentifier)}?ef=${experimentalFactor.name}">show
                             expression data for <b>all</b> values of this factor&gt;&gt;</a>
                             </c:otherwise>
                         </c:choose>
@@ -643,7 +640,7 @@ $(document).ready(function() {
                                                             <c:forEach var="experimentID" items="${ud.experiments}"
                                                                        varStatus="i_e">
                                                                 <c:if test="${(i_e.index<5)}">
-                                                                    <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${atlasGene.urlRewriteEncodedGeneIdentifier}"
+                                                                    <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${u:urlRewriteEncode(atlasGene.geneIdentifier)}"
                                                                        onclick="window.location=this.href;"
                                                                        title="${experimentalFactor.experimentAccessions[experimentID]}">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if
                                                                         test="${!i_e.last}">, </c:if>
@@ -670,7 +667,7 @@ $(document).ready(function() {
                     </c:if>
                     <c:if test="${empty ef}">
                         <div style="font-size:10px;">
-                            <a href="${pageContext.request.contextPath}/gene/${atlasGene.urlRewriteEncodedGeneIdentifier}?ef=${experimentalFactor.name}">show
+                            <a href="${pageContext.request.contextPath}/gene/${u:urlRewriteEncode(atlasGene.geneIdentifier)}?ef=${experimentalFactor.name}">show
                                 this factor only&gt;&gt;</a>
                         </div>
                     </c:if>
@@ -700,7 +697,7 @@ $(document).ready(function() {
     studied in
     <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
         <c:if test="${(i_e.index<5)||(not empty ef)}">
-            <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.urlRewriteEncodedGeneIdentifier}">${experiment}</a><c:if
+            <a href="${pageContext.request.contextPath}/experiment/${experiment}/${u:urlRewriteEncode(atlasGene.geneIdentifier)}">${experiment}</a><c:if
                 test="${!i_e.last}">, </c:if>
         </c:if>
         <c:if test="${i_e.last}">
@@ -711,7 +708,7 @@ $(document).ready(function() {
     </c:forEach>
     <c:if test="${empty ef}">
         <div style="font-size:10px;">
-            <a href="${pageContext.request.contextPath}/gene/${atlasGene.urlRewriteEncodedGeneIdentifier}?ef=${experimentalFactor.name}">show
+            <a href="${pageContext.request.contextPath}/gene/${u:urlRewriteEncode(atlasGene.geneIdentifier)}?ef=${experimentalFactor.name}">show
                 this factor only&gt;&gt;</a>
         </div>
     </c:if>

@@ -26,6 +26,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
+import ae3.util.HtmlHelper;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -145,6 +146,11 @@ public class GeneViewController extends AtlasViewController {
         int pageSize = 100;
 
         Collection<BioEntity> bioEntities = bioEntityDAO.getGenes(prefix, offset, pageSize);
+
+        // Encode for urlrewrite bioentity identifiers before returning bioentities to javascript
+        for (BioEntity bioEntity : bioEntities) {
+            bioEntity.setIdentifier(HtmlHelper.urlRewriteEncode(bioEntity.getIdentifier()));
+        }
 
         model.addAttribute("genes", bioEntities);
         model.addAttribute("nextQuery", (bioEntities.size() < pageSize) ? "" :

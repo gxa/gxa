@@ -118,7 +118,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             Map<String, Object> jsGene = new HashMap<String, Object>();
 
             jsGene.put("id", gene.getGeneId());
-            jsGene.put("identifier", gene.getUrlRewriteEncodedGeneIdentifier());
+            jsGene.put("identifier", gene.getGeneIdentifier());
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 

@@ -334,7 +334,7 @@
                 <span title="Add to plot" class="chartIcon add-btn">&nbsp;</span></a>
         </td>
         <td class="padded genename">
-            <a href="${pageContext.request.contextPath}/gene/\${geneIdentifier}" title="${geneName}">\${geneName}</a>
+            <a href="${pageContext.request.contextPath}/gene/\${urlRewriteEncodedGeneIdentifier}" title="${geneName}">\${geneName}</a>
         </td>
         <td class="padded">\${deAcc}</td>
         <c:if test="${exp.typeString == 'RNA_SEQ'}">

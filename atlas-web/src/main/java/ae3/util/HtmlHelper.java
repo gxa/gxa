@@ -50,6 +50,16 @@ public class HtmlHelper {
         }
     }
 
+    /**
+     * @param identifier
+     * @return identifier, first url-encoded, then all percent characters url-encoded again
+     *         Both encodings are needed to make urlrewrite rules work with gene identifiers containing e.g. '+'
+     *         and ':' characters in gene/<geneid> and experiment/<expacc>/<geneid> types of urls.
+     */
+    public static String urlRewriteEncode(String identifier) {
+        return escapeURL(identifier).replaceAll("\\%", "%25");
+    }
+
     public static boolean isIn(Collection set, Object element) {
         return set.contains(element);
     }
