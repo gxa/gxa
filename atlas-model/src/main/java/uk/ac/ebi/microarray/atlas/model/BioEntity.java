@@ -35,6 +35,10 @@ public class BioEntity {
         return identifier;
     }
 
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
+
     public String getType() {
         return type;
     }
