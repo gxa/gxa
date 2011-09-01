@@ -72,7 +72,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     @Before
     public void createService() throws Exception {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
-        EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
 
         ResourceFileStorage storage = new ResourceFileStorage();
@@ -115,7 +114,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
-        service.setSolrServerExpt(expt);
         service.setSolrServerProp(serverProp);
         service.setExperimentDAO(experimentDAO);
         service.setEfoService(efoService);

@@ -27,7 +27,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 
 /**
  * any local resource associated with experiment
@@ -39,7 +45,7 @@ import javax.persistence.*;
 public class Asset {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assetSeq")
-    @SequenceGenerator(name = "assetSeq", sequenceName = "A2_ASSET_SEQ")
+    @SequenceGenerator(name = "assetSeq", sequenceName = "A2_ASSET_SEQ", allocationSize = 1)
     private Long experimentassetid;
     @ManyToOne
     @Fetch(FetchMode.SELECT)

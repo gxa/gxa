@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
@@ -31,7 +30,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +62,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Joiner.on;
@@ -84,8 +81,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasProperties atlasProperties;
 
-    private final GeneSolrDAO geneSolrDAO;
-
     private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
 
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
@@ -101,12 +96,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     AtlasProperties atlasProperties,
-                                    GeneSolrDAO geneSolrDAO,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
-        this.geneSolrDAO = geneSolrDAO;
         this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
@@ -157,8 +150,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param assayPropertiesRequired a boolean value to specify if assay properties ard needed
      * @param model                   a model for the view to render
      * @return the view path
-     * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws AtlasDataException     if any data reading error happened (including index out of range)
+     * @throws ResourceNotFoundException if an experiment or array design is not found
+     * @throws AtlasDataException        if any data reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -183,7 +176,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
             }
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
         return UNSUPPORTED_HTML_VIEW;
     }
@@ -254,23 +247,22 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
     ) throws AtlasDataException {
-        final List<Long> geneIds = findGeneIds(gid);
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
         try {
             final BestDesignElementsResult res =
-                experimentAnalyticsService.findBestGenesForExperiment(
-                    ewd,
-                    adAcc,
-                    geneIds,
-                    isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                    isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                    updown,
-                    offset,
-                    limit
-                );
-        
+                    experimentAnalyticsService.findBestGenesForExperiment(
+                            ewd,
+                            adAcc,
+                            isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
+                            isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                            isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                            updown,
+                            offset,
+                            limit
+                    );
+
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
             model.addAttribute("totalSize", res.getTotalSize());
             model.addAttribute("items", Iterables.transform(res,
@@ -283,7 +275,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 
@@ -293,25 +285,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
-    }
-
-    private List<Long> findGeneIds(String... query) {
-        List<Long> genes = Lists.newArrayList();
-
-        for (String text : query) {
-            if (Strings.isNullOrEmpty(text)) {
-                continue;
-            }
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
-            if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
-                    genes.add((long) gene.getGeneId());
-                }
-            } else {
-                genes.add((long) res.getGene().getGeneId());
-            }
-        }
-        return genes;
     }
 
     private class GeneToolTip {

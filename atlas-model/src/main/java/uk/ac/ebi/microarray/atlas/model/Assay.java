@@ -80,7 +80,7 @@ public class Assay {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")
-    @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ")
+    @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ", allocationSize = 1)
     private Long assayID;
     private String accession;
 

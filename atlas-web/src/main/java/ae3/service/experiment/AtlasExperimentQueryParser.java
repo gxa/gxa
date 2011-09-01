@@ -24,63 +24,71 @@ package ae3.service.experiment;
 
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
+import static uk.ac.ebi.gxa.utils.EscapeUtil.optionalParseList;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.parseNumber;
 
 
 /**
  * API experiment search query parser class. Has just one static method
+ *
  * @author pashky
  */
 public class AtlasExperimentQueryParser {
+
+    private final AtlasProperties atlasProperties;
+
+    private final Iterable<String> factors;
+
+    public AtlasExperimentQueryParser(AtlasProperties atlasProperties, Iterable<String> factors) {
+        this.atlasProperties = atlasProperties;
+        this.factors = factors;
+    }
+
     /**
-     * Parse HTTP request into AtlasExperimentQuery class
-     * @param request HTTP Servlet request to parse
-     * @param factors a list of all factors
+     * Creates an instance of {@link AtlasExperimentQuery} from a parameter map.
+     *
+     * @param parameters parameter map to parse
      * @return AtlasExperimentQuery object, can be empty (check with isEmpty() method) but never null
      */
-    public static AtlasExperimentQuery parse(HttpServletRequest request, Iterable<String> factors, AtlasProperties atlasProperties) {
-        AtlasExperimentQuery query = new AtlasExperimentQuery();
+    public AtlasExperimentQuery parse(Map<String, String[]> parameters) {
+        AtlasExperimentQuery.Builder qb = new AtlasExperimentQuery.Builder();
 
-        final Map<String,String[]> parameters = request.getParameterMap();
-        for(Map.Entry<String,String[]> e : parameters.entrySet()) {
+        int rows = atlasProperties.getQueryDefaultPageSize();
+
+        for (Map.Entry<String, String[]> e : parameters.entrySet()) {
             final String name = e.getKey();
-            for(String v : e.getValue()) {
-                if(name.matches("^experiment(Text|Id|Accession)?$")) {
-                    if(v.equalsIgnoreCase("listAll"))
-                        query.listAll();
+            for (String v : e.getValue()) {
+                if (name.matches("^experiment(Text|Id|Accession)?$")) {
+                    if (v.equalsIgnoreCase("listAll"))
+                        qb.setListAll();
                     else
-                        query.andText(v);
-                } else if(name.matches("^experimentHasFactor$")) {
-                    query.andHasFactor(v);
-                } else if(name.matches("^experimentHas.*$")) {
+                        qb.withExperimentKeywords(optionalParseList(v));
+                } else if (name.matches("^experimentHasFactor$")) {
+                    qb.withFactors(optionalParseList(v));
+                } else if (name.matches("^experimentHas.*$")) {
                     String factName = name.substring("experimentHas".length()).toLowerCase();
-                    if(factName.startsWith("any"))
-                        factName = "";
-                    else if(factName.length() > 0)
-                        for(String p : factors)
-                            if(p.equalsIgnoreCase(factName))
-                                factName = p;
-
-                    query.andHasFactorValue(factName, v);
-                } else if(name.equalsIgnoreCase("rows")) {
-                    query.rows(parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize()));
-                } else if(name.equalsIgnoreCase("start")) {
-                    query.start(parseNumber(v, 0, 0, Integer.MAX_VALUE));
-                } else if(name.equalsIgnoreCase("dateLoadFrom")){
-                    query.addDateLoadFrom(v);
-                } else if(name.equalsIgnoreCase("dateLoadTo")){
-                    query.addDateLoadTo(v);
+                    if (factName.startsWith("any")) {
+                        qb.withAnyFactorValues(optionalParseList(v));
+                    } else if (factName.length() > 0) {
+                        for (String p : factors) {
+                            if (p.equalsIgnoreCase(factName)) {
+                                qb.withFactorValues(p, optionalParseList(v));
+                            }
+                        }
+                    }
+                } else if (name.equalsIgnoreCase("geneIs")) {
+                    qb.withGeneIdentifiers(optionalParseList(v));
+                } else if (name.equalsIgnoreCase("rows")) {
+                    rows = parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize());
+                } else if (name.equalsIgnoreCase("start")) {
+                    qb.setStart(parseNumber(v, 0, 0, Integer.MAX_VALUE));
                 }
             }
         }
 
-        if (query.getRows() == 0) { // if rows param was not specified, set it to the default value
-            query.rows(atlasProperties.getQueryDefaultPageSize());
-        }
-
-        return query;
+        qb.setRows(rows);
+        return qb.toQuery();
     }
 }

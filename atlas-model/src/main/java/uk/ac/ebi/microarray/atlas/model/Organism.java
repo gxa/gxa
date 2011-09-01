@@ -4,7 +4,11 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
@@ -12,7 +16,7 @@ import javax.persistence.*;
 public class Organism {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organismSeq")
-    @SequenceGenerator(name = "organismSeq", sequenceName = "A2_ORGANISM_SEQ")
+    @SequenceGenerator(name = "organismSeq", sequenceName = "A2_ORGANISM_SEQ", allocationSize = 1)
     private Long organismid;
     private String name;
 

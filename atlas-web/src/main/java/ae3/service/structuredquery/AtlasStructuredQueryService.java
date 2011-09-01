@@ -106,7 +106,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     final private Logger log = LoggerFactory.getLogger(getClass());
 
     private SolrServer solrServerAtlas;
-    private SolrServer solrServerExpt;
     private SolrServer solrServerProp;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
@@ -160,10 +159,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setSolrServerAtlas(SolrServer solrServerAtlas) {
         this.solrServerAtlas = solrServerAtlas;
-    }
-
-    public void setSolrServerExpt(SolrServer solrServerExpt) {
-        this.solrServerExpt = solrServerExpt;
     }
 
     public void setSolrServerProp(SolrServer solrServerProp) {
@@ -803,40 +798,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         }
 
         return trimmedEfvs;
-    }
-
-    /**
-     * Finds experiment by search string
-     *
-     * @param query    search strings
-     * @param condEfvs EFV tree to fill with EFVs mentioned in experiment
-     * @return collection of found experiment IDs
-     * @throws SolrServerException in case of any problem with SOLR
-     */
-    private Collection<Long> findExperiments(String query, EfvTree<Boolean> condEfvs) throws SolrServerException {
-
-        List<Long> result = new ArrayList<Long>();
-        if (query.length() == 0)
-            return result;
-
-        SolrQuery q = new SolrQuery("id:(" + query + ") accession:(" + query + ")");
-        q.addField("*");
-        q.setRows(50);
-        q.setStart(0);
-
-        QueryResponse qr = solrServerExpt.query(q);
-        for (SolrDocument doc : qr.getResults()) {
-            String id = String.valueOf(doc.getFieldValue("id"));
-            if (id != null) {
-                result.add(Long.parseLong(id));
-                for (String name : doc.getFieldNames())
-                    if (name.startsWith("a_property_"))
-                        for (Object val : doc.getFieldValues(name))
-                            condEfvs.put(name.substring("a_property_".length()), String.valueOf(val), true);
-            }
-        }
-
-        return result;
     }
 
     /**
@@ -1703,7 +1664,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 // different design elements
                 if (counter.getUps() > 0) {
                     start = System.currentTimeMillis();
-                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
+                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_UP);
                     totalDataQueryTime += System.currentTimeMillis() - start;
                     if (ea != null) {
                         upDnEAs.add(ea);
@@ -1711,7 +1672,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
                 if (counter.getDowns() > 0) {
                     start = System.currentTimeMillis();
-                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
+                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_DOWN);
                     totalDataQueryTime += System.currentTimeMillis() - start;
                     if (ea != null) {
                         upDnEAs.add(ea);
@@ -1722,21 +1683,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if (designElementAccession == null) {
                         designElementAccession = ea.getDesignElementAccession();
                     }
-            
+
                     if (ea.isUp()) {
                         pup = Math.min(pup, ea.getPValAdjusted());
                     } else if (ea.isDown()) {
                         pdn = Math.min(pdn, ea.getPValAdjusted());
                     }
-            
+
                     ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                             ea.getPValAdjusted(),
                             UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
-            
+
                     experimentsForRow.add(experiment);
                 }
             } finally {
-                ewd.closeAllDataSources();
+                ewd.close();
             }
         }
 
@@ -1761,7 +1722,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                 try {
                     start = System.currentTimeMillis();
-                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
+                    ExpressionAnalysis ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), ef, efv, UpDownCondition.CONDITION_NONDE);
                     totalDataQueryTime += System.currentTimeMillis() - start;
                     if (ea != null) {
                         ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
@@ -1772,7 +1733,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         experimentsForRow.add(experiment);
                     }
                 } finally {
-                    ewd.closeAllDataSources();
+                    ewd.close();
                 }
             }
         }

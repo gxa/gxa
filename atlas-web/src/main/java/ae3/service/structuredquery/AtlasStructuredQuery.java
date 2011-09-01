@@ -29,7 +29,11 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Atlas structured query container class for parsed parameters
@@ -327,5 +331,13 @@ public class AtlasStructuredQuery {
                         return input != null && !input.isAnything();
                     }
                 }).isEmpty();
+    }
+
+    /**
+     * @return true if any gene conditions defined in the query
+     */
+    @JsonIgnore
+    public boolean hasGeneConditions() {
+        return !geneConditions.isEmpty();
     }
 }

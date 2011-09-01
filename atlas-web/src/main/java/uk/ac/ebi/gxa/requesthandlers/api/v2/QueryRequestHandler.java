@@ -150,19 +150,6 @@ public class QueryRequestHandler implements HttpRequestHandler, /*IndexBuilderEv
         }
     }
 
-    private Object process(HttpServletRequest request) {
-        final Request r;
-        try {
-            r = new ObjectMapper().readValue(request.getReader(), Request.class);
-            log.info(r.toString());
-        } catch (IOException e) {
-            // TODO: envelop error message into standard API format
-            return e.toString();
-        }
-        final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(r.toString(), 0, 200);
-        return experiments;
-    }
-
     public void destroy() throws Exception {
 //        if (indexBuilder != null)
 //            indexBuilder.unregisterIndexBuildEventHandler(this);

@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.LazyKeylessMap;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
@@ -61,6 +62,7 @@ public class AtlasProperties {
 
     private final List<AtlasPropertiesListener> listeners = new ArrayList<AtlasPropertiesListener>();
     private final List<VetoableChangeListener> vetoableChangeListeners = new ArrayList<VetoableChangeListener>();
+    @GuardedBy("this")
     private final Map<String, String> cache = new HashMap<String, String>();
 
     /**
@@ -72,7 +74,7 @@ public class AtlasProperties {
         return storage.getAvailablePropertyNames();
     }
 
-    public void reload() {
+    public synchronized void reload() {
         storage.reload();
         cache.clear();
         notifyListeners();
@@ -84,7 +86,7 @@ public class AtlasProperties {
      * @param key      property name
      * @param newValue property value or null if property customization should be deleted
      */
-    public void setProperty(String key, String newValue) {
+    public synchronized void setProperty(String key, String newValue) {
         try {
             notifyListeners(key, getProperty(key), newValue);
             storage.setProperty(key, newValue);
@@ -101,7 +103,7 @@ public class AtlasProperties {
      * @param key property name
      * @return property value string or empty string if not found
      */
-    public String getProperty(String key) {
+    public synchronized String getProperty(String key) {
         String cached = cache.get(key);
         if (cached != null)
             return cached;

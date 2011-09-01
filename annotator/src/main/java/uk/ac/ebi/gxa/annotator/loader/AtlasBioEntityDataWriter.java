@@ -16,6 +16,7 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -82,9 +83,12 @@ public class AtlasBioEntityDataWriter {
 
     @Transactional
     public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, Software software) {
+        reportProgress("Writing " + data.getDesignElements().size() + " design elements of " + arrayDesign.getAccession());
         bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign);
         for (BioEntityType bioEntityType : data.getBioEntityTypes()) {
-            bioEntityDAO.writeDesignElementBioEntityMappings(data.getDesignElementToBioEntity(bioEntityType),
+            Collection<Pair<String,String>> designElementToBioEntity = data.getDesignElementToBioEntity(bioEntityType);
+            reportProgress("Writing " + designElementToBioEntity.size() + " design elements to bioentity mappings of " + arrayDesign.getAccession());
+            bioEntityDAO.writeDesignElementBioEntityMappings(designElementToBioEntity,
                     bioEntityType,
                     software,
                     arrayDesign);

@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.requesthandlers.api;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
@@ -36,9 +35,7 @@ import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryParser;
 import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
-import ae3.service.structuredquery.ExpFactorQueryCondition;
 import ae3.service.structuredquery.QueryExpression;
-import ae3.service.structuredquery.StructuredResultRow;
 import ae3.service.structuredquery.ViewType;
 import com.google.common.base.Function;
 import org.springframework.beans.factory.DisposableBean;
@@ -52,7 +49,6 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ApiQueryResults;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentAnalyticsRestProfile;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentFullRestProfile;
-import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentPageRestProfile;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentRestProfile;
 import uk.ac.ebi.gxa.requesthandlers.api.result.ExperimentResultAdapter;
 import uk.ac.ebi.gxa.requesthandlers.api.result.HeatmapResultAdapter;
@@ -61,13 +57,10 @@ import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 
-import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.Collections2.transform;
 
 /**
@@ -78,7 +71,6 @@ import static com.google.common.collect.Collections2.transform;
 public class ApiQueryRequestHandler extends AbstractRestRequestHandler implements IndexBuilderEventHandler, DisposableBean {
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
-    private GeneSolrDAO geneSolrDAO;
     private ExperimentSolrDAO experimentSolrDAO;
     private ExperimentDAO experimentDAO;
     private AtlasDataDAO atlasDataDAO;
@@ -94,10 +86,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
         this.queryService = queryService;
-    }
-
-    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
-        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setExperimentSolrDAO(ExperimentSolrDAO experimentSolrDAO) {
@@ -156,89 +144,59 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         if (disableQueries)
             return new ErrorResult("API is temporarily unavailable, index building is in progress");
 
-        AtlasExperimentQuery query = AtlasExperimentQueryParser.parse(request, queryService.getAllFactors(), atlasProperties);
-        if (!query.isEmpty()) {
-            log.info("Experiment query: " + query.toSolrQuery());
-            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query.toSolrQuery(), query.getStart(), query.getRows());
+        final AtlasExperimentQuery query = new AtlasExperimentQueryParser(atlasProperties, queryService.getAllFactors()).parse((Map<String, String[]>) request.getParameterMap());
+        if (query.isValid()) {
+            final ExperimentSolrDAO.AtlasExperimentsResult experiments = experimentSolrDAO.getExperimentsByQuery(query);
             if (experiments.getTotalResults() == 0)
                 return new ErrorResult("No such experiments found for: " + query);
 
-            final String arrayDesignAccession = emptyToNull(request.getParameter("hasArrayDesign"));
-
-            AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
-                    request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
-
-            final Collection<ExpFactorQueryCondition> conditions = atlasQuery.getConditions();
-
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
-            final boolean experimentPageData = (request.getParameter("experimentPage") != null);
-
-            String upDownParam = request.getParameter("updown");
-            final QueryExpression statFilter = upDownParam == null ? QueryExpression.ANY :
-                    QueryExpression.parseFuzzyString(upDownParam);
-
-            final Set<Long> geneIds = new HashSet<Long>();
-            if (!experimentInfoOnly) {
-                final String[] requestedGeneIds = request.getParameterValues("geneIs");
-                if (requestedGeneIds != null && requestedGeneIds.length > 0) {
-                    geneIds.addAll(getGenes(requestedGeneIds, atlasQuery));
-                }
-            }
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
-            if (experimentAnalytics)
+            if (experimentAnalytics) {
                 setRestProfile(ExperimentAnalyticsRestProfile.class);
-            else if (experimentPageData)
-                setRestProfile(ExperimentPageRestProfile.class);
+            }
 
             return new ExperimentResults(
-                experiments,
-                transform(experiments.getAtlasExperiments(),
-                    new Function<AtlasExperiment, ExperimentResultAdapter>() {
-                        public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
+                    experiments,
+                    transform(experiments.getAtlasExperiments(),
+                            new Function<AtlasExperiment, ExperimentResultAdapter>() {
+                                public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
 
-                            Collection<AtlasGene> genes = Collections.emptyList();
+                                    Collection<AtlasGene> genes = Collections.emptyList();
 
-                            ExperimentalData expData = null;
+                                    ExperimentalData expData = null;
 
-                            if (!experimentInfoOnly) {
+                                    if (!experimentInfoOnly) {
+                                        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
+                                        try {
+                                            //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
+                                            BestDesignElementsResult geneResults =
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            ewd,
+                                                            null,
+                                                            query.getGeneIdentifiers(),
+                                                            Collections.<String>emptyList(),
+                                                            Collections.<String>emptyList(),
+                                                            QueryExpression.ANY.asUpDownCondition(),
+                                                            0,
+                                                            10
+                                                    );
 
-                                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
-                                try {
-                                    //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                    Collection<String> factors = Collections.emptyList();
-                                    Collection<String> factorValues = Collections.emptyList();
-                                    if (!conditions.isEmpty()) {
-                                        factors = Arrays.asList(conditions.iterator().next().getFactor());
-                                        factorValues = conditions.iterator().next().getFactorValues();
+                                            genes = geneResults.getGenes();
+                                            expData = new ExperimentalData(ewd);
+                                        } catch (AtlasDataException e) {
+                                            log.warn("AtlasDataException thrown", e);
+                                        } finally {
+                                            ewd.close();
+                                        }
                                     }
-                                
-                                    BestDesignElementsResult geneResults =
-                                        atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                            ewd,
-                                            arrayDesignAccession,
-                                            geneIds,
-                                            factors,
-                                            factorValues,
-                                            statFilter.asUpDownCondition(),
-                                            0,
-                                            10
-                                        );
-                                
-                                    genes = geneResults.getGenes();
-                                    expData = new ExperimentalData(ewd);
-                                } catch (AtlasDataException e) {
-                                    log.warn("AtlasDataException thrown", e);
-                                } finally {
-                                    ewd.closeAllDataSources();
-                                }
-                            }
 
-                            return new ExperimentResultAdapter(experiment, genes, expData);
-                        }
-                    })
+                                    return new ExperimentResultAdapter(experiment, genes, expData);
+                                }
+                            })
             );
             //Heatmap page
         } else {
@@ -272,44 +230,5 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     public void destroy() throws Exception {
         if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(this);
-    }
-
-    /**
-     * @param geneIdsArr gene identifiers in user's query (if any)
-     * @param atlasQuery Structured query to retrieve genes by if none were provided in user's query
-     * @return the list of genes we think user has asked for
-     */
-    private Set<Long> getGenes(String[] geneIdsArr, AtlasStructuredQuery atlasQuery) {
-        Set<Long> genes = new HashSet<Long>();
-        // Attempt to find genes explicitly mentioned in the query; otherwise try to find
-        // them in Solr using any other search criteria provided
-        // TODO NB: currently we don't cater for gene=topX queries - 10 results are always returned if no genes have been explicitly specified
-        if (geneIdsArr != null && (geneIdsArr.length > 1 || !geneIdsArr[0].startsWith("top"))) {
-            // At least one gene was explicitly specified in the API query
-            for (String geneId : geneIdsArr) {
-                GeneSolrDAO.AtlasGeneResult agr = geneSolrDAO.getGeneByIdentifier(geneId);
-                if (!agr.isFound()) {
-                    // If gene was not found by identifier, try to find it by its name
-                    for (AtlasGene gene : geneSolrDAO.getGenesByName(geneId)) {
-                            genes.add((long) gene.getGeneId());
-                    }
-                } else {
-                    genes.add((long) agr.getGene().getGeneId());
-                }
-            }
-        } else { // No genes explicitly specified in the query - attempt to find them by any other search criteria
-            if (!atlasQuery.isNone() && 0 != atlasQuery.getGeneConditions().size()) {
-                atlasQuery.setFullHeatmap(false);
-                atlasQuery.setViewType(ViewType.HEATMAP);
-                atlasQuery.setConditions(Collections.<ExpFactorQueryCondition>emptyList());
-
-                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                for (StructuredResultRow row : atlasResult.getResults()) {
-                    AtlasGene gene = row.getGene();
-                    genes.add((long) gene.getGeneId());
-                }
-            }
-        }
-        return genes;
     }
 }

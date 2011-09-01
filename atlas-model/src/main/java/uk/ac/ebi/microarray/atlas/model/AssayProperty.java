@@ -54,7 +54,7 @@ import static java.util.Collections.unmodifiableList;
 public final class AssayProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assayPVSeq")
-    @SequenceGenerator(name = "assayPVSeq", sequenceName = "A2_ASSAYPV_SEQ")
+    @SequenceGenerator(name = "assayPVSeq", sequenceName = "A2_ASSAYPV_SEQ", allocationSize = 1)
     private Long assaypvid;
     @ManyToOne
     @Fetch(FetchMode.SELECT)

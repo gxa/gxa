@@ -23,6 +23,8 @@
 package ae3.dao;
 
 import ae3.model.AtlasGene;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -34,7 +36,11 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -275,5 +281,24 @@ public class GeneSolrDAO {
             }
         }
         return result;
+    }
+
+    public List<Long> findGeneIds(Collection<String> query) {
+        List<Long> genes = Lists.newArrayList();
+
+        for (String text : query) {
+            if (Strings.isNullOrEmpty(text)) {
+                continue;
+            }
+            AtlasGeneResult res = getGeneByIdentifier(text);
+            if (!res.isFound()) {
+                for (AtlasGene gene : getGenesByName(text)) {
+                    genes.add((long) gene.getGeneId());
+                }
+            } else {
+                genes.add((long) res.getGene().getGeneId());
+            }
+        }
+        return genes;
     }
 }

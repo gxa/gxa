@@ -291,7 +291,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             } catch (IOException e) {
                 throw new IndexBuilderException(e.getMessage(), e);
             } finally {
-                experimentWithData.closeAllDataSources();
+                experimentWithData.close();
             }
         }
 

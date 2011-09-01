@@ -4,7 +4,13 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
@@ -12,7 +18,7 @@ import javax.persistence.*;
 public final class PropertyValue {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertyValueSeq")
-    @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ")
+    @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ", allocationSize = 1)
     private Long propertyvalueid;
     @ManyToOne
     private Property property;

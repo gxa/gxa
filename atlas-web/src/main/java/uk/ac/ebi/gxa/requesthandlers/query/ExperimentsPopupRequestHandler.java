@@ -179,18 +179,18 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
                 final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(
-                    experimentDAO.getExperimentByAccession(exp.getAccession())
+                        experimentDAO.getExperimentByAccession(exp.getAccession())
                 );
                 try {
                     for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long)gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
+                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                         if (ea != null) {
                             exp.setHighestRankAttribute(attrCandidate);
                             break;
                         }
                     }
                 } finally {
-                    ewd.closeAllDataSources();
+                    ewd.close();
                 }
 
                 if (ea != null) {

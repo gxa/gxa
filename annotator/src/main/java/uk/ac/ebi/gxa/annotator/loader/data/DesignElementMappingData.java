@@ -36,8 +36,8 @@ public class DesignElementMappingData extends BioEntityData{
         }
     }
 
-    public Collection<Pair<String, String>> getDesignElementToBioEntity(BioEntityType bioEntityType) {
-        return Collections.unmodifiableCollection(typeToDesignElementBEMapping.get(bioEntityType));
+    public Collection<Pair<String, String>> getDesignElementToBioEntity(BioEntityType type) {
+        return Collections.unmodifiableCollection(typeToDesignElementBEMapping.get(type));
     }
   
     public Set<DesignElement> getDesignElements() {

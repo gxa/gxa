@@ -104,7 +104,7 @@ public final class NetCDFProxy implements Closeable {
      * @return true if the version inside ncdf file is not the same as NCDF_VERSION; false otherwise
      * @throws IOException
      */
-    public boolean isOutOfDate()  {
+    public boolean isOutOfDate() {
         final String version = getNcdfVersion();
         // "NetCDF Updater" string was used as version id in NetCDFs created by updater
         // before March 23, 2011
@@ -170,9 +170,9 @@ public final class NetCDFProxy implements Closeable {
         try {
             Variable variable = netCDF.findVariable(varName);
             int[] shape = variable.getShape();
-        
+
             float[][] result = new float[rowIndices.length][shape[1]];
-        
+
             for (int i = 0; i < rowIndices.length; i++) {
                 int[] origin = {rowIndices[i], 0};
                 int[] size = new int[]{1, shape[1]};
@@ -214,26 +214,6 @@ public final class NetCDFProxy implements Closeable {
     private String getGlobalAttribute(String attribute) {
         ucar.nc2.Attribute a = netCDF.findGlobalAttribute(attribute);
         return null == a ? null : a.getStringValue();
-    }
-
-    public String getExperimentDescription() {
-        return getGlobalAttribute("experiment_description");
-    }
-
-    public String getExperimentLab() {
-        return getGlobalAttribute("experiment_lab");
-    }
-
-    public String getExperimentPerformer() {
-        return getGlobalAttribute("experiment_performer");
-    }
-
-    public String getExperimentPubmedID() {
-        return getGlobalAttribute("experiment_pmid");
-    }
-
-    public String getAbstract() {
-        return getGlobalAttribute("experiment_abstract");
     }
 
     /**
@@ -303,6 +283,7 @@ public final class NetCDFProxy implements Closeable {
 
     /**
      * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
+     *
      * @return an array of strings - an array of factor values per assay
      * @throws IOException if data could not be read form the netCDF file
      */
@@ -319,11 +300,6 @@ public final class NetCDFProxy implements Closeable {
             }
         }
         return result;
-    }
-
-    public String[] getFactorValueOntologies(String factor) throws IOException {
-        Integer efIndex = findEfIndex(factor);
-        return efIndex == null ? new String[0] : getSlice3D("EFVO", efIndex);
     }
 
     private Integer findEfIndex(String factor) throws IllegalArgumentException, IOException {
@@ -382,11 +358,11 @@ public final class NetCDFProxy implements Closeable {
             return Collections.emptyList();
         }
 
-        ArrayChar uVal = (ArrayChar)uVALVar.read();
+        ArrayChar uVal = (ArrayChar) uVALVar.read();
 
         final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
         for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
-	        final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
+            final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
             if (data.length != 2) {
                 throw new AtlasDataException("Invalid uVAL element: " + text);
             }
@@ -416,11 +392,6 @@ public final class NetCDFProxy implements Closeable {
         return scIndex == null ? new String[0] : getSlice3D("SCV", scIndex);
     }
 
-    public String[] getCharacteristicValueOntologies(String characteristic) throws IOException {
-        Integer scIndex = findScIndex(characteristic);
-        return scIndex == null ? new String[0] : getSlice3D("SCVO", scIndex);
-    }
-
     /**
      * Gets a single row from the expression data matrix representing all expression data for a single design element.
      * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
@@ -440,7 +411,7 @@ public final class NetCDFProxy implements Closeable {
      *
      * @param deIndices an array of design element indices to get expression values for
      * @return a float matrix - a list of expressions per design element index
-     * @throws IOException if the expression data could not be read from the netCDF file
+     * @throws IOException           if the expression data could not be read from the netCDF file
      * @throws InvalidRangeException if the file doesn't contain given deIndices
      */
     public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException {

@@ -109,7 +109,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         
             return mergeExperimentDesigns(designs);
         } finally {
-            ewd.closeAllDataSources();
+            ewd.close();
         }
     }
 

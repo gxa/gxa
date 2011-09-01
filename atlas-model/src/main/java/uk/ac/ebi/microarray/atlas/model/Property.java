@@ -5,7 +5,12 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Immutable;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +21,7 @@ import java.util.List;
 public final class Property {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
-    @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ")
+    @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ", allocationSize = 1)
     private Long propertyid;
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)
