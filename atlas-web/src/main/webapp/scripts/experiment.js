@@ -1658,7 +1658,8 @@
             for (var i = 0; i < _designElements.length; ++i) {
                 params.push('&geneIs=' + _designElements[i].geneIdentifier);
             }
-            return url + params.join("");
+
+            return url + $.unique(params).join("");
         };
 
         /**
