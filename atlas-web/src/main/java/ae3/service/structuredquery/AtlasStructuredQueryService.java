@@ -1469,6 +1469,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if (efEfv.getPayload().isQualified(attrToCounter.get(attr))) {
                         rowQualifies = true;
                         efvToColumn.get(efEfv).setQualifies(true);
+                    } else { // Counter for attr doesn't qualify
+                        if (query.getViewType() == ViewType.LIST) {
+                            // In list view we display gene-ef-efv rows, hence if a given ef-efv counter doesn't qualify
+                            // remove it from the rows to be displayed for the current gene
+                                attrToCounter.remove(attr);
+                        }
                     }
 
                     efEfv = null;
