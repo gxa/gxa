@@ -150,12 +150,4 @@
             java.lang.String toJson(java.lang.Object)
         </function-signature>
     </function>
-
-    <function>
-        <name>urlRewriteEncode</name>
-        <function-class>ae3.util.HtmlHelper</function-class>
-        <function-signature>
-            java.lang.String urlRewriteEncode(java.lang.String)
-        </function-signature>
-    </function>
 </taglib>

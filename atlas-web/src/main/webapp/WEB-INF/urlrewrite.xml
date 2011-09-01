@@ -49,37 +49,10 @@
 
     <rule>
         <note>
-            same as next one, with parameter
-        </note>
-        <from>/gene/([^/?]+)\?efv=(.+)</from>
-        <to>/gene?gid=$1</to>
-    </rule>
-
-    <rule>
-        <note>
-            gene page with EF: /gene/[GeneIdentifier]?ef=(.+)
-            rewritten with gene?gid=ENSG00000171227
-        </note>
-        <from>/gene/([^/?]+)\?ef=(.+)</from>
-        <to>/gene?gid=$1</to>
-    </rule>
-
-
-    <rule>
-        <note>
-            gene page accessible by /gene/[GeneIdentifier]
-            rewritten with gene?gid=ENSG00000171227
-        </note>
-        <from>/gene/([^/]+)</from>
-        <to>/gene?gid=$1</to>
-    </rule>
-
-    <rule>
-        <note>
             gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
             rewritten with anatomogram?gid=ENSG00000171227
         </note>
-        <from>/anatomogram/([^/]+).png</from>
+        <from>/anatomogram/([a-zA-Z0-9-._]+).png</from>
         <to>/anatomogram?gid=$1</to>
     </rule>
 
@@ -88,7 +61,7 @@
             gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
             rewritten with anatomogram?gid=ENSG00000171227
         </note>
-        <from>/webanatomogram/([^/]+).png</from>
+        <from>/webanatomogram/([a-zA-Z0-9-._]+).png</from>
         <to>/anatomogram?gid=$1&amp;type=web</to>
     </rule>
 
@@ -97,34 +70,6 @@
         <note>Experiment Index</note>
         <from>/experiment/index.htm(.*)</from>
         <to>/experimentIndex</to>
-    </rule>
-
-    <rule>
-        <note>
-            experiment page accessible by /experiment/[ExperimentIdentifier]/[geneId]/[ef]
-            rewritten with experiment?eid=E-GEOD-5258&amp;gid=...&amp;ef=
-        </note>
-        <from>/experiment/([a-zA-Z0-9-]+)/([^/]+)/([^/?]+)(.*)</from>
-        <to>/experiment?eid=$1&amp;gid=${escape:$2}&amp;ef=$3</to>
-    </rule>
-
-
-    <rule>
-        <note>
-            experiment page accessible by /experiment/[ExperimentIdentifier]/[geneId]
-            rewritten with experiment?eid=E-GEOD-5258&amp;gid=...
-        </note>
-        <from>/experiment/([a-zA-Z0-9-]+)/([^/?]+)(.*)</from>
-        <to>/experiment?eid=$1&amp;gid=${escape:$2}</to>
-    </rule>
-
-    <rule>
-        <note>
-            experiment page accessible by /experiment/[ExperimentIdentifier]
-            rewritten with experiment?eid=E-GEOD-5258
-        </note>
-        <from>/experiment/([a-zA-Z0-9-]+)(.*)</from>
-        <to>/experiment?eid=$1</to>
     </rule>
 
     <rule>

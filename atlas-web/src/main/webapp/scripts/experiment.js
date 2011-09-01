@@ -1782,7 +1782,6 @@
                     deAcc: ea.deAcc,
                     geneName: ea.geneName,
                     geneIdentifier: ea.geneIdentifier,
-                    urlRewriteEncodedGeneIdentifier: ea.urlRewriteEncodedGeneIdentifier,
                     ef: curatedEFs[ea.ef] || ea.ef,
                     ef_enc: encodeURIComponent(encodeURIComponent(ea.ef)).replace(/_/g, '__'),
                     rawef: ea.ef,
@@ -1797,8 +1796,7 @@
                     deAcc: ea.deAcc,
                     deIndex: ea.deIndex,
                     geneName: ea.geneName,
-                    geneIdentifier: ea.geneIdentifier,
-                    urlRewriteEncodedGeneIdentifier: ea.urlRewriteEncodedGeneIdentifier
+                    geneIdentifier: ea.geneIdentifier
                 });
             }
 

@@ -87,7 +87,7 @@
                                     <td align="center">
 
                                         <a title="Show expression profile"
-                                           href="${pageContext.request.contextPath}/experiment/${exp.accession}/${u:urlRewriteEncode(atlasGene.geneIdentifier)}"
+                                           href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}"
                                            style="border:none;text-decoration:none;outline:none;">
                                             <div id="${exp.accession}_${atlasGene.geneId}_plot" class="plot"
                                                  name="${exp.highestRankAttribute.ef}"
@@ -117,7 +117,7 @@
         <tr>
             <td colspan="3">
                 &nbsp;Show <a title="Show expression profile in detail"
-                              href="${pageContext.request.contextPath}/experiment/${exp.accession}/${u:urlRewriteEncode(atlasGene.geneIdentifier)}">expression
+                              href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression
                 profile</a>
                 &nbsp;/&nbsp;
                 <a target="_blank" title="Show experiment details in ArrayExpress Archive"

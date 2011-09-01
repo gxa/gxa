@@ -363,7 +363,7 @@
         <c:forEach var="row" items="${result.results}" varStatus="i">
             <tr id="squeryrow${i.index}">
                 <td class="padded genename">
-                    <a href="gene/${f:escapeXml(u:urlRewriteEncode(row.gene.geneIdentifier))}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
+                    <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene.hilitGeneName}<c:if test="${empty row.gene.geneName}"><c:out value="${row.gene.geneIdentifier}"/></c:if></a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
                         <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
@@ -487,7 +487,7 @@
             <tr id="${row.gene_id}_${row.ef}_${r.index}">
                 <td class="collapsible" title="Click here to show experiments..."></td>
                 <td class="padded genename" style="border-left:none">
-                    <a href="gene/${f:escapeXml(u:urlRewriteEncode(row.gene.geneIdentifier))}">${row.gene_name}</a>
+                    <a href="gene/${f:escapeXml(row.gene.geneIdentifier)}">${row.gene_name}</a>
                     <div class="gtooltip">
                         <div class="genename"><b>${row.gene.hilitGeneName}</b> (<c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop"><c:if test="${!empty row.gene.geneProperties[prop]}">${row.gene.hilitGeneProperties[prop]}, </c:if></c:forEach>${row.gene.geneIdentifier})</div>
                         <c:forEach items="${atlasProperties.geneTooltipFields}" var="prop">
@@ -540,7 +540,7 @@
                                     <td class="expthumb">
                                         <div class="outer">
                                             <a title="Show expression profile"
-                                               href="experiment/${exp.experimentAccession}/${u:urlRewriteEncode(row.gene.geneIdentifier)}/${row.ef}">
+                                               href="experiment/${exp.experimentAccession}/${row.gene.geneIdentifier}/${row.ef}">
                                                 <div id="${exp.experimentId}_${exp.experimentAccession}_${exp.updn}"
                                                      class="thumb thumb${r.index}">
                                                     <img alt="Waiting..."

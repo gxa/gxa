@@ -26,7 +26,6 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.util.HtmlHelper;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -34,10 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
@@ -49,6 +45,7 @@ import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,41 +86,21 @@ public class GeneViewController extends AtlasViewController {
         this.experimentDAO = experimentDAO;
     }
 
-    @RequestMapping(value = "/gene", method = RequestMethod.GET)
+    @RequestMapping(value = "/gene/{gid}", method = RequestMethod.GET)
     public String getGene(
-            @RequestParam("gid") String geneId,
-            @RequestParam(value = "ef", required = false) String ef,
+            @PathVariable("gid") final String geneId,
             Model model
     ) throws ResourceNotFoundException, IOException, TranscoderException {
+        return getGene(model, geneId, null);
+    }
 
-        GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
-        if (result.isMulti()) {
-            model.addAttribute("gprop_0", "")
-                    .addAttribute("gval_0", geneId)
-                    .addAttribute("fexp_0", "UP_DOWN")
-                    .addAttribute("fact_0", "")
-                    .addAttribute("specie_0", "")
-                    .addAttribute("fval_0", "(all+conditions)")
-                    .addAttribute("view", "hm");
-            return "redirect:qrs";
-        }
-
-        if (!result.isFound()) {
-            throw new ResourceNotFoundException("No results were found");
-        }
-
-        AtlasGene gene = result.getGene();
-        Anatomogram an = anatomogramFactory.getAnatomogram(gene);
-
-        model.addAttribute("orthologs", geneSolrDAO.getOrthoGenes(gene))
-                .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
-                .addAttribute("atlasGene", gene)
-                .addAttribute("ef", ef)
-                .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
-                .addAttribute("hasAnatomogram", !an.isEmpty())
-                .addAttribute("anatomogramMap", an.getAreaMap());
-
-        return "genepage/gene";
+    @RequestMapping(value = "/gene/{gid}/{ef}", method = RequestMethod.GET)
+    public String getGene(
+            @PathVariable("gid") final String geneId,
+            @PathVariable("ef") final String ef,
+            Model model
+    ) throws ResourceNotFoundException, IOException, TranscoderException {
+        return getGene(model, geneId, ef);
     }
 
     /**
@@ -146,11 +123,6 @@ public class GeneViewController extends AtlasViewController {
         int pageSize = 100;
 
         Collection<BioEntity> bioEntities = bioEntityDAO.getGenes(prefix, offset, pageSize);
-
-        // Encode for urlrewrite bioentity identifiers before returning bioentities to javascript
-        for (BioEntity bioEntity : bioEntities) {
-            bioEntity.setIdentifier(HtmlHelper.urlRewriteEncode(bioEntity.getIdentifier()));
-        }
 
         model.addAttribute("genes", bioEntities);
         model.addAttribute("nextQuery", (bioEntities.size() < pageSize) ? "" :
@@ -264,6 +236,46 @@ public class GeneViewController extends AtlasViewController {
             }
         }
         return sortedAtlasExps;
+    }
+
+    /**
+     * A gene page handler utility. If the experiment with the given geneId exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /ENSG00000136487/organism_part
+     * Note that ef is optional.
+     *
+     * @param model
+     * @param geneId
+     * @param ef
+     * @return
+     * @throws ResourceNotFoundException
+     */
+    private String getGene(final Model model, final String geneId, @Nullable final String ef) throws ResourceNotFoundException {
+        GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
+        if (result.isMulti()) {
+            model.addAttribute("gprop_0", "")
+                    .addAttribute("gval_0", geneId)
+                    .addAttribute("fexp_0", "UP_DOWN")
+                    .addAttribute("fact_0", "")
+                    .addAttribute("specie_0", "")
+                    .addAttribute("fval_0", "(all+conditions)")
+                    .addAttribute("view", "hm");
+            return "redirect:qrs";
+        }
+
+        if (!result.isFound()) {
+            throw new ResourceNotFoundException("No results were found");
+        }
+
+        AtlasGene gene = result.getGene();
+        Anatomogram an = anatomogramFactory.getAnatomogram(gene);
+        model.addAttribute("orthologs", geneSolrDAO.getOrthoGenes(gene))
+                .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
+                .addAttribute("atlasGene", gene)
+                .addAttribute("ef", ef)
+                .addAttribute("atlasGeneDescription", new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService).toString())
+                .addAttribute("hasAnatomogram", !an.isEmpty())
+                .addAttribute("anatomogramMap", an.getAreaMap());
+        return "genepage/gene";
     }
 }
 
