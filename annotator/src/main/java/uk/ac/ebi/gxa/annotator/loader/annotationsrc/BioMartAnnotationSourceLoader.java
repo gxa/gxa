@@ -218,7 +218,7 @@ public class BioMartAnnotationSourceLoader {
                 if (arrayDesign != null) {
                     bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
                 } else {
-                    //ToDo: Create new array design
+                    //ToDo: Create new array design [#2924]
                 }
             }
         }

@@ -17,14 +17,6 @@ public class BioEntity {
 
     private Organism organism;
 
-    public static final String NAME_PROPERTY_SYMBOL = "Symbol";
-    public static final String NAME_PROPERTY_MIRBASE = "miRBase: Accession Number";
-
-    public BioEntity(String identifier, BioEntityType type) {
-        this.identifier = identifier;
-        this.type = type;
-    }
-
     public BioEntity(String identifier, String name, BioEntityType type, Organism organism) {
         this.identifier = identifier;
         this.name = name;
@@ -64,29 +56,14 @@ public class BioEntity {
         return organism;
     }
 
-    public void setOrganism(Organism organism) {
-        this.organism = organism;
-    }
 
     public String getName() {
         if (StringUtils.isEmpty(name)){
             name = identifier;
-            for (BEPropertyValue property : properties) {
-                if (NAME_PROPERTY_SYMBOL.equalsIgnoreCase(property.getProperty().getName())) {
-                    name = property.getValue();
-                    break;
-                } else if (NAME_PROPERTY_MIRBASE.equalsIgnoreCase(property.getProperty().getName())) {
-                    name = property.getValue();
-                    break;
-                }
-            }
         }
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     @Override
     public boolean equals(Object o) {

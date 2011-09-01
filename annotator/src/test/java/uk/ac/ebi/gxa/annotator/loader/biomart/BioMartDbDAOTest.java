@@ -10,11 +10,8 @@ import java.util.Set;
  * User: nsklyar
  * Date: 11/08/2011
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration
 public class BioMartDbDAOTest extends TestCase {
 
-//    @Autowired
     protected BioMartDbDAO bioMartDbDAO;
 
 
@@ -26,7 +23,7 @@ public class BioMartDbDAOTest extends TestCase {
 
     @Test
     public void testGetSynonyms() throws Exception{
-        Set<List<String>> synonyms = bioMartDbDAO.getSynonyms("homo_sapiens", "63");
+        Set<List<String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
         assertEquals(47210, synonyms.size());
     }
 

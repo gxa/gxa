@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -202,7 +203,7 @@ public class BioEntityDAO {
      * @param beType
      * @param software
      */
-    public void writeBioEntityToPropertyValues(final Set<List<String>> beProperties, final BioEntityType beType,
+    public void writeBioEntityToPropertyValues(final Collection<List<String>> beProperties, final BioEntityType beType,
                                                final Software software) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
@@ -321,7 +322,7 @@ public class BioEntityDAO {
 
     }
 
-    public void writeDesignElementBioEntityMappings(final Collection<List<String>> deToBeMappings, final BioEntityType beType,
+    public void writeDesignElementBioEntityMappings(final Collection<Pair<String, String>> deToBeMappings, final BioEntityType beType,
                                                     final Software software,
                                                     final ArrayDesign arrayDesign) {
 
@@ -332,15 +333,15 @@ public class BioEntityDAO {
                 "  (select be.bioentityid from a2_bioentity be where be.identifier = ? and be.bioentitytypeid = ?),\n" +
                 "  ?)";
 
-        ListStatementSetter<List<String>> setter = new ListStatementSetter<List<String>>() {
+        ListStatementSetter<Pair<String, String>> setter = new ListStatementSetter<Pair<String, String>>() {
             long swId = software.getSoftwareid();
             long adId = arrayDesign.getArrayDesignID();
             long typeId = beType.getId();
 
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, list.get(i).get(0));
+                ps.setString(1, list.get(i).getFirst());
                 ps.setLong(2, adId);
-                ps.setString(3, list.get(i).get(1));
+                ps.setString(3, list.get(i).getSecond());
                 ps.setLong(4, typeId);
                 ps.setLong(5, swId);
             }
@@ -467,12 +468,10 @@ public class BioEntityDAO {
 
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntityType type = findOrCreateBioEntityType(resultSet.getString(6));
-            BioEntity gene = new BioEntity(resultSet.getString(2), type);
+            Organism organism = new Organism(resultSet.getLong(5), intern(resultSet.getString(4)));
+            BioEntity gene = new BioEntity(resultSet.getString(2), resultSet.getString(3), type, organism);
 
             gene.setId(resultSet.getLong(1));
-            gene.setName(resultSet.getString(3));
-            Organism organism = new Organism(resultSet.getLong(5), intern(resultSet.getString(4)));
-            gene.setOrganism(organism);
 
             return gene;
         }

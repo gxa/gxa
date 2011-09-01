@@ -11,28 +11,15 @@
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
-                <value>uk.ac.ebi.gxa.annotator.model.FileAnnotationSource</value>
-
             </list>
         </property>
     </bean>
 
-    <!--<bean id="annotatorSessionFactory" parent="sessionFactory">-->
-
-        <!--<property name="annotatedClasses" ref="annotatorHibernateClasses" />-->
-
-    <!--</bean>-->
-
     <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
-        <constructor-arg index="0" ref="bioentityAnnotationDAO"/>
-        <constructor-arg index="1" ref="atlasTxManager"/>
+        <constructor-arg index="0" ref="beDataWriter"/>
     </bean>
 
-    <bean id="bioentityAnnotationDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationDAO">
-        <constructor-arg ref="bioEntityDAO"/>
-        <constructor-arg ref="annSrcDAO"/>
-        <constructor-arg ref="bioEntityPropertyDAO"/>
-        <constructor-arg ref="softwareDAO"/>
+    <bean id="beDataWriter" class="uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter">
     </bean>
 
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO">

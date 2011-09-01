@@ -147,6 +147,10 @@ public class BioMartConnection {
         return false;
     }
 
+    public String getDatasetName() {
+        return datasetName;
+    }
+
     /**
      * @param location
      * @return null - in a case of BioMart error and if ensProperty doesn't exist for a given ensOrganism

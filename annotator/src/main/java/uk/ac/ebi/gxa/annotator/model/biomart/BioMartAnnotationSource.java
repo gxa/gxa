@@ -65,7 +65,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    @Cascade({org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
     private Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
 
     private String mySqlDbName;

@@ -1,8 +1,5 @@
 package uk.ac.ebi.gxa.annotator.loader;
 
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-import uk.ac.ebi.gxa.annotator.dao.AnnotationDAO;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotator;
 
 /**
@@ -11,16 +8,14 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotator;
  */
 public class AnnotatorFactory {
 
-    private AnnotationDAO annotationDAO;
-    private TransactionTemplate transactionTemplate;
+    private AtlasBioEntityDataWriter beDataWriter;
 
-    public AnnotatorFactory(AnnotationDAO annotationDAO, PlatformTransactionManager txManager) {
-        this.annotationDAO = annotationDAO;
-        this.transactionTemplate = new TransactionTemplate(txManager);
+    public AnnotatorFactory(AtlasBioEntityDataWriter beDataWriter) {
+        this.beDataWriter = beDataWriter;
     }
 
     public BioMartAnnotator getEnsemblAnnotator() {
-        return new BioMartAnnotator(annotationDAO, transactionTemplate);
+        return new BioMartAnnotator(beDataWriter);
     }
 
 }
