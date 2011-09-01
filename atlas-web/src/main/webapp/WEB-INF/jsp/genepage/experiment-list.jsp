@@ -26,7 +26,7 @@
 
 <script type="text/javascript">
     if (ExperimentList) {
-        ExperimentList.drawPagination(${noAtlasExps}, '${target}');
+        ExperimentList.drawPagination(${noAtlasExps}, "${u:escapeJS(target)}");
     }
 </script>
 
