@@ -116,6 +116,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     /**
      * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
      * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/
+     * Parameter gid (geneid) is optional - this is to support queries such as: /experiment/E-GEOD-5099?ad=A-AFFY-34&gid=GBP5
      *
      * @param accession an experiment accession to show experiment page for
      * @param model     a model for the view to render
@@ -123,11 +124,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @throws ResourceNotFoundException if an experiment with the given accession is not found
      */
     @RequestMapping(value = "/experiment/{eid}", method = RequestMethod.GET)
-    public String getExperiment(
+    public String getExperimentWithOptionalGene(
             @PathVariable("eid") final String accession,
+            @RequestParam(value = "gid", required = false) String gid,
             Model model) throws ResourceNotFoundException {
 
-        return getExperiment(model, accession, null, null);
+        return getExperiment(model, accession, gid, null);
     }
 
     /**
