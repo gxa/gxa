@@ -8,9 +8,6 @@
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-    <!-- configures the @Controller programming model -->
-    <mvc:annotation-driven/>
-
     <!-- forwarding static resources requests (.png, .css etc) to the Servlet container's default Servlet -->
     <mvc:default-servlet-handler/>
 
@@ -68,5 +65,13 @@
             </list>
         </property>
     </bean>
+
+    <!-- The useDefaultSuffixPattern=false setting addresses an issue described in http://stackoverflow.com/questions/3526523/spring-mvc-pathvariable-getting-truncated -->
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+        <property name="useDefaultSuffixPattern" value="false"/>
+        <property name="order" value="0"/>
+    </bean>
+
+    <bean id="conversion-service" class="org.springframework.format.support.FormattingConversionServiceFactoryBean"/>
 
 </beans>
