@@ -365,10 +365,9 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             if (Strings.isNullOrEmpty(text)) {
                 continue;
             }
-            String escapedText = EscapeUtil.escapeSolr(text);
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(escapedText);
+            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
             if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(escapedText)) {
+                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
                     genes.add((long) gene.getGeneId());
                 }
             } else {
