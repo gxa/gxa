@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +49,7 @@ import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
 import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
@@ -113,9 +115,65 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     /**
      * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment/{eid}", method = RequestMethod.GET)
+    public String getExperiment(
+            @PathVariable("eid") final String accession,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, null, null);
+    }
+
+    /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487).
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param gid       a gene identifier to fill in initial search fields
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment/{eid}/{gid}", method = RequestMethod.GET)
+    public String getExperiment(
+            @PathVariable("eid") final String accession,
+            @PathVariable("gid") final String gid,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, gid, null);
+    }
+
+    /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part).
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param gid       a gene identifier to fill in initial search fields
+     * @param ef        an experiment factor name to fill in initial search fields
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment/{eid}/{gid}/{ef}", method = RequestMethod.GET)
+    public String getExperiment(
+            @PathVariable("eid") final String accession,
+            @PathVariable("gid") final String gid,
+            @PathVariable("ef") final String ef,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, gid, ef);
+    }
+
+    /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
      * appropriate values and returns the corresponding view. Parameters like gid (geneId) and ef (experiment factor)
-     * are optional; they could be specified manually or by the url re-writer
-     * (when url like /experiment/E-MTAB-62/ENSG00000136487/organism_part is used).
+     * are optional; they can be specified manually e.g.  /experiment?eid=E-MTAB-62&gid=ENSG00000136487&ef=organism_part
      *
      * @param accession an experiment accession to show experiment page for
      * @param gid       a gene identifier to fill in initial search fields
@@ -125,27 +183,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @throws ResourceNotFoundException if an experiment with the given accession is not found
      */
     @RequestMapping(value = "/experiment", method = RequestMethod.GET)
-    public String getExperiment(
+    public String getExperimentWithOptionalParams(
             @RequestParam("eid") String accession,
             @RequestParam(value = "gid", required = false) String gid,
             @RequestParam(value = "ef", required = false) String ef,
             Model model) throws ResourceNotFoundException {
-
-        JsMapModel jsMapModel = JsMapModel.wrap(model);
-
-        ExperimentPage page = createExperimentPage(accession);
-        page.enhance(jsMapModel);
-
-        jsMapModel
-                .addJsAttribute("eid", page.getExperiment().getAccession())
-                .addJsAttribute("gid", gid)
-                .addJsAttribute("ef", ef);
-
-        if (page.isExperimentInCuration()) {
-            return "experimentpage/experiment-incuration";
-        }
-
-        return "experimentpage/experiment";
+        return getExperiment(model, accession, gid, ef);
     }
 
     /**
@@ -322,9 +365,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             if (Strings.isNullOrEmpty(text)) {
                 continue;
             }
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
+            String escapedText = EscapeUtil.escapeSolr(text);
+            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(escapedText);
             if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
+                for (AtlasGene gene : geneSolrDAO.getGenesByName(escapedText)) {
                     genes.add((long) gene.getGeneId());
                 }
             } else {
@@ -332,6 +376,36 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             }
         }
         return genes;
+    }
+
+    /**
+     * An experiment page handler utility. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part
+     *  note that gid and ef are optional.
+     *
+     * @param model
+     * @param accession
+     * @param gid
+     * @param ef
+     * @return
+     * @throws ResourceNotFoundException
+     */
+    private String getExperiment(Model model, String accession, @Nullable final String gid, @Nullable final String ef) throws ResourceNotFoundException {
+        JsMapModel jsMapModel = JsMapModel.wrap(model);
+
+        ExperimentPage page = createExperimentPage(accession);
+        page.enhance(jsMapModel);
+
+        jsMapModel
+                .addJsAttribute("eid", page.getExperiment().getAccession())
+                .addJsAttribute("gid", gid)
+                .addJsAttribute("ef", ef);
+
+        if (page.isExperimentInCuration()) {
+            return "experimentpage/experiment-incuration";
+        }
+
+        return "experimentpage/experiment";
     }
 
     private class GeneToolTip {

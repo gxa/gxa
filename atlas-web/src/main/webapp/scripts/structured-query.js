@@ -112,7 +112,7 @@ if(!atlas)
                     height = 10;
                 plotel.css({ height: (height * 16 + 20) + 'px' });
             }
-            
+
             root.find('.plotwaiter').remove();
             root.find('.efname,.plot').show();
 
@@ -142,7 +142,7 @@ if(!atlas)
          } else {
              left = event.pageX;
              top = event.pageY;
-         }         
+         }
          left += 15;
          top += 15;
 
