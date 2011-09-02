@@ -103,6 +103,15 @@ public class GeneViewController extends AtlasViewController {
         return getGene(model, geneId, ef);
     }
 
+    @RequestMapping(value = "/gene", method = RequestMethod.GET)
+    public String getGeneWithOptionalParams(
+            @RequestParam("gid") String geneId,
+            @RequestParam(value = "ef", required = false) String ef,
+            Model model
+    ) throws ResourceNotFoundException, IOException, TranscoderException {
+        return getGene(model, geneId, ef);
+    }
+
     /**
      * Retrives a list of genes by prefix and offset.
      *

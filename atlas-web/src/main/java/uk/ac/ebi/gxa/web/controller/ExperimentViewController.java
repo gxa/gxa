@@ -171,6 +171,27 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     }
 
     /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. Parameters like gid (geneId) and ef (experiment factor)
+     * are optional; they can be specified manually e.g.  /experiment?eid=E-MTAB-62&gid=ENSG00000136487&ef=organism_part
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param gid       a gene identifier to fill in initial search fields
+     * @param ef        an experiment factor name to fill in initial search fields
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment", method = RequestMethod.GET)
+    public String getExperimentWithOptionalParams(
+            @RequestParam("eid") String accession,
+            @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "ef", required = false) String ef,
+            Model model) throws ResourceNotFoundException {
+        return getExperiment(model, accession, gid, ef);
+    }
+
+    /**
      * Returns experiment plots for given set of design elements.
      * (JSON view only supported)
      *
