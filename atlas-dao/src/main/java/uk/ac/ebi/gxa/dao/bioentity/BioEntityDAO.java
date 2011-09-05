@@ -150,8 +150,8 @@ public class BioEntityDAO {
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
                 "  when not matched then \n" +
-                "  insert (identifier, organismid, bioentitytypeid)   \n" +
-                "  values (?, ?, ?) ";
+                "  insert (identifier, name, organismid, bioentitytypeid)   \n" +
+                "  values (?, ?, ?, ?) ";
         //ToDo(4ns): add BE name
 
         ListStatementSetter<BioEntity> statementSetter = new ListStatementSetter<BioEntity>() {
@@ -160,8 +160,9 @@ public class BioEntityDAO {
                 ps.setString(1, list.get(i).getIdentifier());
                 ps.setLong(2, list.get(i).getType().getId());
                 ps.setString(3, list.get(i).getIdentifier());
-                ps.setLong(4, list.get(i).getOrganism().getId());
-                ps.setLong(5, list.get(i).getType().getId());
+                ps.setString(4, list.get(i).getName());
+                ps.setLong(5, list.get(i).getOrganism().getId());
+                ps.setLong(6, list.get(i).getType().getId());
             }
 
         };
