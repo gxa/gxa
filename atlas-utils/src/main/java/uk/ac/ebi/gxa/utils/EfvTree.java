@@ -336,7 +336,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     /**
      * Returns payload for corresponding EF/EFV pair or creates a new one using provided factory, stores it and returns
      * * This method is used instead of getOrCreate() in cases when case sensitivity needs to be preserved,
-     * e.g. when ncdfs are being updated (c.f. NetCDFData)
+     * e.g. when netcdfs are being updated (c.f. NetCDFData)
      *
      * @param ef                     factor string
      * @param efv                    factor value string
@@ -398,7 +398,7 @@ public class EfvTree<Payload extends Comparable<Payload>> {
     /**
      * Stores payload for EF/EFV from some another EfEfv class instance
      * This method is used instead of put() in cases when case sensitivity needs to be preserved,
-     * e.g. when ncdfs are being updated (c.f. AtlasNetCDFUpdateService)
+     * e.g. when netcdfs are being updated (c.f. AtlasNetCDFUpdateService)
      *
      * @param ef      factor string
      * @param efv     factor value string

@@ -137,7 +137,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
             });
 
-            // Now retrieve (from ncdfs) PTRank for each exp in nonDEExps and then add to allExperiments
+            // Now retrieve (from netcdfs) PTRank for each exp in nonDEExps and then add to allExperiments
             Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = newHashMap();
             // Gather all experiment-efefv mappings for attr and all its children (if efo)
             Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
