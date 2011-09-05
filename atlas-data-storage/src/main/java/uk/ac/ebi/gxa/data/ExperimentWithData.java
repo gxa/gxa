@@ -238,7 +238,7 @@ public class ExperimentWithData implements Closeable {
         }
     }
 
-    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(ArrayDesign arrayDesign, Map<Long, List<Integer>> geneIdsToDEIndexes) throws AtlasDataException {
+    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(ArrayDesign arrayDesign, Map<Long, List<Integer>> geneIdsToDEIndexes) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes);
         } catch (IOException e) {
@@ -246,7 +246,7 @@ public class ExperimentWithData implements Closeable {
         }
     }
 
-    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             @Nullable final String efVal,
