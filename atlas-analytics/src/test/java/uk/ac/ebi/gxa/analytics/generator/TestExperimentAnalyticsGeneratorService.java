@@ -51,7 +51,7 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testCreateAnalyticsForExperimentWithoutFactors () throws AnalyticsGeneratorException {
+    public void testCreateAnalyticsForExperimentWithoutFactors() throws Exception {
         final AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
         atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
 
@@ -64,8 +64,8 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
 
         final ExperimentAnalyticsGeneratorService experimentAnalyticsGeneratorService =
                 new ExperimentAnalyticsGeneratorService(
-                atlasDAO, atlasDataDAO, atlasComputeService,
-                createMock(ExecutorService.class));
+                        atlasDAO, atlasDataDAO, atlasComputeService,
+                        createMock(ExecutorService.class));
 
         experimentAnalyticsGeneratorService.createAnalyticsForExperiment(E_GEOD_5035,
                 createMock(AnalyticsGeneratorListener.class));

@@ -22,21 +22,21 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
-import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.TwoDFloatArray;
-import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.util.*;
 
@@ -216,9 +216,6 @@ class DataQueryHandler implements QueryHandler {
             }
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-            if (experiment == null) {
-                return new Error("Experiment " + experimentAccession + " is not found");
-            }
             final ExperimentWithData experimentWithData =
                 atlasDataDAO.createExperimentWithData(experiment);
             for (ArrayDesign ad : experiment.getArrayDesigns()) {
@@ -296,6 +293,8 @@ class DataQueryHandler implements QueryHandler {
                 }
             }
             return data;
+        } catch (RecordNotFoundException e) {
+            return new Error(e.getMessage());
         } catch (AtlasDataException e) {
             return new Error(e.toString());
         }

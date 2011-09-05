@@ -39,6 +39,7 @@
     <tx:annotation-driven transaction-manager="atlasTxManager"/>
 
     <context:component-scan base-package="uk.ac.ebi.gxa.dao"/>
+    <context:component-scan base-package="uk.ac.ebi.gxa.service"/>
     <context:annotation-config/>
 
     <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
@@ -49,7 +50,6 @@
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="assayDAO"/>
-        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
@@ -73,13 +73,26 @@
 
     <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
         <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="propertyDAO"/>
     </bean>
 
     <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
+    <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
