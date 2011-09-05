@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
 import org.junit.Test;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.AbstractIndexDataTestCase;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -60,8 +62,8 @@ public class AtlasPlotterTest extends AbstractIndexDataTestCase {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRED)
     public void testGetGeneInExpPlotData() throws Exception {
-        atlasDAO.startSession();
         final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
 
         Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
@@ -81,7 +83,6 @@ public class AtlasPlotterTest extends AbstractIndexDataTestCase {
 
         ArrayList data = (ArrayList) series.get("data");
         assertTrue("Data retrieved was empty", data.size() > 0);
-        atlasDAO.finishSession();
     }
 
     public GeneSolrDAO getAtlasSolrDao() {

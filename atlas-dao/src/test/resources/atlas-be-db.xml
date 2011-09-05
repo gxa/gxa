@@ -85,13 +85,13 @@
 
     <A2_PROPERTY
             propertyid="2"
-            name="PROP2"
+            name="prop2"
             accession="PropAcc2"
             />
 
     <A2_PROPERTY
             propertyid="3"
-            name="PROP3"
+            name="prop3"
             accession="PropAcc3"
             />
 
@@ -374,13 +374,11 @@
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="1"
             assayid="1"
             sampleid="1"
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="2"
             assayid="2"
             sampleid="2"
             />
@@ -437,19 +435,16 @@
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="10"
             assayid="10"
             sampleid="10"
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="11"
             assayid="10"
             sampleid="11"
             />
 
     <A2_ASSAYSAMPLE
-            assaysampleid="12"
             assayid="11"
             sampleid="10"
             />
@@ -526,8 +521,13 @@
             ACCESSION="EFO_0000827"
             DESCRIPTION="Just a term"/>
 
+    <A2_ONTOLOGYTERM
+            ONTOLOGYTERMID="2"
+            ONTOLOGYID="1"
+            ACCESSION="EFO_0000828"
+            DESCRIPTION="Another term"/>
+
     <A2_ASSAYPVONTOLOGY
-            ASSAYPVONTOLOGYID="1"
             ONTOLOGYTERMID="1"
             ASSAYPVID="1"/>
 </dataset>

@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -46,10 +48,10 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        getAtlasDAO().startSession();
         try {
             getLog().info("Fetching all properties");
 
@@ -68,8 +70,6 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
-        } finally {
-            getAtlasDAO().finishSession();
         }
     }
 
