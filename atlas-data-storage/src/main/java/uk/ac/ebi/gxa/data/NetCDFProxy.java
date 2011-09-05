@@ -476,7 +476,7 @@ public final class NetCDFProxy implements Closeable {
             throws IOException, AtlasDataException {
 
         final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
-        ExpressionAnalysisHelper eaHelper = createExpressionAnalysisHelper();
+        final ExpressionAnalysisHelper eaHelper = new ExpressionAnalysisHelper();
 
         for (Map.Entry<Long, List<Integer>> entry : geneIdsToDEIndexes.entrySet()) {
             final Long geneId = entry.getKey();
@@ -532,10 +532,6 @@ public final class NetCDFProxy implements Closeable {
             }
         }
         return result;
-    }
-
-    ExpressionAnalysisHelper createExpressionAnalysisHelper() throws IOException, AtlasDataException {
-        return (new ExpressionAnalysisHelper()).prepare();
     }
 
     /**
@@ -597,13 +593,9 @@ public final class NetCDFProxy implements Closeable {
         private List<KeyValuePair> uniquePropertyValues = new ArrayList<KeyValuePair>();
         private String[] designElementAccessions;
 
-        private ExpressionAnalysisHelper() {
-        }
-
-        private ExpressionAnalysisHelper prepare() throws IOException, AtlasDataException {
+        private ExpressionAnalysisHelper() throws IOException, AtlasDataException {
             uniquePropertyValues.addAll(getUniqueValues());
             designElementAccessions = getDesignElementAccessions();
-            return this;
         }
 
         public ExpressionAnalysisResult getByDesignElementIndex(int deIndex) throws IOException, AtlasDataException {
