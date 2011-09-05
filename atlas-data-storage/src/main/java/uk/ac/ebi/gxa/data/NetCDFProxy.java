@@ -141,7 +141,7 @@ public final class NetCDFProxy implements Closeable {
         }
     }
 
-    private float[] readFloatValuesForRowIndex(int rowIndex, String variableName, String readableName) throws IOException {
+    private float[] readFloatValuesForRowIndex(int rowIndex, String variableName) throws IOException, AtlasDataException {
         Variable variable = netCDF.findVariable(variableName);
         if (variable == null) {
             return new float[0];
@@ -153,13 +153,11 @@ public final class NetCDFProxy implements Closeable {
         try {
             return (float[]) variable.read(origin, size).get1DJavaArray(float.class);
         } catch (InvalidRangeException e) {
-            log.error("Error reading from NetCDF - invalid range at " + rowIndex + ": " + e.getMessage());
-            throw new IOException("Failed to read " + readableName + " data for design element at " + rowIndex +
-                    ": caused by " + e.getClass().getSimpleName() + " [" + e.getMessage() + "]");
+            throw new AtlasDataException(e);
         }
     }
 
-    private FloatMatrixProxy readFloatValuesForRowIndices(int[] rowIndices, String varName) throws IOException {
+    private FloatMatrixProxy readFloatValuesForRowIndices(int[] rowIndices, String varName) throws IOException, AtlasDataException {
         try {
             Variable variable = netCDF.findVariable(varName);
             int[] shape = variable.getShape();
@@ -173,7 +171,7 @@ public final class NetCDFProxy implements Closeable {
             }
             return new FloatMatrixProxy(variable, result);
         } catch (InvalidRangeException e) {
-            throw new IOException(e);
+            throw new AtlasDataException(e);
         }
     }
 
@@ -395,8 +393,8 @@ public final class NetCDFProxy implements Closeable {
      * @return the double array representing expression values for this design element
      * @throws IOException if the NetCDF could not be accessed
      */
-    public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws IOException {
-        return readFloatValuesForRowIndex(designElementIndex, "BDC", "expression");
+    public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws IOException, AtlasDataException {
+        return readFloatValuesForRowIndex(designElementIndex, "BDC");
     }
 
     /**
@@ -407,7 +405,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the expression data could not be read from the netCDF file
      * @throws InvalidRangeException if the file doesn't contain given deIndices
      */
-    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException {
+    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException, AtlasDataException {
         return readFloatValuesForRowIndices(deIndices, "BDC");
     }
 
@@ -420,8 +418,8 @@ public final class NetCDFProxy implements Closeable {
         return new TwoDFloatArray(variable.read());
     }
 
-    public float[] getPValuesForDesignElement(int designElementIndex) throws IOException {
-        return readFloatValuesForRowIndex(designElementIndex, "PVAL", "p-value");
+    public float[] getPValuesForDesignElement(int designElementIndex) throws IOException, AtlasDataException {
+        return readFloatValuesForRowIndex(designElementIndex, "PVAL");
     }
 
     /**
@@ -607,7 +605,7 @@ public final class NetCDFProxy implements Closeable {
             return this;
         }
 
-        public ExpressionAnalysisResult getByDesignElementIndex(int deIndex) throws IOException {
+        public ExpressionAnalysisResult getByDesignElementIndex(int deIndex) throws IOException, AtlasDataException {
 
             float[] p = getPValuesForDesignElement(deIndex);
             float[] t = getTStatisticsForDesignElement(deIndex);
@@ -644,12 +642,12 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException {
+    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException, AtlasDataException {
         return readFloatValuesForRowIndices(deIndices, "TSTAT");
     }
 
-    public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
-        return readFloatValuesForRowIndex(designElementIndex, "TSTAT", "t-statistics");
+    public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException, AtlasDataException {
+        return readFloatValuesForRowIndex(designElementIndex, "TSTAT");
     }
 
     public ArrayFloat.D2 getTStatistics() throws IOException {
@@ -678,7 +676,7 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException           if the data could not be read from the netCDF file
      * @throws InvalidRangeException if array of design element indices contains out of bound indices
      */
-    FloatMatrixProxy getPValues(int[] deIndices) throws IOException {
+    FloatMatrixProxy getPValues(int[] deIndices) throws IOException, AtlasDataException {
         return readFloatValuesForRowIndices(deIndices, "PVAL");
     }
 
