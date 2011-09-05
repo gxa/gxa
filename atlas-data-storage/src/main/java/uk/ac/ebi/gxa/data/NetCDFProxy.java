@@ -424,10 +424,6 @@ public final class NetCDFProxy implements Closeable {
         return readFloatValuesForRowIndex(designElementIndex, "PVAL", "p-value");
     }
 
-    public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
-        return readFloatValuesForRowIndex(designElementIndex, "TSTAT", "t-statistics");
-    }
-
     /**
      * Closes the proxied NetCDF file
      *
@@ -640,6 +636,22 @@ public final class NetCDFProxy implements Closeable {
         }
     }
 
+    /**
+     * Extracts T-statistic matrix for given design element indices.
+     *
+     * @param deIndices an array of design element indices to extract T-statistic for
+     * @return matrix of floats - an array of T-statistic values per each design element index
+     * @throws IOException           if the data could not be read from the netCDF file
+     * @throws InvalidRangeException if array of design element indices contains out of bound indices
+     */
+    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException {
+        return readFloatValuesForRowIndices(deIndices, "TSTAT");
+    }
+
+    public float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException {
+        return readFloatValuesForRowIndex(designElementIndex, "TSTAT", "t-statistics");
+    }
+
     public ArrayFloat.D2 getTStatistics() throws IOException {
         Variable tStatVariable = netCDF.findVariable("TSTAT");
         if (tStatVariable == null) {
@@ -656,18 +668,6 @@ public final class NetCDFProxy implements Closeable {
         }
 
         return (ArrayFloat.D2) pValVariable.read();
-    }
-
-    /**
-     * Extracts T-statistic matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract T-statistic for
-     * @return matrix of floats - an array of T-statistic values per each design element index
-     * @throws IOException           if the data could not be read from the netCDF file
-     * @throws InvalidRangeException if array of design element indices contains out of bound indices
-     */
-    FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException {
-        return readFloatValuesForRowIndices(deIndices, "TSTAT");
     }
 
     /**

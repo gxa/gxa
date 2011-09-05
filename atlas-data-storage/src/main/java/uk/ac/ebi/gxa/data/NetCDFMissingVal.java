@@ -38,7 +38,7 @@ import ucar.nc2.iosp.netcdf3.N3iosp;
  * @author Olga Melnichuk
  *         Date: 21/04/2011
  */
-public class NetCDFMissingVal {
+class NetCDFMissingVal {
     private static final String[] MISSING_VALUE_ATTRIBUTES = new String[]{"missing_value", N3iosp.FillValue};
     private static final float FLOAT_MISSING_VALUE_R = 1e+30f;
 
