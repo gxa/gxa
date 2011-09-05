@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
@@ -55,6 +56,9 @@ public class BioMartAnnotationSourceLoader {
 
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
+
+    @Autowired
+    private ArrayDesignService arrayDesignService;
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
@@ -214,12 +218,8 @@ public class BioMartAnnotationSourceLoader {
         for (String propName : properties.stringPropertyNames()) {
 
             if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
-                ArrayDesign arrayDesign = annSrcDAO.getArrayDesignShallowByAccession(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
-                if (arrayDesign != null) {
+                ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
                     bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
-                } else {
-                    //ToDo: Create new array design [#2924]
-                }
             }
         }
 
@@ -290,7 +290,6 @@ public class BioMartAnnotationSourceLoader {
             properties.addProperty(propNamePrefix + "." + beProp, bmProperties.toString());
         }
     }
-
 
     private String getProperty(String name, Properties properties) throws AnnotationLoaderException {
         String property = properties.getProperty(name);

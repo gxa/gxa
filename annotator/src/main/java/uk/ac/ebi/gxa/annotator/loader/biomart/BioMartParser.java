@@ -82,6 +82,7 @@ public class BioMartParser<T extends BioEntityData> {
 
             while ((line = csvReader.readNext()) != null) {
                 if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
+                    log.debug("Cannot get property " + property.getName() + " line: " + line.toString());
                     throw new AtlasAnnotationException("Cannot get property " + property.getName());
                 }
 

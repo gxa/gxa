@@ -487,10 +487,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
     </bean>
 
-    <!--ToDo (ns): move to annotation context -->
-    <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader">
-    </bean>
-
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 

@@ -67,6 +67,11 @@ public class ArrayDesignDAO {
         return getFirst(results, null);
     }
 
+    public void save(ArrayDesign ad) {
+        ht.saveOrUpdate(ad);   
+        ht.flush();
+    }
+
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
 
 
@@ -92,8 +97,9 @@ public class ArrayDesignDAO {
                     "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                     "  join a2_bioentity indexedbe on indexedbe.bioentityid = debe.bioentityid\n" +
                     "  join a2_bioentitytype betype on betype.bioentitytypeid = indexedbe.bioentitytypeid\n" +
-                    "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
-                    "  where debe.softwareid = ad.mappingswid\n" +
+//                    "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                    "  join a2_software sw on sw.softwareid = debe.softwareid\n" +
+                    "  where sw.isactive = 1\n" +
                     "  and betype.ID_FOR_INDEX = 1\n" +
                     "  and de.arraydesignid = ?",
                     new Object[]{arrayDesign.getArrayDesignID()},
