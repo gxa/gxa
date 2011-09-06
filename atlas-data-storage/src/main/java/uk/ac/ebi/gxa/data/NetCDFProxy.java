@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
@@ -229,8 +227,12 @@ public final class NetCDFProxy implements Closeable {
         return result;
     }
 
+    private String[] designElementAccessions;
     String[] getDesignElementAccessions() throws IOException {
-        return getArrayOfStrings("DEacc");
+        if (designElementAccessions == null) {
+            designElementAccessions = getArrayOfStrings("DEacc");
+        }
+        return designElementAccessions;
     }
 
     public String[] getAssayAccessions() throws IOException {
@@ -336,33 +338,35 @@ public final class NetCDFProxy implements Closeable {
         return result;
     }
 
+    private List<KeyValuePair> uniqueValues;
     List<KeyValuePair> getUniqueValues() throws IOException, AtlasDataException {
-        Variable uVALVar;
-        uVALVar = netCDF.findVariable("uVAL");
-
-        if (uVALVar == null) {
-            // This is to allow for backwards compatibility
-            uVALVar = netCDF.findVariable("uEFV");
-        }
-
-        if (uVALVar == null) {
-            return Collections.emptyList();
-        }
-
-        ArrayChar uVal = (ArrayChar) uVALVar.read();
-
-        final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
-        for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
-            final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
-            if (data.length != 2) {
-                throw new AtlasDataException("Invalid uVAL element: " + text);
+        if (uniqueValues == null) {
+            Variable uVALVar = netCDF.findVariable("uVAL");
+        
+            if (uVALVar == null) {
+                // This is to allow for backwards compatibility
+                uVALVar = netCDF.findVariable("uEFV");
             }
+        
+            if (uVALVar == null) {
+                uniqueValues = Collections.emptyList();
+            } else {
+                uniqueValues = new LinkedList<KeyValuePair>();
 
-            if (!"".equals(data[1])) {
-                list.add(new KeyValuePair(data[0], data[1]));
+                ArrayChar uVal = (ArrayChar)uVALVar.read();
+                for (Object text : (Object[])uVal.make1DStringArray().get1DJavaArray(String.class)) {
+                    final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
+                    if (data.length != 2) {
+                        throw new AtlasDataException("Invalid uVAL element: " + text);
+                    }
+            
+                    if (!"".equals(data[1])) {
+                        uniqueValues.add(new KeyValuePair(data[0], data[1]));
+                    }
+                }
             }
         }
-        return list;
+        return uniqueValues;
     }
 
     List<KeyValuePair> getUniqueFactorValues() throws IOException, AtlasDataException {
@@ -476,7 +480,6 @@ public final class NetCDFProxy implements Closeable {
             throws IOException, AtlasDataException {
 
         final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
-        final ExpressionAnalysisHelper eaHelper = new ExpressionAnalysisHelper();
 
         for (Map.Entry<Long, List<Integer>> entry : geneIdsToDEIndexes.entrySet()) {
             final Long geneId = entry.getKey();
@@ -490,13 +493,13 @@ public final class NetCDFProxy implements Closeable {
             for (Integer deIndex : entry.getValue()) {
                 List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
-                    ExpressionAnalysis ea = eaHelper.getByDesignElementIndex(deIndex).getByEF(efVal, efvVal);
+                    ExpressionAnalysis ea = new ExpressionAnalysisResult(deIndex).getByEF(efVal, efvVal);
                     if (ea != null &&
                             upDownCondition.apply(UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()))) {
                         eaList.add(ea);
                     }
                 } else {
-                    eaList.addAll(eaHelper.getByDesignElementIndex(deIndex).getAll());
+                    eaList.addAll(new ExpressionAnalysisResult(deIndex).getAll());
                 }
 
                 for (ExpressionAnalysis ea : eaList) {
@@ -545,85 +548,52 @@ public final class NetCDFProxy implements Closeable {
 
     //TODO: temporary solution; should be replaced in the future releases
 
-    static abstract class ExpressionAnalysisResult {
-        private float[] p;
-        private float[] t;
-        private int deIndex;
+    private class ExpressionAnalysisResult {
+        private final int deIndex;
+        private final float[] p;
+        private final float[] t;
 
-        private ExpressionAnalysisResult(int deIndex, float[] p, float[] t) {
+        private ExpressionAnalysisResult(int deIndex) throws IOException, AtlasDataException {
             this.deIndex = deIndex;
-            this.p = p;
-            this.t = t;
+            this.p = getPValuesForDesignElement(deIndex);
+            this.t = getTStatisticsForDesignElement(deIndex);
         }
 
-        private List<ExpressionAnalysis> list(Predicate<Integer> predicate) {
-            List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
-
+        public List<ExpressionAnalysis> getAll() throws IOException, AtlasDataException {
+            final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
             for (int j = 0; j < p.length; j++) {
-                if (predicate.apply(j)) {
-                    ExpressionAnalysis ea = createExpressionAnalysis(deIndex, j);
-                    ea.setPValAdjusted(p[j]);
-                    ea.setTStatistic(t[j]);
-                    list.add(ea);
-                }
+                list.add(createExpressionAnalysis(j));
             }
-
             return list;
         }
 
-        public List<ExpressionAnalysis> getAll() {
-            return list(Predicates.<Integer>alwaysTrue());
-        }
-
-        public ExpressionAnalysis getByEF(final String efName, final String efvName) {
-            List<ExpressionAnalysis> list = list(new Predicate<Integer>() {
-                public boolean apply(Integer o) {
-                    return isIndexValid(o, efName, efvName);
+        public ExpressionAnalysis getByEF(final String efName, final String efvName) throws IOException, AtlasDataException {
+            final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
+            for (int j = 0; j < p.length; j++) {
+                if (isIndexValid(j, efName, efvName)) {
+                    list.add(createExpressionAnalysis(j));
                 }
-            });
+            }
             return list.isEmpty() ? null : list.get(0);
         }
 
-        public abstract ExpressionAnalysis createExpressionAnalysis(int deIndex, int efIndex);
-
-        public abstract boolean isIndexValid(int index, String efName, String efvName);
-    }
-
-    class ExpressionAnalysisHelper {
-        private List<KeyValuePair> uniquePropertyValues = new ArrayList<KeyValuePair>();
-        private String[] designElementAccessions;
-
-        private ExpressionAnalysisHelper() throws IOException, AtlasDataException {
-            uniquePropertyValues.addAll(getUniqueValues());
-            designElementAccessions = getDesignElementAccessions();
+        public ExpressionAnalysis createExpressionAnalysis(int efIndex) throws IOException, AtlasDataException {
+            final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
+            final ExpressionAnalysis ea = new ExpressionAnalysis();
+            ea.setEfName(uniqueValue.key);
+            ea.setEfvName(uniqueValue.value);
+            ea.setDesignElementAccession(getDesignElementAccessions()[deIndex]);
+            ea.setDesignElementIndex(deIndex);
+            ea.setArrayDesignAccession(getArrayDesignAccession());
+            ea.setPValAdjusted(p[efIndex]);
+            ea.setTStatistic(t[efIndex]);
+            return ea;
         }
 
-        public ExpressionAnalysisResult getByDesignElementIndex(int deIndex) throws IOException, AtlasDataException {
-
-            float[] p = getPValuesForDesignElement(deIndex);
-            float[] t = getTStatisticsForDesignElement(deIndex);
-
-            return new ExpressionAnalysisResult(deIndex, p, t) {
-
-                @Override
-                public ExpressionAnalysis createExpressionAnalysis(int deIndex, int efIndex) {
-                    final KeyValuePair uniqueValue = uniquePropertyValues.get(efIndex);
-                    final ExpressionAnalysis ea = new ExpressionAnalysis();
-                    ea.setEfName(uniqueValue.key);
-                    ea.setEfvName(uniqueValue.value);
-                    ea.setDesignElementAccession(designElementAccessions[deIndex]);
-                    ea.setDesignElementIndex(deIndex);
-                    ea.setArrayDesignAccession(getArrayDesignAccession());
-                    return ea;
-                }
-
-                @Override
-                public boolean isIndexValid(int efIndex, String efName, String efvName) {
-                    final KeyValuePair uniqueValue = uniquePropertyValues.get(efIndex);
-                    return uniqueValue.key.equals(efName) &&
-                            (efvName == null || uniqueValue.value.equals(efvName));
-                }
-            };
+        public boolean isIndexValid(int efIndex, String efName, String efvName) throws IOException, AtlasDataException {
+            final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
+            return uniqueValue.key.equals(efName) &&
+                    (efvName == null || uniqueValue.value.equals(efvName));
         }
     }
 
