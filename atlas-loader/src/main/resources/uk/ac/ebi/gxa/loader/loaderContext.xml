@@ -5,7 +5,6 @@
 
     <bean id="loaderDAO" class="uk.ac.ebi.gxa.loader.dao.LoaderDAO">
         <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="propertyDAO"/>
         <constructor-arg ref="propertyValueDAO"/>
         <constructor-arg ref="organismDAO"/>
         <constructor-arg ref="arrayDesignDAO"/>
