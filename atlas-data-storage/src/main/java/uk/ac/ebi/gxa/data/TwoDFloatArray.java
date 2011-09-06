@@ -22,16 +22,20 @@
 
 package uk.ac.ebi.gxa.data;
 
-import ucar.ma2.Array;
+import ucar.ma2.ArrayFloat;
 import ucar.ma2.InvalidRangeException;
 
 public final class TwoDFloatArray {
-    private final Array array;
+    private final ArrayFloat.D2 array;
     private final int[] shape;
 
-    TwoDFloatArray(Array array) {
+    TwoDFloatArray(ArrayFloat.D2 array) {
         this.array = array;
         this.shape = new int[] {1, array.getShape()[1]};
+    }
+
+    public int getRowCount() {
+        return array.getShape()[0];
     }
 
     public float[] getRow(int index) {
@@ -41,5 +45,9 @@ public final class TwoDFloatArray {
         } catch (InvalidRangeException e) {
             return new float[0];
         }
+    }
+
+    public float get(int i, int j) {
+        return array.get(i, j);
     }
 }

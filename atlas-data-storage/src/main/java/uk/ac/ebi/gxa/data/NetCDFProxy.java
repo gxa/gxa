@@ -419,11 +419,7 @@ public final class NetCDFProxy implements Closeable {
 
     private TwoDFloatArray readFloatValuesForAllRows(String varName) throws IOException {
         final Variable variable = netCDF.findVariable(varName);
-        return new TwoDFloatArray(variable.read());
-    }
-
-    float[] getPValuesForDesignElement(int designElementIndex) throws IOException, AtlasDataException {
-        return readFloatValuesForRowIndex(designElementIndex, "PVAL");
+        return new TwoDFloatArray(variable != null ? (ArrayFloat.D2)variable.read() : new ArrayFloat.D2(0, 0));
     }
 
     /**
@@ -462,22 +458,8 @@ public final class NetCDFProxy implements Closeable {
         return readFloatValuesForRowIndex(designElementIndex, "TSTAT");
     }
 
-    public ArrayFloat.D2 getTStatistics() throws IOException {
-        Variable tStatVariable = netCDF.findVariable("TSTAT");
-        if (tStatVariable == null) {
-            return new ArrayFloat.D2(0, 0);
-        }
-
-        return (ArrayFloat.D2) tStatVariable.read();
-    }
-
-    public ArrayFloat.D2 getPValues() throws IOException {
-        Variable pValVariable = netCDF.findVariable("PVAL");
-        if (pValVariable == null) {
-            return new ArrayFloat.D2(0, 0);
-        }
-
-        return (ArrayFloat.D2) pValVariable.read();
+    TwoDFloatArray getTStatistics() throws IOException {
+        return readFloatValuesForAllRows("TSTAT");
     }
 
     /**
@@ -490,6 +472,14 @@ public final class NetCDFProxy implements Closeable {
      */
     FloatMatrixProxy getPValues(int[] deIndices) throws IOException, AtlasDataException {
         return readFloatValuesForRowIndices(deIndices, "PVAL");
+    }
+
+    float[] getPValuesForDesignElement(int designElementIndex) throws IOException, AtlasDataException {
+        return readFloatValuesForRowIndex(designElementIndex, "PVAL");
+    }
+
+     TwoDFloatArray getPValues() throws IOException {
+        return readFloatValuesForAllRows("PVAL");
     }
 
     /**

@@ -69,7 +69,7 @@ public class ExperimentWithData implements Closeable {
         return null;
     }
 
-    // TODO: change access rights to private
+    // TODO: change to private
     public NetCDFProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
@@ -434,6 +434,22 @@ public class ExperimentWithData implements Closeable {
     public TwoDFloatArray getAllExpressionData(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
             return getProxy(arrayDesign).getAllExpressionData();
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getTStatistics();
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    public TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException {
+        try {
+            return getProxy(arrayDesign).getPValues();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
