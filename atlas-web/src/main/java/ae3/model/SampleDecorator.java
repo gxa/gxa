@@ -45,7 +45,7 @@ public class SampleDecorator {
     /**
      * Constructor
      *
-     * @param number                sample number
+     * @param number sample number
      */
     SampleDecorator(Sample sample, int number) {
         this.sample = sample;

@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -52,19 +53,19 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(exp);
         try {
             final List<ExperimentDesignUI> designs = new ArrayList<ExperimentDesignUI>();
-        
+
             for (ArrayDesign ad : arrayDesigns) {
                 final ExperimentDesignUI experimentDesign = new ExperimentDesignUI();
-        
+
                 final String[] adFactors = ewd.getFactors(ad);
                 final Map<String, String[]> factorValues = new HashMap<String, String[]>();
                 for (String factor : adFactors) {
                     experimentDesign.addFactor(factor);
                     factorValues.put(factor, ewd.getFactorValues(ad, factor));
                 }
-        
+
                 final List<String> sampleCharacteristicsNotFactors = new ArrayList<String>();
-        
+
                 final String[] sampleCharacteristics = ewd.getCharacteristics(ad);
                 final Map<String, String[]> characteristicValues = new HashMap<String, String[]>();
                 for (String factor : sampleCharacteristics) {
@@ -73,18 +74,18 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
                         sampleCharacteristicsNotFactors.add(factor);
                     }
                 }
-        
+
                 int iAssay = 0;
-        
+
                 for (Assay a : ewd.getAssays(ad)) {
                     AssayInfo assay = new AssayInfo();
                     assay.setName(a.getAccession());
                     assay.setArrayDesignAccession(ad.getAccession());
-        
+
                     for (String factor : adFactors) {
                         experimentDesign.addAssay(factor, assay, factorValues.get(factor)[iAssay]);
                     }
-        
+
                     for (String factor : sampleCharacteristicsNotFactors) {
                         StringBuilder allValuesOfThisFactor = new StringBuilder();
                         for (int iSample : ewd.getSamplesForAssay(ad,iAssay)) {
@@ -94,12 +95,12 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
                         }
                         experimentDesign.addAssay(factor, assay, allValuesOfThisFactor.toString());
                     }
-        
+
                     ++iAssay;
                 }
                 designs.add(experimentDesign);
             }
-        
+
             return mergeExperimentDesigns(designs);
         } finally {
             ewd.close();

@@ -98,7 +98,7 @@ public class SourceStep {
             }
 
             if (!existing) {
-                final PropertyValue property = dao.getOrCreateProperty(characteristicsAttribute.type, characteristicsAttribute.getNodeName());
+                final PropertyValue property = dao.getOrCreatePropertyValue(characteristicsAttribute.type, characteristicsAttribute.getNodeName());
                 sample.addProperty(property);
 
                 if ("organism".equals(property.getDefinition().getName().toLowerCase())) {

@@ -27,7 +27,6 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
-import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -36,13 +35,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
@@ -58,6 +60,7 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -97,9 +100,67 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     /**
      * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/
+     * Parameter gid (geneid) is optional - this is to support queries such as: /experiment/E-GEOD-5099?ad=A-AFFY-34&gid=GBP5
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment/{eid}", method = RequestMethod.GET)
+    public String getExperimentWithOptionalGene(
+            @PathVariable("eid") final String accession,
+            @RequestParam(value = "gid", required = false) String gid,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, gid, null);
+    }
+
+    /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487).
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param gid       a gene identifier to fill in initial search fields
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment/{eid}/{gid}", method = RequestMethod.GET)
+    public String getExperiment(
+            @PathVariable("eid") final String accession,
+            @PathVariable("gid") final String gid,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, gid, null);
+    }
+
+    /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part).
+     *
+     * @param accession an experiment accession to show experiment page for
+     * @param gid       a gene identifier to fill in initial search fields
+     * @param ef        an experiment factor name to fill in initial search fields
+     * @param model     a model for the view to render
+     * @return path of the view
+     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     */
+    @RequestMapping(value = "/experiment/{eid}/{gid}/{ef}", method = RequestMethod.GET)
+    public String getExperiment(
+            @PathVariable("eid") final String accession,
+            @PathVariable("gid") final String gid,
+            @PathVariable("ef") final String ef,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, gid, ef);
+    }
+
+    /**
+     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
      * appropriate values and returns the corresponding view. Parameters like gid (geneId) and ef (experiment factor)
-     * are optional; they could be specified manually or by the url re-writer
-     * (when url like /experiment/E-MTAB-62/ENSG00000136487/organism_part is used).
+     * are optional; they can be specified manually e.g.  /experiment?eid=E-MTAB-62&gid=ENSG00000136487&ef=organism_part
      *
      * @param accession an experiment accession to show experiment page for
      * @param gid       a gene identifier to fill in initial search fields
@@ -109,27 +170,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @throws ResourceNotFoundException if an experiment with the given accession is not found
      */
     @RequestMapping(value = "/experiment", method = RequestMethod.GET)
-    public String getExperiment(
+    public String getExperimentWithOptionalParams(
             @RequestParam("eid") String accession,
             @RequestParam(value = "gid", required = false) String gid,
             @RequestParam(value = "ef", required = false) String ef,
             Model model) throws ResourceNotFoundException {
-
-        JsMapModel jsMapModel = JsMapModel.wrap(model);
-
-        ExperimentPage page = createExperimentPage(accession);
-        page.enhance(jsMapModel);
-
-        jsMapModel
-                .addJsAttribute("eid", page.getExperiment().getAccession())
-                .addJsAttribute("gid", gid)
-                .addJsAttribute("ef", ef);
-
-        if (page.isExperimentInCuration()) {
-            return "experimentpage/experiment-incuration";
-        }
-
-        return "experimentpage/experiment";
+        return getExperiment(model, accession, gid, ef);
     }
 
     /**
@@ -152,7 +198,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, AtlasDataException {
+    ) throws ResourceNotFoundException, AtlasDataException, RecordNotFoundException {
 
         final ExperimentPage page = createExperimentPage(accession);
         final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
@@ -161,22 +207,23 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        ExperimentWithData ewd = null;
         try {
+            ewd = atlasDataDAO.createExperimentWithData(experiment);
             model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
             if (assayPropertiesRequired) {
                 model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
             }
+            return UNSUPPORTED_HTML_VIEW;
         } finally {
-            ewd.close();
+            closeQuietly(ewd);
         }
-        return UNSUPPORTED_HTML_VIEW;
     }
 
     /**
      * This method HTTP GET's assetFileName's content for a given experiment provided that
      * 1. assetFileName is listed against that experiment in DB
-     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourcePattern)
+     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourceType)
      *
      * @param accession     experiment accession
      * @param assetFileName asset file name
@@ -188,27 +235,30 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public void getExperimentAsset(
             @RequestParam("eid") String accession,
             @RequestParam("asset") String assetFileName,
-            HttpServletResponse response
-    ) throws IOException, ResourceNotFoundException {
+            HttpServletResponse response) throws IOException, ResourceNotFoundException, RecordNotFoundException {
 
-        if (!Strings.isNullOrEmpty(accession) && !Strings.isNullOrEmpty(assetFileName)) {
-            Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        if (isNullOrEmpty(accession) || isNullOrEmpty(assetFileName))
+            throw new ResourceNotFoundException("Incomplete request");
 
-            if (experiment != null) {
-                for (Asset asset : experiment.getAssets()) {
-                    if (assetFileName.equals(asset.getFileName())) {
-                        for (ResourcePattern rp : ResourcePattern.values()) {
-                            if (rp.handle(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), assetFileName, response)) {
-                                return;
-                            }
-                        }
-                        break;
-                    }
+        Experiment experiment = atlasDAO.getExperimentByAccession(accession);
 
-                }
-            }
-        }
-        throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
+        Asset asset = experiment.getAsset(assetFileName);
+        if (asset == null)
+            throw assetNotFound(accession, assetFileName);
+
+        final File assetFile = new File(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), asset.getFileName());
+        if (!assetFile.exists())
+            throw assetNotFound(accession, assetFileName);
+
+        ResourceType type = ResourceType.getByFileName(assetFileName);
+        if (type == null)
+            throw assetNotFound(accession, assetFileName);
+
+        send(response, assetFile, type);
+    }
+
+    private ResourceNotFoundException assetNotFound(String accession, String assetFileName) {
+        return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
 
     /**
@@ -238,11 +288,11 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws AtlasDataException {
-        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-
+    ) throws ResourceNotFoundException, RecordNotFoundException {
+        ExperimentWithData ewd = null;
         try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+            ewd = atlasDataDAO.createExperimentWithData(experiment);
             final BestDesignElementsResult res =
                     experimentAnalyticsService.findBestGenesForExperiment(
                             ewd,
@@ -267,7 +317,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            ewd.close();
+            closeQuietly(ewd);
         }
     }
 
@@ -277,6 +327,36 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             tips.put("" + gene.getGeneId(), new GeneToolTip(gene));
         }
         return tips;
+    }
+
+    /**
+     * An experiment page handler utility. If the experiment with the given id/accession exists it fills the model with the
+     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part
+     *  note that gid and ef are optional.
+     *
+     * @param model
+     * @param accession
+     * @param gid
+     * @param ef
+     * @return
+     * @throws ResourceNotFoundException
+     */
+    private String getExperiment(Model model, String accession, @Nullable final String gid, @Nullable final String ef) throws ResourceNotFoundException {
+        JsMapModel jsMapModel = JsMapModel.wrap(model);
+
+        ExperimentPage page = createExperimentPage(accession);
+        page.enhance(jsMapModel);
+
+        jsMapModel
+                .addJsAttribute("eid", page.getExperiment().getAccession())
+                .addJsAttribute("gid", gid)
+                .addJsAttribute("ef", ef);
+
+        if (page.isExperimentInCuration()) {
+            return "experimentpage/experiment-incuration";
+        }
+
+        return "experimentpage/experiment";
     }
 
     private class GeneToolTip {
