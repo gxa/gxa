@@ -26,15 +26,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.NetCDFCreator;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.data.NetCDFCreator;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -207,7 +208,9 @@ public class AtlasMAGETABLoader {
 
         // check experiment exists in database, and not just in the loadmonitor
         String experimentAccession = cache.fetchExperiment().getAccession();
-        if (dao.getExperiment(experimentAccession) != null) {
+
+        try {
+            dao.getExperiment(experimentAccession);
             // experiment genuinely was already in the DB, so remove old experiment
             log.info("Deleting existing version of experiment " + experimentAccession);
             try {
@@ -217,6 +220,8 @@ public class AtlasMAGETABLoader {
             } catch (AtlasLoaderException e) {
                 throw new AtlasLoaderException(e);
             }
+        } catch (RecordNotFoundException e) {
+            // do nothing - experiment matching experimentAccession not found is a valid situation here
         }
 
         // start the load(s)

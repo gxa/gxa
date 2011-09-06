@@ -25,7 +25,10 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -58,10 +61,10 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        getAtlasDAO().startSession();
         try {
             final List<Experiment> experiments = experimentDAO.getAll();
 
@@ -75,19 +78,17 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
-        } finally {
-            getAtlasDAO().finishSession();
         }
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(cmd, progressUpdater);
         String accession = cmd.getAccession();
 
         getLog().info("Updating index for experiment " + accession);
 
-        getAtlasDAO().startSession();
         try {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
@@ -98,8 +99,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         } catch (IOException e) {
             throw new IndexBuilderException(e);
-        } finally {
-            getAtlasDAO().finishSession();
+        } catch (RecordNotFoundException e) {
+            throw new IndexBuilderException(e);
         }
     }
 

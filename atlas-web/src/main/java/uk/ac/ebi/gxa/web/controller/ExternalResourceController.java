@@ -6,19 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.google.common.io.ByteStreams.copy;
-import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * @author Olga Melnichuk
@@ -36,11 +30,7 @@ public class ExternalResourceController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/look/*", method = RequestMethod.GET)
-    public void getResource(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws ResourceNotFoundException, IOException {
-
+    public void getResource(HttpServletRequest request, HttpServletResponse response) throws ResourceNotFoundException, IOException {
         String[] uri = request.getServletPath().split("/");
         String resourceName = uri[uri.length - 1];
 
@@ -49,11 +39,11 @@ public class ExternalResourceController extends AtlasViewController {
             throw new ResourceNotFoundException("Look and feel directory for external resources is not set: \"" + dir.getPath() + "\"");
         }
 
-        for (ResourcePattern rp : ResourcePattern.values()) {
-            if (rp.handle(dir, resourceName, response)) {
-                return;
-            }
+        ResourceType type = ResourceType.getByFileName(resourceName);
+        if (type == null) {
+            throw new ResourceNotFoundException("Undefined type of external resource: " + resourceName);
         }
-        throw new ResourceNotFoundException("Undefined type of external resource: " + resourceName);
+
+        send(response, new File(dir, resourceName), type);
     }
 }

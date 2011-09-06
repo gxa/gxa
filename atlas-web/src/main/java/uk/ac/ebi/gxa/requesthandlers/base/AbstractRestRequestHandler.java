@@ -154,7 +154,8 @@ public abstract class AbstractRestRequestHandler implements HttpRequestHandler {
      * @param request HTTP request to handle
      * @return result object to be formatted with REST output formatter according to chosen by setRestProfile() mthod
      *         profile.
+     * @throws ServletException
      */
-    public abstract Object process(HttpServletRequest request);
+    public abstract Object process(HttpServletRequest request) throws ServletException;
 }
 

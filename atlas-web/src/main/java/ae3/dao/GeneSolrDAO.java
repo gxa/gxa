@@ -184,7 +184,7 @@ public class GeneSolrDAO {
      * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
      */
     public Iterable<AtlasGene> getGenesByName(String name) {
-        final SolrQuery q = new SolrQuery(" name:" + name);
+        final SolrQuery q = new SolrQuery(" name:" + EscapeUtil.escapeSolr(name));
         return createIteratorForQuery(q);
     }
 

@@ -1,6 +1,8 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
 import it.uniroma3.mat.extendedset.FastSet;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ucar.ma2.ArrayFloat;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
@@ -106,20 +108,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas data
      */
-    private StatisticsStorage bitIndexExperiments(
-            final ProgressUpdater progressUpdater,
-            final Integer progressLogFreq) {
-        getAtlasDAO().startSession();
-        try {
-            return bitIndexExperimentsInSession(progressUpdater, progressLogFreq);
-        } finally {
-            getAtlasDAO().finishSession();
-        }
-    }
-
-    private StatisticsStorage bitIndexExperimentsInSession(
-            final ProgressUpdater progressUpdater,
-            final Integer progressLogFreq) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private StatisticsStorage bitIndexExperiments(final ProgressUpdater progressUpdater,
+                                                  final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
         final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
