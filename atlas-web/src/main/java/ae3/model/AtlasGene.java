@@ -399,7 +399,7 @@ public class AtlasGene {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
             List<ExperimentResult> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
-            UpdownCounter counter = result.getOrCreate(attr.getEf(), attr.getEfv(), maker);
+            UpdownCounter counter = result.getOrCreateCaseSensitive(attr.getEf(), attr.getEfv(), maker);
             // Retrieve all up/down counts and pvals/tStatRanks
             for (ExperimentResult exp : allExperimentsForAttribute) {
                 UpDownExpression upDown = UpDownExpression.valueOf(exp.getPValTStatRank().getPValue(), exp.getPValTStatRank().getTStatRank());
