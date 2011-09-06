@@ -137,12 +137,11 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Loader component -->
 
 
-
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <constructor-arg ref="propertyDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="pdao" ref="propertyDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
     </bean>
 

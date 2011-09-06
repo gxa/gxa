@@ -43,7 +43,7 @@ import java.util.List;
 public class PropertiesIndexBuilderService extends IndexBuilderService {
     private PropertyDAO pdao;
 
-    public PropertiesIndexBuilderService(PropertyDAO pdao) {
+    public void setPdao(PropertyDAO pdao) {
         this.pdao = pdao;
     }
 
