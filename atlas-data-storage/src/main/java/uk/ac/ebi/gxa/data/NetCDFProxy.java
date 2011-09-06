@@ -500,16 +500,16 @@ public final class NetCDFProxy implements Closeable {
                 }
 
                 for (ExpressionAnalysis ea : eaList) {
-                    String ef = ea.getEfName();
-                    String efv = ea.getEfvName();
+                    final String ef = ea.getEfName();
+                    final String efv = ea.getEfvName();
 
-                    if (resultForGene.get(ef) == null) {
-                        Map<String, ExpressionAnalysis> efvToEA = new HashMap<String, ExpressionAnalysis>();
-                        resultForGene.put(ef, efvToEA);
+                    Map<String, ExpressionAnalysis> resultForFactor = resultForGene.get(ef);
+                    if (resultForFactor == null) {
+                        resultForFactor = new HashMap<String, ExpressionAnalysis>();
+                        resultForGene.put(ef, resultForFactor);
                     }
 
-                    ExpressionAnalysis prevBestPValueEA =
-                            resultForGene.get(ef).get(efv);
+                    ExpressionAnalysis prevBestPValueEA = resultForFactor.get(efv);
                     if ((prevBestPValueEA == null ||
                             // Mo stats were available in the previously seen ExpressionAnalysis
                             isNaN(prevBestPValueEA.getPValAdjusted()) || isNaN(prevBestPValueEA.getTStatistic()) ||
@@ -526,7 +526,7 @@ public final class NetCDFProxy implements Closeable {
                             ea.setTStatistic(Float.NaN);
 
                         }
-                        resultForGene.get(ef).put(efv, ea);
+                        resultForFactor.put(efv, ea);
                     }
                 }
             }

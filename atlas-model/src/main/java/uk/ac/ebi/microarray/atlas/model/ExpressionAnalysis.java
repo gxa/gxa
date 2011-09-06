@@ -73,16 +73,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         this.efvName = efvName;
     }
 
-    /*
-    public long getExperimentID() {
-        return experimentID;
-    }
-
-    public void setExperimentID(long experimentID) {
-        this.experimentID = experimentID;
-    }
-    */
-
     public String getDesignElementAccession() {
         return designElementAccession;
     }
