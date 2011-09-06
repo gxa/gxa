@@ -238,26 +238,136 @@ public class ExperimentWithData implements Closeable {
         }
     }
 
-    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(ArrayDesign arrayDesign, Map<Long, List<Integer>> geneIdsToDEIndexes) throws AtlasDataException {
-        try {
-            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes);
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
-        }
+    private List<ExpressionAnalysis> getAllExpressionAnalyses(ArrayDesign arrayDesign, int deIndex) throws AtlasDataException {
+        return getExpressionAnalysesByFactor(arrayDesign, deIndex, null, null);
     }
 
-    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+    private List<ExpressionAnalysis> getExpressionAnalysesByFactor(ArrayDesign arrayDesign, int deIndex, String efName, String efvName) throws AtlasDataException {
+        final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
+        final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
+        final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
+
+        final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
+        for (int efIndex = 0; efIndex < p.length; efIndex++) {
+            final KeyValuePair uniqueValue = getUniqueValues(arrayDesign).get(efIndex);
+            if (efName == null ||
+                (uniqueValue.key.equals(efName) &&
+                 (efvName == null || uniqueValue.value.equals(efvName)))) {
+                list.add(new ExpressionAnalysis(
+                    arrayDesign.getAccession(),
+                    deAccession,
+                    deIndex,
+                    uniqueValue.key,
+                    uniqueValue.value,
+                    t[efIndex],
+                    p[efIndex]
+                ));
+            }
+        }
+        return list;
+    }
+
+    /**
+     * /**
+     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueValues,
+     * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
+     * geneIdsToEfToEfvToEA.
+     *
+     * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
+     * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     *         Note that ea contains proxyId and designElement index from which it came, so that
+     *         the actual expression values can be easily retrieved later
+     * @throws IOException in case of I/O errors
+     */
+    private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+        ArrayDesign arrayDesign,
+        Map<Long,List<Integer>> geneIdsToDEIndexes
+    ) throws AtlasDataException {
+        return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdsToDEIndexes, null, null, UpDownCondition.CONDITION_ANY);
+    }
+
+    /**
+     * For each gene in the keySet() of geneIdsToDEIndexes,  and for either efVal-efvVal or (if both arguments are not null)
+     * for each efv in uniqueValues, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * geneIdsToEfToEfvToEA - if the minPvalue found in this proxy is better than the one already in
+     * geneIdsToEfToEfvToEA.
+     *
+     * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
+     * @param efVal              ef to retrieve ExpressionAnalyses for
+     * @param efvVal             efv to retrieve ExpressionAnalyses for; if either efVal or efvVal are null,
+     *                           ExpressionAnalyses for all ef-efvs will be retrieved
+     * @param upDownCondition    desired expression; used only when efVal-efvVal are specified
+     * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
+     *         Note that ea contains proxyId and designElement index from which it came, so that
+     *         the actual expression values can be easily retrieved later
+     * @throws IOException in case of I/O errors
+     */
+    private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             @Nullable final String efVal,
             @Nullable final String efvVal,
-            final UpDownCondition upDownCondition)
-            throws AtlasDataException {
-        try {
-            return getProxy(arrayDesign).getExpressionAnalysesForDesignElementIndexes(geneIdsToDEIndexes, efVal, efvVal, upDownCondition);
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
+            final UpDownCondition upDownCondition
+    ) throws AtlasDataException {
+        final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
+
+        for (Map.Entry<Long, List<Integer>> entry : geneIdsToDEIndexes.entrySet()) {
+            final Long geneId = entry.getKey();
+
+            if (geneId == 0) continue; // skip geneid = 0
+
+            final Map<String, Map<String, ExpressionAnalysis>> resultForGene =
+                new HashMap<String, Map<String, ExpressionAnalysis>>();
+            result.put(geneId, resultForGene);
+
+            for (Integer deIndex : entry.getValue()) {
+                List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
+                if (efVal != null && efvVal != null) {
+                    final List<ExpressionAnalysis> eas =
+                        getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
+                    // TODO: only 1st element of list is used. Why? -- NP
+                    if (!eas.isEmpty() &&
+                        upDownCondition.apply(UpDownExpression.valueOf(eas.get(0).getPValAdjusted(), eas.get(0).getTStatistic()))) {
+                        eaList.add(eas.get(0));
+                    }
+                } else {
+                    eaList.addAll(getAllExpressionAnalyses(arrayDesign, deIndex));
+                }
+
+                for (ExpressionAnalysis ea : eaList) {
+                    final String ef = ea.getEfName();
+                    final String efv = ea.getEfvName();
+
+                    Map<String, ExpressionAnalysis> resultForFactor = resultForGene.get(ef);
+                    if (resultForFactor == null) {
+                        resultForFactor = new HashMap<String, ExpressionAnalysis>();
+                        resultForGene.put(ef, resultForFactor);
+                    }
+
+                    ExpressionAnalysis prevBestPValueEA = resultForFactor.get(efv);
+                    if ((prevBestPValueEA == null ||
+                            // Mo stats were available in the previously seen ExpressionAnalysis
+                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) || Float.isNaN(prevBestPValueEA.getTStatistic()) ||
+                            // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
+                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
+                            (!Float.isNaN(ea.getPValAdjusted()) && !Float.isNaN(ea.getTStatistic()) &&
+                                    prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
+                                    Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
+                            ) {
+                        if (ea.getPValAdjusted() > 1) {
+                            // As the NA pvals/tstats  currently come back from ncdfs as 1.0E30, we convert them to Float.NaN
+                            ea.setPValAdjusted(Float.NaN);
+                            ea.setTStatistic(Float.NaN);
+
+                        }
+                        resultForFactor.put(efv, ea);
+                    }
+                }
+            }
         }
+        return result;
     }
 
     /**
