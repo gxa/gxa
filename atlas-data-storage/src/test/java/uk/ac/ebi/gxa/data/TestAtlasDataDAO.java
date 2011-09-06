@@ -79,8 +79,6 @@ public class TestAtlasDataDAO extends TestCase {
             //assertNotNull("Got null for experiment ID", ea.getExperimentID());
             assertNotNull("Got null for ef name", ea.getEfName());
             assertNotNull("Got null for efv name", ea.getEfvName());
-            assertNotNull("Got null for ef id", ea.getEfId());
-            assertNotNull("Got null for efv id", ea.getEfvId());
             assertNotNull("Got null for pvalue", ea.getPValAdjusted());
             assertNotNull("Got null for tstat", ea.getTStatistic());
             assertNotNull("Got null for arrayDesign accession", ea.getArrayDesignAccession());

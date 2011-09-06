@@ -579,15 +579,15 @@ public final class NetCDFProxy implements Closeable {
 
         public ExpressionAnalysis createExpressionAnalysis(int efIndex) throws IOException, AtlasDataException {
             final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
-            final ExpressionAnalysis ea = new ExpressionAnalysis();
-            ea.setEfName(uniqueValue.key);
-            ea.setEfvName(uniqueValue.value);
-            ea.setDesignElementAccession(getDesignElementAccessions()[deIndex]);
-            ea.setDesignElementIndex(deIndex);
-            ea.setArrayDesignAccession(getArrayDesignAccession());
-            ea.setPValAdjusted(p[efIndex]);
-            ea.setTStatistic(t[efIndex]);
-            return ea;
+            return new ExpressionAnalysis(
+                getArrayDesignAccession(),
+                getDesignElementAccessions()[deIndex],
+                deIndex,
+                uniqueValue.key,
+                uniqueValue.value,
+                t[efIndex],
+                p[efIndex]
+            );
         }
 
         public boolean isIndexValid(int efIndex, String efName, String efvName) throws IOException, AtlasDataException {
