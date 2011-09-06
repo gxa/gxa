@@ -493,13 +493,14 @@ public final class NetCDFProxy implements Closeable {
             for (Integer deIndex : entry.getValue()) {
                 List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
-                    ExpressionAnalysis ea = new ExpressionAnalysisResult(deIndex).getByEF(efVal, efvVal);
-                    if (ea != null &&
-                            upDownCondition.apply(UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()))) {
-                        eaList.add(ea);
+                    final List<ExpressionAnalysis> eas =
+                        new ExpressionAnalysisResult().getByEF(deIndex, efVal, efvVal);
+                    if (!eas.isEmpty() &&
+                        upDownCondition.apply(UpDownExpression.valueOf(eas.get(0).getPValAdjusted(), eas.get(0).getTStatistic()))) {
+                        eaList.add(eas.get(0));
                     }
                 } else {
-                    eaList.addAll(new ExpressionAnalysisResult(deIndex).getAll());
+                    eaList.addAll(new ExpressionAnalysisResult().getAll(deIndex));
                 }
 
                 for (ExpressionAnalysis ea : eaList) {
@@ -549,51 +550,33 @@ public final class NetCDFProxy implements Closeable {
     //TODO: temporary solution; should be replaced in the future releases
 
     private class ExpressionAnalysisResult {
-        private final int deIndex;
-        private final float[] p;
-        private final float[] t;
-
-        private ExpressionAnalysisResult(int deIndex) throws IOException, AtlasDataException {
-            this.deIndex = deIndex;
-            this.p = getPValuesForDesignElement(deIndex);
-            this.t = getTStatisticsForDesignElement(deIndex);
+        public List<ExpressionAnalysis> getAll(int deIndex) throws IOException, AtlasDataException {
+            return getByEF(deIndex, null, null);
         }
 
-        public List<ExpressionAnalysis> getAll() throws IOException, AtlasDataException {
-            final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
-            for (int j = 0; j < p.length; j++) {
-                list.add(createExpressionAnalysis(j));
-            }
-            return list;
-        }
+        public List<ExpressionAnalysis> getByEF(int deIndex, String efName, String efvName) throws IOException, AtlasDataException {
+            final String deAccession = getDesignElementAccessions()[deIndex];
+            final float[] p = getPValuesForDesignElement(deIndex);
+            final float[] t = getTStatisticsForDesignElement(deIndex);
 
-        public ExpressionAnalysis getByEF(final String efName, final String efvName) throws IOException, AtlasDataException {
             final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
-            for (int j = 0; j < p.length; j++) {
-                if (isIndexValid(j, efName, efvName)) {
-                    list.add(createExpressionAnalysis(j));
+            for (int efIndex = 0; efIndex < p.length; efIndex++) {
+                final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
+                if (efName == null ||
+                    (uniqueValue.key.equals(efName) &&
+                     (efvName == null || uniqueValue.value.equals(efvName)))) {
+                    list.add(new ExpressionAnalysis(
+                        getArrayDesignAccession(),
+                        deAccession,
+                        deIndex,
+                        uniqueValue.key,
+                        uniqueValue.value,
+                        t[efIndex],
+                        p[efIndex]
+                    ));
                 }
             }
-            return list.isEmpty() ? null : list.get(0);
-        }
-
-        public ExpressionAnalysis createExpressionAnalysis(int efIndex) throws IOException, AtlasDataException {
-            final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
-            return new ExpressionAnalysis(
-                getArrayDesignAccession(),
-                getDesignElementAccessions()[deIndex],
-                deIndex,
-                uniqueValue.key,
-                uniqueValue.value,
-                t[efIndex],
-                p[efIndex]
-            );
-        }
-
-        public boolean isIndexValid(int efIndex, String efName, String efvName) throws IOException, AtlasDataException {
-            final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
-            return uniqueValue.key.equals(efName) &&
-                    (efvName == null || uniqueValue.value.equals(efvName));
+            return list;
         }
     }
 
