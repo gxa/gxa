@@ -278,7 +278,7 @@ public class ExperimentWithData implements Closeable {
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws IOException in case of I/O errors
+     * @throws AtlasDataException in case of I/O errors
      */
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
         ArrayDesign arrayDesign,
@@ -301,7 +301,7 @@ public class ExperimentWithData implements Closeable {
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws IOException in case of I/O errors
+     * @throws AtlasDataException in case of I/O errors
      */
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
