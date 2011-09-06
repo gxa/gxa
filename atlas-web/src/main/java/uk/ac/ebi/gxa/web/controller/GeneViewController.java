@@ -87,15 +87,16 @@ public class GeneViewController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/gene/{gid}", method = RequestMethod.GET)
-    public String getGene(
+    public String getGeneWithId(
             @PathVariable("gid") final String geneId,
+            @RequestParam(value = "ef", required = false) String ef,
             Model model
     ) throws ResourceNotFoundException, IOException, TranscoderException {
-        return getGene(model, geneId, null);
+        return getGene(model, geneId, ef);
     }
 
     @RequestMapping(value = "/gene/{gid}/{ef}", method = RequestMethod.GET)
-    public String getGene(
+    public String getGeneWithIdAndEf(
             @PathVariable("gid") final String geneId,
             @PathVariable("ef") final String ef,
             Model model
@@ -104,7 +105,7 @@ public class GeneViewController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/gene", method = RequestMethod.GET)
-    public String getGeneWithOptionalParams(
+    public String getGene(
             @RequestParam("gid") String geneId,
             @RequestParam(value = "ef", required = false) String ef,
             Model model
