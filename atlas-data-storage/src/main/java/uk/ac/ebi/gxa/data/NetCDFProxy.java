@@ -494,13 +494,14 @@ public final class NetCDFProxy implements Closeable {
                 List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
                     final List<ExpressionAnalysis> eas =
-                        new ExpressionAnalysisResult().getByEF(deIndex, efVal, efvVal);
+                        getExpressionAnalisisByFactor(deIndex, efVal, efvVal);
+                    // TODO: only 1st element of list is used. Why? -- NP
                     if (!eas.isEmpty() &&
                         upDownCondition.apply(UpDownExpression.valueOf(eas.get(0).getPValAdjusted(), eas.get(0).getTStatistic()))) {
                         eaList.add(eas.get(0));
                     }
                 } else {
-                    eaList.addAll(new ExpressionAnalysisResult().getAll(deIndex));
+                    eaList.addAll(getAllExpressionAnalysis(deIndex));
                 }
 
                 for (ExpressionAnalysis ea : eaList) {
@@ -547,37 +548,33 @@ public final class NetCDFProxy implements Closeable {
         return Longs.asList(getGenes());
     }
 
-    //TODO: temporary solution; should be replaced in the future releases
+    private List<ExpressionAnalysis> getAllExpressionAnalysis(int deIndex) throws IOException, AtlasDataException {
+        return getExpressionAnalisisByFactor(deIndex, null, null);
+    }
 
-    private class ExpressionAnalysisResult {
-        public List<ExpressionAnalysis> getAll(int deIndex) throws IOException, AtlasDataException {
-            return getByEF(deIndex, null, null);
-        }
+    private List<ExpressionAnalysis> getExpressionAnalisisByFactor(int deIndex, String efName, String efvName) throws IOException, AtlasDataException {
+        final String deAccession = getDesignElementAccessions()[deIndex];
+        final float[] p = getPValuesForDesignElement(deIndex);
+        final float[] t = getTStatisticsForDesignElement(deIndex);
 
-        public List<ExpressionAnalysis> getByEF(int deIndex, String efName, String efvName) throws IOException, AtlasDataException {
-            final String deAccession = getDesignElementAccessions()[deIndex];
-            final float[] p = getPValuesForDesignElement(deIndex);
-            final float[] t = getTStatisticsForDesignElement(deIndex);
-
-            final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
-            for (int efIndex = 0; efIndex < p.length; efIndex++) {
-                final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
-                if (efName == null ||
-                    (uniqueValue.key.equals(efName) &&
-                     (efvName == null || uniqueValue.value.equals(efvName)))) {
-                    list.add(new ExpressionAnalysis(
-                        getArrayDesignAccession(),
-                        deAccession,
-                        deIndex,
-                        uniqueValue.key,
-                        uniqueValue.value,
-                        t[efIndex],
-                        p[efIndex]
-                    ));
-                }
+        final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
+        for (int efIndex = 0; efIndex < p.length; efIndex++) {
+            final KeyValuePair uniqueValue = getUniqueValues().get(efIndex);
+            if (efName == null ||
+                (uniqueValue.key.equals(efName) &&
+                 (efvName == null || uniqueValue.value.equals(efvName)))) {
+                list.add(new ExpressionAnalysis(
+                    getArrayDesignAccession(),
+                    deAccession,
+                    deIndex,
+                    uniqueValue.key,
+                    uniqueValue.value,
+                    t[efIndex],
+                    p[efIndex]
+                ));
             }
-            return list;
         }
+        return list;
     }
 
     /**
