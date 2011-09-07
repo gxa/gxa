@@ -60,6 +60,8 @@ public class NetCDFCreator {
     private final ListMultimap<Assay, Sample> samplesMap = ArrayListMultimap.create();
 
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
+    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap; // stores pvals across all unique ecvs/efvs
+    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatDataMap; // stores tstats across all unique ecvs/efvs
 
     private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
     private ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
@@ -74,9 +76,6 @@ public class NetCDFCreator {
     private LinkedHashSet<String> efScs; // efs/scs
     private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
     private Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
-
-    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalDataMap; // stores pvals across all unique ecvs/efvs
-    private Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatDataMap; // stores tstats across all unique ecvs/efvs
 
     private List<String> warnings = new ArrayList<String>();
 

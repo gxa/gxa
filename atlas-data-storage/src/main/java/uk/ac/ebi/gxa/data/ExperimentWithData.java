@@ -242,6 +242,9 @@ public class ExperimentWithData implements Closeable {
         return getExpressionAnalysesByFactor(arrayDesign, deIndex, null, null);
     }
 
+    // returns
+    //     list of ExpressionAnalyses for given ArrayDesign and ef/efv pair if ef is not null
+    //     list of all ExpressionAnalyses for given ArrayDesign otherwise
     private List<ExpressionAnalysis> getExpressionAnalysesByFactor(ArrayDesign arrayDesign, int deIndex, String efName, String efvName) throws AtlasDataException {
         final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
         final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
@@ -251,8 +254,7 @@ public class ExperimentWithData implements Closeable {
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
             final KeyValuePair uniqueValue = getUniqueValues(arrayDesign).get(efIndex);
             if (efName == null ||
-                (uniqueValue.key.equals(efName) &&
-                 (efvName == null || uniqueValue.value.equals(efvName)))) {
+                (uniqueValue.key.equals(efName) && uniqueValue.value.equals(efvName))) {
                 list.add(new ExpressionAnalysis(
                     arrayDesign.getAccession(),
                     deAccession,
