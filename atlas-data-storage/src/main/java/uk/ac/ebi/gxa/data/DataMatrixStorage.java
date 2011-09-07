@@ -26,11 +26,7 @@ import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.gxa.utils.PrimitiveIterators;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author pashky

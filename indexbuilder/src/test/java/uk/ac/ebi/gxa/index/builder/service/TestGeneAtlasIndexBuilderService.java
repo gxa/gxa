@@ -31,9 +31,7 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 
 public class TestGeneAtlasIndexBuilderService extends IndexBuilderServiceTestCase {
     private GeneAtlasIndexBuilderService gaibs;
