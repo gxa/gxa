@@ -38,12 +38,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
