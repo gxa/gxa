@@ -2,9 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
     <bean id="loaderDAO" class="uk.ac.ebi.gxa.loader.dao.LoaderDAO">
         <constructor-arg ref="experimentDAO"/>
-        <constructor-arg ref="propertyDAO"/>
         <constructor-arg ref="propertyValueDAO"/>
         <constructor-arg ref="organismDAO"/>
         <constructor-arg ref="arrayDesignDAO"/>
@@ -22,7 +22,7 @@
     </bean>
 
     <bean name="experimentEditorService" class="uk.ac.ebi.gxa.loader.service.ExperimentEditorService">
-        <constructor-arg ref="experimentDAO"/>
+        <property name="experimentDAO" ref="experimentDAO"/>
     </bean>
 
 
