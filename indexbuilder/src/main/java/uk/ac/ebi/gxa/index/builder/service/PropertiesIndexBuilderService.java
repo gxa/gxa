@@ -43,12 +43,9 @@ import java.util.List;
 public class PropertiesIndexBuilderService extends IndexBuilderService {
     private PropertyDAO pdao;
 
-    public PropertiesIndexBuilderService() {
-    }
-
     public void setPropertyDAO(PropertyDAO pdao) {
-         this.pdao = pdao;
-     }
+        this.pdao = pdao;
+    }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)

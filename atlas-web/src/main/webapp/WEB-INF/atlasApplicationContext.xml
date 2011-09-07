@@ -138,7 +138,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Loader component -->
 
 
-
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">

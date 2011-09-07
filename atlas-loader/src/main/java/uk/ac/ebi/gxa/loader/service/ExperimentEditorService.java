@@ -9,11 +9,7 @@ import uk.ac.ebi.gxa.loader.ExperimentEditorCommand;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 public class ExperimentEditorService {
-    private  ExperimentDAO experimentDAO;
-
-    public ExperimentEditorService() {
-
-    }
+    private ExperimentDAO experimentDAO;
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
