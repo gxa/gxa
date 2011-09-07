@@ -22,30 +22,16 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.primitives.Longs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayFloat;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
-import ucar.nc2.dataset.NetcdfDataset;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
-
-import static java.lang.Float.isNaN;
 
 /**
  * interface class for read access to NetCDF files
@@ -104,7 +90,7 @@ public abstract class NetCDFProxy implements Closeable {
      * @param deIndices an array of design element indices to get expression values for
      * @return a float matrix - a list of expressions per design element index
      * @throws IOException           if the expression data could not be read from the netCDF file
-     * @throws InvalidRangeException if the file doesn't contain given deIndices
+     * @throws AtlasDataException    if the file doesn't contain given deIndices
      */
     abstract FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException, AtlasDataException;
     abstract TwoDFloatArray getAllExpressionData() throws IOException;
@@ -114,7 +100,7 @@ public abstract class NetCDFProxy implements Closeable {
      * @param deIndices an array of design element indices to extract T-statistic for
      * @return matrix of floats - an array of T-statistic values per each design element index
      * @throws IOException           if the data could not be read from the netCDF file
-     * @throws InvalidRangeException if array of design element indices contains out of bound indices
+     * @throws AtlasDataException    if array of design element indices contains out of bound indices
      */
     abstract FloatMatrixProxy getTStatistics(int[] deIndices) throws IOException, AtlasDataException;
     abstract float[] getTStatisticsForDesignElement(int designElementIndex) throws IOException, AtlasDataException;
@@ -125,7 +111,7 @@ public abstract class NetCDFProxy implements Closeable {
      * @param deIndices an array of design element indices to extract P-values for
      * @return matrix of floats - an array of  P-values per each design element index
      * @throws IOException           if the data could not be read from the netCDF file
-     * @throws InvalidRangeException if array of design element indices contains out of bound indices
+     * @throws AtlasDataException    if array of design element indices contains out of bound indices
      */
     abstract FloatMatrixProxy getPValues(int[] deIndices) throws IOException, AtlasDataException;
     abstract float[] getPValuesForDesignElement(int designElementIndex) throws IOException, AtlasDataException;
@@ -184,7 +170,7 @@ public abstract class NetCDFProxy implements Closeable {
         if (netCDF.findVariable(variable) == null) {
             return new String[0];
         }
-        ArrayChar deacc = (ArrayChar) netCDF.findVariable(variable).read();
+        ArrayChar deacc = (ArrayChar)netCDF.findVariable(variable).read();
         ArrayChar.StringIterator si = deacc.getStringIterator();
         String[] result = new String[deacc.getShape()[0]];
         for (int i = 0; i < result.length && si.hasNext(); ++i)
@@ -198,12 +184,12 @@ public abstract class NetCDFProxy implements Closeable {
         }
 
         // create a array of characters from the varName dimension
-        ArrayChar efs = (ArrayChar) netCDF.findVariable(varName).read();
+        ArrayChar efs = (ArrayChar)netCDF.findVariable(varName).read();
         // convert to a string array and return
-        Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
+        Object[] efsArray = (Object[])efs.make1DStringArray().get1DJavaArray(String.class);
         String[] result = new String[efsArray.length];
         for (int i = 0; i < efsArray.length; i++) {
-            result[i] = (String) efsArray[i];
+            result[i] = (String)efsArray[i];
             if (result[i].startsWith("ba_"))
                 result[i] = result[i].substring(3);
         }
@@ -242,10 +228,10 @@ public abstract class NetCDFProxy implements Closeable {
         // now we have index of our ef, so take a read from efv for this index
         Array efvs = netCDF.findVariable(variable).read();
         // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
-        ArrayChar ef_efv = (ArrayChar) efvs.slice(0, index);
+        ArrayChar ef_efv = (ArrayChar)efvs.slice(0, index);
 
         // convert to a string array and return
-        Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
+        Object[] ef_efvArray = (Object[])ef_efv.make1DStringArray().get1DJavaArray(String.class);
         String[] result = new String[ef_efvArray.length];
         for (int i = 0; i < ef_efvArray.length; i++) {
             result[i] = (String) ef_efvArray[i];
