@@ -124,23 +124,6 @@ final class NetCDFProxyV1 extends NetCDFProxy {
     }
 
     /**
-     * @param iAssay
-     * @return List of sample indexes corresponding to assay at index iAssay
-     * @throws IOException
-     */
-    @Override
-    List<Integer> getSamplesForAssay(int iAssay) throws IOException {
-        int[][] samplesToAssayMap = getSamplesToAssays();
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        for (int i = 0; i != samplesToAssayMap.length; i++) {
-            if (1 == samplesToAssayMap[i][iAssay]) {
-                result.add(i);
-            }
-        }
-        return result;
-    }
-
-    /**
      * Gets the array of gene IDs from this NetCDF
      *
      * @return an long[] representing the one dimensional array of gene identifiers
@@ -291,16 +274,6 @@ final class NetCDFProxyV1 extends NetCDFProxy {
     @Override
     TwoDFloatArray getAllExpressionData() throws IOException {
         return readFloatValuesForAllRows(netCDF, "BDC");
-    }
-
-    /**
-     * @return List of genes found in the proxy
-     * @throws java.io.IOException in case of I/O errors during reading
-     */
-    @Nonnull
-    @Override
-    List<Long> getGeneIds() throws IOException {
-        return Longs.asList(getGenes());
     }
 
     /**

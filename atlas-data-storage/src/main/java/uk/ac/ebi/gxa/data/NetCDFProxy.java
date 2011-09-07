@@ -64,12 +64,6 @@ public abstract class NetCDFProxy implements Closeable {
     abstract String getArrayDesignAccession();
     abstract int[][] getSamplesToAssays() throws IOException;
     /**
-     * @param iAssay
-     * @return List of sample indexes corresponding to assay at index iAssay
-     * @throws IOException
-     */
-    abstract List<Integer> getSamplesForAssay(int iAssay) throws IOException;
-    /**
      * Gets the array of gene IDs from this NetCDF
      *
      * @return an long[] representing the one dimensional array of gene identifiers
@@ -114,12 +108,6 @@ public abstract class NetCDFProxy implements Closeable {
      */
     abstract FloatMatrixProxy getExpressionValues(int[] deIndices) throws IOException, AtlasDataException;
     abstract TwoDFloatArray getAllExpressionData() throws IOException;
-    /**
-     * @return List of genes found in the proxy
-     * @throws java.io.IOException in case of I/O errors during reading
-     */
-    @Nonnull
-    abstract List<Long> getGeneIds() throws IOException;
     /**
      * Extracts T-statistic matrix for given design element indices.
      *
