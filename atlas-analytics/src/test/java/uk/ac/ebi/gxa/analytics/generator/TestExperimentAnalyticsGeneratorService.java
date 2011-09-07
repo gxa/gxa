@@ -37,9 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 
 public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
     private final static String E_GEOD_5035 = "E-GEOD-5035";
