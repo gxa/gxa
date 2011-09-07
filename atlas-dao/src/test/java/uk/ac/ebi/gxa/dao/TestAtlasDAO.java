@@ -27,16 +27,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.AssayProperty;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Ontology;
-import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
-import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
-import uk.ac.ebi.microarray.atlas.model.PropertyValue;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.SampleProperty;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.Collections;
 import java.util.List;
