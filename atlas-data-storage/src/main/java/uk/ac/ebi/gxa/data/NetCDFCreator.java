@@ -55,14 +55,11 @@ public class NetCDFCreator {
     private final Experiment experiment;
     private final ArrayDesign arrayDesign;
 
-    private List<Assay> assays;
-    private LinkedHashSet<Sample> samples = new LinkedHashSet<Sample>();
-    private ListMultimap<Assay, Sample> samplesMap = ArrayListMultimap.create();
+    private final List<Assay> assays;
+    private final LinkedHashSet<Sample> samples = new LinkedHashSet<Sample>();
+    private final ListMultimap<Assay, Sample> samplesMap = ArrayListMultimap.create();
+
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
-    private List<String> assayAccessions;
-    private List<String> sampleAccessions;
-    private int maxAssayLength;
-    private int maxSampleLength;
 
     private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
     private ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
@@ -98,15 +95,13 @@ public class NetCDFCreator {
         this.dataDAO = dataDAO;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
-    }
-
-    public void setAssays(Collection<Assay> assays) {
-        this.assays = new ArrayList<Assay>(assays);
-    }
-
-    public void setSample(Assay assay, Sample sample) {
-        this.samples.add(sample);
-        this.samplesMap.put(assay, sample);
+        this.assays = new ArrayList<Assay>(experiment.getAssaysForDesign(arrayDesign));
+        for (Assay a : this.assays) {
+            for (Sample s : a.getSamples()) {
+                this.samples.add(s);
+                this.samplesMap.put(a, s);
+            }
+        }
     }
 
     public void setAssayDataMap(Map<String, DataMatrixStorage.ColumnRef> assayDataMap) {
@@ -271,20 +266,6 @@ public class NetCDFCreator {
             maxDesignElementLength = Math.max(maxDesignElementLength, de.length());
             ++totalDesignElements;
         }
-        assayAccessions = new ArrayList<String>();
-        sampleAccessions = new ArrayList<String>();
-        maxAssayLength = 0;
-        maxSampleLength = 0;
-
-
-        for (Assay assay : assays) {
-            assayAccessions.add(assay.getAccession());
-            maxAssayLength = Math.max(maxAssayLength, assay.getAccession().length());
-        }
-        for (Sample sample : samples) {
-            sampleAccessions.add(sample.getAccession());
-            maxSampleLength = Math.max(maxSampleLength, sample.getAccession().length());
-        }
     }
 
     /**
@@ -349,10 +330,18 @@ public class NetCDFCreator {
         netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
 
         //accessions for Assays and Samples
-        Dimension assayLenDimension = netCdf.addDimension("ASlen", maxAssayLength);
+        int maxAssayLength = 0;
+        for (Assay assay : assays) {
+            maxAssayLength = Math.max(maxAssayLength, assay.getAccession().length());
+        }
+        final Dimension assayLenDimension = netCdf.addDimension("ASlen", maxAssayLength);
         netCdf.addVariable("ASacc", DataType.CHAR, new Dimension[]{assayDimension, assayLenDimension});
 
-        Dimension sampleLenDimension = netCdf.addDimension("BSlen", maxSampleLength);
+        int maxSampleLength = 0;
+        for (Sample sample : samples) {
+            maxSampleLength = Math.max(maxSampleLength, sample.getAccession().length());
+        }
+        final Dimension sampleLenDimension = netCdf.addDimension("BSlen", maxSampleLength);
         netCdf.addVariable("BSacc", DataType.CHAR, new Dimension[]{sampleDimension, sampleLenDimension});
 
         if (!scvMap.isEmpty() || !efvMap.isEmpty()) {
@@ -665,11 +654,19 @@ public class NetCDFCreator {
     }
 
     private void writeAssayAccessions() throws IOException, InvalidRangeException {
-        writeList("ASacc", assayAccessions);
+        final List<String> accessions = new ArrayList<String>();
+        for (Assay a : assays) {
+            accessions.add(a.getAccession());
+        }
+        writeList("ASacc", accessions);
     }
 
     private void writeSampleAccessions() throws IOException, InvalidRangeException {
-        writeList("BSacc", sampleAccessions);
+        final List<String> accessions = new ArrayList<String>();
+        for (Sample s : samples) {
+            accessions.add(s.getAccession());
+        }
+        writeList("BSacc", accessions);
     }
 
     private void writeList(String variable, List<String> values) throws IOException, InvalidRangeException {

@@ -136,14 +136,6 @@ public class AtlasNetCDFUpdaterService {
         try {
             final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
 
-            netCdfCreator.setAssays(experiment.getAssaysForDesign(arrayDesign));
-
-            for (Assay assay : experiment.getAssaysForDesign(arrayDesign)) {
-                for (Sample sample : assay.getSamples()) {
-                    netCdfCreator.setSample(assay, sample);
-                }
-            }
-
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
             netCdfCreator.setPvalDataMap(data.getPValDataMap());
             netCdfCreator.setTstatDataMap(data.getTStatDataMap());

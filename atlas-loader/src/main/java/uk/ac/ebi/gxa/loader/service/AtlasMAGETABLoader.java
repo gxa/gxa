@@ -258,12 +258,6 @@ public class AtlasMAGETABLoader {
 
             final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
 
-            netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays) {
-                for (Sample sample : assay.getSamples()) {
-                    netCdfCreator.setSample(assay, sample);
-                }
-            }
             netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
 
             netCdfCreator.createNetCdf();
