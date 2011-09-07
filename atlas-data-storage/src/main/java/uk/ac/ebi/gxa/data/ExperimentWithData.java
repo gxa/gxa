@@ -74,7 +74,7 @@ public class ExperimentWithData implements Closeable {
         NetCDFProxy p = proxies.get(arrayDesign);
         if (p == null) {
             try {
-                p = new NetCDFProxy(atlasDataDAO.getNetCDFLocation(experiment, arrayDesign));
+                p = new NetCDFProxyV1(atlasDataDAO.getNetCDFLocation(experiment, arrayDesign));
             } catch (IOException e) {
                 throw new AtlasDataException(e);
             }
@@ -230,9 +230,17 @@ public class ExperimentWithData implements Closeable {
         }
     }
 
+    /**
+     * Extracts expression statistic values for given design element indices.
+     *
+     * @param deIndices an array of design element indices to extract expression statistic for
+     * @return an instance of {@link ExpressionStatistics}
+     * @throws AtlasDataException    if the data could not be read from the netCDF file
+     * @throws AtlasDataException    if array of design element indices contains out of bound indices
+     */
     public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getExpressionStatistics(deIndices);
+            return ExpressionStatistics.create(deIndices, getProxy(arrayDesign));
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }

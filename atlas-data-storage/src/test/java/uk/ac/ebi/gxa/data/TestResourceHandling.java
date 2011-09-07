@@ -20,8 +20,8 @@ public class TestResourceHandling {
         for (int i = 0; i < 20000; i++) {
             NetCDFProxy netCDF = null;
             try {
-                netCDF = new NetCDFProxy(netCDFfile);
-                netCDF.getArrayDesignID();
+                netCDF = new NetCDFProxyV1(netCDFfile);
+                netCDF.getArrayDesignAccession();
             } catch (FileNotFoundException e) {
                 log.error("Out of file handles on attempt #" + i, e);
                 throw e;

@@ -388,7 +388,7 @@ public class NetCDFCreator {
         // add metadata global attributes
         safeAddGlobalAttribute(
                 "CreateNetCDF_VERSION",
-                NetCDFProxy.NCDF_VERSION);
+                "1.0");
         safeAddGlobalAttribute(
                 "experiment_accession",
                 experiment.getAccession());
