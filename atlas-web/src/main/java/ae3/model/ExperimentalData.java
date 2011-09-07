@@ -64,7 +64,7 @@ public class ExperimentalData {
     /**
      * Empty class from the start, one should fill it with addXX and setXX methods
      *
-     * @param experiment
+     * @param experimentWithData the containing experiment
      */
     public ExperimentalData(ExperimentWithData experimentWithData) throws AtlasDataException {
         log.info("loading data for experiment" + experimentWithData.getExperiment().getAccession());
@@ -160,6 +160,8 @@ public class ExperimentalData {
      * @param assay              assay, for which show the value
      * @param designElementIndex design element index
      * @return expression value
+     * @throws uk.ac.ebi.gxa.data.AtlasDataException
+     *          if there's no ExpressionMatrix for assay   or no data on the design element specified
      */
     public float getExpression(AssayDecorator assay, int designElementIndex) throws AtlasDataException {
         final ExpressionMatrix matrix = getExpressionMatrix(assay.getArrayDesign());
@@ -178,14 +180,15 @@ public class ExperimentalData {
      */
     public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
         final ExpressionStats stats = getExpressionStats(ad);
-
-        if (stats != null) {
-            try {
-                return stats.getExpressionStats(designElement);
-            } catch (AtlasDataException e) {
-            }
+        if (stats == null) {
+            return new EfvTree<ExpressionStats.Stat>();
         }
-        return new EfvTree<ExpressionStats.Stat>();
+
+        try {
+            return stats.getExpressionStats(designElement);
+        } catch (AtlasDataException e) {
+            return new EfvTree<ExpressionStats.Stat>();
+        }
     }
 
     /**

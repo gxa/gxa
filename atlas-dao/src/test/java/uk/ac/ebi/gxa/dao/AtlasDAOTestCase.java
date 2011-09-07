@@ -30,7 +30,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
@@ -60,7 +59,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-be-db.xml";
 
     @Autowired(required = true)
-    @Qualifier("atlasDataSource")
     protected DataSource atlasDataSource;
     @Autowired
     protected AtlasDAO atlasDAO;
@@ -70,6 +68,16 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     protected BioEntityDAO bioEntityDAO;
     @Autowired
     protected ExperimentDAO experimentDAO;
+    @Autowired
+    protected AssayDAO assayDAO;
+    @Autowired
+    protected SampleDAO sampleDAO;
+    @Autowired
+    protected OntologyDAO ontologyDAO;
+    @Autowired
+    protected OntologyTermDAO ontologyTermDAO;
+    @Autowired
+    protected PropertyValueDAO propertyValueDAO;
     @Autowired
     protected SessionFactory sessionFactory;
 
@@ -182,7 +190,9 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "(ASSAYPVID bigint not null, " +
                         "ASSAYID bigint, " +
                         "PROPERTYVALUEID bigint, " +
-                        "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID));");
+                        "CONSTRAINT SYS_C008058 PRIMARY KEY (ASSAYPVID)," +
+                        "CONSTRAINT FK_ASSAYPV_PROPERTY FOREIGN KEY (PROPERTYVALUEID) " +
+                        "REFERENCES A2_PROPERTYVALUE (PROPERTYVALUEID) ON DELETE CASCADE) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_SAMPLE " +
@@ -200,14 +210,15 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "(SAMPLEPVID bigint not null, " +
                         "SAMPLEID bigint not null, " +
                         "PROPERTYVALUEID bigint, " +
-                        "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)) ;");
+                        "CONSTRAINT SYS_C008061 PRIMARY KEY (SAMPLEPVID)," +
+                        "CONSTRAINT FK_SAMPLEPV_PROPERTY FOREIGN KEY (PROPERTYVALUEID) " +
+                        "REFERENCES A2_PROPERTYVALUE (PROPERTYVALUEID) ON DELETE CASCADE) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_ASSAYSAMPLE " +
-                        "(ASSAYSAMPLEID bigint not null, " +
-                        "ASSAYID bigint, " +
+                        "(ASSAYID bigint, " +
                         "SAMPLEID bigint, " +
-                        "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYSAMPLEID)) ;");
+                        "CONSTRAINT SYS_C008067 PRIMARY KEY (ASSAYID, SAMPLEID)) ;");
 
         runStatement(conn,
                 "CREATE TABLE A2_GENE " +
@@ -404,15 +415,18 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
 
         runStatement(conn,
                 "  CREATE TABLE A2_ASSAYPVONTOLOGY (\n" +
-                        "    ASSAYPVONTOLOGYID bigint not null\n" +
-                        "  , ONTOLOGYTERMID bigint not null\n" +
-                        "  , ASSAYPVID bigint not null)");
+                        "    ONTOLOGYTERMID bigint not null\n" +
+                        "  , ASSAYPVID bigint not null, " +
+                        "CONSTRAINT FK_ASSAYPV FOREIGN KEY (ASSAYPVID) " +
+                        "REFERENCES A2_ASSAYPV (ASSAYPVID)  ON DELETE CASCADE) ;");
+
 
         runStatement(conn,
                 "  CREATE TABLE A2_SAMPLEPVONTOLOGY (\n" +
-                        "    SAMPLEPVONTOLOGYID bigint not null\n" +
-                        "  , ONTOLOGYTERMID bigint not null\n" +
-                        "  , SAMPLEPVID bigint not null)");
+                        "    ONTOLOGYTERMID bigint not null\n" +
+                        "  , SAMPLEPVID bigint not null, " +
+                        "CONSTRAINT FK_SAMPLEV FOREIGN KEY (SAMPLEPVID) " +
+                        "REFERENCES A2_SAMPLEPV (SAMPLEPVID)  ON DELETE CASCADE) ;");
 
         runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
 
@@ -455,22 +469,24 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  LANGUAGE JAVA\n" +
                         "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.wmConcat'");
 
-        runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ANNOTATIONSRC_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_ORGANISM_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_PROPERTY_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ");
-        runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ");
+        runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ASSET_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_EXPERIMENT_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ONTOLOGYTERM_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_ORGANISM_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ START WITH 10000000");
+
+        runStatement(conn, "CREATE SEQUENCE A2_ANNOTATIONSRC_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYTYPE_SEQ START WITH 10000000");
 
         System.out.println("...done!");
         conn.close();

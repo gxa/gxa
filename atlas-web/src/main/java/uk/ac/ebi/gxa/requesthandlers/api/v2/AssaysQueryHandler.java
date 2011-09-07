@@ -23,10 +23,16 @@
 package uk.ac.ebi.gxa.requesthandlers.api.v2;
 
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 class AssaysQueryHandler implements QueryHandler {
     private final AtlasDAO atlasDao;
@@ -90,14 +96,20 @@ class AssaysQueryHandler implements QueryHandler {
             return new Error("Experiment accession must be a string");
         }
 
-        final List<Assay> assays = atlasDao.getExperimentByAccession((String)experimentAccession).getAssays();
-        if (assays == null || assays.size() == 0) {
-            return new Error("Assays for experiment " + experimentAccession + " not found");
+        try {
+            Experiment experiment = atlasDao.getExperimentByAccession((String) experimentAccession);
+
+            final List<Assay> assays = experiment.getAssays();
+            if (assays == null || assays.size() == 0) {
+                return new Error("Assays for experiment " + experimentAccession + " not found");
+            }
+            final List<AssayDecorator> decorators = new ArrayList<AssayDecorator>(assays.size());
+            for (final Assay a : assays) {
+                decorators.add(new AssayDecorator(a));
+            }
+            return decorators;
+        } catch (RecordNotFoundException e) {
+            return new Error(e.getMessage());
         }
-        final List<AssayDecorator> decorators = new ArrayList<AssayDecorator>(assays.size());
-        for (final Assay a : assays) {
-            decorators.add(new AssayDecorator(a));
-        }
-        return decorators;
     }
 }

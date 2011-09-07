@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.NetCDFCreator;
@@ -215,7 +216,9 @@ public class AtlasMAGETABLoader {
 
         // check experiment exists in database, and not just in the loadmonitor
         String experimentAccession = cache.fetchExperiment().getAccession();
-        if (dao.getExperiment(experimentAccession) != null) {
+
+        try {
+            dao.getExperiment(experimentAccession);
             // experiment genuinely was already in the DB, so remove old experiment
             log.info("Deleting existing version of experiment " + experimentAccession);
             try {
@@ -225,6 +228,8 @@ public class AtlasMAGETABLoader {
             } catch (AtlasLoaderException e) {
                 throw new AtlasLoaderException(e);
             }
+        } catch (RecordNotFoundException e) {
+            // do nothing - experiment matching experimentAccession not found is a valid situation here
         }
 
         // start the load(s)

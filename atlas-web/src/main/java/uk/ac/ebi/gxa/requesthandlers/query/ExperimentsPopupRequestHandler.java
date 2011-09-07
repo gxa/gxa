@@ -27,6 +27,7 @@ import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -59,6 +60,7 @@ import java.util.Set;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.DOWN;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.UP;
@@ -178,10 +180,11 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 // disease_state:normal (expression: UP) and cell_type:normal (expression: NON_D_E). If we considered just one
                 // efv and it happened to be disease_state:normal, we would have failed to find a non-de expression and would
                 // have reported an error.
-                final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(
-                        experimentDAO.getExperimentByAccession(exp.getAccession())
-                );
+                ExperimentWithData ewd = null;
                 try {
+                    Experiment experiment = experimentDAO.getByName(exp.getAccession());
+                    ewd = atlasDataDAO.createExperimentWithData(experiment);
+
                     for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
                         ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                         if (ea != null) {
@@ -189,8 +192,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                             break;
                         }
                     }
+                } catch (RecordNotFoundException e) {
+                    throw LogUtil.createUnexpected(e.getMessage());
                 } finally {
-                    ewd.close();
+       closeQuietly(ewd);
                 }
 
                 if (ea != null) {

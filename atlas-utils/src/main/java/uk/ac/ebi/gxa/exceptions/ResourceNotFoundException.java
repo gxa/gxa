@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.web.controller;
+package uk.ac.ebi.gxa.exceptions;
 
 /**
  * Thrown when the asked resource (e.g. experiment, gene or other data) not found.
@@ -9,5 +9,9 @@ package uk.ac.ebi.gxa.web.controller;
 public class ResourceNotFoundException extends Exception {
     public ResourceNotFoundException(String message) {
         super(message);
+    }
+
+    public ResourceNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -176,6 +176,9 @@ public class Experiment {
 
     public void setAssays(List<Assay> assays) {
         this.assays = assays;
+        for (Assay assay : assays) {
+            assay.setExperiment(this);
+        }
     }
 
     public List<Sample> getSamples() {
@@ -184,6 +187,9 @@ public class Experiment {
 
     public void setSamples(List<Sample> samples) {
         this.samples = samples;
+        for (Sample sample : samples) {
+            sample.setExperiment(this);
+        }
     }
 
     public List<String> getSpecies() {
@@ -327,5 +333,14 @@ public class Experiment {
                 return input != null && input.getArrayDesign().equals(arrayDesign);
             }
         });
+    }
+
+    public Asset getAsset(String filename) {
+        for (Asset asset : getAssets()) {
+            if (filename.equals(asset.getFileName())) {
+                return asset;
+            }
+        }
+        return null;
     }
 }

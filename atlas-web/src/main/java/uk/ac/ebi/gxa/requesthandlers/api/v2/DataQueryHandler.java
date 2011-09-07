@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -219,9 +220,6 @@ class DataQueryHandler implements QueryHandler {
             }
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-            if (experiment == null) {
-                return new Error("Experiment " + experimentAccession + " is not found");
-            }
             final ExperimentWithData experimentWithData =
                 atlasDataDAO.createExperimentWithData(experiment);
             for (ArrayDesign ad : experiment.getArrayDesigns()) {
@@ -299,6 +297,8 @@ class DataQueryHandler implements QueryHandler {
                 }
             }
             return data;
+        } catch (RecordNotFoundException e) {
+            return new Error(e.getMessage());
         } catch (AtlasDataException e) {
             return new Error(e.toString());
         }

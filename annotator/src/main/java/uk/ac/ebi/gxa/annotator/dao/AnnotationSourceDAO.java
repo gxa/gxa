@@ -3,9 +3,9 @@ package uk.ac.ebi.gxa.annotator.dao;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.dao.AbstractDAO;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -25,7 +25,7 @@ import java.util.List;
  * User: nsklyar
  * Date: 10/05/2011
  */
-public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
+public class AnnotationSourceDAO {
 
     private JdbcTemplate atlasJdbcTemplate;
 
@@ -40,13 +40,18 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     @Autowired
     private ArrayDesignDAO arrayDesignDAO;
 
+    private final HibernateTemplate template;
+
     public AnnotationSourceDAO(SessionFactory sessionFactory, JdbcTemplate atlasJdbcTemplate) {
-        super(sessionFactory, AnnotationSource.class);
+        this.template = new HibernateTemplate(sessionFactory);
 
         this.atlasJdbcTemplate = atlasJdbcTemplate;
     }
 
-    @Override
+    public AnnotationSource getById(long id) {
+         return template.get(AnnotationSource.class, id);
+     }
+
     public void save(AnnotationSource object) {
         object.setLoadDate(new Date());
         template.save(object);
@@ -65,6 +70,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public void remove(BioMartAnnotationSource annSrc) {
+       
         template.delete(annSrc);
         template.flush();
     }
@@ -81,13 +87,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public Organism findOrCreateOrganism(String organismName) {
-        Organism organism = organismDAO.getByName(organismName);
-        if (organism == null) {
-            organism = new Organism(null, organismName);
-            organismDAO.save(organism);
-            template.flush();
-        }
-        return organism;
+        return organismDAO.getOrCreateOrganism(organismName);
     }
 
     public Software findOrCreateSoftware(String swName, String swVersion) {
@@ -95,13 +95,7 @@ public class AnnotationSourceDAO extends AbstractDAO<AnnotationSource> {
     }
 
     public BioEntityType findOrCreateBioEntityType(String typeName) {
-        BioEntityType type = typeDAO.find(typeName);
-        if (type == null) {
-            BioEntityProperty beProperty = findOrCreateBEProperty(typeName);
-            type = new BioEntityType(null, typeName, 0, beProperty, beProperty);
-        }
-
-        return type;
+       return typeDAO.findOrCreate(typeName);
     }
 
     public BioEntityProperty findOrCreateBEProperty(String propertyName) {

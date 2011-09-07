@@ -8,7 +8,7 @@
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="hibernateClasses" class="org.springframework.beans.factory.config.ListFactoryBean">
-        <property name="sourceList" >
+        <property name="sourceList">
             <list>
                 <value>uk.ac.ebi.microarray.atlas.model.ArrayDesign</value>
                 <value>uk.ac.ebi.microarray.atlas.model.Assay</value>
@@ -43,6 +43,7 @@
     <tx:annotation-driven transaction-manager="atlasTxManager"/>
 
     <context:component-scan base-package="uk.ac.ebi.gxa.dao"/>
+    <context:component-scan base-package="uk.ac.ebi.gxa.service"/>
     <context:annotation-config/>
 
     <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
@@ -53,7 +54,6 @@
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="assayDAO"/>
-        <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">
@@ -68,22 +68,6 @@
         <constructor-arg index="3" ref="bioEntityTypeDAO"/>
     </bean>
 
-    <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="propertyDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
-    <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
-        <constructor-arg ref="sessionFactory"/>
-    </bean>
-
     <bean name="bioEntityPropertyDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -94,13 +78,44 @@
         <constructor-arg index="1" ref="bioEntityPropertyDAO"/>
     </bean>
 
+
+    <bean name="experimentDAO" class="uk.ac.ebi.gxa.dao.ExperimentDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="propertyDAO" class="uk.ac.ebi.gxa.dao.PropertyDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="propertyValueDAO" class="uk.ac.ebi.gxa.dao.PropertyValueDAO">
+        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="propertyDAO"/>
+    </bean>
+
+    <bean name="organismDAO" class="uk.ac.ebi.gxa.dao.OrganismDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="ontologyDAO" class="uk.ac.ebi.gxa.dao.OntologyDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="ontologyTermDAO" class="uk.ac.ebi.gxa.dao.OntologyTermDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+
+    <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">
         <constructor-arg ref="sessionFactory"/>
     </bean>
+
     <!-- Common spring-drive data access configuration -->
     <!-- native extractor for fetching oracle connections from pool wrapper etc -->
     <bean name="nativeJdbcExtractor"

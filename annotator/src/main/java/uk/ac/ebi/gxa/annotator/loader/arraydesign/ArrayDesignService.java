@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.annotator.loader.arraydesign;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
@@ -8,6 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
  * User: nsklyar
  * Date: 02/09/2011
  */
+@Service
 public class ArrayDesignService {
 
     private ArrayDesignDAO arrayDesignDAO;

@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.analytics.generator.AnalyticsGeneratorException;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGenerationEvent;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -78,16 +79,8 @@ public class ExperimentAnalyticsGeneratorService {
         this.executor = executor;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void generateAnalytics() throws AnalyticsGeneratorException {
-        atlasDAO.startSession();
-        try {
-            generateInternal();
-        } finally {
-            atlasDAO.finishSession();
-        }
-    }
-
-    private void generateInternal() throws AnalyticsGeneratorException {
         // do initial setup - build executor service
 
         // fetch experiments - check if we want all or only the pending ones
@@ -172,7 +165,7 @@ public class ExperimentAnalyticsGeneratorService {
     @Transactional(propagation = Propagation.REQUIRED)
     public void createAnalyticsForExperiment(
             String experimentAccession,
-            AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException {
+            AnalyticsGeneratorListener listener) throws AnalyticsGeneratorException, RecordNotFoundException {
         log.info("Generating analytics for experiment " + experimentAccession);
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);

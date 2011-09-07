@@ -101,7 +101,7 @@ public class AtlasBioEntityDataWriter {
     }
 
     public BioEntityProperty getPropertyByName(String name) {
-        return propertyDAO.getByName(name);
+        return propertyDAO.findOrCreate(name);
     }
 
     @Transactional

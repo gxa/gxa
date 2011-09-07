@@ -1,30 +1,34 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.ExperimentEditorCommand;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 public class ExperimentEditorService {
-    private final ExperimentDAO experimentDAO;
-    private AtlasDAO atlasDAO;
+    private  ExperimentDAO experimentDAO;
 
-    public ExperimentEditorService(ExperimentDAO experimentDAO, AtlasDAO atlasDAO) {
-        this.experimentDAO = experimentDAO;
-        this.atlasDAO = atlasDAO;
+    public ExperimentEditorService() {
+
     }
 
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
+        this.experimentDAO = experimentDAO;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void process(ExperimentEditorCommand command, boolean isPrivate) throws AtlasLoaderException {
-        atlasDAO.startSession();
         try {
-            final Experiment experiment = experimentDAO.getExperimentByAccession(command.getAccession());
+            final Experiment experiment = experimentDAO.getByName(command.getAccession());
             experiment.setPrivate(isPrivate);
             experimentDAO.save(experiment);
+        } catch (RecordNotFoundException e) {
+            throw new AtlasLoaderException(e.getMessage(), e);
         } catch (Exception ex) {
             throw new AtlasLoaderException("can not release data for experiment:" + ex.getMessage());
-        } finally {
-            atlasDAO.finishSession();
         }
     }
 }

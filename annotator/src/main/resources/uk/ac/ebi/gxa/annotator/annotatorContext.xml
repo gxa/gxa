@@ -34,4 +34,9 @@
     </bean>
 
     <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader"/>
+
+    <bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">
+        <constructor-arg ref="annotatorFactory"/>
+        <constructor-arg ref="threadPool"/>
+    </bean>
 </beans>

@@ -33,9 +33,9 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
     <import resource="classpath*:/uk/ac/ebi/gxa/web/hibernate/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
-    <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
@@ -142,9 +142,9 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <constructor-arg ref="propertyDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
     </bean>
 
     <bean name="indexBuilderServiceExperiments"
@@ -490,10 +490,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
-    <bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">
-        <constructor-arg ref="annotatorFactory"/>
-        <constructor-arg ref="threadPool"/>
-    </bean>
+    <!--<bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">-->
+        <!--<constructor-arg ref="annotatorFactory"/>-->
+        <!--<constructor-arg ref="threadPool"/>-->
+    <!--</bean>-->
     <!--Configure R workbench -->
     <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
     <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory" init-method="init" destroy-method="destroy">

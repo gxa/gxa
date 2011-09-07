@@ -24,7 +24,7 @@ public class BioMartDbDAOTest extends TestCase {
     @Test
     public void testGetSynonyms() throws Exception{
         Set<List<String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
-        assertEquals(47210, synonyms.size());
+        assertEquals(1030, synonyms.size());
     }
 
     @Test

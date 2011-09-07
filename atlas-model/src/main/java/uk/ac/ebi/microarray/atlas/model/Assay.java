@@ -150,7 +150,7 @@ public class Assay {
         return arrayDesign;
     }
 
-    public long getAssayID() {
+    public Long getAssayID() {
         return getId();
     }
 
@@ -174,16 +174,12 @@ public class Assay {
 
         Assay assay = (Assay) o;
 
-        if (accession != null ? !accession.equals(assay.accession) : assay.accession != null) return false;
-        return !(assayID != null ? !assayID.equals(assay.assayID) : assay.assayID != null);
-
+        return accession == null ? assay.accession == null : accession.equals(assay.accession);
     }
 
     @Override
     public int hashCode() {
-        int result = assayID != null ? assayID.hashCode() : 0;
-        result = 31 * result + (accession != null ? accession.hashCode() : 0);
-        return result;
+        return accession != null ? accession.hashCode() : 0;
     }
 
     public List<AssayProperty> getProperties() {
@@ -226,6 +222,40 @@ public class Assay {
 
     public void addProperty(PropertyValue property) {
         properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
+    }
+
+    public void addProperty(final PropertyValue property, final List<OntologyTerm> terms) {
+        properties.add(new AssayProperty(null, this, property, terms));
+    }
+
+    public AssayProperty getProperty(PropertyValue propertyValue) {
+        for (AssayProperty property : properties) {
+            if (property.getPropertyValue().equals(propertyValue))
+                return property;
+        }
+
+        return null;
+    }
+
+    public boolean hasProperty(final PropertyValue propertyValue) {
+        return getProperty(propertyValue) != null;
+    }
+
+    public void deleteProperty(final PropertyValue propertyValue) {
+        AssayProperty property = getProperty(propertyValue);
+        while (property != null) {
+            properties.remove(property);
+            property = getProperty(propertyValue);
+        }
+    }
+
+    public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
+        if (!this.hasProperty(propertyValue)) {
+            this.addProperty(propertyValue, terms);
+        } else {
+            AssayProperty assayProperty = this.getProperty(propertyValue);
+            assayProperty.setTerms(terms);
+        }
     }
 
     private static class PropertyNamePredicate implements Predicate<AssayProperty> {

@@ -1030,11 +1030,16 @@ $(document).ready(function () {
         if(url.length == 0 || (url.length == 1 && url[0] == ""))
             return;
         
-        if(type == 'auto') {
+        if(type === 'auto' || type === 'experiment' || type === 'arraydesign') {
             var experiments = [];
             var arraydesigns = [];
-            for(var k in url) {
-                (url[k].toLowerCase().replace(/^.*\//, '').indexOf(".adf") >= 0 ? arraydesigns : experiments).push(url[k]);
+
+            if (type === 'auto') {
+                for (var k in url) {
+                    (url[k].toLowerCase().replace(/^.*\//, '').indexOf(".adf") >= 0 ? arraydesigns : experiments).push(url[k]);
+                }
+            } else {
+                Array.prototype.push.apply((type === 'experiment' ? experiments : arraydesigns), url);
             }
 
             if(experiments.length)

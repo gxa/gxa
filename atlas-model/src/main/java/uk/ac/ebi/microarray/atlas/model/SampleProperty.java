@@ -140,4 +140,8 @@ public final class SampleProperty {
     void setSample(Sample sample) {
         this.sample = sample;
     }
+
+    public void setTerms(List<OntologyTerm> terms) {
+        this.terms = terms;
+    }
 }

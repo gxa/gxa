@@ -35,7 +35,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     private BioMartAnnotationSource fetchAnnotationSource() {
         Software software = annSrcDAO.findOrCreateSoftware("Ensembl", "60");
-        Organism organism = organismDAO.getByName("homo sapiens");
+        Organism organism = organismDAO.getOrCreateOrganism("homo sapiens");
         return annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
     }
 

@@ -239,6 +239,10 @@ var atlas = atlas || {};
             var conditions = query.conditions || [];
             if (conditions.length > 0) {
                 expressionField(form).val(conditions[0].expression);
+                // Enable autocomplete for @EFO_... values
+                if (conditions[0].jointFactorValues.charAt(0) === "@") {
+                    conditions[0].jointFactorValues = conditions[0].jointFactorValues.substr(1);
+                }
                 conditionsField.val(conditions[0].jointFactorValues);
             }
 
@@ -454,6 +458,11 @@ var atlas = atlas || {};
             }
 
             sequence.nextVal();
+
+            // Enable autocomplete for @EFO_... values
+            if (values.charAt(0) === "@") {
+                values = values.substr(1);
+            }
 
             var input = $('<input type="text" class="value"/>')
                     .attr('name', "fval_" + sequence.currVal())

@@ -64,6 +64,10 @@ public class BioMartAnnotationSourceLoader {
         this.annSrcDAO = annSrcDAO;
     }
 
+    public void setArrayDesignService(ArrayDesignService arrayDesignService) {
+        this.arrayDesignService = arrayDesignService;
+    }
+
     public String getAnnSrcAsStringById(String id) {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);

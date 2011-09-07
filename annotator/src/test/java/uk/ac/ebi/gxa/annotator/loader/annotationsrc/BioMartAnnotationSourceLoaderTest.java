@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -24,6 +25,9 @@ public class BioMartAnnotationSourceLoaderTest extends AtlasDAOTestCase {
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
 
+    @Autowired
+    private ArrayDesignService arrayDesignService;
+
     private BioMartAnnotationSourceLoader loader;
 
     @Override
@@ -31,6 +35,7 @@ public class BioMartAnnotationSourceLoaderTest extends AtlasDAOTestCase {
         super.setUp();
         loader = new BioMartAnnotationSourceLoader();
         loader.setAnnSrcDAO(annSrcDAO);
+        loader.setArrayDesignService(arrayDesignService);
     }
 
     @Test

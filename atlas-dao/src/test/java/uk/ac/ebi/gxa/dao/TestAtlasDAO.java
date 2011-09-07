@@ -22,17 +22,23 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Ontology;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
+import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
+import uk.ac.ebi.microarray.atlas.model.Sample;
+import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,19 +50,16 @@ import java.util.List;
 public class TestAtlasDAO extends AtlasDAOTestCase {
 
     private static final String ABC_ABCXYZ_SOME_THING_1234_ABC123 = "abc:ABCxyz:SomeThing:1234.ABC123";
+    private static final String ARRAY_DESIGN_ACCESSION = "A-AFFY-45";
     private static final String E_MEXP_420 = "E-MEXP-420";
-
-    @Override
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    @After
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
+    private static final String PROPERTY_NAME = "SEX";
+    private static final String PROPERTY_VALUE = "MALE";
+    private static final String PROPERTY_VALUE1 = "value007";
+    private static final String PROPERTY_VALUE2 = "value005";
+    private static final String ONTOLOGY_TERM = "EFO_0000107";
+    private static final String ONTOLOGY_NAME = "EFO";
+    private static final String ONTOLOGY_VERSION = "Thu Oct 02 2008";
+    private static final String ONTOLOGY_DESCRIPTION = "ArrayExpress Experimental Factor Ontology";
 
     @Test
     public void testGetAllExperiments() throws Exception {
@@ -110,6 +113,38 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testGetExperimentsByArrayDesignAccession() throws Exception {
+        final List<Experiment> experiments = experimentDAO.getExperimentsByArrayDesignAccession(ARRAY_DESIGN_ACCESSION);
+        assertTrue("No experiment containing assays with array design accession: " + ARRAY_DESIGN_ACCESSION + " was found", experiments.size() > 0);
+    }
+
+    @Test
+    public void testGetAssayPropertiesByPropertyValue() throws Exception {
+        final List<Assay> assays = assayDAO.getAssaysByPropertyValue(PROPERTY_VALUE1);
+        for (Assay assay : assays) {
+            boolean found = false;
+            for (AssayProperty prop : assay.getProperties()) {
+                if (PROPERTY_VALUE1.equals(prop.getValue()))
+                    found = true;
+            }
+            assertTrue("Assay property did not contain property value: " + PROPERTY_VALUE, found);
+        }
+    }
+
+    @Test
+    public void testGetSamplePropertiesByPropertyValue() throws Exception {
+        final List<Sample> samples = sampleDAO.getSamplesByPropertyValue(PROPERTY_VALUE2);
+        for (Sample sample : samples) {
+            boolean found = false;
+            for (SampleProperty prop : sample.getProperties()) {
+                if (PROPERTY_VALUE2.equals(prop.getValue()))
+                    found = true;
+            }
+            assertTrue("Sample did not contain property value: " + PROPERTY_VALUE2, found);
+        }
+    }
+
+    @Test
     public void testGetAllArrayDesigns() throws Exception {
         int expected = getDataSet().getTable("A2_ARRAYDESIGN").getRowCount();
 
@@ -152,17 +187,40 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testDeleteAssayProperty() throws Exception {
+    public void testDeleteAssayProperties() throws Exception {
         final long termsCount = countOntologyTerms();
 
         removeAssayProperties();
 
-        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
 
         assertEquals("Properties are not deleted!", 0, assay.getProperties().size());
         assertEquals("Deleted the OntologyTerm - invalid cascading", termsCount,
                 countOntologyTerms());
+    }
+
+    @Test
+    public void testAddDeleteAssayProperty() throws Exception {
+        final PropertyValue propertyValue = propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+
+        addAssayProperty();
+
+        Experiment experiment = experimentDAO.getByName(E_MEXP_420);
+        Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        assertTrue("Property not added", assay.hasProperty(propertyValue));
+
+        removeAssayProperty();
+
+        checkRemovalResults(propertyValue);
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void checkRemovalResults(PropertyValue propertyValue) throws RecordNotFoundException {
+        Experiment experiment = experimentDAO.getByName(E_MEXP_420);
+        Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        assertFalse("Property not removed", assay.hasProperty(propertyValue));
     }
 
     private long countOntologyTerms() {
@@ -172,10 +230,34 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void removeAssayProperties() {
-        final Experiment experiment = experimentDAO.getExperimentByAccession(E_MEXP_420);
+    private void removeAssayProperties() throws RecordNotFoundException {
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
         final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
         assay.getProperties().clear();
+        experimentDAO.save(experiment);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void addAssayProperty() throws RecordNotFoundException {
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
+        final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        final PropertyValue propertyValue = propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        final Ontology ontology = ontologyDAO.getOrCreateOntology(ONTOLOGY_NAME, ONTOLOGY_DESCRIPTION, null, ONTOLOGY_VERSION);
+        List<OntologyTerm> terms = Collections.singletonList(ontologyTermDAO.getOrCreateOntologyTerm(
+                ONTOLOGY_TERM,
+                null,
+                null,
+                ontology));
+        assay.addOrUpdateProperty(propertyValue, terms);
+        experimentDAO.save(experiment);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void removeAssayProperty() throws RecordNotFoundException {
+        final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
+        final Assay assay = experiment.getAssay(ABC_ABCXYZ_SOME_THING_1234_ABC123);
+        final PropertyValue propertyValue = propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
+        assay.deleteProperty(propertyValue);
         experimentDAO.save(experiment);
     }
 }

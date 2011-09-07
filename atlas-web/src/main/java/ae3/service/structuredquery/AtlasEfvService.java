@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -132,17 +133,20 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 log.info("Loading factor values and counts for " + property);
 
                 root = new PrefixNode();
-
-                final Property p = propertyDAO.getByName(property);
-                for (PropertyValue pv : p.getValues()) {
-                    EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
-                    int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
-                    if (geneCount > 0) {
-                        root.add(attr.getEfv(), geneCount);
+                try {
+                    final Property p = propertyDAO.getByName(property);
+                    for (PropertyValue pv : p.getValues()) {
+                        EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
+                        int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
+                        if (geneCount > 0) {
+                            root.add(attr.getEfv(), geneCount);
+                        }
                     }
+                    prefixTrees.put(property, root);
+                    log.info("Done loading factor values and counts for " + property);
+                } catch (RecordNotFoundException e) {
+                    throw createUnexpected(e.getMessage(), e);
                 }
-                prefixTrees.put(property, root);
-                log.info("Done loading factor values and counts for " + property);
             }
             root = prefixTrees.get(property);
         }

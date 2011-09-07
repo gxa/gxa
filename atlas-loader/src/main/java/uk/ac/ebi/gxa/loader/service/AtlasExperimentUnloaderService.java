@@ -1,7 +1,7 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import org.springframework.dao.DataAccessException;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -28,13 +28,11 @@ public class AtlasExperimentUnloaderService {
                 listener.setAccession(accession);
             }
 
-            final Experiment experiment = experimentDAO.getExperimentByAccession(accession);
-            if (experiment == null)
-                throw new AtlasLoaderException("Can't find experiment to unload");
+            final Experiment experiment = experimentDAO.getByName(accession);
             atlasDataDAO.deleteExperiment(experiment);
             experimentDAO.delete(experiment);
-        } catch (DataAccessException e) {
-            throw new AtlasLoaderException("DB error while unloading experiment " + accession, e);
+        } catch (RecordNotFoundException e) {
+            throw new AtlasLoaderException("Can't find the experiment: " + e.getMessage(), e);
         }
     }
 }

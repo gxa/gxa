@@ -3,7 +3,6 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Immutable;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,8 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@Immutable
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public final class Property {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
@@ -26,8 +24,7 @@ public final class Property {
     private String name;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-    @Immutable
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private List<PropertyValue> values = new ArrayList<PropertyValue>();
 
     Property() {
@@ -50,6 +47,10 @@ public final class Property {
         return Collections.unmodifiableList(values);
     }
 
+    public void deleteValue(PropertyValue propertyValue) {
+        values.remove(propertyValue);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,7 +58,6 @@ public final class Property {
 
         Property that = (Property) o;
 
-        if (propertyid != null ? !propertyid.equals(that.propertyid) : that.propertyid != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
@@ -65,9 +65,7 @@ public final class Property {
 
     @Override
     public int hashCode() {
-        int result = propertyid != null ? propertyid.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
+        return name != null ? name.hashCode() : 0;
     }
 
     @Override

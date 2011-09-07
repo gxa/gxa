@@ -112,7 +112,7 @@ if(!atlas)
                     height = 10;
                 plotel.css({ height: (height * 16 + 20) + 'px' });
             }
-            
+
             root.find('.plotwaiter').remove();
             root.find('.efname,.plot').show();
 
@@ -142,7 +142,7 @@ if(!atlas)
          } else {
              left = event.pageX;
              top = event.pageY;
-         }         
+         }
          left += 15;
          top += 15;
 
@@ -322,11 +322,13 @@ if(!atlas)
                         .html(indent).append($('<span/>').text("all children")).addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2').appendTo(ul);
                     $.data(allChildrenLi.get(0), "efoup", '@' + id); // '@' preamble indicates that efo id's children should be included
                 }
-                var li = $('<li />')
-                        .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
-                        .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
-                        .appendTo(ul);
-                $.data(li.get(0), "efoup", resp.tree[i]);
+                if (resp.tree[i].id !== id) { // Exclude the efo term being expanded - to stop the user from selecting an already selected efo term
+                    var li = $('<li />')
+                            .html(indent).append($('<span/>').text(resp.tree[i].term)).append(' <em>(' + resp.tree[i].count + ') ' + resp.tree[i].id + '</em>')
+                            .addClass(++k % 2 ? 'tokendropitem' : 'tokendropitem2')
+                            .appendTo(ul);
+                    $.data(li.get(0), "efoup", resp.tree[i]);
+                }
             }
 
             ul.find('li:first').addClass('tokendropitemsel');

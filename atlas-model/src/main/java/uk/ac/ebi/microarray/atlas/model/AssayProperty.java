@@ -109,6 +109,10 @@ public final class AssayProperty {
         return unmodifiableList(terms);
     }
 
+    public void setTerms(List<OntologyTerm> terms) {
+        this.terms = terms;
+    }
+
     @Deprecated
     public long getPropertyId() {
         return propertyValue.getDefinition().getId();

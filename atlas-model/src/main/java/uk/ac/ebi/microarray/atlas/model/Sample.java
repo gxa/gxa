@@ -115,7 +115,8 @@ public class Sample {
         return channel;
     }
 
-    public long getSampleID() {
+
+    public Long getSampleID() {
         return getId();
     }
 
@@ -138,13 +139,18 @@ public class Sample {
     }
 
     @Override
-    public int hashCode() {
-        return sampleid == null ? 0 : sampleid.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Sample sample = (Sample) o;
+
+        return accession == null ? sample.accession == null : accession.equals(sample.accession);
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o instanceof Sample && ((Sample) o).sampleid.equals(sampleid);
+    public int hashCode() {
+        return accession != null ? accession.hashCode() : 0;
     }
 
     public void addAssay(Assay assay) {
@@ -222,12 +228,51 @@ public class Sample {
         properties.add(new SampleProperty(this, pv, efoTerms));
     }
 
+    public void deleteProperty(final PropertyValue propertyValue) {
+        SampleProperty property = getProperty(propertyValue);
+        while (property != null) {
+            properties.remove(property);
+            property = getProperty(propertyValue);
+        }
+    }
+
     public void setOrganism(Organism organism) {
         this.organism = organism;
     }
 
     void setExperiment(Experiment experiment) {
         this.experiment = experiment;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public boolean hasProperty(final PropertyValue propertyValue) {
+        for (SampleProperty property : properties) {
+            if (property.getPropertyValue().equals(propertyValue))
+                return true;
+        }
+
+        return false;
+    }
+
+    public SampleProperty getProperty(PropertyValue propertyValue) {
+        for (SampleProperty property : properties) {
+            if (property.getPropertyValue().equals(propertyValue))
+                return property;
+        }
+
+        return null;
+    }
+
+    public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
+        if (!this.hasProperty(propertyValue)) {
+            this.addProperty(propertyValue, terms);
+        } else {
+            SampleProperty sampleProperty = this.getProperty(propertyValue);
+            sampleProperty.setTerms(terms);
+        }
     }
 }
 

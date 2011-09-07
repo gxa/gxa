@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMBlock;
 import uk.ac.ebi.gxa.requesthandlers.wiggle.bam.BAMReader;
@@ -104,84 +105,87 @@ public class WiggleRequestHandler implements HttpRequestHandler {
         final String accession = allParams[1];
         final String factorName = URLDecoder.decode(URLDecoder.decode(allParams[2]));
         final String factorValue = param3.substring(0, param3.length() - 4);
+        try {
+            final File dataDir = atlasDataDAO.getDataDirectory(atlasDAO.getExperimentByAccession(accession));
+            final GeneAnnotation anno =
+                    new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
+            final String chromosomeId = anno.chromosomeId();
+            long geneStart = anno.geneStart();
+            long geneEnd = anno.geneEnd();
 
-        final File dataDir = atlasDataDAO.getDataDirectory(atlasDAO.getExperimentByAccession(accession));
-        final GeneAnnotation anno =
-                new GeneAnnotation(new File(dataDir, "annotations"), geneId, accession);
-        final String chromosomeId = anno.chromosomeId();
-        long geneStart = anno.geneStart();
-        long geneEnd = anno.geneEnd();
-
-        if (chromosomeId == null || geneStart == -1 || geneEnd == -1) {
-            log.error("A region for gene " + geneId + " not found");
-            return;
-        }
-
-        final ArrayList<Assay> assaysToGet = new ArrayList<Assay>();
-        for (Assay assay : atlasDAO.getExperimentByAccession(accession).getAssays()) {
-            for (AssayProperty p : assay.getProperties(factorName)) {
-                if (factorValue.equals(p.getValue())) {
-                    assaysToGet.add(assay);
-                    break;
-                }
+            if (chromosomeId == null || geneStart == -1 || geneEnd == -1) {
+                log.error("A region for gene " + geneId + " not found");
+                return;
             }
-        }
-        log.info("getting info for " + assaysToGet.size() + " assays");
 
-        final long delta = (geneEnd - geneStart) / 5;
-        geneStart -= delta;
-        if (geneStart < 1) {
-            geneStart = 1;
-        }
-        geneEnd += delta;
-
-        final WigCreator creator = new WigCreator(out, chromosomeId, geneStart, geneEnd);
-        final String wiggleName =
-                "EBI Expression Atlas (GXA) Experiment " +
-                        accession + " - " + factorName + " - " + factorValue;
-
-        out.println("track" +
-                " type=wiggle_0" +
-                " name=\"" + wiggleName + "\"" +
-                " description=\"" + wiggleName + "\"" +
-                " visibility=full" +
-                " autoScale=on" +
-                " color=68,68,68" +
-                " yLineMark=11.76" +
-                " yLineOnOff=on" +
-                " priority=10"
-        );
-
-        final File assaysDir = new File(dataDir, "assays");
-        final ArrayList<Read> allReads = new ArrayList<Read>();
-        for (Assay assay : assaysToGet) {
-            final File aDir = new File(assaysDir, assay.getAccession());
-            final BAMReader reader = new BAMReader(new File(aDir, "accepted_hits.sorted.bam"));
-            try {
-                for (BAMBlock b : reader.readBAMBlocks(chromosomeId, geneStart, geneEnd)) {
-                    for (int i = b.from; i < b.to;) {
-                        Read read = new Read(b.buffer, i, b.to);
-                        i += read.blockSize;
-                        if (!read.isValid) {
-                            log.error("Invalid read record has been found for " + assay.getAccession());
-                            break;
-                        }
-                        if ((read.start <= geneEnd) && (read.end >= geneStart)) {
-                            allReads.add(read);
-                        }
+            final ArrayList<Assay> assaysToGet = new ArrayList<Assay>();
+            for (Assay assay : atlasDAO.getExperimentByAccession(accession).getAssays()) {
+                for (AssayProperty p : assay.getProperties(factorName)) {
+                    if (factorValue.equals(p.getValue())) {
+                        assaysToGet.add(assay);
+                        break;
                     }
                 }
-            } catch (IOException e) {
-                log.error(assay.getAccession() + ":" + e.getMessage());
             }
-        }
-        Collections.sort(allReads);
-        for (Read read : allReads) {
-            creator.init(read.start);
-            creator.fillByZeroes(read.end);
-            creator.removeZeroes(read.start);
-            creator.addRegion(read.start, read.end);
-            creator.printRegions(read.start);
+            log.info("getting info for " + assaysToGet.size() + " assays");
+
+            final long delta = (geneEnd - geneStart) / 5;
+            geneStart -= delta;
+            if (geneStart < 1) {
+                geneStart = 1;
+            }
+            geneEnd += delta;
+
+            final WigCreator creator = new WigCreator(out, chromosomeId, geneStart, geneEnd);
+            final String wiggleName =
+                    "EBI Expression Atlas (GXA) Experiment " +
+                            accession + " - " + factorName + " - " + factorValue;
+
+            out.println("track" +
+                    " type=wiggle_0" +
+                    " name=\"" + wiggleName + "\"" +
+                    " description=\"" + wiggleName + "\"" +
+                    " visibility=full" +
+                    " autoScale=on" +
+                    " color=68,68,68" +
+                    " yLineMark=11.76" +
+                    " yLineOnOff=on" +
+                    " priority=10"
+            );
+
+            final File assaysDir = new File(dataDir, "assays");
+            final ArrayList<Read> allReads = new ArrayList<Read>();
+            for (Assay assay : assaysToGet) {
+                final File aDir = new File(assaysDir, assay.getAccession());
+                final BAMReader reader = new BAMReader(new File(aDir, "accepted_hits.sorted.bam"));
+                try {
+                    for (BAMBlock b : reader.readBAMBlocks(chromosomeId, geneStart, geneEnd)) {
+                        for (int i = b.from; i < b.to;) {
+                            Read read = new Read(b.buffer, i, b.to);
+                            i += read.blockSize;
+                            if (!read.isValid) {
+                                log.error("Invalid read record has been found for " + assay.getAccession());
+                                break;
+                            }
+                            if ((read.start <= geneEnd) && (read.end >= geneStart)) {
+                                allReads.add(read);
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    log.error(assay.getAccession() + ":" + e.getMessage());
+                }
+            }
+            Collections.sort(allReads);
+            for (Read read : allReads) {
+                creator.init(read.start);
+                creator.fillByZeroes(read.end);
+                creator.removeZeroes(read.start);
+                creator.addRegion(read.start, read.end);
+                creator.printRegions(read.start);
+            }
+        } catch (RecordNotFoundException e) {
+            throw new ServletException(e.getMessage());
         }
     }
 }

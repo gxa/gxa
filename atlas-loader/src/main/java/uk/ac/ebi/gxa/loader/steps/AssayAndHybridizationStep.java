@@ -277,7 +277,7 @@ public class AssayAndHybridizationStep {
                     type = efType;
                 }
 
-                assay.addProperty(dao.getOrCreateProperty(type, factorValueName));
+                assay.addProperty(dao.getOrCreatePropertyValue(type, factorValueName));
 
                 // todo - factor values can have ontology entries, set these values
             }
