@@ -22,11 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.model.AssayDecorator;
-import ae3.model.AtlasExperiment;
-import ae3.model.AtlasGene;
-import ae3.model.ExperimentalData;
-import ae3.model.ExpressionStats;
+import ae3.model.*;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -38,14 +34,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 

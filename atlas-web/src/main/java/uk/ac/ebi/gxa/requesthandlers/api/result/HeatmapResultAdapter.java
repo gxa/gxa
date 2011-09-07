@@ -24,11 +24,7 @@ package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.model.ListResultRowExperiment;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.service.structuredquery.AtlasStructuredQueryResult;
-import ae3.service.structuredquery.ColumnInfo;
-import ae3.service.structuredquery.EfoTree;
-import ae3.service.structuredquery.StructuredResultRow;
-import ae3.service.structuredquery.UpdownCounter;
+import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
@@ -37,12 +33,7 @@ import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.EfoAttribute;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentResult;
-import uk.ac.ebi.gxa.statistics.PTRank;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -50,11 +41,7 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 

@@ -2,11 +2,7 @@ package ae3.service.experiment;
 
 import ae3.model.AtlasGene;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Olga Melnichuk

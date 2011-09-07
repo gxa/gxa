@@ -33,13 +33,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Sets.newTreeSet;

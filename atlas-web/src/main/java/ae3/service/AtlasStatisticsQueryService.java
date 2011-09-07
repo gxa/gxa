@@ -5,24 +5,13 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentInfo;
-import uk.ac.ebi.gxa.statistics.ExperimentResult;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryCondition;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryOrConditions;
-import uk.ac.ebi.gxa.statistics.StatisticsStorage;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This interface provides bioentity expression statistics query service API

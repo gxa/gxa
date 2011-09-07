@@ -7,11 +7,9 @@ public class DesignElement {
     private final String accession;
     private final String name;
 
-
     public DesignElement(String accession, String name) {
         this.accession = accession;
         this.name = name;
-
     }
 
     public String getAccession() {

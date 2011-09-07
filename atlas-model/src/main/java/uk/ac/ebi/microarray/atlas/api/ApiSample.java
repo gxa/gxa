@@ -7,6 +7,7 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Misha Kapushesky

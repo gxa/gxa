@@ -2,8 +2,10 @@ package uk.ac.ebi.microarray.atlas.api;
 
 import com.google.common.collect.Collections2;
 import uk.ac.ebi.gxa.utils.TransformerUtil;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
+import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Collection;
 

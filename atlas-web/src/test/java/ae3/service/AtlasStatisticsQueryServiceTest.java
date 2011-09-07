@@ -7,23 +7,10 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.EfoAttribute;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentInfo;
-import uk.ac.ebi.gxa.statistics.ExperimentResult;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryCondition;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryOrConditions;
-import uk.ac.ebi.gxa.statistics.StatisticsQueryUtils;
-import uk.ac.ebi.gxa.statistics.StatisticsStorage;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

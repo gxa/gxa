@@ -30,21 +30,8 @@ import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.annotation.Nullable;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.persistence.*;
+import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Sets.newHashSet;

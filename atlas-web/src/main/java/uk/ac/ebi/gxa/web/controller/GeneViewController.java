@@ -33,11 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
@@ -45,11 +41,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.EfoAttribute;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentResult;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
@@ -234,7 +226,7 @@ public class GeneViewController extends AtlasViewController {
     }
 
     /**
-     * @param gene     gene of interest
+     * @param gene      gene of interest
      * @param attribute
      * @param fromRow
      * @param toRow

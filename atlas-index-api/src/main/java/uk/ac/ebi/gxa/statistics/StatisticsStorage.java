@@ -7,18 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
+import java.util.*;
 
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.DOWN;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
  * Class encapsulating bit storage of all statistics in StatisticType enum

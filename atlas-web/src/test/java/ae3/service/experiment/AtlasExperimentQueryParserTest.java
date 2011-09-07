@@ -28,17 +28,9 @@ import com.google.common.collect.Multimaps;
 import org.junit.Test;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Olga Melnichuk

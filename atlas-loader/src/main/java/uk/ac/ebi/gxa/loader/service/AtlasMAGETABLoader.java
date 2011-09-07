@@ -35,13 +35,7 @@ import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.ArrayDataStep;
-import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
-import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
-import uk.ac.ebi.gxa.loader.steps.DerivedArrayDataMatrixStep;
-import uk.ac.ebi.gxa.loader.steps.HTSArrayDataStep;
-import uk.ac.ebi.gxa.loader.steps.ParsingStep;
-import uk.ac.ebi.gxa.loader.steps.SourceStep;
+import uk.ac.ebi.gxa.loader.steps.*;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -56,9 +50,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static uk.ac.ebi.gxa.utils.FileUtil.createTempDirectory;
-import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
-import static uk.ac.ebi.gxa.utils.FileUtil.extension;
+import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
  * A Loader application that will insert data from MAGE-TAB format files into the Atlas backend database.

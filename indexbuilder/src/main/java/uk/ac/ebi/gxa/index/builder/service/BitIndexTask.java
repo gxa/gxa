@@ -1,8 +1,8 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-
 import java.util.List;
+
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 class BitIndexTask {
     private final List<Experiment> experiments;

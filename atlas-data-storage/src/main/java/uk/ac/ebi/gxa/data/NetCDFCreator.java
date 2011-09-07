@@ -23,21 +23,10 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.Array;
-import ucar.ma2.ArrayChar;
-import ucar.ma2.ArrayFloat;
-import ucar.ma2.ArrayInt;
-import ucar.ma2.DataType;
-import ucar.ma2.IndexIterator;
-import ucar.ma2.InvalidRangeException;
-import ucar.ma2.Range;
+import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
 import uk.ac.ebi.gxa.utils.FlattenIterator;
@@ -51,20 +40,7 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Efficient NetCDF writer tailored to handle chunked expression values blocks found in
@@ -152,14 +128,14 @@ public class NetCDFCreator {
 
         for (Assay a : assays) {
             propertyNames.addAll(a.getPropertyNames());
-            }
+        }
 
         for (String propertyName : propertyNames) {
             final List<String> propertyList = new ArrayList<String>(samples.size());
 
             for (final Assay a : assays) {
                 propertyList.add(a.getPropertySummary(propertyName));
-        }
+            }
 
             result.put(propertyName, propertyList);
         }
@@ -174,14 +150,14 @@ public class NetCDFCreator {
 
         for (final Sample s : samples) {
             propertyNames.addAll(s.getPropertyNames());
-            }
+        }
 
         for (final String propertyName : propertyNames) {
             final List<String> propertyList = new ArrayList<String>(samples.size());
 
             for (final Sample s : samples) {
                 propertyList.add(s.getPropertySummary(propertyName));
-        }
+            }
 
             result.put(propertyName, propertyList);
         }

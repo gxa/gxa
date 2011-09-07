@@ -35,36 +35,20 @@ import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.EfoAttribute;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentInfo;
-import uk.ac.ebi.gxa.statistics.ExperimentResult;
-import uk.ac.ebi.gxa.statistics.PTRank;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.DOWN;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
  * @author pashky

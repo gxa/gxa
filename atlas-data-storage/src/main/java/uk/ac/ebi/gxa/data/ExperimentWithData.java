@@ -27,23 +27,13 @@ import com.google.common.base.Predicates;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.Sample;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ExperimentWithData implements Closeable {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -162,7 +152,7 @@ public class ExperimentWithData implements Closeable {
 
     public long[] getGenes(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getGenes(); 
+            return getProxy(arrayDesign).getGenes();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -170,7 +160,7 @@ public class ExperimentWithData implements Closeable {
 
     public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getUniqueFactorValues(); 
+            return getProxy(arrayDesign).getUniqueFactorValues();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -178,7 +168,7 @@ public class ExperimentWithData implements Closeable {
 
     public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getUniqueValues(); 
+            return getProxy(arrayDesign).getUniqueValues();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -186,7 +176,7 @@ public class ExperimentWithData implements Closeable {
 
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getFactors(); 
+            return getProxy(arrayDesign).getFactors();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -194,7 +184,7 @@ public class ExperimentWithData implements Closeable {
 
     public String[] getCharacteristics(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getCharacteristics(); 
+            return getProxy(arrayDesign).getCharacteristics();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
@@ -298,8 +288,8 @@ public class ExperimentWithData implements Closeable {
     }
 
     /**
-     * @param geneIds    ids of genes to plot
-     * @param criteria   other criteria to choose NetCDF to plot
+     * @param geneIds  ids of genes to plot
+     * @param criteria other criteria to choose NetCDF to plot
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later

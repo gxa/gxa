@@ -38,24 +38,14 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
-import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
-import uk.ac.ebi.gxa.loader.steps.HTSArrayDataStep;
-import uk.ac.ebi.gxa.loader.steps.ParsingStep;
-import uk.ac.ebi.gxa.loader.steps.SourceStep;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Assay;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.PropertyValue;
+import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);

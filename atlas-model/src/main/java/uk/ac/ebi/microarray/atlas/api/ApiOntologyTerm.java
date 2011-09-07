@@ -1,5 +1,6 @@
 package uk.ac.ebi.microarray.atlas.api;
 
+import uk.ac.ebi.microarray.atlas.model.Ontology;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 /**

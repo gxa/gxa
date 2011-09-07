@@ -24,9 +24,7 @@ package uk.ac.ebi.gxa.utils;
 
 import java.math.BigDecimal;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.ceil;
-import static java.lang.Math.log10;
+import static java.lang.Math.*;
 
 public final class FloatFormatter {
     private static final double EPSILON = 1e-10;

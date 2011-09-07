@@ -18,12 +18,7 @@ import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;

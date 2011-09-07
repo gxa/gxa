@@ -6,16 +6,10 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
+import java.util.*;
 
 import static com.google.common.collect.HashMultiset.create;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Maps.newTreeMap;
+import static com.google.common.collect.Maps.*;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.unmodifiableSet;

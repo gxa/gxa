@@ -9,11 +9,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
-import uk.ac.ebi.microarray.atlas.api.ApiOntology;
-import uk.ac.ebi.microarray.atlas.api.ApiOntologyTerm;
-import uk.ac.ebi.microarray.atlas.api.ApiProperty;
-import uk.ac.ebi.microarray.atlas.api.ApiPropertyName;
-import uk.ac.ebi.microarray.atlas.api.ApiPropertyValue;
+import uk.ac.ebi.microarray.atlas.api.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;

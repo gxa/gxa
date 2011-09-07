@@ -49,22 +49,14 @@ import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Asset;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;

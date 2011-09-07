@@ -10,11 +10,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class tests functionality of AtlasDataDAO

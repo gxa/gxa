@@ -38,11 +38,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 class DataQueryHandler implements QueryHandler {
     private Logger log = LoggerFactory.getLogger(getClass());

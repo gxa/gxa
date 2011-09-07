@@ -25,22 +25,17 @@ package uk.ac.ebi.gxa.web.ui.plot;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.ExpressionStatistics;
 import uk.ac.ebi.gxa.data.FloatMatrixProxy;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.primitives.Ints.asList;

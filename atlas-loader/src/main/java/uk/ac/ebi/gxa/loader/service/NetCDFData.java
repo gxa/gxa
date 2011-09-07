@@ -4,24 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.DataMatrixStorage;
 import uk.ac.ebi.gxa.data.KeyValuePair;
-import uk.ac.ebi.gxa.utils.CBitSet;
-import uk.ac.ebi.gxa.utils.CPair;
-import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.Maker;
-import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 class NetCDFData {
     final private Logger log = LoggerFactory.getLogger(this.getClass());

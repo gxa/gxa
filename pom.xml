@@ -286,7 +286,7 @@
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
         <module>annotator</module>
-  </modules>
+    </modules>
 
     <dependencies>
         <dependency>
