@@ -26,11 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
-import uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService;
-import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
-import uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService;
-import uk.ac.ebi.gxa.loader.service.ExperimentEditorService;
+import uk.ac.ebi.gxa.loader.service.*;
 
 import java.util.ArrayList;
 import java.util.List;
