@@ -50,7 +50,8 @@ begin
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
    and pv.Name = :old.Value
-   and t.SamplePVOntologyID = so.SamplePVOntologyID);
+   and t.SamplePVID = so.SamplePVID
+   and t.OntologyTermID = so.OntologyTermID);
  
    delete a2_assaypvontology t
    where exists(select 1 
@@ -65,7 +66,8 @@ begin
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
    and pv.Name = :old.Value
-   and t.AssayPVONtologyID = ao.AssayPVOntologyID);
+   and t.assayPVID = ao.assayPVID
+   and t.OntologyTermID = ao.OntologyTermID);
   
   else --new ontology term is not 
    dbms_output.put_line('update assay and sample mapping'); 
@@ -160,8 +162,8 @@ begin
                                              where e.accession = :new.Experiment
                                              and apv.PropertyValueID = mPropertyValueID_new) t
    ON (apvo.AssayPVID = t.AssayPVID and apvo.OntologyTermID = mOntologyTermID_new)
-   WHEN NOT MATCHED THEN INSERT (AssayPVOntologyID,OntologyTermID, AssayPVID) 
-                         VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new, t.AssayPVID);
+   WHEN NOT MATCHED THEN INSERT (OntologyTermID, AssayPVID)
+                         VALUES (mOntologyTermID_new, t.AssayPVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
     NULL;
@@ -194,8 +196,8 @@ begin
                                               where e.accession = :new.Experiment
                                               and apv.PropertyValueID = mPropertyValueID_new) t
    ON (apvo.SamplePVID = t.SamplePVID and apvo.OntologyTermID = mOntologyTermID_new)
-   WHEN NOT MATCHED THEN INSERT (SamplePVOntologyID,OntologyTermID, SamplePVID) 
-                         VALUES (A2_SamplePVOntology_Seq.nextval,mOntologyTermID_new, t.SamplePVID);
+   WHEN NOT MATCHED THEN INSERT (OntologyTermID, SamplePVID)
+                         VALUES (mOntologyTermID_new, t.SamplePVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
     NULL;
