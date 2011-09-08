@@ -41,33 +41,23 @@ begin
    JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
    JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID 
    JOIN a2_sample s ON s.SampleID = asss.SampleID   
-   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID  
-   JOIN a2_samplePVontology so ON so.SamplePVID = spv.SamplePVID 
-   JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID 
-   JOIN a2_property p ON p.PropertyID = pv.PropertyID 
-   JOIN a2_ontologyterm ot ON ot.OntologyTermID = so.OntologyTermID 
-   JOIN a2_ontology o ON o.OntologyID = ot.OntologyID
+   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID and t.SamplePVID = spv.SamplePVID
+   JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID
+   JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
-   and pv.Name = :old.Value
-   and t.SamplePVID = so.SamplePVID
-   and t.OntologyTermID = so.OntologyTermID);
+   and pv.Name = :old.Value);
  
    delete a2_assaypvontology t
    where exists(select 1 
    FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
    JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
-   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID
-   JOIN a2_assayPVontology ao ON ao.AssayPVID = apv.assayPVID
+   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID AND t.AssayPVID = apv.assayPVID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
-   JOIN a2_property p ON p.PropertyID = pv.PropertyID 
-   JOIN a2_ontologyterm ot ON ot.OntologyTermID = ao.OntologyTermID 
-   JOIN a2_ontology o ON o.OntologyID = ot.OntologyID
+   JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
-   and pv.Name = :old.Value
-   and t.assayPVID = ao.assayPVID
-   and t.OntologyTermID = ao.OntologyTermID);
+   and pv.Name = :old.Value);
   
   else --new ontology term is not 
    dbms_output.put_line('update assay and sample mapping'); 
