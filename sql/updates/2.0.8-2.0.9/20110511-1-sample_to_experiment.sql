@@ -1,12 +1,17 @@
--- Estimated running time: 22 minutes
+-- Estimated running time: 40 seconds
 
 alter table a2_sample add "EXPERIMENTID" NUMBER;
 
-update a2_sample s set s.experimentid = (
-  select distinct a.experimentid from a2_assay a, a2_assaysample ass
-  where a.assayid=ass.assayid
-  and ass.sampleid = s.sampleid
-);
+create table tmp_sample_exp as
+  select distinct ass.sampleid as sid, a.experimentid as eid from a2_assay a, a2_assaysample ass
+  where a.assayid=ass.assayid;
+
+alter table tmp_sample_exp add constraint "tse_pk" primary key (sid);
+
+update a2_sample s
+  set s.experimentid = (select eid from tmp_sample_exp where sid = s.sampleid);
+
+drop table tmp_sample_exp;
 
 ALTER TABLE "A2_SAMPLE"
 ADD CONSTRAINT "FK_SAMPLE_EXPERIMENT"
