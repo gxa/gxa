@@ -72,7 +72,7 @@ public class ExperimentWithData implements Closeable {
     public DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         DataProxy p = proxies.get(arrayDesign);
         if (p == null) {
-            p = new NetCDFProxyV1(atlasDataDAO.getNetCDFLocation(experiment, arrayDesign));
+            p = atlasDataDAO.createDataProxy(experiment, arrayDesign);
             proxies.put(arrayDesign, p);
         }
         return p;
@@ -184,18 +184,18 @@ public class ExperimentWithData implements Closeable {
      * @throws AtlasDataException    if the data could not be read from the netCDF file
      * @throws AtlasDataException    if array of design element indices contains out of bound indices
      */
-    public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
+    public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
         return ExpressionStatistics.create(deIndices, getProxy(arrayDesign));
     }
 
-    private List<ExpressionAnalysis> getAllExpressionAnalyses(ArrayDesign arrayDesign, int deIndex) throws AtlasDataException {
+    private List<ExpressionAnalysis> getAllExpressionAnalyses(ArrayDesign arrayDesign, int deIndex) throws AtlasDataException, StatisticsNotFoundException {
         return getExpressionAnalysesByFactor(arrayDesign, deIndex, null, null);
     }
 
     // returns
     //     list of ExpressionAnalyses for given ArrayDesign and ef/efv pair if ef is not null
     //     list of all ExpressionAnalyses for given ArrayDesign otherwise
-    private List<ExpressionAnalysis> getExpressionAnalysesByFactor(ArrayDesign arrayDesign, int deIndex, String efName, String efvName) throws AtlasDataException {
+    private List<ExpressionAnalysis> getExpressionAnalysesByFactor(ArrayDesign arrayDesign, int deIndex, String efName, String efvName) throws AtlasDataException, StatisticsNotFoundException {
         final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
         final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
         final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
@@ -235,7 +235,7 @@ public class ExperimentWithData implements Closeable {
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
         ArrayDesign arrayDesign,
         Map<Long,List<Integer>> geneIdsToDEIndexes
-    ) throws AtlasDataException {
+    ) throws AtlasDataException, StatisticsNotFoundException {
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdsToDEIndexes, null, null, UpDownCondition.CONDITION_ANY);
     }
 
@@ -261,7 +261,7 @@ public class ExperimentWithData implements Closeable {
             @Nullable final String efVal,
             @Nullable final String efvVal,
             final UpDownCondition upDownCondition
-    ) throws AtlasDataException {
+    ) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
 
         for (Map.Entry<Long, List<Integer>> entry : geneIdsToDEIndexes.entrySet()) {
@@ -278,10 +278,13 @@ public class ExperimentWithData implements Closeable {
                 if (efVal != null && efvVal != null) {
                     final List<ExpressionAnalysis> eas =
                         getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
-                    // TODO: only 1st element of list is used. Why? -- NP
-                    if (!eas.isEmpty() &&
-                        upDownCondition.apply(UpDownExpression.valueOf(eas.get(0).getPValAdjusted(), eas.get(0).getTStatistic()))) {
-                        eaList.add(eas.get(0));
+                    if (!eas.isEmpty()) { // this means eas.size() == 1
+                        final ExpressionAnalysis analysis = eas.get(0);
+                        if (upDownCondition.apply(UpDownExpression.valueOf(
+                            analysis.getPValAdjusted(), analysis.getTStatistic()
+                        ))) {
+                            eaList.add(analysis);
+                        }
                     }
                 } else {
                     eaList.addAll(getAllExpressionAnalyses(arrayDesign, deIndex));
@@ -357,7 +360,7 @@ public class ExperimentWithData implements Closeable {
      *         the actual expression values can be easily retrieved later
      * @throws AtlasDataException in case of I/O errors
      */
-    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<ArrayDesign> criteria) throws AtlasDataException {
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<ArrayDesign> criteria) throws AtlasDataException, StatisticsNotFoundException {
         final ArrayDesign arrayDesign = findArrayDesign(Predicates.<ArrayDesign>and(new DataPredicates(this).containsGenes(geneIds), criteria));
         if (arrayDesign == null) {
             return null;
@@ -367,11 +370,11 @@ public class ExperimentWithData implements Closeable {
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
     }
 
-    public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
+    public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex);
     }
 
-    public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
+    public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex);
     }
 
@@ -379,11 +382,11 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getAllExpressionData();
     }
 
-    public TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException {
+    public TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getTStatistics();
     }
 
-    public TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException {
+    public TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getPValues();
     }
 
@@ -395,6 +398,7 @@ public class ExperimentWithData implements Closeable {
      * @return best (according to expression) ExpressionAnalysis for geneId-ef-efv in experimentAccession's
      *         first proxy in which expression data for that combination exists
      */
+    // TODO: remove this method from ExperimentWithData or throw AtlasDataException & StatisticsNotFoundException outside
     public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, UpDownCondition upDownCondition) {
         ExpressionAnalysis ea = null;
         try {
@@ -414,6 +418,8 @@ public class ExperimentWithData implements Closeable {
 
                 }
             }
+        } catch (StatisticsNotFoundException e) {
+            log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
         } catch (AtlasDataException e) {
             log.error("Failed to ExpressionAnalysis for gene id: " + geneId + "; ef: " + ef + " ; efv: " + efv + " in experiment: " + experiment);
         }
@@ -427,7 +433,7 @@ public class ExperimentWithData implements Closeable {
      * @return Map: efv -> best ExpressionAnalysis for geneid-ef in this proxy
      * @throws AtlasDataException
      */
-    public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(ArrayDesign arrayDesign, Long geneId, String ef) throws AtlasDataException {
+    public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(ArrayDesign arrayDesign, Long geneId, String ef) throws AtlasDataException, StatisticsNotFoundException {
         Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, Collections.singleton(geneId));
         Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                 getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);

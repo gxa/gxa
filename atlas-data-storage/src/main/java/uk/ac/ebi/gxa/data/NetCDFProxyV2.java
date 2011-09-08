@@ -64,52 +64,58 @@ import java.util.*;
  *
  * @author Tony Burdett
  */
-final class NetCDFProxyV1 extends NetCDFProxy {
+final class NetCDFProxyV2 extends NetCDFProxy {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final NetcdfFile netCDF;
+    private final NetcdfFile dataNetCDF;
+    private NetcdfFile statisticsNetCDF;
 
-    NetCDFProxyV1(File file) throws AtlasDataException {
+    NetCDFProxyV2(File dataFile, File statisticsFile) throws AtlasDataException {
         try {
-            this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
+            this.dataNetCDF = NetcdfDataset.acquireFile(dataFile.getAbsolutePath(), null);
+            try {
+                this.statisticsNetCDF = NetcdfDataset.acquireFile(statisticsFile.getAbsolutePath(), null);
+            } catch (IOException e) {
+            }
             if (isOutOfDate()) {
                 close();
-                throw new AtlasDataException("ncdf " + file.getAbsolutePath() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+                throw new AtlasDataException("ncdf " + dataFile.getAbsolutePath() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
             }
         } catch (IOException e) {
+            try {
+                close();
+            } catch (IOException ioe) {
+            }
             throw new AtlasDataException(e);
         }
     }
 
     boolean isOutOfDate() {
-        final String version = getNcdfVersion();
-        // "NetCDF Updater" string was used as version id in NetCDFs created by updater
-        // before March 23, 2011
-        return !"1.0".equals(version) && !"NetCDF Updater".equals(version);
+        return !"2.0".equals(getNcdfVersion());
     }
 
     @Override
     String getExperimentAccession() {
-        return netCDF.findGlobalAttribute("experiment_accession").getStringValue();
+        return dataNetCDF.findGlobalAttribute("experiment_accession").getStringValue();
     }
 
     @Override
     String getArrayDesignAccession() {
-        return netCDF.findGlobalAttribute("ADaccession").getStringValue();
+        return dataNetCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
     private String getNcdfVersion() {
-        if (netCDF.findGlobalAttribute("CreateNetCDF_VERSION") == null) {
+        if (dataNetCDF.findGlobalAttribute("CreateNetCDF_VERSION") == null) {
             return null;
         }
-        return netCDF.findGlobalAttribute("CreateNetCDF_VERSION").getStringValue();
+        return dataNetCDF.findGlobalAttribute("CreateNetCDF_VERSION").getStringValue();
     }
 
     @Override
     int[][] getSamplesToAssays() throws AtlasDataException {
         try {
             // read BS2AS
-            Variable bs2as = netCDF.findVariable("BS2AS");
+            Variable bs2as = dataNetCDF.findVariable("BS2AS");
             if (bs2as == null) {
                 return new int[0][0];
             }
@@ -129,54 +135,54 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      */
     @Override
     long[] getGenes() throws AtlasDataException {
-        return getLongArray1(netCDF, "GN");
+        return getLongArray1(dataNetCDF, "GN");
     }
 
     private String[] designElementAccessions;
     @Override
     String[] getDesignElementAccessions() throws AtlasDataException {
         if (designElementAccessions == null) {
-            designElementAccessions = getArrayOfStrings(netCDF, "DEacc");
+            designElementAccessions = getArrayOfStrings(dataNetCDF, "DEacc");
         }
         return designElementAccessions;
     }
 
     @Override
     public String[] getAssayAccessions() throws AtlasDataException {
-        return getArrayOfStrings(netCDF, "ASacc");
+        return getArrayOfStrings(dataNetCDF, "ASacc");
     }
 
     @Override
     String[] getSampleAccessions() throws AtlasDataException {
-        return getArrayOfStrings(netCDF, "BSacc");
+        return getArrayOfStrings(dataNetCDF, "BSacc");
     }
 
     @Override
     String[] getFactors() throws AtlasDataException {
-        return getFactorsCharacteristics(netCDF, "EF");
+        return getFactorsCharacteristics(dataNetCDF, "EF");
     }
 
     @Override
     String[] getCharacteristics() throws AtlasDataException {
-        return getFactorsCharacteristics(netCDF, "SC");
+        return getFactorsCharacteristics(dataNetCDF, "SC");
     }
 
     @Override
     String[] getFactorValues(String factor) throws AtlasDataException {
         Integer efIndex = findEfIndex(factor);
-        return efIndex == null ? new String[0] : getSlice3D(netCDF, "EFV", efIndex);
+        return efIndex == null ? new String[0] : getSlice3D(dataNetCDF, "EFV", efIndex);
     }
 
     /**
      * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
      *
      * @return an array of strings - an array of factor values per assay
-     * @throws AtlasDataException if data could not be read form the netCDF file
+     * @throws AtlasDataException if data could not be read form the dataNetCDF file
      */
     @Override
     String[][] getFactorValues() throws AtlasDataException {
         try {
-            Array array = netCDF.findVariable("EFV").read();
+            Array array = dataNetCDF.findVariable("EFV").read();
             int[] shape = array.getShape();
         
             String[][] result = new String[shape[0]][shape[1]];
@@ -198,11 +204,11 @@ final class NetCDFProxyV1 extends NetCDFProxy {
     List<KeyValuePair> getUniqueValues() throws AtlasDataException {
         try {
             if (uniqueValues == null) {
-                Variable uVALVar = netCDF.findVariable("uVAL");
+                Variable uVALVar = dataNetCDF.findVariable("uVAL");
             
                 if (uVALVar == null) {
                     // This is to allow for backwards compatibility
-                    uVALVar = netCDF.findVariable("uEFV");
+                    uVALVar = dataNetCDF.findVariable("uEFV");
                 }
             
                 if (uVALVar == null) {
@@ -246,7 +252,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
     @Override
     String[] getCharacteristicValues(String characteristic) throws AtlasDataException {
         Integer scIndex = findScIndex(characteristic);
-        return scIndex == null ? new String[0] : getSlice3D(netCDF, "SCV", scIndex);
+        return scIndex == null ? new String[0] : getSlice3D(dataNetCDF, "SCV", scIndex);
     }
 
     /**
@@ -261,7 +267,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      */
     @Override
     float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "BDC");
+        return readFloatValuesForRowIndex(dataNetCDF, designElementIndex, "BDC");
     }
 
     /**
@@ -269,17 +275,17 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      *
      * @param deIndices an array of design element indices to get expression values for
      * @return a float matrix - a list of expressions per design element index
-     * @throws AtlasDataException if the expression data could not be read from the netCDF file
+     * @throws AtlasDataException if the expression data could not be read from the dataNetCDF file
      * @throws AtlasDataException if the file doesn't contain given deIndices
      */
     @Override
     FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException {
-        return readFloatValuesForRowIndices(netCDF, deIndices, "BDC");
+        return readFloatValuesForRowIndices(dataNetCDF, deIndices, "BDC");
     }
 
     @Override
     TwoDFloatArray getAllExpressionData() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "BDC");
+        return readFloatValuesForAllRows(dataNetCDF, "BDC");
     }
 
     /**
@@ -287,22 +293,32 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      *
      * @param deIndices an array of design element indices to extract T-statistic for
      * @return matrix of floats - an array of T-statistic values per each design element index
-     * @throws AtlasDataException if the data could not be read from the netCDF file
-     * @throws AtlasDataException if array of design element indices contains out of bound indices
+     * @throws StatisticsNotFoundException  if statisticsNetCDF does not exist
+     * @throws AtlasDataException           if the data could not be read from the dataNetCDF file
+     * @throws AtlasDataException           if array of design element indices contains out of bound indices
      */
     @Override
-    FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException {
-        return readFloatValuesForRowIndices(netCDF, deIndices, "TSTAT");
+    FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+        }
+        return readFloatValuesForRowIndices(statisticsNetCDF, deIndices, "TSTAT");
     }
 
     @Override
-    float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "TSTAT");
+    float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+        }
+        return readFloatValuesForRowIndex(statisticsNetCDF, designElementIndex, "TSTAT");
     }
 
     @Override
-    TwoDFloatArray getTStatistics() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "TSTAT");
+    TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+        }
+        return readFloatValuesForAllRows(statisticsNetCDF, "TSTAT");
     }
 
     /**
@@ -310,22 +326,32 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      *
      * @param deIndices an array of design element indices to extract P-values for
      * @return matrix of floats - an array of  P-values per each design element index
-     * @throws AtlasDataException if the data could not be read from the netCDF file
-     * @throws AtlasDataException if array of design element indices contains out of bound indices
+     * @throws StatisticsNotFoundException  if statisticsNetCDF does not exist
+     * @throws AtlasDataException           if the data could not be read from the statisticsNetCDF file
+     * @throws AtlasDataException           if array of design element indices contains out of bound indices
      */
     @Override
-    FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException {
-        return readFloatValuesForRowIndices(netCDF, deIndices, "PVAL");
+    FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+        }
+        return readFloatValuesForRowIndices(statisticsNetCDF, deIndices, "PVAL");
     }
 
     @Override
-    float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "PVAL");
+    float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+        }
+        return readFloatValuesForRowIndex(statisticsNetCDF, designElementIndex, "PVAL");
     }
 
     @Override
-    TwoDFloatArray getPValues() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "PVAL");
+    TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+        }
+        return readFloatValuesForAllRows(statisticsNetCDF, "PVAL");
     }
 
     /**
@@ -334,8 +360,11 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      * @throws java.io.IOException on close errors
      */
     public void close() throws IOException {
-        if (netCDF != null) {
-            netCDF.close();
+        if (dataNetCDF != null) {
+            dataNetCDF.close();
+        }
+        if (statisticsNetCDF != null) {
+            statisticsNetCDF.close();
         }
     }
 }

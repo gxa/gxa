@@ -63,7 +63,7 @@ public class TestAtlasDataDAO extends TestCase {
         }
     }
 
-    public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException {
+    public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException, StatisticsNotFoundException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =

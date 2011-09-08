@@ -26,7 +26,6 @@ import java.util.List;
 import java.io.Closeable;
 
 public abstract class DataProxy implements Closeable {
-    // methods to be implemented in all implementations
     abstract String getExperimentAccession() throws AtlasDataException;
     abstract String getArrayDesignAccession() throws AtlasDataException;
     abstract int[][] getSamplesToAssays() throws AtlasDataException;
@@ -74,26 +73,12 @@ public abstract class DataProxy implements Closeable {
      */
     abstract FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
     abstract TwoDFloatArray getAllExpressionData() throws AtlasDataException;
-    /**
-     * Extracts T-statistic matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract T-statistic for
-     * @return matrix of floats - an array of T-statistic values per each design element index
-     * @throws AtlasDataException    if the data could not be read from the netCDF file
-     * @throws AtlasDataException    if array of design element indices contains out of bound indices
-     */
-    abstract FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException;
-    abstract float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException;
-    abstract TwoDFloatArray getTStatistics() throws AtlasDataException;
-    /**
-     * Extracts P-value matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract P-values for
-     * @return matrix of floats - an array of  P-values per each design element index
-     * @throws AtlasDataException    if the data could not be read from the netCDF file
-     * @throws AtlasDataException    if array of design element indices contains out of bound indices
-     */
-    abstract FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException;
-    abstract float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException;
-    abstract TwoDFloatArray getPValues() throws AtlasDataException;
+
+    abstract FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+    abstract float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+    abstract TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
+
+    abstract FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+    abstract float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+    abstract TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException;
 }

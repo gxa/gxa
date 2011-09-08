@@ -43,7 +43,7 @@ public class ExpressionStatistics {
     private ExpressionStatistics() {
     }
 
-    private ExpressionStatistics load(int[] deIndices, DataProxy proxy) throws AtlasDataException {
+    private ExpressionStatistics load(int[] deIndices, DataProxy proxy) throws AtlasDataException, StatisticsNotFoundException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
         List<KeyValuePair> values = proxy.getUniqueValues();
@@ -57,7 +57,7 @@ public class ExpressionStatistics {
         return this;
     }
 
-    public static ExpressionStatistics create(int[] deIndices, DataProxy proxy) throws AtlasDataException {
+    static ExpressionStatistics create(int[] deIndices, DataProxy proxy) throws AtlasDataException, StatisticsNotFoundException {
         return (new ExpressionStatistics()).load(deIndices, proxy);
     }
 

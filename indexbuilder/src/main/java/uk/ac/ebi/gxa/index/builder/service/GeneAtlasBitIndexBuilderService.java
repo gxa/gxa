@@ -261,6 +261,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 progressUpdater.update(task.progress());
             } catch (AtlasDataException e) {
                 throw new IndexBuilderException(e.getMessage(), e);
+            } catch (StatisticsNotFoundException e) {
+                throw new IndexBuilderException(e.getMessage(), e);
             } finally {
                 experimentWithData.close();
             }
