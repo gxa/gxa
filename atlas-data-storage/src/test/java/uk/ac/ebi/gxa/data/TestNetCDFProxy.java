@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.data;
 import junit.framework.TestCase;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +34,7 @@ import static com.google.common.io.Closeables.close;
 public class TestNetCDFProxy extends TestCase {
     private File netCDFfile;
 
-    private NetCDFProxy netCDF;
+    private DataProxy netCDF;
 
     @Override
     protected void setUp() throws Exception {
@@ -59,16 +58,16 @@ public class TestNetCDFProxy extends TestCase {
         fail("AtlasDataException is not thrown");
     }
 
-    public void testGetExperiment() throws IOException {
+    public void testGetExperiment() throws AtlasDataException {
         System.out.println("Experiment: " + netCDF.getExperimentAccession());
     }
 
-    public void testGetArrayDesign() throws IOException {
+    public void testGetArrayDesign() throws AtlasDataException {
         System.out.println("ArrayDesign: " + netCDF.getArrayDesignAccession());
     }
 
     /*
-    public void testGetAssays() throws IOException {
+    public void testGetAssays() throws AtlasDataException {
         System.out.print("Assays: {");
         for (long assay : netCDF.getAssays()) {
             System.out.print(assay + ", ");
@@ -76,7 +75,7 @@ public class TestNetCDFProxy extends TestCase {
         System.out.println("}");
     }
 
-    public void testGetSamples() throws IOException {
+    public void testGetSamples() throws AtlasDataException {
         System.out.print("Samples: {");
         for (long sample : netCDF.getSamples()) {
             System.out.print(sample + ", ");
@@ -85,7 +84,7 @@ public class TestNetCDFProxy extends TestCase {
     }
     */
 
-    public void testGetFactors() throws IOException {
+    public void testGetFactors() throws AtlasDataException {
         System.out.print("EFs: {");
         for (String factor : netCDF.getFactors()) {
             System.out.print(factor + ", ");
@@ -93,7 +92,7 @@ public class TestNetCDFProxy extends TestCase {
         System.out.println("}");
     }
 
-    public void testGetFactorValues() throws IOException {
+    public void testGetFactorValues() throws AtlasDataException {
         for (String factor : netCDF.getFactors()) {
             System.out.print("EFVs for " + factor + " {");
             for (String efv : netCDF.getFactorValues(factor)) {
@@ -103,7 +102,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueFactorValues() throws IOException, AtlasDataException {
+    public void testGetUniqueFactorValues() throws AtlasDataException {
         final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         for (KeyValuePair uefv : netCDF.getUniqueFactorValues()) {
             if (uniques.contains(uefv)) {
@@ -114,7 +113,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueValues() throws IOException, AtlasDataException {
+    public void testGetUniqueValues() throws AtlasDataException {
         Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         List<KeyValuePair> uVals = netCDF.getUniqueValues();
         List<KeyValuePair> uefvs = netCDF.getUniqueFactorValues();
@@ -129,7 +128,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetCharacteristics() throws IOException {
+    public void testGetCharacteristics() throws AtlasDataException {
         System.out.print("SCs: {");
         for (String characteristic : netCDF.getCharacteristics()) {
             System.out.print(characteristic + ", ");
@@ -137,7 +136,7 @@ public class TestNetCDFProxy extends TestCase {
         System.out.println("}");
     }
 
-    public void testGetCharacteristicValues() throws IOException {
+    public void testGetCharacteristicValues() throws AtlasDataException {
         for (String characteristic : netCDF.getCharacteristics()) {
             System.out.print("SCVs: {");
             for (String scv : netCDF.getCharacteristicValues(characteristic)) {

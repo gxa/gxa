@@ -22,9 +22,6 @@ public class TestResourceHandling {
             try {
                 netCDF = new NetCDFProxyV1(netCDFfile);
                 netCDF.getArrayDesignAccession();
-            } catch (FileNotFoundException e) {
-                log.error("Out of file handles on attempt #" + i, e);
-                throw e;
             } finally {
                 close(netCDF, false);
             }
