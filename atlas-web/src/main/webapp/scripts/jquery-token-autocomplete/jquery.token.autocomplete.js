@@ -321,15 +321,7 @@ $.TokenList = function (input, settings) {
         var params = toNameValuePairs($.extend({"q": vals, limit: vals.length }, settings.extraParams));
         $.get(settings.url, params, function (results) {
             for(var qi in vals) {
-                // If efo id being added to the input_box is preambled with '@', exclude '@' from the list. This prevents
-                // items such as '@EFO_000819' appearing in the Conditions: text box on Atlas search screen. It also
-                // prevents duplicate efo entries appearing in the text box, e.g. 'myocardium @EFO_000819' - in the case
-                // myocardium's children are being included. Without dropping '@" preamble the '==' test below fails
-                // to match myocardium (EFO_000819) from being matched against @EFO_000819.
                 var val = vals[qi];
-                if (val.substr(0, 1) === "@") {
-                    val = val.substr(1);
-                }
                 var res = settings.getItemList(results, val);
                 var b = false;
                 for(var ri in res) {
