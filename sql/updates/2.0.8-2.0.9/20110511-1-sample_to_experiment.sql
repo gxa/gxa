@@ -3,8 +3,8 @@
 alter table a2_sample add "EXPERIMENTID" NUMBER;
 
 create table tmp_sample_exp as
-  select distinct ass.sampleid as sid, a.experimentid as eid from a2_assay a, a2_assaysample ass
-  where a.assayid=ass.assayid;
+  select distinct ass.sampleid as sid, a.experimentid as eid from a2_assay a
+  join a2_assaysample ass on a.assayid = ass.assayid;
 
 alter table tmp_sample_exp add constraint "tse_pk" primary key (sid);
 
