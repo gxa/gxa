@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.annotator.loader;
 
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 
 /**
@@ -15,5 +14,5 @@ public abstract class AnnotationCommand {
         this.factory = factory;
     }
 
-    public abstract void execute(AnnotationLoaderListener listener) throws AtlasAnnotationException;
+    public abstract void execute(AnnotationLoaderListener listener);
 }

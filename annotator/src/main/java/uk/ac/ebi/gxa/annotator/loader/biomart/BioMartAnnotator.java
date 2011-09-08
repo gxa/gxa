@@ -4,11 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
-import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
-import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
-import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
-import uk.ac.ebi.gxa.annotator.loader.data.DesignElementDataBuilder;
-import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
+import uk.ac.ebi.gxa.annotator.loader.data.*;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
@@ -20,12 +16,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.collect.Iterables.getFirst;
 
@@ -45,20 +36,22 @@ public class BioMartAnnotator {
         this.beDataWriter = beDataWriter;
     }
 
-    public void updateAnnotations(String annotationSrcId, AnnotationLoaderListener listener) throws AtlasAnnotationException {
+    public void updateAnnotations(String annotationSrcId, AnnotationLoaderListener listener) {
         setListener(listener);
 
-        BioMartAnnotationSource annSrc = fetchAnnotationSource(annotationSrcId);
-
-        organism = annSrc.getOrganism();
-        reportProgress("Reading Ensembl annotations for organism " + organism.getName());
-
-        //Create a list with biomart attribute names for bioentity types of  annotation source
-        BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
-        BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
-        BioMartParser<BioEntityAnnotationData> parser = BioMartParser.initParser(attributesHandler.getTypes(), builder);
-
+        BioMartAnnotationSource annSrc = null;
         try {
+            annSrc = fetchAnnotationSource(annotationSrcId);
+
+            organism = annSrc.getOrganism();
+            reportProgress("Reading Ensembl annotations for organism " + organism.getName());
+
+            //Create a list with biomart attribute names for bioentity types of  annotation source
+            BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
+            BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
+            BioMartParser<BioEntityAnnotationData> parser = BioMartParser.initParser(attributesHandler.getTypes(), builder);
+
+
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
 
             //Read BioEntities
@@ -84,33 +77,39 @@ public class BioMartAnnotator {
                     log.debug("Done. " + (new Long(System.currentTimeMillis() - startTime).toString()) + " millseconds).\n");
                 }
             }
+
+            final BioEntityAnnotationData data = parser.getData();
+
+            beDataWriter.writeBioEntities(data);
+            beDataWriter.writePropertyValues(data.getPropertyValues());
+            beDataWriter.writeBioEntityToPropertyValues(data, annSrc.getSoftware());
+
+            annSrc.setApplied(true);
+
+            reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
+
         } catch (BioMartAccessException e) {
-            throw new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e);
+            reportError(new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
+        } catch (AtlasAnnotationException e) {
+            reportError(e);
         }
-
-        final BioEntityAnnotationData data = parser.getData();
-
-        beDataWriter.writeBioEntities(data);
-        beDataWriter.writePropertyValues(data.getPropertyValues());
-        beDataWriter.writeBioEntityToPropertyValues(data, annSrc.getSoftware());
-
-        annSrc.setApplied(true);
-
     }
 
-    public void updateMappings(String annotationSrcId, AnnotationLoaderListener listener) throws AtlasAnnotationException {
+    public void updateMappings(String annotationSrcId, AnnotationLoaderListener listener) {
         setListener(listener);
 
-        BioMartAnnotationSource annSrc = fetchAnnotationSource(annotationSrcId);
-
-        organism = annSrc.getOrganism();
-        reportProgress("Reading Ensembl design element mappings for organism " + organism.getName());
-
-        //Create a list with biomart attribute names for bioentity types of  annotation source
-        BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
-        BioMartParser<DesignElementMappingData> parser = BioMartParser.initParser(attributesHandler.getTypes(), new DesignElementDataBuilder());
-
+        BioMartAnnotationSource annSrc = null;
         try {
+            annSrc = fetchAnnotationSource(annotationSrcId);
+
+            organism = annSrc.getOrganism();
+            reportProgress("Reading Ensembl design element mappings for organism " + organism.getName());
+
+            //Create a list with biomart attribute names for bioentity types of  annotation source
+            BETypeMartAttributesHandler attributesHandler = new BETypeMartAttributesHandler(annSrc);
+            BioMartParser<DesignElementMappingData> parser = BioMartParser.initParser(attributesHandler.getTypes(), new DesignElementDataBuilder());
+
+
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
             if (!beDataWriter.isAnnSrcApplied(annSrc)) {
                 readBioEntities(martConnection.getAttributesURL(attributesHandler.getMartBEIdentifiersAndNames()), parser);
@@ -137,8 +136,12 @@ public class BioMartAnnotator {
 
                 beDataWriter.writeDesignElements(parser.getData(), bioMartArrayDesign.getArrayDesign(), annSrc.getSoftware());
             }
+
+            reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
         } catch (BioMartAccessException e) {
-            throw new AtlasAnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e);
+            reportError(new AtlasAnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e));
+        } catch (AtlasAnnotationException e) {
+            reportError(e);
         }
 
     }
@@ -192,10 +195,22 @@ public class BioMartAnnotator {
         this.beDataWriter.setListener(listener);
     }
 
-    protected void reportProgress(String report) {
+    private void reportProgress(String report) {
         log.info(report);
         if (listener != null)
             listener.buildProgress(report);
+    }
+
+    protected void reportError(Throwable error) {
+        log.error("Annotation failed! ", error);
+        if (listener != null)
+            listener.buildError(error);
+    }
+
+    protected void reportSuccess(String message) {
+        log.info(message);
+        if (listener != null)
+            listener.buildSuccess(message);
     }
 
     static class BETypeMartAttributesHandler {

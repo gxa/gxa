@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationCommand;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 
@@ -16,7 +15,7 @@ public class UpdateMappingCommand extends AnnotationCommand {
     }
 
     @Override
-    public void execute(AnnotationLoaderListener listener) throws AtlasAnnotationException {
+    public void execute(AnnotationLoaderListener listener) {
         BioMartAnnotator bioMartAnnotator = factory.getEnsemblAnnotator();
         bioMartAnnotator.updateMappings(annSrcId, listener);
     }
