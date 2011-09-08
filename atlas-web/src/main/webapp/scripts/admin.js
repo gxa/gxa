@@ -45,7 +45,9 @@ $.fn.vale = function() {
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
+var selectedOrganisms = {};
 var selectAll = false;
+var selectAllOrg = false;
 var $time = {};
 var $tpl = {};
 var $tab = {};
@@ -60,6 +62,8 @@ var $options = {
     tasklogPageSize: 20
 };
 
+var annSrcId;
+
 var $msg = {
     taskType: {
         analytics: 'Compute analytics',
@@ -71,7 +75,9 @@ var $msg = {
         makeexperimentprivate: 'Make experiment private',
         makeexperimentpublic: 'Make experiment public',
         indexexperiment: 'Index experiment',
-        repairexperiment: 'Repair experiment'
+        repairexperiment: 'Repair experiment',
+        orgupdate: 'BioEntity annotations update',
+        mappingupdate: 'Design element mapping update'
     },
     runMode: {
         RESTART: '[Restart]',
@@ -167,6 +173,7 @@ function adminCall(op, params, func) {
         type: "POST",
         url: atlas.homeUrl + "admin",
         dataType: "json",
+        traditional: true,
         data: $.extend(params, { op : op }),
         success: function (json) {
             $('.loadIndicator').css('visibility', 'hidden');
@@ -628,6 +635,113 @@ function updateArrayDesigns() {
     });
 }
 
+function updateAnnSrcs() {
+    adminCall('searchorg', {}, function (result) {
+
+        function updateOrgButtons() {
+            var cando = selectAllOrg;
+            for (var k in selectedOrganisms) {
+                cando = true;
+                break;
+            }
+            if (cando)
+                $('#orgList .orgbuttons input').removeAttr('disabled');
+            else
+                $('#orgList .orgbuttons input').attr('disabled', 'disabled');
+        }
+
+        renderTpl('orgList', result);
+
+        $('#orgList tr input.orgSelector').click(function () {
+            if ($(this).is(':checked'))
+                selectedOrganisms[this.value] = 1;
+            else
+                delete selectedOrganisms[this.value];
+            updateOrgButtons();
+        });
+
+        var newAccessions = {};
+        for (var i = 0; i < result.annSrcs.length; ++i)
+            newAccessions[result.annSrcs[i].id] = 1;
+        for (i in selectedOrganisms)
+            if (!newAccessions[i])
+                delete selectedOrganisms[i];
+        updateOrgButtons();
+
+        function startSelectedTasks(type, mode, title) {
+            var accessions = [];
+            for (var accession in selectedOrganisms)
+                accessions.push(accession);
+
+            if (accessions.length == 0 && !selectAllOrg)
+                return;
+
+            if (window.confirm('Do you really want to ' + title + ' '
+                    + (selectAllOrg ? result.numTotal : accessions.length)
+                    + ' organism(s)' + '?')) {
+
+                adminCall('schedule', {
+                    runMode: mode,
+                    accession: accessions,
+                    type: type,
+                    autoDepends: false
+                }, switchToQueue);
+
+
+                selectedOrganisms = {};
+                selectAllOrg = false;
+            }
+        }
+
+        $('#orgList .edit input').each(function (i, e) {
+            var li = result.annSrcs[i];
+
+            $(e).click(function() {
+               annSrcId = li.id;
+               $('#tabs').tabs('select', $tab.annSrcEd);
+            });
+
+        });
+
+        $('#orgList input.update').click(function () {
+            startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
+        });
+
+        $('#orgList input.updateMapping').click(function () {
+            startSelectedTasks('mappingupdate', 'RESTART', 'update annotations for organism ');
+        });
+
+        bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
+    });
+}
+
+function editAnnSrc(annSrcId) {
+    adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
+
+        renderTpl('annSrcEd', result);
+
+        $('#annSrcEd input.saveannsrc').click(function () {
+            saveAnnSrc();
+        });
+
+         $('#cancelAnnSrcButton').click(function () {
+            $('#tabs').tabs('select', $tab.annSrc);
+        });
+    });
+}
+
+function saveAnnSrc() {
+    var asText = $('#txtAnnSrc').val();
+
+    function switchToAnnSrcList() {
+        $('#tabs').tabs('select', $tab.annSrc);
+    }
+
+    adminCall('annSrcUpdate', {
+                asText: asText
+            }, switchToAnnSrcList);
+}
+
 function redrawCurrentState() {
     for(var timeout in $time) {
         clearTimeout($time[timeout]);
@@ -663,6 +777,12 @@ function redrawCurrentState() {
     } else if(currentState['tab'] == $tab.ad) {
         updateArrayDesigns();
         $('#tabs').tabs('select', $tab.ad);
+    } else if(currentState['tab'] == $tab.annSrc) {
+        updateAnnSrcs();
+        $('#tabs').tabs('select', $tab.annSrc);
+    } else if(currentState['tab'] == $tab.annSrcEd) {
+        editAnnSrc(annSrcId);
+        $('#tabs').tabs('select', $tab.annSrcEd);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
             $('#aboutSystem').autoRender(r);
@@ -762,6 +882,30 @@ function compileTemplates() {
                 '.@class+': ' state#{task.state} mode#{task.runMode} type#{task.type}'
             }
         }
+    });
+
+     compileTpl('orgList', {
+//        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+//        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
+
+        'tbody tr': {
+            'annSrc <- annSrcs': {
+                'label.name': 'annSrc.organismName',
+                '.types': 'annSrc.beTypes',
+                '.currAnnSrc': 'annSrc.currName',
+                '.validation': 'annSrc.validation',
+                '.applied': 'annSrc.applied',
+//                '.orgSelector@checked': function (r) { return selectedannSrcs[r.item.accession]; },
+//                '.orgSelector@disabled':'annSrc.isUpdatable',
+                '.orgSelector@value': 'annSrc.id',
+                '.orgSelector@id+': 'annSrc.id'
+            }
+        }
+    });
+
+    compileTpl('annSrcEd', {
+
+        'textarea.value':'annSrcText'
     });
 
     compileTpl('taskLogItems', {

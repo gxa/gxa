@@ -1,58 +1,48 @@
 package uk.ac.ebi.gxa.dao;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
+import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
-public class SoftwareDAO {
-    public static final String ENSEMBL = "Ensembl";
-    public static final String MIRBASE = "miRBase";
+public class SoftwareDAO extends AbstractDAO<Software> {
 
-    private final JdbcTemplate template;
-
-    public SoftwareDAO(JdbcTemplate template) {
-        this.template = template;
+    SoftwareDAO(SessionFactory sessionFactory) {
+        super(sessionFactory, Software.class);
     }
 
-    public long getSoftwareId(final String name, final String version) {
-        template.update("merge into a2_software sw\n" +
-                "  using (select 1 from dual)\n" +
-                "  on (sw.name = ? and sw.version = ?)\n" +
-                "  when not matched then \n" +
-                "  insert (name, version) values (?, ?)",
-                new PreparedStatementSetter() {
-                    public void setValues(PreparedStatement ps) throws SQLException {
-                        ps.setString(1, name);
-                        ps.setString(2, version);
-                        ps.setString(3, name);
-                        ps.setString(4, version);
-                    }
-                });
 
-        return template.queryForLong("SELECT SOFTWAREid FROM a2_SOFTWARE " +
-                "WHERE name = ? AND version = ?",
-                name, version);
+    public Software find(String name, String newVersion) {
+        Software software = new Software(name, newVersion);
+        return software;
     }
 
-    public long getLatestVersionOfSoftware(String name) {
-        List<Long> answer = template.query("SELECT SOFTWAREid \n" +
-                "FROM a2_SOFTWARE \n" +
-                "WHERE name = ? \n" +
-                "AND version = (\n" +
-                "SELECT MAX(version) FROM a2_SOFTWARE WHERE name = ?)",
-                new Object[]{name, name}, new RowMapper<Long>() {
-                    public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return rs.getLong(1);
-                    }
-                });
-        if (answer.size() == 1)
-            return answer.get(0);
-        else
-            return -1;
+    public Software findOrCreate(String name, String version) {
+        List<Software> softwareList = template.find("from Software where name = ? and version = ?", name, version);
+        try {
+            return getFirst(softwareList, name + " " + version);
+        } catch (RecordNotFoundException e) {
+            Software software = new Software(name, version);
+            save(software);
+            return software;
+        }
+
     }
+
+    @Override
+    protected String getNameColumn() {
+        return "name";
+    }
+
+    @Override
+    public void save(Software object) {
+        super.save(object);
+        template.flush();
+    }
+
+    public List<Software> getActiveSoftwares() {
+        return template.find("from Software where isActive = 1");
+    }
+
 }

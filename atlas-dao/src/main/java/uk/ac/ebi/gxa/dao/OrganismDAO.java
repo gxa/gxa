@@ -30,6 +30,7 @@ public class OrganismDAO extends AbstractDAO<Organism> {
             // organism not found - create a new one
             Organism organism = new Organism(null, name);
             save(organism);
+            template.flush();
             return organism;
         }
     }

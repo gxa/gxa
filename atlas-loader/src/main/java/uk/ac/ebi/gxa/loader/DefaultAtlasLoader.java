@@ -24,8 +24,6 @@ package uk.ac.ebi.gxa.loader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader;
-import uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderEvent;
 import uk.ac.ebi.gxa.loader.listener.AtlasLoaderListener;
 import uk.ac.ebi.gxa.loader.service.*;
@@ -53,8 +51,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
     private AtlasMAGETABLoader magetabLoader;
     private AtlasExperimentUnloaderService experimentUnloaderService;
     private AtlasNetCDFUpdaterService netCDFUpdaterService;
-    private AtlasBioentityAnnotationLoader bioentityAnnotationLoader;
-    private ArrayDesignMappingLoader designMappingLoader;
     private ExperimentEditorService experimentEditorService;
 
     public void setExecutor(ExecutorService executor) {
@@ -104,14 +100,6 @@ public class DefaultAtlasLoader implements AtlasLoader {
                             netCDFUpdaterService.process(cmd, this);
                         }
 
-                        public void process(LoadBioentityCommand cmd) throws AtlasLoaderException {
-                            bioentityAnnotationLoader.process(cmd, this);
-                        }
-
-                        public void process(LoadArrayDesignMappingCommand cmd) throws AtlasLoaderException {
-                            designMappingLoader.process(cmd);
-                        }
-
                         public void process(MakeExperimentPublicCommand cmd) throws AtlasLoaderException {
                             experimentEditorService.process(cmd, false);
                         }
@@ -148,15 +136,8 @@ public class DefaultAtlasLoader implements AtlasLoader {
         this.netCDFUpdaterService = netCDFUpdaterService;
     }
 
-    public void setBioentityAnnotationLoader(AtlasBioentityAnnotationLoader bioentityAnnotationLoader) {
-        this.bioentityAnnotationLoader = bioentityAnnotationLoader;
-    }
-
-    public void setDesignMappingLoader(ArrayDesignMappingLoader designMappingLoader) {
-        this.designMappingLoader = designMappingLoader;
-    }
-
     public void setExperimentEditorService(ExperimentEditorService experimentEditorService) {
         this.experimentEditorService = experimentEditorService;
     }
+
 }

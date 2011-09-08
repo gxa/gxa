@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.requesthandlers.tasks;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotation.AnnotationSourceController;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -63,6 +65,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private AtlasManager atlasManager;
+
+    @Autowired
+    private AnnotationSourceController annSrcController;
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -255,6 +260,39 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("arraydesigns", results, "page", page, "numTotal", total);
     }
 
+    private Object processSearchOrganisms() {
+        List<Map> results = new ArrayList<Map>();
+        Collection<AnnotationSourceController.BioMartAnnotationSourceView> bioMartAnnSrcs = annSrcController.getBioMartAnnSrcViews();
+        for (AnnotationSourceController.BioMartAnnotationSourceView sourceView : bioMartAnnSrcs) {
+//            BioMartAnnotationSource annSrc = sourceView.getAnnSrc();
+            results.add(
+                    makeMap("organismName", sourceView.getOrganismName()
+                            , "id", sourceView.getAnnSrcId()
+                            , "beTypes", sourceView.getBioEntityTypes()
+                            , "currName", sourceView.getSoftware()
+                            , "validation", sourceView.getValidationMessage()
+                            , "applied", sourceView.getApplied()
+
+                    ));
+        }
+//        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "drosophila melanogaster", "id", "112", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "gallus gallus", "id", "113", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "Dataset name ggallus_gene_ensembl is not valid ", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "schizosaccharomyces pombe", "id", "114", "beTypes", "ensgene, enstranscript", "currName", "EnsemblFungi 8", "newVersion", "9", "validation", "valid", "isUpdatable", "true"));
+//        results.add(makeMap("organismName", "homo sapience", "id", "115", "beTypes", "microRNA", "currName", "Mirbase 14", "newVersion", "", "validation", "", "isUpdatable", "false"));
+
+        return makeMap("annSrcs", results);
+    }
+
+    private Object processSearchAnnSrc(String annSrcId) {
+        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
+        if (!StringUtils.EMPTY.equals(annSrcId)) {
+            annSrcString = annSrcController.getAnnSrcString(annSrcId);
+        }
+
+        return makeMap("annSrcText", annSrcString);
+    }
+
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
@@ -326,6 +364,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 atlasProperties.setProperty(e.getKey(), "".equals(newValue) ? null : newValue);
             }
         }
+        return EMPTY;
+    }
+
+    private Object processUpdateAnnSrc(String text){
+        annSrcController.saveAnnSrc(text);
         return EMPTY;
     }
 
@@ -411,6 +454,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getStr("search"),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
+
+        else if ("searchorg".equals(op))
+            return processSearchOrganisms();
+
+        else if ("searchannSrc".equals(op))
+            return processSearchAnnSrc(req.getStr("annSrcId"));
+
+        else if ("annSrcUpdate".equals(op))
+            return processUpdateAnnSrc(req.getStr("asText"));
 
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(

@@ -15,8 +15,6 @@
         <property name="magetabLoader" ref="MAGETABLoader"/>
         <property name="netCDFUpdaterService" ref="netCDFUpdaterService"/>
         <property name="experimentUnloaderService" ref="experimentUnloaderService"/>
-        <property name="bioentityAnnotationLoader" ref="bioentityAnnotationLoader"/>
-        <property name="designMappingLoader" ref="arrayDesignMappingLoader"/>
         <property name="experimentEditorService" ref="experimentEditorService"/>
         <property name="executor" ref="threadPool"/>
     </bean>
@@ -25,16 +23,6 @@
         <property name="experimentDAO" ref="experimentDAO"/>
     </bean>
 
-
-    <bean name="arrayDesignMappingLoader" class="uk.ac.ebi.gxa.loader.bioentity.ArrayDesignMappingLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
-
-    <bean name="bioentityAnnotationLoader" class="uk.ac.ebi.gxa.loader.bioentity.AtlasBioentityAnnotationLoader">
-        <property name="bioEntityDAO" ref="bioEntityDAO"/>
-        <property name="txManager" ref="atlasTxManager"/>
-    </bean>
 
     <bean name="experimentUnloaderService" class="uk.ac.ebi.gxa.loader.service.AtlasExperimentUnloaderService">
         <constructor-arg ref="experimentDAO"/>

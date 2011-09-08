@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <bean id="annotatorHibernateClasses" parent="hibernateClasses">
+        <property name="sourceList">
+            <list merge="true">
+
+                <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
+                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
+        <constructor-arg index="0" ref="beDataWriter"/>
+    </bean>
+
+    <bean id="beDataWriter" class="uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter">
+    </bean>
+
+    <bean name="annSrcDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO">
+        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
+    </bean>
+
+    <bean name="arrayExpressConnection" class="uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayExpressConnection"/>
+
+    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService">
+        <constructor-arg ref="arrayDesignDAO"/>
+    </bean>
+
+    <bean name="annotationSourceLoader" class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader"/>
+
+    <bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.loader.DefaultAnnotationLoader">
+        <constructor-arg ref="annotatorFactory"/>
+        <constructor-arg ref="threadPool"/>
+    </bean>
+</beans>

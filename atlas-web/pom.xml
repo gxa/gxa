@@ -183,6 +183,11 @@
             <artifactId>atlas-loader</artifactId>
             <version>2.0.10-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.gxa</groupId>
+            <artifactId>annotator</artifactId>
+            <version>2.0.10-SNAPSHOT</version>
+        </dependency>
 
         <!-- spring webmvc for admin servlet -->
         <dependency>
@@ -372,7 +377,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- AOP dependency -->
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>

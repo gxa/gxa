@@ -60,12 +60,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(IndexAllCommand indexAll,
                                IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         indexAll(progressUpdater);
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(UpdateIndexForExperimentCommand cmd,
                                IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         /// Re-build the whole bit index even if one experiment only is being updated
@@ -108,7 +110,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas data
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private StatisticsStorage bitIndexExperiments(final ProgressUpdater progressUpdater,
                                                   final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
