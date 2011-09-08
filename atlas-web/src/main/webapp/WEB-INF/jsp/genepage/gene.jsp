@@ -388,7 +388,7 @@ $(document).ready(function() {
                     <td class="geneAnnotHeader">Search EB-eye</td>
                     <td align="left">
                         <a title="Show gene annotation" target="_blank"
-                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=${atlasGene.geneIdentifier}&requestFrom=ebi_index&submit=+FIND+">
+                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=&quot;${atlasGene.geneIdentifier}&quot;&requestFrom=ebi_index&submit=+FIND+">
                             ${atlasGene.geneIdentifier}
                         </a>
                     </td>
@@ -554,10 +554,10 @@ $(document).ready(function() {
                         <c:if test='${e.efv!="(empty)"}'>
                             <tr class="heatmap_row"
                                 onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}'); return false;"
-                                title="${u:upcaseFirst(e.efv)}">
+                                title="${e.efv}">
                                 <td style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
                                                                     <span style="font-weight: bold">
-                                                                            ${u:upcaseFirst(e.efv)}
+                                                                            ${e.efv}
                                                                     </span>
                                 </td>
 
