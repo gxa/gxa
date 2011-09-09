@@ -16,11 +16,11 @@ public class TestResourceHandling {
 
     @Test
     public void testOpenClose() throws IOException, URISyntaxException, AtlasDataException {
-        File netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI());
+        final File netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI());
         for (int i = 0; i < 20000; i++) {
             NetCDFProxy netCDF = null;
             try {
-                netCDF = new NetCDFProxyV1(netCDFfile);
+                netCDF = new NetCDFProxyV1(netCDFfile.getAbsolutePath());
                 netCDF.getArrayDesignAccession();
             } finally {
                 close(netCDF, false);

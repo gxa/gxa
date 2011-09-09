@@ -39,7 +39,7 @@ public class TestNetCDFProxy extends TestCase {
     @Override
     protected void setUp() throws Exception {
         netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI());
-        netCDF = new NetCDFProxyV1(netCDFfile);
+        netCDF = new NetCDFProxyV1(netCDFfile.getAbsolutePath());
     }
 
     @Override
@@ -51,7 +51,7 @@ public class TestNetCDFProxy extends TestCase {
 
     public void testisOutOfDate() throws Exception {
         try {
-            new NetCDFProxyV1(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44_old.nc").toURI())).isOutOfDate();
+            new NetCDFProxyV1(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44_old.nc").toURI()).getAbsolutePath()).isOutOfDate();
         } catch (AtlasDataException e) {
             return;
         }
@@ -102,9 +102,9 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueFactorValues() throws AtlasDataException {
+    public void testGetUniqueValues() throws AtlasDataException, StatisticsNotFoundException {
         final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
-        for (KeyValuePair uefv : netCDF.getUniqueFactorValues()) {
+        for (KeyValuePair uefv : netCDF.getUniqueValues()) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {
@@ -113,6 +113,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
+    /*
     public void testGetUniqueValues() throws AtlasDataException {
         Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         List<KeyValuePair> uVals = netCDF.getUniqueValues();
@@ -127,6 +128,7 @@ public class TestNetCDFProxy extends TestCase {
             }
         }
     }
+    */
 
     public void testGetCharacteristics() throws AtlasDataException {
         System.out.print("SCs: {");

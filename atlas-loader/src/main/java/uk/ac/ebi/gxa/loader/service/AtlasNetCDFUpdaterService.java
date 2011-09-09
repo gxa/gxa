@@ -96,8 +96,9 @@ public class AtlasNetCDFUpdaterService {
             // and rev. 05be531ebb5a93df06d6045f982d0b25e4008a11 for nearly-original version
 
             // Get unique values
-            final List<KeyValuePair> uniqueValues = ewd.getUniqueValues(arrayDesign);
-            data.setUniqueValues(uniqueValues);
+            // TODO: restore unique values processing
+            //final List<KeyValuePair> uniqueValues = ewd.getUniqueValues(arrayDesign);
+            //data.setUniqueValues(uniqueValues);
 
             final String[] deAccessions = ewd.getDesignElementAccessions(arrayDesign);
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));

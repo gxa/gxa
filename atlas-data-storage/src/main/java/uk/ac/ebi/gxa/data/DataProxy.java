@@ -49,8 +49,6 @@ public abstract class DataProxy implements Closeable {
      * @throws AtlasDataException if data could not be read form the netCDF file
      */
     abstract String[][] getFactorValues() throws AtlasDataException;
-    abstract List<KeyValuePair> getUniqueValues() throws AtlasDataException;
-    abstract List<KeyValuePair> getUniqueFactorValues() throws AtlasDataException;
     abstract String[] getCharacteristicValues(String characteristic) throws AtlasDataException;
     /**
      * Gets a single row from the expression data matrix representing all expression data for a single design element.
@@ -74,6 +72,7 @@ public abstract class DataProxy implements Closeable {
     abstract FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
     abstract TwoDFloatArray getAllExpressionData() throws AtlasDataException;
 
+    abstract List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException;
     abstract FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
     abstract float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
     abstract TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;

@@ -42,22 +42,29 @@ import java.util.*;
  * An object that proxies an Atlas NetCDF file and provides convenience methods for accessing the data from within. This
  * class should be used when trying to read data on-the-fly out of a NetCDF directly.
  * <p/>
- * The NetCDFs for Atlas are structured as follows:
+ * Data NetCDFs for Atlas are structured as follows:
  * <pre>
  *    char  ASacc(AS) ;
  *    char  BSacc(BS) ;
  *    int   BS2AS(BS, AS) ;
+ *    float BDC(DE, AS) ;
  *    char  DEacc(DE) ;
  *    long  GN(GN) ;
- *    int DE2GN(DE, GN) ;
- *    char EF(EF, EFlen) ;
- *    char  EFSC(EFSC, EFSlen) ;
+ *    char  EF(EF, EFlen) ;
  *    char  EFV(EF, AS, EFlen) ;
- *    char  uVAL(uVAL, EFSClen) ; - uVAL contains all unique ef-efvs and sc-scvs (if ef-efv == sc-scv, it is only stored once)
- *    int   uVALnum(EFSC) ;
- *    char SC(SC, SClen) ;
+ *    char  SC(SC, SClen) ;
  *    char  SCV(SC, BS, SClen) ;
- *    float BDC(DE, AS) ;
+ * </pre>
+ *
+ * Statistics NetCDFs for Atlas are structured as follows:
+ * <pre>
+ *    char  propertyNAME(uVAL, propertyNAMElen)
+ *    char  propertyVALUE(uVAL, propertyVALUElen)
+ *    int   ORDER_ANY(DE, uVAL) ;
+ *    int   ORDER_DOWN(DE, uVAL) ;
+ *    int   ORDER_NON_D_E(DE, uVAL) ;
+ *    int   ORDER_UP(DE, uVAL) ;
+ *    int   ORDER_UP_DOWN(DE, uVAL) ;
  *    float PVAL(DE, uVAL) ;
  *    float TSTAT(DE, uVAL) ;
  * </pre>
@@ -201,52 +208,24 @@ final class NetCDFProxyV2 extends NetCDFProxy {
 
     private List<KeyValuePair> uniqueValues;
     @Override
-    List<KeyValuePair> getUniqueValues() throws AtlasDataException {
-        try {
-            if (uniqueValues == null) {
-                Variable uVALVar = dataNetCDF.findVariable("uVAL");
-            
-                if (uVALVar == null) {
-                    // This is to allow for backwards compatibility
-                    uVALVar = dataNetCDF.findVariable("uEFV");
-                }
-            
-                if (uVALVar == null) {
-                    uniqueValues = Collections.emptyList();
-                } else {
-                    uniqueValues = new LinkedList<KeyValuePair>();
-        
-                    ArrayChar uVal = (ArrayChar)uVALVar.read();
-                    for (Object text : (Object[])uVal.make1DStringArray().get1DJavaArray(String.class)) {
-                        final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
-                        if (data.length != 2) {
-                            throw new AtlasDataException("Invalid uVAL element: " + text);
-                        }
-                
-                        if (!"".equals(data[1])) {
-                            uniqueValues.add(new KeyValuePair(data[0], data[1]));
-                        }
-                    }
-                }
-            }
-            return uniqueValues;
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
+    List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException {
+        if (statisticsNetCDF == null) {
+            throw new StatisticsNotFoundException("Statisitcs file does not exist");
         }
-    }
 
-    @Override
-    List<KeyValuePair> getUniqueFactorValues() throws AtlasDataException {
-        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
-        List<String> factors = Arrays.asList(getFactors());
+        if (uniqueValues == null) {
+            final String[] names = getArrayOfStrings(statisticsNetCDF, "propertyNAME");
+            final String[] values = getArrayOfStrings(statisticsNetCDF, "propertyVALUE");
+            if (names.length != values.length) {
+                throw new AtlasDataException("Inconsistent names/values data in " + this);
+            }
 
-        for (KeyValuePair propVal : getUniqueValues()) {
-            if (factors.contains(propVal.key)) {
-                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
-                uniqueEFVs.add(propVal);
+            uniqueValues = new ArrayList<KeyValuePair>(names.length);
+            for (int i = 0; i < names.length; ++i) {
+                uniqueValues.add(new KeyValuePair(names[i], values[i]));
             }
         }
-        return uniqueEFVs;
+        return uniqueValues;
     }
 
     @Override

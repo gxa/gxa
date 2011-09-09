@@ -66,6 +66,9 @@ public class DataPredicates {
                                 }
                             }
                             return false;
+                        } catch (StatisticsNotFoundException e) {
+                            log.error("Statistics not found", e);
+                            return false;
                         } catch (AtlasDataException e) {
                             log.error("Cannot read pair " + pairToString(arrayDesign), e);
                             return false;

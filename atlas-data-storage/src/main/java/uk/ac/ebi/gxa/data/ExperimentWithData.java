@@ -140,11 +140,20 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getGenes();
     }
 
-    public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
-        return getProxy(arrayDesign).getUniqueFactorValues();
+    public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
+        List<String> factors = Arrays.asList(getFactors(arrayDesign));
+
+        for (KeyValuePair propVal : getUniqueValues(arrayDesign)) {
+            if (factors.contains(propVal.key)) {
+                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
+                uniqueEFVs.add(propVal);
+            }
+        }
+        return uniqueEFVs;
     }
 
-    public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
+    public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueValues();
     }
 

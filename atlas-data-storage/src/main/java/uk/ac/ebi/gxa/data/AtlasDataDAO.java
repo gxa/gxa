@@ -44,11 +44,11 @@ public class AtlasDataDAO {
         return experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc";
     }
 
-    private static String getDataFilename(Experiment experiment, ArrayDesign arrayDesign) {
+    static String getDataFilename(Experiment experiment, ArrayDesign arrayDesign) {
         return experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc";
     }
 
-    private static String getStatisticsFilename(Experiment experiment, ArrayDesign arrayDesign) {
+    static String getStatisticsFilename(Experiment experiment, ArrayDesign arrayDesign) {
         return experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc";
     }
 
@@ -64,7 +64,7 @@ public class AtlasDataDAO {
                 new File(getStatisticsFilename(experiment, arrayDesign))
             );
         } catch (AtlasDataException e) {
-            proxy = new NetCDFProxyV1(getNetCDFLocation(experiment, arrayDesign));
+            proxy = new NetCDFProxyV1(getFilename(experiment, arrayDesign));
         }
         return proxy;
     }

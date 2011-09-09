@@ -79,7 +79,8 @@ public class NetCDFCreator {
 
     private List<String> warnings = new ArrayList<String>();
 
-    private NetcdfFileWriteable netCdf;
+    private NetcdfFileWriteable dataNetCdf;
+    private NetcdfFileWriteable statisticsNetCdf;
 
     private int totalDesignElements;
     private int totalUniqueValues; // scvs/efvs
@@ -311,84 +312,110 @@ public class NetCDFCreator {
     private void create() throws IOException {
         // NetCDF doesn't know how to store longs, so we use DataType.DOUBLE for internal DB ids
 
-        Dimension assayDimension = netCdf.addDimension("AS", assays.size());
-        //netCdf.addVariable("AS", DataType.DOUBLE, new Dimension[]{assayDimension});
+        final Dimension assayDimension = dataNetCdf.addDimension("AS", assays.size());
 
-        Dimension sampleDimension = netCdf.addDimension("BS", samples.size());
-        //netCdf.addVariable("BS", DataType.DOUBLE, new Dimension[]{sampleDimension});
+        final Dimension sampleDimension = dataNetCdf.addDimension("BS", samples.size());
 
-        netCdf.addVariable("BS2AS", DataType.INT,
-                new Dimension[]{sampleDimension, assayDimension});
+        dataNetCdf.addVariable(
+            "BS2AS", DataType.INT,
+            new Dimension[]{sampleDimension, assayDimension}
+        );
 
-        // update the netCDF with the genes count
-        Dimension designElementDimension = netCdf.addDimension("DE", totalDesignElements);
-        Dimension designElementLenDimension = netCdf.addDimension("DElen", maxDesignElementLength);
+        // update the netCDFs with the genes count
+        final Dimension designElementDataDimension =
+            dataNetCdf.addDimension("DE", totalDesignElements);
+        final Dimension designElementStatisticsDimension =
+            statisticsNetCdf.addDimension("DE", totalDesignElements);
+        final Dimension designElementLenDimension =
+            dataNetCdf.addDimension("DElen", maxDesignElementLength);
 
-        netCdf.addVariable("DEacc", DataType.CHAR, new Dimension[]{designElementDimension, designElementLenDimension});
-        //netCdf.addVariable("DE", DataType.DOUBLE, new Dimension[]{designElementDimension});
-        netCdf.addVariable("GN", DataType.DOUBLE, new Dimension[]{designElementDimension});
+        dataNetCdf.addVariable(
+            "DEacc", DataType.CHAR,
+            new Dimension[]{designElementDataDimension, designElementLenDimension}
+        );
+        dataNetCdf.addVariable(
+            "GN", DataType.DOUBLE,
+            new Dimension[]{designElementDataDimension}
+        );
 
         //accessions for Assays and Samples
         int maxAssayLength = 0;
         for (Assay assay : assays) {
             maxAssayLength = Math.max(maxAssayLength, assay.getAccession().length());
         }
-        final Dimension assayLenDimension = netCdf.addDimension("ASlen", maxAssayLength);
-        netCdf.addVariable("ASacc", DataType.CHAR, new Dimension[]{assayDimension, assayLenDimension});
+        final Dimension assayLenDimension = dataNetCdf.addDimension("ASlen", maxAssayLength);
+        dataNetCdf.addVariable("ASacc", DataType.CHAR, new Dimension[]{assayDimension, assayLenDimension});
 
         int maxSampleLength = 0;
         for (Sample sample : samples) {
             maxSampleLength = Math.max(maxSampleLength, sample.getAccession().length());
         }
-        final Dimension sampleLenDimension = netCdf.addDimension("BSlen", maxSampleLength);
-        netCdf.addVariable("BSacc", DataType.CHAR, new Dimension[]{sampleDimension, sampleLenDimension});
+        final Dimension sampleLenDimension = dataNetCdf.addDimension("BSlen", maxSampleLength);
+        dataNetCdf.addVariable("BSacc", DataType.CHAR, new Dimension[]{sampleDimension, sampleLenDimension});
 
         if (!scvMap.isEmpty() || !efvMap.isEmpty()) {
-            Dimension efscDimension = netCdf.addDimension("EFSC", efScs.size());
-            Dimension efScLenDimension = netCdf.addDimension("EFSClen", maxEfScLength);
-            netCdf.addVariable("EFSC", DataType.CHAR, new Dimension[]{efscDimension, efScLenDimension});
-
             if (!scvMap.isEmpty()) {
-                Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
-                Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
+                Dimension scDimension = dataNetCdf.addDimension("SC", scvMap.keySet().size());
+                Dimension sclenDimension = dataNetCdf.addDimension("SClen", maxScLength);
 
-                netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
+                dataNetCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
 
-                Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
-                netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+                Dimension scvlenDimension = dataNetCdf.addDimension("SCVlen", maxScvLength);
+                dataNetCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
             }
 
             if (!efvMap.isEmpty()) {
-                Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
-                Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
+                Dimension efDimension = dataNetCdf.addDimension("EF", efvMap.keySet().size());
+                Dimension eflenDimension = dataNetCdf.addDimension("EFlen", maxEfLength);
 
-                netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
+                dataNetCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
 
-                Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
-                netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
+                Dimension efvlenDimension = dataNetCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
+                dataNetCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
             }
 
             // Now add unique values and stats dimensions
-            Dimension uvalDimension = netCdf.addDimension("uVAL", totalUniqueValues);
+            final Dimension uvalDimension = statisticsNetCdf
+                .addDimension("uVAL", totalUniqueValues);
+            final Dimension propertyNameLenDimension = statisticsNetCdf
+                .addDimension("propertyNAMElen", maxEfScLength);
+            final Dimension propertyValueLenDimension = statisticsNetCdf
+                .addDimension("propertyVALUElen", Math.max(maxEfvLength, maxScvLength));
+            statisticsNetCdf.addVariable(
+                "propertyNAME", DataType.CHAR,
+                new Dimension[]{uvalDimension, propertyNameLenDimension}
+            );
+            statisticsNetCdf.addVariable(
+                "propertyVALUE", DataType.CHAR,
+                new Dimension[]{uvalDimension, propertyValueLenDimension}
+            );
+            statisticsNetCdf.addVariable(
+                "PVAL", DataType.FLOAT,
+                new Dimension[]{designElementStatisticsDimension, uvalDimension}
+            );
+            statisticsNetCdf.addVariable(
+                "TSTAT", DataType.FLOAT,
+                new Dimension[]{designElementStatisticsDimension, uvalDimension}
+            );
 
-            Dimension uValLenDimension = netCdf.addDimension("uVALlen", maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
-            netCdf.addVariable("uVAL", DataType.CHAR, new Dimension[]{uvalDimension, uValLenDimension});
-
-            netCdf.addVariable("PVAL", DataType.FLOAT, new Dimension[]{designElementDimension, uvalDimension});
-            netCdf.addVariable("TSTAT", DataType.FLOAT, new Dimension[]{designElementDimension, uvalDimension});
-
-            String[] sortOrders = new String[]{"ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E"};
+            final String[] sortOrders = new String[]{"ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E"};
             for (String orderName : sortOrders) {
-                netCdf.addVariable("ORDER_" + orderName, DataType.INT, new Dimension[]{designElementDimension});
+                statisticsNetCdf.addVariable(
+                    "ORDER_" + orderName, DataType.INT,
+                    new Dimension[]{designElementStatisticsDimension}
+                );
             }
         }
 
-        netCdf.addVariable("BDC", DataType.FLOAT, new Dimension[]{designElementDimension, assayDimension});
+        dataNetCdf.addVariable(
+            "BDC", DataType.FLOAT,
+            new Dimension[]{designElementDataDimension, assayDimension}
+        );
 
         // add metadata global attributes
         safeAddGlobalAttribute(
                 "CreateNetCDF_VERSION",
-                "1.0");
+                "2.0");
         safeAddGlobalAttribute(
                 "experiment_accession",
                 experiment.getAccession());
@@ -414,7 +441,8 @@ public class NetCDFCreator {
                 "experiment_abstract",
                 experiment.getAbstract());
 
-        netCdf.create();
+        dataNetCdf.create();
+        statisticsNetCdf.create();
     }
 
     private void write() throws IOException, InvalidRangeException {
@@ -427,7 +455,6 @@ public class NetCDFCreator {
         if (!scvMap.isEmpty())
             writeScvs();
         if (!efvMap.isEmpty() || !scvMap.isEmpty()) {
-            writeEFSCs();
             writeUVals();
         }
 
@@ -453,6 +480,8 @@ public class NetCDFCreator {
         int getDestinationForColumn(ColumnType column);
 
         String getVariableName();
+
+        NetcdfFileWriteable getNetCDFFile();
     }
 
     private DataWriterSpec<Assay> assayDataWriter = new DataWriterSpec<Assay>() {
@@ -470,6 +499,10 @@ public class NetCDFCreator {
 
         public String getVariableName() {
             return "BDC";
+        }
+
+        public NetcdfFileWriteable getNetCDFFile() {
+            return dataNetCdf;
         }
     };
 
@@ -527,6 +560,10 @@ public class NetCDFCreator {
         public String getVariableName() {
             return "PVAL";
         }
+
+        public NetcdfFileWriteable getNetCDFFile() {
+            return statisticsNetCdf;
+        }
     };
 
     private DataWriterSpec<Pair<String, String>> tstatDataWriter = new UniqueValueDataWriter() {
@@ -536,6 +573,10 @@ public class NetCDFCreator {
 
         public String getVariableName() {
             return "TSTAT";
+        }
+
+        public NetcdfFileWriteable getNetCDFFile() {
+            return statisticsNetCdf;
         }
     };
 
@@ -581,6 +622,8 @@ public class NetCDFCreator {
 
     private <ColumnType> void writeDataBlock(DataWriterSpec<ColumnType> spec, DataMatrixStorage storage, DataMatrixStorage.Block block, int deNum, int deBlockFrom, int deBlockTo)
             throws IOException, InvalidRangeException {
+        final NetcdfFileWriteable netCdf = spec.getNetCDFFile();
+
         int width = storage.getWidth();
         ArrayFloat data = (ArrayFloat) Array.factory(Float.class, new int[]{block.designElements.length, width}, block.expressionValues);
 
@@ -615,7 +658,6 @@ public class NetCDFCreator {
                         new Range(deBlockFrom, deBlockTo),
                         new Range(startReference, currentReference)));
         netCdf.write(spec.getVariableName(), new int[]{deNum, startDestination}, adata);
-
     }
 
     private void writeDesignElements() throws IOException, InvalidRangeException {
@@ -628,7 +670,7 @@ public class NetCDFCreator {
         boolean geneMapped = false;
         for (String de : mergedDesignElements) {
             deName.setString(0, de);
-            netCdf.write("DEacc", new int[]{i, 0}, deName);
+            dataNetCdf.write("DEacc", new int[]{i, 0}, deName);
             Long deId = arrayDesign.getDesignElement(de);
             if (deId != null) {
                 deMapped = true;
@@ -643,8 +685,7 @@ public class NetCDFCreator {
             ++i;
         }
 
-        //netCdf.write("DE", deIds);
-        netCdf.write("GN", gnIds);
+        dataNetCdf.write("GN", gnIds);
 
         if (!deMapped)
             warnings.add("No design element mappings were found");
@@ -657,7 +698,7 @@ public class NetCDFCreator {
         for (Assay a : assays) {
             accessions.add(a.getAccession());
         }
-        writeList("ASacc", accessions);
+        writeList(dataNetCdf, "ASacc", accessions);
     }
 
     private void writeSampleAccessions() throws IOException, InvalidRangeException {
@@ -665,11 +706,10 @@ public class NetCDFCreator {
         for (Sample s : samples) {
             accessions.add(s.getAccession());
         }
-        writeList("BSacc", accessions);
+        writeList(dataNetCdf, "BSacc", accessions);
     }
 
-    private void writeList(String variable, List<String> values) throws IOException, InvalidRangeException {
-
+    private void writeList(NetcdfFileWriteable netCdf, String variable, List<String> values) throws IOException, InvalidRangeException {
         int maxValueLength = 0;
         for (String value : values) {
             if ((null != value) && (value.length() > maxValueLength))
@@ -693,7 +733,7 @@ public class NetCDFCreator {
             for (Assay assay : assays)
                 bs2asIt.setIntNext(samplesMap.containsKey(assay) && samplesMap.get(assay).contains(sample) ? 1 : 0);
 
-        netCdf.write("BS2AS", bs2as);
+        dataNetCdf.write("BS2AS", bs2as);
     }
 
 
@@ -704,17 +744,22 @@ public class NetCDFCreator {
      * @throws InvalidRangeException
      */
     private void writeUVals() throws IOException, InvalidRangeException {
-        ArrayChar uval = new ArrayChar.D2(totalUniqueValues, maxEfScLength + Math.max(maxEfvLength, maxScvLength) + 2);
+        final ArrayChar namesArray = new ArrayChar.D2(totalUniqueValues, maxEfScLength);
+        final ArrayChar valuesArray = new ArrayChar.D2(totalUniqueValues, Math.max(maxEfvLength, maxScvLength));
         // Now populate unique scvs/efvs
         int ei = 0;
         int uvali = 0;
         for (Map.Entry<String, List<String>> entry : propertyToSortedUniqueValues.entrySet()) {
             List<String> values = entry.getValue();
-            for (String value : values)
-                uval.setString(uvali++, entry.getKey() + "||" + value);
+            for (String value : values) {
+                namesArray.setString(uvali, entry.getKey());
+                valuesArray.setString(uvali, value);
+                ++uvali;
+            }
             ++ei;
         }
-        netCdf.write("uVAL", uval);
+        statisticsNetCdf.write("propertyNAME", namesArray);
+        statisticsNetCdf.write("propertyVALUE", valuesArray);
     }
 
     private void writeEfvs() throws IOException, InvalidRangeException {
@@ -732,8 +777,8 @@ public class NetCDFCreator {
             ++ei;
         }
 
-        netCdf.write("EF", ef);
-        netCdf.write("EFV", efv);
+        dataNetCdf.write("EF", ef);
+        dataNetCdf.write("EFV", efv);
     }
 
     private void writeScvs() throws IOException, InvalidRangeException {
@@ -749,24 +794,8 @@ public class NetCDFCreator {
             ++ei;
         }
 
-        netCdf.write("SC", sc);
-        netCdf.write("SCV", scv);
-    }
-
-    /**
-     * Write out EFSC field - a collection of unique EFs/SCs
-     *
-     * @throws IOException
-     * @throws InvalidRangeException
-     */
-    private void writeEFSCs() throws IOException, InvalidRangeException {
-        int efsci = 0;
-        ArrayChar efscAC = new ArrayChar.D2(efScs.size(), maxEfScLength);
-        for (String efsc : efScs) {
-            efscAC.setString(efsci, efsc);
-            efsci++;
-        }
-        netCdf.write("EFSC", efscAC);
+        dataNetCdf.write("SC", sc);
+        dataNetCdf.write("SCV", scv);
     }
 
     public void createNetCdf() throws AtlasDataException {
@@ -774,25 +803,38 @@ public class NetCDFCreator {
         prepareData();
 
         try {
-            final File targetFile = dataDAO.getNetCDFLocation(experiment, arrayDesign);
-            if (!targetFile.getParentFile().exists() && !targetFile.getParentFile().mkdirs()) {
-                throw new AtlasDataException("Cannot create folder for the output file" + targetFile);
+            final File dataFile = new File(dataDAO.getDataFilename(experiment, arrayDesign));
+            if (!dataFile.getParentFile().exists() && !dataFile.getParentFile().mkdirs()) {
+                throw new AtlasDataException("Cannot create folder for the output file" + dataFile);
             }
 
-            final File tempFile = File.createTempFile(targetFile.getName(), ".tmp");
-            log.info("Writing NetCDF file to " + tempFile);
-            netCdf = NetcdfFileWriteable.createNew(tempFile.getAbsolutePath(), true);
+            final File statisticsFile = new File(dataDAO.getStatisticsFilename(experiment, arrayDesign));
+            if (!statisticsFile.getParentFile().exists() && !statisticsFile.getParentFile().mkdirs()) {
+                throw new AtlasDataException("Cannot create folder for the output file" + statisticsFile);
+            }
+
+            final File tempDataFile = File.createTempFile(dataFile.getName(), ".tmp");
+            log.info("Writing NetCDF file to " + tempDataFile);
+            dataNetCdf = NetcdfFileWriteable.createNew(tempDataFile.getAbsolutePath(), true);
+            final File tempStatisticsFile = File.createTempFile(statisticsFile.getName(), ".tmp");
+            log.info("Writing NetCDF file to " + tempStatisticsFile);
+            statisticsNetCdf = NetcdfFileWriteable.createNew(tempStatisticsFile.getAbsolutePath(), true);
             try {
                 create();
                 write();
             } catch (InvalidRangeException e) {
                 throw new AtlasDataException(e);
             } finally {
-                netCdf.close();
+                dataNetCdf.close();
+                statisticsNetCdf.close();
             }
-            log.info("Renaming " + tempFile + " to " + targetFile);
-            if (!tempFile.renameTo(targetFile)) {
-                throw new AtlasDataException("Can't rename " + tempFile + " to " + targetFile);
+            log.info("Renaming " + tempDataFile + " to " + dataFile);
+            if (!tempDataFile.renameTo(dataFile)) {
+                throw new AtlasDataException("Can't rename " + tempDataFile + " to " + dataFile);
+            }
+            log.info("Renaming " + tempStatisticsFile + " to " + statisticsFile);
+            if (!tempStatisticsFile.renameTo(statisticsFile)) {
+                throw new AtlasDataException("Can't rename " + tempStatisticsFile + " to " + statisticsFile);
             }
         } catch (IOException e) {
             throw new AtlasDataException(e);
@@ -808,10 +850,9 @@ public class NetCDFCreator {
     }
 
     private void safeAddGlobalAttribute(String attribute, String value) {
-        if ((null != attribute) && (null != value)) {
-            netCdf.addGlobalAttribute(
-                    attribute,
-                    value);
+        if (attribute != null && value != null) {
+            dataNetCdf.addGlobalAttribute(attribute, value);
+            statisticsNetCdf.addGlobalAttribute(attribute, value);
         }
     }
 
@@ -822,10 +863,9 @@ public class NetCDFCreator {
             safeAddGlobalAttribute(attribute, value.toString());
             return;
         }
-        if ((null != attribute) && (null != value)) {
-            netCdf.addGlobalAttribute(
-                    attribute,
-                    value);
+        if (attribute != null && value != null) {
+            dataNetCdf.addGlobalAttribute(attribute, value);
+            statisticsNetCdf.addGlobalAttribute(attribute, value);
         }
     }
 

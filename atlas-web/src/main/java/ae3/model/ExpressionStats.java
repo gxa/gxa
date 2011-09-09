@@ -49,9 +49,13 @@ public class ExpressionStats {
         this.arrayDesign = arrayDesign;
 
         int valueIndex = 0;
-        for (KeyValuePair uval : experiment.getUniqueValues(arrayDesign)) {
-            efvTree.put(uval.key, uval.value, valueIndex);
-            ++valueIndex;
+        try {
+            for (KeyValuePair uval : experiment.getUniqueValues(arrayDesign)) {
+                efvTree.put(uval.key, uval.value, valueIndex);
+                ++valueIndex;
+            }
+        } catch (StatisticsNotFoundException e) {
+            // TODO: ignore
         }
     }
 

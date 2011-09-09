@@ -69,12 +69,12 @@ final class NetCDFProxyV1 extends NetCDFProxy {
 
     private final NetcdfFile netCDF;
 
-    NetCDFProxyV1(File file) throws AtlasDataException {
+    NetCDFProxyV1(String path) throws AtlasDataException {
         try {
-            this.netCDF = NetcdfDataset.acquireFile(file.getAbsolutePath(), null);
+            this.netCDF = NetcdfDataset.acquireFile(path, null);
             if (isOutOfDate()) {
                 close();
-                throw new AtlasDataException("ncdf " + file.getAbsolutePath() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+                throw new AtlasDataException("ncdf " + path + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
             }
         } catch (IOException e) {
             throw new AtlasDataException(e);
@@ -227,20 +227,6 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
-    }
-
-    @Override
-    List<KeyValuePair> getUniqueFactorValues() throws AtlasDataException {
-        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
-        List<String> factors = Arrays.asList(getFactors());
-
-        for (KeyValuePair propVal : getUniqueValues()) {
-            if (factors.contains(propVal.key)) {
-                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
-                uniqueEFVs.add(propVal);
-            }
-        }
-        return uniqueEFVs;
     }
 
     @Override
