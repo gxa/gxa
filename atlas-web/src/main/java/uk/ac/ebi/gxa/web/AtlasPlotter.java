@@ -35,10 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.DataPredicates;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -101,10 +98,12 @@ public class AtlasPlotter {
                 }
             });
             final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-            final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = null;
             try {
                 geneIdsToEfToEfvToEA =
                         ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
+            } catch (StatisticsNotFoundException e) {   
+                // ignore
             } finally {
                 ewd.close();
             }
@@ -531,42 +530,44 @@ public class AtlasPlotter {
             String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession).getName();
             String arrayDesignDescription = bestArrayDesignAccession + (arrayDesignName != null ? " " + arrayDesignName : "");
 
+            final BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
-            Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
-
-            AssayFactorValues factorValues = new AssayFactorValues(ewd.getFactorValues(ad, ef));
-            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();
-
-
-            for (String factorValue : factorValues.getUniqueValues()) {
-                ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
-
-                if (bestEA == null) {
-                    // If no bestEA expression analysis for factorValue could be found in proxy
-                    // (e.g. factorValue is present, but only with pVal == 0) then don't
-                    // plot this factorValue for arrayDesign
-                    continue;
+            Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy = null;
+            
+            try {
+                bestEAsPerEfvInProxy = ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
+                final AssayFactorValues factorValues = new AssayFactorValues(ewd.getFactorValues(ad, ef));
+                for (String factorValue : factorValues.getUniqueValues()) {
+                    ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
+            
+                    if (bestEA == null) {
+                        // If no bestEA expression analysis for factorValue could be found in proxy
+                        // (e.g. factorValue is present, but only with pVal == 0) then don't
+                        // plot this factorValue for arrayDesign
+                        continue;
+                    }
+            
+                    // Get the actual expression data from the proxy-designindex corresponding to the best pValue
+                    final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
+            
+                    Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, Floats.asList(expressions));
+            
+                    barPlotData.addFactorValue(
+                            factorValue,
+                            bestEA,
+                            efvsToPlot.contains(factorValue),
+                            assays);
+            
+                    if (!efvsToPlot.contains(factorValue))
+                        log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                                "flagging this series insignificant");
                 }
-
-                // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
-
-                Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, Floats.asList(expressions));
-
-                barPlotData.addFactorValue(
-                        factorValue,
-                        bestEA,
-                        efvsToPlot.contains(factorValue),
-                        assays);
-
-                if (!efvsToPlot.contains(factorValue))
-                    log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
-                            "flagging this series insignificant");
+            } catch (StatisticsNotFoundException e) {
+                // ignore
             }
 
-            Map<String, Object> options = makeMap(
+            final Map<String, Object> options = makeMap(
                     "arrayDesign", arrayDesignDescription,
                     "ef", ef);
 

@@ -15,8 +15,6 @@ import java.util.*;
 class NetCDFData {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    // Note that matchedUniqueValues includes both ef-efvs ad sc-scvs
-    private EfvTree<CPair<String, String>> matchedUniqueValues = null;
     private DataMatrixStorage storage;
     private List<String> uniqueValues; // scvs/efvs
     private final Map<Assay, List<Sample>> assayToSamples = new LinkedHashMap<Assay, List<Sample>>();
@@ -47,37 +45,16 @@ class NetCDFData {
     }
 
     int getWidth() {
-        return assayToSamples.keySet().size() + (isAnalyticsTransferred() ? uniqueValues.size() * 2 : 0);  // expressions + pvals + tstats
-    }
-
-    boolean isAnalyticsTransferred() {
-        return matchedUniqueValues != null;
+        //return assayToSamples.keySet().size() + (isAnalyticsTransferred() ? uniqueValues.size() * 2 : 0);  // expressions + pvals + tstats
+        return assayToSamples.keySet().size();
     }
 
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
-        if (!isAnalyticsTransferred())
-            return null;
-
-        Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueValues.getNameSortedList()) {
-            final int oldPos = uniqueValues.indexOf(encodeEfEfv(efEfv.getPayload()));
-            tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                    new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + uniqueValues.size() + oldPos));
-        }
-        return tstatMap;
+        return null;
     }
 
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPValDataMap() {
-        if (!isAnalyticsTransferred())
-            return null;
-
-        Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueValues.getNameSortedList()) {
-            final int oldPos = uniqueValues.indexOf(encodeEfEfv(efEfv.getPayload()));
-            pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                    new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + oldPos));
-        }
-        return pvalMap;
+        return null;
     }
 
     private String encodeEfEfv(CPair<String, String> pair) {

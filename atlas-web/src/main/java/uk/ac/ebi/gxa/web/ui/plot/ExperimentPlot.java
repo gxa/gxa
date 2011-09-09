@@ -25,10 +25,7 @@ package uk.ac.ebi.gxa.web.ui.plot;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.ExpressionStatistics;
-import uk.ac.ebi.gxa.data.FloatMatrixProxy;
-import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -91,7 +88,6 @@ public class ExperimentPlot {
     }
 
     private void load(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
-
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
         expressions = ewd.getExpressionValues(ad, deIndices);
@@ -139,7 +135,11 @@ public class ExperimentPlot {
             }
         }
 
-        prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
+        try {
+            prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
+        } catch (StatisticsNotFoundException e) { 
+            // ignore
+        }
     }
 
     private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {

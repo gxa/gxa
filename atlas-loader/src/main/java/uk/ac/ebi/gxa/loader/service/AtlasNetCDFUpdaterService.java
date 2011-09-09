@@ -63,8 +63,8 @@ public class AtlasNetCDFUpdaterService {
                 listener.setProgress("Writing updated NetCDF");
                 writeNetCDF(data, experiment, arrayDesign);
 
-                if (data.isAnalyticsTransferred())
-                    listener.setRecomputeAnalytics(false);
+                //if (data.isAnalyticsTransferred())
+                //    listener.setRecomputeAnalytics(false);
                 listener.setProgress("Successfully updated the NetCDF");
             }
         } catch (RecordNotFoundException e) {
@@ -103,6 +103,8 @@ public class AtlasNetCDFUpdaterService {
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
             for (int i = 0; i < deAccessions.length; ++i) {
                 final float[] values = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, i);
+                // TODO: restore statistics processing
+                /*
                 final float[] pval = ewd.getPValuesForDesignElement(arrayDesign, i);
                 final float[] tstat = ewd.getTStatisticsForDesignElement(arrayDesign, i);
                 // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than ewd.getUniqueFactorValues()
@@ -118,6 +120,8 @@ public class AtlasNetCDFUpdaterService {
                         multiget(asList(values), usedAssays).iterator(),
                         asList(pval).iterator(),
                         asList(tstat).iterator()));
+                */
+                data.addToStorage(deAccessions[i], multiget(asList(values), usedAssays).iterator());
             }
             return data;
         } catch (AtlasDataException e) {
@@ -133,8 +137,9 @@ public class AtlasNetCDFUpdaterService {
             final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
 
             netCdfCreator.setAssayDataMap(data.getAssayDataMap());
-            netCdfCreator.setPvalDataMap(data.getPValDataMap());
-            netCdfCreator.setTstatDataMap(data.getTStatDataMap());
+            // TODO: restore statistics
+            //netCdfCreator.setPvalDataMap(data.getPValDataMap());
+            //netCdfCreator.setTstatDataMap(data.getTStatDataMap());
 
             netCdfCreator.createNetCdf();
 
