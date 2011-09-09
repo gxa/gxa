@@ -79,7 +79,7 @@ class Loader {
                 organizational = Boolean.valueOf(literal);
             } else if (iri.contains("ArrayExpress_label")) {
                 term = literal;
-            } else if (iri.contains("alternative_term")) {
+            } else if (iri.contains("alternative_term") || iri.contains("definition_citation")) {
                 alternativeTerms.add(preprocessAlternativeTermString(literal));
             }
         }
