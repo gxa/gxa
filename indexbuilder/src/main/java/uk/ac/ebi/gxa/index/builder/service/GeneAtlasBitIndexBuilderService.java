@@ -35,7 +35,7 @@ import static java.util.Collections.sort;
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     private AtlasDataDAO atlasDataDAO;
-    private final String indexFileName;
+    private String indexFileName;
     private File atlasIndex;
     private File indexFile = null;
 
@@ -49,12 +49,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         this.atlasIndex = atlasIndex;
     }
 
-    /**
-     * Constructor
-     *
-     * @param indexFileName name of the serialized index file
-     */
-    public GeneAtlasBitIndexBuilderService(String indexFileName) {
+    public void setIndexFileName(String indexFileName) {
         this.indexFileName = indexFileName;
     }
 
