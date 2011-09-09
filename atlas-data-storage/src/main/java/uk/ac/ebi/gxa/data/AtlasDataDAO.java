@@ -82,8 +82,12 @@ public class AtlasDataDAO {
         return new ExperimentWithData(this, experiment);
     }
 
-    public NetCDFCreator getNetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFCreator(this, experiment, arrayDesign);
+    public NetCDFDataCreator getDataCreator(Experiment experiment, ArrayDesign arrayDesign) {
+        return new NetCDFDataCreator(this, experiment, arrayDesign);
+    }
+
+    public NetCDFStatisticsCreator getStatisticsCreator(Experiment experiment, ArrayDesign arrayDesign) {
+        return new NetCDFStatisticsCreator(this, experiment, arrayDesign);
     }
 
     public File getDataDirectory(Experiment experiment) {

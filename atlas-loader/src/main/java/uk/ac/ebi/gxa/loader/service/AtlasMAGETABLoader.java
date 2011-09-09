@@ -29,7 +29,7 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.NetCDFCreator;
+import uk.ac.ebi.gxa.data.NetCDFDataCreator;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -256,14 +256,13 @@ public class AtlasMAGETABLoader {
                 listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                         " and " + arrayDesign);
 
-            final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
+            final NetCDFDataCreator dataCreator = atlasDataDAO.getDataCreator(experiment, arrayDesign);
+            dataCreator.setAssayDataMap(cache.getAssayDataMap());
 
-            netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
+            dataCreator.createNetCdf();
 
-            netCdfCreator.createNetCdf();
-
-            if (netCdfCreator.hasWarning() && listener != null) {
-                for (String warning : netCdfCreator.getWarnings()) {
+            if (dataCreator.hasWarning() && listener != null) {
+                for (String warning : dataCreator.getWarnings()) {
                     listener.setWarning(warning);
                 }
             }

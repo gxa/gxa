@@ -135,14 +135,14 @@ public class AtlasNetCDFUpdaterService {
 
     private void writeNetCDF(NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
-            final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
+            final NetCDFDataCreator dataCreator = atlasDataDAO.getDataCreator(experiment, arrayDesign);
 
-            netCdfCreator.setAssayDataMap(data.getAssayDataMap());
+            dataCreator.setAssayDataMap(data.getAssayDataMap());
             // TODO: restore statistics
             //netCdfCreator.setPvalDataMap(data.getPValDataMap());
             //netCdfCreator.setTstatDataMap(data.getTStatDataMap());
 
-            netCdfCreator.createNetCdf();
+            dataCreator.createNetCdf();
 
             log.info("Successfully finished NetCDF for " + experiment.getAccession() + " and " + arrayDesign.getAccession());
         } catch (AtlasDataException e) {
