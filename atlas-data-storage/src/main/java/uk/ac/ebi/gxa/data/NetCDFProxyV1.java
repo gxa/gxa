@@ -69,8 +69,9 @@ final class NetCDFProxyV1 extends NetCDFProxy {
 
     private final NetcdfFile netCDF;
 
-    NetCDFProxyV1(String path) throws AtlasDataException {
+    NetCDFProxyV1(File file) throws AtlasDataException {
         try {
+            final String path = file.getAbsolutePath();
             this.netCDF = NetcdfDataset.acquireFile(path, null);
             if (isOutOfDate()) {
                 close();

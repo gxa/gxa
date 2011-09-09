@@ -20,7 +20,7 @@ public class TestResourceHandling {
         for (int i = 0; i < 20000; i++) {
             NetCDFProxy netCDF = null;
             try {
-                netCDF = new NetCDFProxyV1(netCDFfile.getAbsolutePath());
+                netCDF = new NetCDFProxyV1(netCDFfile);
                 netCDF.getArrayDesignAccession();
             } finally {
                 close(netCDF, false);

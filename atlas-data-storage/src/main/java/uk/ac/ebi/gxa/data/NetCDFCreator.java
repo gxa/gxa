@@ -803,12 +803,12 @@ public class NetCDFCreator {
         prepareData();
 
         try {
-            final File dataFile = new File(dataDAO.getDataFilename(experiment, arrayDesign));
+            final File dataFile = dataDAO.getDataFile(experiment, arrayDesign);
             if (!dataFile.getParentFile().exists() && !dataFile.getParentFile().mkdirs()) {
                 throw new AtlasDataException("Cannot create folder for the output file" + dataFile);
             }
 
-            final File statisticsFile = new File(dataDAO.getStatisticsFilename(experiment, arrayDesign));
+            final File statisticsFile = dataDAO.getStatisticsFile(experiment, arrayDesign);
             if (!statisticsFile.getParentFile().exists() && !statisticsFile.getParentFile().mkdirs()) {
                 throw new AtlasDataException("Cannot create folder for the output file" + statisticsFile);
             }

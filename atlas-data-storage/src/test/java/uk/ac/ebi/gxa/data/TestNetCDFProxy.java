@@ -39,7 +39,7 @@ public class TestNetCDFProxy extends TestCase {
     @Override
     protected void setUp() throws Exception {
         netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI());
-        netCDF = new NetCDFProxyV1(netCDFfile.getAbsolutePath());
+        netCDF = new NetCDFProxyV1(netCDFfile);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class TestNetCDFProxy extends TestCase {
 
     public void testisOutOfDate() throws Exception {
         try {
-            new NetCDFProxyV1(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44_old.nc").toURI()).getAbsolutePath()).isOutOfDate();
+            new NetCDFProxyV1(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44_old.nc").toURI())).isOutOfDate();
         } catch (AtlasDataException e) {
             return;
         }

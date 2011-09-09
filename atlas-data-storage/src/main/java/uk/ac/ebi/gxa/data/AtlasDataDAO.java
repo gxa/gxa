@@ -40,31 +40,36 @@ public class AtlasDataDAO {
     // Location of the experiment data files
     private File atlasDataRepo;
 
-    private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc";
+    File getDataFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(
+            getDataDirectory(experiment),
+            experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc"
+        );
     }
 
-    static String getDataFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc";
+    File getStatisticsFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(
+            getDataDirectory(experiment),
+            experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc"
+        );
     }
 
-    static String getStatisticsFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc";
-    }
-
-    File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(getDataDirectory(experiment), getFilename(experiment, arrayDesign));
+    File getFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(
+            getDataDirectory(experiment),
+            experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc"
+        );
     }
 
     DataProxy createDataProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
         DataProxy proxy;
         try {
             proxy = new NetCDFProxyV2(
-                new File(getDataFilename(experiment, arrayDesign)),
-                new File(getStatisticsFilename(experiment, arrayDesign))
+                getDataFile(experiment, arrayDesign),
+                getStatisticsFile(experiment, arrayDesign)
             );
         } catch (AtlasDataException e) {
-            proxy = new NetCDFProxyV1(getFilename(experiment, arrayDesign));
+            proxy = new NetCDFProxyV1(getFile(experiment, arrayDesign));
         }
         return proxy;
     }

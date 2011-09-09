@@ -450,7 +450,7 @@ public class ExperimentWithData implements Closeable {
     }
 
     public String getPathForR(ArrayDesign arrayDesign) {
-        return atlasDataDAO.getNetCDFLocation(experiment, arrayDesign).getAbsolutePath();
+        return atlasDataDAO.getFile(experiment, arrayDesign).getAbsolutePath();
     }
 
     public void close() {
