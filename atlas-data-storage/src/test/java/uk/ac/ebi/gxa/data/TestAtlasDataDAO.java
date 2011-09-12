@@ -59,7 +59,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertNotSame(fvs.length, 0);
             assertTrue(Arrays.asList(fvs).contains(efv));
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
     }
 
@@ -89,7 +89,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
             assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
     }
 }

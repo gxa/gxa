@@ -105,7 +105,7 @@ public class AtlasPlotter {
             } catch (StatisticsNotFoundException e) {   
                 // ignore
             } finally {
-                ewd.close();
+                ewd.closeAllDataSources();
             }
             if (geneIdsToEfToEfvToEA == null) {
                 return null;
@@ -573,7 +573,7 @@ public class AtlasPlotter {
 
             return barPlotData.toSeries(options);
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
     }
 
@@ -597,7 +597,7 @@ public class AtlasPlotter {
             uniqueFVs = sortUniqueFVs(assayFVs);
             expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
 
 

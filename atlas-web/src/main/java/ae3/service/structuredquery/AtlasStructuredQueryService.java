@@ -1685,7 +1685,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     experimentsForRow.add(experiment);
                 }
             } finally {
-                ewd.close();
+                ewd.closeAllDataSources();
             }
         }
 
@@ -1721,7 +1721,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         experimentsForRow.add(experiment);
                     }
                 } finally {
-                    ewd.close();
+                    ewd.closeAllDataSources();
                 }
             }
         }

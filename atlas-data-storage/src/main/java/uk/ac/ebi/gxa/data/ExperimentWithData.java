@@ -24,17 +24,15 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.util.*;
 
-public class ExperimentWithData implements Closeable {
+public class ExperimentWithData {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final AtlasDataDAO atlasDataDAO;
@@ -453,9 +451,13 @@ public class ExperimentWithData implements Closeable {
         return atlasDataDAO.getFile(experiment, arrayDesign).getAbsolutePath();
     }
 
-    public void close() {
+    public void closeAllDataSources() {
         for (DataProxy p : proxies.values()) {
-            Closeables.closeQuietly(p);
+            try {
+                p.close();
+            } catch (Throwable t) {
+                // ignore
+            }
         }
         proxies.clear();
     }

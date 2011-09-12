@@ -129,7 +129,7 @@ public class AtlasNetCDFUpdaterService {
             log.error("Error reading NetCDF file for: " + experiment.getAccession() + "/" + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
     }
 
