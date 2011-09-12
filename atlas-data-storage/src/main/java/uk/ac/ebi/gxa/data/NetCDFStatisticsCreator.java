@@ -285,7 +285,9 @@ public class NetCDFStatisticsCreator {
         } catch (IOException e) {
             throw new AtlasDataException(e);
         } finally {
-            ewd.closeAllDataSources();
+            // TODO: to be changed to closeAllDataSources after reverting of inappropriate commits
+            ewd.close();
+            //ewd.closeAllDataSources();
         }
     }
 
