@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -16,22 +15,12 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
+import uk.ac.ebi.microarray.atlas.model.bioentity.*;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.collect.Iterables.partition;
 
@@ -230,71 +219,6 @@ public class BioEntityDAO {
         };
 
         writeBatchInChunks(query, beProperties, statementSetter);
-    }
-
-    /**
-     * @param relations - a List of StrinBioEntitis, which contains values:
-     *                  [0] - gene
-     *                  [1] - transcript
-     * @param software
-     */
-    public void writeGeneToBioEntityRelations(final Set<List<BioEntity>> relations,
-                                              final Software software) {
-
-        String query = "INSERT INTO a2_bioentity2bioentity "
-                + "            (bioentityidto, "
-                + "             bioentityidfrom, "
-                + "             softwareid) "
-                + "VALUES      ( (SELECT be.bioentityid "
-                + "              FROM   a2_bioentity be "
-                + "              WHERE  be.identifier = ? and be.bioentitytypeid = ?), "
-                + "             (SELECT be.bioentityid "
-                + "              FROM   a2_bioentity be "
-                + "              WHERE  be.identifier = ? and be.bioentitytypeid = ?), "
-                + "             ?) ";
-
-
-        ListStatementSetter<List<BioEntity>> statementSetter = new ListStatementSetter<List<BioEntity>>() {
-            long softwareId = software.getSoftwareid();
-
-
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, list.get(i).get(0).getIdentifier());
-                ps.setLong(2, list.get(i).get(0).getType().getId());
-                ps.setString(3, list.get(i).get(1).getIdentifier());
-                ps.setLong(4, list.get(i).get(1).getType().getId());
-                ps.setLong(5, softwareId);
-            }
-        };
-
-        writeBatchInChunks(query, relations, statementSetter);
-
-    }
-
-    public void writeArrayDesign(final ArrayDesign arrayDesign, Software software) {
-        String query = "merge into a2_arraydesign a\n" +
-                "  using (select  1 from dual)\n" +
-                "  on (a.accession = ?)\n" +
-                "  when matched then\n" +
-                "            update set mappingswid = ?\n" +
-                "  when not matched then \n" +
-                "   insert (accession, name, type, provider, mappingswid) values (?, ?, ?, ?, ?)";
-
-        final long swId = software.getSoftwareid();
-
-        template.update(query, new PreparedStatementSetter() {
-            public void setValues(PreparedStatement ps) throws SQLException {
-                ps.setString(1, arrayDesign.getAccession());
-                ps.setLong(2, swId);
-                ps.setString(3, arrayDesign.getAccession());
-                ps.setString(4, arrayDesign.getName());
-                ps.setString(5, arrayDesign.getType());
-                ps.setString(6, arrayDesign.getProvider());
-                ps.setLong(7, swId);
-            }
-        });
-
-        log.info("Loaded/Updated ArrayDisign : " + arrayDesign.getAccession());
     }
 
     public void writeDesignElements(final Collection<DesignElement> designElements, final ArrayDesign arrayDesign) {
