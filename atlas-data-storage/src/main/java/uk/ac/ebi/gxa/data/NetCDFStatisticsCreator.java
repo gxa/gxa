@@ -180,9 +180,7 @@ public class NetCDFStatisticsCreator {
         return totalUniqueValues;
     }
 
-    private void create() throws IOException, AtlasDataException {
-        final ExperimentWithData ewd = dataDAO.createExperimentWithData(experiment);
-
+    private void create(ExperimentWithData ewd) throws IOException, AtlasDataException {
         final Dimension designElementDimension =
             statisticsNetCdf.addDimension("DE", ewd.getDesignElementAccessions(arrayDesign).length);
 
@@ -258,9 +256,10 @@ public class NetCDFStatisticsCreator {
     }
 
     public void createNetCdf() throws AtlasDataException {
-        prepareData();
-
+        final ExperimentWithData ewd = dataDAO.createExperimentWithData(experiment);
         try {
+            prepareData();
+
             final File statisticsFile = dataDAO.getStatisticsFile(experiment, arrayDesign);
             if (!statisticsFile.getParentFile().exists() && !statisticsFile.getParentFile().mkdirs()) {
                 throw new AtlasDataException("Cannot create folder for the output file" + statisticsFile);
@@ -270,7 +269,7 @@ public class NetCDFStatisticsCreator {
             log.info("Writing NetCDF file to " + tempStatisticsFile);
             statisticsNetCdf = NetcdfFileWriteable.createNew(tempStatisticsFile.getAbsolutePath(), true);
             try {
-                create();
+                create(ewd);
                 if (totalUniqueValues != 0) {
                     writeUVals();
                 }
@@ -285,6 +284,8 @@ public class NetCDFStatisticsCreator {
             }
         } catch (IOException e) {
             throw new AtlasDataException(e);
+        } finally {
+            ewd.closeAllDataSources();
         }
     }
 
