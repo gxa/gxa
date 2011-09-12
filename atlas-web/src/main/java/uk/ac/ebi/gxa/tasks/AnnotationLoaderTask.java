@@ -1,12 +1,10 @@
 package uk.ac.ebi.gxa.tasks;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationCommand;
 import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateBioEntityAnnotationCommand;
 import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateMappingCommand;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderEvent;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 
 /**
@@ -72,25 +70,24 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
     private AnnotationLoaderListener getListner() {
         return new AnnotationLoaderListener() {
             @Override
-            public void buildSuccess() {
-                taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FINISHED, "");
+            public void buildSuccess(String msg) {
+                taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FINISHED, msg);
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
                 taskMan.notifyTaskFinished(AnnotationLoaderTask.this); // it's waiting for this
             }
 
             @Override
-            public void buildError(AnnotationLoaderEvent event) {
-                for (Throwable e : event.getErrors()) {
-                    log.error("Task failed because of:", e);
-                }
-                taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FAILED, StringUtils.join(event.getErrors(), '\n'));
-                taskMan.notifyTaskFinished(AnnotationLoaderTask.this); // it's waiting for this
+            public void buildProgress(String progressStatus) {
+                currentProgress = progressStatus;
             }
 
             @Override
-            public void buildProgress(String progressStatus) {
-                currentProgress = progressStatus;
+            public void buildError(Throwable error) {
+                log.error("Task failed because of:", error);
+
+                taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FAILED, error.getMessage());
+                taskMan.notifyTaskFinished(AnnotationLoaderTask.this); // it's waiting for this
             }
         };
     }
