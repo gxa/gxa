@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.primitives.Floats;
+import uk.ac.ebi.gxa.utils.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.microarray.atlas.model.*;
@@ -66,7 +68,11 @@ public class ExperimentWithData {
         return null;
     }
 
-    private DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
+    AtlasDataDAO getDataDAO() {
+        return atlasDataDAO;
+    }
+
+    DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         DataProxy p = proxies.get(arrayDesign);
         if (p == null) {
             p = atlasDataDAO.createDataProxy(experiment, arrayDesign);
@@ -79,20 +85,28 @@ public class ExperimentWithData {
         return new NetCDFDataCreator(atlasDataDAO, experiment, arrayDesign);
     }
 
-    public void updateDataToNewestVersion(ArrayDesign arrayDesign) throws AtlasDataException {
-        final DataProxy proxy = getProxy(arrayDesign);
-        if ("2.0".equals(proxy.getVersion())) {
-            return;
+    public void updateAllData() throws AtlasDataException {
+        final DataUpdater updater = new DataUpdater();
+        for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
+            updater.update(arrayDesign);
         }
+    }
 
-        try {
-            final NetCDFDataCreator creator = getDataCreator(arrayDesign);
-            // TODO
-        } finally {
+    public void updateDataToNewestVersion() throws AtlasDataException {
+        for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
+            final DataProxy proxy = getProxy(arrayDesign);
+            if ("2.0".equals(proxy.getVersion())) {
+                return;
+            }
+        
             try {
-                proxies.remove(arrayDesign);
-                proxy.close();
-            } catch (Throwable t) {
+                new DataUpdater().update(arrayDesign);
+            } finally {
+                try {
+                    proxies.remove(arrayDesign);
+                    proxy.close();
+                } catch (Throwable t) {
+                }
             }
         }
     }
@@ -489,5 +503,56 @@ public class ExperimentWithData {
             }
         }
         proxies.clear();
+    }
+
+    private class DataUpdater {
+        void update(ArrayDesign arrayDesign) throws AtlasDataException {
+            final boolean removeObsoleteNetcdf = getProxy(arrayDesign) instanceof NetCDFProxyV1;
+
+            log.info("Reading existing NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
+            final NetCDFData data = readNetCDF(arrayDesign);
+
+            log.info("Writing updated NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
+            writeNetCDF(data, arrayDesign);
+
+            log.info("Successfully updated NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
+
+            if (removeObsoleteNetcdf) {
+                atlasDataDAO.getV1File(experiment, arrayDesign).delete();
+            }
+        }
+
+        private NetCDFData readNetCDF(ArrayDesign arrayDesign) throws AtlasDataException {
+            final NetCDFData data = new NetCDFData();
+            final List<Integer> usedAssays = new LinkedList<Integer>();
+            int index = 0;
+            // WARNING: getAssays() list assays in the order they are listed in netcdf file
+            for (Assay assay : getAssays(arrayDesign)) {
+                data.addAssay(assay);
+                usedAssays.add(index);
+                ++index;
+            }
+
+            final String[] deAccessions = getDesignElementAccessions(arrayDesign);
+            data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
+            for (int i = 0; i < deAccessions.length; ++i) {
+                final float[] values = getExpressionDataForDesignElementAtIndex(arrayDesign, i);
+                data.addToStorage(deAccessions[i], CollectionUtil.multiget(Floats.asList(values), usedAssays).iterator());
+            }
+            return data;
+        }
+
+        private void writeNetCDF(NetCDFData data, ArrayDesign arrayDesign) throws AtlasDataException {
+            final NetCDFDataCreator dataCreator = getDataCreator(arrayDesign);
+
+            dataCreator.setAssayDataMap(data.getAssayDataMap());
+            // TODO: restore statistics
+            //netCdfCreator.setPvalDataMap(data.getPValDataMap());
+            //netCdfCreator.setTstatDataMap(data.getTStatDataMap());
+
+            dataCreator.createNetCdf();
+
+            log.info("Successfully finished NetCDF for " + experiment.getAccession() + " and " + arrayDesign.getAccession());
+        }
     }
 }

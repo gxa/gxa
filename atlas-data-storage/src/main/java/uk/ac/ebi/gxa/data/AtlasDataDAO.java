@@ -54,7 +54,7 @@ public class AtlasDataDAO {
         );
     }
 
-    File getFile(Experiment experiment, ArrayDesign arrayDesign) {
+    File getV1File(Experiment experiment, ArrayDesign arrayDesign) {
         return new File(
             getDataDirectory(experiment),
             experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc"
@@ -69,7 +69,7 @@ public class AtlasDataDAO {
                 getStatisticsFile(experiment, arrayDesign)
             );
         } catch (AtlasDataException e) {
-            proxy = new NetCDFProxyV1(getFile(experiment, arrayDesign));
+            proxy = new NetCDFProxyV1(getV1File(experiment, arrayDesign));
         }
         return proxy;
     }

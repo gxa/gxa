@@ -177,6 +177,11 @@ public class ExperimentAnalyticsGeneratorService {
         final List<String> analysedEFSCs = new ArrayList<String>();
         int count = 0;
         try {
+            ewd.updateDataToNewestVersion();
+        } catch (AtlasDataException e) {
+            throw new AnalyticsGeneratorException(e);
+        }
+        try {
             for (ArrayDesign ad : arrayDesigns) {
                 count++;
 

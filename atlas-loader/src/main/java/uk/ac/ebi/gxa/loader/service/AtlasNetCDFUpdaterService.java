@@ -33,7 +33,7 @@ public class AtlasNetCDFUpdaterService {
 
         try {
             listener.setAccession(experiment.getAccession());
-            new DataUpdater().update(ewd);
+            ewd.updateAllData();
             listener.setProgress("Successfully updated the NetCDFs");
         } catch (AtlasDataException e) {
             listener.setProgress("Failed NetCDF update");
