@@ -1,8 +1,6 @@
 package ae3.service;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -299,7 +297,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
-        Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
+        Multimap<Long, ExperimentResult> bestExperimentsMap = ArrayListMultimap.create();
         StatisticsQueryUtils.getBestExperiments(statsQuery, statisticsStorage, bestExperimentsMap);
 
         List<ExperimentResult> bestExperiments = new ArrayList<ExperimentResult>(bestExperimentsMap.values());

@@ -50,6 +50,14 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
         this.nones = nones;
     }
 
+    public void setMpvup(float mpvup) {
+        this.mpvup = mpvup;
+    }
+
+    public void setMpvdn(float mpvdn) {
+        this.mpvdn = mpvdn;
+    }
+
     public int getUps() {
         return ups;
     }

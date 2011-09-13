@@ -1,12 +1,14 @@
 package uk.ac.ebi.gxa.statistics;
 
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.util.*;
 
@@ -220,7 +222,7 @@ public class StatisticsQueryUtils {
     public static void getBestExperiments(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
-            Map<Long, ExperimentResult> bestExperimentsSoFar) {
+            Multimap<Long, ExperimentResult> bestExperimentsSoFar) {
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
 
@@ -385,21 +387,33 @@ public class StatisticsQueryUtils {
 
 
     /**
-     * If exp cannot be found in exps, add it to exps
-     * If it can be found and its pVal/tStat ranks are worse the one is exps, replace it in exps
+     * If exp's experimentId and expression type cannot be found in exps, add it to exps
+     * If it can be found and its pVal/tStat ranks are better than the ones is exps, replace it in exps
      *
      * @param exp
      * @param exps
      */
-    private static void tryAddOrReplaceExperiment(ExperimentResult exp, Map<Long, ExperimentResult> exps) {
+    private static void tryAddOrReplaceExperiment(ExperimentResult exp, Multimap<Long, ExperimentResult> exps) {
         long expId = exp.getExperimentId();
-        ExperimentResult existingExp = exps.get(expId);
-        if (existingExp != null) {
-            if (exp.getPValTStatRank().compareTo(existingExp.getPValTStatRank()) < 0) {
-                exps.put(expId, exp);
+        Collection<ExperimentResult> existingExps = exps.get(expId);
+
+        boolean exprAttrFound = false;
+
+        if (!existingExps.isEmpty()) {
+            for (ExperimentResult existingExp : existingExps) {
+                exprAttrFound = toExpression(exp.getPValTStatRank()).equals(toExpression(existingExp.getPValTStatRank())) &&
+                        exp.getHighestRankAttribute().equals(existingExp.getHighestRankAttribute());
+                if (exprAttrFound && exp.getPValTStatRank().compareTo(existingExp.getPValTStatRank()) < 0) {
+                    existingExp.setPValTstatRank(exp.getPValTStatRank());
+                }
             }
-        } else {
-            exps.put(expId, exp);
         }
+
+        if (!exprAttrFound)
+            exps.put(expId, exp);
+    }
+
+    public static UpDownExpression toExpression(PTRank ptRank) {
+        return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
     }
 }
