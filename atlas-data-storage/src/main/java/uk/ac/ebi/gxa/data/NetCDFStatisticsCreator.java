@@ -40,22 +40,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Efficient NetCDF writer tailored to handle chunked expression values blocks found in
- * MAGETAB expression matrixes
- *
- * @author pashky
- */
 public class NetCDFStatisticsCreator {
     private final Logger log = LoggerFactory.getLogger(NetCDFStatisticsCreator.class);
 
     private final AtlasDataDAO dataDAO;
     private final Experiment experiment;
     private final ArrayDesign arrayDesign;
-
-    private final List<Assay> assays;
-    private final LinkedHashSet<Sample> samples = new LinkedHashSet<Sample>();
-    private final ListMultimap<Assay, Sample> samplesMap = ArrayListMultimap.create();
 
     // maps of properties
     private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
@@ -71,26 +61,20 @@ public class NetCDFStatisticsCreator {
         this.dataDAO = dataDAO;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
-        this.assays = new ArrayList<Assay>(experiment.getAssaysForDesign(arrayDesign));
-        for (Assay a : this.assays) {
-            for (Sample s : a.getSamples()) {
-                this.samples.add(s);
-                this.samplesMap.put(a, s);
-            }
-        }
     }
 
-    private LinkedHashMap<String, List<String>> extractAssayProperties(List<Assay> assays) {
+    private LinkedHashMap<String, List<String>> extractAssayProperties() {
         final LinkedHashMap<String, List<String>> result = new LinkedHashMap<String, List<String>>();
 
         final SortedSet<String> propertyNames = new TreeSet<String>();
 
+        final Collection<Assay> assays = experiment.getAssaysForDesign(arrayDesign);
         for (Assay a : assays) {
             propertyNames.addAll(a.getPropertyNames());
         }
 
         for (String propertyName : propertyNames) {
-            final List<String> propertyList = new ArrayList<String>(samples.size());
+            final List<String> propertyList = new ArrayList<String>(assays.size());
 
             for (final Assay a : assays) {
                 propertyList.add(a.getPropertySummary(propertyName));
@@ -102,13 +86,17 @@ public class NetCDFStatisticsCreator {
         return result;
     }
 
-    private LinkedHashMap<String, List<String>> extractSampleProperties(final List<Sample> samples) {
+    private LinkedHashMap<String, List<String>> extractSampleProperties() {
         final LinkedHashMap<String, List<String>> result = new LinkedHashMap<String, List<String>>();
 
+        final LinkedHashSet<Sample> samples = new LinkedHashSet<Sample>();
         final SortedSet<String> propertyNames = new TreeSet<String>();
 
-        for (final Sample s : samples) {
-            propertyNames.addAll(s.getPropertyNames());
+        for (Assay a : experiment.getAssaysForDesign(arrayDesign)) {
+            for (Sample s : a.getSamples()) {
+                samples.add(s);
+                propertyNames.addAll(s.getPropertyNames());
+            }
         }
 
         for (final String propertyName : propertyNames) {
@@ -125,10 +113,8 @@ public class NetCDFStatisticsCreator {
     }
 
     void prepareData() {
-        // reshape available properties to match assays & samples
-        final List<Sample> samplesList = new ArrayList<Sample>(samples);
-        final LinkedHashMap<String, List<String>> efvMap = extractAssayProperties(assays);
-        final LinkedHashMap<String, List<String>> scvMap = extractSampleProperties(samplesList);
+        final LinkedHashMap<String, List<String>> efvMap = extractAssayProperties();
+        final LinkedHashMap<String, List<String>> scvMap = extractSampleProperties();
 
         // Merge efvMap and scvMap into propertyToUnsortedUniqueValues that will store all scv/efv properties
         for (Map.Entry<String, List<String>> efToEfvs : efvMap.entrySet()) {

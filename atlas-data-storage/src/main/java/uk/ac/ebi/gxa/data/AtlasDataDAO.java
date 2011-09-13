@@ -82,14 +82,6 @@ public class AtlasDataDAO {
         return new ExperimentWithData(this, experiment);
     }
 
-    public NetCDFDataCreator getDataCreator(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFDataCreator(this, experiment, arrayDesign);
-    }
-
-    public NetCDFStatisticsCreator getStatisticsCreator(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFStatisticsCreator(this, experiment, arrayDesign);
-    }
-
     public File getDataDirectory(Experiment experiment) {
         final String[] parts = experiment.getAccession().split("-");
         if (parts.length != 3 || !"E".equals(parts[0])) {

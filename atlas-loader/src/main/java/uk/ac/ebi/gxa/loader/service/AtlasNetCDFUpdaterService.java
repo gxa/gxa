@@ -36,9 +36,15 @@ public class AtlasNetCDFUpdaterService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+        final Experiment experiment;
         try {
-            final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
+            experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
+        } catch (RecordNotFoundException e) {
+            throw new AtlasLoaderException(e.getMessage(), e);
+        }
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
+        try {
             listener.setAccession(experiment.getAccession());
 
             Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
@@ -58,22 +64,21 @@ public class AtlasNetCDFUpdaterService {
                 final Map<String, Assay> assayMap = entry.getValue();
                 log.info("Starting NetCDF for " + experiment.getAccession() +
                         " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
-                NetCDFData data = readNetCDF(experiment, arrayDesign, assayMap);
+                NetCDFData data = readNetCDF(ewd, arrayDesign, assayMap);
 
                 listener.setProgress("Writing updated NetCDF");
-                writeNetCDF(data, experiment, arrayDesign);
+                writeNetCDF(data, ewd, arrayDesign);
 
                 //if (data.isAnalyticsTransferred())
                 //    listener.setRecomputeAnalytics(false);
                 listener.setProgress("Successfully updated the NetCDF");
             }
-        } catch (RecordNotFoundException e) {
-            throw new AtlasLoaderException(e.getMessage(), e);
+        } finally {
+            ewd.closeAllDataSources();
         }
     }
 
-    private NetCDFData readNetCDF(Experiment experiment, ArrayDesign arrayDesign, Map<String, Assay> knownAssays) throws AtlasLoaderException {
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+    private NetCDFData readNetCDF(ExperimentWithData ewd, ArrayDesign arrayDesign, Map<String, Assay> knownAssays) throws AtlasLoaderException {
         try {
             final NetCDFData data = new NetCDFData();
 
@@ -126,16 +131,14 @@ public class AtlasNetCDFUpdaterService {
             }
             return data;
         } catch (AtlasDataException e) {
-            log.error("Error reading NetCDF file for: " + experiment.getAccession() + "/" + arrayDesign.getAccession(), e);
+            log.error("Error reading NetCDF file for: " + ewd.getExperiment().getAccession() + "/" + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
-        } finally {
-            ewd.closeAllDataSources();
         }
     }
 
-    private void writeNetCDF(NetCDFData data, Experiment experiment, ArrayDesign arrayDesign) throws AtlasLoaderException {
+    private void writeNetCDF(NetCDFData data, ExperimentWithData ewd, ArrayDesign arrayDesign) throws AtlasLoaderException {
         try {
-            final NetCDFDataCreator dataCreator = atlasDataDAO.getDataCreator(experiment, arrayDesign);
+            final NetCDFDataCreator dataCreator = ewd.getDataCreator(arrayDesign);
 
             dataCreator.setAssayDataMap(data.getAssayDataMap());
             // TODO: restore statistics
@@ -144,9 +147,9 @@ public class AtlasNetCDFUpdaterService {
 
             dataCreator.createNetCdf();
 
-            log.info("Successfully finished NetCDF for " + experiment.getAccession() + " and " + arrayDesign.getAccession());
+            log.info("Successfully finished NetCDF for " + ewd.getExperiment().getAccession() + " and " + arrayDesign.getAccession());
         } catch (AtlasDataException e) {
-            log.error("Error writing NetCDF file for " + experiment.getAccession() + " and " + arrayDesign.getAccession(), e);
+            log.error("Error writing NetCDF file for " + ewd.getExperiment().getAccession() + " and " + arrayDesign.getAccession(), e);
             throw new AtlasLoaderException(e);
         }
     }

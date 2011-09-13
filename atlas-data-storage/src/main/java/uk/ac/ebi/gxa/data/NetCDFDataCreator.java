@@ -115,7 +115,7 @@ public class NetCDFDataCreator {
         }
 
         for (String propertyName : propertyNames) {
-            final List<String> propertyList = new ArrayList<String>(samples.size());
+            final List<String> propertyList = new ArrayList<String>(assays.size());
 
             for (final Assay a : assays) {
                 propertyList.add(a.getPropertySummary(propertyName));

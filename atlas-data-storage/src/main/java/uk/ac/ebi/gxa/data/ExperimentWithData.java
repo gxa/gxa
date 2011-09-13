@@ -76,6 +76,14 @@ public class ExperimentWithData {
         return p;
     }
 
+    public NetCDFDataCreator getDataCreator(ArrayDesign arrayDesign) {
+        return new NetCDFDataCreator(atlasDataDAO, experiment, arrayDesign);
+    }
+
+    public NetCDFStatisticsCreator getStatisticsCreator(ArrayDesign arrayDesign) {
+        return new NetCDFStatisticsCreator(atlasDataDAO, experiment, arrayDesign);
+    }
+
     /*
      * This method returns samples in the order they are stored in netcdf file.
      * While this order is important we have to use this method,
@@ -447,8 +455,12 @@ public class ExperimentWithData {
         return geneIdsToEfToEfvToEA.get(geneId).get(ef);
     }
 
-    public String getPathForR(ArrayDesign arrayDesign) {
-        return atlasDataDAO.getFile(experiment, arrayDesign).getAbsolutePath();
+    public String getDataPathForR(ArrayDesign arrayDesign) {
+        return atlasDataDAO.getDataFile(experiment, arrayDesign).getAbsolutePath();
+    }
+
+    public String getStatisticsPathForR(ArrayDesign arrayDesign) {
+        return atlasDataDAO.getStatisticsFile(experiment, arrayDesign).getAbsolutePath();
     }
 
     public void closeAllDataSources() {
