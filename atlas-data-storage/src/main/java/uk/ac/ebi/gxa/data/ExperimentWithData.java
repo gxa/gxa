@@ -66,8 +66,7 @@ public class ExperimentWithData {
         return null;
     }
 
-    // TODO: change to private
-    public DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
+    private DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
         DataProxy p = proxies.get(arrayDesign);
         if (p == null) {
             p = atlasDataDAO.createDataProxy(experiment, arrayDesign);
@@ -78,6 +77,24 @@ public class ExperimentWithData {
 
     public NetCDFDataCreator getDataCreator(ArrayDesign arrayDesign) {
         return new NetCDFDataCreator(atlasDataDAO, experiment, arrayDesign);
+    }
+
+    public void updateDataToNewestVersion(ArrayDesign arrayDesign) throws AtlasDataException {
+        final DataProxy proxy = getProxy(arrayDesign);
+        if ("2.0".equals(proxy.getVersion())) {
+            return;
+        }
+
+        try {
+            final NetCDFDataCreator creator = getDataCreator(arrayDesign);
+            // TODO
+        } finally {
+            try {
+                proxies.remove(arrayDesign);
+                proxy.close();
+            } catch (Throwable t) {
+            }
+        }
     }
 
     public NetCDFStatisticsCreator getStatisticsCreator(ArrayDesign arrayDesign) {

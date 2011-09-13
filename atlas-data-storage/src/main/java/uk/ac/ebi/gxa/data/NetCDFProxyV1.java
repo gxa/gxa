@@ -83,7 +83,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
     }
 
     boolean isOutOfDate() {
-        final String version = getNcdfVersion();
+        final String version = getVersion();
         // "NetCDF Updater" string was used as version id in NetCDFs created by updater
         // before March 23, 2011
         return !"1.0".equals(version) && !"NetCDF Updater".equals(version);
@@ -99,7 +99,8 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         return netCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
-    private String getNcdfVersion() {
+    @Override
+    String getVersion() {
         if (netCDF.findGlobalAttribute("CreateNetCDF_VERSION") == null) {
             return null;
         }

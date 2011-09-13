@@ -26,6 +26,8 @@ import java.util.List;
 import java.io.Closeable;
 
 public abstract class DataProxy implements Closeable {
+    abstract String getVersion();
+
     abstract String getExperimentAccession() throws AtlasDataException;
     abstract String getArrayDesignAccession() throws AtlasDataException;
     abstract int[][] getSamplesToAssays() throws AtlasDataException;

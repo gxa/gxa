@@ -84,10 +84,6 @@ final class NetCDFProxyV2 extends NetCDFProxy {
                 this.statisticsNetCDF = NetcdfDataset.acquireFile(statisticsFile.getAbsolutePath(), null);
             } catch (IOException e) {
             }
-            if (isOutOfDate()) {
-                close();
-                throw new AtlasDataException("ncdf " + dataFile.getAbsolutePath() + " for experiment: " + getExperimentAccession() + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
-            }
         } catch (IOException e) {
             try {
                 close();
@@ -95,10 +91,6 @@ final class NetCDFProxyV2 extends NetCDFProxy {
             }
             throw new AtlasDataException(e);
         }
-    }
-
-    boolean isOutOfDate() {
-        return !"2.0".equals(getNcdfVersion());
     }
 
     @Override
@@ -111,7 +103,8 @@ final class NetCDFProxyV2 extends NetCDFProxy {
         return dataNetCDF.findGlobalAttribute("ADaccession").getStringValue();
     }
 
-    private String getNcdfVersion() {
+    @Override
+    String getVersion() {
         if (dataNetCDF.findGlobalAttribute("CreateNetCDF_VERSION") == null) {
             return null;
         }
