@@ -17,6 +17,7 @@ public class UpdateMappingCommand extends AnnotationCommand {
     @Override
     public void execute(AnnotationLoaderListener listener) {
         BioMartAnnotator bioMartAnnotator = factory.getEnsemblAnnotator();
-        bioMartAnnotator.updateMappings(annSrcId, listener);
+        bioMartAnnotator.updateMappings(annSrcId);
+        bioMartAnnotator.setListener(listener);
     }
 }

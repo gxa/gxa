@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.arraydesign;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -14,9 +14,6 @@ public class ArrayDesignService {
 
     private ArrayDesignDAO arrayDesignDAO;
 
-    @Autowired
-    private ArrayExpressConnection arrayExpressConnection;
-
     public ArrayDesignService(ArrayDesignDAO arrayDesignDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
     }
@@ -24,24 +21,29 @@ public class ArrayDesignService {
     public ArrayDesign findOrCreateArrayDesignShallow(String accession) {
         ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignShallowByAccession(accession);
         if (arrayDesign == null) {
-            arrayDesign = fetchDataFromAE(accession);
-        } 
-        if (arrayDesign == null) {
-            arrayDesign = createNew(accession);
+            ArrayExpressConnection aeConnection = new ArrayExpressConnection(accession);
+            arrayDesign = createNew(accession,
+                    aeConnection.getName(),
+                    aeConnection.getProvider(),
+                    aeConnection.getType());
         }
+
         arrayDesignDAO.save(arrayDesign);
         return arrayDesign;
     }
 
-    private ArrayDesign fetchDataFromAE(String accession) {
-        ArrayDesign arrayDesign = arrayExpressConnection.fetchArrayDesignData(accession);
+    private ArrayDesign createNew(String accession, String name, String provider, String type) {
+        ArrayDesign arrayDesign = new ArrayDesign(accession);
+
+        if (StringUtils.isNotEmpty(name)) {
+            arrayDesign.setName(name);
+        } else {
+            arrayDesign.setName("Auto generated Array Design for accession " + accession);
+        }
+
+        arrayDesign.setProvider(provider);
+        arrayDesign.setType(type);
         return arrayDesign;
     }
 
-    protected ArrayDesign createNew(String accession) {
-        ArrayDesign arrayDesign = new ArrayDesign(accession);
-        arrayDesign.setName("Auto generated Array Design for accession " + accession);
-        return arrayDesign;
-    }
- 
 }

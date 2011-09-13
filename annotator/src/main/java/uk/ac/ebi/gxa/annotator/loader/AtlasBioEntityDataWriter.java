@@ -7,21 +7,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -40,21 +35,10 @@ public class AtlasBioEntityDataWriter {
 
     @Autowired
     private BioEntityDAO bioEntityDAO;
-    @Autowired
-    private AnnotationSourceDAO annSrcDAO;
-    @Autowired
-    private BioEntityPropertyDAO propertyDAO;
-    @Autowired
-    private SoftwareDAO softwareDAO;
 
     private AnnotationLoaderListener listener;
 
     public AtlasBioEntityDataWriter() {
-    }
-
-    @Transactional
-    public void writeBioEntities(Collection<BioEntity> bioEntities) {
-        bioEntityDAO.writeBioEntities(bioEntities);
     }
 
     @Transactional
@@ -73,16 +57,16 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, Software software) {
+    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final Software software) {
         for (BioEntityType type : data.getBioEntityTypes()) {
             Collection<List<String>> propValues = data.getPropertyValuesForBioEntityType(type);
-            reportProgress("Wirting " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data));
+            reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data));
             bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, software);
         }
     }
 
     @Transactional
-    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, Software software) {
+    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software) {
         reportProgress("Writing " + data.getDesignElements().size() + " design elements of " + arrayDesign.getAccession());
         bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign);
         for (BioEntityType bioEntityType : data.getBioEntityTypes()) {
@@ -93,24 +77,6 @@ public class AtlasBioEntityDataWriter {
                     software,
                     arrayDesign);
         }
-    }
-
-    @Transactional
-    public AnnotationSource getAnnSrcById(long id) {
-        return annSrcDAO.getById(id);
-    }
-
-    public BioEntityProperty getPropertyByName(String name) {
-        return propertyDAO.findOrCreate(name);
-    }
-
-    @Transactional
-    public void saveSoftware(Software object) {
-        softwareDAO.save(object);
-    }
-
-    public boolean isAnnSrcApplied(AnnotationSource annSrc) {
-        return annSrcDAO.isAnnSrcApplied(annSrc);
     }
 
     public void setListener(AnnotationLoaderListener listener) {

@@ -275,11 +275,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
                     ));
         }
-//        results.add(makeMap("organismName", "homo sapience", "id", "111", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
-//        results.add(makeMap("organismName", "drosophila melanogaster", "id", "112", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "valid", "isUpdatable", "true"));
-//        results.add(makeMap("organismName", "gallus gallus", "id", "113", "beTypes", "ensgene, enstranscript", "currName", "Ensembl 61", "newVersion", "62", "validation", "Dataset name ggallus_gene_ensembl is not valid ", "isUpdatable", "true"));
-//        results.add(makeMap("organismName", "schizosaccharomyces pombe", "id", "114", "beTypes", "ensgene, enstranscript", "currName", "EnsemblFungi 8", "newVersion", "9", "validation", "valid", "isUpdatable", "true"));
-//        results.add(makeMap("organismName", "homo sapience", "id", "115", "beTypes", "microRNA", "currName", "Mirbase 14", "newVersion", "", "validation", "", "isUpdatable", "false"));
 
         return makeMap("annSrcs", results);
     }

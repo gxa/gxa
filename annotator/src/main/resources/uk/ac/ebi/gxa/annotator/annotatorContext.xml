@@ -27,8 +27,6 @@
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="arrayExpressConnection" class="uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayExpressConnection"/>
-
     <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService">
         <constructor-arg ref="arrayDesignDAO"/>
     </bean>

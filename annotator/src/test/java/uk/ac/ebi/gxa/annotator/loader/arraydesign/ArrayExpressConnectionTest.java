@@ -1,26 +1,24 @@
 package uk.ac.ebi.gxa.annotator.loader.arraydesign;
 
 import junit.framework.TestCase;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 /**
  * User: nsklyar
  * Date: 02/09/2011
  */
-public class ArrayExpressConnectionTest  extends TestCase {
+public class ArrayExpressConnectionTest extends TestCase {
 
     @Test
-    public void testFetchArrayDesignData() throws Exception{
-        ArrayExpressConnection connection = new ArrayExpressConnection();
-        ArrayDesign arrayDesign = connection.fetchArrayDesignData("A-AFFY-2");
-        assertNotNull("ArrayDesign should not be null ", arrayDesign);
-        assertEquals("Affymetrix GeneChip Arabidopsis Genome [ATH1-121501]", arrayDesign.getName());
-        assertEquals("Affymetrix, Inc. (support@affymetrix.com)", arrayDesign.getProvider());
-        assertEquals("in_situ_oligo_features", arrayDesign.getType());
+    public void testFetchArrayDesignData() throws Exception {
+        ArrayExpressConnection connection = new ArrayExpressConnection("A-AFFY-2");
 
-        ArrayDesign nullArrayDesign = connection.fetchArrayDesignData("WRONG ACC");
-        assertNull(nullArrayDesign);
+        assertEquals("Affymetrix GeneChip Arabidopsis Genome [ATH1-121501]", connection.getName());
+        assertEquals("Affymetrix, Inc. (support@affymetrix.com)", connection.getProvider());
+        assertEquals("in_situ_oligo_features", connection.getType());
 
+        connection = new ArrayExpressConnection("WRONG ACC");
+        assertEquals(StringUtils.EMPTY, connection.getName());
     }
 }

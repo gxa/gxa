@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -82,7 +83,7 @@ public class BioMartParser<T extends BioEntityData> {
 
             while ((line = csvReader.readNext()) != null) {
                 if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
-                    log.debug("Cannot get property " + property.getName() + " line: " + line.toString());
+                    log.debug("Cannot get property {} line: {}", property.getName(), Arrays.toString(line));
                     throw new AtlasAnnotationException("Cannot get property " + property.getName());
                 }
 

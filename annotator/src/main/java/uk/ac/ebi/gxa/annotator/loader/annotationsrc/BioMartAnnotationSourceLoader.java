@@ -17,22 +17,15 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.io.*;
+import java.util.*;
 
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.io.Closeables.closeQuietly;
@@ -72,8 +65,14 @@ public class BioMartAnnotationSourceLoader {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
         Writer writer = new CharArrayWriter();
-        writeSource(annotationSource, writer);
-        return writer.toString();
+        try {
+            writeSource(annotationSource, writer);
+            return writer.toString();
+        } catch (ConfigurationException e) {
+            throw LogUtil.createUnexpected("Cannot write Annotation Source " + annotationSource.getAnnotationSrcId(), e);
+        } finally {
+            closeQuietly(writer);
+        }
     }
 
     @Transactional
@@ -115,7 +114,7 @@ public class BioMartAnnotationSourceLoader {
         return annotationSource;
     }
 
-    protected void writeSource(BioMartAnnotationSource annSrc, Writer out) {
+    protected void writeSource(BioMartAnnotationSource annSrc, Writer out) throws ConfigurationException {
         PropertiesConfiguration properties = new PropertiesConfiguration();
         properties.addProperty(ORGANISM_PROPNAME, annSrc.getOrganism().getName());
         properties.addProperty(SOFTWARE_NAME_PROPNAME, annSrc.getSoftware().getName());
@@ -140,15 +139,7 @@ public class BioMartAnnotationSourceLoader {
         writeBioMartProperties(annSrc, properties);
 
         writeBioMartArrayDesign(annSrc, properties);
-
-        try {
-            properties.save(out);
-
-        } catch (ConfigurationException e) {
-            log.error("Cannot write Annotation Source " + annSrc.getAnnotationSrcId(), e);
-        } finally {
-            closeQuietly(out);
-        }
+        properties.save(out);
     }
 
     @Transactional
@@ -162,8 +153,7 @@ public class BioMartAnnotationSourceLoader {
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
-                    //ToDo: Too slow - find faster solution
-//                    annSrc.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
+                    annSrc.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
                     result.add(annSrc);
                 } else {
                     //check if AnnotationSource exists for new version
@@ -185,7 +175,6 @@ public class BioMartAnnotationSourceLoader {
         return result;
     }
 
-    @Transactional
     private void removeAnnSrcs(final Collection<BioMartAnnotationSource> annSrcs) {
         for (BioMartAnnotationSource annSrc : annSrcs) {
             annSrcDAO.remove(annSrc);
@@ -223,7 +212,7 @@ public class BioMartAnnotationSourceLoader {
 
             if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
                 ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
-                    bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
+                bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
             }
         }
 

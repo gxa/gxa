@@ -2,7 +2,9 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
+import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
 import uk.ac.ebi.gxa.annotator.loader.data.*;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
@@ -10,6 +12,8 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -19,6 +23,7 @@ import java.net.URL;
 import java.util.*;
 
 import static com.google.common.collect.Iterables.getFirst;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * nsklyar
@@ -30,14 +35,20 @@ public class BioMartAnnotator {
 
     private Organism organism;
 
+    @Autowired
+    private BioEntityDAO bioEntityDAO;
+    @Autowired
+    private AnnotationSourceDAO annSrcDAO;
+    @Autowired
+    private BioEntityPropertyDAO propertyDAO;
+
     protected final AtlasBioEntityDataWriter beDataWriter;
 
     public BioMartAnnotator(AtlasBioEntityDataWriter beDataWriter) {
         this.beDataWriter = beDataWriter;
     }
 
-    public void updateAnnotations(String annotationSrcId, AnnotationLoaderListener listener) {
-        setListener(listener);
+    public void updateAnnotations(String annotationSrcId) {
 
         BioMartAnnotationSource annSrc = null;
         try {
@@ -69,12 +80,12 @@ public class BioMartAnnotator {
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
                     reportProgress("Reading property " + martProperty.getBioEntityProperty().getName() + " (" + martProperty.getName() + ") for " + organism.getName());
-                    log.debug("Parsing property " + martProperty.getBioEntityProperty().getName());
-                    long startTime = System.currentTimeMillis();
+                    log.debug("Parsing property {} ", martProperty.getBioEntityProperty().getName());
+                    long startTime = currentTimeMillis();
 
                     parser.parseBioMartPropertyValues(martProperty.getBioEntityProperty(), url);
 
-                    log.debug("Done. " + (new Long(System.currentTimeMillis() - startTime).toString()) + " millseconds).\n");
+                    log.debug("Done. {} millseconds).\n", (currentTimeMillis() - startTime));
                 }
             }
 
@@ -95,8 +106,7 @@ public class BioMartAnnotator {
         }
     }
 
-    public void updateMappings(String annotationSrcId, AnnotationLoaderListener listener) {
-        setListener(listener);
+    public void updateMappings(String annotationSrcId) {
 
         BioMartAnnotationSource annSrc = null;
         try {
@@ -111,7 +121,7 @@ public class BioMartAnnotator {
 
 
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
-            if (!beDataWriter.isAnnSrcApplied(annSrc)) {
+            if (!annSrcDAO.isAnnSrcApplied(annSrc)) {
                 readBioEntities(martConnection.getAttributesURL(attributesHandler.getMartBEIdentifiersAndNames()), parser);
                 beDataWriter.writeBioEntities(parser.getData());
             }
@@ -128,10 +138,10 @@ public class BioMartAnnotator {
                 if (url != null) {
                     reportProgress("Reading design elements for " + bioMartArrayDesign.getArrayDesign().getAccession() + " (" + bioMartArrayDesign.getName() + ") for " + organism.getName());
 
-                    long startTime = System.currentTimeMillis();
+                    long startTime = currentTimeMillis();
 
                     parser.parseDesignElementMappings(url);
-                    log.debug("Done. " + (new Long(System.currentTimeMillis() - startTime).toString()) + " millseconds).\n");
+                    log.debug("Done. {} millseconds).\n", (currentTimeMillis() - startTime));
                 }
 
                 beDataWriter.writeDesignElements(parser.getData(), bioMartArrayDesign.getArrayDesign(), annSrc.getSoftware());
@@ -148,7 +158,7 @@ public class BioMartAnnotator {
 
 
     private BioMartAnnotationSource fetchAnnotationSource(String annotationSrcId) throws AtlasAnnotationException {
-        AnnotationSource annotationSource = beDataWriter.getAnnSrcById(Long.parseLong(annotationSrcId));
+        AnnotationSource annotationSource = annSrcDAO.getById(Long.parseLong(annotationSrcId));
         if (annotationSource == null) {
             throw new AtlasAnnotationException("No annotation source with id " + annotationSrcId);
         }
@@ -179,7 +189,7 @@ public class BioMartAnnotator {
 
         if (geneType != null) {
             Set<List<String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
-            BioEntityProperty propSynonym = beDataWriter.getPropertyByName("synonym");
+            BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
             for (List<String> geneToSynonym : geneToSynonyms) {
                 BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.get(1));
                 builder.addPropertyValue(geneToSynonym.get(0), geneType, pv);
