@@ -4,12 +4,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.*;
 
 /**
  * User: nsklyar
@@ -45,24 +40,12 @@ public class BioMartArrayDesign {
         return biomartarraydesignId;
     }
 
-    public void setBiomartarraydesignId(Long biomartarraydesignId) {
-        this.biomartarraydesignId = biomartarraydesignId;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public ArrayDesign getArrayDesign() {
         return arrayDesign;
-    }
-
-    public void setArrayDesign(ArrayDesign arrayDesign) {
-        this.arrayDesign = arrayDesign;
     }
 
     public BioMartAnnotationSource getAnnotationSrc() {

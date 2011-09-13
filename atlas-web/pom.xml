@@ -377,6 +377,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- AOP dependency -->
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>

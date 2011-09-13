@@ -6,8 +6,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -36,10 +34,9 @@ public abstract class AnnotationSource implements Serializable{
     protected Organism organism;
 
     @ManyToOne()
-//    @Cascade({org.hibernate.annotations.CascadeType.PERSIST, org.hibernate.annotations.CascadeType.SAVE_UPDATE})
     protected Software software;
 
-    @ManyToMany (fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany (fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH,CascadeType.REFRESH })
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
@@ -88,16 +85,8 @@ public abstract class AnnotationSource implements Serializable{
         return organism;
     }
 
-    public void setOrganism(Organism organism) {
-        this.organism = organism;
-    }
-
     public Software getSoftware() {
         return software;
-    }
-
-    public String getDisplayName() {
-        return software.getDisplayName() + (organism!=null?"-" + organism.getName():"");
     }
 
     public abstract boolean isUpdatable();
@@ -110,12 +99,6 @@ public abstract class AnnotationSource implements Serializable{
         this.loadDate = copyOf(loadDate);
     }
 
-
-     private String getDateTime() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-        Date date = new Date();
-        return dateFormat.format(date);
-    }
 
     @Override
     public String toString() {

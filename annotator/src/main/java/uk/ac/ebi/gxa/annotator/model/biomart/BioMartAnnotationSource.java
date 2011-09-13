@@ -9,12 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -102,10 +97,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
         return answer;
     }
 
-    void setBioMartProperties(Set<BioMartProperty> bioMartProperties) {
-        this.bioMartProperties = bioMartProperties;
-    }
-
     public void addBioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty) {
         BioMartProperty bioMartProperty = new BioMartProperty(biomartPropertyName, bioEntityProperty, this);
         this.bioMartProperties.add(bioMartProperty);
@@ -122,10 +113,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public Set<BioMartArrayDesign> getBioMartArrayDesigns() {
         return bioMartArrayDesigns;
-    }
-
-    void setBioMartArrayDesigns(Set<BioMartArrayDesign> bioMartArrayDesigns) {
-        this.bioMartArrayDesigns = bioMartArrayDesigns;
     }
 
     public void addBioMartArrayDesign(BioMartArrayDesign bioMartArrayDesign) {

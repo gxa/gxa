@@ -61,6 +61,9 @@ public class LoaderTask extends AbstractWorkingTask {
             return new LoadExperimentCommand(getTaskSpec().getAccession(),
                     taskMan.getAtlasProperties().getLoaderPossibleQuantitaionTypes(), getTaskSpec().getUserData());
 
+        else if (TYPE_UPDATEEXPERIMENT.equals(getTaskSpec().getType()))
+                    return new UpdateNetCDFForExperimentCommand(getTaskSpec().getAccession());
+
         else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType()))
             return new UnloadExperimentCommand(getTaskSpec().getAccession());
 

@@ -4,14 +4,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.*;
 
 /**
  * User: nsklyar
@@ -63,20 +56,12 @@ public class BioMartProperty {
         return biomartpropertyId;
     }
 
-    void setBiomartpropertyId(Long biomartpropertyId) {
-        this.biomartpropertyId = biomartpropertyId;
-    }
-
     public BioMartAnnotationSource getAnnotationSrc() {
         return annotationSrc;
     }
 
      void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
         this.annotationSrc = annotationSrc;
-    }
-
-    void setBioEntityProperty(BioEntityProperty bioEntityProperty) {
-        this.bioEntityProperty = bioEntityProperty;
     }
 
     @Override

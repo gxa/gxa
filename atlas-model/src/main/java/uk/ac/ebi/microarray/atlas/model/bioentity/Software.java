@@ -1,10 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.*;
 
 /**
  * User: nsklyar
@@ -38,10 +34,6 @@ public class Software {
         return softwareid;
     }
 
-    private void setSoftwareid(Long softwareid) {
-        this.softwareid = softwareid;
-    }
-
     public String getName() {
         return name;
     }
@@ -52,10 +44,6 @@ public class Software {
 
     public boolean isActive() {
         return isActive== null?false:isActive;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
     }
 
     public String getDisplayName() {

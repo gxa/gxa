@@ -1,14 +1,6 @@
 package uk.ac.ebi.microarray.atlas.model.bioentity;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.*;
 
 /**
  * User: nsklyar
@@ -69,14 +61,6 @@ public class BioEntityType {
 
     public BioEntityProperty getNameProperty() {
         return nameProperty;
-    }
-
-    private void setIdentifierProperty(BioEntityProperty identifierProperty) {
-        this.identifierProperty = identifierProperty;
-    }
-
-    public void setNameProperty(BioEntityProperty nameProperty) {
-        this.nameProperty = nameProperty;
     }
 
     public int isUseForIndex() {
