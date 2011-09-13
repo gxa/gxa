@@ -11,8 +11,5 @@ end;
 /
 
 ALTER TRIGGER A2_ONTOLOGY_INSERT ENABLE;
-/
 
 call atlasmgr.RebuildSequences();
-
-exit;
