@@ -183,10 +183,25 @@ if(!atlas)
              var iexp, ief;
              for(iexp = 0; iexp < resp.experiments.length; ++iexp)
                  for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
+
+                     // From amongst the current ef's efvs find the one with the
+                     // best pValue and pass it to the plot function - to ensure that it
+                     // gets displayed in the plot's legend.
+                     var minPVal = 1;
+                     var bestEfv;
+                     var iefv;
+                     for (iefv = 0; iefv < resp.experiments[iexp].efs[ief].efvs.length; ++iefv) {
+                         if (resp.experiments[iexp].efs[ief].efvs[iefv].pvalue < minPVal) {
+                             minPVal = resp.experiments[iexp].efs[ief].efvs[iefv].pvalue;
+                             bestEfv = resp.experiments[iexp].efs[ief].efvs[iefv].efv;
+                         }
+                     }
+
                      atlas.ajaxCall("plot", {
                          gid: gene,
                          eacc: resp.experiments[iexp].accession,
                          ef: resp.experiments[iexp].efs[ief].ef,
+                         efv: bestEfv,
                          plot: 'bar'
                      }, (function(eid, eacc, gid, x, cc) {
                          return function(o) {
