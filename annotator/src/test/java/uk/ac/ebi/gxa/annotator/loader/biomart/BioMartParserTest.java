@@ -13,7 +13,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -26,9 +25,8 @@ import static junit.framework.Assert.assertTrue;
  */
 public class BioMartParserTest {
 
-
     @Test
-    public void testParseBioEntities() throws Exception {
+    public void testParseBioMartPropertyValues() throws Exception {
         List<BioEntityType> bioEntityTypes = initTypes();
 
         BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
@@ -36,6 +34,10 @@ public class BioMartParserTest {
 
         Organism organism = new Organism(null, "test_org");
         parser.parseBioEntities(BioMartParserTest.class.getResource("bioentities.txt"), organism);
+
+        BioEntityProperty go = new BioEntityProperty(null, "go");
+        BioEntityProperty property = go;
+        parser.parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties.txt"));
 
         BioEntityAnnotationData data = parser.getData();
         for (BioEntityType type : bioEntityTypes) {
@@ -70,19 +72,6 @@ public class BioMartParserTest {
                 assertTrue(passed);
             }
         }
-    }
-
-    @Test
-    public void testParseBioMartPropertyValues() throws Exception {
-        List<BioEntityType> bioEntityTypes = initTypes();
-
-        BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
-        BioMartParser<BioEntityAnnotationData> parser = BioMartParser.initParser(bioEntityTypes, builder);
-
-        BioEntityProperty property = new BioEntityProperty(null, "go");
-        parser.parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties.txt"));
-
-        BioEntityAnnotationData data = parser.getData();
 
         assertEquals(2, data.getPropertyValues().size());
         for (BEPropertyValue value : data.getPropertyValues()) {
@@ -90,14 +79,14 @@ public class BioMartParserTest {
         }
 
         for (BioEntityType type : bioEntityTypes) {
-            Collection<List<String>> propertyValues = data.getPropertyValuesForBioEntityType(type);
+            Collection<Pair<String, BEPropertyValue>> propertyValues = data.getPropertyValuesForBioEntityType(type);
             assertEquals(2, propertyValues.size());
             if (type.equals(new BioEntityType(null, "ensgene", 1))) {
-                assertTrue(propertyValues.contains(Arrays.asList("ENSBTAG00000025314", "go", "extracellular region")));
-                assertTrue(propertyValues.contains(Arrays.asList("ENSBTAG00000025314", "go", "hormone activity")));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(go, "extracellular region"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(go, "hormone activity"))));
             } else {
-                assertTrue(propertyValues.contains(Arrays.asList("ENSBTAT00000015116", "go", "extracellular region")));
-                assertTrue(propertyValues.contains(Arrays.asList("ENSBTAT00000015116", "go", "hormone activity")));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "extracellular region"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "hormone activity"))));
             }
         }
     }

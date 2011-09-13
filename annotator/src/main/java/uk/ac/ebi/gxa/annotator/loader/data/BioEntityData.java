@@ -6,11 +6,7 @@ import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * User: nsklyar
@@ -18,13 +14,13 @@ import java.util.Set;
  */
 public class BioEntityData {
 
-    final protected List<BioEntityType> types;
+    final protected List<BioEntityType> bioEntityTypes;
 
     protected Multimap<BioEntityType, BioEntity> typeToBioEntities = HashMultimap.create();
     protected Set<Organism> organisms = new HashSet<Organism>();
 
-    BioEntityData(List<BioEntityType> types) {
-        this.types = types;
+    BioEntityData(List<BioEntityType> bioEntityTypes) {
+        this.bioEntityTypes = bioEntityTypes;
     }
 
     BioEntity addBioEntity(String identifier, String name, BioEntityType type, Organism organism) {
@@ -35,7 +31,7 @@ public class BioEntityData {
     }
 
     public List<BioEntityType> getBioEntityTypes() {
-        return Collections.unmodifiableList(types);
+        return Collections.unmodifiableList(bioEntityTypes);
     }
 
     public Collection<BioEntity> getBioEntitiesOfType(BioEntityType bioEntityType) {

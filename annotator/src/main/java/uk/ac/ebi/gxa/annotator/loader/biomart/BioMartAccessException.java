@@ -5,9 +5,6 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
  * Date: 05/05/2011
  */
 public class BioMartAccessException extends Exception{
-    public BioMartAccessException() {
-        super();
-    }
 
     public BioMartAccessException(String s) {
         super(s);
@@ -17,7 +14,4 @@ public class BioMartAccessException extends Exception{
         super(s, throwable);
     }
 
-    public BioMartAccessException(Throwable throwable) {
-        super(throwable);    
-    }
 }

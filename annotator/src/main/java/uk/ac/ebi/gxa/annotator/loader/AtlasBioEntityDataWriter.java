@@ -22,7 +22,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * User: nsklyar
@@ -59,7 +58,7 @@ public class AtlasBioEntityDataWriter {
     @Transactional
     public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final Software software) {
         for (BioEntityType type : data.getBioEntityTypes()) {
-            Collection<List<String>> propValues = data.getPropertyValuesForBioEntityType(type);
+            Collection<Pair<String, BEPropertyValue>> propValues = data.getPropertyValuesForBioEntityType(type);
             reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data));
             bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, software);
         }

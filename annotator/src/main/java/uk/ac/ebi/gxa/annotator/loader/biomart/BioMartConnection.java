@@ -11,11 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
@@ -127,8 +123,9 @@ public class BioMartConnection {
         String location = martUrl + DATASETLIST_QUERY + bioMartName;
         URL url = getMartURL(location);
 
+        CSVReader csvReader = null;
         try {
-            CSVReader csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
+            csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
 
             String[] line;
             while ((line = csvReader.readNext()) != null) {
@@ -142,6 +139,8 @@ public class BioMartConnection {
 
         } catch (IOException e) {
             throw new BioMartAccessException("Cannot read data from " + location, e);
+        } finally {
+            closeQuietly(csvReader);
         }
 
         return false;
@@ -167,8 +166,8 @@ public class BioMartConnection {
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             String line = bufferedReader.readLine();
 
-            if (line.contains("Exception") || line.contains("ERROR")) {
-                throw new BioMartAccessException("Data from " + location + "contain error " + line);
+            if (line == null || line.contains("Exception") || line.contains("ERROR")) {
+                throw new BioMartAccessException("Data from " + location + " contain error " + line);
             }
 
         } catch (IOException e) {

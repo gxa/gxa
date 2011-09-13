@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.data;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
@@ -16,7 +17,9 @@ public class DesignElementDataBuilder extends BioEntityDataBuilder<DesignElement
 
     @Override
     protected boolean isValidData() {
-        return true;
+        return super.isValidData() &&
+                (!data.typeToDesignElementBEMapping.isEmpty() &&
+                        CollectionUtils.isEqualCollection(data.typeToDesignElementBEMapping.keySet(), data.bioEntityTypes));
     }
 
     public void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {

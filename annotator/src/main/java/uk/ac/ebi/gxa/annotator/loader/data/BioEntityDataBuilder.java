@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.data;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -15,12 +16,6 @@ import java.util.List;
 public abstract class BioEntityDataBuilder<T extends BioEntityData> {
 
     protected T data;
-//    protected List<BioEntityType> types;
-
-//    public BioEntityDataBuilder(List<BioEntityType> types) {
-//        this.types = types;
-//    }
-
 
     protected BioEntityDataBuilder() {
     }
@@ -34,11 +29,13 @@ public abstract class BioEntityDataBuilder<T extends BioEntityData> {
             throw new AtlasAnnotationException("Annotation/Mapping data is not valid");
     }
 
-    protected abstract boolean isValidData();
+    protected boolean isValidData(){
+        if (data.typeToBioEntities.isEmpty()) {
+            return true;
+        } else
+        return CollectionUtils.isEqualCollection(data.typeToBioEntities.keySet(), data.bioEntityTypes);
+    }
 
-//    public List<BioEntityType> getTypes() {
-//        return Collections.unmodifiableList(types);
-//    }
 
     public BioEntity addBioEntity(String identifier, String name, BioEntityType type, Organism organism) {
         return data.addBioEntity(identifier, name, type, organism);

@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.data;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
@@ -16,7 +17,9 @@ public class BioEntityAnnotationDataBuilder extends BioEntityDataBuilder<BioEnti
 
     @Override
     protected boolean isValidData() {
-        return true;
+        return super.isValidData() &&
+                (!data.typeToBEPropValues.isEmpty() &&
+                        CollectionUtils.isEqualCollection(data.typeToBEPropValues.keySet(), data.bioEntityTypes));
     }
 
     @Override
