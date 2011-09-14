@@ -64,7 +64,7 @@
 
                         <div id="${exp.accession}_EFpagination" class="pagination_ef">
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
-                                    <div><a id="${EF}"
+                                    <div id="${EF}"><a
                                        onclick="redrawPlotForFactor('${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a></div>
                                 </c:forEach>
                         </div>

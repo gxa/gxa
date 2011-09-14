@@ -130,14 +130,14 @@ function redrawPlotForFactor(eacc, gid, ef, mark, efv) {
 function drawEFpagination(eacc, gid, currentEF, plotType, efv) {
     var panelContent = [];
 
-    $("#" + eacc + "_EFpagination *").each(function() {
+    $("#" + eacc + "_EFpagination").children().each(function() {
         var ef = $(this).attr("id");
-        var ef_txt = $(this).html();
+        var ef_txt = $(this).text();
         if (ef == currentEF) {
-            panelContent.push("<span id='" + ef + "' class='current'>" + ef_txt + "</span>")
+            panelContent.push("<div id='" + ef + "' class='current'>" + ef_txt + "</div>")
         }
         else {
-            panelContent.push('<a id="' + ef + '" onclick="redrawPlotForFactor(\'' + eacc + '\',\'' + gid + '\',\'' + ef + '\',\'' + efv + '\',\'' + plotType + '\',false)">' + ef_txt + '</a>');
+            panelContent.push("<div id='" + ef + "'><a onclick=\"redrawPlotForFactor('" + eacc + "','" + gid + "','" + ef + "','" + efv + "','" + plotType + "',false)\">" + ef_txt + "</a></div>");
         }
     });
 
