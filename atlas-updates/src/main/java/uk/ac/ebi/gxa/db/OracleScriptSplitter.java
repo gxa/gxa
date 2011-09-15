@@ -26,10 +26,11 @@ class OracleScriptSplitter {
                 }
 
                 line = line.trim();
+                if (line.length() == 0) {
+                    continue;
+                }
 
-                if (line.length() < 1) {
-                    // Do nothing, it's an empty line.
-                } else if (line.startsWith("--") || line.startsWith("#") || line.startsWith("//")) {
+                if (line.startsWith("--") || line.startsWith("#") || line.startsWith("//")) {
                     logger.debug(line);
                 } else if (line.matches("[/.]")) {
                     /*
