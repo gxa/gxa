@@ -49,7 +49,8 @@ class OracleScriptSplitter {
                     /*
                    http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039663
                    Terminate PL/SQL subprograms by entering a period (.) by itself on a new line.
-                   You can also terminate and execute a PL/SQL subprogram by entering a slash (/) by itself on a new line.
+                   You can also terminate and execute a PL/SQL subprogram by entering a slash (/)
+                   by itself on a new line.
                     */
                     execute(executor, sqlBuffer);
                     plsqlMode = false;
