@@ -9,6 +9,19 @@ import java.io.Reader;
 import java.sql.SQLException;
 
 /**
+ * Hugely based on the code from {@link com.carbonfive.db.jdbc.ScriptRunner#doExecute}
+ * - the only significant difference is that we support Oracle's dirty hack with slash, <tt>/</tt>,
+ * meaning literally "now just send to the database whatever you've got in your
+ * <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039357">SQL buffer</a>."
+ * <p/>
+ * For more details, refer to
+ * <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039663">Oracle documentation</a>
+ * on PL/SQL scripts.
+ * <p/>
+ * Also addresses <a href="http://code.google.com/p/c5-db-migration/issues/detail?id=31">Issue 31</a>:
+ * Running Oracle 11g SQL*plus script generates ORA-06650 "end-of-file"
+ * of <tt>c5-db-migrations</tt>
+ *
  * @author alf
  */
 class OracleScriptSplitter {
