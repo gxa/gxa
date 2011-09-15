@@ -51,7 +51,7 @@ class OracleScriptSplitter {
                    Terminate PL/SQL subprograms by entering a period (.) by itself on a new line.
                    You can also terminate and execute a PL/SQL subprogram by entering a slash (/) by itself on a new line.
                     */
-                    executor.executeStatement(sqlBuffer.toString().trim());
+                    executor.executeStatement(format(sqlBuffer));
                     plsqlMode = false;
                     sqlBuffer = null;
                 } else if (!plsqlMode && sqlBuffer.toString().toLowerCase().matches("(" +
@@ -69,7 +69,7 @@ class OracleScriptSplitter {
                     sqlBuffer.append(" ");
                 } else if (!plsqlMode && line.endsWith(";")) {
                     sqlBuffer.append(line.substring(0, line.lastIndexOf(";")));
-                    executor.executeStatement(sqlBuffer.toString().trim());
+                    executor.executeStatement(format(sqlBuffer));
                     sqlBuffer = null;
                 } else {
                     sqlBuffer.append(line);
@@ -80,7 +80,7 @@ class OracleScriptSplitter {
             // Check to see if we have an unexecuted statement in command.
             if (sqlBuffer != null && sqlBuffer.length() > 0) {
                 log.info("Last statement in script is missing a terminating delimiter, executing anyway.");
-                executor.executeStatement(sqlBuffer.toString().trim());
+                executor.executeStatement(format(sqlBuffer));
             }
         } catch (SQLException e) {
             e.fillInStackTrace();
@@ -93,5 +93,9 @@ class OracleScriptSplitter {
         } catch (Exception e) {
             throw new RuntimeException("Error running script.  Cause: " + e, e);
         }
+    }
+
+    private String format(StringBuilder sqlBuffer) {
+        return sqlBuffer.toString().trim();
     }
 }
