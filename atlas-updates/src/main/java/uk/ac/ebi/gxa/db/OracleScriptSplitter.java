@@ -41,7 +41,7 @@ class OracleScriptSplitter {
                     executor.executeStatement(sqlBuffer.toString());
                     plsqlMode = false;
                     sqlBuffer = null;
-                } else if (!plsqlMode && line.toLowerCase().matches("(" +
+                } else if (!plsqlMode && sqlBuffer.toString().toLowerCase().matches("(" +
                         "begin|" +
                         "declare|" +
                         "create(\\s+or\\s+replace)?" +
@@ -50,17 +50,17 @@ class OracleScriptSplitter {
                         "\\s+" +
                         "(\\S+|\"[^\"]+\")" +
                         ")" +
-                        "(\\s+.*|$)")) {
+                        "\\s+.*")) {
                     plsqlMode = true;
                     sqlBuffer.append(line);
-                    sqlBuffer.append("\n");
+                    sqlBuffer.append(" ");
                 } else if (!plsqlMode && line.endsWith(";")) {
                     sqlBuffer.append(line.substring(0, line.lastIndexOf(";")));
                     executor.executeStatement(sqlBuffer.toString());
                     sqlBuffer = null;
                 } else {
                     sqlBuffer.append(line);
-                    sqlBuffer.append("\n");
+                    sqlBuffer.append(" ");
                 }
             }
 
