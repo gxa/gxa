@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 
 /**
- * @author alf
+ * The actual executor part extracted from {@link com.carbonfive.db.jdbc.ScriptRunner#doExecute}
  */
 class SqlStatementExecutor {
     private final static Logger log = LoggerFactory.getLogger(SqlStatementExecutor.class);
