@@ -26,7 +26,7 @@ public class TestOracleScriptSplitter {
                         "PROCEDURE RebuildSequences; " +
                         "PROCEDURE RebuildIndex; " +
                         "PROCEDURE fix_sequence(tbl VARCHAR2, field VARCHAR2, seq VARCHAR2); " +
-                        "END ATLASMGR; ",
+                        "END ATLASMGR;",
                 "CREATE OR REPLACE PACKAGE BODY ATLASMGR AS " +
                         "PROCEDURE DisableConstraints " +
                         "AS " +
@@ -40,7 +40,7 @@ public class TestOracleScriptSplitter {
                         "EXECUTE IMMEDIATE q; " +
                         "end loop; " +
                         "END; " +
-                        "END; "};
+                        "END;"};
         checkParser(sourceScript, expectedStatements);
     }
 
@@ -73,7 +73,7 @@ public class TestOracleScriptSplitter {
                         "if( :new.OntologyID is null) then " +
                         "select A2_Ontology_seq.nextval into :new.OntologyID from dual; " +
                         "end if; " +
-                        "end; ",
+                        "end;",
                 "ALTER TRIGGER A2_ONTOLOGY_INSERT ENABLE",
                 "call atlasmgr.RebuildSequences()"};
         checkParser(sourceScript, expectedStatements);
