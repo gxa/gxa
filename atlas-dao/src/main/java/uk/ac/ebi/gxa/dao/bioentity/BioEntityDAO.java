@@ -39,7 +39,6 @@ public class BioEntityDAO {
     protected JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
-    private static Map<String, BioEntityProperty> bePropertyCache = new HashMap<String, BioEntityProperty>();
 
     public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template, BioEntityPropertyDAO propertyDAO, BioEntityTypeDAO typeDAO) {
         this.template = template;
@@ -127,9 +126,6 @@ public class BioEntityDAO {
         return type;
     }
 
-//    private long getArrayDesignIdByAccession(String arrayDesignAccession) {
-//        return template.queryForLong(ARRAYDESIGN_ID, arrayDesignAccession);
-//    }
 
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
@@ -274,6 +270,22 @@ public class BioEntityDAO {
         writeBatchInChunks(query, deToBeMappings, setter);
     }
 
+    public int deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
+        String query = "DELETE FROM A2_DESIGNELTBIOENTITY DEBE\n" +
+                "WHERE DEBE.SOFTWAREID= ? \n" +
+                "and debe.DESIGNELEMENTID IN (SELECT DE.DESIGNELEMENTID FROM A2_DESIGNELEMENT DE WHERE DE.ARRAYDESIGNID=?)";
+
+       return template.update(query, software.getSoftwareid(), arrayDesign.getArrayDesignID());
+    }
+
+    public int deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
+        String query = "DELETE FROM A2_BIOENTITYBEPV BEPV\n" +
+                " WHERE BEPV.SOFTWAREID = ?\n" +
+                " and bepv.bioentityid in (select bioentityid from A2_BIOENTITY where organismid=?)";
+
+        return template.update(query, software.getSoftwareid(), organism.getId());
+    }
+
     private <T> int writeBatchInChunks(String query,
                                        final Collection<T> entityList,
                                        ListStatementSetter<T> statementSetter) throws DataAccessException {
@@ -326,16 +338,6 @@ public class BioEntityDAO {
                     "  where bebepv.softwareid in (:swid)  " +
                     "  and bebepv.bioentityid in (:geneids)", propertyParams, genePropertyMapper);
         }
-    }
-
-
-    private BioEntityProperty getBioEntityPropertyByName(String name) {
-        BioEntityProperty bioEntityProperty = bePropertyCache.get(name);
-        if (bioEntityProperty == null) {
-            bioEntityProperty = propertyDAO.findOrCreate(name);
-            bePropertyCache.put(bioEntityProperty.getName(), bioEntityProperty);
-        }
-        return bioEntityProperty;
     }
 
     public void setJdbcTemplate(JdbcTemplate template) {

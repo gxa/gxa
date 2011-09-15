@@ -75,13 +75,22 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
-    public boolean isAnnSrcApplied(AnnotationSource annSrc) {
-        //ToDo: this is very slow query - try to find faster solution
-        String query = "SELECT bepv.bioentityid\n" +
-                "  FROM A2_BIOENTITYBEPV BEPV\n" +
-                "  JOIN A2_BIOENTITY BE ON BE.BIOENTITYID = BEPV.BIOENTITYID\n" +
-                "  where BEPV.SOFTWAREID=? and BE.ORGANISMID=? and rownum=1";
+    public boolean isAnnSrcApplied(final AnnotationSource annSrc) {
+        String query = "SELECT 1 FROM A2_BIOENTITYBEPV\n" +
+                "WHERE SOFTWAREID = ?\n" +
+                "AND BIOENTITYID = (SELECT BEPV.BIOENTITYID FROM A2_BIOENTITYBEPV BEPV JOIN A2_BIOENTITY BE ON BEPV.BIOENTITYID = BE.BIOENTITYID\n" +
+                "WHERE BE.ORGANISMID=? AND ROWNUM=1)";
         List list = atlasJdbcTemplate.queryForList(query, annSrc.getSoftware().getSoftwareid(), annSrc.getOrganism().getId());
+
+        return list.size() > 0;
+    }
+
+    public boolean isAnnSrcAppliedForArrayDesignMapping(final Software software, final ArrayDesign arrayDesign) {
+        String query = "SELECT 1 FROM A2_DESIGNELTBIOENTITY\n" +
+                "WHERE SOFTWAREID = ?\n" +
+                "AND DESIGNELEMENTID IN (SELECT DE.DESIGNELEMENTID FROM A2_DESIGNELEMENT DE WHERE DE.ARRAYDESIGNID=?)\n" +
+                "AND ROWNUM = 1";
+        List list = atlasJdbcTemplate.queryForList(query, software.getSoftwareid(), arrayDesign.getArrayDesignID());
 
         return list.size() > 0;
     }

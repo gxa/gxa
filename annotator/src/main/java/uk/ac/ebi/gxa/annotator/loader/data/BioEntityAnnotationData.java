@@ -15,7 +15,7 @@ import java.util.*;
  * User: nsklyar
  * Date: 25/08/2011
  */
-public class BioEntityAnnotationData extends BioEntityData{
+public class BioEntityAnnotationData extends BioEntityData {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -29,13 +29,15 @@ public class BioEntityAnnotationData extends BioEntityData{
     }
 
     void addPropertyValue(String beIdentifier, BioEntityType type, BEPropertyValue pv) {
-        if (StringUtils.isNotBlank(pv.getValue()) && pv.getValue().length() < 1000) {
-            Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
-            typeToBEPropValues.put(type, beProperty);
+        if (StringUtils.isNotBlank(pv.getValue())) {
+            if (pv.getValue().length() < 1000) {
+                Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
+                typeToBEPropValues.put(type, beProperty);
 
-            propertyValues.add(pv);
-        } else {
-            log.info("BioEntity property value is too long (>1000) " + pv.getValue());
+                propertyValues.add(pv);
+            } else {
+                log.info("BioEntity property value is too long (>1000) " + pv.getValue());
+            }
         }
     }
 

@@ -2,7 +2,6 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
@@ -12,7 +11,6 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -35,16 +33,15 @@ public class BioMartAnnotator {
 
     private Organism organism;
 
-    @Autowired
-    private BioEntityDAO bioEntityDAO;
-    @Autowired
     private AnnotationSourceDAO annSrcDAO;
-    @Autowired
+
     private BioEntityPropertyDAO propertyDAO;
 
     protected final AtlasBioEntityDataWriter beDataWriter;
 
-    public BioMartAnnotator(AtlasBioEntityDataWriter beDataWriter) {
+    public BioMartAnnotator(AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
+        this.annSrcDAO = annSrcDAO;
+        this.propertyDAO = propertyDAO;
         this.beDataWriter = beDataWriter;
     }
 
@@ -93,9 +90,7 @@ public class BioMartAnnotator {
 
             beDataWriter.writeBioEntities(data);
             beDataWriter.writePropertyValues(data.getPropertyValues());
-            beDataWriter.writeBioEntityToPropertyValues(data, annSrc.getSoftware());
-
-            annSrc.setApplied(true);
+            beDataWriter.writeBioEntityToPropertyValues(data, annSrc.getSoftware(), annSrcDAO.isAnnSrcApplied(annSrc));
 
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 
@@ -144,16 +139,19 @@ public class BioMartAnnotator {
                     log.debug("Done. {} millseconds).\n", (currentTimeMillis() - startTime));
                 }
 
-                beDataWriter.writeDesignElements(parser.getData(), bioMartArrayDesign.getArrayDesign(), annSrc.getSoftware());
+                beDataWriter.writeDesignElements(parser.getData(),
+                        bioMartArrayDesign.getArrayDesign(),
+                        annSrc.getSoftware(),
+                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc.getSoftware(), bioMartArrayDesign.getArrayDesign()));
             }
 
             reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
         } catch (BioMartAccessException e) {
             reportError(new AtlasAnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e));
         } catch (AtlasAnnotationException e) {
+            e.printStackTrace();
             reportError(e);
         }
-
     }
 
 

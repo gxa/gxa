@@ -164,10 +164,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
         this.mySqlDbUrl = mySqlDbUrl;
     }
 
-    @Override
-    public boolean isUpdatable() {
-        return true;
-    }
 
     /////////////////////////
     //  Helper methods

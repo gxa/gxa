@@ -65,10 +65,6 @@ public abstract class AnnotationSource implements Serializable{
         return annotationSrcId;
     }
 
-    public void setAnnotationSrcId(Long annotationSrcId) {
-        this.annotationSrcId = annotationSrcId;
-    }
-
     public Set<BioEntityType> getTypes() {
         return Collections.unmodifiableSet(types);
     }
@@ -85,11 +81,10 @@ public abstract class AnnotationSource implements Serializable{
         return organism;
     }
 
+
     public Software getSoftware() {
         return software;
     }
-
-    public abstract boolean isUpdatable();
 
     public Date getLoadDate() {
         return copyOf(loadDate);

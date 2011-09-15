@@ -13,9 +13,7 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * User: nsklyar
@@ -32,8 +30,9 @@ public class AnnotationSourceController {
     }
 
     public Collection<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
-        Set<BioMartAnnotationSourceView> viewSources = new HashSet<BioMartAnnotationSourceView>();
+        List<BioMartAnnotationSourceView> viewSources = new ArrayList<BioMartAnnotationSourceView>();
         Collection<BioMartAnnotationSource> annotationSources = loader.getCurrentAnnotationSources();
+        
         for (BioMartAnnotationSource annSrc : annotationSources) {
             try {
                 BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
@@ -52,6 +51,13 @@ public class AnnotationSourceController {
                 log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
+
+        Collections.sort(viewSources, new Comparator<BioMartAnnotationSourceView>() {
+            @Override
+            public int compare(BioMartAnnotationSourceView o, BioMartAnnotationSourceView o1) {
+                return o.getOrganismName().compareTo(o1.getOrganismName());
+            }
+        });
         return viewSources;
     }
 
