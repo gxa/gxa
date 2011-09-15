@@ -12,7 +12,7 @@ import java.sql.SQLException;
  * @author alf
  */
 class OracleScriptSplitter {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Logger log = LoggerFactory.getLogger(OracleScriptSplitter.class);
 
     void parse(Reader reader, SqlStatementExecutor executor) throws SQLException, IOException {
         StringBuilder sqlBuffer = null;
@@ -31,7 +31,7 @@ class OracleScriptSplitter {
                 }
 
                 if (line.startsWith("--") || line.startsWith("#") || line.startsWith("//")) {
-                    logger.debug(line);
+                    log.debug(line);
                 } else if (line.matches("[/.]")) {
                     /*
                    http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039663
@@ -66,16 +66,16 @@ class OracleScriptSplitter {
 
             // Check to see if we have an unexecuted statement in command.
             if (sqlBuffer != null && sqlBuffer.length() > 0) {
-                logger.info("Last statement in script is missing a terminating delimiter, executing anyway.");
+                log.info("Last statement in script is missing a terminating delimiter, executing anyway.");
                 executor.executeStatement(sqlBuffer.toString());
             }
         } catch (SQLException e) {
             e.fillInStackTrace();
-            logger.error("Error executing: " + sqlBuffer, e);
+            log.error("Error executing: " + sqlBuffer, e);
             throw e;
         } catch (IOException e) {
             e.fillInStackTrace();
-            logger.error("Error executing: " + sqlBuffer, e);
+            log.error("Error executing: " + sqlBuffer, e);
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error running script.  Cause: " + e, e);

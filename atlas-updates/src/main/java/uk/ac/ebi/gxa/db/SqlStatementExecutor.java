@@ -9,7 +9,7 @@ import java.sql.*;
  * @author alf
  */
 class SqlStatementExecutor {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Logger log = LoggerFactory.getLogger(SqlStatementExecutor.class);
     private Connection conn;
 
     SqlStatementExecutor(Connection conn) {
@@ -19,7 +19,7 @@ class SqlStatementExecutor {
     public void executeStatement(String command) throws SQLException {
         Statement statement = conn.createStatement();
 
-        logger.debug(command);
+        log.info(command);
 
         boolean hasResults = statement.execute(command);
 
@@ -30,12 +30,12 @@ class SqlStatementExecutor {
             int cols = md.getColumnCount();
             for (int i = 1; i <= cols; i++) {
                 String name = md.getColumnName(i);
-                logger.debug(name + "\t");
+                log.debug(name + "\t");
             }
             while (rs.next()) {
                 for (int i = 1; i <= cols; i++) {
                     String value = rs.getString(i);
-                    logger.debug(value + "\t");
+                    log.debug(value + "\t");
                 }
             }
         }
