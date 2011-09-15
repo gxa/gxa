@@ -116,13 +116,6 @@
             <version>2.0.1-rc3</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
         <!-- see http://code.google.com/p/c5-db-migration/wiki/ApplicationEmbedding for details -->
         <dependency>
             <groupId>com.carbonfive.db-support</groupId>
