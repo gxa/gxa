@@ -21,6 +21,9 @@ import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
  * For more details, refer to
  * <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039663">Oracle documentation</a>
  * on PL/SQL scripts.
+ * <p/>
+ * Also addresses <a href="http://code.google.com/p/c5-db-migration/issues/detail?id=31&q=oracle">Issue 31:	Running Oracle 11g SQL*plus script generates ORA-06650 "end-of-file"</a>
+ * of <tt>c5-db-migrations</tt>
  *
  * @author alf
  */
