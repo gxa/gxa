@@ -14,7 +14,13 @@ import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
  * Oracle-aware script runner
  * <p/>
  * Hugely based on {@link com.carbonfive.db.jdbc.ScriptRunner} - the only significant difference is
- * that all the parsing is removed (well, comments are still excluded and logged)
+ * that we now support Oracle's dirty hack with slash, <tt>/</tt>, meaning literally
+ * "now just send to the database whatever you've got in your
+ * <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039357">SQL buffer</a>."
+ * <p/>
+ * For more details, refer to
+ * <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039663">Oracle documentation</a>
+ * on PL/SQL scripts.
  *
  * @author alf
  */
