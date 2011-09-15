@@ -20,10 +20,5 @@
             <artifactId>db-migration</artifactId>
             <version>0.9.9-m5</version>
         </dependency>
-        <dependency>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>sql-maven-plugin</artifactId>
-            <version>1.5</version>
-        </dependency>
     </dependencies>
 </project>
