@@ -17,34 +17,50 @@ class SqlStatementExecutor {
     }
 
     public void executeStatement(String command) throws SQLException {
-        Statement statement = conn.createStatement();
+        Statement statement = null;
+        ResultSet rs = null;
+        try {
+            statement = conn.createStatement();
 
-        log.info(command);
+            log.info(command);
 
-        boolean hasResults = statement.execute(command);
+            boolean hasResults = statement.execute(command);
 
-        ResultSet rs = statement.getResultSet();
+            rs = statement.getResultSet();
 
-        if (hasResults && rs != null) {
-            ResultSetMetaData md = rs.getMetaData();
-            int cols = md.getColumnCount();
-            for (int i = 1; i <= cols; i++) {
-                String name = md.getColumnName(i);
-                log.debug(name + "\t");
-            }
-            while (rs.next()) {
+            if (hasResults && rs != null) {
+                ResultSetMetaData md = rs.getMetaData();
+                int cols = md.getColumnCount();
                 for (int i = 1; i <= cols; i++) {
-                    String value = rs.getString(i);
-                    log.debug(value + "\t");
+                    String name = md.getColumnName(i);
+                    log.debug(name + "\t");
+                }
+                while (rs.next()) {
+                    for (int i = 1; i <= cols; i++) {
+                        String value = rs.getString(i);
+                        log.debug(value + "\t");
+                    }
                 }
             }
+        } finally {
+            cleanup(statement, rs);
         }
 
-        try {
-            statement.close();
-        } catch (Exception e) {
-            // Ignore to workaround a bug in Jakarta DBCP
-        }
         Thread.yield();
+    }
+
+    private void cleanup(Statement statement, ResultSet rs) {
+        if (rs != null)
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                log.error("Cannot close result set", e);
+            }
+        if (statement != null)
+            try {
+                statement.close();
+            } catch (Exception e) {
+                // Ignore to workaround a bug in Jakarta DBCP
+            }
     }
 }
