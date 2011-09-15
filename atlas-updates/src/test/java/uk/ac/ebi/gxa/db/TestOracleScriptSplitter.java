@@ -62,6 +62,15 @@ public class TestOracleScriptSplitter {
     }
 
     @Test
+    public void testLastStatement() throws IOException, SQLException {
+        String sourceScript = "TestOracleScriptSplitter-last_statement.sql";
+        String[] expectedStatements = {
+                "select * from dual1",
+                "select * from dual2"};
+        checkParser(sourceScript, expectedStatements);
+    }
+
+    @Test
     public void testTrigger() throws IOException, SQLException {
         String sourceScript = "TestOracleScriptSplitter-trigger.sql";
         String[] expectedStatements = {
