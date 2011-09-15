@@ -22,7 +22,7 @@ import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
  * <a href="http://download.oracle.com/docs/cd/B19306_01/server.102/b14357/ch4.htm#i1039663">Oracle documentation</a>
  * on PL/SQL scripts.
  * <p/>
- * Also addresses <a href="http://code.google.com/p/c5-db-migration/issues/detail?id=31&q=oracle">Issue 31:	Running Oracle 11g SQL*plus script generates ORA-06650 "end-of-file"</a>
+ * Also addresses <a href="http://code.google.com/p/c5-db-migration/issues/detail?id=31">Issue 31:	Running Oracle 11g SQL*plus script generates ORA-06650 "end-of-file"</a>
  * of <tt>c5-db-migrations</tt>
  *
  * @author alf
@@ -69,25 +69,51 @@ public class OracleScriptRunner {
                     // Do nothing, it's an empty line.
                 } else if (line.startsWith("--") || line.startsWith("#") || line.startsWith("//")) {
                     logger.debug(line);
-                } else if ("/".equals(line)) {
+                } else if (line.matches("[/.]")) {
                     executeStatement(connection, command.toString());
                     ignoreDelimiter = false;
                     command = null;
-                } else {
-                    if (startsWithIgnoreCase(line, "begin") || startsWithIgnoreCase(line, "declare")) {
-                        ignoreDelimiter = true;
-                        command.append(line);
-                        command.append(" ");
-                    } else if (!ignoreDelimiter && line.contains(DEFAULT_DELIMITER)) {
-                        if (line.endsWith(DEFAULT_DELIMITER)) {
-                            command.append(line.substring(0, line.lastIndexOf(DEFAULT_DELIMITER)));
-                            executeStatement(connection, command.toString());
-                            command = null;
-                        }
-                    } else {
-                        command.append(line);
-                        command.append(" \n");
+                } else if (startsWithIgnoreCase(line, "begin") || startsWithIgnoreCase(line, "declare")) {
+                    /*
+                    * TODO: support also
+                        CREATE FUNCTION
+                        CREATE LIBRARY
+                        CREATE PACKAGE
+                        CREATE PACKAGE BODY
+                        CREATE PROCEDURE
+                        CREATE TRIGGER
+                        CREATE TYPE
+
+                        e.g.
+
+CREATE OR REPLACE PACKAGE ATLASMGR IS
+  PROCEDURE DisableConstraints;
+  PROCEDURE EnableConstraints;
+  PROCEDURE DisableTriggers;
+  PROCEDURE EnableTriggers;
+  PROCEDURE RebuildSequence(seq_name varchar2);
+  PROCEDURE RebuildSequences;
+  PROCEDURE RebuildIndex;
+  PROCEDURE fix_sequence(tbl VARCHAR2, field VARCHAR2, seq VARCHAR2);
+END ATLASMGR;
+/
+
+CREATE OR REPLACE PACKAGE BODY ATLASMGR AS
+
+etc.
+                    */
+                    ignoreDelimiter = true;
+                    command.append(line);
+                    command.append(" ");
+                } else if (!ignoreDelimiter && line.contains(DEFAULT_DELIMITER)) {
+                    if (line.endsWith(DEFAULT_DELIMITER)) {
+                        command.append(line.substring(0, line.lastIndexOf(DEFAULT_DELIMITER)));
+                        executeStatement(connection, command.toString());
+                        command = null;
                     }
+                } else {
+                    command.append(line);
+                    command.append(" \n");
                 }
             }
 
