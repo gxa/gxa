@@ -18,10 +18,10 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
  * Serializable representation of ef-efv for the purpose of ConciseSet storage.
  * This class also represents ef-efvs at bit index query time.
  * <p/>
- * TODO: this is generally a bad idea to use the class in three different ways, and is extremely bug-prone one
+ * TODO: Ticket #3109 to split this class into EfAttribute and EfvAttribute - to separate its currently dual usage for storing ef-efv as well as ef only
  */
 public class EfvAttribute extends Attribute implements Serializable {
-    private static final long serialVersionUID = 201106071345L;
+    private static final long serialVersionUID = -8117173650721973734L;
 
     // Flag used in getEfvExperimentMappings() to indicate that this EfvAttribute trivially maps to itself across all
     // experiments (c.f. same method in EfoAttribute)
@@ -36,10 +36,9 @@ public class EfvAttribute extends Attribute implements Serializable {
      * Constructor used for ef object stored in bit index
      *
      * @param ef  an experiment factor name
-     * @param statType statistics type
      */
-    public EfvAttribute(@Nonnull final String ef, StatisticsType statType) {
-        this(ef, null, statType);
+    public EfvAttribute(@Nonnull final String ef) {
+        this(ef, null);
     }
 
     /**
@@ -47,10 +46,8 @@ public class EfvAttribute extends Attribute implements Serializable {
      *
      * @param ef an experiment factor name
      * @param efv an experiment factor value
-     * @param statType statistics type
      */
-    public EfvAttribute(@Nonnull final String ef, @Nullable final String efv, @Nullable StatisticsType statType) {
-        super(statType);
+    public EfvAttribute(@Nonnull final String ef, @Nullable final String efv) {
         this.ef = ef;
         this.efv = efv;
         this.value = encodePair(ef, efv);
@@ -67,11 +64,6 @@ public class EfvAttribute extends Attribute implements Serializable {
     @Override
     public String getValue() {
         return value;
-    }
-
-    @Override
-    public EfvAttribute withStatType(StatisticsType statType) {
-        return new EfvAttribute(ef, efv, statType);
     }
 
     /**

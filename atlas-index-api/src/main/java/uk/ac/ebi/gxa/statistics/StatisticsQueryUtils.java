@@ -23,14 +23,16 @@ public class StatisticsQueryUtils {
 
     /**
      * @param orAttributes
+     * @param statType
      * @param minExperiments    minimum experiment count restriction for this clause
      * @param statisticsStorage - used to retrieve orAttributes, needed finding experiment counts in bit index
      * @return StatisticsQueryOrConditions representing orAttributes
      */
     public static StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
-            List<Attribute> orAttributes,
+            final List<Attribute> orAttributes,
+            final StatisticsType statType,
             int minExperiments,
-            StatisticsStorage statisticsStorage) {
+            final StatisticsStorage statisticsStorage) {
 
         StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions =
                 new StatisticsQueryOrConditions<StatisticsQueryCondition>();
@@ -41,14 +43,8 @@ public class StatisticsQueryUtils {
         // retrieve sorted lists of experiments to be plotted on the gene page.
         Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<ExperimentInfo, Set<EfvAttribute>>();
 
-        StatisticsType statType = null;
 
         for (Attribute attr : orAttributes) {
-            if (statType == null)
-                // All clauses of OR queries share the same statisticsType, hence we only
-                // need to retrieve it once.
-                statType = attr.getStatType();
-
             attr.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
         }
 
@@ -61,7 +57,7 @@ public class StatisticsQueryUtils {
                 // For efv Attributes we span all experiments
                 cond.inExperiments(Collections.singletonList(expToAttr.getKey()));
             for (EfvAttribute attr : expToAttr.getValue()) {
-                cond.inAttribute(attr.withStatType(statType));
+                cond.inAttribute(attr);
             }
             orConditions.orCondition(cond);
         }
@@ -117,10 +113,10 @@ public class StatisticsQueryUtils {
                 for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
                     FastSet statsForExperiment = new FastSet();
                     for (EfvAttribute attr : attributes) {
-                        Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                        Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attr, statisticsStorage);
                         if (expsToStats != null) {
                             if (expsToStats.isEmpty()) {
-                                log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " and attr: " + attr);
+                                log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " and attr: " + attr);
                             } else {
                                 if (expsToStats.get(exp) != null) {
                                     if (!gatherScoringExpsOnly) {
@@ -130,7 +126,7 @@ public class StatisticsQueryUtils {
                                         scoringExps.add(exp);
                                     }
                                 } else {
-                                    log.debug("Failed to retrieve stats for stat: " + attr.getStatType() + " exp: " + exp.getAccession() + " and attr: " + attr);
+                                    log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
                                 }
                             }
                         }
@@ -182,10 +178,10 @@ public class StatisticsQueryUtils {
             final StatisticsStorage statisticsStorage) {
         List<Attribute> efoAttrs = new ArrayList<Attribute>();
         for (String efo : statisticsStorage.getEfos()) {
-            efoAttrs.add(new EfoAttribute(efo, statType));
+            efoAttrs.add(new EfoAttribute(efo));
         }
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
-        statsQuery.and(getStatisticsOrQuery(efoAttrs, 1, statisticsStorage));
+        statsQuery.and(getStatisticsOrQuery(efoAttrs, statType, 1, statisticsStorage));
         return getExperimentCounts(statsQuery, statisticsStorage, null);
     }
 
@@ -244,10 +240,7 @@ public class StatisticsQueryUtils {
                                     if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
                                         // for any of these genes will be considered here
-                                        ExperimentResult expCandidate = new ExperimentResult(expToGenesEntry.getKey());
-                                        // TODO: 4alf: mutability strikes here!
-                                        expCandidate.setPValTstatRank(pValToExpToGenesEntry.getKey());
-                                        expCandidate.setHighestRankAttribute(attr);
+                                        ExperimentResult expCandidate = new ExperimentResult(expToGenesEntry.getKey(), attr, pValToExpToGenesEntry.getKey());
                                         tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
                                     }
                                 }
@@ -279,7 +272,7 @@ public class StatisticsQueryUtils {
         Set<ExperimentInfo> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
             for (EfvAttribute attr : statisticsQuery.getAttributes()) {
-                Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(attr.getStatType(), attr, statisticsStorage);
+                Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attr, statisticsStorage);
                 if (expsToStats != null)
                     exps.addAll(expsToStats.keySet());
             }
