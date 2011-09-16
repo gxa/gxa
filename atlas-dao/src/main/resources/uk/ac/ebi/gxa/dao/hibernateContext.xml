@@ -29,6 +29,11 @@
           init-method="migrate">
         <constructor-arg ref="atlasDataSource"/>
         <property name="databaseType" value="ORACLE"/>
+        <property name="versionStrategy">
+            <bean class="com.carbonfive.db.migration.SimpleVersionStrategy">
+                <property name="versionTable" value="a2_schemaversion"/>
+            </bean>
+        </property>
         <!-- we need our own migration resolver, as CarbonFive only supports very basic scripts -->
         <property name="migrationResolver">
             <bean id="migrationResolver" class="com.carbonfive.db.migration.ResourceMigrationResolver">
