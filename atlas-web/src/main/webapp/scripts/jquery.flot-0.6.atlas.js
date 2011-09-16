@@ -2113,7 +2113,10 @@
 
             if (!options.legend.show)
                 return;
-            
+
+            var xMin = options.xaxis.min;
+            var xMax = options.xaxis.max;
+
             var fragments = [], rowStarted = false,
                 lf = options.legend.labelFormatter, s, label;
             for (var i = 0; i < series.length; ++i) {
@@ -2121,7 +2124,14 @@
                 label = s.label;
                 if ((!label && !s.pvalue) || (s.legend && !s.legend.show))
                     continue;
-                
+
+                if (xMin && xMax) {
+                    var d = s.data;
+                    if (d.length && (d[0][0] > xMax || d[d.length - 1][0] < xMin)) {
+                        continue;
+                    }
+                }
+
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted)
                         fragments.push('</tr>');
