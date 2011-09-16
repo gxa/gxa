@@ -25,12 +25,6 @@ public class StatisticsQueryOrConditions<ConditionType> {
         this.minExperiments = minExperiments;
     }
 
-    /**
-     * Constructor
-     */
-    public StatisticsQueryOrConditions() {
-    }
-
     public void orCondition(ConditionType condition) {
         this.orConditions.add(condition);
     }
