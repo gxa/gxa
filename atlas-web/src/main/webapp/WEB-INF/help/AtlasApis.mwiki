@@ -493,21 +493,34 @@ Similar to gene query, there are two parameters to control result output:
 * ''start'' specifies starting number of experiments in results, default value is 0.
 * ''rows'' limits number of experiments to output (starting from ''start''), as for gene queries: the default value is 50 and the maximum is 200.
 
-* ''experimentInfoOnly'' limits amount of output to just experimentInfo section (see below in output example), this is useful if you need to
-just a list of experiment accessions and titles for particular query.
+* ''experimentInfoOnly'' limits amount of output to just experimentInfo section (see below in output example), this is useful if you need just a list of experiment accessions and titles for particular query.
 
 Using these two parameters it is possible to get experiment results in "pages". To calculate exact amount of pages, one could
 use ''results.totalResults'' value from the output, which is total amount of experiments found by the
 query.
 
+Finally, using ''showEfoTerms'' flag results in efo terms (rather than experimental factors and their values) being listed where possible in geneExpressionStatistics section. In the example below, instead of
+
+<pre>
+<ef>organism_part</ef>
+<efv>appendix</efv>
+</pre>
+
+the following entry would be shown:
+
+<pre>
+<efo>EFO_0000849</efo>
+</pre>
+
 Examples:
 <pre>
-http://<ATLAS>/api/v1?experiment=E-AFMX-1
+http://<ATLAS>/api/v1?experiment=E-AFMX-1&format=xml&showEfoTerms
 http://<ATLAS>/api/v1?experiment=cell
 http://<ATLAS>/api/v1?experimentHasOrganism_part=lung
 http://<ATLAS>/api/v1?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1
 http://<ATLAS>/api/v1?experimentHasFactor=cell_type&experiment=cycle
 http://<ATLAS>/api/v1?experiment=E-AFMX-5&geneIs=ENSG00000160766&geneIs=ENSG00000166337&format=xml
+http://<ATLAS>/api/v1?experiment=E-AFMX-1&format=xml&showEfoTerms
 http://<ATLAS>/api/v1?experiment=listAll&experimentInfoOnly
 </pre>
 

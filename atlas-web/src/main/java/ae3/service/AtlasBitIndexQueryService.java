@@ -518,4 +518,13 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), statType, 1));
         return StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null).entrySet().size();
     }
+
+    /**
+     * @param attr
+     * @param exp
+     * @return efo term which maps to attr and exp
+     */
+    public String getEfoTerm(EfvAttribute attr, ExperimentInfo exp) {
+        return statisticsStorage.getEfoTerm(attr, exp);
+    }
 }

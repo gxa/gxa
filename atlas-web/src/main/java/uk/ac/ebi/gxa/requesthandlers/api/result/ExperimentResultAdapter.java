@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
 import ae3.model.*;
+import ae3.service.AtlasStatisticsQueryService;
+import ae3.service.structuredquery.Constants;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -54,13 +56,20 @@ public class ExperimentResultAdapter {
     private final AtlasExperiment experiment;
     private final ExperimentalData expData;
     private final Set<AtlasGene> genes = new HashSet<AtlasGene>();
+    private final boolean showEfoTerms;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+
 
     public ExperimentResultAdapter(AtlasExperiment experiment,
                                    Collection<AtlasGene> genes,
-                                   ExperimentalData expData) {
+                                   ExperimentalData expData,
+                                   boolean showEfoTerms,
+                                   AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.experiment = experiment;
         this.expData = expData;
         this.genes.addAll(genes);
+        this.showEfoTerms = showEfoTerms;
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
     }
 
     @RestOut(name = "experimentInfo")
@@ -182,11 +191,20 @@ public class ExperimentResultAdapter {
         private final ArrayDesign arrayDesign;
         private ExperimentResultAdapter experimentResultAdapter;
         private Set<AtlasGene> genes;
+        private boolean showEfoTerms;
+        private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-        public ArrayDesignStats(ExperimentResultAdapter experimentResultAdapter, Set<AtlasGene> genes, ArrayDesign arrayDesign) {
+        public ArrayDesignStats(
+                ExperimentResultAdapter experimentResultAdapter,
+                Set<AtlasGene> genes,
+                ArrayDesign arrayDesign,
+                boolean showEfoTerms,
+                AtlasStatisticsQueryService atlasStatisticsQueryService) {
             this.arrayDesign = arrayDesign;
             this.experimentResultAdapter = experimentResultAdapter;
             this.genes = genes;
+            this.showEfoTerms = showEfoTerms;
+            this.atlasStatisticsQueryService = atlasStatisticsQueryService;
         }
 
         @RestOut(xmlItemName = "designElement", xmlAttr = "id")
@@ -200,7 +218,12 @@ public class ExperimentResultAdapter {
             }
 
             public Map map(EfvTree.EfEfv<ExpressionStats.Stat> statEfEfv) {
-                return makeMap("ef", statEfEfv.getEf(), "efv", statEfEfv.getEfv(), "stat", statEfEfv.getPayload());
+                boolean isEfo = Constants.EFO_FACTOR_NAME.equals(statEfEfv.getEf());
+                if (isEfo) {
+                    // If statEfEfv contains an efo term rather than an ef-efv, show that instead tagged as efo in the API output
+                    return makeMap(Constants.EFO_FACTOR_NAME, statEfEfv.getEfv(), "stat", statEfEfv.getPayload());
+                } else
+                    return makeMap("ef", statEfEfv.getEf(), "efv", statEfEfv.getEfv(), "stat", statEfEfv.getPayload());
             }
         }
 
@@ -213,7 +236,7 @@ public class ExperimentResultAdapter {
                     if (designElements != null) {
                         DesignElementStatMap deMap = new DesignElementStatMap();
                         for (final int designElementId : designElements) {
-                            List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
+                            List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId, showEfoTerms, atlasStatisticsQueryService).getNameSortedList();
                             if (!efefvList.isEmpty())
                                 deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
                         }
@@ -233,7 +256,7 @@ public class ExperimentResultAdapter {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
         if (expressionDataIsAvailable()) {
             for (ArrayDesign ad : expData.getExperiment().getArrayDesigns()) {
-                adExpMap.put(ad.getAccession(), new ArrayDesignStats(this, genes, ad));
+                adExpMap.put(ad.getAccession(), new ArrayDesignStats(this, genes, ad, showEfoTerms, atlasStatisticsQueryService));
             }
         }
         return adExpMap;
