@@ -281,7 +281,6 @@
         <module>atlas-loader</module>
         <module>atlas-model</module>
         <module>atlas-dao</module>
-        <module>atlas-diff</module>
         <module>atlas-test</module>
         <module>atlas-utils</module>
         <module>atlas-updates</module>
