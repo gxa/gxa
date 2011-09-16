@@ -47,7 +47,7 @@ import static java.util.Collections.unmodifiableSet;
  * ...
  * **** D. ef-only Attribute -> ConciseSet of BioEntity ids
  * This is a condensed version (across all experiments) of Statistics (cf. A.) object, just for Ef-only Attributes. It serves
- * to speed up finding of experiment counts for each experiments factor on gene page - by narrowing down the set of experimental
+ * to speed up finding of experiment counts for each experiment factor on gene page - by narrowing down the set of experimental
  * factors before searching (and counting of) experiments for each factor for a given bioentity.
  * <p/>
  * <p/>
@@ -243,8 +243,8 @@ public class Statistics implements Serializable, StatisticsBuilder {
         return bioEntities == null ? 0 : bioEntities.size();
     }
 
-    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfvAttribute attributeIndex) {
-        return statistics.get(attributeIndex);
+    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfvAttribute attribute) {
+        return statistics.get(attribute);
     }
 
     /**
