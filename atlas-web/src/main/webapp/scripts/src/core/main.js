@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-var atlas = (function(atlas, $) {
+var atlas = (function(A, $) {
     var contextPath = "";
 
     function normalizePath(path) {
@@ -37,18 +37,24 @@ var atlas = (function(atlas, $) {
 
     /** public **/
 
-    atlas.contextPath = function(newContextPath) {
+    A.contextPath = function(newContextPath) {
         if (arguments.length > 0) {
             contextPath = normalizePath(newContextPath);
         }
         return contextPath;
     };
 
-    atlas.pathFor = function(path) {
+    A.pathFor = function(path) {
         return "/" + contextPath + "/" + normalizePath(path);
     };
 
-    return atlas;
+    A.logError = function(msg) {
+        if (console) {
+            console.log(msg);
+        }
+    };
+
+    return A;
 })(atlas || {}, jQuery);
 
 /** after initialization stuff **/
