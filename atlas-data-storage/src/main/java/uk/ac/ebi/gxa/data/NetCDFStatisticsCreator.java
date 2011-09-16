@@ -207,7 +207,7 @@ public class NetCDFStatisticsCreator {
         // add metadata global attributes
         safeAddGlobalAttribute(
                 "CreateNetCDF_VERSION",
-                "2.0");
+                "2.0-statistics");
         safeAddGlobalAttribute(
                 "experiment_accession",
                 experiment.getAccession());
@@ -276,18 +276,6 @@ public class NetCDFStatisticsCreator {
     }
 
     private void safeAddGlobalAttribute(String attribute, String value) {
-        if (attribute != null && value != null) {
-            statisticsNetCdf.addGlobalAttribute(attribute, value);
-        }
-    }
-
-    private void safeAddGlobalAttribute(String attribute, Number value) {
-        // geometer: according NetcdfFileWriteable documentation,
-        // Long value cannot be stored in NetCDF
-        if (value instanceof Long) {
-            safeAddGlobalAttribute(attribute, value.toString());
-            return;
-        }
         if (attribute != null && value != null) {
             statisticsNetCdf.addGlobalAttribute(attribute, value);
         }

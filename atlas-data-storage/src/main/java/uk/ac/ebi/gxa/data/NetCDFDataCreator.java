@@ -323,32 +323,6 @@ public class NetCDFDataCreator {
 				netCdf,
                 "ADaccession",
                 arrayDesign.getAccession());
-		/*
-        safeAddGlobalAttribute(
-				netCdf,
-                "ADid",
-                arrayDesign.getArrayDesignID().doubleValue()); // netcdf doesn't know how to store longs
-		*/
-        safeAddGlobalAttribute(
-				netCdf,
-                "ADname",
-                arrayDesign.getName());
-        safeAddGlobalAttribute(
-				netCdf,
-                "experiment_lab",
-                experiment.getLab());
-        safeAddGlobalAttribute(
-				netCdf,
-                "experiment_performer",
-                experiment.getPerformer());
-        safeAddGlobalAttribute(
-				netCdf,
-                "experiment_pmid",
-                experiment.getPubmedId());
-        safeAddGlobalAttribute(
-				netCdf,
-                "experiment_abstract",
-                experiment.getAbstract());
 
         netCdf.create();
     }
@@ -612,18 +586,6 @@ public class NetCDFDataCreator {
     }
 
     private void safeAddGlobalAttribute(NetcdfFileWriteable netCdf, String attribute, String value) {
-        if (attribute != null && value != null) {
-            netCdf.addGlobalAttribute(attribute, value);
-        }
-    }
-
-    private void safeAddGlobalAttribute(NetcdfFileWriteable netCdf, String attribute, Number value) {
-        // geometer: according NetcdfFileWriteable documentation,
-        // Long value cannot be stored in NetCDF
-        if (value instanceof Long) {
-            safeAddGlobalAttribute(netCdf, attribute, value.toString());
-            return;
-        }
         if (attribute != null && value != null) {
             netCdf.addGlobalAttribute(attribute, value);
         }
