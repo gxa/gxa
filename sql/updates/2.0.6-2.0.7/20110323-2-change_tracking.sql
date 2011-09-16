@@ -19,5 +19,6 @@ END;
 
 INSERT INTO A2_SCHEMACHANGES (FILENAME, USERNAME, SUDOUSER)
 VALUES ('20110323-2-change_tracking.sql', 'ma-svc', 'alf');
+/
 
 exit;

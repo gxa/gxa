@@ -13,6 +13,7 @@ UPDATE A2_ORGANISM SET ensname='rnorvegicus_gene_ensembl' WHERE name = 'rattus n
 UPDATE A2_ORGANISM SET ensname='scerevisiae_gene_ensembl' WHERE name = 'saccharomyces cerevisiae';
 UPDATE A2_ORGANISM SET ensname='spombe_eg_gene' WHERE name = 'schizosaccharomyces pombe';
 UPDATE A2_ORGANISM SET ensname='xtropicalis_gene_ensembl' WHERE name = 'xenopus laevis';
+/
 
 alter table A2_BIOENTITYPROPERTY add ensname VARCHAR2(255);
 

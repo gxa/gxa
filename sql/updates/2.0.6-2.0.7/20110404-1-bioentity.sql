@@ -615,6 +615,7 @@ AS
   where debe.softwareid = ad.mappingswid
   and betype.ID_FOR_INDEX = 1
   ;
+/
 
 CREATE OR REPLACE VIEW VWDESIGNELEMENTGENEDIRECT
 AS
@@ -633,5 +634,6 @@ AS
   join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid
   where debe.softwareid = ad.mappingswid
   and betype.ID_FOR_INDEX = 1;
+ /
 
 
