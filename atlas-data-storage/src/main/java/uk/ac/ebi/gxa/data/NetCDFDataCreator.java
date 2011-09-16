@@ -323,10 +323,12 @@ public class NetCDFDataCreator {
 				netCdf,
                 "ADaccession",
                 arrayDesign.getAccession());
+		/*
         safeAddGlobalAttribute(
 				netCdf,
                 "ADid",
                 arrayDesign.getArrayDesignID().doubleValue()); // netcdf doesn't know how to store longs
+		*/
         safeAddGlobalAttribute(
 				netCdf,
                 "ADname",

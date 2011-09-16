@@ -22,8 +22,7 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
 
 /**
  * File utility functions
@@ -76,4 +75,34 @@ public class FileUtil {
     public static String getTempDirectory() {
         return System.getProperty("java.io.tmpdir");
     }
+
+	public static void copyFile(File source, File target) throws IOException {
+		InputStream is = null;
+		OutputStream os = null;
+		try {
+			is = new FileInputStream(source);
+			os = new FileOutputStream(target);
+			final byte[] buffer = new byte[4096];
+			while (true) {
+				final int len = is.read(buffer);
+				if (len <= 0) {
+					break;
+				}
+				os.write(buffer, 0, len);
+			}
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+				}
+			}
+			if (os != null) {
+				try {
+					os.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
 }
