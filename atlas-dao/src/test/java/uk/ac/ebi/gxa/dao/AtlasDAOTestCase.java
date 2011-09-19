@@ -482,6 +482,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYTYPE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOMARTARRAYDESIGN_SEQ START WITH 10000000");
 
         System.out.println("...done!");
         conn.close();

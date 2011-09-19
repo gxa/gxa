@@ -24,15 +24,15 @@ public class BioEntityAnnotationData extends BioEntityData {
 
     private final Set<BEPropertyValue> propertyValues = new HashSet<BEPropertyValue>();
 
-    BioEntityAnnotationData(List<BioEntityType> types) {
-        super(types);
+    BioEntityAnnotationData(List<BioEntityType> bioEntityTypes) {
+        super(bioEntityTypes);
     }
 
-    void addPropertyValue(String beIdentifier, BioEntityType type, BEPropertyValue pv) {
+    void addPropertyValue(String beIdentifier, BioEntityType bioEntityType, BEPropertyValue pv) {
         if (StringUtils.isNotBlank(pv.getValue())) {
             if (pv.getValue().length() < 1000) {
                 Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
-                typeToBEPropValues.put(type, beProperty);
+                typeToBEPropValues.put(bioEntityType, beProperty);
 
                 propertyValues.add(pv);
             } else {

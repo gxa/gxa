@@ -70,7 +70,7 @@ public class ArrayExpressConnection {
                 if (count++ > 10) break;
             }
         } catch (IOException e) {
-            log.error("Cannot fetch ADF for array design " + accession, e);
+            log.info("Cannot fetch ADF for array design " + accession, e);
         } finally {
             closeQuietly(csvReader);
         }

@@ -23,8 +23,8 @@ public class DesignElementMappingData extends BioEntityData{
     protected final Multimap<BioEntityType, Pair<String, String>> typeToDesignElementBEMapping = HashMultimap.create();
     protected final Set<DesignElement> designElements = new HashSet<DesignElement>();
 
-    DesignElementMappingData(List<BioEntityType> types) {
-        super(types);
+    DesignElementMappingData(List<BioEntityType> bioEntityTypes) {
+        super(bioEntityTypes);
     }
 
     void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {

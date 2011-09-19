@@ -176,7 +176,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
             result.addBioMartProperty(bioMartProperty.getName(), bioMartProperty.getBioEntityProperty());
         }
         for (BioMartArrayDesign bioMartArrayDesign : bioMartArrayDesigns) {
-            result.addBioMartArrayDesign(bioMartArrayDesign);
+            result.addBioMartArrayDesign(new BioMartArrayDesign(null, bioMartArrayDesign.getName(), bioMartArrayDesign.getArrayDesign(), result));
         }
         for (BioEntityType type : types) {
             result.addBioEntityType(type);
