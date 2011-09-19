@@ -194,8 +194,8 @@ public class GeneViewController extends AtlasViewController {
         AtlasGene gene = result.getGene();
         Attribute attr =
                 efoId.length() > 0 ?
-                        new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
-                        new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
+                        new EfoAttribute(efoId) :
+                        new EfvAttribute(ef, efv);
 
         List<GenePageExperiment> exps = getRankedGeneExperiments(gene, attr, fromRow, toRow);
 
@@ -216,7 +216,7 @@ public class GeneViewController extends AtlasViewController {
 
     private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
         if (attr instanceof EfvAttribute) {
-            //TODO temporary workaround see Ticket #3048: Refactoring of StatisticsStorage & Efv/Efo Attributes is needed
+            //TODO temporary workaround see ticket #3109 to split EfvAttribute into EfAttribute and EfvAttribute - to separate its dual usage
             attr = attr.isEmpty() ? null : attr;
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
@@ -236,7 +236,7 @@ public class GeneViewController extends AtlasViewController {
         long start = System.currentTimeMillis();
         List<GenePageExperiment> sortedAtlasExps = new ArrayList<GenePageExperiment>();
 
-        List<ExperimentResult> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
+        List<ExperimentResult> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow, StatisticsType.UP_DOWN);
         log.debug("Retrieved {} experiments from bit index in: {} ms", sortedExps.size(), System.currentTimeMillis() - start);
         for (ExperimentResult exp : sortedExps) {
             Experiment experiment = experimentDAO.getById(exp.getExperimentId());

@@ -82,10 +82,9 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         // Mock AtlasStatisticsQueryService object
         AtlasStatisticsQueryService atlasStatisticsQueryService = EasyMock.createMock(AtlasStatisticsQueryService.class);
         for (String efoTermStr : efoTerms) {
-            Attribute upAttr = new EfoAttribute(efoTermStr, StatisticsType.UP);
-            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(upAttr, bioEntityId)).andReturn(1);
-            Attribute downAttr = new EfoAttribute(efoTermStr, StatisticsType.UP);
-            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(downAttr, bioEntityId)).andReturn(1);
+            Attribute attr = new EfoAttribute(efoTermStr);
+            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId, StatisticsType.UP)).andReturn(1);
+            EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId, StatisticsType.DOWN)).andReturn(1);
         }
         EasyMock.replay(atlasStatisticsQueryService);
 

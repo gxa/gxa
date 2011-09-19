@@ -1,4 +1,4 @@
--- Estimated running time: 2 seconds
+-- Estimated running time: 15 seconds
 
 /*
  * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute

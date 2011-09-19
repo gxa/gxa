@@ -460,7 +460,7 @@ var atlas = atlas || {};
             sequence.nextVal();
 
             // Enable autocomplete for @EFO_... values
-            if (values.charAt(0) === "@") {
+            if (values && values.charAt(0) === "@") {
                 values = values.substr(1);
             }
 

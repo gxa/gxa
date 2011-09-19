@@ -39,20 +39,20 @@ public class StatisticsStorage implements Serializable {
         this.efoIndex = efoIndex;
     }
 
-    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfvAttribute attributeIndex, StatisticsType statType) {
-        return stats.get(statType).getStatisticsForAttribute(attributeIndex);
+    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfvAttribute attribute, StatisticsType statType) {
+        return stats.get(statType).getStatisticsForAttribute(attribute);
     }
 
     /**
      * Delegates call to Statistics object corresponding to statType
      *
-     * @param attributeIndex
+     * @param attribute
      * @param bioEntityId
      * @param statType
-     * @return Set of indexes of experiments with non-zero statType counts for attributeIndex-bioEntityId tuple
+     * @return Set of indexes of experiments with non-zero statType counts for attribute-bioEntityId tuple
      */
-    public Set<ExperimentInfo> getExperimentsForBioEntityAndAttribute(EfvAttribute attributeIndex, Integer bioEntityId, StatisticsType statType) {
-        return stats.get(statType).getExperimentsForBioEntityAndAttribute(attributeIndex, bioEntityId);
+    public Set<ExperimentInfo> getExperimentsForBioEntityAndAttribute(EfvAttribute attribute, Integer bioEntityId, StatisticsType statType) {
+        return stats.get(statType).getExperimentsForBioEntityAndAttribute(attribute, bioEntityId);
     }
 
     /**
@@ -72,7 +72,7 @@ public class StatisticsStorage implements Serializable {
      *
      * @param bioEntityId
      * @param statType
-     * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for bioEntityId
+     * @return Set of Ef-efv attribute indexes that have statType up/down experiment counts for bioEntityId
      */
     public Set<EfvAttribute> getScoringEfvAttributesForBioEntity(final Integer bioEntityId,
                                                                  final StatisticsType statType) {
@@ -116,12 +116,12 @@ public class StatisticsStorage implements Serializable {
     }
 
     /**
-     * @param attributeIndex
+     * @param attribute
      * @param statType
-     * @return pValue/tStat rank -> Experiment index -> ConciseSet of BioEntity ids, corresponding to attributeIndex and statType
+     * @return pValue/tStat rank -> Experiment index -> ConciseSet of BioEntity ids, corresponding to attribute and statType
      */
-    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attributeIndex, StatisticsType statType) {
-        return stats.get(statType).getPvalsTStatRanksForAttribute(attributeIndex);
+    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attribute, StatisticsType statType) {
+        return stats.get(statType).getPvalsTStatRanksForAttribute(attribute);
     }
 
     /**

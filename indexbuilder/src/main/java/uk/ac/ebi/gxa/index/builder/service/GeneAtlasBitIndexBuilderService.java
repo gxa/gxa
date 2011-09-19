@@ -31,7 +31,7 @@ import static java.util.Collections.sort;
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     private AtlasDataDAO atlasDataDAO;
-    private final String indexFileName;
+    private String indexFileName;
     private File atlasIndex;
     private File indexFile = null;
 
@@ -45,23 +45,20 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         this.atlasIndex = atlasIndex;
     }
 
-    /**
-     * Constructor
-     *
-     * @param indexFileName name of the serialized index file
-     */
-    public GeneAtlasBitIndexBuilderService(String indexFileName) {
+    public void setIndexFileName(String indexFileName) {
         this.indexFileName = indexFileName;
     }
 
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(IndexAllCommand indexAll,
                                IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         indexAll(progressUpdater);
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(UpdateIndexForExperimentCommand cmd,
                                IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
         /// Re-build the whole bit index even if one experiment only is being updated
@@ -104,7 +101,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas data
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private StatisticsStorage bitIndexExperiments(final ProgressUpdater progressUpdater,
                                                   final Integer progressLogFreq) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
@@ -155,8 +151,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
                             continue;
 
-                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value, null));
-                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key, null));
+                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value));
+                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key));
 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
@@ -342,7 +338,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            EfvAttribute attribute = attributePool.intern(new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null));
+            EfvAttribute attribute = attributePool.intern(new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue()));
 
             ExperimentInfo exp = new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId());
             ExperimentInfo internedExp = experimentPool.intern(exp);
@@ -380,9 +376,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             }
         }
 
-        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttributeIndex) {
+        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttribute) {
             for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                stats.addPvalueTstatRank(efvAttributeIndex,
+                stats.addPvalueTstatRank(efvAttribute,
                         PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
                         expIdx, entry.getKey());
             }

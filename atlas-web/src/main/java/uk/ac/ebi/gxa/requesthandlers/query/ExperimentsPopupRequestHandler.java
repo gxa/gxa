@@ -101,13 +101,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             Attribute attr;
             if (isEfo) {
-                attr = new EfoAttribute(factorValue, UP_DOWN);
+                attr = new EfoAttribute(factorValue);
                 EfoTerm term = efo.getTermById(factorValue);
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
                 }
             } else {
-                attr = new EfvAttribute(factor, factorValue, UP_DOWN);
+                attr = new EfvAttribute(factor, factorValue);
             }
 
             GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneById(bioEntityId);
@@ -124,11 +124,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             jsGene.put("name", gene.getGeneName());
             jsResult.put("gene", jsGene);
 
-            List<ExperimentResult> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1);
+            List<ExperimentResult> allExperiments = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1, UP_DOWN);
 
             // Now find non-de experiments
-            attr = attr.withStatType(StatisticsType.NON_D_E);
-            List<ExperimentResult> nonDEExps = toResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr));
+            List<ExperimentResult> nonDEExps = toResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr, NON_D_E));
             // ...and sort found nonDE experiments alphabetically by accession
             Collections.sort(nonDEExps, new Comparator<ExperimentResult>() {
                 public int compare(ExperimentResult e1, ExperimentResult e2) {
@@ -144,9 +143,15 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 atlasStatisticsQueryService.getEfvExperimentMappings(attribute, allExpsToAttrs);
             }
             for (ExperimentResult exp : nonDEExps) {
+
+                // The following three vars will populate the non-DE ExperimentResult instance
+                ExperimentInfo expInfo = exp.getExperimentInfo();
+                EfvAttribute highestRankAttribute = null;
+                PTRank ptRank;
+
                 ExperimentInfo key;
                 if (allExpsToAttrs.containsKey(exp.getExperimentInfo())) { // attr is an efo
-                    key = exp.getExperimentInfo();
+                    key = expInfo;
                 } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)) { // attr is an ef-efv
                     key = EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER;
                 } else {
@@ -171,7 +176,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
                         ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
                         if (ea != null) {
-                            exp.setHighestRankAttribute(attrCandidate);
+                            highestRankAttribute = attrCandidate;
                             break;
                         }
                     }
@@ -184,8 +189,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 if (ea != null) {
                     final float p = ea.getPValAdjusted();
                     final float t = ea.getTStatistic();
-                    exp.setPValTstatRank(PTRank.of(p, t));
-                    allExperiments.add(exp); // Add nonDE expression statistic to allExperiments
+                    ptRank = PTRank.of(p, t);
+                    allExperiments.add(new ExperimentResult(expInfo, highestRankAttribute, ptRank)); // Add nonDE expression statistic to allExperiments
                 } else {
                     throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
@@ -261,14 +266,9 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
             // TODO: we might be better off with one entity encapsulating the expression stats
             long start = System.currentTimeMillis();
-            attr = attr.withStatType(NON_D_E);
-            int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-
-            attr = attr.withStatType(UP);
-            int numUp = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
-
-            attr = attr.withStatType(DOWN);
-            int numDn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId);
+            int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId, NON_D_E);
+            int numUp = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId, UP);
+            int numDn = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, bioEntityId, DOWN);
             log.debug("Obtained  counts for gene: " + bioEntityId + " and attribute: " + attr + " in: " + (System.currentTimeMillis() - start) + " ms");
 
             jsResult.put("numUp", numUp);
@@ -283,7 +283,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     private List<ExperimentResult> toResults(Collection<ExperimentInfo> experimentInfos) {
         ArrayList<ExperimentResult> results = newArrayList();
         for (ExperimentInfo ei : experimentInfos) {
-            results.add(new ExperimentResult(ei));
+            results.add(new ExperimentResult(ei, null, null));
         }
         return results;
     }
