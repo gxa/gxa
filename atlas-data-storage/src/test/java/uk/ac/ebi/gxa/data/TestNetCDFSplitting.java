@@ -3850,7 +3850,7 @@ public class TestNetCDFSplitting extends TestCase {
 
 		    for (String name : new String[] { "E-MTAB-25_A-AFFY-33_data.nc", "E-MTAB-25_A-AFFY-39_data.nc", "E-MTAB-25_A-AFFY-40_data.nc" }) {
                 Assert.assertArrayEquals(
-                    FileUtil.getMD5(new File(baseExperimentDirectory, name)),
+                    FileUtil.getMD5(new File(new File(baseExperimentDirectory, "v2"), name)),
                     FileUtil.getMD5(new File(experimentDirectory, name))
                 );
             }
