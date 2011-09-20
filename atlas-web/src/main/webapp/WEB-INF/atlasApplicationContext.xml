@@ -166,7 +166,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
-        <constructor-arg value="bitstats"/>
+        <property name="indexFileName" value="bitstats"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
