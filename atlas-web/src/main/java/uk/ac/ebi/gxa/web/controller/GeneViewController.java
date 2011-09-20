@@ -255,6 +255,7 @@ public class GeneViewController extends AtlasViewController {
      * Note that ef is optional.
      *
      * @param model
+     * @param geneId
      * @param ef
      * @return
      * @throws ResourceNotFoundException
