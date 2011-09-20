@@ -35,7 +35,7 @@ class OracleScriptSplitter {
             "(function|library|package(" + S_N + "body)?|procedure|trigger|type)" + S_N +
             IDENTIFIER + S_N +
             ".*";
-    private final Pattern blockStart = Pattern.compile(BLOCK_START);
+    private final Pattern blockStart = Pattern.compile(BLOCK_START, Pattern.CASE_INSENSITIVE);
 
     void parse(Reader reader, SqlStatementExecutor executor) throws SQLException, IOException {
         StringBuilder sqlBuffer = null;
@@ -65,7 +65,7 @@ class OracleScriptSplitter {
                     execute(executor, sqlBuffer);
                     plsqlMode = false;
                     sqlBuffer = null;
-                } else if (!plsqlMode && (enteredPlSqlDeclaration(sqlBuffer.toString().toLowerCase()) ||
+                } else if (!plsqlMode && (blockStart.matcher(sqlBuffer).find() ||
                         "begin".equalsIgnoreCase(line) ||
                         "declare".equalsIgnoreCase(line))) {
                     plsqlMode = true;
@@ -97,10 +97,6 @@ class OracleScriptSplitter {
         } catch (Exception e) {
             throw new RuntimeException("Error running script.  Cause: " + e, e);
         }
-    }
-
-    private boolean enteredPlSqlDeclaration(String prefix) {
-        return blockStart.matcher(prefix).find();
     }
 
     private void execute(SqlStatementExecutor executor, StringBuilder sqlBuffer) throws SQLException {
