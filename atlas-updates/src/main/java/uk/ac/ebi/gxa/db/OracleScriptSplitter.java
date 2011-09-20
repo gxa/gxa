@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.Reader;
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 /**
  * Hugely based on the code from {@link com.carbonfive.db.jdbc.ScriptRunner#doExecute}
@@ -26,6 +27,11 @@ import java.sql.SQLException;
  */
 class OracleScriptSplitter {
     private final static Logger log = LoggerFactory.getLogger(OracleScriptSplitter.class);
+    private final Pattern pattern = Pattern.compile("(^|(\\s|\\n)+)" +
+            "create(\\s|\\n)+" +
+            "(or(\\s|\\n)+replace(\\s|\\n)+)?" +
+            "(function|library|package((\\s|\\n)+body)?|procedure|trigger|type)(\\s|\\n)+" +
+            "(\\S+|\"[^\"]+\")(\\s|\\n)+.*");
 
     void parse(Reader reader, SqlStatementExecutor executor) throws SQLException, IOException {
         StringBuilder sqlBuffer = null;
@@ -55,26 +61,19 @@ class OracleScriptSplitter {
                     execute(executor, sqlBuffer);
                     plsqlMode = false;
                     sqlBuffer = null;
-                } else if (!plsqlMode && sqlBuffer.toString().toLowerCase().matches("(" +
-                        "begin|" +
-                        "declare|" +
-                        "create(\\s+or\\s+replace)?" +
-                        "\\s" +
-                        "(function|library|package(\\s+body)?|procedure|trigger|type)" +
-                        "\\s+" +
-                        "(\\S+|\"[^\"]+\")" +
-                        ")" +
-                        "\\s+.*")) {
+                } else if (!plsqlMode && (enteredPlSqlDeclaration(sqlBuffer.toString().toLowerCase()) ||
+                        "begin".equalsIgnoreCase(line) ||
+                        "declare".equalsIgnoreCase(line))) {
                     plsqlMode = true;
                     sqlBuffer.append(line);
-                    sqlBuffer.append(" ");
+                    sqlBuffer.append("\n");
                 } else if (!plsqlMode && line.endsWith(";")) {
                     sqlBuffer.append(line.substring(0, line.lastIndexOf(";")));
                     execute(executor, sqlBuffer);
                     sqlBuffer = null;
                 } else {
                     sqlBuffer.append(line);
-                    sqlBuffer.append(" ");
+                    sqlBuffer.append("\n");
                 }
             }
 
@@ -94,6 +93,10 @@ class OracleScriptSplitter {
         } catch (Exception e) {
             throw new RuntimeException("Error running script.  Cause: " + e, e);
         }
+    }
+
+    private boolean enteredPlSqlDeclaration(String prefix) {
+        return pattern.matcher(prefix).find();
     }
 
     private void execute(SqlStatementExecutor executor, StringBuilder sqlBuffer) throws SQLException {
