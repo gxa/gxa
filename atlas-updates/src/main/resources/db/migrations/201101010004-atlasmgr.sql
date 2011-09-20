@@ -116,6 +116,8 @@ begin
 exception
   when NO_DATA_FOUND then
     dbms_output.put_line('No data for ' ||  seq_name || ' - please report');
+  WHEN TOO_MANY_ROWS THEN
+    dbms_output.put_line('Too many rows for ' ||  seq_name || ' - please report');
 end;
 
 
