@@ -34,7 +34,7 @@ AS
  cursor c1 is select CONSTRAINT_NAME, TABLE_NAME
               from user_constraints
               where constraint_type = 'R'
-              and CONSTRAINT_NAME <> 'FK_EV_DESIGNELEMENT';
+              and CONSTRAINT_NAME <> 'FK_EV_DESIGNELEMENT'; /* orphane ev in release 10.3 */
  q varchar2(8000);
 begin
  delete from A2_ASSAYPVONTOLOGY where ASSAYPVID = 0;
