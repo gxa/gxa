@@ -268,9 +268,9 @@ public class GeneViewController extends AtlasViewController {
                     .addAttribute("gval_0", geneId)
                     .addAttribute("fexp_0", "UP_DOWN")
                     .addAttribute("specie_0", "")
-                    .addAttribute("view", "hm")
                     .addAttribute("fact_0", isNullOrEmpty(ef) ? "" : ef)
-                    .addAttribute("fval_0", isNullOrEmpty(ef) ? "" : "(all conditions)");
+                    .addAttribute("fval_0", isNullOrEmpty(ef) ? "" : "(all conditions)")
+                    .addAttribute("view", "hm");
             return "redirect:/qrs";
         }
 
