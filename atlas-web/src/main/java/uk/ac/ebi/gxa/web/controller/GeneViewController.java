@@ -53,6 +53,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
  *
@@ -194,8 +196,8 @@ public class GeneViewController extends AtlasViewController {
         AtlasGene gene = result.getGene();
         Attribute attr =
                 efoId.length() > 0 ?
-                        new EfoAttribute(efoId, StatisticsType.UP_DOWN) :
-                        new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
+                        new EfoAttribute(efoId) :
+                        new EfvAttribute(ef, efv);
 
         List<GenePageExperiment> exps = getRankedGeneExperiments(gene, attr, fromRow, toRow);
 
@@ -216,7 +218,7 @@ public class GeneViewController extends AtlasViewController {
 
     private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
         if (attr instanceof EfvAttribute) {
-            //TODO temporary workaround see Ticket #3048: Refactoring of StatisticsStorage & Efv/Efo Attributes is needed
+            //TODO temporary workaround see ticket #3109 to split EfvAttribute into EfAttribute and EfvAttribute - to separate its dual usage
             attr = attr.isEmpty() ? null : attr;
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
@@ -236,7 +238,7 @@ public class GeneViewController extends AtlasViewController {
         long start = System.currentTimeMillis();
         List<GenePageExperiment> sortedAtlasExps = new ArrayList<GenePageExperiment>();
 
-        List<ExperimentResult> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow);
+        List<ExperimentResult> sortedExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attribute, fromRow, toRow, StatisticsType.UP_DOWN);
         log.debug("Retrieved {} experiments from bit index in: {} ms", sortedExps.size(), System.currentTimeMillis() - start);
         for (ExperimentResult exp : sortedExps) {
             Experiment experiment = experimentDAO.getById(exp.getExperimentId());
@@ -266,11 +268,11 @@ public class GeneViewController extends AtlasViewController {
             model.addAttribute("gprop_0", "")
                     .addAttribute("gval_0", geneId)
                     .addAttribute("fexp_0", "UP_DOWN")
-                    .addAttribute("fact_0", "")
                     .addAttribute("specie_0", "")
-                    .addAttribute("fval_0", "(all+conditions)")
+                    .addAttribute("fact_0", isNullOrEmpty(ef) ? "" : ef)
+                    .addAttribute("fval_0", isNullOrEmpty(ef) ? "" : "(all conditions)")
                     .addAttribute("view", "hm");
-            return "redirect:qrs";
+            return "redirect:/qrs";
         }
 
         if (!result.isFound()) {

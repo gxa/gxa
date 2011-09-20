@@ -94,22 +94,28 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param attribute
      * @param bioEntityId
+     * @param statType
      * @return Experiment count for statisticsType, attributes and bioEntityId
      */
-    public Integer getExperimentCountsForBioEntity(Attribute attribute, Integer bioEntityId) {
-        return getExperimentCountsForBioEntity(attribute, bioEntityId, null, null);
+    public Integer getExperimentCountsForBioEntity(
+            final Attribute attribute,
+            final Integer bioEntityId,
+            final StatisticsType statType) {
+        return getExperimentCountsForBioEntity(attribute, bioEntityId, statType, null, null);
     }
 
     /**
      * @param attribute
      * @param bioEntityId
+     * @param statType
      * @param bioEntityIdRestrictionSet
      * @param scoresCache
      * @return Experiment count for statisticsType, attributes and bioEntityId
      */
     public Integer getExperimentCountsForBioEntity(
-            Attribute attribute,
-            Integer bioEntityId,
+            final Attribute attribute,
+            final Integer bioEntityId,
+            final StatisticsType statType,
             Set<Integer> bioEntityIdRestrictionSet,
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache) {
 
@@ -117,20 +123,20 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             bioEntityIdRestrictionSet = Collections.singleton(bioEntityId);
         }
 
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIdRestrictionSet);
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), 1));
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIdRestrictionSet, statType);
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), statType, 1));
         Multiset<Integer> scores = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
 
         // Cache bioEntityIdRestrictionSet's scores for efvOrEfo - this cache will be re-used in heatmaps for rows other than the first one
-        if (scoresCache != null && attribute.getStatType() != null) {
-            scoresCache.get(attribute.getStatType()).put(attribute.getValue(), scores);
+        if (scoresCache != null) {
+            scoresCache.get(statType).put(attribute.getValue(), scores);
         }
 
         if (scores != null) {
             long time = System.currentTimeMillis();
             int expCountForBioEntity = scores.count(bioEntityId);
             if (expCountForBioEntity > 0) {
-                log.debug(attribute.getStatType() + " " + attribute.getValue() + " expCountForBioEntity: " + bioEntityId + " = " + expCountForBioEntity + " got in:  " + (System.currentTimeMillis() - time) + " ms");
+                log.debug(statType + " " + attribute.getValue() + " expCountForBioEntity: " + bioEntityId + " = " + expCountForBioEntity + " got in:  " + (System.currentTimeMillis() - time) + " ms");
             }
             return expCountForBioEntity;
         }
@@ -139,14 +145,16 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param orAttributes
+     * @param statType
      * @param minExperiments minimum number of experiments restriction for this clause
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
-            List<Attribute> orAttributes,
+            final List<Attribute> orAttributes,
+            final StatisticsType statType,
             int minExperiments) {
         List<Attribute> efoPlusChildren = includeEfoChildren(orAttributes);
-        return StatisticsQueryUtils.getStatisticsOrQuery(efoPlusChildren, minExperiments, statisticsStorage);
+        return StatisticsQueryUtils.getStatisticsOrQuery(efoPlusChildren, statType, minExperiments, statisticsStorage);
     }
 
     /**
@@ -273,20 +281,22 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto
+     * @param statType    StatisticsType
      * @return List of Experiments sorted by pVal/tStat ranks from best to worst
      */
     public List<ExperimentResult> getExperimentsSortedByPvalueTRank(
             final Integer bioEntityId,
             final Attribute attribute,
             int fromRow,
-            int toRow) {
+            int toRow,
+            final StatisticsType statType) {
 
         List<Attribute> attrs;
         if (attribute.isEmpty()) { // Empty attribute
-            List<String> efs = getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
+            List<String> efs = getScoringEfsForBioEntity(bioEntityId, statType, null);
             attrs = new ArrayList<Attribute>();
             for (String expFactor : efs) {
-                EfvAttribute attr = new EfvAttribute(expFactor, attribute.getStatType());
+                EfvAttribute attr = new EfvAttribute(expFactor);
                 attrs.add(attr);
             }
         } else {
@@ -294,8 +304,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         }
 
 
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId));
-        statsQuery.and(getStatisticsOrQuery(attrs, 1));
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
+        statsQuery.and(getStatisticsOrQuery(attrs, statType, 1));
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
@@ -340,10 +350,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         long timeStart = System.currentTimeMillis();
         List<String> scoringEfs = new ArrayList<String>();
         if (bioEntityId != null) {
-            Set<EfvAttribute> scoringEfIndexes = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
-            for (EfvAttribute efv : scoringEfIndexes) {
-                if (efv != null && (ef == null || "".equals(ef) || ef.equals(efv.getEf()))) {
-                    scoringEfs.add(efv.getEf());
+            Set<EfvAttribute> scoringEfAttrs = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
+            for (EfvAttribute efAttr : scoringEfAttrs) {
+                if (efAttr != null && (ef == null || "".equals(ef) || ef.equals(efAttr.getEf()))) {
+                    scoringEfs.add(efAttr.getEf());
                 }
             }
         }
@@ -366,7 +376,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             Set<EfvAttribute> scoringEfvIndexes = statisticsStorage.getScoringEfvAttributesForBioEntity(bioEntityId, statType);
             for (EfvAttribute efv : scoringEfvIndexes) {
                 if (efv.getEfv() != null && !efv.getEfv().isEmpty()) {
-                    scoringEfvs.add(efv.withStatType(statType));
+                    scoringEfvs.add(efv);
                 }
             }
         }
@@ -399,26 +409,24 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     private void collectScoringAttributes(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors,
                                           @Nullable Multiset<EfvAttribute> attrCounts, @Nullable Set<String> scoringEfos) {
-        Set<EfvAttribute> allEfvAttributesForStat = statisticsStorage.getAllAttributes(statType);
-        for (EfvAttribute efvAttr : allEfvAttributesForStat) {
+        for (EfvAttribute efvAttr : statisticsStorage.getAllAttributes(statType)) {
             if ((autoFactors != null && !autoFactors.contains(efvAttr.getEf())) || efvAttr.getEfv() == null) {
                 continue; // skip attribute if its factor is not of interest or it's an ef-only attribute
             }
-            EfvAttribute attr = efvAttr.withStatType(statType);
-            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIds);
-            statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attr), 1));
+            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIds, statType);
+            statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(efvAttr), statType, 1));
             Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
             StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
             if (scoringExps.size() > 0) { // at least one bioEntityId in bioEntityIds had an experiment count > 0 for attr
                 if (attrCounts != null)
-                    attrCounts.add(attr, scoringExps.size());
+                    attrCounts.add(efvAttr, scoringExps.size());
                 for (ExperimentInfo exp : scoringExps) {
-                    String efoTerm = statisticsStorage.getEfoTerm(attr, exp);
+                    String efoTerm = statisticsStorage.getEfoTerm(efvAttr, exp);
                     if (efoTerm != null) {
                         if (scoringEfos != null)
                             scoringEfos.add(efoTerm);
                         else
-                            log.debug("Skipping efo: " + efoTerm + " for attr: " + attr + " and exp: " + exp);
+                            log.debug("Skipping efo: " + efoTerm + " for attr: " + efvAttr + " and exp: " + exp);
                     }
                 }
             }
@@ -458,11 +466,15 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param bioEntityId
      * @param attribute
+     * @param statType
      * @return Set of Experiments in which bioEntityId-ef-efv have statType expression
      */
-    public Set<ExperimentInfo> getScoringExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nonnull Attribute attribute) {
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId));
-        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute), 1));
+    public Set<ExperimentInfo> getScoringExperimentsForBioEntityAndAttribute(
+            final Integer bioEntityId,
+            @Nonnull Attribute attribute,
+            final StatisticsType statType) {
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
+        statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute), statType, 1));
         Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
         StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
         return scoringExps;
@@ -503,7 +515,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     public int getBioEntityCountForEfoAttribute(Attribute attribute, StatisticsType statType) {
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(statType);
-        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), 1));
+        statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), statType, 1));
         return StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null).entrySet().size();
     }
 }

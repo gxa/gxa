@@ -893,12 +893,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef)) {
                                 if (!excludeEfos) {
                                     qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
-                                    attribute = new EfoAttribute(condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
+                                    attribute = new EfoAttribute(condEfv.getEfv());
                                     orAttributes.add(attribute);
                                 }
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv(), getStatisticsTypeForExpression(c.getExpression()));
+                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv());
                                 orAttributes.add(attribute);
                             }
                         }
@@ -915,7 +915,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                 }
             }
             if (orAttributes != null) {
-                statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes, c.getMinExperiments()));
+                statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(orAttributes, getStatisticsTypeForExpression(c.getExpression()), c.getMinExperiments()));
                 log.debug("Adding the following " + orAttributes.size() + " attributes to stats query: " + orAttributes);
             }
         }
@@ -1122,19 +1122,21 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      *                                  geneIndexes contains indexes of all genes of interest for the current query (including geneId)
      * @param attribute
      * @param bioEntityId
+     * @param statType,
      * @param bioEntityIdRestrictionSet
      * @return experiment count for statType, efvOrEfo, geneId
      */
     private int getExperimentCountsForBioEntity(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
-            Attribute attribute,
-            Integer bioEntityId,
+            final Attribute attribute,
+            final Integer bioEntityId,
+            final StatisticsType statType,
             Set<Integer> bioEntityIdRestrictionSet) {
-        Multiset<Integer> scores = getScoresFromCache(scoresCache, attribute.getStatType(), attribute.getValue());
+        Multiset<Integer> scores = getScoresFromCache(scoresCache, statType, attribute.getValue());
         if (scores != null) {
             return scores.count(bioEntityId);
         }
-        return atlasStatisticsQueryService.getExperimentCountsForBioEntity(attribute, bioEntityId, bioEntityIdRestrictionSet, scoresCache);
+        return atlasStatisticsQueryService.getExperimentCountsForBioEntity(attribute, bioEntityId, statType, bioEntityIdRestrictionSet, scoresCache);
 
     }
 
@@ -1201,22 +1203,18 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      */
     public UpdownCounter getStats(
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache,
-            Attribute anAttribute,
-            Integer bioEntityId,
+            final Attribute attribute,
+            final Integer bioEntityId,
             Set<Integer> bioEntityIdRestrictionSet,
             boolean showNonDEData,
             boolean usePvalsInHeatmapOrdering
     ) {
-        Attribute attribute = anAttribute.withStatType(StatisticsType.UP);
-        int upCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, bioEntityIdRestrictionSet);
+        int upCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, StatisticsType.UP, bioEntityIdRestrictionSet);
+        int downCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, StatisticsType.DOWN, bioEntityIdRestrictionSet);
 
-        attribute = anAttribute.withStatType(StatisticsType.DOWN);
-        int downCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, bioEntityIdRestrictionSet);
         int nonDECnt = 0;
-
         if (showNonDEData) {
-            attribute = anAttribute.withStatType(StatisticsType.NON_D_E);
-            nonDECnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, bioEntityIdRestrictionSet);
+            nonDECnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, StatisticsType.NON_D_E, bioEntityIdRestrictionSet);
         }
 
         float minPValUp = 0;
@@ -1229,8 +1227,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
             long start = System.currentTimeMillis();
             if (upCnt > 0) {
                 // Get best up pValue
-                attribute = anAttribute.withStatType(StatisticsType.UP);
-                List<ExperimentResult> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                List<ExperimentResult> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1, StatisticsType.UP);
                 if (bestUpExperimentsForAttribute.isEmpty()) {
                     throw LogUtil.createUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
                 }
@@ -1239,8 +1236,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
             if (downCnt > 0) {
                 // Get best down pValue
-                attribute = anAttribute.withStatType(StatisticsType.DOWN);
-                List<ExperimentResult> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1);
+                List<ExperimentResult> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1, StatisticsType.DOWN);
                 if (bestDownExperimentsForAttribute.isEmpty()) {
                     throw LogUtil.createUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
                 }
@@ -1407,7 +1403,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     String ef = efEfv.getEf();
                     String efv = efEfv.getEfv();
 
-                    EfvAttribute attr = new EfvAttribute(ef, efv, null);
+                    EfvAttribute attr = new EfvAttribute(ef, efv);
 
                     if (!attrToCounter.containsKey(attr)) {
                         // 1. In the list view: the above test prevents querying bit index for the same attribute more then once,
@@ -1465,7 +1461,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         // Get statistics for efoTerm-gene
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
-                        Attribute attr = new EfoAttribute(efoTerm, null);
+                        Attribute attr = new EfoAttribute(efoTerm);
                         counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
@@ -1620,9 +1616,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         long start = System.currentTimeMillis();
         // Retrieve experiments in which geneId-ef-efv have UP or DOWN expression
-        EfvAttribute attr = new EfvAttribute(ef, efv, StatisticsType.UP_DOWN);
+        EfvAttribute attr = new EfvAttribute(ef, efv);
         Set<ExperimentInfo> scoringExps =
-                atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr);
+                atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr, StatisticsType.UP_DOWN);
         totalBitIndexQueryTime += System.currentTimeMillis() - start;
 
         String designElementAccession = null;
@@ -1691,8 +1687,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
         if (showNonDEData) {
             // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
-            attr = attr.withStatType(StatisticsType.NON_D_E);
-            scoringExps = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr);
+            scoringExps = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr, StatisticsType.NON_D_E);
             for (ExperimentInfo exp : scoringExps) {
                 if ((!experiments.isEmpty() && !experiments.contains(exp.getExperimentId())) ||
                         // We currently allow up to result.getRowsPerGene() list view rows per gene (where each list row corresponds to a single ef-efv)

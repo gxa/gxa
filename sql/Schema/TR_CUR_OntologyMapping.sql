@@ -41,31 +41,23 @@ begin
    JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
    JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID 
    JOIN a2_sample s ON s.SampleID = asss.SampleID   
-   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID  
-   JOIN a2_samplePVontology so ON so.SamplePVID = spv.SamplePVID 
-   JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID 
-   JOIN a2_property p ON p.PropertyID = pv.PropertyID 
-   JOIN a2_ontologyterm ot ON ot.OntologyTermID = so.OntologyTermID 
-   JOIN a2_ontology o ON o.OntologyID = ot.OntologyID
+   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID and t.SamplePVID = spv.SamplePVID
+   JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID
+   JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
-   and pv.Name = :old.Value
-   and t.SamplePVOntologyID = so.SamplePVOntologyID);
+   and pv.Name = :old.Value);
  
    delete a2_assaypvontology t
    where exists(select 1 
    FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
    JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
-   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID
-   JOIN a2_assayPVontology ao ON ao.AssayPVID = apv.assayPVID
+   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID AND t.AssayPVID = apv.assayPVID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
-   JOIN a2_property p ON p.PropertyID = pv.PropertyID 
-   JOIN a2_ontologyterm ot ON ot.OntologyTermID = ao.OntologyTermID 
-   JOIN a2_ontology o ON o.OntologyID = ot.OntologyID
+   JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
-   and pv.Name = :old.Value
-   and t.AssayPVONtologyID = ao.AssayPVOntologyID);
+   and pv.Name = :old.Value);
   
   else --new ontology term is not 
    dbms_output.put_line('update assay and sample mapping'); 
@@ -160,8 +152,8 @@ begin
                                              where e.accession = :new.Experiment
                                              and apv.PropertyValueID = mPropertyValueID_new) t
    ON (apvo.AssayPVID = t.AssayPVID and apvo.OntologyTermID = mOntologyTermID_new)
-   WHEN NOT MATCHED THEN INSERT (AssayPVOntologyID,OntologyTermID, AssayPVID) 
-                         VALUES (A2_AssayPVOntology_Seq.nextval,mOntologyTermID_new, t.AssayPVID);
+   WHEN NOT MATCHED THEN INSERT (OntologyTermID, AssayPVID)
+                         VALUES (mOntologyTermID_new, t.AssayPVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
     NULL;
@@ -194,8 +186,8 @@ begin
                                               where e.accession = :new.Experiment
                                               and apv.PropertyValueID = mPropertyValueID_new) t
    ON (apvo.SamplePVID = t.SamplePVID and apvo.OntologyTermID = mOntologyTermID_new)
-   WHEN NOT MATCHED THEN INSERT (SamplePVOntologyID,OntologyTermID, SamplePVID) 
-                         VALUES (A2_SamplePVOntology_Seq.nextval,mOntologyTermID_new, t.SamplePVID);
+   WHEN NOT MATCHED THEN INSERT (OntologyTermID, SamplePVID)
+                         VALUES (mOntologyTermID_new, t.SamplePVID);
    EXCEPTION
    WHEN NO_DATA_FOUND THEN
     NULL;
