@@ -283,6 +283,7 @@
         <module>atlas-dao</module>
         <module>atlas-test</module>
         <module>atlas-utils</module>
+        <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
     </modules>
@@ -338,7 +339,7 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.3</version>
+            <version>2.4</version>
         </dependency>
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>
@@ -360,6 +361,18 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -421,6 +434,13 @@
             </releases>
             <snapshots>
                 <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>c5-public-repository</id>
+            <url>http://mvn.carbonfive.com/public</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
     </repositories>

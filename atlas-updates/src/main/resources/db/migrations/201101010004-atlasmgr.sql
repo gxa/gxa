@@ -1,25 +1,3 @@
-/*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- *
- * For further details of the Gene Expression Atlas project, including source code,
- * downloads and documentation, please see:
- *
- * http://gxa.github.com/gxa/
- */
-
 CREATE OR REPLACE PACKAGE ATLASMGR IS
   PROCEDURE DisableConstraints;
   PROCEDURE EnableConstraints;
@@ -32,8 +10,6 @@ CREATE OR REPLACE PACKAGE ATLASMGR IS
 END ATLASMGR;
 /
 
-/*******************************************************************************
-/*******************************************************************************/
 CREATE OR REPLACE PACKAGE BODY ATLASMGR AS
 
 --------------------------------------------------------------------------------
@@ -46,30 +22,30 @@ begin
 for rec in c1
  loop
     q := 'ALTER TABLE ' || rec.TABLE_NAME  || ' DISABLE CONSTRAINT ' || rec.CONSTRAINT_NAME;
-    
+
     dbms_output.put_line(q);
-    
+
     EXECUTE IMMEDIATE q;
  end loop;
 END;
 --------------------------------------------------------------------------------
 PROCEDURE EnableConstraints
 AS
- cursor c1 is select CONSTRAINT_NAME, TABLE_NAME 
-              from user_constraints 
-              where constraint_type = 'R' 
-              and CONSTRAINT_NAME <> 'FK_EV_DESIGNELEMENT'; --orphane ev in release 10.3
+ cursor c1 is select CONSTRAINT_NAME, TABLE_NAME
+              from user_constraints
+              where constraint_type = 'R'
+              and CONSTRAINT_NAME <> 'FK_EV_DESIGNELEMENT'; /* orphane ev in release 10.3 */
  q varchar2(8000);
-begin 
+begin
  delete from A2_ASSAYPVONTOLOGY where ASSAYPVID = 0;
  delete from A2_SAMPLEPVONTOLOGY where SAMPLEPVID  = 0;
 
 for rec in c1
  loop
     q := 'ALTER TABLE ' || rec.TABLE_NAME  || ' ENABLE CONSTRAINT ' || rec.CONSTRAINT_NAME;
-    
+
     dbms_output.put_line(q);
-    
+
     EXECUTE IMMEDIATE q;
  end loop;
 END;
@@ -77,22 +53,22 @@ END;
 --------------------------------------------------------------------------------
 PROCEDURE DisableTriggers
 AS
- cursor c1 is select TRIGGER_NAME from user_triggers; 
+ cursor c1 is select TRIGGER_NAME from user_triggers;
  q varchar2(8000);
 begin
 for rec in c1
  loop
     q := 'ALTER TRIGGER ' || rec.TRIGGER_NAME  || ' DISABLE';
-    
+
     dbms_output.put_line(q);
-    
+
     EXECUTE IMMEDIATE q;
  end loop;
 END;
 --------------------------------------------------------------------------------
 PROCEDURE EnableTriggers
 AS
- cursor c1 is select TRIGGER_NAME from user_triggers; 
+ cursor c1 is select TRIGGER_NAME from user_triggers;
  q varchar2(8000);
 begin
 for rec in c1
@@ -145,15 +121,13 @@ exception
 end;
 
 
-/*******************************************************************************
-rebuilding sequences for all tables in schema
-
-naming conventions and DB structure assumptions:
-Each table has one autoincrement PK, updated in trigger from corresponding
-sequence. SEQUENCE_NAME = TABLE_NAME || "_SEQ"
-
-call RebuildSequence();
-********************************************************************************/
+-- rebuilding sequences for all tables in schema
+--
+-- naming conventions and DB structure assumptions:
+-- Each table has one autoincrement PK, updated in trigger from corresponding
+-- sequence. SEQUENCE_NAME = TABLE_NAME || "_SEQ"
+--
+-- call RebuildSequence();
 procedure RebuildSequences
 AS
  cursor c1 is select SEQUENCE_NAME, LAST_NUMBER from user_sequences;
@@ -173,13 +147,12 @@ BEGIN
  for rec in c1
  loop
   q := 'ALTER INDEX $INDEX_NAME REBUILD';
-  q := REPLACE(q,'$INDEX_NAME',rec.INDEX_NAME); 
+  q := REPLACE(q,'$INDEX_NAME',rec.INDEX_NAME);
   dbms_output.put_line(q);
   Execute immediate q;
-  
+
  end loop;
 END;
 
 END;
 /
-exit;
