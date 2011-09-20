@@ -26,6 +26,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -267,9 +268,11 @@ public class GeneViewController extends AtlasViewController {
                     .addAttribute("fexp_0", "UP_DOWN")
                     .addAttribute("fact_0", "")
                     .addAttribute("specie_0", "")
-                    .addAttribute("fval_0", "(all+conditions)")
+                    .addAttribute(
+                            Strings.isNullOrEmpty(ef) ? "fval_0" : "fact_0",
+                            Strings.isNullOrEmpty(ef) ? "(all conditions)" : ef)
                     .addAttribute("view", "hm");
-            return "redirect:qrs";
+            return "redirect:/qrs";
         }
 
         if (!result.isFound()) {
