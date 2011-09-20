@@ -27,11 +27,14 @@ import java.util.regex.Pattern;
  */
 class OracleScriptSplitter {
     private final static Logger log = LoggerFactory.getLogger(OracleScriptSplitter.class);
-    private final Pattern pattern = Pattern.compile("(^|(\\s|\\n)+)" +
-            "create(\\s|\\n)+" +
-            "(or(\\s|\\n)+replace(\\s|\\n)+)?" +
-            "(function|library|package((\\s|\\n)+body)?|procedure|trigger|type)(\\s|\\n)+" +
-            "(\\S+|\"[^\"]+\")(\\s|\\n)+.*");
+    private static final String S_N = "(\\s|\\n)+";
+    private static final String BLOCK_START = "(^|" + S_N + ")" +
+            "create" + S_N +
+            "(or" + S_N + "replace" + S_N + ")?" +
+            "(function|library|package(" + S_N + "body)?|procedure|trigger|type)" + S_N +
+            "(\\S+|\"[^\"]+\")" + S_N +
+            ".*";
+    private final Pattern blockStart = Pattern.compile(BLOCK_START);
 
     void parse(Reader reader, SqlStatementExecutor executor) throws SQLException, IOException {
         StringBuilder sqlBuffer = null;
@@ -96,7 +99,7 @@ class OracleScriptSplitter {
     }
 
     private boolean enteredPlSqlDeclaration(String prefix) {
-        return pattern.matcher(prefix).find();
+        return blockStart.matcher(prefix).find();
     }
 
     private void execute(SqlStatementExecutor executor, StringBuilder sqlBuffer) throws SQLException {
