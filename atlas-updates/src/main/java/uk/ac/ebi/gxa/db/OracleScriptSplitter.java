@@ -28,11 +28,12 @@ import java.util.regex.Pattern;
 class OracleScriptSplitter {
     private final static Logger log = LoggerFactory.getLogger(OracleScriptSplitter.class);
     private static final String S_N = "(\\s|\\n)+";
+    private static final String IDENTIFIER = "(\\S+|\"[^\"]+\")";
     private static final String BLOCK_START = "(^|" + S_N + ")" +
             "create" + S_N +
             "(or" + S_N + "replace" + S_N + ")?" +
             "(function|library|package(" + S_N + "body)?|procedure|trigger|type)" + S_N +
-            "(\\S+|\"[^\"]+\")" + S_N +
+            IDENTIFIER + S_N +
             ".*";
     private final Pattern blockStart = Pattern.compile(BLOCK_START);
 
