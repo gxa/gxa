@@ -30,6 +30,7 @@ public class BioEntityAnnotationData extends BioEntityData {
 
     void addPropertyValue(String beIdentifier, BioEntityType bioEntityType, BEPropertyValue pv) {
         if (StringUtils.isNotBlank(pv.getValue())) {
+            //Value's length is limited by the length of corresponding DB field
             if (pv.getValue().length() < 1000) {
                 Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
                 typeToBEPropValues.put(bioEntityType, beProperty);

@@ -67,6 +67,7 @@ public class ArrayExpressConnection {
                         type = line[1];
                     }
                 }
+                //We don't need to read more then 10 line to find data we are interested in
                 if (count++ > 10) break;
             }
         } catch (IOException e) {

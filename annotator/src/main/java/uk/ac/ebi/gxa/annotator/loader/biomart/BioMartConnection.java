@@ -4,11 +4,9 @@ import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
@@ -193,8 +191,12 @@ public class BioMartConnection {
         for (String attribute : attributes) {
             attributesSB.append(ATTRIBUTE.replace(PROP_NAME_PH, attribute));
         }
-        return martUrl + "query=" + URLEncoder.encode(PROPERTY_QUERY.replace(DATA_SET_PH, datasetName).
-                replace(ATTRIBUTES_PH, attributesSB.toString()).replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema));
+        try {
+            return martUrl + "query=" + URLEncoder.encode(PROPERTY_QUERY.replace(DATA_SET_PH, datasetName).
+                    replace(ATTRIBUTES_PH, attributesSB.toString()).replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw LogUtil.createUnexpected("Failed while trying to encode URL ", e);
+        }
     }
 
     private void fetchInfoFromRegistry() throws BioMartAccessException {

@@ -116,7 +116,7 @@ public class BioMartParser<T extends BioEntityData> {
 
             while ((line = csvReader.readNext()) != null) {
                 if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
-                    throw new AtlasAnnotationException("Cannot update design element mappings");
+                    throw new AtlasAnnotationException("Cannot update design element mappings from " + url);
                 }
 
                 String deAcc = line[bioEntityTypes.size()];

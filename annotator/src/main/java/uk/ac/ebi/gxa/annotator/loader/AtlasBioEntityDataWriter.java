@@ -41,7 +41,7 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writeBioEntities(BioEntityData data) {
+    public void writeBioEntities(final BioEntityData data) {
         for (BioEntityType type : data.getBioEntityTypes()) {
             reportProgress("Writing bioentities of type " + type.getName() + "for Organism " + getOrganismNames(data));
             Collection<BioEntity> bioEntities = data.getBioEntitiesOfType(type);
@@ -50,7 +50,7 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writePropertyValues(Collection<BEPropertyValue> propertyValues) {
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
         reportProgress("Writing " + propertyValues.size() + "property values");
         bioEntityDAO.writePropertyValues(propertyValues);
     }
@@ -69,7 +69,7 @@ public class AtlasBioEntityDataWriter {
         }
     }
 
-     private void deleteBioEntityToPropertyValues(Organism organism, Software software) {
+     private void deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
          reportProgress("Annotations for organism " + organism.getName() +
                  "already loaded and are going to be deleted before reloading ");
          int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
@@ -85,7 +85,8 @@ public class AtlasBioEntityDataWriter {
         bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign);
         for (BioEntityType bioEntityType : data.getBioEntityTypes()) {
             Collection<Pair<String, String>> designElementToBioEntity = data.getDesignElementToBioEntity(bioEntityType);
-            reportProgress("Writing " + designElementToBioEntity.size() + " design elements to bioentity mappings of " + arrayDesign.getAccession());
+            reportProgress("Writing " + designElementToBioEntity.size() + " design elements to " +
+                    bioEntityType.getName() + " mappings of " + arrayDesign.getAccession());
             bioEntityDAO.writeDesignElementBioEntityMappings(designElementToBioEntity,
                     bioEntityType,
                     software,
@@ -104,7 +105,7 @@ public class AtlasBioEntityDataWriter {
         this.listener = listener;
     }
 
-    private Collection<String> getOrganismNames(BioEntityData data) {
+    private Collection<String> getOrganismNames(final BioEntityData data) {
         return Collections2.transform(data.getOrganisms(), new Function<Organism, String>() {
             @Override
             public String apply(@Nullable Organism organism) {

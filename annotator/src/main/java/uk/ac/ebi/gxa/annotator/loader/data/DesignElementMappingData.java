@@ -15,7 +15,7 @@ import java.util.*;
  * User: nsklyar
  * Date: 25/08/2011
  */
-public class DesignElementMappingData extends BioEntityData{
+public class DesignElementMappingData extends BioEntityData {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -28,25 +28,28 @@ public class DesignElementMappingData extends BioEntityData{
     }
 
     void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {
-        if (StringUtils.isNotBlank(deAccession) && deAccession.length() < 255) {
-            Pair<String, String> de2be = Pair.create(deAccession, beIdentifier);
-            typeToDesignElementBEMapping.put(type, de2be);
+        if (StringUtils.isNotBlank(deAccession)) {
+            //Value's length is limited by the length of corresponding DB field
+            if (deAccession.length() < 255) {
+                Pair<String, String> de2be = Pair.create(deAccession, beIdentifier);
+                typeToDesignElementBEMapping.put(type, de2be);
 
-            DesignElement designElement = new DesignElement(deAccession, deAccession);
-            designElements.add(designElement);
-        } else {
-            log.info("Design element accession is too long (>255)" + deAccession);
+                DesignElement designElement = new DesignElement(deAccession, deAccession);
+                designElements.add(designElement);
+            } else {
+                log.info("Design element accession is too long (>255)" + deAccession);
+            }
         }
     }
 
     public Collection<Pair<String, String>> getDesignElementToBioEntity(BioEntityType type) {
         return Collections.unmodifiableCollection(typeToDesignElementBEMapping.get(type));
     }
-  
+
     public Set<DesignElement> getDesignElements() {
         return Collections.unmodifiableSet(designElements);
     }
-    
+
     public void clear() {
         typeToDesignElementBEMapping.clear();
         designElements.clear();
