@@ -369,14 +369,12 @@ $(document).ready(function() {
                             <td class="geneAnnotHeader">${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}</td>
                             <td align="left">
                                 <c:choose>
-                                    <!-- Output gene property links -->
                                     <c:when test="${!empty atlasProperties.genePropertyLinks[prop]}">
                                         <c:forEach items="${atlasGene.geneProperties[prop]}" var="v" varStatus="s">
                                             <a href="${f:replace(atlasProperties.genePropertyLinks[prop], '$$', v)}"
                                                target="_blank">${f:escapeXml(v)}</a><c:if test="${!s.last}">, </c:if>
                                         </c:forEach>
                                     </c:when>
-                                    <!-- Output gene identifier links -->
                                     <c:when test="${!empty atlasProperties.geneIDLinks[prop]}">
                                         <a href="${f:replace(atlasProperties.geneIDLinks[prop], '$$', atlasGene.geneIdentifier)}"
                                            target="_blank">${f:escapeXml(atlasGene.geneIdentifier)}
