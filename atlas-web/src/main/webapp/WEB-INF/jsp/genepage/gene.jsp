@@ -375,8 +375,8 @@ $(document).ready(function() {
                                                target="_blank">${f:escapeXml(v)}</a><c:if test="${!s.last}">, </c:if>
                                         </c:forEach>
                                     </c:when>
-                                    <c:when test="${!empty atlasProperties.geneIDLinks[prop]}">
-                                        <a href="${f:replace(atlasProperties.geneIDLinks[prop], '$$', atlasGene.geneIdentifier)}"
+                                    <c:when test="${!empty atlasProperties.geneIdentifierLinks[prop]}">
+                                        <a href="${f:replace(atlasProperties.geneIdentifierLinks[prop], '$$', atlasGene.geneIdentifier)}"
                                            target="_blank">${f:escapeXml(atlasGene.geneIdentifier)}
                                     </c:when>
                                     <c:otherwise>
