@@ -36,12 +36,9 @@ begin
    dbms_output.put_line('delete assay and sample mapping'); 
    
    delete a2_samplepvontology t
-   where samplePVID in (select spv.SamplePVID
-   FROM a2_experiment e
-   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID
-   JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID
-   JOIN a2_sample s ON s.SampleID = asss.SampleID
-   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID
+   where samplePVID in (select spv.SamplePVID FROM a2_samplePV spv
+   JOIN a2_sample s ON spv.SampleID = s.SampleID
+   JOIN a2_experiment e  ON s.ExperimentID = e.ExperimentID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID
    JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
@@ -49,10 +46,9 @@ begin
    and pv.Name = :old.Value);
 
    delete a2_assaypvontology t
-   where assayPVID in (select apv.assayPVID
-   FROM a2_experiment e
-   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID
-   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID
+   where assayPVID in (select apv.assayPVID FROM a2_assayPV apv
+   JOIN a2_assay ass ON apv.assayID = ass.AssayID
+   JOIN a2_experiment e ON ass.ExperimentID = e.ExperimentID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
    JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
