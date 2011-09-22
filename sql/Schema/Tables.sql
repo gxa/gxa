@@ -1230,16 +1230,6 @@ ALTER TRIGGER A2_BIOENTITYProperty_INSERT ENABLE;
     UNIQUE("BIOENTITYPROPERTYID","VALUE")
     ENABLE;
 
-CREATE BITMAP INDEX "IDX_BIOENTITYBEPV_BEID_SWID"
-ON "A2_BIOENTITYBEPV" (BIOENTITYID, SOFTWAREID)
-/*INDEX_TABLESPACE*/;
-
-CREATE BITMAP INDEX IDX_BIOENTITYBEPV_organismid
-ON a2_bioentitybepv(a2_bioentity.organismid)
-FROM a2_bioentitybepv, a2_bioentity
-WHERE a2_bioentitybepv.bioentityid = a2_bioentity.bioentityid
-/*INDEX_TABLESPACE*/;
-
 CREATE OR REPLACE TRIGGER A2_BEPROPERTYVALUE_INSERT
 before insert on A2_BIOENTITYPropertyValue
 for each row
@@ -1603,6 +1593,15 @@ end;
 
 ALTER TRIGGER A2_DESIGNELTBIOENTITY_INSERT ENABLE;
 
+CREATE BITMAP INDEX "IDX_BIOENTITYBEPV_BEID_SWID"
+ON "A2_BIOENTITYBEPV" (BIOENTITYID, SOFTWAREID)
+/*INDEX_TABLESPACE*/;
+
+CREATE BITMAP INDEX IDX_BIOENTITYBEPV_organismid
+ON a2_bioentitybepv(a2_bioentity.organismid)
+FROM a2_bioentitybepv, a2_bioentity
+WHERE a2_bioentitybepv.bioentityid = a2_bioentity.bioentityid
+/*INDEX_TABLESPACE*/;
 
 --------------------------------------------------------
 --  DDL for TEMP TABLE
