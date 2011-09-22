@@ -36,23 +36,23 @@ begin
    dbms_output.put_line('delete assay and sample mapping'); 
    
    delete a2_samplepvontology t
-   where exists (select 1 
-   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
-   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
-   JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID 
-   JOIN a2_sample s ON s.SampleID = asss.SampleID   
-   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID and t.SamplePVID = spv.SamplePVID
+   where samplePVID in (select spv.SamplePVID
+   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID
+   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID
+   JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID
+   JOIN a2_sample s ON s.SampleID = asss.SampleID
+   JOIN a2_samplePV spv ON spv.SampleID = s.SampleID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = spv.PropertyValueID
    JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
    and p.Name = :old.Property
    and pv.Name = :old.Value);
- 
+
    delete a2_assaypvontology t
-   where exists(select 1 
-   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID 
-   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID 
-   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID AND t.AssayPVID = apv.assayPVID
+   where assayPVID in (select apv.assayPVID
+   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID
+   JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID
+   JOIN a2_assayPV apv ON apv.assayID = ass.AssayID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
    JOIN a2_property p ON p.PropertyID = pv.PropertyID
    where e.Accession = :old.Experiment
@@ -61,7 +61,7 @@ begin
   
   else --new ontology term is not 
    dbms_output.put_line('update assay and sample mapping'); 
-   
+
    --create new ontology terms automatically
    --Insert into CUR_Ontology (Accession) Select :new.OntologyTerm from dual; 
    
