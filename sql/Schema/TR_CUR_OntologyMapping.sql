@@ -37,7 +37,7 @@ begin
    
    delete a2_samplepvontology t
    where samplePVID in (select spv.SamplePVID
-   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID
+   FROM a2_experiment e
    JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID
    JOIN a2_assaysample asss ON asss.AssayID = ass.AssayID
    JOIN a2_sample s ON s.SampleID = asss.SampleID
@@ -50,7 +50,7 @@ begin
 
    delete a2_assaypvontology t
    where assayPVID in (select apv.assayPVID
-   FROM a2_experiment e -- on e.ExperimentID = ev.ExperimentID
+   FROM a2_experiment e
    JOIN a2_assay ass ON ass.ExperimentID = e.ExperimentID
    JOIN a2_assayPV apv ON apv.assayID = ass.AssayID
    JOIN a2_propertyvalue pv ON pv.PropertyValueID = apv.PropertyValueID 
