@@ -28,7 +28,7 @@ public class DesignElementDataBuilder extends BioEntityDataBuilder<DesignElement
 
     @Override
     public void addPropertyValue(String beIdentifier, BioEntityType type, BEPropertyValue pv) {
-        throw new UnsupportedOperationException("DesignElementDataBuilder doesn't support method addPropertyValue ");
+        throw new UnsupportedOperationException(this.getClass().getSimpleName() + " doesn't support method addPropertyValue ");
     }
 
     @Override

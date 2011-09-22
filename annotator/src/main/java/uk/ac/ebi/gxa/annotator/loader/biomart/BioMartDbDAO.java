@@ -3,13 +3,12 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * User: nsklyar
@@ -22,7 +21,7 @@ public class BioMartDbDAO {
         createTemplate(url);
     }
 
-    public Set<List<String>> getSynonyms(String dbNameTemplate, String version) throws BioMartAccessException {
+    public HashSet<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws BioMartAccessException {
         String dbName = findDBName(dbNameTemplate, version);
         String query = "SELECT gene_stable_id.stable_id,  external_synonym.synonym \n" +
                 "FROM " + dbName + ".gene_stable_id, " + dbName + ".gene, " + dbName + ".xref, " + dbName + ".external_synonym \n" +
@@ -30,17 +29,15 @@ public class BioMartDbDAO {
                 "AND gene.display_xref_id = xref.xref_id \n" +
                 "AND external_synonym.xref_id = xref.xref_id \n" +
                 "ORDER BY gene_stable_id.stable_id; ";
-        List<List<String>> result = template.query(query, new RowMapper<List<String>>() {
+        List<Pair<String, String>> result = template.query(query, new RowMapper<Pair<String, String>>() {
             @Override
-            public List<String> mapRow(ResultSet rs, int rowNum) throws SQLException {
-                List<String> answer = new ArrayList<String>(2);
-                answer.add(rs.getString(1));
-                answer.add(rs.getString(2));
+            public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Pair<String, String> pair = Pair.create(rs.getString(1), rs.getString(2));
 
-                return answer;
+                return pair;
             }
         });
-        return new HashSet<List<String>>(result);
+        return new HashSet<Pair<String, String> >(result);
     }
 
 
@@ -53,6 +50,7 @@ public class BioMartDbDAO {
             }
         });
 
+        //here it is important that only a single line is returned. In a case Biomart changes format it is potentially possible more then a single result.
         if (result.size() != 1) {
             throw new BioMartAccessException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
         }

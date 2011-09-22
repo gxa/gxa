@@ -20,7 +20,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
@@ -108,7 +108,7 @@ public class AtlasBioEntityDataWriter {
     private Collection<String> getOrganismNames(final BioEntityData data) {
         return Collections2.transform(data.getOrganisms(), new Function<Organism, String>() {
             @Override
-            public String apply(@Nullable Organism organism) {
+            public String apply(@Nonnull Organism organism) {
                 return organism.getName();
             }
         });

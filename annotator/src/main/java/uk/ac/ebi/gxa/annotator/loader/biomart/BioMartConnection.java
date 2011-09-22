@@ -150,8 +150,8 @@ public class BioMartConnection {
 
     /**
      * @param location
-     * @return null - in a case of BioMart error and if ensProperty doesn't exist for a given ensOrganism
-     * @throws BioMartAccessException
+     * @return  URL to biomart data
+     * @throws BioMartAccessException if URL cannot be open or data contain an error
      */
     private URL getMartURL(String location) throws BioMartAccessException {
 

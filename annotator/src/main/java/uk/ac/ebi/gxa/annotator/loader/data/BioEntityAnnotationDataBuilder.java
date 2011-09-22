@@ -24,7 +24,7 @@ public class BioEntityAnnotationDataBuilder extends BioEntityDataBuilder<BioEnti
 
     @Override
     public void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {
-        throw new UnsupportedOperationException("BioEntityAnnotationDataBuilder doesn't implement method addBEDesignElementMapping");
+        throw new UnsupportedOperationException(this.getClass().getName() + " doesn't implement method addBEDesignElementMapping");
     }
 
     public void addPropertyValue(String beIdentifier, BioEntityType type, BEPropertyValue pv) {

@@ -97,11 +97,6 @@ public class BioEntityDAO {
 
         GeneDesignElementMapper mapper = new GeneDesignElementMapper(beToDe);
 
-        //ToDo: querying for linked bioentities might be skipped for now, while we have all mappings directly to genes
-//        template.query(ALL_GENE_DESIGN_ELEMENT_LINKED,
-//                new Object[]{annotationsSW},
-//                mapper);
-
         String query = "SELECT distinct " + GeneDesignElementMapper.FIELDS + "\n" +
                 "  FROM a2_designelement de\n" +
                 "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
@@ -137,7 +132,6 @@ public class BioEntityDAO {
                 "  when not matched then \n" +
                 "  insert (identifier, name, organismid, bioentitytypeid)   \n" +
                 "  values (?, ?, ?, ?) ";
-        //ToDo(4ns): add BE name
 
         ListStatementSetter<BioEntity> statementSetter = new ListStatementSetter<BioEntity>() {
 
@@ -330,7 +324,6 @@ public class BioEntityDAO {
             propertyParams.addValue("swid", swIds);
             propertyParams.addValue("geneids", geneIDsChunk);
 
-            //ToDo: now gets only properties which are directly linked with the queried bioentities, we might need also to get properties of connected bioentities
             namedTemplate.query("select " + GenePropertyMapper.FIELDS + "\n" +
                     "  from a2_bioentitybepv bebepv \n" +
                     "  join a2_bioentitypropertyvalue bepv on bepv.bepropertyvalueid = bebepv.bepropertyvalueid\n" +

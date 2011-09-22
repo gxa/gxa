@@ -64,7 +64,11 @@ public class BioMartAnnotationSourceLoader {
     public String getAnnSrcAsStringById(String id) {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
-        Writer writer = new CharArrayWriter();
+        if (annotationSource == null ) {
+            return "Create new annotation source";
+        }
+
+        Writer writer = new StringWriter();
         try {
             writeSource(annotationSource, writer);
             return writer.toString();
@@ -168,7 +172,7 @@ public class BioMartAnnotationSourceLoader {
                     result.add(newAnnSrc);
                 }
             } catch (BioMartAccessException e) {
-                log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
+                throw LogUtil.createUnexpected("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
         removeAnnSrcs(oldSources);

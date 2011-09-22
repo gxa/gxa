@@ -2,9 +2,9 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import junit.framework.TestCase;
 import org.junit.Test;
+import uk.ac.ebi.gxa.utils.Pair;
 
-import java.util.List;
-import java.util.Set;
+import java.util.HashSet;
 
 /**
  * User: nsklyar
@@ -23,7 +23,7 @@ public class BioMartDbDAOTest extends TestCase {
 
     @Test
     public void testGetSynonyms() throws Exception{
-        Set<List<String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
+        HashSet<Pair<String, String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
         assertEquals(1030, synonyms.size());
     }
 

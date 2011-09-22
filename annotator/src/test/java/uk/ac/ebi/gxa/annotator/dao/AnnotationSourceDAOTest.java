@@ -66,7 +66,6 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
-    @Transactional
     public void testGetAnnotationSourcesOfType() throws Exception {
         Collection<BioMartAnnotationSource> annotationSources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
         assertEquals(1, annotationSources.size());

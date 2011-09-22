@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.*;
@@ -48,7 +49,7 @@ public class AnnotationSourceController {
                 viewSources.add(view);
 
             } catch (BioMartAccessException e) {
-                log.error("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
+                throw LogUtil.createUnexpected("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
 
@@ -69,8 +70,7 @@ public class AnnotationSourceController {
         try {
             loader.saveAnnSrc(text);
         } catch (AnnotationLoaderException e) {
-            //ToDo: add error processing
-            log.error(e.getMessage(), e);
+            throw LogUtil.createUnexpected("Cannot save AnnotationSource! ", e);
         }
     }
 

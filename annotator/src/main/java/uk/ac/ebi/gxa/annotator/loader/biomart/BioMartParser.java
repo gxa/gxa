@@ -62,8 +62,6 @@ public class BioMartParser<T extends BioEntityData> {
                     String beIdentifier = line[columnCount++];
                     String beName = line[columnCount++];
                     builder.addBioEntity(beIdentifier, beName, type, organism);
-
-                    //ToDo: to be decided if we need to keep be2be relations and in which form
                 }
             }
         } catch (IOException e) {
@@ -93,7 +91,7 @@ public class BioMartParser<T extends BioEntityData> {
                     builder.addPropertyValue(line[count++], type, propertyValue);
                 }
 
-                if (lineCount++ % 1000 == 0) {
+                if (lineCount++ % 2000 == 0) {
                     log.info("Parsed " + lineCount + " properties values");
                 }
 
@@ -125,8 +123,8 @@ public class BioMartParser<T extends BioEntityData> {
                     builder.addBEDesignElementMapping(line[count++], type, deAcc);
                 }
 
-                if (lineCount++ % 1000 == 0) {
-                    log.info("Parsed " + lineCount + " properties values");
+                if (lineCount++ % 2000 == 0) {
+                    log.info("Parsed " + lineCount + " design element mappings");
                 }
 
             }

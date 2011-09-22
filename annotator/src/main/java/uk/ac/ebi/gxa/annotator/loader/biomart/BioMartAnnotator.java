@@ -12,6 +12,8 @@ import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -186,15 +188,15 @@ public class BioMartAnnotator {
         }
 
         if (geneType != null) {
-            Set<List<String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+            HashSet<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
             BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
-            for (List<String> geneToSynonym : geneToSynonyms) {
-                BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.get(1));
-                builder.addPropertyValue(geneToSynonym.get(0), geneType, pv);
+            for (Pair<String, String> geneToSynonym : geneToSynonyms) {
+                BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.getSecond());
+                builder.addPropertyValue(geneToSynonym.getFirst(), geneType, pv);
             }
 
         } else {
-            log.error("Annoation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
+           throw LogUtil.createUnexpected("Annoation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
         }
     }
 
@@ -225,8 +227,8 @@ public class BioMartAnnotator {
 
         private final List<BioEntityType> types;
         private final Set<BioMartProperty> bioMartProperties;
-        private List<String> martBEIdentifiersAndNames = new ArrayList<String>();
-        private List<String> martBEIdentifiers = new ArrayList<String>();
+        private final List<String> martBEIdentifiersAndNames = new ArrayList<String>();
+        private final List<String> martBEIdentifiers = new ArrayList<String>();
 
         private BETypeMartAttributesHandler(BioMartAnnotationSource annSrc) throws AtlasAnnotationException {
             this.types = Collections.unmodifiableList(new LinkedList<BioEntityType>(annSrc.getTypes()));
@@ -244,14 +246,14 @@ public class BioMartAnnotator {
             for (BioEntityType type : types) {
 
                 Set<String> idPropertyNames = getBioMartPropertyNamesForProperty(type.getIdentifierProperty());
-                if (idPropertyNames.size() < 1) {
+                if (idPropertyNames.isEmpty()) {
                     throw new AtlasAnnotationException("Annotation source not valid ");
                 }
                 martBEIdentifiersAndNames.add(getFirst(idPropertyNames, null));
                 martBEIdentifiers.add(getFirst(idPropertyNames, null));
 
                 Set<String> namePropertyNames = getBioMartPropertyNamesForProperty(type.getNameProperty());
-                if (namePropertyNames.size() < 1) {
+                if (namePropertyNames.isEmpty()) {
                     throw new AtlasAnnotationException("Annotation source not valid ");
                 }
                 martBEIdentifiersAndNames.add(getFirst(namePropertyNames, null));
