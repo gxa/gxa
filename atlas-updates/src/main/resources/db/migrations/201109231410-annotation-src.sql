@@ -1,5 +1,5 @@
 -- Modify SOFTWARE TABLE
-alter table a2_software add ISACTIVE VARCHAR2(1) default = '0';
+alter table a2_software add ISACTIVE VARCHAR2(1) default '0';
 
 UPDATE A2_SOFTWARE SET ISACTIVE='1' WHERE NAME='miRBase' AND VERSION='14';
 UPDATE A2_SOFTWARE SET ISACTIVE='1' WHERE NAME='Atlas' AND VERSION='Atlas';
@@ -204,5 +204,3 @@ ON a2_bioentitybepv(a2_bioentity.organismid)
 FROM a2_bioentitybepv, a2_bioentity
 WHERE a2_bioentitybepv.bioentityid = a2_bioentity.bioentityid
 /*INDEX_TABLESPACE*/;
-
-exit;
