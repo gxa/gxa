@@ -10,6 +10,7 @@ import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -146,5 +147,18 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         BioEntityProperty property = annSrcDAO.findOrCreateBEProperty("new prop");
         assertNotNull(property);
 
+    }
+
+    @Test
+    public void testIsAnnSrcApplied() throws Exception {
+        BioMartAnnotationSource annotationSource = fetchAnnotationSource();
+        assertTrue(annSrcDAO.isAnnSrcApplied(annotationSource, true));
+    }
+
+    @Test
+    public void testIsAnnSrcAppliedForArrayDesignMapping() throws Exception {
+        BioMartAnnotationSource annotationSource = fetchAnnotationSource();
+        ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignByAccession("A-AFFY-45");
+        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign, true));
     }
 }

@@ -144,7 +144,7 @@ public class BioMartAnnotator {
                 beDataWriter.writeDesignElements(parser.getData(),
                         bioMartArrayDesign.getArrayDesign(),
                         annSrc.getSoftware(),
-                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc.getSoftware(), bioMartArrayDesign.getArrayDesign()));
+                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, bioMartArrayDesign.getArrayDesign()));
             }
 
             reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
