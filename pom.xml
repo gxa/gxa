@@ -336,6 +336,27 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
             <version>1.4.0</version>
+            <exclusions>
+                <exclusion>
+                    <!--
+                        Woodstox has changed its groupId to org.codehaus.woodstox a while back:
+                        http://jira.codehaus.org/browse/WSTX-86
+                        see also the dependency on org.codehaus.woodstox:wstx-asl:pom below
+                    -->
+                    <groupId>woodstox</groupId>
+                    <artifactId>wstx-asl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <!--
+                Woodstox has changed its groupId to org.codehaus.woodstox a while back:
+                http://jira.codehaus.org/browse/WSTX-86
+                see also the woodstox:wstx-asl exclusion above
+            -->
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>wstx-asl</artifactId>
+            <version>3.2.7</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -379,17 +400,11 @@
     </dependencies>
 
     <repositories>
-        <repository>
-            <!--
-             An internal repository for libraries we cannot distribute, namely:
+        <!--
+         * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
 
-             * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
-
-             Please download and install those yourself.
-             -->
-            <id>coconut.ebi.ac.uk</id>
-            <url>http://bar:8081/artifactory/local-repo/</url>
-        </repository>
+         Please download and install those yourself.
+         -->
         <repository>
             <id>java.net</id>
             <url>http://download.java.net/maven/2/</url>
@@ -443,6 +458,14 @@
             <snapshots>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
+        </repository>
+        <repository>
+            <id>hasbanana</id>
+            <url>http://www.hasbanana.com/maven/repo</url>
+        </repository>
+        <repository>
+            <id>opencast</id>
+            <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
         </repository>
     </repositories>
 
