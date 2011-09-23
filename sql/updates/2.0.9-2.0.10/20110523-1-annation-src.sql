@@ -204,3 +204,5 @@ ON a2_bioentitybepv(a2_bioentity.organismid)
 FROM a2_bioentitybepv, a2_bioentity
 WHERE a2_bioentitybepv.bioentityid = a2_bioentity.bioentityid
 /*INDEX_TABLESPACE*/;
+
+exit;
