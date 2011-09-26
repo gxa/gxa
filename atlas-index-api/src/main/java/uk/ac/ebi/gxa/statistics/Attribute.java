@@ -10,19 +10,6 @@ import java.util.Set;
  */
 public abstract class Attribute {
 
-    private transient final StatisticsType statType;
-
-    /**
-     * Note: Default constructor is required for serializable descendants of the abstract class.
-     */
-    protected Attribute() {
-        this.statType = null;
-    }
-
-    protected Attribute(StatisticsType statType) {
-        this.statType = statType;
-    }
-
     /**
      * @param efo
      * @return Set containing this Attribute (and all its children if applicable - c.f. EfoAttribute)
@@ -39,17 +26,6 @@ public abstract class Attribute {
     );
 
     public abstract String getValue();
-
-    /**
-     * TODO: Temporary solution to make Attribute immutable. See ticket #3048
-     * @param statType new statistics type
-     * @return a copy of current object but with new statistics type
-     */
-    public abstract Attribute withStatType(StatisticsType statType);
-
-    public StatisticsType getStatType() {
-        return statType;
-    }
 
     @Override
     public String toString() {

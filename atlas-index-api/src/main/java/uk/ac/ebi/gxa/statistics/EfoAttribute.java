@@ -20,16 +20,9 @@ public class EfoAttribute extends Attribute {
      * <p/>
      *
      * @param value
-     * @param statType
      */
-    public EfoAttribute(final String value, final StatisticsType statType) {
-        super(statType);
+    public EfoAttribute(final String value) {
         this.value = value.intern();
-    }
-
-    @Override
-    public EfoAttribute withStatType(StatisticsType statType) {
-        return new EfoAttribute(value, statType);
     }
 
     /**
@@ -46,7 +39,7 @@ public class EfoAttribute extends Attribute {
         Collection<String> efoPlusChildren = efo.getTermAndAllChildrenIds(getValue(), Integer.MAX_VALUE);
         log.debug("Expanded efo: " + this + " into: " + efoPlusChildren);
         for (String efoTerm : efoPlusChildren) {
-            attrsPlusChildren.add(new EfoAttribute(efoTerm, this.getStatType()));
+            attrsPlusChildren.add(new EfoAttribute(efoTerm));
         }
         return attrsPlusChildren;
     }
