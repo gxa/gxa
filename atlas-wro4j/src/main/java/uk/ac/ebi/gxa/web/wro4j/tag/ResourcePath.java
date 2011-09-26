@@ -22,17 +22,14 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import java.util.StringTokenizer;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 
 /**
  * @author Olga Melnichuk
  */
 class ResourcePath {
-
     private static final String PATH_SEPARATOR = "/";
-
-    private ResourcePath() {
-    }
 
     /**
      * Normalizes the path string:
@@ -43,15 +40,7 @@ class ResourcePath {
      * @return a normalized path string
      */
     public static String normalizePath(String path) {
-        String normalized = path.replaceAll("/[/]+", PATH_SEPARATOR);
-        StringTokenizer stk = new StringTokenizer(normalized, PATH_SEPARATOR);
-        StringBuilder sb = new StringBuilder();
-        while (stk.hasMoreTokens()) {
-            sb.append(stk.nextToken());
-            if (stk.hasMoreTokens())
-                sb.append(PATH_SEPARATOR);
-        }
-        return sb.toString();
+        return joiner().join(splitter().split(path));
     }
 
     /**
@@ -62,16 +51,15 @@ class ResourcePath {
      * @return a joined path string
      */
     public static String join(String path1, String... path2) {
-        StringBuilder sb = new StringBuilder();
-        if (path1.startsWith(PATH_SEPARATOR)) {
-            sb.append(PATH_SEPARATOR);
-        }
+        String path = normalizePath(path1 + PATH_SEPARATOR + joiner().join(path2));
+        return path1.startsWith(PATH_SEPARATOR) ? PATH_SEPARATOR + path : path;
+    }
 
-        sb.append(normalizePath(path1));
-        for (String p : path2) {
-            sb.append(PATH_SEPARATOR)
-                    .append(normalizePath(p));
-        }
-        return sb.toString();
+    private static Splitter splitter() {
+        return Splitter.on(PATH_SEPARATOR).omitEmptyStrings();
+    }
+
+    private static Joiner joiner() {
+        return Joiner.on(PATH_SEPARATOR);
     }
 }
