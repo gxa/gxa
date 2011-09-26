@@ -26,6 +26,7 @@ import org.junit.Test;
 import ro.isdc.wro.model.resource.ResourceType;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Olga Melnichuk
@@ -49,5 +50,15 @@ public class AggregatedResourceNamePatternTest {
 
         pattern = new AggregatedResourceNamePattern(p, ResourceType.JS);
         assertEquals("test-345\\.js", pattern.pattern("test"));
+    }
+
+    @Test
+    public void invalidTypeTest() {
+        try {
+            new AggregatedResourceNamePattern(null, null);
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException e) {
+            // expected outcome
+        }
     }
 }

@@ -37,28 +37,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * @author Olga Melnichuk
  */
 abstract class Wro4jTagRenderer {
-
-    private final static Logger log = LoggerFactory.getLogger(Wro4jTagRenderer.class);
-
+    private static final Logger log = LoggerFactory.getLogger(Wro4jTagRenderer.class);
+    private static final String TAG_PROPERTIES = "wro4j-tag.properties";
     private static final Wro4jTagProperties properties = new Wro4jTagProperties();
 
-        static {
-            String tagProperties = "wro4j-tag.properties";
-            try {
-                InputStream in = Wro4jTag.class.getClassLoader().getResourceAsStream(tagProperties);
-                if (in == null) {
-                    log.error(tagProperties + " not found in the classpath");
-                } else {
-                    properties.load(in);
-                }
-            } catch (IOException e) {
-                log.error("Wro4jTag error: " + tagProperties + " not loaded", e);
+    static {
+        InputStream in = null;
+        try {
+            in = Wro4jTag.class.getClassLoader().getResourceAsStream(TAG_PROPERTIES);
+            if (in == null) {
+                log.error(TAG_PROPERTIES + " not found in the classpath");
             }
+            properties.load(in);
+        } catch (IOException e) {
+            log.error("Wro4jTag error: " + TAG_PROPERTIES + " not loaded", e);
+        } finally {
+            closeQuietly(in);
         }
+    }
 
     private final PageContext pageContext;
 
@@ -67,7 +69,7 @@ abstract class Wro4jTagRenderer {
     }
 
     public static Wro4jTagRenderer create(PageContext pageContext, Collection<ResourceType> resourceTypes) {
-        return create(properties.isDebugOn(), pageContext,  resourceTypes);
+        return create(properties.isDebugOn(), pageContext, resourceTypes);
     }
 
     public static Wro4jTagRenderer create(boolean debug, final PageContext pageContext, final Collection<ResourceType> resourceTypes) {
@@ -108,21 +110,12 @@ abstract class Wro4jTagRenderer {
     public abstract void render(@Nonnull Group group) throws IOException, Wro4jTagException;
 
     protected void render(Collection<Resource> resources) throws IOException {
+        String contextPath = ((HttpServletRequest) pageContext.getRequest()).getContextPath();
         StringBuilder sb = new StringBuilder();
         for (Resource resource : resources) {
-            sb.append(
-                    toHtml(resource)
-            ).append("\n");
+            sb.append(ResourceHtmlTag.render(contextPath, resource)).append("\n");
         }
 
         pageContext.getOut().write(sb.toString());
-    }
-
-    private String toHtml(Resource resource) {
-        return ResourceHtmlTag.of(resource.getType()).asString(relativeToContextPath(resource.getUri()));
-    }
-
-    private String relativeToContextPath(String uri) {
-        return ResourcePath.join(((HttpServletRequest) pageContext.getRequest()).getContextPath(), uri);
     }
 }

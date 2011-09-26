@@ -22,11 +22,12 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
+import ro.isdc.wro.model.resource.Resource;
 import ro.isdc.wro.model.resource.ResourceType;
 
-import java.util.Map;
+import java.util.EnumMap;
 
-import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Maps.newEnumMap;
 
 /**
  * @author Olga Melnichuk
@@ -35,7 +36,7 @@ enum ResourceHtmlTag {
     CSS(ResourceType.CSS, "<link type=\"text/css\" rel=\"stylesheet\" href=\"%s\"/>"),
     JS(ResourceType.JS, "<script type=\"text/javascript\" src=\"%s\"></script>");
 
-    private static final Map<ResourceType, ResourceHtmlTag> BY_TYPE = newHashMap();
+    private static final EnumMap<ResourceType, ResourceHtmlTag> BY_TYPE = newEnumMap(ResourceType.class);
 
     private ResourceType type;
     private String format;
@@ -45,16 +46,12 @@ enum ResourceHtmlTag {
         this.format = format;
     }
 
-    public String asString(String src) {
-        return String.format(format, src);
-    }
-
-    public static ResourceHtmlTag of(ResourceType type) {
-        ResourceHtmlTag tag = BY_TYPE.get(type);
+    static String render(String contextPath, Resource resource) {
+        ResourceHtmlTag tag = BY_TYPE.get(resource.getType());
         if (tag == null) {
-            throw new IllegalStateException("Unsupported resource type: " + type);
+            throw new IllegalStateException("Unsupported resource type: " + resource.getType());
         }
-        return tag;
+        return String.format(tag.format, ResourcePath.join(contextPath, resource.getUri()));
     }
 
     static {

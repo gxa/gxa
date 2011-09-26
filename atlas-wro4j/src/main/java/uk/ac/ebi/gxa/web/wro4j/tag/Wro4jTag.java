@@ -26,14 +26,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.isdc.wro.WroRuntimeException;
 import ro.isdc.wro.model.WroModel;
+import ro.isdc.wro.model.factory.XmlModelFactory;
 import ro.isdc.wro.model.group.InvalidGroupNameException;
 import ro.isdc.wro.model.resource.ResourceType;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -98,10 +100,14 @@ public class Wro4jTag extends TagSupport {
     }
 
     private WroModel loadWro4jConfig() throws Wro4jTagException {
-        File webInf = new File(pageContext.getServletContext().getRealPath("/"), "WEB-INF");
-        File wro4jConfigPath = new File(webInf, "wro.xml");
+        final String wro4jConfigPath = pageContext.getServletContext().getRealPath("/WEB-INF/wro.xml");
         try {
-            return new XmlFileModelFactory(wro4jConfigPath).create();
+            return (new XmlModelFactory() {
+                @Override
+                protected InputStream getConfigResourceAsStream() throws IOException {
+                    return new FileInputStream(wro4jConfigPath);
+                }
+            }).create();
         } catch (WroRuntimeException e) {
             throw new Wro4jTagException("Can't load wro4j config file", e);
         }
