@@ -101,7 +101,7 @@ public class Wro4jTag extends TagSupport {
         File webInf = new File(pageContext.getServletContext().getRealPath("/"), "WEB-INF");
         File wro4jConfigPath = new File(webInf, "wro.xml");
         try {
-            return new Wro4jXmlModelFactory(wro4jConfigPath).create();
+            return new XmlFileModelFactory(wro4jConfigPath).create();
         } catch (WroRuntimeException e) {
             throw new Wro4jTagException("Can't load wro4j config file", e);
         }

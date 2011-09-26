@@ -32,11 +32,11 @@ import java.io.InputStream;
 /**
  * @author Olga Melnichuk
  */
-class Wro4jXmlModelFactory extends XmlModelFactory {
+class XmlFileModelFactory extends XmlModelFactory {
 
     private final File wro4jConfigPath;
 
-    public Wro4jXmlModelFactory(File wro4jConfigPath) {
+    public XmlFileModelFactory(File wro4jConfigPath) {
        this.wro4jConfigPath = wro4jConfigPath;
     }
 
