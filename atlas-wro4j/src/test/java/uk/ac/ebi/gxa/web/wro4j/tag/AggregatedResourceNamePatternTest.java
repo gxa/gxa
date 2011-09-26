@@ -25,14 +25,7 @@ package uk.ac.ebi.gxa.web.wro4j.tag;
 import org.junit.Test;
 import ro.isdc.wro.model.resource.ResourceType;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
-import static org.junit.Assert.*;
-import static uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTagProperties.aggregationNamePatternPropertyName;
-import static uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTagProperties.aggregationPathPropertyName;
-import static uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTagProperties.debugPropertyName;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Olga Melnichuk
@@ -42,20 +35,19 @@ public class AggregatedResourceNamePatternTest {
     @Test
     public void defaultPatternTest() {
         AggregatedResourceNamePattern pattern = new AggregatedResourceNamePattern(null, ResourceType.CSS);
-        assertTrue(pattern.compile("test").matcher("test.css").matches());
+        assertEquals("test\\.css", pattern.pattern("test"));
 
         pattern = new AggregatedResourceNamePattern(null, ResourceType.JS);
-        assertTrue(pattern.compile("test").matcher("test.js").matches());
+        assertEquals("test\\.js", pattern.pattern("test"));
     }
 
     @Test
     public void simplePatternTest() {
         String p = "@groupName@-345.@extension@";
         AggregatedResourceNamePattern pattern = new AggregatedResourceNamePattern(p, ResourceType.CSS);
-        assertTrue(pattern.compile("test").matcher("test-345.css").matches());
+        assertEquals("test-345\\.css", pattern.pattern("test"));
 
         pattern = new AggregatedResourceNamePattern(p, ResourceType.JS);
-        assertTrue(pattern.compile("test").matcher("test-345.js").matches());
+        assertEquals("test-345\\.js", pattern.pattern("test"));
     }
-
 }

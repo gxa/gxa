@@ -22,12 +22,14 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
+import com.google.common.io.PatternFilenameFilter;
+
 import javax.annotation.Nullable;
 import javax.servlet.jsp.PageContext;
 import java.io.File;
-import java.io.FilenameFilter;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * @author Olga Melnichuk
@@ -54,16 +56,9 @@ class AggregatedResourcePath {
         }
 
         public Collection<String> findAll(String resourceName) {
-            final Pattern pattern = namePattern.compile(resourceName);
+            String[] names = folder.list(new PatternFilenameFilter(namePattern.pattern(resourceName)));
 
-            String[] names = folder.list(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return pattern.matcher(name).matches();
-                }
-            });
-
-            List<String> list = new ArrayList<String>();
+            Collection<String> list = new ArrayList<String>();
             for (String name : names) {
                 list.add(ResourcePath.join(aggregationPath, name));
             }
@@ -72,12 +67,14 @@ class AggregatedResourcePath {
 
         public String findOne(String resourceName) throws Wro4jTagException {
             Collection<String> paths = findAll(resourceName);
-            if (paths.size() == 1) {
-                return paths.iterator().next();
-            } else if (paths.size() > 1) {
-                throw new Wro4jTagException("More than one file matches the pattern '" + namePattern + "': " + Arrays.toString(paths.toArray()));
+            switch (paths.size()) {
+                case 1:
+                    return paths.iterator().next();
+                case 0:
+                    throw new Wro4jTagException("More than one file matches the pattern '" + namePattern + "': " + Arrays.toString(paths.toArray()));
+                default:
+                    throw new Wro4jTagException("No file matching the pattern: '" + namePattern + "' found in the path: " + folder.getAbsolutePath());
             }
-            throw new Wro4jTagException("No file matching the pattern: '" + namePattern + "' found in the path: " + folder.getAbsolutePath());
         }
     }
 }

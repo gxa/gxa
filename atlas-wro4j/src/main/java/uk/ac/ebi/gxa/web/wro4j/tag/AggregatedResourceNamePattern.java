@@ -27,7 +27,6 @@ import ro.isdc.wro.model.resource.ResourceType;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * @author Olga Melnichuk
@@ -42,9 +41,7 @@ class AggregatedResourceNamePattern {
     private final String namePattern;
 
     public AggregatedResourceNamePattern(String namePattern, ResourceType type) {
-        if (namePattern == null) {
-            namePattern = DEFAULT_PATTERN;
-        }
+        namePattern = namePattern == null ? DEFAULT_PATTERN : namePattern.replaceAll("\\.", "\\\\\\.");
         String ext = fileExtensions.get(type);
         if (ext == null) {
             throw new IllegalStateException("Unrecognized resource type: " + type);
@@ -52,8 +49,7 @@ class AggregatedResourceNamePattern {
         this.namePattern = namePattern.replace("@extension@", ext);
     }
 
-    public Pattern compile(String groupName) {
-        String s = namePattern.replace("@groupName@", groupName);
-        return Pattern.compile(s);
+    public String pattern(String groupName) {
+        return namePattern.replace("@groupName@", groupName);
     }
 }
