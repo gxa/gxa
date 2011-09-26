@@ -24,40 +24,42 @@ package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import ro.isdc.wro.model.resource.ResourceType;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 /**
  * @author Olga Melnichuk
  */
-abstract class ResourceHtmlTag {
+enum ResourceHtmlTag {
+    CSS(ResourceType.CSS, "<link type=\"text/css\" rel=\"stylesheet\" href=\"%s\"/>"),
+    JS(ResourceType.JS, "<script type=\"text/javascript\" src=\"%s\"></script>");
 
-    private static final Map<ResourceType, ResourceHtmlTag> tags =
-            new HashMap<ResourceType, ResourceHtmlTag>() {{
-                put(ResourceType.CSS, new ResourceHtmlTag() {
-                    @Override
-                    public String asString(String src) {
-                        return "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + src + "\"/>";
-                    }
-                });
-                put(ResourceType.JS, new ResourceHtmlTag() {
-                    @Override
-                    public String asString(String src) {
-                        return "<script type=\"text/javascript\" src=\"" + src + "\"></script>";
-                    }
-                });
-            }};
+    private static final Map<ResourceType, ResourceHtmlTag> BY_TYPE = newHashMap();
 
-    private ResourceHtmlTag() {
+    private ResourceType type;
+    private String format;
+
+    private ResourceHtmlTag(ResourceType type, String format) {
+        this.type = type;
+        this.format = format;
     }
 
-    public abstract String asString(String src);
+    public String asString(String src) {
+        return String.format(format, src);
+    }
 
     public static ResourceHtmlTag of(ResourceType type) {
-        ResourceHtmlTag tag = tags.get(type);
+        ResourceHtmlTag tag = BY_TYPE.get(type);
         if (tag == null) {
             throw new IllegalStateException("Unsupported resource type: " + type);
         }
         return tag;
+    }
+
+    static {
+        for (ResourceHtmlTag tag : values()) {
+            BY_TYPE.put(tag.type, tag);
+        }
     }
 }
