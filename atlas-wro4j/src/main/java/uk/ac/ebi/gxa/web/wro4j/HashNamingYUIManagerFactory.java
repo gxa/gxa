@@ -22,13 +22,14 @@
 
 package uk.ac.ebi.gxa.web.wro4j;
 
+import ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory;
 import ro.isdc.wro.model.resource.util.HashEncoderNamingStrategy;
 
 /**
  * @author Olga Melnichuk
  */
-public class CustomWroManagerFactory extends ro.isdc.wro.extensions.manager.standalone.YUIStandaloneManagerFactory {
-    public CustomWroManagerFactory() {
+public class HashNamingYUIManagerFactory extends YUIStandaloneManagerFactory {
+    public HashNamingYUIManagerFactory() {
         setNamingStrategy(new HashEncoderNamingStrategy());
     }
 }
