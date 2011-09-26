@@ -1,5 +1,8 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
@@ -19,6 +22,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.*;
 
@@ -178,15 +183,15 @@ public class BioMartAnnotator {
         reportProgress("Reading synonyms for " + organism.getName());
         BioMartDbDAO bioMartDbDAO = new BioMartDbDAO(annSrc.getMySqlDbUrl());
 
-        BioEntityType geneType = null;
-        for (BioEntityType type : annSrc.getTypes()) {
-            //Synonyms belong to genes
-            if (type.getName().equals(BioEntityType.ENSGENE)) {
-                geneType = type;
-                break;
-            }
-        }
+        // Collect gene types for which synonyms are to be collected
+        Collection<BioEntityType> ensemblGeneTypes = Collections2.filter(annSrc.getTypes(),
+                new Predicate<BioEntityType>() {
+                    public boolean apply(@Nullable BioEntityType bioEntityType) {
+                        return bioEntityType != null && bioEntityType.equals(BioEntityType.ENSGENE);
+                    }
+                });
 
+        BioEntityType geneType = getFirst(ensemblGeneTypes, null); // We need only one BioEntityType of type BioEntityType.ENSGENE
         if (geneType != null) {
             HashSet<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
             BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
@@ -196,7 +201,7 @@ public class BioMartAnnotator {
             }
 
         } else {
-           throw LogUtil.createUnexpected("Annoation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
+            throw LogUtil.createUnexpected("Annotation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
         }
     }
 
@@ -279,14 +284,19 @@ public class BioMartAnnotator {
             return types;
         }
 
-        private Set<String> getBioMartPropertyNamesForProperty(BioEntityProperty beProprety) {
-            Set<String> answer = new HashSet<String>(bioMartProperties.size());
-            for (BioMartProperty bioMartProperty : bioMartProperties) {
-                if (beProprety.equals(bioMartProperty.getBioEntityProperty())) {
-                    answer.add(bioMartProperty.getName());
-                }
-            }
-            return answer;
+        private Set<String> getBioMartPropertyNamesForProperty(@Nonnull final BioEntityProperty beProperty) {
+            return new HashSet<String>(Collections2.transform(
+                    Collections2.filter(bioMartProperties,
+                            new Predicate<BioMartProperty>() {
+                                public boolean apply(@Nullable BioMartProperty bioMartProperty) {
+                                    return bioMartProperty != null && beProperty.equals(bioMartProperty.getBioEntityProperty());
+                                }
+                            }), new Function<BioMartProperty, String>() {
+                        @Override
+                        public String apply(@Nonnull BioMartProperty bioMartProperty) {
+                            return bioMartProperty.getName();
+                        }
+                    }));
         }
 
     }

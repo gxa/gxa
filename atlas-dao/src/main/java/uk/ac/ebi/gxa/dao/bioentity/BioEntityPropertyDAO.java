@@ -25,7 +25,7 @@ public class BioEntityPropertyDAO extends AbstractDAO<BioEntityProperty> {
             return getByName(propertyName);
         } catch (RecordNotFoundException e) {
             BioEntityProperty property = new BioEntityProperty(null, propertyName);
-            super.save(property);
+            save(property);
             template.flush();
             return property;
         }

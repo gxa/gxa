@@ -9,12 +9,15 @@ TABLE_NAMES_DATA="Assay \
              SamplePVOntology"
 
 TABLE_NAMES_SCHEMA="ArrayDesign \
+             AnnSrc_BioEntityType
              BioEntity \
              BioEntity2BioEntity \
              BioEntitybepv \
              BioEntityproperty \
              BioEntitypropertyvalue \
              BioEntitytype \
+             BioMartArrayDesign \
+             BioMartProperty \
              Berelationtype \
              DesignElement \
              DesignEltBioEntity \

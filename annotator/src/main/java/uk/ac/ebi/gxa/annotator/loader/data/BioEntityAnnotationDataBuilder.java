@@ -19,7 +19,7 @@ public class BioEntityAnnotationDataBuilder extends BioEntityDataBuilder<BioEnti
     protected boolean isValidData() {
         return super.isValidData() &&
                 (!data.typeToBEPropValues.isEmpty() &&
-                        CollectionUtils.isEqualCollection(data.typeToBEPropValues.keySet(), data.bioEntityTypes));
+                        CollectionUtils.isEqualCollection(data.typeToBEPropValues.keySet(), data.getBioEntityTypes()));
     }
 
     @Override

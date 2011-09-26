@@ -19,7 +19,7 @@ public class DesignElementDataBuilder extends BioEntityDataBuilder<DesignElement
     protected boolean isValidData() {
         return super.isValidData() &&
                 (!data.typeToDesignElementBEMapping.isEmpty() &&
-                        CollectionUtils.isEqualCollection(data.typeToDesignElementBEMapping.keySet(), data.bioEntityTypes));
+                        CollectionUtils.isEqualCollection(data.typeToDesignElementBEMapping.keySet(), data.getBioEntityTypes()));
     }
 
     public void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {

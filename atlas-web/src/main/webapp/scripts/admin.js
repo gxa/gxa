@@ -885,9 +885,6 @@ function compileTemplates() {
     });
 
      compileTpl('orgList', {
-//        'thead@style': function(r) { return r.context.annSrcs.length ? '' : 'display:none'; },
-//        '.orgall@style': function (r) { return r.context.annSrcs.length ? '' : 'display:none'; },
-
         'tbody tr': {
             'annSrc <- annSrcs': {
                 'label.name': 'annSrc.organismName',
@@ -895,8 +892,6 @@ function compileTemplates() {
                 '.currAnnSrc': 'annSrc.currName',
                 '.validation': 'annSrc.validation',
                 '.applied': 'annSrc.applied',
-//                '.orgSelector@checked': function (r) { return selectedannSrcs[r.item.accession]; },
-//                '.orgSelector@disabled':'annSrc.isUpdatable',
                 '.orgSelector@value': 'annSrc.id',
                 '.orgSelector@id+': 'annSrc.id'
             }

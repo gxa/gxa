@@ -264,7 +264,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         List<Map> results = new ArrayList<Map>();
         Collection<AnnotationSourceController.BioMartAnnotationSourceView> bioMartAnnSrcs = annSrcController.getBioMartAnnSrcViews();
         for (AnnotationSourceController.BioMartAnnotationSourceView sourceView : bioMartAnnSrcs) {
-//            BioMartAnnotationSource annSrc = sourceView.getAnnSrc();
             results.add(
                     makeMap("organismName", sourceView.getOrganismName()
                             , "id", sourceView.getAnnSrcId()

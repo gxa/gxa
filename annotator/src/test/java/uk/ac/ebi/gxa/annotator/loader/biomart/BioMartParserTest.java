@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.junit.Test;
+import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementDataBuilder;
@@ -28,9 +29,7 @@ public class BioMartParserTest {
     @Test
     public void testParseBioMartPropertyValues() throws Exception {
         List<BioEntityType> bioEntityTypes = initTypes();
-
-        BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
-        BioMartParser<BioEntityAnnotationData> parser = BioMartParser.initParser(bioEntityTypes, builder);
+        BioMartParser<BioEntityAnnotationData> parser = getBioMartParser();
 
         Organism organism = new Organism(null, "test_org");
         parser.parseBioEntities(BioMartParserTest.class.getResource("bioentities.txt"), organism);
@@ -91,28 +90,63 @@ public class BioMartParserTest {
         }
     }
 
+    @Test(expected = AtlasAnnotationException.class)
+    public void testParseBioMartIncorrectBioEntitites1() throws Exception {
+        Organism organism = new Organism(null, "test_org");
+        getBioMartParser().parseBioEntities(BioMartParserTest.class.getResource("bioentities_incorrect1.txt"), organism);
+    }
+
+    @Test(expected = AtlasAnnotationException.class)
+    public void testParseBioMartIncorrectBioEntitites2() throws Exception {
+        Organism organism = new Organism(null, "test_org");
+        getBioMartParser().parseBioEntities(BioMartParserTest.class.getResource("bioentities_incorrect2.txt"), organism);
+    }
+
+    @Test(expected = AtlasAnnotationException.class)
+    public void testParseBioMartIncorrectPropertyValues1() throws Exception {
+        BioEntityProperty go = new BioEntityProperty(null, "go");
+        BioEntityProperty property = go;
+        getBioMartParser().parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect1.txt"));
+    }
+
+    @Test(expected = AtlasAnnotationException.class)
+    public void testParseBioMartIncorrectPropertyValues2() throws Exception {
+        BioEntityProperty go = new BioEntityProperty(null, "go");
+        BioEntityProperty property = go;
+        getBioMartParser().parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect2.txt"));
+    }
+
     @Test
     public void testParseDesignElementMappings() throws Exception {
         List<BioEntityType> bioEntityTypes = initTypes();
-
-        DesignElementDataBuilder builder = new DesignElementDataBuilder();
-        BioMartParser<DesignElementMappingData> parser = BioMartParser.initParser(bioEntityTypes, builder);
+        BioMartParser<DesignElementMappingData> parser = getBioMartParserForDesignElements();
 
         parser.parseDesignElementMappings(BioMartParserTest.class.getResource("designelements.txt"));
         DesignElementMappingData data = parser.getData();
 
         for (BioEntityType type : bioEntityTypes) {
             Collection<Pair<String, String>> designElementToBioEntity = data.getDesignElementToBioEntity(type);
-            assertEquals(2, designElementToBioEntity.size());
+            assertEquals(3, designElementToBioEntity.size());
             if (type.equals(new BioEntityType(null, "ensgene", 1))) {
                 assertTrue(designElementToBioEntity.contains(Pair.create("232832_at", "ENSG00000236057")));
                 assertTrue(designElementToBioEntity.contains(Pair.create("235934_at", "ENSG00000245602")));
+                assertTrue(designElementToBioEntity.contains(Pair.create("232835_at", "ENSG00000236057")));
             } else {
                 assertTrue(designElementToBioEntity.contains(Pair.create("232832_at", "ENST00000537266")));
                 assertTrue(designElementToBioEntity.contains(Pair.create("235934_at", "ENST00000500835")));
+                assertTrue(designElementToBioEntity.contains(Pair.create("232835_at", "ENST00000446137")));
             }
         }
+    }
 
+    @Test(expected = AtlasAnnotationException.class)
+    public void testParseIncorrectDesignElementMappings1() throws Exception {
+        getBioMartParserForDesignElements().parseDesignElementMappings(BioMartParserTest.class.getResource("designelements_incorrect1.txt"));
+    }
+
+    @Test(expected = AtlasAnnotationException.class)
+    public void testParseIncorrectDesignElementMappings2() throws Exception {
+        getBioMartParserForDesignElements().parseDesignElementMappings(BioMartParserTest.class.getResource("designelements_incorrect2.txt"));
     }
 
     private List<BioEntityType> initTypes() {
@@ -120,6 +154,18 @@ public class BioMartParserTest {
         types.add(new BioEntityType(null, "enstranscript", 1));
         types.add(new BioEntityType(null, "ensgene", 1));
         return types;
+    }
+
+    private BioMartParser<BioEntityAnnotationData> getBioMartParser() {
+        List<BioEntityType> bioEntityTypes = initTypes();
+        BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
+        return BioMartParser.initParser(bioEntityTypes, builder);
+    }
+
+    private BioMartParser<DesignElementMappingData> getBioMartParserForDesignElements() {
+        List<BioEntityType> bioEntityTypes = initTypes();
+        DesignElementDataBuilder builder = new DesignElementDataBuilder();
+        return BioMartParser.initParser(bioEntityTypes, builder);
     }
 
 

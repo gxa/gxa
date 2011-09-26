@@ -14,6 +14,7 @@ public class Software {
     private Long softwareid;
     private String name;
     private String version;
+    // TODO: Ticket #3117 to enable proper handling of isActive field via the Admin UI
     private Boolean isActive = false;
 
     Software() {
@@ -40,14 +41,6 @@ public class Software {
 
     public String getVersion() {
         return version;
-    }
-
-    public boolean isActive() {
-        return isActive== null?false:isActive;
-    }
-
-    public String getDisplayName() {
-        return name + "_" + version;
     }
 
     @Override

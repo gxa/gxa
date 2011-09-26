@@ -14,10 +14,15 @@ import java.util.*;
  */
 public class BioEntityData {
 
-    final protected List<BioEntityType> bioEntityTypes;
+    private final List<BioEntityType> bioEntityTypes;
 
-    protected Multimap<BioEntityType, BioEntity> typeToBioEntities = HashMultimap.create();
-    protected Set<Organism> organisms = new HashSet<Organism>();
+    // Multimap used because of one to many relationship between BioEntityType and BioEntity
+    private Multimap<BioEntityType, BioEntity> typeToBioEntities = HashMultimap.create();
+    private Set<Organism> organisms = new HashSet<Organism>();
+
+    public Multimap<BioEntityType, BioEntity> getTypeToBioEntities() {
+        return typeToBioEntities;
+    }
 
     BioEntityData(List<BioEntityType> bioEntityTypes) {
         this.bioEntityTypes = bioEntityTypes;

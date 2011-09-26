@@ -30,10 +30,10 @@ public abstract class BioEntityDataBuilder<T extends BioEntityData> {
     }
 
     protected boolean isValidData(){
-        if (data.typeToBioEntities.isEmpty()) {
+        if (data.getTypeToBioEntities().isEmpty()) {
             return true;
         } else
-        return CollectionUtils.isEqualCollection(data.typeToBioEntities.keySet(), data.bioEntityTypes);
+        return CollectionUtils.isEqualCollection(data.getTypeToBioEntities().keySet(), data.getBioEntityTypes());
     }
 
 
