@@ -11,7 +11,6 @@ public enum ApiVersionType {
     /**
      * internal code - we are free to change this api (mapping to another handler/controller, obviously)
      */
-    //
     v0,
     /**
      * External API - public contract, we MUST NOT remove calls or change response format.
