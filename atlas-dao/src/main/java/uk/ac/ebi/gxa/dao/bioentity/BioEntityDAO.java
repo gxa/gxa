@@ -289,7 +289,9 @@ public class BioEntityDAO {
             statementSetter.setList(subList);
             int[] rowsAffectedArray = template.batchUpdate(query, statementSetter);
             loadedRecordsNumber += rowsAffectedArray.length;
-            log.info("Number of rows loaded to the DB = " + loadedRecordsNumber);
+            if (loadedRecordsNumber % (SUB_BATCH_SIZE * 100) == 0) { // report every 100 batches
+                log.info("Number of rows loaded to the DB = " + loadedRecordsNumber);
+            }
         }
 
         return loadedRecordsNumber;
