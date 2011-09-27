@@ -20,6 +20,7 @@ import java.util.Collection;
 @Controller
 @RequestMapping("/api/curators/{v}")
 public class CurationApiController extends AtlasViewController {
+
     @Autowired
     private CurationService curationService;
 
@@ -74,11 +75,12 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/samples/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
-    public void replacePropertyValueInSamples(@PathVariable("v") final ApiVersionType version,
-                                              @PathVariable("propertyName") final String propertyName,
-                                              @PathVariable("oldPropertyValue") final String oldPropertyValue,
-                                              @PathVariable("newPropertyValue") final String newPropertyValue,
-                                              HttpServletResponse response)
+    public void replacePropertyValueInSamples(
+            @PathVariable("v") final ApiVersionType version,
+            @PathVariable("propertyName") final String propertyName,
+            @PathVariable("oldPropertyValue") final String oldPropertyValue,
+            @PathVariable("newPropertyValue") final String newPropertyValue,
+            HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.replacePropertyValueInSamples(propertyName, oldPropertyValue, newPropertyValue);
     }
@@ -116,10 +118,11 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ApiProperty> getAssayProperties(@PathVariable("v") final ApiVersionType version,
-                                                      @PathVariable("experimentAccession") final String experimentAccession,
-                                                      @PathVariable(value = "assayAccession") final String assayAccession,
-                                                      HttpServletResponse response) throws ResourceNotFoundException {
+    public Collection<ApiProperty> getAssayProperties(
+            @PathVariable("v") final ApiVersionType version,
+            @PathVariable("experimentAccession") final String experimentAccession,
+            @PathVariable(value = "assayAccession") final String assayAccession,
+            HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getAssayProperties(experimentAccession, assayAccession);
     }
 
@@ -148,10 +151,11 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ApiProperty> getSampleProperties(@PathVariable("v") final ApiVersionType version,
-                                                       @PathVariable("experimentAccession") final String experimentAccession,
-                                                       @PathVariable(value = "sampleAccession") final String sampleAccession,
-                                                       HttpServletResponse response) throws ResourceNotFoundException {
+    public Collection<ApiProperty> getSampleProperties(
+            @PathVariable("v") final ApiVersionType version,
+            @PathVariable("experimentAccession") final String experimentAccession,
+            @PathVariable(value = "sampleAccession") final String sampleAccession,
+            HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getSampleProperties(experimentAccession, sampleAccession);
     }
 
@@ -211,5 +215,7 @@ public class CurationApiController extends AtlasViewController {
                                  @RequestBody final ApiOntologyTerm[] apiOntologyTerms,
                                  HttpServletResponse response) {
         curationService.putOntologyTerms(apiOntologyTerms);
+
     }
+
 }
