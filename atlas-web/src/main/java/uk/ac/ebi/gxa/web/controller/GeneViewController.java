@@ -52,6 +52,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
  *
@@ -265,11 +267,11 @@ public class GeneViewController extends AtlasViewController {
             model.addAttribute("gprop_0", "")
                     .addAttribute("gval_0", geneId)
                     .addAttribute("fexp_0", "UP_DOWN")
-                    .addAttribute("fact_0", "")
                     .addAttribute("specie_0", "")
-                    .addAttribute("fval_0", "(all+conditions)")
+                    .addAttribute("fact_0", isNullOrEmpty(ef) ? "" : ef)
+                    .addAttribute("fval_0", isNullOrEmpty(ef) ? "" : "(all conditions)")
                     .addAttribute("view", "hm");
-            return "redirect:qrs";
+            return "redirect:/qrs";
         }
 
         if (!result.isFound()) {
