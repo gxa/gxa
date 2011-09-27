@@ -187,7 +187,7 @@ public class BioMartAnnotator {
         Collection<BioEntityType> ensemblGeneTypes = Collections2.filter(annSrc.getTypes(),
                 new Predicate<BioEntityType>() {
                     public boolean apply(@Nullable BioEntityType bioEntityType) {
-                        return bioEntityType != null && bioEntityType.equals(BioEntityType.ENSGENE);
+                        return bioEntityType != null && bioEntityType.getName().equals(BioEntityType.ENSGENE);
                     }
                 });
 
