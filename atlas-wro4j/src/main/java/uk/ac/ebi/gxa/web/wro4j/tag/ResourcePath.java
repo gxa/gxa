@@ -43,6 +43,10 @@ class ResourcePath {
         return joiner().join(splitter().split(path));
     }
 
+    public static String normalizeDirectory(String path) {
+        return PATH_SEPARATOR + normalizePath(path) + PATH_SEPARATOR;
+    }
+
     /**
      * Joins two paths.
      *

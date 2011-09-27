@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import org.junit.Test;
-import ro.isdc.wro.model.resource.ResourceType;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -31,33 +30,30 @@ import static org.junit.Assert.fail;
 /**
  * @author Olga Melnichuk
  */
-public class AggregatedResourceNamePatternTest {
+public class BundleNameTemplateTest {
 
     @Test
     public void defaultPatternTest() {
-        AggregatedResourceNamePattern pattern = new AggregatedResourceNamePattern(null, ResourceType.CSS);
-        assertEquals("test\\.css", pattern.pattern("test"));
-
-        pattern = new AggregatedResourceNamePattern(null, ResourceType.JS);
-        assertEquals("test\\.js", pattern.pattern("test"));
+        BundleNameTemplate template = new BundleNameTemplate(null);
+        assertEquals("test\\.css", template.forGroup("test", ResourceHtmlTag.CSS));
+        assertEquals("test\\.js", template.forGroup("test", ResourceHtmlTag.JS));
     }
 
     @Test
     public void simplePatternTest() {
-        String p = "@groupName@-345.@extension@";
-        AggregatedResourceNamePattern pattern = new AggregatedResourceNamePattern(p, ResourceType.CSS);
-        assertEquals("test-345\\.css", pattern.pattern("test"));
-
-        pattern = new AggregatedResourceNamePattern(p, ResourceType.JS);
-        assertEquals("test-345\\.js", pattern.pattern("test"));
+        String p = "@groupName@-345\\.@extension@";
+        BundleNameTemplate template = new BundleNameTemplate(p);
+        assertEquals("test-345\\.css", template.forGroup("test", ResourceHtmlTag.CSS));
+        assertEquals("test-345\\.js", template.forGroup("test", ResourceHtmlTag.JS));
     }
 
     @Test
     public void invalidTypeTest() {
         try {
-            new AggregatedResourceNamePattern(null, null);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
+            BundleNameTemplate template = new BundleNameTemplate(null);
+            template.forGroup("whatever", null);
+            fail("Exception expected");
+        } catch (NullPointerException e) {
             // expected outcome
         }
     }

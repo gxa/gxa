@@ -19,16 +19,14 @@
  *
  * http://gxa.github.com/gxa
  */
-
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-/**
- * @author Olga Melnichuk
- */
-public class Wro4jJavaScriptTag extends Wro4jTag {
-    private static final long serialVersionUID = 201109270814L;
+import java.util.EnumSet;
 
-    public Wro4jJavaScriptTag() {
-        super(ResourceHtmlTag.JS);
+public class Wro4jAllTag extends Wro4jTag {
+    private static final long serialVersionUID = 201109270815L;
+
+    public Wro4jAllTag() {
+        super(EnumSet.allOf(ResourceHtmlTag.class));
     }
 }

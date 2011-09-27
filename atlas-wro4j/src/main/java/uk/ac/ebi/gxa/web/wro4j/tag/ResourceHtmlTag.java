@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import ro.isdc.wro.model.resource.Resource;
 import ro.isdc.wro.model.resource.ResourceType;
 
 import java.util.EnumMap;
@@ -30,33 +29,50 @@ import java.util.EnumMap;
 import static com.google.common.collect.Maps.newEnumMap;
 
 /**
- * @author Olga Melnichuk
+ * Custom extension for  {@link ResourceType}
  */
-enum ResourceHtmlTag {
-    CSS(ResourceType.CSS, "<link type=\"text/css\" rel=\"stylesheet\" href=\"%s\"/>"),
-    JS(ResourceType.JS, "<script type=\"text/javascript\" src=\"%s\"></script>");
+public enum ResourceHtmlTag {
+    CSS(ResourceType.CSS, "css", "<link type=\"text/css\" rel=\"stylesheet\" href=\"%s\"/>"),
+    JS(ResourceType.JS, "js", "<script type=\"text/javascript\" src=\"%s\"></script>");
 
     private static final EnumMap<ResourceType, ResourceHtmlTag> BY_TYPE = newEnumMap(ResourceType.class);
 
     private ResourceType type;
-    private String format;
+    private String extension;
+    private String tag;
 
-    private ResourceHtmlTag(ResourceType type, String format) {
+    ResourceHtmlTag(ResourceType type, String extension, String tag) {
         this.type = type;
-        this.format = format;
+        this.extension = extension;
+        this.tag = tag;
     }
 
-    static String render(String contextPath, Resource resource) {
-        ResourceHtmlTag tag = BY_TYPE.get(resource.getType());
-        if (tag == null) {
-            throw new IllegalStateException("Unsupported resource type: " + resource.getType());
-        }
-        return String.format(tag.format, ResourcePath.join(contextPath, resource.getUri()));
+    public ResourceType getType() {
+        return type;
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+    public String render(String uri) {
+        return String.format(tag, uri);
+    }
+
+    public static ResourceHtmlTag forType(ResourceType type) {
+        return BY_TYPE.get(type);
     }
 
     static {
-        for (ResourceHtmlTag tag : values()) {
+        // Prepare lookup table
+        for (ResourceHtmlTag tag : ResourceHtmlTag.values()) {
             BY_TYPE.put(tag.type, tag);
+        }
+        // Make sure every ResourceType is supported
+        for (ResourceType type : ResourceType.values()) {
+            if (!BY_TYPE.containsKey(type)) {
+                throw new IllegalStateException("Cannot find mapping for " + type);
+            }
         }
     }
 }

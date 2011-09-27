@@ -22,72 +22,51 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ro.isdc.wro.model.resource.ResourceType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * @author Olga Melnichuk
  */
 class Wro4jTagProperties {
+    private static final Logger log = LoggerFactory.getLogger(Wro4jTagProperties.class);
+    private static final String TAG_PROPERTIES = "wro4j-tag.properties";
 
-    private boolean debug;
-    private String namePattern;
-    private Map<ResourceType, String> resourcePaths = Collections.emptyMap();
+    private final Properties props = new Properties();
 
     Wro4jTagProperties() {
-    }
-
-    public void load(InputStream in) throws IOException {
-        if (in == null) {
-            return;
-        }
-
-        Properties props = new Properties();
+        InputStream in = null;
         try {
-            props.load(in);
-        } finally {
-            in.close();
-        }
-        load(props);
-    }
-
-    public void load(Properties props) {
-        resourcePaths = new HashMap<ResourceType, String>();
-        for (ResourceType type : ResourceType.values()) {
-            String path = props.getProperty(aggregationPathPropertyName(type));
-            if (path != null) {
-                resourcePaths.put(type, path);
+            in = Wro4jTag.class.getClassLoader().getResourceAsStream(TAG_PROPERTIES);
+            if (in == null) {
+                log.error(TAG_PROPERTIES + " not found in the classpath");
+            } else {
+                props.load(in);
             }
+        } catch (IOException e) {
+            log.error("Wro4jTag error: " + TAG_PROPERTIES + " not loaded", e);
+            throw new IllegalStateException("Cannot load properties");
+        } finally {
+            closeQuietly(in);
         }
-
-        debug = Boolean.parseBoolean(props.getProperty(debugPropertyName(), "false"));
-        namePattern = props.getProperty(aggregationNamePatternPropertyName(), null);
     }
 
-    public AggregatedResourcePath getAggregationPath(ResourceType type) {
-        String path = resourcePaths.get(type);
-        return new AggregatedResourcePath(path, new AggregatedResourceNamePattern(namePattern, type));
+    public String getResourcePath(ResourceType type) {
+        return props.getProperty("wro4j.tag.aggregation.path." + type);
+    }
+
+    public BundleNameTemplate getNameTemplate() {
+        return new BundleNameTemplate(props.getProperty("wro4j.tag.aggregation.name.pattern", null));
     }
 
     public boolean isDebugOn() {
-        return debug;
-    }
-
-    static String debugPropertyName() {
-        return "wro4j.tag.debug";
-    }
-
-    static String aggregationPathPropertyName(ResourceType type) {
-        return "wro4j.tag.aggregation.path." + type;
-    }
-
-    static String aggregationNamePatternPropertyName() {
-        return "wro4j.tag.aggregation.name.pattern";
+        return Boolean.parseBoolean(props.getProperty("wro4j.tag.debug", "false"));
     }
 }

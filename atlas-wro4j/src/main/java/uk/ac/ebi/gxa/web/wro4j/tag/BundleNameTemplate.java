@@ -22,33 +22,21 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import ro.isdc.wro.model.resource.ResourceType;
-
-import java.util.EnumMap;
-
 /**
  * @author Olga Melnichuk
  */
-class AggregatedResourceNamePattern {
+class BundleNameTemplate {
     private static final String DEFAULT_PATTERN = "@groupName@\\.@extension@";
-    private static final EnumMap<ResourceType, String> fileExtensions =
-            new EnumMap<ResourceType, String>(ResourceType.class) {{
-                put(ResourceType.CSS, "css");
-                put(ResourceType.JS, "js");
-            }};
 
     private final String namePattern;
 
-    public AggregatedResourceNamePattern(String namePattern, ResourceType type) {
-        namePattern = namePattern == null ? DEFAULT_PATTERN : namePattern.replaceAll("\\.", "\\\\\\.");
-        String ext = fileExtensions.get(type);
-        if (ext == null) {
-            throw new IllegalArgumentException("Unrecognized resource type: " + type);
-        }
-        this.namePattern = namePattern.replace("@extension@", ext);
+    public BundleNameTemplate(String namePattern) {
+        this.namePattern = namePattern == null ? DEFAULT_PATTERN : namePattern;
     }
 
-    public String pattern(String groupName) {
-        return namePattern.replace("@groupName@", groupName);
+    public String forGroup(String groupName, ResourceHtmlTag tag) {
+        return namePattern
+                .replace("@groupName@", groupName)
+                .replace("@extension@", tag.getExtension());
     }
 }

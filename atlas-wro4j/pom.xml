@@ -42,16 +42,8 @@
             <artifactId>wro4j-extensions</artifactId>
             <version>${wro4j.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
 
-
-         <!-- jsp tag dependencies -->
+        <!-- jsp tag dependencies -->
         <dependency>
             <groupId>taglibs</groupId>
             <artifactId>standard</artifactId>
