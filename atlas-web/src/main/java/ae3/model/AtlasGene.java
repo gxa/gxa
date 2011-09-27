@@ -32,10 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.statistics.Attribute;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
-import uk.ac.ebi.gxa.statistics.ExperimentInfo;
-import uk.ac.ebi.gxa.statistics.ExperimentResult;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.*;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -43,8 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 /**
