@@ -18,14 +18,12 @@ import java.util.Collection;
  * @author Misha Kapushesky
  */
 @Controller
+@RequestMapping("/api/curators/{v}/")
 public class CurationApiController extends AtlasViewController {
-
-    private static final String API_CURATORS = "/api/curators/{v}/";
-
     @Autowired
     private CurationService curationService;
 
-    @RequestMapping(value = API_CURATORS + "properties",
+    @RequestMapping(value = "properties",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiPropertyName> getPropertyNames(
@@ -37,7 +35,7 @@ public class CurationApiController extends AtlasViewController {
     }
 
 
-    @RequestMapping(value = API_CURATORS + "properties/{propertyName}",
+    @RequestMapping(value = "properties/{propertyName}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiPropertyValue> getPropertyValues(
@@ -48,7 +46,7 @@ public class CurationApiController extends AtlasViewController {
         return properties;
     }
 
-    @RequestMapping(value = API_CURATORS + "properties/{propertyName}/{propertyValue}",
+    @RequestMapping(value = "properties/{propertyName}/{propertyValue}",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.CREATED)
     public void removePropertyValue(
@@ -60,7 +58,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.removePropertyValue(propertyName, propertyValue);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/assays/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
+    @RequestMapping(value = "experiments/assays/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void replacePropertyValueInAssays(
@@ -73,7 +71,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.replacePropertyValueInAssays(propertyName, oldPropertyValue, newPropertyValue);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/samples/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
+    @RequestMapping(value = "experiments/samples/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void replacePropertyValueInSamples(@PathVariable("v") final ApiVersionType version,
@@ -86,7 +84,7 @@ public class CurationApiController extends AtlasViewController {
     }
 
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}",
+    @RequestMapping(value = "experiments/{experimentAccession}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiExperiment getExperiment(@PathVariable("v") final ApiVersionType version,
@@ -95,7 +93,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperiment(experimentAccession);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/assays/{assayAccession}",
+    @RequestMapping(value = "experiments/{experimentAccession}/assays/{assayAccession}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiAssay getAssay(@PathVariable("v") final ApiVersionType version,
@@ -105,7 +103,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getAssay(experimentAccession, assayAccession);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/samples/{sampleAccession}",
+    @RequestMapping(value = "experiments/{experimentAccession}/samples/{sampleAccession}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiSample getSample(@PathVariable("v") final ApiVersionType version,
@@ -115,7 +113,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getSample(experimentAccession, sampleAccession);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/assays/{assayAccession}/properties",
+    @RequestMapping(value = "experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiProperty> getAssayProperties(@PathVariable("v") final ApiVersionType version,
@@ -125,7 +123,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getAssayProperties(experimentAccession, assayAccession);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/assays/{assayAccession}/properties",
+    @RequestMapping(value = "experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void putAssayProperties(@PathVariable("v") final ApiVersionType version,
@@ -136,7 +134,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/assays/{assayAccession}/properties",
+    @RequestMapping(value = "experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.CREATED)
     public void deleteAssayProperties(@PathVariable("v") final ApiVersionType version,
@@ -147,7 +145,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/samples/{sampleAccession}/properties",
+    @RequestMapping(value = "experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiProperty> getSampleProperties(@PathVariable("v") final ApiVersionType version,
@@ -157,7 +155,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getSampleProperties(experimentAccession, sampleAccession);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/samples/{sampleAccession}/properties",
+    @RequestMapping(value = "experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void putSampleProperties(@PathVariable("v") final ApiVersionType version,
@@ -168,7 +166,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties);
     }
 
-    @RequestMapping(value = API_CURATORS + "experiments/{experimentAccession}/samples/{sampleAccession}/properties",
+    @RequestMapping(value = "experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.CREATED)
     public void deleteSampleProperties(@PathVariable("v") final ApiVersionType version,
@@ -179,7 +177,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
     }
 
-    @RequestMapping(value = API_CURATORS + "ontologies/{ontologyName}",
+    @RequestMapping(value = "ontologies/{ontologyName}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiOntology getOntology(@PathVariable("v") final ApiVersionType version,
@@ -188,7 +186,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getOntology(ontologyName);
     }
 
-    @RequestMapping(value = API_CURATORS + "ontologies",
+    @RequestMapping(value = "ontologies",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void putOntology(@PathVariable("v") final ApiVersionType version,
@@ -197,7 +195,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.putOntology(apiOntology);
     }
 
-    @RequestMapping(value = API_CURATORS + "ontologyterms/{ontologyTerm}",
+    @RequestMapping(value = "ontologyterms/{ontologyTerm}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiOntologyTerm getOntologyTerm(@PathVariable("v") final ApiVersionType version,
@@ -206,14 +204,12 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getOntologyTerm(ontologyTerm);
     }
 
-    @RequestMapping(value = API_CURATORS + "ontologyterms",
+    @RequestMapping(value = "ontologyterms",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void putOntologyTerms(@PathVariable("v") final ApiVersionType version,
                                  @RequestBody final ApiOntologyTerm[] apiOntologyTerms,
                                  HttpServletResponse response) {
         curationService.putOntologyTerms(apiOntologyTerms);
-
     }
-
 }
