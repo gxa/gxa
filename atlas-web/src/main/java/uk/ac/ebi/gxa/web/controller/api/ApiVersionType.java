@@ -19,4 +19,3 @@ public enum ApiVersionType {
      */
     v1
 }
-
