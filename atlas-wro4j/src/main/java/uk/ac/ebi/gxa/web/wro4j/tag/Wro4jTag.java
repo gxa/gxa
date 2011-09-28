@@ -106,12 +106,12 @@ public abstract class Wro4jTag extends TagSupport {
     }
 
     private String render(Resource resource) {
-        return ResourceHtmlTag.forType(resource.getType()).render(ResourcePath.join(getContextPath(), resource.getUri()));
+        final String uri = ResourcePath.join(getContextPath(), resource.getUri());
+        return ResourceHtmlTag.forType(resource.getType()).render(uri);
     }
 
     private Collection<Resource> collectResources(final Group group) throws Wro4jTagException {
         return properties.isDebugOn() ? uncompressedResources(group) : compressedBundle(group);
-
     }
 
     private Collection<Resource> compressedBundle(Group group) throws Wro4jTagException {
@@ -133,7 +133,7 @@ public abstract class Wro4jTag extends TagSupport {
 
     private Resource resourceForBundle(Group group, ResourceHtmlTag tag) throws Wro4jTagException {
         final String template = properties.getNameTemplate().forGroup(group.getName(), tag);
-        String path = ResourcePath.normalizeDirectory(properties.getResourcePath(tag.getType()));
+        String path = properties.getResourcePath(tag.getType());
         @SuppressWarnings("unchecked")
         Set<String> resources = pageContext.getServletContext().getResourcePaths(path);
         for (String resource : resources) {
@@ -153,24 +153,14 @@ public abstract class Wro4jTag extends TagSupport {
 
     private WroModel loadWro4jConfig() throws Wro4jTagException {
         try {
-            return getModelFactory().create();
+            return new XmlFileModelFactory().create();
         } catch (WroRuntimeException e) {
             throw new Wro4jTagException("Can't load wro4j config file", e);
         }
     }
 
-    private XmlModelFactory getModelFactory() {
-        return new XmlModelFactory() {
-            @Override
-            protected InputStream getConfigResourceAsStream() throws IOException {
-                return pageContext.getServletContext().getResourceAsStream("/WEB-INF/wro.xml");
-            }
-        };
-    }
-
     private String getContextPath() {
-        HttpServletRequest httpServletRequest = (HttpServletRequest) pageContext.getRequest();
-        return httpServletRequest.getContextPath();
+        return ((HttpServletRequest) pageContext.getRequest()).getContextPath();
     }
 
     private JspWriter out() {
@@ -179,5 +169,12 @@ public abstract class Wro4jTag extends TagSupport {
 
     EnumSet<ResourceHtmlTag> getTags() {
         return tags;
+    }
+
+    private class XmlFileModelFactory extends XmlModelFactory {
+        @Override
+        protected InputStream getConfigResourceAsStream() throws IOException {
+            return pageContext.getServletContext().getResourceAsStream("/WEB-INF/wro.xml");
+        }
     }
 }

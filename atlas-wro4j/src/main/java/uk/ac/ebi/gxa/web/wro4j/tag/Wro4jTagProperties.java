@@ -59,7 +59,7 @@ class Wro4jTagProperties {
     }
 
     public String getResourcePath(ResourceType type) {
-        return props.getProperty("wro4j.tag.aggregation.path." + type);
+        return ResourcePath.normalizeDirectory(props.getProperty("wro4j.tag.aggregation.path." + type));
     }
 
     public BundleNameTemplate getNameTemplate() {
