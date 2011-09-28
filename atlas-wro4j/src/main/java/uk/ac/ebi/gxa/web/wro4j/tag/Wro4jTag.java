@@ -26,7 +26,6 @@ import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.isdc.wro.WroRuntimeException;
-import ro.isdc.wro.model.WroModel;
 import ro.isdc.wro.model.factory.XmlModelFactory;
 import ro.isdc.wro.model.group.InvalidGroupNameException;
 
@@ -51,7 +50,6 @@ public abstract class Wro4jTag extends TagSupport {
     private static final long serialVersionUID = 201109281357L;
     private static final Logger log = LoggerFactory.getLogger(Wro4jTag.class);
     private final EnumSet<ResourceHtmlTag> tags;
-    private Wro4jTagRenderer renderer;
     private String name;
 
     Wro4jTag(ResourceHtmlTag tag) {
@@ -105,9 +103,9 @@ public abstract class Wro4jTag extends TagSupport {
         return new JspTagException("Wro4jTag threw an exception; see logs for details");
     }
 
-    private WroModel loadWro4jConfig() throws Wro4jTagException {
+    private GroupResolver loadWro4jConfig() throws Wro4jTagException {
         try {
-            return new XmlFileModelFactory().create();
+            return new GroupResolver(new XmlFileModelFactory().create());
         } catch (WroRuntimeException e) {
             throw new Wro4jTagException("Can't load wro4j config file", e);
         }
@@ -126,13 +124,14 @@ public abstract class Wro4jTag extends TagSupport {
 
     private class ContextDirectoryLister implements Wro4jTagRenderer.DirectoryLister {
         @Override
-        public Collection<String> list(final String path) {
+        public Collection<String> list(String path) {
+            final String dir = ResourcePath.normalizeDirectory(path);
             @SuppressWarnings("unchecked")
-            Set<String> resources = pageContext.getServletContext().getResourcePaths(path);
+            Set<String> resources = pageContext.getServletContext().getResourcePaths(dir);
             return transform(resources, new Function<String, String>() {
                 @Override
                 public String apply(@Nullable String input) {
-                    return input == null ? null : input.substring(path.length());
+                    return input == null ? null : input.substring(dir.length());
                 }
             });
         }

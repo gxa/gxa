@@ -1,8 +1,10 @@
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import com.google.common.base.Splitter;
+import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.mock.web.MockPageContext;
@@ -13,6 +15,7 @@ import javax.servlet.jsp.tagext.Tag;
 import java.util.EnumSet;
 
 import static java.util.Arrays.asList;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 public class Wro4jTagTest {
@@ -27,21 +30,16 @@ public class Wro4jTagTest {
 
     @Before
     public void mockContainer() {
-        MockServletContext mockServletContext = new MockServletContext(new ResourceLoader() {
-            @Override
-            public org.springframework.core.io.Resource getResource(String location) {
-                if ("/WEB-INF/wro.xml".equals(location))
-                    return new UrlResource(getClassLoader().getResource("config/wro.xml"));
-                else
-                    fail("Request for unknown resource: " + location);
-                return null;
-            }
-
-            @Override
-            public ClassLoader getClassLoader() {
-                return Wro4jTagTest.class.getClassLoader();
-            }
-        });
+        final ResourceLoader resourceLoader = createMock(ResourceLoader.class);
+        expect(resourceLoader.getResource("/WEB-INF/wro.xml"))
+                .andAnswer(new IAnswer<Resource>() {
+                    @Override
+                    public Resource answer() throws Throwable {
+                        return new UrlResource(Wro4jTagTest.class.getClassLoader().getResource("config/wro.xml"));
+                    }
+                }).anyTimes();
+        replay(resourceLoader);
+        MockServletContext mockServletContext = new MockServletContext(resourceLoader);
         mockPageContext = new MockPageContext(mockServletContext);
     }
 

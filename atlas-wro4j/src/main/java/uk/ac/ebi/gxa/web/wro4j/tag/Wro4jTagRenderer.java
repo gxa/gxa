@@ -22,14 +22,16 @@
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import com.google.common.base.Predicate;
-import ro.isdc.wro.model.WroModel;
 import ro.isdc.wro.model.group.Group;
 import ro.isdc.wro.model.resource.Resource;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
 
 import static com.google.common.collect.Collections2.filter;
 import static java.util.EnumSet.copyOf;
@@ -38,20 +40,20 @@ import static java.util.EnumSet.copyOf;
  * @author alf
  */
 public class Wro4jTagRenderer {
-    private final WroModel model;
+    private final GroupResolver groupResolver;
     private final Wro4jTagProperties properties;
     private final EnumSet<ResourceHtmlTag> tags;
     private final DirectoryLister lister;
 
-    public Wro4jTagRenderer(WroModel model, Wro4jTagProperties properties, EnumSet<ResourceHtmlTag> tags, DirectoryLister lister) {
-        this.model = model;
+    public Wro4jTagRenderer(GroupResolver groupResolver, Wro4jTagProperties properties, EnumSet<ResourceHtmlTag> tags, DirectoryLister lister) {
+        this.groupResolver = groupResolver;
         this.properties = properties;
         this.tags = copyOf(tags);
         this.lister = lister;
     }
 
     public void render(Writer writer, String name, String contextPath) throws IOException, Wro4jTagException {
-        for (Resource resource : collectResources(model.getGroupByName(name))) {
+        for (Resource resource : collectResources(groupResolver.getGroup(name))) {
             writer.write(render(contextPath, resource));
             writer.write("\n");
         }
@@ -102,10 +104,6 @@ public class Wro4jTagRenderer {
                 return true;
         }
         return false;
-    }
-
-    EnumSet<ResourceHtmlTag> getTags() {
-        return copyOf(tags);
     }
 
     static interface DirectoryLister {

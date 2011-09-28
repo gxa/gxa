@@ -1,30 +1,62 @@
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import org.junit.Test;
-import ro.isdc.wro.model.WroModel;
-import ro.isdc.wro.model.resource.Resource;
-import ro.isdc.wro.model.resource.ResourceType;
+import ro.isdc.wro.model.group.Group;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.EnumSet;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
 
 /**
  * @author alf
  */
 public class TagRendererTest {
     @Test
-    public void testSomethingSimple() {
-        Wro4jTagRenderer renderer = new Wro4jTagRenderer(new WroModel(), new Wro4jTagProperties(), EnumSet.allOf(ResourceHtmlTag.class),
+    public void testDebug() throws IOException, Wro4jTagException {
+        Wro4jTagProperties properties = createMock(Wro4jTagProperties.class);
+        expect(properties.isDebugOn()).andReturn(true);
+        replay(properties);
+
+        GroupResolver resolver = createMock(GroupResolver.class);
+        expect(resolver.getGroup("group")).andReturn(new Group());
+        replay(resolver);
+
+        final Wro4jTagRenderer renderer = new Wro4jTagRenderer(resolver,
+                properties,
+                EnumSet.allOf(ResourceHtmlTag.class),
                 new Wro4jTagRenderer.DirectoryLister() {
                     @Override
                     public Collection<String> list(String path) {
                         return asList("name1", "name2", "name3");
                     }
                 });
+        renderer.render(new StringWriter(), "group", "/ebi");
+    }
+
+    @Test
+    public void testProduction() throws IOException, Wro4jTagException {
+        Wro4jTagProperties properties = createMock(Wro4jTagProperties.class);
+        expect(properties.isDebugOn()).andReturn(false);
+        replay(properties);
+
+        GroupResolver resolver = createMock(GroupResolver.class);
+        expect(resolver.getGroup("group")).andReturn(new Group());
+        replay(resolver);
+
+        final Wro4jTagRenderer renderer = new Wro4jTagRenderer(resolver,
+                properties,
+                EnumSet.allOf(ResourceHtmlTag.class),
+                new Wro4jTagRenderer.DirectoryLister() {
+                    @Override
+                    public Collection<String> list(String path) {
+                        return asList("name1", "name2", "name3");
+                    }
+                });
+        renderer.render(new StringWriter(), "group", "/ebi");
     }
 //
 //    @Test
