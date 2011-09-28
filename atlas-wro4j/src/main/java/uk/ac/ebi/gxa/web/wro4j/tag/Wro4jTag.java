@@ -154,7 +154,7 @@ public abstract class Wro4jTag extends TagSupport {
 
     private JspTagException jspTagException(Exception e) {
         log.error("Wro4jTag error: " + e.getMessage(), e);
-        return new JspTagException("Wro4jTag threw an exception; see logs for details", e);
+        return new JspTagException("Wro4jTag threw an exception; see logs for details");
     }
 
     private WroModel loadWro4jConfig() throws Wro4jTagException {
