@@ -25,6 +25,7 @@ import org.junit.Test;
 import ro.isdc.wro.model.resource.ResourceType;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class Wro4jPropertiesTest {
     @Test
@@ -37,5 +38,15 @@ public class Wro4jPropertiesTest {
         assertEquals(new BundleNameTemplate("test value for wro4j.tag.aggregation.name.pattern"),
                 properties.getNameTemplate());
         assertEquals(true, properties.isDebugOn());
+    }
+
+    @Test
+    public void testInvalidConfigPath() {
+        try {
+            new Wro4jTagProperties("somewhere");
+            fail("IllegalStateException expected");
+        } catch (IllegalStateException e) {
+            // expected
+        }
     }
 }

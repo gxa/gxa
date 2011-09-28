@@ -42,17 +42,21 @@ class Wro4jTagProperties {
     private final Properties props = new Properties();
 
     Wro4jTagProperties() {
+        this(TAG_PROPERTIES);
+    }
+
+    Wro4jTagProperties(String config) {
         InputStream in = null;
         try {
-            in = Wro4jTag.class.getClassLoader().getResourceAsStream(TAG_PROPERTIES);
+            in = Wro4jTag.class.getClassLoader().getResourceAsStream(config);
             if (in == null) {
-                log.error(TAG_PROPERTIES + " not found in the classpath");
+                log.error(config + " not found in the classpath");
                 throw new IllegalStateException("Cannot load properties");
             }
 
             props.load(in);
         } catch (IOException e) {
-            log.error("Wro4jTag error: " + TAG_PROPERTIES + " not loaded", e);
+            log.error("Wro4jTag error: " + config + " not loaded", e);
             throw new IllegalStateException("Cannot load properties");
         } finally {
             closeQuietly(in);
