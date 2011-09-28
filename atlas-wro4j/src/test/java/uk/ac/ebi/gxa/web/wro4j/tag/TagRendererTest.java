@@ -32,6 +32,7 @@ import java.util.EnumSet;
 
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author alf
@@ -53,7 +54,13 @@ public class TagRendererTest {
                 properties,
                 EnumSet.allOf(ResourceHtmlTag.class),
                 lister);
-        renderer.render(new StringWriter(), "group", "/ebi");
+        final StringWriter writer = new StringWriter();
+        renderer.render(writer, "group", "/ebi");
+        assertEquals("<script type=\"text/javascript\" src=\"/ebi/test.js\"></script>\n" +
+                "<script type=\"text/javascript\" src=\"/ebi/test2.js\"></script>\n" +
+                "<link type=\"text/css\" rel=\"stylesheet\" href=\"/ebi/test.css\"/>\n" +
+                "<link type=\"text/css\" rel=\"stylesheet\" href=\"/ebi/test2.css\"/>\n",
+                writer.toString());
     }
 
     @Test
@@ -83,7 +90,11 @@ public class TagRendererTest {
                 properties,
                 EnumSet.allOf(ResourceHtmlTag.class),
                 lister);
-        renderer.render(new StringWriter(), "group", "/ebi");
+        final StringWriter writer = new StringWriter();
+        renderer.render(writer, "group", "/ebi");
+        assertEquals("<link type=\"text/css\" rel=\"stylesheet\" href=\"/ebi/group-group.ext-css\"/>\n" +
+                "<script type=\"text/javascript\" src=\"/ebi/group-group.ext-js\"></script>\n",
+                writer.toString());
     }
 
     private Wro4jTagProperties prepareMockProperties(final boolean debug) {
