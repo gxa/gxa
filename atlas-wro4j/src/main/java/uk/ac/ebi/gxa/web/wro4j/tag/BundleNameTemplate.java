@@ -39,4 +39,17 @@ class BundleNameTemplate {
                 .replace("@groupName@", groupName)
                 .replace("@extension@", tag.getExtension());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BundleNameTemplate that = (BundleNameTemplate) o;
+        return namePattern == null ? that.namePattern != null : namePattern.equals(that.namePattern);
+    }
+
+    @Override
+    public int hashCode() {
+        return namePattern != null ? namePattern.hashCode() : 0;
+    }
 }
