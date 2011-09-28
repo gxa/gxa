@@ -33,6 +33,7 @@ import java.util.EnumSet;
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author alf
@@ -95,6 +96,42 @@ public class TagRendererTest {
         assertEquals("<link type=\"text/css\" rel=\"stylesheet\" href=\"/ebi/group-group.ext-css\"/>\n" +
                 "<script type=\"text/javascript\" src=\"/ebi/group-group.ext-js\"></script>\n",
                 writer.toString());
+    }
+
+    @Test
+    public void testMissingBundle() throws IOException, Wro4jTagException {
+        GroupResolver resolver = createMock(GroupResolver.class);
+        expect(resolver.getGroup("group"))
+                .andReturn(createGroup());
+
+        Wro4jTagRenderer.DirectoryLister lister = createMock(Wro4jTagRenderer.DirectoryLister.class);
+        expect(lister.list("/bundledcss"))
+                .andReturn(asList("test2.js", "test3.css"));
+        expect(lister.list("/bundledjs"))
+                .andReturn(asList("test2.js", "test3.css"));
+
+        final Wro4jTagProperties properties = prepareMockProperties(false);
+        expect(properties.getResourcePath(ResourceType.CSS))
+                .andReturn("/bundledcss")
+                .anyTimes();
+        expect(properties.getResourcePath(ResourceType.JS))
+                .andReturn("/bundledjs")
+                .anyTimes();
+
+        replay(resolver, lister, properties);
+
+
+        final Wro4jTagRenderer renderer = new Wro4jTagRenderer(resolver,
+                properties,
+                EnumSet.allOf(ResourceHtmlTag.class),
+                lister);
+        final StringWriter writer = new StringWriter();
+        try {
+            renderer.render(writer, "group", "/ebi");
+            fail("Wro4jTagException: No file matching the template: 'group-group.ext-css' found in the path expected");
+        } catch (Wro4jTagException e) {
+            // expected
+        }
     }
 
     private Wro4jTagProperties prepareMockProperties(final boolean debug) {
