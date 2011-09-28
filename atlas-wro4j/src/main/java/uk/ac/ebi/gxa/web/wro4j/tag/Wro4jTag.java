@@ -66,9 +66,7 @@ public abstract class Wro4jTag extends TagSupport {
         this.tags = copyOf(tags);
     }
 
-    public boolean isSupported(Resource resource) {
-        if (resource == null)
-            return false;
+    boolean isSupported(Resource resource) {
         for (ResourceHtmlTag tag : tags) {
             if (resource.getType() == tag.getType())
                 return true;
@@ -85,6 +83,9 @@ public abstract class Wro4jTag extends TagSupport {
     }
 
     public int doStartTag() throws JspException {
+        if (name == null)
+            throw jspTagException("The name parameter is mandatory");
+
         try {
             WroModel model = loadWro4jConfig();
             for (Resource resource : collectResources(model.getGroupByName(name))) {
@@ -96,7 +97,7 @@ public abstract class Wro4jTag extends TagSupport {
         } catch (Wro4jTagException e) {
             throw jspTagException(e);
         } catch (InvalidGroupNameException e) {
-            throw jspTagException(new Wro4jTagException("Group is not in the config file: " + name));
+            throw jspTagException("Group is not in the config file: " + name);
         }
         return SKIP_BODY;
     }
@@ -146,9 +147,14 @@ public abstract class Wro4jTag extends TagSupport {
                 " - have you built the compressed versions properly?");
     }
 
+    private JspTagException jspTagException(String message) throws JspTagException {
+        log.error("Wro4jTag error: " + message);
+        return new JspTagException("Wro4jTag error: " + message);
+    }
+
     private JspTagException jspTagException(Exception e) {
         log.error("Wro4jTag error: " + e.getMessage(), e);
-        return new JspTagException("Wro4jTag threw an exception; see logs for details");
+        return new JspTagException("Wro4jTag threw an exception; see logs for details", e);
     }
 
     private WroModel loadWro4jConfig() throws Wro4jTagException {

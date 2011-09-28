@@ -1,12 +1,20 @@
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import com.google.common.base.Splitter;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.UrlResource;
+import org.springframework.mock.web.MockPageContext;
+import org.springframework.mock.web.MockServletContext;
 import ro.isdc.wro.model.resource.Resource;
 import ro.isdc.wro.model.resource.ResourceType;
 
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.Tag;
 import java.util.EnumSet;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 public class Wro4jTagTest {
@@ -16,6 +24,29 @@ public class Wro4jTagTest {
             "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat " +
             "nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia " +
             "deserunt mollit anim id est laborum.";
+
+    private MockServletContext mockServletContext;
+    private MockPageContext mockPageContext;
+
+    @Before
+    public void mockContainer() {
+        mockServletContext = new MockServletContext(new ResourceLoader() {
+            @Override
+            public org.springframework.core.io.Resource getResource(String location) {
+                if ("/WEB-INF/wro.xml".equals(location))
+                    return new UrlResource(getClassLoader().getResource("config/wro.xml"));
+                else
+                    fail("Request for unknown resource: " + location);
+                return null;
+            }
+
+            @Override
+            public ClassLoader getClassLoader() {
+                return Wro4jTagTest.class.getClassLoader();
+            }
+        });
+        mockPageContext = new MockPageContext(mockServletContext);
+    }
 
     @Test
     public void testResourceTypes() {
@@ -49,16 +80,42 @@ public class Wro4jTagTest {
         }
     }
 
+    @Test
+    public void testNoName() throws JspException {
+        for (Wro4jTag tag : asList(allTag(), cssTag(), jsTag())) {
+            try {
+                tag.doStartTag();
+                fail("The name is mandatory");
+            } catch (JspException e) {
+                assertTrue(e.getMessage().contains("name"));
+                assertTrue(e.getMessage().contains("mandatory"));
+            }
+        }
+    }
+    @Test
+    public void testTagBasics() throws JspException {
+        for (Wro4jTag tag : asList(allTag(), cssTag(), jsTag())) {
+            tag.setName("mixed-resources-1");
+            assertEquals(Tag.SKIP_BODY, tag.doStartTag());
+            assertEquals(Tag.EVAL_PAGE, tag.doEndTag());
+        }
+    }
 
     private Wro4jAllTag allTag() {
-        return new Wro4jAllTag();
+        final Wro4jAllTag tag = new Wro4jAllTag();
+        tag.setPageContext(mockPageContext);
+        return tag;
     }
 
     private Wro4jCssTag cssTag() {
-        return new Wro4jCssTag();
+        final Wro4jCssTag tag = new Wro4jCssTag();
+        tag.setPageContext(mockPageContext);
+        return tag;
     }
 
     private Wro4jJavaScriptTag jsTag() {
-        return new Wro4jJavaScriptTag();
+        final Wro4jJavaScriptTag tag = new Wro4jJavaScriptTag();
+        tag.setPageContext(mockPageContext);
+        return tag;
     }
 }
