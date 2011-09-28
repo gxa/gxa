@@ -22,40 +22,36 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import com.google.common.base.Predicate;
+import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.isdc.wro.WroRuntimeException;
 import ro.isdc.wro.model.WroModel;
 import ro.isdc.wro.model.factory.XmlModelFactory;
-import ro.isdc.wro.model.group.Group;
 import ro.isdc.wro.model.group.InvalidGroupNameException;
-import ro.isdc.wro.model.resource.Resource;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Set;
 
-import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Collections2.transform;
 import static java.util.EnumSet.copyOf;
 
 /**
  * @author Olga Melnichuk
  */
 public abstract class Wro4jTag extends TagSupport {
-    private static final long serialVersionUID = 201109270813L;
-
+    private static final long serialVersionUID = 201109281357L;
     private static final Logger log = LoggerFactory.getLogger(Wro4jTag.class);
-    private static final Wro4jTagProperties properties = new Wro4jTagProperties();
-
     private final EnumSet<ResourceHtmlTag> tags;
-
+    private Wro4jTagRenderer renderer;
     private String name;
 
     Wro4jTag(ResourceHtmlTag tag) {
@@ -66,12 +62,8 @@ public abstract class Wro4jTag extends TagSupport {
         this.tags = copyOf(tags);
     }
 
-    boolean isSupported(Resource resource) {
-        for (ResourceHtmlTag tag : tags) {
-            if (resource.getType() == tag.getType())
-                return true;
-        }
-        return false;
+    Wro4jTagRenderer createRenderer(EnumSet<ResourceHtmlTag> tags) throws Wro4jTagException {
+        return new Wro4jTagRenderer(loadWro4jConfig(), new Wro4jTagProperties(), tags, new ContextDirectoryLister());
     }
 
     public String getName() {
@@ -87,11 +79,8 @@ public abstract class Wro4jTag extends TagSupport {
             throw jspTagException("The name parameter is mandatory");
 
         try {
-            WroModel model = loadWro4jConfig();
-            for (Resource resource : collectResources(model.getGroupByName(name))) {
-                out().write(render(resource));
-                out().write("\n");
-            }
+            final HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
+            createRenderer(tags).render(pageContext.getOut(), name, request.getContextPath());
         } catch (IOException e) {
             throw jspTagException(e);
         } catch (Wro4jTagException e) {
@@ -104,47 +93,6 @@ public abstract class Wro4jTag extends TagSupport {
 
     public int doEndTag() {
         return EVAL_PAGE;
-    }
-
-    private String render(Resource resource) {
-        final String uri = ResourcePath.join(getContextPath(), resource.getUri());
-        return ResourceHtmlTag.forType(resource.getType()).render(uri);
-    }
-
-    private Collection<Resource> collectResources(final Group group) throws Wro4jTagException {
-        return properties.isDebugOn() ? uncompressedResources(group) : compressedBundle(group);
-    }
-
-    private Collection<Resource> compressedBundle(Group group) throws Wro4jTagException {
-        List<Resource> list = new ArrayList<Resource>();
-        for (ResourceHtmlTag type : tags)
-            if (group.hasResourcesOfType(type.getType()))
-                list.add(resourceForBundle(group, type));
-        return list;
-    }
-
-    private Collection<Resource> uncompressedResources(Group group) {
-        return filter(group.getResources(), new Predicate<Resource>() {
-            @Override
-            public boolean apply(@Nullable Resource resource) {
-                return isSupported(resource);
-            }
-        });
-    }
-
-    private Resource resourceForBundle(Group group, ResourceHtmlTag tag) throws Wro4jTagException {
-        final String template = properties.getNameTemplate().forGroup(group.getName(), tag);
-        String path = properties.getResourcePath(tag.getType());
-        @SuppressWarnings("unchecked")
-        Set<String> resources = pageContext.getServletContext().getResourcePaths(path);
-        for (String resource : resources) {
-            if (resource.substring(path.length()).matches(template)) {
-                return Resource.create(resource, tag.getType());
-            }
-        }
-        throw new Wro4jTagException("No file matching the template: '" + template +
-                "' found in the path: " + properties.getResourcePath(tag.getType()) +
-                " - have you built the compressed versions properly?");
     }
 
     private JspTagException jspTagException(String message) throws JspTagException {
@@ -165,14 +113,6 @@ public abstract class Wro4jTag extends TagSupport {
         }
     }
 
-    private String getContextPath() {
-        return ((HttpServletRequest) pageContext.getRequest()).getContextPath();
-    }
-
-    private JspWriter out() {
-        return pageContext.getOut();
-    }
-
     EnumSet<ResourceHtmlTag> getTags() {
         return tags;
     }
@@ -181,6 +121,20 @@ public abstract class Wro4jTag extends TagSupport {
         @Override
         protected InputStream getConfigResourceAsStream() throws IOException {
             return pageContext.getServletContext().getResourceAsStream("/WEB-INF/wro.xml");
+        }
+    }
+
+    private class ContextDirectoryLister implements Wro4jTagRenderer.DirectoryLister {
+        @Override
+        public Collection<String> list(final String path) {
+            @SuppressWarnings("unchecked")
+            Set<String> resources = pageContext.getServletContext().getResourcePaths(path);
+            return transform(resources, new Function<String, String>() {
+                @Override
+                public String apply(@Nullable String input) {
+                    return input == null ? null : input.substring(path.length());
+                }
+            });
         }
     }
 }

@@ -7,8 +7,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.mock.web.MockPageContext;
 import org.springframework.mock.web.MockServletContext;
-import ro.isdc.wro.model.resource.Resource;
-import ro.isdc.wro.model.resource.ResourceType;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.Tag;
@@ -25,12 +23,11 @@ public class Wro4jTagTest {
             "nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia " +
             "deserunt mollit anim id est laborum.";
 
-    private MockServletContext mockServletContext;
     private MockPageContext mockPageContext;
 
     @Before
     public void mockContainer() {
-        mockServletContext = new MockServletContext(new ResourceLoader() {
+        MockServletContext mockServletContext = new MockServletContext(new ResourceLoader() {
             @Override
             public org.springframework.core.io.Resource getResource(String location) {
                 if ("/WEB-INF/wro.xml".equals(location))
@@ -56,24 +53,8 @@ public class Wro4jTagTest {
     }
 
     @Test
-    public void testSupportedResources() {
-        Resource js = Resource.create("/uri", ResourceType.JS);
-        Resource css = Resource.create("/uri", ResourceType.CSS);
-
-        assertTrue(allTag().isSupported(js));
-        assertTrue(allTag().isSupported(css));
-
-        assertTrue(jsTag().isSupported(js));
-        assertFalse(jsTag().isSupported(css));
-
-        assertFalse(cssTag().isSupported(js));
-        assertTrue(cssTag().isSupported(css));
-    }
-
-    @Test
     public void testName() {
-        Wro4jTag tag = new Wro4jTag(EnumSet.noneOf(ResourceHtmlTag.class)) {
-        };
+        Wro4jTag tag = allTag();
         for (String name : Splitter.on(" ").split(LOREM_IPSUM)) {
             tag.setName(name);
             assertEquals(name, tag.getName());
@@ -92,6 +73,21 @@ public class Wro4jTagTest {
             }
         }
     }
+
+    @Test
+    public void testBadName() throws JspException {
+        final String unknownGroup = "Lorem ipsum dolor sit amet";
+        for (Wro4jTag tag : asList(allTag(), cssTag(), jsTag())) {
+            try {
+                tag.setName(unknownGroup);
+                tag.doStartTag();
+                fail("The name is somehow known: check the config and/or the code");
+            } catch (JspException e) {
+                assertTrue(e.getMessage().contains(unknownGroup));
+            }
+        }
+    }
+
     @Test
     public void testTagBasics() throws JspException {
         for (Wro4jTag tag : asList(allTag(), cssTag(), jsTag())) {

@@ -47,9 +47,10 @@ class Wro4jTagProperties {
             in = Wro4jTag.class.getClassLoader().getResourceAsStream(TAG_PROPERTIES);
             if (in == null) {
                 log.error(TAG_PROPERTIES + " not found in the classpath");
-            } else {
-                props.load(in);
+                throw new IllegalStateException("Cannot load properties");
             }
+
+            props.load(in);
         } catch (IOException e) {
             log.error("Wro4jTag error: " + TAG_PROPERTIES + " not loaded", e);
             throw new IllegalStateException("Cannot load properties");

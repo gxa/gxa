@@ -21,12 +21,12 @@
  */
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import java.util.EnumSet;
+import static java.util.EnumSet.allOf;
 
 public class Wro4jAllTag extends Wro4jTag {
     private static final long serialVersionUID = 201109270815L;
 
     public Wro4jAllTag() {
-        super(EnumSet.allOf(ResourceHtmlTag.class));
+        super(allOf(ResourceHtmlTag.class));
     }
 }
