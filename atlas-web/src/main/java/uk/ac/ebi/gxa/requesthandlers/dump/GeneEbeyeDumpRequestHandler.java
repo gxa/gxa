@@ -30,10 +30,9 @@ import ae3.util.FileDownloadServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.HttpRequestHandler;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -54,6 +53,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 
 /**
@@ -70,7 +70,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private File ebeyeDumpFile;
     private GeneSolrDAO geneSolrDAO;
     private ExperimentDAO experimentDAO;
-    private AtlasDAO atlasDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -87,10 +86,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
-    }
-
-    public void setAtlasDAO(AtlasDAO atlasDAO) {
-        this.atlasDAO = atlasDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -135,6 +130,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
      * Generates a zip file containing to be used in EB-eye. The zip file contains two xml files,
      * one containing genes, and one containing experiments data.
      */
+    @Transactional
     public void dumpEbeyeData() {
         ZipOutputStream outputStream = null;
         try {
@@ -146,15 +142,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         } finally {
             closeQuietly(outputStream);
         }
-    }
-
-    private Map<Long, Experiment> getidToExperimentMapping() {
-        // Used LinkedHashMap to preserve order of insertion
-        Map<Long, Experiment> result = new LinkedHashMap<Long, Experiment>();
-        for (Experiment experiment : atlasDAO.getAllExperiments()) {
-            result.put(experiment.getId(), experiment);
-        }
-        return result;
     }
 
     /**
@@ -217,9 +204,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
             writer.writeCharacters(String.valueOf(geneSolrDAO.getGeneCount()));
             writeEndElement(writer);
 
-
-            Map<Long, Experiment> idToExperiment = getidToExperimentMapping();
-
             writer.writeStartElement("entries");
 
             int i = 0;
@@ -279,13 +263,14 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 // Cross-reference gene to experiments
                 Set<Long> experimentIds = gene.getExperimentIds(atlasStatisticsQueryService);
                 for (Long experimentId : experimentIds) {
-                    if (idToExperiment.containsKey(experimentId)) {
+                    final Experiment experiment = experimentDAO.getById(experimentId);
+                    if (experiment != null) {
                         writer.writeStartElement("ref");
                         writer.writeAttribute("dbname", "atlas");
-                        writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
+                        writer.writeAttribute("dbkey", experiment.getAccession());
                         writeEndElement(writer);
                     } else {
-                        LogUtil.createUnexpected("Experiment id: " + experimentId + " in bit index doesn't exist in database");
+                        throw createUnexpected("Experiment id: " + experimentId + " in bit index doesn't exist in database");
                     }
                 }
 
@@ -368,33 +353,26 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
      * @param outputStream ZipOutputStream
      */
     private void dumpExperimentsForEbeye(ZipOutputStream outputStream) {
-        XMLOutputFactory output = null;
         XMLStreamWriter writer = null;
-
-
         try {
             String experimentDumpFileName = atlasProperties.getExperimentsDumpEbeyeFilename();
             log.info("Writing " + experimentDumpFileName + " to " + ebeyeDumpFile);
             outputStream.putNextEntry(new ZipEntry(experimentDumpFileName));
-            output = XMLOutputFactory.newInstance();
 
+            final List<Experiment> experiments = experimentDAO.getAll();
 
-            Map<Long, Experiment> idToExperiment = getidToExperimentMapping();
-
-            writer = output.createXMLStreamWriter(outputStream);
+            writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
             writeHeader(writer);
 
             writer.writeStartElement("entry_count");
-            writer.writeCharacters(String.valueOf(idToExperiment.keySet().size()));
+            writer.writeCharacters(String.valueOf(experiments.size()));
             writeEndElement(writer);
 
             writer.writeStartElement("entries");
 
             int i = 0;
 
-            for (Map.Entry<Long, Experiment> entry : idToExperiment.entrySet()) {
-                final Experiment experiment = entry.getValue();
-
+            for (Experiment experiment : experiments) {
                 writer.writeStartElement("entry");
                 writer.writeAttribute("id", experiment.getAccession());
 
