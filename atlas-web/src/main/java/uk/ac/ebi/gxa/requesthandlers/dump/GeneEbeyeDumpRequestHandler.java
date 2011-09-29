@@ -27,20 +27,17 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.util.FileDownloadServer;
-import com.google.common.base.Function;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.statistics.ExperimentInfo;
-import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,7 +52,6 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
 
@@ -73,6 +69,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     private File ebeyeDumpFile;
     private GeneSolrDAO geneSolrDAO;
     private ExperimentDAO experimentDAO;
+    private AtlasDAO atlasDAO;
     private AtlasProperties atlasProperties;
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
@@ -89,6 +86,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
+    }
+
+    public void setAtlasDAO(AtlasDAO atlasDAO) {
+        this.atlasDAO = atlasDAO;
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
@@ -147,17 +148,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
     }
 
     private Map<Long, Experiment> getidToExperimentMapping() {
-        Collection<ExperimentInfo> scoringExperiments = atlasStatisticsQueryService.getScoringExperiments(StatisticsType.UP_DOWN);
-        Collection<Long> ids = transform(scoringExperiments, new Function<ExperimentInfo, Long>() {
-            public Long apply(@Nonnull ExperimentInfo input) {
-                return input.getExperimentId();
-            }
-        });
-
         // Used LinkedHashMap to preserve order of insertion
         Map<Long, Experiment> result = new LinkedHashMap<Long, Experiment>();
-        for (long id : ids) {
-            result.put(id, experimentDAO.getById(id));
+        for (Experiment experiment : atlasDAO.getAllExperiments()) {
+            result.put(experiment.getId(), experiment);
         }
         return result;
     }
