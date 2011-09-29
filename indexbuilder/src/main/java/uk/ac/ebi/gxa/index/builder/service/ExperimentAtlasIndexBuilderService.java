@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
@@ -57,11 +58,11 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         this.experimentDAO = experimentDAO;
     }
 
+    @Transactional
     @Override
     public void processCommand(final IndexAllCommand indexAll, final ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        getAtlasDAO().startSession();
         try {
             final List<Experiment> experiments = experimentDAO.getAll();
 
@@ -75,11 +76,10 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
-        } finally {
-            getAtlasDAO().finishSession();
         }
     }
 
+    @Transactional
     @Override
     public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(cmd, progressUpdater);
@@ -87,7 +87,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Updating index for experiment " + accession);
 
-        getAtlasDAO().startSession();
         try {
             progressUpdater.update("0/1");
             getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
@@ -98,8 +97,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException(e);
         } catch (IOException e) {
             throw new IndexBuilderException(e);
-        } finally {
-            getAtlasDAO().finishSession();
         }
     }
 
