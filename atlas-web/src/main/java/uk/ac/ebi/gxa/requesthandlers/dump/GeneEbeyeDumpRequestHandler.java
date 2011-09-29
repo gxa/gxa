@@ -285,7 +285,7 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                         writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
                         writeEndElement(writer);
                     } else {
-                        LogUtil.createUnexpected("Experiment id: " + idToExperiment + " in bit index doesn't exist in database");
+                        LogUtil.createUnexpected("Experiment id: " + experimentId + " in bit index doesn't exist in database");
                     }
                 }
 
