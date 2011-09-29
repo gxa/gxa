@@ -1,3 +1,25 @@
+/*
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
 package uk.ac.ebi.gxa.annotator.loader;
 
 import com.google.common.base.Function;
@@ -69,12 +91,12 @@ public class AtlasBioEntityDataWriter {
         }
     }
 
-     private void deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
-         reportProgress("Annotations for organism " + organism.getName() +
-                 "already loaded and are going to be deleted before reloading ");
-         int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
-         reportProgress("Deleted " + count + " annotations.");
-     }
+    private void deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
+        reportProgress("Annotations for organism " + organism.getName() +
+                "already loaded and are going to be deleted before reloading ");
+        int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
+        reportProgress("Deleted " + count + " annotations.");
+    }
 
     @Transactional
     public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite) {
@@ -94,12 +116,12 @@ public class AtlasBioEntityDataWriter {
         }
     }
 
-     private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
-         reportProgress("Mappings for array design " + arrayDesign.getAccession() +
-                 "already loaded and are going to be deleted before reloading ");
-         int count = bioEntityDAO.deleteDesignElementBioEntityMappings(software, arrayDesign);
-         reportProgress("Deleted " + count + " mappings.");
-     }
+    private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
+        reportProgress("Mappings for array design " + arrayDesign.getAccession() +
+                "already loaded and are going to be deleted before reloading ");
+        int count = bioEntityDAO.deleteDesignElementBioEntityMappings(software, arrayDesign);
+        reportProgress("Deleted " + count + " mappings.");
+    }
 
     public void setListener(AnnotationLoaderListener listener) {
         this.listener = listener;

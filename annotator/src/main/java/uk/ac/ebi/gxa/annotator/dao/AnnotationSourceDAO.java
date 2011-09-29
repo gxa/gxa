@@ -1,3 +1,25 @@
+/*
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
 package uk.ac.ebi.gxa.annotator.dao;
 
 import org.hibernate.SessionFactory;
@@ -49,8 +71,8 @@ public class AnnotationSourceDAO {
     }
 
     public AnnotationSource getById(long id) {
-         return template.get(AnnotationSource.class, id);
-     }
+        return template.get(AnnotationSource.class, id);
+    }
 
     public void save(AnnotationSource object) {
         object.setLoadDate(new Date());
@@ -70,7 +92,7 @@ public class AnnotationSourceDAO {
     }
 
     public void remove(BioMartAnnotationSource annSrc) {
-       
+
         template.delete(annSrc);
         template.flush();
     }
@@ -80,10 +102,9 @@ public class AnnotationSourceDAO {
     }
 
     /**
-     *
      * @param annSrc
-     * @param hsql flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
-     * hsql does not recognise ROWNUM (and we need hsql to junit test thsi method)
+     * @param hsql   flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
+     *               hsql does not recognise ROWNUM (and we need hsql to junit test thsi method)
      * @return true if annotation source annSrc has been applied for bioentity properties
      */
     public boolean isAnnSrcApplied(final AnnotationSource annSrc, boolean hsql) {
@@ -101,11 +122,10 @@ public class AnnotationSourceDAO {
     }
 
     /**
-     *
      * @param annSrc
      * @param arrayDesign
-     * @param hsql hsql flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
-     * hsql does not recognise ROWNUM (and we need hsql to junit test thsi method)
+     * @param hsql        hsql flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
+     *                    hsql does not recognise ROWNUM (and we need hsql to junit test thsi method)
      * @return true if annotation source annSrc has been applied for array design mappings
      */
     public boolean isAnnSrcAppliedForArrayDesignMapping(final AnnotationSource annSrc, final ArrayDesign arrayDesign, boolean hsql) {
@@ -127,7 +147,7 @@ public class AnnotationSourceDAO {
     }
 
     public BioEntityType findOrCreateBioEntityType(String typeName) {
-       return typeDAO.findOrCreate(typeName);
+        return typeDAO.findOrCreate(typeName);
     }
 
     public BioEntityProperty findOrCreateBEProperty(String propertyName) {

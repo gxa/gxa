@@ -1,3 +1,25 @@
+/*
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -36,13 +58,13 @@ public class BioMartConnection {
     private static final String PROPERTY_QUERY =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                     "<!DOCTYPE Query>" +
-                    "<Query  virtualSchemaName = \""+ VIRTUAL_SCHEMA_PH +"\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" >" +
-                    "<Dataset name = \""+ DATA_SET_PH + "\" interface = \"default\" >" +
+                    "<Query  virtualSchemaName = \"" + VIRTUAL_SCHEMA_PH + "\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" >" +
+                    "<Dataset name = \"" + DATA_SET_PH + "\" interface = \"default\" >" +
                     ATTRIBUTES_PH +
                     "</Dataset>" +
                     "</Query>";
 
-    private static final String ATTRIBUTE = "<Attribute name = \"" + PROP_NAME_PH +"\" />";
+    private static final String ATTRIBUTE = "<Attribute name = \"" + PROP_NAME_PH + "\" />";
     private String martUrl;
     private String datasetName;
     private String databaseName;
@@ -150,7 +172,7 @@ public class BioMartConnection {
 
     /**
      * @param location
-     * @return  URL to biomart data
+     * @return URL to biomart data
      * @throws BioMartAccessException if URL cannot be open or data contain an error
      */
     private URL getMartURL(String location) throws BioMartAccessException {
@@ -181,7 +203,7 @@ public class BioMartConnection {
         return getMartURL(getAttributesURLLocation(attributes));
     }
 
-    
+
     private String parseOutValue(String nameProp, String line) {
         return line.substring(line.indexOf(nameProp) + nameProp.length(), line.indexOf("\"", line.indexOf(nameProp) + nameProp.length()));
     }
