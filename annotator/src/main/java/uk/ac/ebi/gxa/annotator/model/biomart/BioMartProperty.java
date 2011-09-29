@@ -14,7 +14,7 @@ import javax.persistence.*;
 public class BioMartProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
-    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_BIOMARTPROPERTY_SEQ")
+    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_BIOMARTPROPERTY_SEQ", allocationSize = 1)
     private Long biomartpropertyId;
     private String name;
 

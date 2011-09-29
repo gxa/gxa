@@ -27,7 +27,7 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 public abstract class AnnotationSource implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
-    @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ")
+    @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ", allocationSize = 1)
     protected Long annotationSrcId;
 
     @ManyToOne()
