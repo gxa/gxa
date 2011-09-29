@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -278,10 +279,14 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 // Cross-reference gene to experiments
                 Set<Long> experimentIds = gene.getExperimentIds(atlasStatisticsQueryService);
                 for (Long experimentId : experimentIds) {
-                    writer.writeStartElement("ref");
-                    writer.writeAttribute("dbname", "atlas");
-                    writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
-                    writeEndElement(writer);
+                    if (idToExperiment.containsKey(experimentId)) {
+                        writer.writeStartElement("ref");
+                        writer.writeAttribute("dbname", "atlas");
+                        writer.writeAttribute("dbkey", idToExperiment.get(experimentId).getAccession());
+                        writeEndElement(writer);
+                    } else {
+                        LogUtil.createUnexpected("Experiment id: " + idToExperiment + " in bit index doesn't exist in database");
+                    }
                 }
 
                 writeEndElement(writer); // xrefs
