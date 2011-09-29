@@ -1,30 +1,26 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.ExperimentEditorCommand;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 public class ExperimentEditorService {
-    private final ExperimentDAO experimentDAO;
-    private AtlasDAO atlasDAO;
+    private ExperimentDAO experimentDAO;
 
-    public ExperimentEditorService(ExperimentDAO experimentDAO, AtlasDAO atlasDAO) {
+    public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
-        this.atlasDAO = atlasDAO;
     }
 
+    @Transactional
     public void process(ExperimentEditorCommand command, boolean isPrivate) throws AtlasLoaderException {
-        atlasDAO.startSession();
         try {
             final Experiment experiment = experimentDAO.getExperimentByAccession(command.getAccession());
             experiment.setPrivate(isPrivate);
             experimentDAO.save(experiment);
         } catch (Exception ex) {
             throw new AtlasLoaderException("can not release data for experiment:" + ex.getMessage());
-        } finally {
-            atlasDAO.finishSession();
         }
     }
 }
