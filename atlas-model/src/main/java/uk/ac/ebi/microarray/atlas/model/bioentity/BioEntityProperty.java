@@ -18,7 +18,7 @@ import javax.persistence.SequenceGenerator;
 public class BioEntityProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bePropSeq")
-    @SequenceGenerator(name = "bePropSeq", sequenceName = "A2_BIOENTITYPROPERTY_SEQ")
+    @SequenceGenerator(name = "bePropSeq", sequenceName = "A2_BIOENTITYPROPERTY_SEQ", allocationSize = 1)
     private Long bioEntitypropertyId;
     private String name;
 

@@ -20,7 +20,7 @@ public class BioEntityType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "beTypeSeq")
-    @SequenceGenerator(name = "beTypeSeq", sequenceName = "A2_BIOENTITYTYPE_SEQ")
+    @SequenceGenerator(name = "beTypeSeq", sequenceName = "A2_BIOENTITYTYPE_SEQ", allocationSize = 1)
     private Long bioentitytypeid;
     private String name;
     @Column(name = "ID_FOR_INDEX")

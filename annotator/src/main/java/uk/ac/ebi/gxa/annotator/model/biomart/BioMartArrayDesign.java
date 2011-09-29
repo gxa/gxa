@@ -14,7 +14,7 @@ import javax.persistence.*;
 public class BioMartArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
-    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_BIOMARTARRAYDESIGN_SEQ")
+    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_BIOMARTARRAYDESIGN_SEQ", allocationSize = 1)
     private Long biomartarraydesignId;
     private String name;
 

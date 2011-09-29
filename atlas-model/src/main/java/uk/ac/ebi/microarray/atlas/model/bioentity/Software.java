@@ -10,7 +10,7 @@ import javax.persistence.*;
 public class Software {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "swSeq")
-    @SequenceGenerator(name = "swSeq", sequenceName = "A2_SOFTWARE_SEQ")
+    @SequenceGenerator(name = "swSeq", sequenceName = "A2_SOFTWARE_SEQ", allocationSize = 1)
     private Long softwareid;
     private String name;
     private String version;
