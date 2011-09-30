@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.model.biomart;
 
+import com.google.common.base.Predicate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -31,10 +32,14 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Iterables.getFirst;
 
 /**
  * User: nsklyar
@@ -97,6 +102,16 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public BioMartAnnotationSource(Long annotationSrcId, Software software, Organism organism) {
         super(annotationSrcId, software, organism);
+    }
+
+    public BioEntityType getBioentityType(final String name) {
+        Iterable<BioEntityType> matchinTypes = filter(types,
+                new Predicate<BioEntityType>() {
+                    public boolean apply(@Nullable BioEntityType bioEntityType) {
+                        return bioEntityType != null && bioEntityType.getName().equals(name);
+                    }
+                });
+        return getFirst(matchinTypes, null);
     }
 
     public String getUrl() {

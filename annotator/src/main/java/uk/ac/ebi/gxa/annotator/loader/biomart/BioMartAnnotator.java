@@ -37,7 +37,6 @@ import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -51,6 +50,7 @@ import java.util.*;
 
 import static com.google.common.collect.Iterables.getFirst;
 import static java.lang.System.currentTimeMillis;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * nsklyar
@@ -200,30 +200,20 @@ public class BioMartAnnotator {
         }
     }
 
-
     private void fetchSynonyms(BioMartAnnotationSource annSrc, BioEntityAnnotationDataBuilder builder) throws BioMartAccessException {
         reportProgress("Reading synonyms for " + organism.getName());
         BioMartDbDAO bioMartDbDAO = new BioMartDbDAO(annSrc.getMySqlDbUrl());
 
-        // Collect gene types for which synonyms are to be collected
-        Collection<BioEntityType> ensemblGeneTypes = Collections2.filter(annSrc.getTypes(),
-                new Predicate<BioEntityType>() {
-                    public boolean apply(@Nullable BioEntityType bioEntityType) {
-                        return bioEntityType != null && bioEntityType.getName().equals(BioEntityType.ENSGENE);
-                    }
-                });
+        BioEntityType ensgene = annSrc.getBioentityType(BioEntityType.ENSGENE);
+        if (ensgene == null) {
+            throw createUnexpected("Annotation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
+        }
 
-        BioEntityType geneType = getFirst(ensemblGeneTypes, null); // We need only one BioEntityType of type BioEntityType.ENSGENE
-        if (geneType != null) {
-            Collection<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
-            BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
-            for (Pair<String, String> geneToSynonym : geneToSynonyms) {
-                BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.getSecond());
-                builder.addPropertyValue(geneToSynonym.getFirst(), geneType, pv);
-            }
-
-        } else {
-            throw LogUtil.createUnexpected("Annotation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
+        Collection<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+        BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
+        for (Pair<String, String> geneToSynonym : geneToSynonyms) {
+            BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.getSecond());
+            builder.addPropertyValue(geneToSynonym.getFirst(), ensgene, pv);
         }
     }
 
