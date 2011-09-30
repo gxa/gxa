@@ -135,8 +135,8 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
         ZipOutputStream outputStream = null;
         try {
             outputStream = new ZipOutputStream(new FileOutputStream(ebeyeDumpFile));
-            dumpGenesForEbeye(outputStream);
             dumpExperimentsForEbeye(outputStream);
+            dumpGenesForEbeye(outputStream);
         } catch (IOException e) {
             log.error("Couldn't write to " + ebeyeDumpFile.getAbsolutePath(), e);
         } finally {
