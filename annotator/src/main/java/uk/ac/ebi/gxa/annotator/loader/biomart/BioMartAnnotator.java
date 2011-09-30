@@ -204,7 +204,7 @@ public class BioMartAnnotator {
         reportProgress("Reading synonyms for " + organism.getName());
         BioMartDbDAO bioMartDbDAO = new BioMartDbDAO(annSrc.getMySqlDbUrl());
 
-        BioEntityType ensgene = annSrc.getBioentityType(BioEntityType.ENSGENE);
+        BioEntityType ensgene = annSrc.getBioEntityType(BioEntityType.ENSGENE);
         if (ensgene == null) {
             throw createUnexpected("Annotation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
         }
@@ -274,7 +274,6 @@ public class BioMartAnnotator {
                     throw new AtlasAnnotationException("Annotation source not valid ");
                 }
                 martBEIdentifiersAndNames.add(getFirst(namePropertyNames, null));
-
             }
         }
 
