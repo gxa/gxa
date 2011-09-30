@@ -288,15 +288,7 @@ public class AtlasMAGETABLoader {
 
             Set<String> referencedArrayDesigns = new HashSet<String>();
             for (Assay assay : cache.fetchAllAssays()) {
-                if (!referencedArrayDesigns.contains(assay.getArrayDesign().getAccession())) {
-                    if (isArrayBroken(assay.getArrayDesign().getAccession())) {
-                        throw new AtlasLoaderException("The array design " + assay.getArrayDesign().getAccession() + " was not found in the " +
-                                "database: it is prerequisite that referenced arrays are present prior to " +
-                                "loading experiments");
-                    }
-
                     referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
-                }
 
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
