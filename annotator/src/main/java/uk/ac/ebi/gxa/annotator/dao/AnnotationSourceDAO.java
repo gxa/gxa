@@ -80,15 +80,16 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
-        List<T> result = template.find("from " + type.getSimpleName());
-        return result;
+        return template.find("from " + type.getSimpleName());
     }
 
     public <T extends AnnotationSource> T findAnnotationSource(Software software, Organism organism, Class<T> type) {
         String queryString = "from " + type.getSimpleName() + " where software = ? and organism = ?";
-        final List results = template.find(queryString, software, organism);
-        return results.isEmpty() ? null : (T) results.get(0);
+        @SuppressWarnings("unchecked")
+        final List<T> results = template.find(queryString, software, organism);
+        return results.isEmpty() ? null : results.get(0);
     }
 
     public void remove(BioMartAnnotationSource annSrc) {
