@@ -57,8 +57,7 @@ public class BioMartParserTest {
         parser.parseBioEntities(BioMartParserTest.class.getResource("bioentities.txt"), organism);
 
         BioEntityProperty go = new BioEntityProperty(null, "go");
-        BioEntityProperty property = go;
-        parser.parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties.txt"));
+        parser.parseBioMartPropertyValues(go, BioMartParserTest.class.getResource("properties.txt"));
 
         BioEntityAnnotationData data = parser.getData();
         for (BioEntityType type : bioEntityTypes) {
@@ -126,15 +125,13 @@ public class BioMartParserTest {
 
     @Test(expected = AtlasAnnotationException.class)
     public void testParseBioMartIncorrectPropertyValues1() throws Exception {
-        BioEntityProperty go = new BioEntityProperty(null, "go");
-        BioEntityProperty property = go;
+        BioEntityProperty property = new BioEntityProperty(null, "go");
         getBioMartParser().parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect1.txt"));
     }
 
     @Test(expected = AtlasAnnotationException.class)
     public void testParseBioMartIncorrectPropertyValues2() throws Exception {
-        BioEntityProperty go = new BioEntityProperty(null, "go");
-        BioEntityProperty property = go;
+        BioEntityProperty property = new BioEntityProperty(null, "go");
         getBioMartParser().parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect2.txt"));
     }
 
