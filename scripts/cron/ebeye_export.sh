@@ -14,16 +14,16 @@ do
   format=$(file /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp | awk '{ print $2}')
   s=$(ls -lah /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp | awk '{ print $5}')
   echo "attempt $attempt_num : Downloaded ebeye_export.xml.zip size: $s and format: $format"
-  # Send an error email and re-try after 10 mins if ebeye_export.xml.zip.tmp size is less than 1 MB
+  # Send an error email and re-try after 1 hr if ebeye_export.xml.zip.tmp generation is not completed yet (file cmd doesn't recognize it as being in zip format)
   if [ $format != 'Zip' ] ; then
-    mailx -s"attempt $attempt_num : `whoami`@`hostname` cron error : $0 downloaded ebeye_export.xml.zip in incorrect format: $format - re-trying after 10 mins" rpetry@ebi.ac.uk < /dev/null
-    sleep 600 # sleep 10 mins
+    mailx -s"attempt $attempt_num : `whoami`@`hostname` cron error : $0 downloaded ebeye_export.xml.zip in incorrect format: $format - re-trying after 1 hr" atlas-developers@ebi.ac.uk < /dev/null
+    sleep 3600 # sleep 1h
   else 
     mv /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip.tmp /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip
     success_msg="attempt $attempt_num: successfully saved /nas/microarray/home/cronjobs/public/xml/gxa/ebeye_export.xml.zip file"
     echo "$success_msg"
     if [ $attempt_num -gt 1 ] ; then # there had been a failure that's now been fixed - email $success_msg
-	mailx -s"$success_msg" rpetry@ebi.ac.uk < /dev/null
+	mailx -s"$success_msg" atlas-developers@ebi.ac.uk < /dev/null
     fi
     break # break out of the loop - we're done
   fi
