@@ -312,19 +312,6 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private boolean isArrayBroken(String accession) {
-        log.debug("Fetching array design for " + accession);
-        ArrayDesign arrayDesign = dao.getArrayDesign(accession);
-        if (arrayDesign == null) {
-            // this array design is absent
-            log.debug("DAO lookup returned null for " + accession);
-            return true;
-        } else {
-            log.debug("DAO lookup found array design " + accession);
-            return false;
-        }
-    }
-
     public void setLoaderDAO(LoaderDAO dao) {
         this.dao = dao;
     }
