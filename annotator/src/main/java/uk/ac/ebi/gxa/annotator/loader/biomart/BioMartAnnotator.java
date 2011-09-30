@@ -215,7 +215,7 @@ public class BioMartAnnotator {
 
         BioEntityType geneType = getFirst(ensemblGeneTypes, null); // We need only one BioEntityType of type BioEntityType.ENSGENE
         if (geneType != null) {
-            HashSet<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+            Collection<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
             BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
             for (Pair<String, String> geneToSynonym : geneToSynonyms) {
                 BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.getSecond());

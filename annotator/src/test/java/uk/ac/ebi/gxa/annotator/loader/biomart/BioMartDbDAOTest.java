@@ -26,16 +26,13 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import uk.ac.ebi.gxa.utils.Pair;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 /**
- * User: nsklyar
- * Date: 11/08/2011
+ * @author Nataliya Sklyar
  */
 public class BioMartDbDAOTest extends TestCase {
-
     protected BioMartDbDAO bioMartDbDAO;
-
 
     @Override
     protected void setUp() throws Exception {
@@ -44,15 +41,14 @@ public class BioMartDbDAOTest extends TestCase {
     }
 
     @Test
-    public void testGetSynonyms() throws Exception{
-        HashSet<Pair<String, String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
+    public void testGetSynonyms() throws Exception {
+        Collection<Pair<String, String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
         assertEquals(1030, synonyms.size());
     }
 
     @Test
     public void testfindDBName() throws Exception {
-        String dbName = bioMartDbDAO.findDBName("homo_sapiens", "63");
+        String dbName = bioMartDbDAO.findSynonymsDBName("homo_sapiens", "63");
         assertEquals("homo_sapiens_core_63_37", dbName);
     }
-
 }
