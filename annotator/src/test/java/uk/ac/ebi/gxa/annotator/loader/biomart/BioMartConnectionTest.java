@@ -39,11 +39,6 @@ public class BioMartConnectionTest extends TestCase {
 
     private BioMartConnection bmService;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
     @Test
     public void testGetDataSetVersion() throws Exception {
         bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
