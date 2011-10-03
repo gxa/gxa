@@ -288,15 +288,7 @@ public class AtlasMAGETABLoader {
 
             Set<String> referencedArrayDesigns = new HashSet<String>();
             for (Assay assay : cache.fetchAllAssays()) {
-                if (!referencedArrayDesigns.contains(assay.getArrayDesign().getAccession())) {
-                    if (isArrayBroken(assay.getArrayDesign().getAccession())) {
-                        throw new AtlasLoaderException("The array design " + assay.getArrayDesign().getAccession() + " was not found in the " +
-                                "database: it is prerequisite that referenced arrays are present prior to " +
-                                "loading experiments");
-                    }
-
                     referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
-                }
 
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
@@ -317,19 +309,6 @@ public class AtlasMAGETABLoader {
         } catch (AtlasLoaderException e) {
             log.warn("Problem during loading: " + e.getMessage());
             throw e;
-        }
-    }
-
-    private boolean isArrayBroken(String accession) {
-        log.debug("Fetching array design for " + accession);
-        ArrayDesign arrayDesign = dao.getArrayDesign(accession);
-        if (arrayDesign == null) {
-            // this array design is absent
-            log.debug("DAO lookup returned null for " + accession);
-            return true;
-        } else {
-            log.debug("DAO lookup found array design " + accession);
-            return false;
         }
     }
 

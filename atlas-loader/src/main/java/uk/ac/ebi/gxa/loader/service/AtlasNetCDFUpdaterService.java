@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.loader.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
@@ -38,42 +39,38 @@ public class AtlasNetCDFUpdaterService {
     private AtlasDAO atlasDAO;
     private AtlasNetCDFDAO atlasNetCDFDAO;
 
+    @Transactional
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        atlasDAO.startSession();
-        try {
-            final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
+        final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
 
-            listener.setAccession(experiment.getAccession());
+        listener.setAccession(experiment.getAccession());
 
-            Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
-            for (Assay assay : experiment.getAssays()) {
-                Map<String, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
-                if (assays == null) {
-                    assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = newHashMap());
-                }
-                assays.put(assay.getAccession(), assay);
+        Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
+        for (Assay assay : experiment.getAssays()) {
+            Map<String, Assay> assays = assaysByArrayDesign.get(assay.getArrayDesign().getAccession());
+            if (assays == null) {
+                assaysByArrayDesign.put(assay.getArrayDesign().getAccession(), assays = newHashMap());
             }
+            assays.put(assay.getAccession(), assay);
+        }
 
-            for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
-                ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
+        for (Map.Entry<String, Map<String, Assay>> entry : assaysByArrayDesign.entrySet()) {
+            ArrayDesign arrayDesign = atlasDAO.getArrayDesignByAccession(entry.getKey());
 
-                final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
-                listener.setProgress("Reading existing NetCDF");
+            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
+            listener.setProgress("Reading existing NetCDF");
 
-                final Map<String, Assay> assayMap = entry.getValue();
-                log.info("Starting NetCDF for " + experiment.getAccession() +
-                        " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
-                NetCDFData data = readNetCDF(netCDFLocation, assayMap);
+            final Map<String, Assay> assayMap = entry.getValue();
+            log.info("Starting NetCDF for " + experiment.getAccession() +
+                    " and " + entry.getKey() + " (" + assayMap.size() + " assays)");
+            NetCDFData data = readNetCDF(netCDFLocation, assayMap);
 
-                listener.setProgress("Writing updated NetCDF");
-                writeNetCDF(atlasDAO, netCDFLocation, data, experiment, arrayDesign);
+            listener.setProgress("Writing updated NetCDF");
+            writeNetCDF(atlasDAO, netCDFLocation, data, experiment, arrayDesign);
 
-                if (data.isAnalyticsTransferred())
-                    listener.setRecomputeAnalytics(false);
-                listener.setProgress("Successfully updated the NetCDF");
-            }
-        } finally {
-            atlasDAO.finishSession();
+            if (data.isAnalyticsTransferred())
+                listener.setRecomputeAnalytics(false);
+            listener.setProgress("Successfully updated the NetCDF");
         }
     }
 

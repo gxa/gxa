@@ -163,11 +163,21 @@ public class AtlasDAO {
         return stats;
     }
 
+    /**
+     * Replace with {@link @Transactional}
+     *
+     * @deprecated
+     */
     public void startSession() {
         log.debug("startSession()");
         SessionFactoryUtils.initDeferredClose(sessionFactory);
     }
 
+    /**
+     * Replace with {@link @Transactional}
+     *
+     * @deprecated
+     */
     public void finishSession() {
         log.debug("finishSession()");
         SessionFactoryUtils.processDeferredClose(sessionFactory);
