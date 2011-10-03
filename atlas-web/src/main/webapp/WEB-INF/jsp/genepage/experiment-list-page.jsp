@@ -34,49 +34,48 @@
     }
 </script>
 
-<table align="left" cellpadding="0">
+<table class="experiment-list" cellpadding="0">
     <c:forEach var="exp" items="${exps}">
-        <tr align="left" class="exp_header">
-            <td align="left" nowrap="true" valign="top">
-                ${exp.accession}:
-            </td>
-            <td align="left">
-                ${exp.description}
-            </td>
-            <c:if test="${exp.pubmedId!=null}">
-                <td align="left" valign="top">
-                    <a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                       target="_blank">PubMed ${exp.pubmedId}</a>
-                </td>
-            </c:if>
-
-        </tr>
-        <tr>
-            <td colspan="2">
-
+        <tr class="experiment-title">
+            <td>
+                <table width="100%">
+                    <tr>
+                        <td class="nowrap">
+                                ${exp.accession}:
+                        </td>
+                        <td>
+                                ${exp.description}
+                            <c:if test="${exp.pubmedId!=null}">
+                                &nbsp;&nbsp;<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                                target="_blank">PubMed ${exp.pubmedId}</a>
+                            </c:if>
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
 
         <c:if test="${!empty exp.experimentFactors}">
 
-            <tr align="left">
-                <td colspan="2">
-                    <div class="header" style="padding-top: 5px;padding-bottom: 5px; valign:middle">
-                        <span>Experimental Factors</span>
+            <tr>
+                <td>
+                    <div style="padding-top:5px;padding-bottom:5px;vertical-align:middle">
+                        <div style="padding-bottom:5px;"><span class="section-header-2">Experimental Factors</span></div>
 
-                        <div id="${exp.accession}_EFpagination" class="pagination_ie" style="padding-top: 10px;">
-                            <c:forEach var="EF" items="${exp.experimentFactors}">
-                                <a id="${EF}"
-                                   onclick="redrawPlotForFactor('${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a>
-                            </c:forEach>
+                        <div id="${exp.accession}_EFpagination" class="pagination_ef">
+                                <c:forEach var="EF" items="${exp.experimentFactors}">
+                                    <div id="${EF}"><a
+                                       onclick="redrawPlotForFactor('${exp.accession}', '${atlasGene.geneId}','${EF}',false)">${f:escapeXml(atlasProperties.curatedEfs[EF])}</a></div>
+                                </c:forEach>
                         </div>
+                        <div class="clean"></div>
                     </div>
                 </td>
             </tr>
         </c:if>
 
-        <tr align="left">
-            <td colspan="3">
+        <tr>
+            <td>
                 <table width="100%">
                     <tr>
 
@@ -115,19 +114,19 @@
             </td>
         </tr>
         <tr>
-            <td colspan="3">
+            <td>
                 &nbsp;Show <a title="Show expression profile in detail"
                               href="${pageContext.request.contextPath}/experiment/${exp.accession}/${atlasGene.geneIdentifier}">expression
                 profile</a>
                 &nbsp;/&nbsp;
-                <a target="_blank" title="Show experiment details in ArrayExpress Archive"
+                <a class="external" target="_blank" title="Show experiment details in ArrayExpress Archive"
                    href="http://www.ebi.ac.uk/arrayexpress/browse.html?keywords=${exp.accession}&detailedview=on">experiment details</a>
                 <br/><br/>
             </td>
         </tr>
 
-        <tr>
-            <td colspan="3" style="border-bottom:1px solid #CDCDCD">&nbsp;</td>
+        <tr class="delimiter">
+            <td>&nbsp;</td>
         </tr>
 
     </c:forEach>
