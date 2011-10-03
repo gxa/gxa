@@ -40,9 +40,11 @@ public class NoEtagHeaderFilter implements Filter {
     private static final Logger log = LoggerFactory.getLogger(NoEtagHeaderFilter.class);
 
     public void init(FilterConfig filterConfig) throws ServletException {
+        log.info("init");
     }
 
     public void destroy() {
+        log.info("destroy");
     }
 
     public void doFilter(ServletRequest request, ServletResponse response,
