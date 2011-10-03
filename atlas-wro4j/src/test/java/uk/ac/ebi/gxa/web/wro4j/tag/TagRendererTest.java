@@ -93,8 +93,8 @@ public class TagRendererTest {
                 lister);
         final StringWriter writer = new StringWriter();
         renderer.render(writer, "group", "/ebi");
-        assertEquals("<link type=\"text/css\" rel=\"stylesheet\" href=\"/ebi/group-group.ext-css\"/>\n" +
-                "<script type=\"text/javascript\" src=\"/ebi/group-group.ext-js\"></script>\n",
+        assertEquals("<link type=\"text/css\" rel=\"stylesheet\" href=\"/ebi/bundledcss/group-group.ext-css\"/>\n" +
+                "<script type=\"text/javascript\" src=\"/ebi/bundledjs/group-group.ext-js\"></script>\n",
                 writer.toString());
     }
 
