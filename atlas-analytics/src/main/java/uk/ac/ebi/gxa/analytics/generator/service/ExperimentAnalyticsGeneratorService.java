@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.analytics.generator.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
@@ -60,6 +61,11 @@ public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ExecutorService executor;
 
+    // cglib-only, see https://jira.springsource.org/browse/SPR-3150
+    ExperimentAnalyticsGeneratorService() {
+        this(null, null, null, null);
+    }
+
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasNetCDFDAO atlasNetCDFDAO, AtlasComputeService atlasComputeService, ExecutorService executor) {
         this.atlasDAO = atlasDAO;
         this.atlasNetCDFDAO = atlasNetCDFDAO;
@@ -67,13 +73,9 @@ public class ExperimentAnalyticsGeneratorService {
         this.executor = executor;
     }
 
+    @Transactional
     public void generateAnalytics() throws AnalyticsGeneratorException {
-        atlasDAO.startSession();
-        try {
-            generateInternal();
-        } finally {
-            atlasDAO.finishSession();
-        }
+        generateInternal();
     }
 
     private void generateInternal() throws AnalyticsGeneratorException {
