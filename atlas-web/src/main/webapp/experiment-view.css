@@ -80,6 +80,38 @@
     height: 34px;
 }
 
+.zoomin-btn.hovered {
+    background: url(images/zoominO.gif) no-repeat;
+}
+
+.zoomout-btn.hovered {
+    background: url(images/zoomoutO.gif) no-repeat;
+}
+
+.panright-btn.hovered {
+    background: url(images/panrightO.gif) no-repeat;
+}
+
+.panleft-btn.hovered {
+    background: url(images/panleftO.gif) no-repeat;
+}
+
+.zoomin-btn.clicked {
+    background: url(images/zoominC.gif) no-repeat;
+}
+
+.zoomout-btn.clicked {
+    background: url(images/zoomoutC.gif) no-repeat;
+}
+
+.panright-btn.clicked {
+    background: url(images/panrightC.gif) no-repeat;
+}
+
+.panleft-btn.clicked {
+    background: url(images/panleftC.gif) no-repeat;
+}
+
 .chartIcon.add-btn {
     cursor: pointer;
     background: url(images/chart_line_add.png) no-repeat;
