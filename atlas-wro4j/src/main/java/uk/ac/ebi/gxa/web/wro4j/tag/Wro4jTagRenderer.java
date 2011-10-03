@@ -85,7 +85,7 @@ public class Wro4jTagRenderer {
         String path = properties.getResourcePath(tag.getType());
         for (String filename : lister.list(path)) {
             if (filename.matches(template)) {
-                return Resource.create(filename, tag.getType());
+                return Resource.create(ResourcePath.join(path, filename), tag.getType());
             }
         }
         throw new Wro4jTagException("No file matching the template: '" + template +
