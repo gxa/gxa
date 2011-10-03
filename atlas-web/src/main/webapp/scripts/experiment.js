@@ -672,7 +672,7 @@
             });
 
             $("#" + zoomout).bind("click", function() {
-               triggerZoomOutEvent();
+                triggerZoomOutEvent();
             });
 
             // zoom out completely on double click
