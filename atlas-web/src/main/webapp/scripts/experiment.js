@@ -648,43 +648,43 @@
 
             $("#" + target).children()
                 .hover(
-                function(e) {
+                function() {
                     $(this).addClass("hovered");
                 },
-                function(e) {
+                function() {
                     $(this).removeClass("hovered");
                 })
                 .mousedown(
-                function(e) {
+                function() {
                     $(this).addClass("clicked");
                     return false;
                 })
                 .mouseup(
-                function(e) {
+                function() {
                     $(this).removeClass("clicked");
                     return false;
                 });
         }
 
         function bindEvents() {
-            $("#" + zoomin).bind("click", function(e) {
+            $("#" + zoomin).bind("click", function() {
                 triggerZoomInEvent();
             });
 
-            $("#" + zoomout).bind("click", function(e) {
+            $("#" + zoomout).bind("click", function() {
                triggerZoomOutEvent();
             });
 
             // zoom out completely on double click
-            $("#" + zoomout).bind("dblclick", function(e) {
+            $("#" + zoomout).bind("dblclick", function() {
                 triggerZoomOutEvent(true);
             });
 
-            $("#" + panright).bind("click", function(e) {
+            $("#" + panright).bind("click", function() {
                 triggerPanRightEvent();
             });
 
-            $("#" + panleft).bind("click", function(e) {
+            $("#" + panleft).bind("click", function() {
                 triggerPanLeftEvent();
             });
         }
