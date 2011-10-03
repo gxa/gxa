@@ -35,6 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
+        <wro4j.version>1.3.8</wro4j.version>
     </properties>
 
     <scm>
@@ -286,6 +287,7 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
+                <module>atlas-wro4j</module>
         <module>annotator</module>
     </modules>
 

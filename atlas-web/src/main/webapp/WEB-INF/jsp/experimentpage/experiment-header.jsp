@@ -26,7 +26,7 @@
 
 <div style="float:right;margin:0 20px;">
     <a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
-        class="geneName"
+        class="page-title"
        style="vertical-align: baseline">${exp.accession}</a>
 
     <div style="border:1px black solid;padding:5px;">

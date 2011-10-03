@@ -31,9 +31,11 @@
         <tmpl:param name="experiment" value="${exp}"/>
     </tmpl:stringTemplate>
 
-    <jsp:include page="../includes/query-includes.jsp"/>
-
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
+    <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+    <wro4j:all name="bundle-jquery"/>
+    <wro4j:all name="bundle-common-libs"/>
+    <wro4j:all name="bundle-gxa"/>
+    <wro4j:all name="bundle-gxa-page-experiment"/>
 </head>
 
 <tmpl:stringTemplateWrap name="page">
@@ -47,11 +49,11 @@
             <div class="column-container">
                 <div class="left-column">
 
-                    <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
+                    <span class="section-header-1" style="vertical-align: baseline">${exp.description}</span>
 
                     <p>
                         ${exp.abstract}
-                        <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        <c:if test="${exp.pubmedId!=null}">(<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
                                                                target="_blank">PubMed ${exp.pubmedId}</a>)</c:if>
                     </p>
                 </div>
@@ -62,8 +64,6 @@
 
                 <div class="clean">&nbsp;</div>
             </div>
-
-            <div class="hrClear" style="margin-top:20px;width:100%;"></div>
 
             <h3>We are sorry, this experiment is currently in curation. Please come back soon.</h3>
         </div>
