@@ -20,11 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-var atlas = atlas || {};
-
 (function($){
-    if(!atlas.homeUrl)
-        atlas.homeUrl = '/';
 
     $.extend($.fn, {
         efoTree: function(o, handler) {
@@ -36,7 +32,7 @@ var atlas = atlas || {};
                 var hl;
                 function showTree(c, t, downTo) {
                     c.addClass('wait');
-                    $.getJSON(atlas.homeUrl + 'efo',
+                    $.getJSON(atlas.pathFor('efo'),
                         o.root == t ? {
                             downTo: downTo,
                             hl: o.highlight
@@ -211,7 +207,7 @@ var atlas = atlas || {};
     atlas.ajaxCall = function (url, data, successFunc, errorFunc) {
         return $.ajax({
             type: "GET",
-            url: atlas.homeUrl + url,
+            url: atlas.pathFor(url),
             dataType: "json",
             data: data,
             success: function(resp) {

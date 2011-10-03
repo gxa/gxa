@@ -199,21 +199,25 @@ if(!atlas)
     };
 
     atlas.popup = function  (url) {
-        var width  = 700;
+        var width = 700;
         var height = 200;
-        var left   = (screen.width  - width)/2;
-        var top    = (screen.height - height)/2;
-        var params = 'width='+width+', height='+height;
-        params += ', top='+top+', left='+left;
-        params += ', directories=no';
-        params += ', location=no';
-        params += ', menubar=no';
-        params += ', resizable=no';
-        params += ', scrollbars=no';
-        params += ', status=no';
-        params += ', toolbar=no';
-        newwin=window.open(url,'windowname5', params);
-        if (window.focus) {newwin.focus()}
+        var left = ($(window).width() - width) / 2;
+        var top = ($(window).height() - height) / 2;
+        var params = ['width=' + width,
+            'height=' + height,
+            'top=' + top,
+            'left=' + left,
+            'directories=no',
+            'location=no',
+            'menubar=no',
+            'resizable=no',
+            'scrollbars=no',
+            'status=no',
+            'toolbar=no'];
+        newwin = window.open(url, 'windowname5', params.join(","));
+        if (window.focus && newwin) {
+            newwin.focus()
+        }
         return false;
     };
 
