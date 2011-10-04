@@ -342,7 +342,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "PROPERTY VARCHAR(255), " +
                         "PROPERTYVALUE VARCHAR(255), " +
                         "ONTOLOGYTERM VARCHAR(255), " +
-                        "ONTOLOGYTERMNAME VARCHAR(255), " +
                         "ONTOLOGYTERMID bigint, " +
                         "ONTOLOGYNAME VARCHAR(255), " +
                         "ISSAMPLEPROPERTY BOOLEAN, " +
