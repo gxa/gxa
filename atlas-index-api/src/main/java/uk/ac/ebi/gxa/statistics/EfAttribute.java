@@ -1,12 +1,8 @@
 package uk.ac.ebi.gxa.statistics;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;

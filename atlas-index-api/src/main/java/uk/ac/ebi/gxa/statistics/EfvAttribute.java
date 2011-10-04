@@ -1,15 +1,8 @@
 package uk.ac.ebi.gxa.statistics;
 
-import uk.ac.ebi.gxa.efo.Efo;
-
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
