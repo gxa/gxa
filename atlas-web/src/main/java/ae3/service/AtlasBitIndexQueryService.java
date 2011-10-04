@@ -296,7 +296,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             List<String> efs = getScoringEfsForBioEntity(bioEntityId, statType, null);
             attrs = new ArrayList<Attribute>();
             for (String expFactor : efs) {
-                EfvAttribute attr = new EfvAttribute(expFactor);
+                EfAttribute attr = new EfAttribute(expFactor);
                 attrs.add(attr);
             }
         } else {
@@ -350,8 +350,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         long timeStart = System.currentTimeMillis();
         List<String> scoringEfs = new ArrayList<String>();
         if (bioEntityId != null) {
-            Set<EfvAttribute> scoringEfAttrs = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
-            for (EfvAttribute efAttr : scoringEfAttrs) {
+            Set<EfAttribute> scoringEfAttrs = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
+            for (EfAttribute efAttr : scoringEfAttrs) {
                 if (efAttr != null && (ef == null || "".equals(ef) || ef.equals(efAttr.getEf()))) {
                     scoringEfs.add(efAttr.getEf());
                 }
@@ -391,7 +391,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param statType
      * @return unsorted list of experiments for which bioEntityId has statType expression for ef attr
      */
-    public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nullable EfvAttribute attribute, StatisticsType statType) {
+    public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nullable EfAttribute attribute, StatisticsType statType) {
         List<ExperimentInfo> exps = new ArrayList<ExperimentInfo>();
         // Note that if ef == null, this method returns list of experiments across all efs for which this bioentity has up/down exp counts
         if (bioEntityId != null) {
@@ -409,7 +409,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     private void collectScoringAttributes(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors,
                                           @Nullable Multiset<EfvAttribute> attrCounts, @Nullable Set<String> scoringEfos) {
-        for (EfvAttribute efvAttr : statisticsStorage.getAllAttributes(statType)) {
+        for (EfvAttribute efvAttr : statisticsStorage.getAllEfvAttributes(statType)) {
             if ((autoFactors != null && !autoFactors.contains(efvAttr.getEf())) || efvAttr.getEfv() == null) {
                 continue; // skip attribute if its factor is not of interest or it's an ef-only attribute
             }
@@ -484,10 +484,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param attribute
      * @param allExpsToAttrs Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
-    public void getEfvExperimentMappings(
+    public void getAttributeToExperimentMappings(
             final Attribute attribute,
-            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs) {
-        attribute.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
+            Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs) {
+        attribute.getAttributeToExperimentMappings(statisticsStorage, allExpsToAttrs);
     }
 
     /**

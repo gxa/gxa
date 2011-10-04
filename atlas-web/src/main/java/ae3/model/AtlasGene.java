@@ -471,7 +471,7 @@ public class AtlasGene {
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
         for (String factorName : efs) {
-            EfvAttribute attr = new EfvAttribute(factorName);
+            EfAttribute attr = new EfAttribute(factorName);
             Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr, UP_DOWN);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
             for (ExperimentInfo exp : experiments) {
