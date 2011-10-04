@@ -198,4 +198,11 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      */
     public int getMappingsCountForEfo(String efoTerm);
 
+    /**
+     * @param attr
+     * @param exp
+     * @return efo term which maps to attr and exp
+     */
+    public String getEfoTerm(EfvAttribute attr, ExperimentInfo exp);
+
 }

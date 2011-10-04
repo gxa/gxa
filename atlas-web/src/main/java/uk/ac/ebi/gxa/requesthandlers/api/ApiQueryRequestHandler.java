@@ -142,6 +142,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
+            // If the flag below is set, expression stats in an experiment's API output don't show ef-efvs; instead
+            // efo uri's are shown to which the ef-efvs map to in that experiment.
+            final boolean showEfoTerms = (request.getParameter("showEfoTerms") != null);
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
@@ -184,7 +187,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         }
                                     }
 
-                                    return new ExperimentResultAdapter(experiment, genes, expData);
+                                    return new ExperimentResultAdapter(experiment, genes, expData, showEfoTerms, atlasStatisticsQueryService);
                                 }
                             })
             );

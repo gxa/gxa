@@ -22,10 +22,15 @@
 
 package ae3.model;
 
+import ae3.service.AtlasStatisticsQueryService;
+import ae3.service.structuredquery.Constants;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.KeyValuePair;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.ExperimentInfo;
+import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -68,9 +73,11 @@ public class ExpressionStats {
      * Gets {@link uk.ac.ebi.gxa.utils.EfvTree} of expression statistics structures
      *
      * @param designElementId design element id
+     * @param showEfoTerms    If true, expression stats in an experiment's API output don't show ef-efvs; instead
+     *                        efo uri's are shown to which the ef-efvs map to in that experiment.
      * @return efv tree of stats
      */
-    EfvTree<Stat> getExpressionStats(int designElementId) throws AtlasDataException {
+    EfvTree<Stat> getExpressionStats(int designElementId, boolean showEfoTerms, AtlasStatisticsQueryService atlasStatisticsQueryService) throws AtlasDataException {
         if (lastData != null && designElementId == lastDesignElement) {
             return lastData;
         }
@@ -83,7 +90,16 @@ public class ExpressionStats {
                 float pvalue = pvals[efefv.getPayload()];
                 float tstat = tstats[efefv.getPayload()];
                 if (tstat > 1e-8 || tstat < -1e-8) {
-                    result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
+                    if (showEfoTerms) {
+                        String efoTerm = atlasStatisticsQueryService.getEfoTerm(new EfvAttribute(efefv.getEf(), efefv.getEfv()),
+                                new ExperimentInfo(experiment.getExperiment().getAccession(), experiment.getExperiment().getId().longValue()));
+                        if (efoTerm != null) {
+                            result.put(Constants.EFO_FACTOR_NAME, efoTerm, new Stat(tstat, pvalue));
+                        } else {
+                            result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
+                        }
+                    } else
+                        result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
                 }
             }
             lastDesignElement = designElementId;

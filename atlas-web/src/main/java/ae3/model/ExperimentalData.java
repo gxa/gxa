@@ -22,6 +22,7 @@
 
 package ae3.model;
 
+import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
@@ -169,18 +170,25 @@ public class ExperimentalData {
     /**
      * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link ae3.model.ExpressionStats.Stat} structures
      *
-     * @param ad            array design
-     * @param designElement design element id
+     * @param ad                          array design
+     * @param designElement               design element id
+     * @param showEfoTerms                If true, expression stats in an experiment's API output don't show ef-efvs; instead
+     *                                    efo uri's are shown to which the ef-efvs map to in that experiment.
+     * @param atlasStatisticsQueryService
      * @return map of statstics
      */
-    public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
+    public EfvTree<ExpressionStats.Stat> getExpressionStats(
+            ArrayDesign ad,
+            int designElement,
+            boolean showEfoTerms,
+            AtlasStatisticsQueryService atlasStatisticsQueryService) {
         final ExpressionStats stats = getExpressionStats(ad);
         if (stats == null) {
             return new EfvTree<ExpressionStats.Stat>();
         }
 
         try {
-            return stats.getExpressionStats(designElement);
+            return stats.getExpressionStats(designElement, showEfoTerms, atlasStatisticsQueryService);
         } catch (AtlasDataException e) {
             return new EfvTree<ExpressionStats.Stat>();
         }
