@@ -367,6 +367,32 @@ public final class NetCDFProxy implements Closeable {
         return list;
     }
 
+    public List<KeyValuePair> getUVal() throws IOException, AtlasDataException {
+        Variable uVALVar;
+        uVALVar = netCDF.findVariable("uVAL");
+
+        if (uVALVar == null) {
+            // This is to allow for backwards compatibility
+            uVALVar = netCDF.findVariable("uEFV");
+        }
+
+        if (uVALVar == null) {
+            return Collections.emptyList();
+        }
+
+        ArrayChar uVal = (ArrayChar) uVALVar.read();
+
+        final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
+        for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
+            final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
+            if (data.length != 2) {
+                throw new AtlasDataException("Invalid uVAL element: " + text);
+            }
+            list.add(new KeyValuePair(data[0], data[1]));
+        }
+        return list;
+    }
+
     public List<KeyValuePair> getUniqueFactorValues() throws IOException, AtlasDataException {
         List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
         List<String> factors = Arrays.asList(getFactors());
@@ -606,7 +632,7 @@ public final class NetCDFProxy implements Closeable {
         }
 
         private ExpressionAnalysisHelper prepare() throws IOException, AtlasDataException {
-            uniquePropertyValues.addAll(getUniqueValues());
+            uniquePropertyValues.addAll(getUVal());
             designElementAccessions = getDesignElementAccessions();
             return this;
         }
