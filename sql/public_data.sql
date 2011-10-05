@@ -46,5 +46,3 @@ SELECT * FROM A2_SAMPLEPVONTOLOGY    spvo WHERE EXISTS (SELECT * FROM A2_SAMPLEP
   ON e.experimentid = a.experimentid
   WHERE spvo.samplepvid = spv.samplepvid AND e.private = 0);
 
-SELECT * FROM A2_SCHEMACHANGES       sc
-  WHERE sc.changeid IN (SELECT MAX(changeid) FROM A2_SCHEMACHANGES);

@@ -180,40 +180,64 @@ if(!atlas)
 
              var plots = popup.find('.oneplot');
              var c = 0;
-             var iexp, ief;
-             for(iexp = 0; iexp < resp.experiments.length; ++iexp)
-                 for(ief = 0; ief < resp.experiments[iexp].efs.length; ++ief) {
+             for (var iexp = 0, expLen = (resp.experiments || []).length; iexp < expLen; ++iexp) {
+                 var exp = resp.experiments[iexp];
+                 for (var ief = 0, efLen = (exp.efs || []).length; ief < efLen; ++ief) {
+                     var ef = exp.efs[ief];
+
+                     // From amongst the current ef's efvs find the one with the
+                     // best pValue and pass it to the plot function - to ensure that it
+                     // gets displayed in the plot's legend.
+                     var minPVal = 1;
+                     var bestEfv = null;
+                     for (var iefv = 0, efvLen = (ef.efvs || []).length; iefv < efvLen; ++iefv) {
+                         var efv = ef.efvs[iefv];
+                         if (efv.pvalue < minPVal) {
+                             minPVal = efv.pvalue;
+                             bestEfv = efv.efv;
+                         }
+                     }
+
+                     if (bestEfv == null) {
+                         continue;
+                     }
+
                      atlas.ajaxCall("plot", {
                          gid: gene,
-                         eacc: resp.experiments[iexp].accession,
-                         ef: resp.experiments[iexp].efs[ief].ef,
+                         eacc: exp.accession,
+                         ef: ef.ef,
+                         efv: bestEfv,
                          plot: 'bar'
-                     }, (function(eid, eacc, gid, x, cc) {
+                     }, (function(eid, eacc, gid, efvs, target) {
                          return function(o) {
-                             drawPlot(o, plots.filter(cc), x, eid, eacc, gid);
+                             drawPlot(o, plots.filter(target), efvs, eid, eacc, gid);
                          };
-                     })(resp.experiments[iexp].id, resp.experiments[iexp].accession, gene, resp.experiments[iexp].efs[ief].efvs, '#oneplot_' + (c++))
-                             );
+                     })(exp.id, exp.accession, gene, ef.efvs, '#oneplot_' + (c++)));
                  }
+             }
          });
     };
 
     atlas.popup = function  (url) {
-        var width  = 700;
+        var width = 700;
         var height = 200;
-        var left   = (screen.width  - width)/2;
-        var top    = (screen.height - height)/2;
-        var params = 'width='+width+', height='+height;
-        params += ', top='+top+', left='+left;
-        params += ', directories=no';
-        params += ', location=no';
-        params += ', menubar=no';
-        params += ', resizable=no';
-        params += ', scrollbars=no';
-        params += ', status=no';
-        params += ', toolbar=no';
-        newwin=window.open(url,'windowname5', params);
-        if (window.focus) {newwin.focus()}
+        var left = ($(window).width() - width) / 2;
+        var top = ($(window).height() - height) / 2;
+        var params = ['width=' + width,
+            'height=' + height,
+            'top=' + top,
+            'left=' + left,
+            'directories=no',
+            'location=no',
+            'menubar=no',
+            'resizable=no',
+            'scrollbars=no',
+            'status=no',
+            'toolbar=no'];
+        newwin = window.open(url, 'windowname5', params.join(","));
+        if (window.focus && newwin) {
+            newwin.focus()
+        }
         return false;
     };
 
