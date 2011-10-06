@@ -136,9 +136,22 @@ public class ExperimentWithData {
      */
     public List<Assay> getAssays(ArrayDesign arrayDesign) throws AtlasDataException {
         final String[] assayAccessions = getProxy(arrayDesign).getAssayAccessions();
+
+        final Map<String,Assay> experimentAssays = new HashMap<String,Assay>();
+        for (Assay a : experiment.getAssaysForDesign(arrayDesign)) {
+            experimentAssays.put(a.getAccession(), a);
+        }
+        if (assayAccessions.length != experimentAssays.size()) {
+            throw new AtlasDataException("Experiment " + experiment.getAccession() + "/" + arrayDesign.getAccession() + " contains " + experimentAssays.size() + " assays but data storage contains " + assayAccessions.length);
+        }
+
         final ArrayList<Assay> assays = new ArrayList<Assay>(assayAccessions.length);
         for (String accession : assayAccessions) {
-            assays.add(experiment.getAssay(accession));
+            final Assay a = experimentAssays.get(accession);
+            if (a == null) {
+                throw new AtlasDataException("Experiment " + experiment.getAccession() + "/" + arrayDesign.getAccession() + " does not contain an assay with accession " + accession + " that is mentioned in data storage");
+            }
+            assays.add(a);
         }
         return assays;
     }
