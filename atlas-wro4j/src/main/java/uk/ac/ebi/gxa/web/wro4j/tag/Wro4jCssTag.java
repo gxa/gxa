@@ -22,16 +22,13 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import ro.isdc.wro.model.resource.ResourceType;
-
 /**
  * @author Olga Melnichuk
  */
 public class Wro4jCssTag extends Wro4jTag {
-
-    private static final long serialVersionUID = 6184065535320355874L;
+    private static final long serialVersionUID = 201109270814L;
 
     public Wro4jCssTag() {
-        super(ResourceType.CSS);
+        super(ResourceHtmlTag.CSS);
     }
 }

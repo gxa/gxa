@@ -155,8 +155,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
                             continue;
 
-                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value, null));
-                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key, null));
+                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value));
+                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key));
 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
@@ -342,7 +342,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            EfvAttribute attribute = attributePool.intern(new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue(), null));
+            EfvAttribute attribute = attributePool.intern(new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue()));
 
             ExperimentInfo exp = new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId());
             ExperimentInfo internedExp = experimentPool.intern(exp);
@@ -380,9 +380,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             }
         }
 
-        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttributeIndex) {
+        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttribute) {
             for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                stats.addPvalueTstatRank(efvAttributeIndex,
+                stats.addPvalueTstatRank(efvAttribute,
                         PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
                         expIdx, entry.getKey());
             }

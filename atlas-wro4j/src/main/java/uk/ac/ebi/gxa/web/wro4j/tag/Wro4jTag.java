@@ -22,41 +22,46 @@
 
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
+import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.isdc.wro.WroRuntimeException;
-import ro.isdc.wro.model.WroModel;
+import ro.isdc.wro.model.factory.XmlModelFactory;
 import ro.isdc.wro.model.group.InvalidGroupNameException;
-import ro.isdc.wro.model.resource.ResourceType;
 
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Set;
+
+import static com.google.common.collect.Collections2.transform;
+import static java.util.EnumSet.copyOf;
 
 /**
  * @author Olga Melnichuk
  */
-public class Wro4jTag extends TagSupport {
-
-    private static final long serialVersionUID = 6184065535320355872L;
-
-    private final static Logger log = LoggerFactory.getLogger(Wro4jTag.class);
-
+public abstract class Wro4jTag extends TagSupport {
+    private static final long serialVersionUID = 201109281357L;
+    private static final Logger log = LoggerFactory.getLogger(Wro4jTag.class);
+    private final EnumSet<ResourceHtmlTag> tags;
     private String name;
 
-    private final List<ResourceType> resourceTypes = new ArrayList<ResourceType>();
-
-    public Wro4jTag() {
-        this(ResourceType.values());
+    Wro4jTag(ResourceHtmlTag tag) {
+        this(EnumSet.of(tag));
     }
 
-    Wro4jTag(ResourceType... types) {
-        resourceTypes.addAll(Arrays.asList(types));
+    Wro4jTag(EnumSet<ResourceHtmlTag> tags) {
+        this.tags = copyOf(tags);
+    }
+
+    Wro4jTagRenderer createRenderer(EnumSet<ResourceHtmlTag> tags) throws Wro4jTagException {
+        return new Wro4jTagRenderer(loadWro4jConfig(), new Wro4jTagProperties(), tags, new ContextDirectoryLister());
     }
 
     public String getName() {
@@ -68,12 +73,18 @@ public class Wro4jTag extends TagSupport {
     }
 
     public int doStartTag() throws JspException {
+        if (name == null)
+            throw jspTagException("The name parameter is mandatory");
+
         try {
-            writeHtml();
+            final HttpServletRequest request = (HttpServletRequest) pageContext.getRequest();
+            createRenderer(tags).render(pageContext.getOut(), name, request.getContextPath());
         } catch (IOException e) {
             throw jspTagException(e);
         } catch (Wro4jTagException e) {
             throw jspTagException(e);
+        } catch (InvalidGroupNameException e) {
+            throw jspTagException("Group is not in the config file: " + name);
         }
         return SKIP_BODY;
     }
@@ -82,28 +93,47 @@ public class Wro4jTag extends TagSupport {
         return EVAL_PAGE;
     }
 
+    private JspTagException jspTagException(String message) throws JspTagException {
+        log.error("Wro4jTag error: " + message);
+        return new JspTagException("Wro4jTag error: " + message);
+    }
+
     private JspTagException jspTagException(Exception e) {
         log.error("Wro4jTag error: " + e.getMessage(), e);
         return new JspTagException("Wro4jTag threw an exception; see logs for details");
     }
 
-    private void writeHtml() throws Wro4jTagException, IOException {
-        WroModel wroModel = loadWro4jConfig();
-        Wro4jTagRenderer renderer = Wro4jTagRenderer.create(pageContext, resourceTypes);
+    private GroupResolver loadWro4jConfig() throws Wro4jTagException {
         try {
-            renderer.render(wroModel.getGroupByName(name));
-        } catch (InvalidGroupNameException e) {
-            throw new Wro4jTagException("Group is not in the config file: " + name);
+            return new GroupResolver(new XmlFileModelFactory().create());
+        } catch (WroRuntimeException e) {
+            throw new Wro4jTagException("Can't load wro4j config file", e);
         }
     }
 
-    private WroModel loadWro4jConfig() throws Wro4jTagException {
-        File webInf = new File(pageContext.getServletContext().getRealPath("/"), "WEB-INF");
-        File wro4jConfigPath = new File(webInf, "wro.xml");
-        try {
-            return new Wro4jXmlModelFactory(wro4jConfigPath).create();
-        } catch (WroRuntimeException e) {
-            throw new Wro4jTagException("Can't load wro4j config file", e);
+    EnumSet<ResourceHtmlTag> getTags() {
+        return tags;
+    }
+
+    private class XmlFileModelFactory extends XmlModelFactory {
+        @Override
+        protected InputStream getConfigResourceAsStream() throws IOException {
+            return pageContext.getServletContext().getResourceAsStream("/WEB-INF/wro.xml");
+        }
+    }
+
+    private class ContextDirectoryLister implements Wro4jTagRenderer.DirectoryLister {
+        @Override
+        public Collection<String> list(String path) {
+            final String dir = ResourcePath.normalizeDirectory(path);
+            @SuppressWarnings("unchecked")
+            Set<String> resources = pageContext.getServletContext().getResourcePaths(dir);
+            return transform(resources, new Function<String, String>() {
+                @Override
+                public String apply(@Nullable String input) {
+                    return input == null ? null : input.substring(dir.length());
+                }
+            });
         }
     }
 }

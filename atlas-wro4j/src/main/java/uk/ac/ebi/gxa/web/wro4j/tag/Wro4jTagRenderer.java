@@ -19,110 +19,94 @@
  *
  * http://gxa.github.com/gxa
  */
-
 package uk.ac.ebi.gxa.web.wro4j.tag;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.base.Predicate;
 import ro.isdc.wro.model.group.Group;
 import ro.isdc.wro.model.resource.Resource;
-import ro.isdc.wro.model.resource.ResourceType;
 
-import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.PageContext;
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 
+import static com.google.common.collect.Collections2.filter;
+import static java.util.EnumSet.copyOf;
+
 /**
- * @author Olga Melnichuk
+ * @author alf
  */
-abstract class Wro4jTagRenderer {
+public class Wro4jTagRenderer {
+    private final GroupResolver groupResolver;
+    private final Wro4jTagProperties properties;
+    private final EnumSet<ResourceHtmlTag> tags;
+    private final DirectoryLister lister;
 
-    private final static Logger log = LoggerFactory.getLogger(Wro4jTagRenderer.class);
+    public Wro4jTagRenderer(GroupResolver groupResolver, Wro4jTagProperties properties, EnumSet<ResourceHtmlTag> tags, DirectoryLister lister) {
+        this.groupResolver = groupResolver;
+        this.properties = properties;
+        this.tags = copyOf(tags);
+        this.lister = lister;
+    }
 
-    private static final Wro4jTagProperties properties = new Wro4jTagProperties();
+    public void render(Writer writer, String name, String contextPath) throws IOException, Wro4jTagException {
+        for (Resource resource : collectResources(groupResolver.getGroup(name))) {
+            writer.write(render(contextPath, resource));
+            writer.write("\n");
+        }
+    }
 
-        static {
-            String tagProperties = "wro4j-tag.properties";
-            try {
-                InputStream in = Wro4jTag.class.getClassLoader().getResourceAsStream(tagProperties);
-                if (in == null) {
-                    log.error(tagProperties + " not found in the classpath");
-                } else {
-                    properties.load(in);
-                }
-            } catch (IOException e) {
-                log.error("Wro4jTag error: " + tagProperties + " not loaded", e);
+    private Collection<Resource> collectResources(final Group group) throws Wro4jTagException {
+        return properties.isDebugOn() ? uncompressedResources(group) : compressedBundle(group);
+    }
+
+    private Collection<Resource> compressedBundle(Group group) throws Wro4jTagException {
+        List<Resource> list = new ArrayList<Resource>();
+        for (ResourceHtmlTag type : tags)
+            if (group.hasResourcesOfType(type.getType()))
+                list.add(resourceForBundle(group, type));
+        return list;
+    }
+
+    private Collection<Resource> uncompressedResources(Group group) {
+        return filter(group.getResources(), new Predicate<Resource>() {
+            @Override
+            public boolean apply(@Nullable Resource resource) {
+                return isSupported(resource);
+            }
+        });
+    }
+
+    private Resource resourceForBundle(Group group, ResourceHtmlTag tag) throws Wro4jTagException {
+        final String template = properties.getNameTemplate().forGroup(group.getName(), tag);
+        String path = properties.getResourcePath(tag.getType());
+        for (String filename : lister.list(path)) {
+            if (filename.matches(template)) {
+                return Resource.create(ResourcePath.join(path, filename), tag.getType());
             }
         }
-
-    private final PageContext pageContext;
-
-    private Wro4jTagRenderer(PageContext pageContext) {
-        this.pageContext = pageContext;
+        throw new Wro4jTagException("No file matching the template: '" + template +
+                "' found in the path: " + properties.getResourcePath(tag.getType()) +
+                " - have you built the compressed versions properly?");
     }
 
-    public static Wro4jTagRenderer create(PageContext pageContext, Collection<ResourceType> resourceTypes) {
-        return create(properties.isDebugOn(), pageContext,  resourceTypes);
+    private String render(String contextPath, Resource resource) {
+        final String uri = ResourcePath.join(contextPath, resource.getUri());
+        return ResourceHtmlTag.forType(resource.getType()).render(uri);
     }
 
-    public static Wro4jTagRenderer create(boolean debug, final PageContext pageContext, final Collection<ResourceType> resourceTypes) {
-        return debug ?
-                new Wro4jTagRenderer(pageContext) {
-                    @Override
-                    public void render(@Nonnull Group group) throws IOException {
-                        List<Resource> list = new ArrayList<Resource>();
-                        for (Resource resource : group.getResources()) {
-                            if (resourceTypes.contains(resource.getType())) {
-                                list.add(resource);
-                            }
-                        }
-                        render(list);
-                    }
-                } :
-                new Wro4jTagRenderer(pageContext) {
-                    @Override
-                    public void render(@Nonnull Group group) throws IOException, Wro4jTagException {
-                        List<Resource> list = new ArrayList<Resource>();
-                        for (ResourceType type : resourceTypes) {
-                            if (group.hasResourcesOfType(type)) {
-                                list.add(Resource.create(groupUri(group, type), type));
-                            }
-                        }
-                        render(list);
-                    }
-
-                    private String groupUri(Group group, ResourceType type) throws Wro4jTagException {
-                        AggregatedResourcePath aggregationPath = properties.getAggregationPath(type);
-                        return aggregationPath
-                                .relativeTo(pageContext)
-                                .findOne(group.getName());
-                    }
-                };
-    }
-
-    public abstract void render(@Nonnull Group group) throws IOException, Wro4jTagException;
-
-    protected void render(Collection<Resource> resources) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        for (Resource resource : resources) {
-            sb.append(
-                    toHtml(resource)
-            ).append("\n");
+    boolean isSupported(Resource resource) {
+        for (ResourceHtmlTag tag : tags) {
+            if (resource.getType() == tag.getType())
+                return true;
         }
-
-        pageContext.getOut().write(sb.toString());
+        return false;
     }
 
-    private String toHtml(Resource resource) {
-        return ResourceHtmlTag.of(resource.getType()).asString(relativeToContextPath(resource.getUri()));
-    }
-
-    private String relativeToContextPath(String uri) {
-        return ResourcePath.join(((HttpServletRequest) pageContext.getRequest()).getContextPath(), uri);
+    static interface DirectoryLister {
+        Collection<String> list(String path);
     }
 }

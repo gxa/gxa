@@ -86,11 +86,10 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
                 int bioEntityCount = 0;
                 Collection<AtlasEfoService.EfoTermCount> children = efoService.getTermChildren(efoTermCount.getId());
                 for (AtlasEfoService.EfoTermCount efoChildTermCount : children) {
-                    Attribute attr = new EfoAttribute(efoChildTermCount.getId(), StatisticsType.UP_DOWN);
+                    Attribute attr = new EfoAttribute(efoChildTermCount.getId());
                     bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
                     if (bioEntityCount > 0)
                         break;
-                    attr = attr.withStatType(StatisticsType.NON_D_E);
                     bioEntityCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.NON_D_E);
                     if (bioEntityCount > 0)
                         break;

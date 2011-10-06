@@ -25,20 +25,26 @@ package uk.ac.ebi.gxa.web.wro4j.tag;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static uk.ac.ebi.gxa.web.wro4j.tag.ResourcePath.join;
-import static uk.ac.ebi.gxa.web.wro4j.tag.ResourcePath.normalizePath;
+import static uk.ac.ebi.gxa.web.wro4j.tag.ResourcePath.*;
 
 /**
  * @author Olga Melnichuk
  */
 public class ResourcePathTest {
-
     @Test
     public void normalizePathTest() {
         assertEquals("one/two", normalizePath("one///two"));
         assertEquals("one/two", normalizePath("/one///two"));
         assertEquals("one/two", normalizePath("/one///two/"));
         assertEquals("one/two", normalizePath("///one///two///"));
+    }
+
+    @Test
+    public void normalizeDirectoryTest() {
+        assertEquals("/one/two/", normalizeDirectory("one///two"));
+        assertEquals("/one/two/", normalizeDirectory("/one///two"));
+        assertEquals("/one/two/", normalizeDirectory("/one///two/"));
+        assertEquals("/one/two/", normalizeDirectory("///one///two///"));
     }
 
     @Test

@@ -26,7 +26,6 @@ package uk.ac.ebi.gxa.web.wro4j.tag;
  * @author Olga Melnichuk
  */
 public class Wro4jTagException extends Exception {
-
     public Wro4jTagException(String message) {
         super(message);
     }

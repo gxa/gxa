@@ -24,40 +24,55 @@ package uk.ac.ebi.gxa.web.wro4j.tag;
 
 import ro.isdc.wro.model.resource.ResourceType;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumMap;
+
+import static com.google.common.collect.Maps.newEnumMap;
 
 /**
- * @author Olga Melnichuk
+ * Custom extension for  {@link ResourceType}
  */
-abstract class ResourceHtmlTag {
+public enum ResourceHtmlTag {
+    CSS(ResourceType.CSS, "css", "<link type=\"text/css\" rel=\"stylesheet\" href=\"%s\"/>"),
+    JS(ResourceType.JS, "js", "<script type=\"text/javascript\" src=\"%s\"></script>");
 
-    private static final Map<ResourceType, ResourceHtmlTag> tags =
-            new HashMap<ResourceType, ResourceHtmlTag>() {{
-                put(ResourceType.CSS, new ResourceHtmlTag() {
-                    @Override
-                    public String asString(String src) {
-                        return "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + src + "\"/>";
-                    }
-                });
-                put(ResourceType.JS, new ResourceHtmlTag() {
-                    @Override
-                    public String asString(String src) {
-                        return "<script type=\"text/javascript\" src=\"" + src + "\"></script>";
-                    }
-                });
-            }};
+    private static final EnumMap<ResourceType, ResourceHtmlTag> BY_TYPE = newEnumMap(ResourceType.class);
 
-    private ResourceHtmlTag() {
+    private ResourceType type;
+    private String extension;
+    private String tag;
+
+    ResourceHtmlTag(ResourceType type, String extension, String tag) {
+        this.type = type;
+        this.extension = extension;
+        this.tag = tag;
     }
 
-    public abstract String asString(String src);
+    public ResourceType getType() {
+        return type;
+    }
 
-    public static ResourceHtmlTag of(ResourceType type) {
-        ResourceHtmlTag tag = tags.get(type);
-        if (tag == null) {
-            throw new IllegalStateException("Unsupported resource type: " + type);
+    public String getExtension() {
+        return extension;
+    }
+
+    public String render(String uri) {
+        return String.format(tag, uri);
+    }
+
+    public static ResourceHtmlTag forType(ResourceType type) {
+        return BY_TYPE.get(type);
+    }
+
+    static {
+        // Prepare lookup table
+        for (ResourceHtmlTag tag : ResourceHtmlTag.values()) {
+            BY_TYPE.put(tag.type, tag);
         }
-        return tag;
+        // Make sure every ResourceType is supported
+        for (ResourceType type : ResourceType.values()) {
+            if (!BY_TYPE.containsKey(type)) {
+                throw new IllegalStateException("Cannot find mapping for " + type);
+            }
+        }
     }
 }

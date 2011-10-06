@@ -63,7 +63,7 @@
             CSS, JS bundle tag
         </description>
         <name>all</name>
-        <tag-class>uk.ac.ebi.gxa.web.wro4j.tag.Wro4jTag</tag-class>
+        <tag-class>uk.ac.ebi.gxa.web.wro4j.tag.Wro4jAllTag</tag-class>
         <body-content>JSP</body-content>
         <attribute>
             <name>name</name>

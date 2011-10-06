@@ -76,7 +76,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
             Set<String> availIds = efo.getAllTermIds();
 
             for (String efoTerm : availIds) {
-                Attribute attr = new EfoAttribute(efoTerm, StatisticsType.UP_DOWN);
+                Attribute attr = new EfoAttribute(efoTerm);
                 int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfoAttribute(attr, StatisticsType.UP_DOWN);
                 if (geneCount > 0)
                     counts.put(attr.getValue(), (long) geneCount);

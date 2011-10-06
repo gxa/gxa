@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
@@ -70,9 +71,9 @@
                         def env = System.getenv()
                         def gitcmd = "git"
                         if (env['com.apple.java.jvmMode'])
-                        gitcmd = "/usr/local/git/bin/git"
+                            gitcmd = "/usr/local/git/bin/git"
                         if (env['OS'] =~ /^Windows/)
-                        gitcmd = "cmd /c ${gitcmd}"
+                            gitcmd = "cmd /c ${gitcmd}"
                         def gitDescribe = """${gitcmd} describe""".execute().in.text.trim()
                         def m = gitDescribe =~ /(?:atlas-)?(.*)/
 
@@ -130,7 +131,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <wroManagerFactory>uk.ac.ebi.gxa.web.wro4j.CustomWroManagerFactory</wroManagerFactory>
+                    <wroManagerFactory>uk.ac.ebi.gxa.web.wro4j.HashNamingYUIManagerFactory</wroManagerFactory>
                     <cssDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.css.path}</cssDestinationFolder>
                     <jsDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.js.path}</jsDestinationFolder>
                     <contextFolder>${basedir}/src/main/webapp/</contextFolder>
@@ -171,7 +172,7 @@
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-wro4j</artifactId>
-            <version>2.0.9-SNAPSHOT</version>
+            <version>2.0.10-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -403,20 +404,12 @@
             <version>1.0-patched</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <version>3.0</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- AOP dependency -->
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
             <version>2.2</version>
         </dependency>
-
     </dependencies>
 
     <properties>

@@ -156,7 +156,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
 
         int bioEntityId = 516248;  // identifier: ENSMUSG00000020275; name: Rel)
-        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", UP_DOWN);
+        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell");
         boolean showNonDEData = true;
         UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, bioEntityId,
                 Collections.singleton(bioEntityId), showNonDEData, true);

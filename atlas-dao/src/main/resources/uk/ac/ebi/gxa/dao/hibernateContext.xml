@@ -3,9 +3,10 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean">
+    <bean id="sessionFactory" class="uk.ac.ebi.gxa.dao.hibernate.SchemaValidatingAnnotationSessionFactoryBean"
+          depends-on="migrationManager">
         <property name="dataSource" ref="atlasDataSource"/>
-        <property name="annotatedClasses" ref="hibernateClasses" />
+        <property name="annotatedClasses" ref="hibernateClasses"/>
         <property name="namingStrategy" ref="hibernateNamingStrategy"/>
         <property name="schemaUpdate" value="false"/>
         <property name="hibernateProperties">
@@ -20,6 +21,26 @@
                 </prop>
                 <prop key="hibernate.show_sql">false</prop>
             </props>
+        </property>
+    </bean>
+
+    <bean id="migrationManager"
+          class="com.carbonfive.db.migration.DataSourceMigrationManager"
+          init-method="migrate">
+        <constructor-arg ref="atlasDataSource"/>
+        <property name="databaseType" value="ORACLE"/>
+        <property name="versionStrategy">
+            <bean class="com.carbonfive.db.migration.SimpleVersionStrategy">
+                <property name="versionTable" value="a2_schemaversion"/>
+            </bean>
+        </property>
+        <!-- we need our own migration resolver, as CarbonFive only supports very basic scripts -->
+        <property name="migrationResolver">
+            <bean id="migrationResolver" class="com.carbonfive.db.migration.ResourceMigrationResolver">
+                <property name="migrationFactory">
+                    <bean class="uk.ac.ebi.gxa.db.MigrationFactory"/>
+                </property>
+            </bean>
         </property>
     </bean>
 </beans>
