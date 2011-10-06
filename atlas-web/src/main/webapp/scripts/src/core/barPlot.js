@@ -21,31 +21,6 @@
  */
 
 (function(A, $){
-    A.plotLoader = function(opts) {
-        opts = opts || {};
-
-        function handleSuccess(data) {
-            if (opts.onSuccess) {
-                opts.onSuccess(data);
-            }
-        }
-
-        function handleError(request, errorType, errorMessage) {
-            A.logError(errorType + ": " + errorMessage);
-        }
-
-        return {
-            load: function(params) {
-                 $.ajax({
-                    url: A.pathFor("/plot"),
-                    data: params,
-                    dataType:"json",
-                    success: handleSuccess,
-                    error: handleError
-                });
-            }
-        }
-    };
 
     A.barPlotTooltip = function() {
         function showTooltip(x, y, contents) {
@@ -81,16 +56,16 @@
     /**
      *
      * @param opts {
-     *     plotTarget - an id of DOM element where to put the plot
-     *     legendTarget - an id of DOM element where to put legend of the plot
-     *     arrayDesignTarget - an id of DOM element where to put array design reference of the experiment
-     *     efv - an experiment factor value to mark (optional)
+     *     * plotTarget        - an id of DOM element where to put the plot
+     *     * legendTarget      - an id of DOM element where to put legend of the plot
+     *     * arrayDesignTarget - an id of DOM element where to put array design reference of the experiment
+     *     * efv               - an experiment factor value to mark (optional)
      * }
      */
     A.barPlotRenderer = function(opts) {
         opts = opts || {};
         var tooltip = A.barPlotTooltip();
-        var plotTarget = A.jqId(opts.plotTarget);
+        var plotTarget = A.hsh(opts.plotTarget);
         var efv = opts.efv || null;
 
         function prepareData(data) {
@@ -196,11 +171,11 @@
     /**
      *
      * @param opts {
-     *     target - an id of DOM element where insert the plot
-     *     expAccession - an experiment accession to create plot for
-     *     geneId - a gene id to create plot for
-     *     ef - an experiment factor
-     *     efv - an experiment factor value (optional)
+     *     * target       - an id of DOM element where insert the plot
+     *     * expAccession - an experiment accession to create plot for
+     *     * geneId       - a gene id to create plot for
+     *     * ef           - an experiment factor
+     *     * efv          - an experiment factor value (optional)
      * }
      */
     A.barPlot = function(opts) {
@@ -213,7 +188,8 @@
             efv: opts.efv
         });
 
-        var loader = A.plotLoader({
+        var loader = A.ajaxLoader({
+            url: "/plot",
             onSuccess: function(data) {
                 renderer.render(data);
             }

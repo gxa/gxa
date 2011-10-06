@@ -32,7 +32,7 @@
                 var hl;
                 function showTree(c, t, downTo) {
                     c.addClass('wait');
-                    $.getJSON(atlas.pathFor('efo'),
+                    $.getJSON(atlas.fullPathFor('efo'),
                         o.root == t ? {
                             downTo: downTo,
                             hl: o.highlight
@@ -207,7 +207,7 @@
     atlas.ajaxCall = function (url, data, successFunc, errorFunc) {
         return $.ajax({
             type: "GET",
-            url: atlas.pathFor(url),
+            url: atlas.fullPathFor(url),
             dataType: "json",
             data: data,
             success: function(resp) {

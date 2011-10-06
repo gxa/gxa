@@ -37,21 +37,49 @@ var atlas = (function(A, $) {
 
     /** public **/
 
-    A.contextPath = function(newContextPath) {
+    /**
+     * Gets/sets application context path, which is used e.g. in ajax requests.
+     *
+     * @param newContextPath - a new context path to set
+     */
+    A.applicationContextPath = function(newContextPath) {
         if (arguments.length > 0) {
             contextPath = normalizePath(newContextPath);
         }
         return contextPath;
     };
 
-    A.pathFor = function(path) {
-        return "/" + contextPath + "/" + normalizePath(path);
+    /**
+     * Extends the given URI with the application context.
+     *
+     * @param uri - an URI to extend
+     */
+    A.fullPathFor = function(uri) {
+        return "/" + contextPath + "/" + normalizePath(uri);
     };
 
-    A.logError = function(msg) {
-        if (console) {
-            console.log(msg);
+    /**
+     * Dumps error object/message to the js console if it is available.
+     *
+     * @param e - an error object or string to write in the console
+     */
+    A.logError = function(e) {
+        if (!console) {
+            return;
         }
+
+        var msg = ["Error: {"];
+        if (e === Object(e)) {
+            for (var p in e) {
+                if (e.hasOwnProperty(p)) {
+                    msg.push("\t" + p + ": " + e[p]);
+                }
+            }
+        } else {
+            msg.push("\t msg: " + e);
+        }
+        msg.push("}");
+        console.log(msg.join("\n"));
     };
 
     return A;
@@ -59,5 +87,5 @@ var atlas = (function(A, $) {
 
 /** after initialization stuff **/
 (function(atlas) {
-   atlas.contextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
+   atlas.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
 })(atlas);

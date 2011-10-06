@@ -31,7 +31,7 @@
      */
     A.efPagination = function(opts) {
         opts = opts || {};
-        var targetEl = $(A.jqId(opts.target));
+        var targetEl = $(A.hsh(opts.target));
         if (!targetEl.length) {
             A.logError("No element found with id: " + opts.target);
             return {};

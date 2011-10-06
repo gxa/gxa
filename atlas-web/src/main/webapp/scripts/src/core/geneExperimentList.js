@@ -22,72 +22,80 @@
 
 (function(A, $) {
     /**
-     * Pagination for experiment list on gene page
+     * Pagination for experiment list on gene page.
      *
      * Note: requires jQuery pagination plugin
      * @param opts {
-     *      pgeSize - number of items per page
-     *      paginationTarget - an id of DOM element where to render paging control
-     *      allStudiesLinkTarget - an id of DOM element to render 'all studies' link
-     *      onPageClick - page click handler (optional)
-     *      onAllStudiesClick - 'all studies' click handler (optional)
+     *      * pgeSize              - number of items per page
+     *      * paginationTarget     - an id of DOM element where to render paging control
+     *      * allStudiesLinkTarget - an id of DOM element to render 'all studies' link
+     *      * onPageClick          - page click handler (optional)
+     *      * onAllStudiesClick    - 'all studies' click handler (optional)
      * }
      */
     A.geneExperimentListPagination = function(opts) {
         opts = opts || {};
         var pageSize = opts.pageSize || 10;
-
-        function handlePageClick(pageIndex) {
-            if (opts.onPageClick) {
-                opts.onPageClick(pageIndex);
-            }
-            return false;
-        }
-
-        function handleAllStudiesClick() {
-            if (opts.onAllStudiesClick) {
-                opts.onAllStudiesClick();
-            }
-        }
+        var allStudiesLinkTarget = A.hsh(opts.allStudiesLinkTarget);
+        var paginationTarget = A.hsh(opts.paginationTarget);
+        var pageClickHandler = A.safeFunctionCall(opts.onPageClick);
+        var allStudiesClickHandler = A.safeFunctionCall(opts.onAllStudiesClick);
 
         return {
             clear: function() {
-                A.jqClear(opts.allStudiesLinkTarget);
-                A.jqClear(opts.paginationTarget);
+                A.clearContent(allStudiesLinkTarget, paginationTarget);
             },
 
             render: function(total, showAllStudiesLink) {
                 showAllStudiesLink = showAllStudiesLink || false;
                 this.clear();
 
-                var el = $(A.jqId(opts.allStudiesLinkTarget));
+                var el = $(allStudiesLinkTarget);
                 if (showAllStudiesLink && el.length) {
-                    var lnk = $("<a>Show all studies</a>").bind("click", handleAllStudiesClick);
+                    var lnk = $("<a>Show all studies</a>").bind("click", allStudiesClickHandler);
                     el.append(lnk);
                 }
 
-                el = $(A.jqId(opts.paginationTarget));
+                el = $(paginationTarget);
                 if (total > pageSize && el.length) {
                     el.pagination(total, {
                         num_edge_entries: 2,
                         num_display_entries: 5,
                         items_per_page: pageSize,
-                        callback: handlePageClick
+                        callback: pageClickHandler
                     });
                 }
             }
         }
     };
 
+    /**
+     *
+     * @param opts {
+     *       * listTemplate - jQuery template name for list (header and pagination of the list)
+     *       * listTarget   - an id of DOM element where to insert the list content
+     *       * pageTemplate - jQuery template name for one page of the list (experiment details)
+     *       * pageTarget   - an id of DOM element (could be inside of list template) where to insert
+     *                        a page content
+     * }
+     */
     A.geneExperimentListView = function(opts) {
+        opts = opts || {};
+        var listTarget = A.hsh(opts.listTarget);
+        var pageTarget = A.hsh(opts.pageTarget);
+        var listTemplate = opts.listTemplate;
+        var pageTemplate = opts.pageTemplate;
+
+        prepareTemplate(listTemplate, pageTemplate);
+
         function clear(t) {
-            A.jqClear(t);
+            A.clearContent(t);
         }
 
         function prepareTemplate() {
             for (var i = 0, len = arguments.length; i < len; i++) {
                 var templName = arguments[i];
-                var templ = $(A.jqId(templName));
+                var templ = $(A.hsh(templName));
                 if (templ.length) {
                     $.template(templName, templ);
                 }
@@ -95,12 +103,12 @@
         }
 
         function renderWithTemplate(templName, templTarget, data) {
-            var target = $(A.jqId(templTarget));
+            var target = $(templTarget);
             if (target.length) {
                 var res = $.tmpl(templName, data);
                 if (res.length) {
                     res.appendTo(target);
-                    $("a[atlas-uri]", target).atlasLink();
+                    $("a[atlas-uri]", target).atlasRelativeHref();
                 }
             }
         }
@@ -123,7 +131,7 @@
                                 target: expAccession + "_" + geneId + "_plot",
                                 geneId: geneId,
                                 expAccession: expAccession,
-                                ef: ef,
+                                ef: selectedEf,
                                 efv: ef && selectedEf === ef ? efv : null
                             }).load();
                         };
@@ -132,54 +140,21 @@
             }
         }
 
-        opts = opts || {};
-
-        prepareTemplate(opts.listTemplate, opts.pageTemplate);
-
         return {
             render: function(data) {
-                clear(opts.listTarget);
-                renderWithTemplate(opts.listTemplate, opts.listTarget, data);
+                clear(listTarget);
+                renderWithTemplate(listTemplate, listTarget, data);
                 this.renderPage(data);
             },
 
             renderPage: function(data) {
-                clear(opts.pageTarget);
-                renderWithTemplate(opts.pageTemplate, opts.pageTarget, data);
+                clear(pageTarget);
+                renderWithTemplate(pageTemplate, pageTarget, data);
                 renderExperimentDetails(data);
             },
 
             clear: function() {
-                clear(opts.listTemplate);
-            }
-        }
-    };
-
-    A.geneExperimentListLoader = function(opts) {
-        opts = opts || {};
-        var geneId = opts.gene || "";
-
-        function handleSuccess(data) {
-            if (opts.onSuccess) {
-                opts.onSuccess(data);
-            }
-        }
-
-        function handleError(request, errorType, errorMessage) {
-            if (opts.onFailure) {
-                opts.onFailure(errorMessage);
-            }
-        }
-
-        return {
-            load: function(params) {
-                $.ajax({
-                    url: A.pathFor("/geneExpList"),
-                    data: $.extend(true, {gid: geneId}, params),
-                    dataType:"json",
-                    success: handleSuccess,
-                    error: handleError
-                });
+                clear(listTarget);
             }
         }
     };
@@ -187,14 +162,12 @@
     /**
      * Paginated list of experiments filtered by geneId and experimental factor (optional)
      * @param opts {
-     *     gene - gene Id to filter the list by
-     *     pageSize - number of experiments per page
-     *     listTarget - an id of DOM element where the list should be inserted
-     *     listTemplate - an id of jQuery template to render the list
-     *     pageTarget - an id of DOM element (could be inside of 'listTemplate') where the current page is rendered
-     *     pageTemplate - an id of jQuery template to render the current page
-     *
-     *
+     *     * gene         - gene Id to filter the list by
+     *     * pageSize     - number of experiments per page
+     *     * listTarget   - an id of DOM element where the list should be inserted
+     *     * listTemplate - an id of jQuery template to render the list
+     *     * pageTarget   - an id of DOM element (could be inside of 'listTemplate') where the current page is rendered
+     *     * pageTemplate - an id of jQuery template to render the current page
      * }
      */
     A.geneExperimentList = function(opts) {
@@ -209,9 +182,9 @@
             pageTemplate: opts.pageTemplate || "experimentListPageTemplate"
         });
 
-        var listLoader = A.geneExperimentListLoader({
-            gene: opts.gene || null,
-            pageSize: pageSize,
+        var listLoader = A.ajaxLoader({
+            url: "/geneExpList",
+            defaultParams: opts.gene ? {gid: opts.gene} : null,
             onSuccess: function(data) {
                 if (!data) {
                     listRenderer.clear();
@@ -222,7 +195,6 @@
                 } else {
                     listRenderer.renderPage(data);
                 }
-
             },
             onFailure: function() {
                 listRenderer.clear();
@@ -264,9 +236,9 @@
             /**
              * Loads experiments for the first page + counts the total number of experiments
              * @param params {
-             *     ef - experiment factor
-             *     efv - experiment factor value
-             *     efo - experiment factor ontology term mapping
+             *     * ef  - experiment factor
+             *     * efv - experiment factor value
+             *     * efo - experiment factor ontology term mapping
              * }
              */
             load: function(params) {
