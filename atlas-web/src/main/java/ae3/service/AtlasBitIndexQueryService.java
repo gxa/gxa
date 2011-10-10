@@ -296,8 +296,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             List<String> efs = getScoringEfsForBioEntity(bioEntityId, statType, null);
             attrs = new ArrayList<Attribute>();
             for (String expFactor : efs) {
-                EfAttribute attr = new EfAttribute(expFactor);
-                attrs.add(attr);
+                attrs.add(new EfAttribute(expFactor));
             }
         } else {
             attrs = Collections.singletonList(attribute);
