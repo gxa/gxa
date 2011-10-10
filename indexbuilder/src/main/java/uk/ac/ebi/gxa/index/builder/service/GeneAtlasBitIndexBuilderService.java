@@ -256,9 +256,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 task.done(exp);
                 progressUpdater.update(task.progress());
             } catch (AtlasDataException e) {
-                throw new IndexBuilderException(e.getMessage(), e);
+                getLog().warn("Cannot access data for experiment " + exp.getAccession() + ", skipping", e);
             } catch (StatisticsNotFoundException e) {
-                throw new IndexBuilderException(e.getMessage(), e);
+                getLog().warn("Cannot access statistics for experiment " + exp.getAccession() + ", skipping", e);
             } finally {
                 experimentWithData.closeAllDataSources();
             }
