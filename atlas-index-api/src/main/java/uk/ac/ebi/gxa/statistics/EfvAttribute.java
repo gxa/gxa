@@ -41,10 +41,8 @@ public class EfvAttribute extends EfAttribute implements Serializable {
     }
 
 
-    public static String encodePair(String ef, String efv) {
-        if (isNullOrEmpty(ef) && isNullOrEmpty(efv))
-            return null;
-        final String pair = isNullOrEmpty(efv) ? ef : ef + EF_EFV_SEP + efv;
+    private static String encodePair(@Nonnull final String ef, @Nonnull final String efv) {
+        final String pair = ef + EF_EFV_SEP + efv;
         return encode(pair).intern();
     }
 
