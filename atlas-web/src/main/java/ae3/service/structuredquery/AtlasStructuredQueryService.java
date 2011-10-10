@@ -875,7 +875,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             String efefvId = condEfv.getEfEfvId();
 
                             notifyCache(efefvId + c.getExpression());
-                            Attribute attribute;
 
                             // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
                             // includeEfoChildren flag for condEfv.getEfv() efo term.
@@ -893,13 +892,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef)) {
                                 if (!excludeEfos) {
                                     qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
-                                    attribute = new EfoAttribute(condEfv.getEfv());
-                                    orAttributes.add(attribute);
+                                    orAttributes.add(new EfoAttribute(condEfv.getEfv()));
                                 }
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv());
-                                orAttributes.add(attribute);
+                                orAttributes.add(new EfvAttribute(condEfv.getEf(), condEfv.getEfv()));
                             }
                         }
                         nonemptyQuery = true;
