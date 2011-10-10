@@ -36,7 +36,7 @@ public class LoaderDAO {
     }
 
     public ArrayDesign getArrayDesign(String accession) {
-        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+        return arrayDesignDAO.getArrayDesignByAccession(accession);
     }
 
     public void save(Experiment experiment) {

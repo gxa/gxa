@@ -367,6 +367,47 @@ public final class NetCDFProxy implements Closeable {
         return list;
     }
 
+    /**
+     * This method is intentionally ugly-named and ugly itself.
+     * <p/>
+     * It returns an <em>unfiltered</em> list of unique values, which is used as a parallel structure when we
+     * work with <code>PVAL</code> and <code>TSTAT</code>.
+     * <p/>
+     * For further details, refer to the <a href="http://bar.ebi.ac.uk:8080/trac/ticket/3132">ticket 3132</a>
+     * <p/>
+     * It is _obviously_ not the best solution, but it fixes this problem, this problem only,
+     * and, as far as I know, does not introduce new problems, which is nice.
+     *
+     * @return an <em>unfiltered</em> list of unique values
+     * @throws IOException        in case of I/O errors
+     * @throws AtlasDataException in case of any other errors during NetCDF handling
+     */
+    public List<KeyValuePair> getUVal() throws IOException, AtlasDataException {
+        Variable uVALVar;
+        uVALVar = netCDF.findVariable("uVAL");
+
+        if (uVALVar == null) {
+            // This is to allow for backwards compatibility
+            uVALVar = netCDF.findVariable("uEFV");
+        }
+
+        if (uVALVar == null) {
+            return Collections.emptyList();
+        }
+
+        ArrayChar uVal = (ArrayChar) uVALVar.read();
+
+        final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
+        for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
+            final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
+            if (data.length != 2) {
+                throw new AtlasDataException("Invalid uVAL element: " + text);
+            }
+            list.add(new KeyValuePair(data[0], data[1]));
+        }
+        return list;
+    }
+
     public List<KeyValuePair> getUniqueFactorValues() throws IOException, AtlasDataException {
         List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
         List<String> factors = Arrays.asList(getFactors());
@@ -606,7 +647,7 @@ public final class NetCDFProxy implements Closeable {
         }
 
         private ExpressionAnalysisHelper prepare() throws IOException, AtlasDataException {
-            uniquePropertyValues.addAll(getUniqueValues());
+            uniquePropertyValues.addAll(getUVal());
             designElementAccessions = getDesignElementAccessions();
             return this;
         }
