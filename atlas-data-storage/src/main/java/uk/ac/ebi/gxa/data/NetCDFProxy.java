@@ -367,6 +367,21 @@ public final class NetCDFProxy implements Closeable {
         return list;
     }
 
+    /**
+     * This method is intentionally ugly-named and ugly itself.
+     * <p/>
+     * It returns an <em>unfiltered</em> list of unique values, which is used as a parallel structure when we
+     * work with <code>PVAL</code> and <code>TSTAT</code>.
+     * <p/>
+     * For further details, refer to the <a href="http://bar.ebi.ac.uk:8080/trac/ticket/3132">ticket 3132</a>
+     * <p/>
+     * It is _obviously_ not the best solution, but it fixes this problem, this problem only,
+     * and, as far as I know, does not introduce new problems, which is nice.
+     *
+     * @return an <em>unfiltered</em> list of unique values
+     * @throws IOException        in case of I/O errors
+     * @throws AtlasDataException in case of any other errors during NetCDF handling
+     */
     public List<KeyValuePair> getUVal() throws IOException, AtlasDataException {
         Variable uVALVar;
         uVALVar = netCDF.findVariable("uVAL");
