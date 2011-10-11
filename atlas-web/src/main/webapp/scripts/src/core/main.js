@@ -62,30 +62,39 @@ var atlas = (function(A, $) {
      * Dumps error object/message to the js console if it is available.
      *
      * @param e - an error object or string to write in the console
+     * @param depth - a depth to dump error object (optional)
      */
-    A.logError = function(e) {
+    A.logError = function(e, depth) {
         if (!console) {
             return;
         }
 
-        var msg = ["Error: {"];
-        if (e === Object(e)) {
-            for (var p in e) {
-                if (e.hasOwnProperty(p)) {
-                    msg.push("\t" + p + ": " + e[p]);
+        depth = depth || 3;
+
+        function _dump(obj, depth, indent) {
+            var m = [];
+
+            if (obj === Object(obj) && depth >= 0) {
+                var isArray = $.isArray(obj);
+                m.push(isArray ? "[" : "{");
+                for (var p in obj) {
+                    if (obj.hasOwnProperty(p)) {
+                        m.push(indent + p + ": " + _dump(obj[p], depth - 1, indent + "    "));
+                    }
                 }
+                m.push(indent + (isArray ? "]" : "}"));
+            } else {
+                return "" + obj;
             }
-        } else {
-            msg.push("\t msg: " + e);
+            return m.join("\n");
         }
-        msg.push("}");
-        console.log(msg.join("\n"));
+        console.log("Error:\n" + _dump(e, depth, ""));
     };
 
     return A;
 })(atlas || {}, jQuery);
 
 /** after initialization stuff **/
-(function(atlas) {
-   atlas.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
+(function(A) {
+   A.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
 })(atlas);
