@@ -27,7 +27,7 @@ public final class Property {
 
     public Property(Long id, String name) {
         this.propertyid = id;
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 
     public Long getId() {
