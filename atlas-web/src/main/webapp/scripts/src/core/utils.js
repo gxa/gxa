@@ -51,7 +51,6 @@
      * @param context - a context of a user defined function execution (optional)
      */
     A.safeFunctionCall = function(func, context) {
-        context = context || arguments.callee.caller;
         return function() {
             if (func && $.isFunction(func)) {
                 try {
@@ -63,6 +62,126 @@
             return false;
         }
     };
+
+    A.objProperty = function(obj, propName, value) { // dot separated object property path
+        obj = obj || {};
+        var setter = arguments.length > 2;
+        var parts = propName.split(".");
+        var s = obj;
+        for (var i = 0, len = parts.length; i < len; i++) {
+            var p = parts[i];
+            if (!s.hasOwnProperty(p)) {
+                if (! setter) {
+                    return undefined;
+                }
+                s[p] = {};
+            }
+            if (i == len - 1 && setter) {
+                s[p] = value;
+            }
+            s = s[p];
+        }
+        return s;
+    };
+
+    /**
+     * Page state; it stores the current state of a page. The state is automatically serialized into
+     * url hash tag; so we could use back & forward browser's buttons to switch between page states made by
+     * script.
+     * The state is an object tree, any part of it is allowed to change; the only restriction here is
+     * using arrays of objects.
+     * Note: JQuery Address plugin is used to listen url hash change event.
+     * An url hash could be changed internally (by $.address.value('...')) and externally
+     * (by clicking on back & forward browser buttons; or by changing url manually in a browser).
+     */
+    A.PageState = function() {
+        var state = {};
+        var _this = {};
+
+        function serialize(obj) {
+            function _serialize(obj, prefix) {
+                var s = [],
+                    add = function(key, value) {
+                        s.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+                    };
+
+                if ($.isArray(obj)) {
+                    for(var i=0, len = obj.length; i<len; i++) {
+                       var item = obj[i];
+                       if ($.isArray(item) || $.isPlainObject(item)) {
+                           A.logError("PageState doesn't support arrays of objects");
+                       } else {
+                          add(prefix, item);
+                       }
+                    }
+                } else if ($.isPlainObject(obj)) {
+                    for (var p in obj) {
+                        if (obj.hasOwnProperty(p)) {
+                            s = s.concat(_serialize(obj[p], prefix ? prefix + "." + p : p));
+                        }
+                    }
+                } else {
+                    add(prefix, obj);
+                }
+                return s;
+            }
+
+            var s = _serialize(obj, "");
+            return s.join("&").replace(/%20/g, "+");
+        }
+
+        function deserialize(str) {
+            var _values = {"false":false, "true":true, "null":null, "undefined":undefined};
+            var obj = {};
+            var parts = str.split("&");
+            for (var i = 0, len = parts.length; i < len; i++) {
+                var pair = parts[i].split("=");
+                if (pair.length < 2) {
+                    continue;
+                }
+                var name = decodeURIComponent(pair[0]);
+                var value = decodeURIComponent(pair[1]);
+
+                value = value && !isNaN(value) ? +value
+                    : _values.hasOwnProperty(value) ? _values[value]
+                    : value;
+
+                var v = A.objProperty(obj, name);
+                if (v != undefined) {
+                    (v = $.isArray(v) ? v : [v]).push(value);
+                    A.objProperty(obj, name, v);
+                } else {
+                    A.objProperty(obj, name, value);
+                }
+            }
+            return obj;
+        }
+
+        function updateHashTag() {
+            $.address.value(A.Params.serialize(state));
+            triggerStateChangedEvent();
+        }
+
+        function triggerStateChangedEvent() {
+            $(_this).trigger("stateChanged");
+        }
+        return $.extend(true, _this, {
+            update: function(newState, path) {
+                if (path) {
+                    A.objProperty(state, path, newState);
+                } else {
+                    state = $.extend(true, {}, newState);
+                }
+                updateHashTag();
+            },
+
+            init: function() {
+                $.address.externalChange(function() {
+
+                });
+            }
+        });
+    }();
 
     /**
      *
@@ -79,28 +198,42 @@
         var url = opts.url;
         var type = opts.type || "json";
         var defaultParams = opts.defaultParams || {};
+        var _this = {};
 
-        var successHandler = A.safeFunctionCall(opts.onSuccess);
-        var failureHandler = A.safeFunctionCall(
-            opts.onFailure ||
-                function(request, errorType, errorMessage) {
-                    A.logError({
-                        errorType:errorType,
-                        errorMessage:errorMessage
-                    });
+        function successHandler() {
+            var context = opts.context || _this;
+            if (opts.onSuccess) {
+                opts.onSuccess.apply(context, arguments);
+            }
+        }
+
+        function failureHandler(request, errorType, errorMessage) {
+            var context = opts.context || _this;
+            if (opts.onFailure()) {
+                opts.onFailure.apply(context, arguments);
+            } else {
+                A.logError({
+                    errorType:errorType,
+                    errorMessage:errorMessage
                 });
+            }
+        }
 
-        return {
+        return $.extend(true, _this, {
             load: function(params) {
                 $.ajax({
                     url: A.fullPathFor(url),
                     data: $.extend(true, {}, defaultParams, params),
                     dataType: type,
-                    success: successHandler,
+                    success: function(p) {
+                        return function() {
+                            successHandler.apply(_this, arguments);
+                        }
+                    }(params),
                     error: failureHandler
                 });
             }
-        }
+        });
     };
 
     /**

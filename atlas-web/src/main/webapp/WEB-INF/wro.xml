@@ -24,6 +24,7 @@
     <group name="bundle-common-libs">
         <css>/scripts/jquery-impromptu/css/default.css</css>
         <js>/scripts/jquery-impromptu/jquery-impromptu.3.1.js</js>
+        <js>/scripts/jquery.address-1.4.js</js>
         <js>/scripts/jquery.tooltip.js</js>
         <js>/scripts/jquery.cookie.js</js>
         <js>/scripts/jquery.dimensions.js</js>
