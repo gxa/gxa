@@ -42,7 +42,7 @@
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
     <!--[if IE]>
-    <script language="javascript" type="text/javascript" src="${contextPath}/scripts/excanvas.min.js"></script>
+    <script type="text/javascript" src="${contextPath}/scripts/excanvas.min.js"></script>
     <![endif]-->
 
     <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
