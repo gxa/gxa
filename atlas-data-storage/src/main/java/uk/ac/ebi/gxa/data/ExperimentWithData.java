@@ -92,6 +92,18 @@ public class ExperimentWithData {
         }
     }
 
+    /**
+     * This method should be removed if Atlas will become an architecure.
+     *   At this moment arrayDesign.getDesignElement(designElementAccession)
+     *   returns null if arrayDesign has an 'incorrect' origin. We have to
+     *   use at this point ArrayDesign's from ArrayDesingDAO, not from other
+     *   sources. Unfortunately we forget to add an annotation @FromArrayDesignDAO
+     *   for using in such cases.
+     */
+    public void updateData(ArrayDesign arrayDesign) throws AtlasDataException {
+        new DataUpdater().update(arrayDesign);
+    }
+
     public void updateDataToNewestVersion() throws AtlasDataException {
         for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
             final DataProxy proxy = getProxy(arrayDesign);
