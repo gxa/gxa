@@ -312,15 +312,15 @@ public class NetCDFDataCreator {
 
         // add metadata global attributes
         safeAddGlobalAttribute(
-				netCdf,
+                netCdf,
                 "CreateNetCDF_VERSION",
                 "2.0");
         safeAddGlobalAttribute(
-				netCdf,
+                netCdf,
                 "experiment_accession",
                 experiment.getAccession());
         safeAddGlobalAttribute(
-				netCdf,
+                netCdf,
                 "ADaccession",
                 arrayDesign.getAccession());
 

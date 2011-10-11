@@ -10,6 +10,7 @@ import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -33,7 +34,11 @@ public class AtlasNetCDFUpdaterService {
 
         try {
             listener.setAccession(experiment.getAccession());
-            ewd.updateAllData();
+            // we cannot use this method; see comment in ExperimentWithData class
+            //ewd.updateAllData();
+            for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
+                ewd.updateData(atlasDAO.getArrayDesignByAccession(arrayDesign.getAccession()));
+            }
             listener.setProgress("Successfully updated the NetCDFs");
         } catch (AtlasDataException e) {
             listener.setProgress("Failed NetCDF update");
