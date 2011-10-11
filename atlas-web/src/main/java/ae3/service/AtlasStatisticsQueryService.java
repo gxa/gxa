@@ -141,7 +141,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param ef
      * @return list all efs for which bioEntityId has statType expression in at least one experiment
      */
-    public List<String> getScoringEfsForBioEntity(final Integer bioEntityId,
+    public List<EfAttribute> getScoringEfsForBioEntity(final Integer bioEntityId,
                                                   final StatisticsType statType,
                                                   @Nullable final String ef);
 

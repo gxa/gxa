@@ -292,12 +292,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             final StatisticsType statType) {
 
         List<Attribute> attrs;
-        if (attribute.isEmpty()) { // Empty attribute
-            List<String> efs = getScoringEfsForBioEntity(bioEntityId, statType, null);
+        if (attribute.isEmpty()) {
             attrs = new ArrayList<Attribute>();
-            for (String expFactor : efs) {
-                attrs.add(new EfAttribute(expFactor));
-            }
+            attrs.addAll(getScoringEfsForBioEntity(bioEntityId, statType, null));
         } else {
             attrs = Collections.singletonList(attribute);
         }
@@ -342,17 +339,17 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param ef
      * @return list all efs for which bioEntityId has statType expression in at least one experiment
      */
-    public List<String> getScoringEfsForBioEntity(final Integer bioEntityId,
-                                                  final StatisticsType statType,
-                                                  @Nullable final String ef) {
+    public List<EfAttribute> getScoringEfsForBioEntity(final Integer bioEntityId,
+                                                       final StatisticsType statType,
+                                                       @Nullable final String ef) {
 
         long timeStart = System.currentTimeMillis();
-        List<String> scoringEfs = new ArrayList<String>();
+        List<EfAttribute> scoringEfs = new ArrayList<EfAttribute>();
         if (bioEntityId != null) {
             Set<EfAttribute> scoringEfAttrs = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
             for (EfAttribute efAttr : scoringEfAttrs) {
                 if (efAttr != null && (ef == null || "".equals(ef) || ef.equals(efAttr.getEf()))) {
-                    scoringEfs.add(efAttr.getEf());
+                    scoringEfs.add(new EfAttribute(efAttr.getEf()));
                 }
             }
         }

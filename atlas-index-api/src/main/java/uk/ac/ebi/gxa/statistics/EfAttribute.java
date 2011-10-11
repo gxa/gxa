@@ -41,6 +41,8 @@ public class EfAttribute extends Attribute implements Serializable {
 
     @Override
     public String getValue() {
+        if (isNullOrEmpty(ef))
+            return null;
         return ef;
     }
 

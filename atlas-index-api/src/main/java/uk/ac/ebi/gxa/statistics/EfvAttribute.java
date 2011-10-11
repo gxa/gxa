@@ -1,5 +1,7 @@
 package uk.ac.ebi.gxa.statistics;
 
+import com.google.common.base.Strings;
+
 import javax.annotation.Nonnull;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -14,7 +16,7 @@ import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
  */
 public class EfvAttribute extends EfAttribute implements Serializable {
     private static final String EF_EFV_SEP = "_";
-    private static final long serialVersionUID = -4107638304283431910L;
+    private static final long serialVersionUID = -4674735573391531209L;
 
     private final String efv;
     private transient String value;
@@ -40,10 +42,8 @@ public class EfvAttribute extends EfAttribute implements Serializable {
         return value;
     }
 
-
     private static String encodePair(@Nonnull final String ef, @Nonnull final String efv) {
-        final String pair = ef + EF_EFV_SEP + efv;
-        return encode(pair).intern();
+        return !Strings.isNullOrEmpty(ef) && !Strings.isNullOrEmpty(ef) ? ef + EF_EFV_SEP + efv : null;
     }
 
     /**

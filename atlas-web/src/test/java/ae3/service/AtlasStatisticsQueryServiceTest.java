@@ -44,8 +44,8 @@ public class AtlasStatisticsQueryServiceTest {
     @Before
     public void initGene() throws Exception {
         bioEntityId = 838592;  // identifier: ENSG00000162924; name: REL)
-        hematopoieticStemCellEfo = new EfoAttribute("EFO_0000527");
-        hematopoieticCellEfo = new EfoAttribute("EFO_0002436");
+        hematopoieticStemCellEfo = new EfoAttribute("CL_0000037");
+        hematopoieticCellEfo = new EfoAttribute("CL_0000988");
         hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell");
         E_MTAB_62 = new ExperimentInfo("E-MTAB-62", 1036809468l);
     }
@@ -280,12 +280,13 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getScoringEfsForGene() {
-        List<String> scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
+        EfAttribute cellType = new EfAttribute("cell_type");
+        List<EfAttribute> scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
         assertTrue(scoringEfs.size() > 1);
-        assertTrue(scoringEfs.contains("cell_type"));
-        scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, "cell_type");
+        assertTrue(scoringEfs.contains(cellType));
+        scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, cellType.getEf());
         assertEquals(1, scoringEfs.size());
-        assertTrue(scoringEfs.contains("cell_type"));
+        assertTrue(scoringEfs.contains(cellType));
     }
 
     @Test

@@ -465,15 +465,14 @@ public class AtlasGene {
             @Nullable String ef,
             AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
-        List<String> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
+        List<EfAttribute> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
         efs.removeAll(omittedEfs);
 
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
-        for (String factorName : efs) {
-            EfAttribute attr = new EfAttribute(factorName);
+        for (EfAttribute attr : efs) {
             Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr, UP_DOWN);
-            ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
+            ExperimentalFactor factor = new ExperimentalFactor(this, attr.getEf(), omittedEfs, atlasStatisticsQueryService);
             for (ExperimentInfo exp : experiments) {
                 factor.addExperiment(exp.getExperimentId(), exp.getAccession());
             }
