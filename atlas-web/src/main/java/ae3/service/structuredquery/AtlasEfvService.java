@@ -169,7 +169,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         boolean everywhere = isNullOrEmpty(property);
 
         Collection<String> properties = everywhere ? getOptionsFactors() :
-               (getOptionsFactors().contains(property) ? Arrays.asList(property) : Collections.<String>emptyList());
+                (getOptionsFactors().contains(property) ? Arrays.asList(property) : Collections.<String>emptyList());
         return treeAutocomplete(properties, prefix.toLowerCase(), limit);
     }
 
@@ -199,9 +199,13 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return result;
     }
 
-    private String curatedName(String property) {
-        String curated = atlasProperties.getCuratedEf(property);
-        return curated == null ? property : curated;
+    private String curatedName(String name) {
+        try {
+            Property property = propertyDAO.getByName(name);
+            return property.getDisplayName();
+        } catch (RecordNotFoundException e) {
+            throw createUnexpected("Unknown property: " + name, e);
+        }
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
