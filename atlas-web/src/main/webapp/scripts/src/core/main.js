@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-var atlas = (function(atlas, $) {
+var atlas = (function(A, $) {
     var contextPath = "";
 
     function normalizePath(path) {
@@ -37,21 +37,55 @@ var atlas = (function(atlas, $) {
 
     /** public **/
 
-    atlas.contextPath = function(newContextPath) {
+    /**
+     * Gets/sets application context path, which is used e.g. in ajax requests.
+     *
+     * @param newContextPath - a new context path to set
+     */
+    A.applicationContextPath = function(newContextPath) {
         if (arguments.length > 0) {
             contextPath = normalizePath(newContextPath);
         }
         return contextPath;
     };
 
-    atlas.pathFor = function(path) {
-        return "/" + contextPath + "/" + normalizePath(path);
+    /**
+     * Extends the given URI with the application context.
+     *
+     * @param uri - an URI to extend
+     */
+    A.fullPathFor = function(uri) {
+        return "/" + contextPath + "/" + normalizePath(uri);
     };
 
-    return atlas;
+    /**
+     * Dumps error object/message to the js console if it is available.
+     *
+     * @param e - an error object or string to write in the console
+     */
+    A.logError = function(e) {
+        if (!console) {
+            return;
+        }
+
+        var msg = ["Error: {"];
+        if (e === Object(e)) {
+            for (var p in e) {
+                if (e.hasOwnProperty(p)) {
+                    msg.push("\t" + p + ": " + e[p]);
+                }
+            }
+        } else {
+            msg.push("\t msg: " + e);
+        }
+        msg.push("}");
+        console.log(msg.join("\n"));
+    };
+
+    return A;
 })(atlas || {}, jQuery);
 
 /** after initialization stuff **/
 (function(atlas) {
-   atlas.contextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
+   atlas.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
 })(atlas);
