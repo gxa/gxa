@@ -113,6 +113,8 @@ a.external {
     border: 1px solid #066;
     font-weight: bold;
     font-size: 75%;
+    color: #006666;
+    white-space: nowrap;
 }
 
 .pagination_ef a, .pagination_ef a:hover, .pagination_ef a:link, .pagination_ef a:visited {
