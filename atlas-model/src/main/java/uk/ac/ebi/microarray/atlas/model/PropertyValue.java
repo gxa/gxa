@@ -3,6 +3,7 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.persistence.*;
 
@@ -18,6 +19,7 @@ public final class PropertyValue {
     private Property property;
     @Column(name = "NAME")
     private String value;
+    private String displayName;
 
     PropertyValue() {
     }
@@ -38,6 +40,10 @@ public final class PropertyValue {
 
     public String getValue() {
         return value;
+    }
+
+    public String getDisplayValue() {
+        return displayName == null ? StringUtil.prettify(value) : displayName;
     }
 
     @Override
