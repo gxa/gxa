@@ -259,6 +259,23 @@ public class AtlasProperties {
         };
     }
 
+    /**
+     * @param property identifier for an external resource
+     * @return a url that can be used to access the external resource via gene identifier
+     */
+    public String getGeneIdentifierLink(String property) {
+        return getProperty("geneidentifier.link." + property);
+    }
+
+    public Map<String, String> getGeneIdentifierLinks() {
+        return new LazyKeylessMap<String, String>() {
+            @Override
+            protected String map(String property) {
+                return getGeneIdentifierLink(property);
+            }
+        };
+    }
+
     public List<String> getGeneApiIgnoreFields() {
         return getListProperty("atlas.gene.properties.api.ignore");
     }
