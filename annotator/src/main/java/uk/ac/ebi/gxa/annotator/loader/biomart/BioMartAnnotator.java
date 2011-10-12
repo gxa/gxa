@@ -247,7 +247,7 @@ public class BioMartAnnotator {
         private final List<String> martBEIdentifiersAndNames = new ArrayList<String>();
         private final List<String> martBEIdentifiers = new ArrayList<String>();
 
-        private BETypeMartAttributesHandler(BioMartAnnotationSource annSrc) throws AtlasAnnotationException {
+        BETypeMartAttributesHandler(BioMartAnnotationSource annSrc) throws AtlasAnnotationException {
             this.types = Collections.unmodifiableList(new LinkedList<BioEntityType>(annSrc.getTypes()));
             this.bioMartProperties = annSrc.getBioMartProperties();
             initMartAttributes();
