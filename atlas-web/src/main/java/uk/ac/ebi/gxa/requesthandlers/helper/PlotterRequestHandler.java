@@ -52,12 +52,9 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
     public Object process(HttpServletRequest request) throws ServletException {
         RequestWrapper req = new RequestWrapper(request);
 
-        String ef = req.getStr("ef");
-        if (Strings.isNullOrEmpty(ef))
-            ef = "default";
         try {
             final Experiment eacc = experimentDAO.getByName(req.getStr("eacc"));
-            return plotter.getGeneInExpPlotData(req.getStr("gid"), eacc, ef, req.getStr("efv"), req.getStr("plot"));
+            return plotter.getGeneInExpPlotData(req.getStr("gid"), eacc, req.getStr("ef"), req.getStr("efv"), req.getStr("plot"));
         } catch (RecordNotFoundException e) {
             throw new ServletException(e.getMessage());
         }

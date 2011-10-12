@@ -43,7 +43,7 @@ function sendFeedback(v,m){
         }
 
         $.post(
-          atlas.pathFor("feedback"),
+          atlas.fullPathFor("feedback"),
           { context:    m.children('#feedback_context').val(),
             error:      m.children('#feedback_error').val(),
             dobetter:   m.children('#feedback_dobetter').val(),
