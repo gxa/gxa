@@ -23,20 +23,12 @@
 package uk.ac.ebi.gxa.annotator.dao;
 
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
-import uk.ac.ebi.gxa.dao.OrganismDAO;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
@@ -50,17 +42,6 @@ import java.util.List;
 public class AnnotationSourceDAO {
 
     private JdbcTemplate atlasJdbcTemplate;
-
-    @Autowired
-    private OrganismDAO organismDAO;
-    @Autowired
-    private SoftwareDAO softwareDAO;
-    @Autowired
-    private BioEntityTypeDAO typeDAO;
-    @Autowired
-    private BioEntityPropertyDAO propertyDAO;
-    @Autowired
-    private ArrayDesignDAO arrayDesignDAO;
 
     private final HibernateTemplate template;
 
@@ -126,7 +107,7 @@ public class AnnotationSourceDAO {
      * @param annSrc
      * @param arrayDesign
      * @param hsql        hsql flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
-     *                    hsql does not recognise ROWNUM (and we need hsql to junit test thsi method)
+     *                    hsql does not recognise ROWNUM (and we need hsql to junit test this method)
      * @return true if annotation source annSrc has been applied for array design mappings
      */
     public boolean isAnnSrcAppliedForArrayDesignMapping(final AnnotationSource annSrc, final ArrayDesign arrayDesign, boolean hsql) {
@@ -137,25 +118,5 @@ public class AnnotationSourceDAO {
         List list = atlasJdbcTemplate.queryForList(query, annSrc.getSoftware().getSoftwareid(), arrayDesign.getArrayDesignID());
 
         return list.size() > 0;
-    }
-
-    public Organism findOrCreateOrganism(String organismName) {
-        return organismDAO.getOrCreateOrganism(organismName);
-    }
-
-    public Software findOrCreateSoftware(String swName, String swVersion) {
-        return softwareDAO.findOrCreate(swName, swVersion);
-    }
-
-    public BioEntityType findOrCreateBioEntityType(String typeName) {
-        return typeDAO.findOrCreate(typeName);
-    }
-
-    public BioEntityProperty findOrCreateBEProperty(String propertyName) {
-        return propertyDAO.findOrCreate(propertyName);
-    }
-
-    public ArrayDesign getArrayDesignShallowByAccession(String accession) {
-        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
 }

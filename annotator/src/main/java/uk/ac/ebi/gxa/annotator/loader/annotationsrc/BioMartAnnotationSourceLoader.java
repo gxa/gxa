@@ -39,6 +39,10 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
+import uk.ac.ebi.gxa.dao.OrganismDAO;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -72,6 +76,14 @@ public class BioMartAnnotationSourceLoader {
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
 
+    @Autowired
+    private OrganismDAO organismDAO;
+    @Autowired
+    private SoftwareDAO softwareDAO;
+    @Autowired
+    private BioEntityTypeDAO typeDAO;
+    @Autowired
+    private BioEntityPropertyDAO propertyDAO;
     @Autowired
     private ArrayDesignService arrayDesignService;
 
@@ -113,8 +125,8 @@ public class BioMartAnnotationSourceLoader {
         BioMartAnnotationSource annotationSource = null;
         try {
             properties.load(input);
-            Organism organism = annSrcDAO.findOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
-            Software software = annSrcDAO.findOrCreateSoftware(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
+            Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
+            Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
             annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
             if (annotationSource == null) {
@@ -183,7 +195,7 @@ public class BioMartAnnotationSourceLoader {
                     result.add(annSrc);
                 } else {
                     //check if AnnotationSource exists for new version
-                    Software newSoftware = annSrcDAO.findOrCreateSoftware(annSrc.getSoftware().getName(), newVersion);
+                    Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
                     BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
                     //create and Save new AnnotationSource
                     if (newAnnSrc == null) {
@@ -212,7 +224,7 @@ public class BioMartAnnotationSourceLoader {
         for (String propName : properties.stringPropertyNames()) {
 
             if (propName.startsWith(BIOMARTPROPERTY_PROPNAME)) {
-                BioEntityProperty beProperty = annSrcDAO.findOrCreateBEProperty(propName.substring(BIOMARTPROPERTY_PROPNAME.length() + 1));
+                BioEntityProperty beProperty = propertyDAO.findOrCreate(propName.substring(BIOMARTPROPERTY_PROPNAME.length() + 1));
                 StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
                 while (tokenizer.hasMoreElements()) {
                     bioMartProperties.add(new BioMartProperty(tokenizer.nextToken().trim(), beProperty, annotationSource));
@@ -260,7 +272,7 @@ public class BioMartAnnotationSourceLoader {
 
         StringTokenizer tokenizer = new StringTokenizer(typesString, ",");
         while (tokenizer.hasMoreElements()) {
-            newTypes.add(annSrcDAO.findOrCreateBioEntityType(tokenizer.nextToken().trim()));
+            newTypes.add(typeDAO.findOrCreate(tokenizer.nextToken().trim()));
         }
 
         Set<BioEntityType> removedTypes = new HashSet<BioEntityType>(difference(annotationSource.getTypes(), newTypes));
