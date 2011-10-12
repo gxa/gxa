@@ -203,7 +203,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
 
         if (uniqueValues == null) {
@@ -272,7 +272,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
         return readFloatValuesForRowIndices(statisticsNetCDF, deIndices, "TSTAT");
     }
@@ -280,7 +280,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
         return readFloatValuesForRowIndex(statisticsNetCDF, designElementIndex, "TSTAT");
     }
@@ -288,7 +288,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
         return readFloatValuesForAllRows(statisticsNetCDF, "TSTAT");
     }
@@ -305,7 +305,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
         return readFloatValuesForRowIndices(statisticsNetCDF, deIndices, "PVAL");
     }
@@ -313,7 +313,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
         return readFloatValuesForRowIndex(statisticsNetCDF, designElementIndex, "PVAL");
     }
@@ -321,7 +321,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     @Override
     TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statisitcs file does not exist");
+            throw new StatisticsNotFoundException("Statistics file does not exist");
         }
         return readFloatValuesForAllRows(statisticsNetCDF, "PVAL");
     }
