@@ -42,7 +42,7 @@ public class SoftwareDAO extends AbstractDAO<Software> {
     }
 
     public List<Software> getActiveSoftwares() {
-        return template.find("from Software where isActive = 1");
+        return template.find("from Software where isActive = 'T'");
     }
 
 }

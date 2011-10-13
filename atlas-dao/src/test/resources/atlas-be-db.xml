@@ -198,14 +198,14 @@
             SOFTWAREID="1000"
             NAME="Ensembl"
             VERSION="60"
-            ISACTIVE="1"
+            ISACTIVE="T"
             />
 
     <A2_SOFTWARE
             SOFTWAREID="2000"
             NAME="BioConductor"
             VERSION="4"
-            ISACTIVE="0"
+            ISACTIVE="F"
             />
 
     <A2_BIOENTITY2BIOENTITY
@@ -528,6 +528,7 @@
             mySqlDbUrl = "ensembldb.ensembl.org:5306"
             annsrctype="biomart"
             LOADDATE="2011-01-06"
+            isApplied="F"
             />
     <A2_ANNSRC_BIOENTITYTYPE
             annotationsrcid="1000"

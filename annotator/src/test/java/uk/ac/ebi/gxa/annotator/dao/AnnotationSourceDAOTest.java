@@ -133,6 +133,19 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testUpdate() throws Exception {
+        BioMartAnnotationSource annotationSource = fetchAnnotationSource();
+        assertNotNull(annotationSource);
+        assertEquals(false, annotationSource.isApplied());
+        annotationSource.setApplied(true);
+
+        annSrcDAO.update(annotationSource);
+
+        BioMartAnnotationSource annotationSource1 = fetchAnnotationSource();
+        assertTrue(annotationSource1.isApplied());
+    }
+
+    @Test
     @Transactional
     public void testFindOrCreateOrganism() throws Exception {
         Organism organism = organismDAO.getOrCreateOrganism("homo sapiens");
@@ -180,15 +193,9 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testIsAnnSrcApplied() throws Exception {
-        BioMartAnnotationSource annotationSource = fetchAnnotationSource();
-        assertTrue(annSrcDAO.isAnnSrcApplied(annotationSource, true));
-    }
-
-    @Test
     public void testIsAnnSrcAppliedForArrayDesignMapping() throws Exception {
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignByAccession("A-AFFY-45");
-        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign, true));
+        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign));
     }
 }

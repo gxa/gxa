@@ -29,10 +29,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -57,6 +59,9 @@ public class AtlasBioEntityDataWriter {
     @Autowired
     private BioEntityDAO bioEntityDAO;
 
+    @Autowired
+    private AnnotationSourceDAO annSrcDAO;
+
     private AnnotationLoaderListener listener;
 
     public AtlasBioEntityDataWriter() {
@@ -78,17 +83,20 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final Software software, boolean deleteBeforeWrite) {
-        if (deleteBeforeWrite) {
+    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final AnnotationSource annSrc) {
+        if (annSrc.isApplied()) {
             for (Organism organism : data.getOrganisms()) {
-                deleteBioEntityToPropertyValues(organism, software);
+                deleteBioEntityToPropertyValues(organism, annSrc.getSoftware());
             }
         }
         for (BioEntityType type : data.getBioEntityTypes()) {
             Collection<Pair<String, BEPropertyValue>> propValues = data.getPropertyValuesForBioEntityType(type);
             reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data));
-            bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, software);
+            bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, annSrc.getSoftware());
         }
+
+        annSrc.setApplied(true);
+        annSrcDAO.update(annSrc);
     }
 
     private void deleteBioEntityToPropertyValues(final Organism organism, final Software software) {

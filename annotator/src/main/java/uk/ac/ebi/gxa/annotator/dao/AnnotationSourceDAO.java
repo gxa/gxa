@@ -61,6 +61,11 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
+    public void update(AnnotationSource object) {
+        template.update(object);
+        template.flush();
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
         return template.find("from " + type.getSimpleName());
@@ -79,44 +84,12 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
-    public boolean isAnnSrcApplied(final AnnotationSource annSrc) {
-        return isAnnSrcApplied(annSrc, false);
-    }
-
-    /**
-     * @param annSrc
-     * @param hsql   flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
-     *               hsql does not recognise ROWNUM (and we need hsql to junit test thsi method)
-     * @return true if annotation source annSrc has been applied for bioentity properties
-     */
-    public boolean isAnnSrcApplied(final AnnotationSource annSrc, boolean hsql) {
-        String query = "SELECT 1 FROM A2_BIOENTITYBEPV\n" +
-                "WHERE SOFTWAREID = ?\n" +
-                "AND BIOENTITYID = (SELECT BEPV.BIOENTITYID FROM A2_BIOENTITYBEPV BEPV JOIN A2_BIOENTITY BE ON BEPV.BIOENTITYID = BE.BIOENTITYID\n" +
-                "WHERE BE.ORGANISMID=? " + (hsql ? "LIMIT 1" : "AND ROWNUM=1") + ")";
-        List list = atlasJdbcTemplate.queryForList(query, annSrc.getSoftware().getSoftwareid(), annSrc.getOrganism().getId());
-
-        return list.size() > 0;
-    }
-
     public boolean isAnnSrcAppliedForArrayDesignMapping(final AnnotationSource annSrc, final ArrayDesign arrayDesign) {
-        return isAnnSrcAppliedForArrayDesignMapping(annSrc, arrayDesign, false);
-    }
-
-    /**
-     * @param annSrc
-     * @param arrayDesign
-     * @param hsql        hsql flag to indicate if the query is run as hsql (true) or an Oracle query (false). The flag is needed because
-     *                    hsql does not recognise ROWNUM (and we need hsql to junit test this method)
-     * @return true if annotation source annSrc has been applied for array design mappings
-     */
-    public boolean isAnnSrcAppliedForArrayDesignMapping(final AnnotationSource annSrc, final ArrayDesign arrayDesign, boolean hsql) {
-        String query = "SELECT 1 FROM A2_DESIGNELTBIOENTITY\n" +
+        String query = "SELECT count (DESIGNELEMENTID) FROM A2_DESIGNELTBIOENTITY\n" +
                 "WHERE SOFTWAREID = ?\n" +
-                "AND DESIGNELEMENTID IN (SELECT DE.DESIGNELEMENTID FROM A2_DESIGNELEMENT DE WHERE DE.ARRAYDESIGNID=?)\n" +
-                (hsql ? " LIMIT 1" : " AND ROWNUM=1");
-        List list = atlasJdbcTemplate.queryForList(query, annSrc.getSoftware().getSoftwareid(), arrayDesign.getArrayDesignID());
+                "AND DESIGNELEMENTID IN (SELECT DE.DESIGNELEMENTID FROM A2_DESIGNELEMENT DE WHERE DE.ARRAYDESIGNID=?)";
+        int count = atlasJdbcTemplate.queryForInt(query, annSrc.getSoftware().getSoftwareid(), arrayDesign.getArrayDesignID());
 
-        return list.size() > 0;
+        return count > 0;
     }
 }

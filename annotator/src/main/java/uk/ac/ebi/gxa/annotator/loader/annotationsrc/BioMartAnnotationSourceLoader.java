@@ -91,6 +91,22 @@ public class BioMartAnnotationSourceLoader {
         this.annSrcDAO = annSrcDAO;
     }
 
+    public void setOrganismDAO(OrganismDAO organismDAO) {
+        this.organismDAO = organismDAO;
+    }
+
+    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+        this.softwareDAO = softwareDAO;
+    }
+
+    public void setTypeDAO(BioEntityTypeDAO typeDAO) {
+        this.typeDAO = typeDAO;
+    }
+
+    public void setPropertyDAO(BioEntityPropertyDAO propertyDAO) {
+        this.propertyDAO = propertyDAO;
+    }
+
     public void setArrayDesignService(ArrayDesignService arrayDesignService) {
         this.arrayDesignService = arrayDesignService;
     }
@@ -191,7 +207,6 @@ public class BioMartAnnotationSourceLoader {
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
-                    annSrc.setApplied(annSrcDAO.isAnnSrcApplied(annSrc));
                     result.add(annSrc);
                 } else {
                     //check if AnnotationSource exists for new version

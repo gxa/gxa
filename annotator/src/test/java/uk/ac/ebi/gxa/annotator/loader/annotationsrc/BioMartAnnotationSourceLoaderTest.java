@@ -31,6 +31,10 @@ import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.OrganismDAO;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.io.Reader;
@@ -46,6 +50,14 @@ public class BioMartAnnotationSourceLoaderTest extends AtlasDAOTestCase {
 
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
+    @Autowired
+    private OrganismDAO organismDAO;
+    @Autowired
+    private SoftwareDAO softwareDAO;
+    @Autowired
+    private BioEntityTypeDAO typeDAO;
+    @Autowired
+    private BioEntityPropertyDAO propertyDAO;
 
     @Autowired
     private ArrayDesignService arrayDesignService;
@@ -57,6 +69,10 @@ public class BioMartAnnotationSourceLoaderTest extends AtlasDAOTestCase {
         super.setUp();
         loader = new BioMartAnnotationSourceLoader();
         loader.setAnnSrcDAO(annSrcDAO);
+        loader.setOrganismDAO(organismDAO);
+        loader.setPropertyDAO(propertyDAO);
+        loader.setSoftwareDAO(softwareDAO);
+        loader.setTypeDAO(typeDAO);
         loader.setArrayDesignService(arrayDesignService);
     }
 
@@ -91,7 +107,7 @@ public class BioMartAnnotationSourceLoaderTest extends AtlasDAOTestCase {
     }
 
     @Test
-    public void  testGetAnnSrcAsStringById() throws Exception {
+    public void testGetAnnSrcAsStringById() throws Exception {
         String annSrcAsString = loader.getAnnSrcAsStringById("1000");
         assertEquals(ANN_SRC_DB, annSrcAsString.trim());
     }

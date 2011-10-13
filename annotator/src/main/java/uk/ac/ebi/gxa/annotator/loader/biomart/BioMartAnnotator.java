@@ -119,7 +119,7 @@ public class BioMartAnnotator {
 
             beDataWriter.writeBioEntities(data);
             beDataWriter.writePropertyValues(data.getPropertyValues());
-            beDataWriter.writeBioEntityToPropertyValues(data, annSrc.getSoftware(), annSrcDAO.isAnnSrcApplied(annSrc));
+            beDataWriter.writeBioEntityToPropertyValues(data, annSrc);
 
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 
@@ -145,7 +145,7 @@ public class BioMartAnnotator {
 
 
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
-            if (!annSrcDAO.isAnnSrcApplied(annSrc)) {
+            if (!annSrc.isApplied()) {
                 readBioEntities(martConnection.getAttributesURL(attributesHandler.getMartBEIdentifiersAndNames()), parser);
                 beDataWriter.writeBioEntities(parser.getData());
             }

@@ -127,7 +127,7 @@ public class BioEntityDAO {
                 "  join a2_software sw on sw.softwareid = debe.softwareid\n" +
                 "  JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid \n" +
                 "  WHERE bet.ID_FOR_INDEX = 1\n" +
-                "  and sw.isactive = 1";
+                "  and sw.isactive = 'T";
 
         template.query(query,
                 mapper);

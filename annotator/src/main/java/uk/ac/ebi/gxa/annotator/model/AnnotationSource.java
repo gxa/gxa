@@ -66,7 +66,8 @@ public abstract class AnnotationSource implements Serializable {
 
     @Temporal(TemporalType.DATE)
     protected Date loadDate;
-    @Transient
+
+    @org.hibernate.annotations.Type(type="true_false")
     private boolean isApplied = false;
 
     protected AnnotationSource() {

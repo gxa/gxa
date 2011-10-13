@@ -248,7 +248,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                 "CREATE TABLE A2_SOFTWARE " +
                         "(SOFTWAREID bigint, " +
                         "NAME VARCHAR(255) NOT NULL, " +
-                        "ISACTIVE bit NOT NULL, " +
+                        "ISACTIVE VARCHAR(1) NOT NULL, " +
                         "VERSION VARCHAR(255) NOT NULL) ;");
 
         runStatement(conn,
@@ -343,6 +343,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  , mySqlDbUrl VARCHAR(255)\n" +
                         "  , annsrctype VARCHAR(255) NOT NULL\n" +
                         "  , LOADDATE DATE\n" +
+                        "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
                         ");");
 
         runStatement(conn,
