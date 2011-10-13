@@ -114,8 +114,9 @@ public class BioMartAnnotationSourceLoader {
     public String getAnnSrcAsStringById(String id) {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = (BioMartAnnotationSource) annSrcDAO.getById(aLong);
+
         if (annotationSource == null) {
-            return "Create new annotation source";
+            return "";
         }
 
         Writer writer = new StringWriter();

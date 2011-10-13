@@ -61,9 +61,9 @@ public class DefaultAnnotationLoader implements AnnotationLoader {
                 try {
                     task.get();
                 } catch (InterruptedException e) {
-                    LogUtil.createUnexpected("Annotation/mapping update task failed! ", e);
+                    throw LogUtil.createUnexpected("Annotation/mapping update task failed! ", e);
                 } catch (ExecutionException e) {
-                    LogUtil.createUnexpected("Annotation/mapping update task failed! ", e.getCause());
+                    throw LogUtil.createUnexpected("Annotation/mapping update task failed! ", e.getCause());
                 }
             }
         }).start();

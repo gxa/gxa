@@ -279,12 +279,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processSearchAnnSrc(String annSrcId) {
-        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
+        String emptyAnnSrcString = "CREATE NEW ANNOTATION SOURCE ";
+        String annSrcString = "";
         if (!StringUtils.EMPTY.equals(annSrcId)) {
             annSrcString = annSrcController.getAnnSrcString(annSrcId);
         }
 
-        return makeMap("annSrcText", annSrcString);
+        return makeMap("annSrcText", StringUtils.EMPTY.equals(annSrcString)?emptyAnnSrcString:annSrcString);
     }
 
     private Date parseDate(String toDateStr) {
