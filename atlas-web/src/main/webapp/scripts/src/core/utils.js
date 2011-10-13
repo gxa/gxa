@@ -30,14 +30,19 @@
         return s ? (s.charAt(0) === "#" ? s : "#" + s) : s;
     };
 
+    A.$ = function(s) {
+        var el = $(A.hsh(s));
+        return el.length ? el : null;
+    };
+
     /**
      * Removes any content of the DOM element(s).
      * Accepts an Id (one or more) of DOM elements to clean up.
      */
     A.clearContent = function() {
         for (var i = 0, len = arguments.length; i < len; i++) {
-            var elem = $(A.hsh(arguments[i]));
-            if (elem.length) {
+            var elem = A.$(arguments[i]);
+            if (elem) {
                 elem.empty();
             }
         }

@@ -85,8 +85,16 @@
         }
 
         function drawPlot(data) {
-            var targetEl = $(plotTarget);
-            if (!targetEl.length) {
+            var targetEl = A.$(plotTarget);
+            if (!targetEl) {
+                A.logError("Plot target element '" + plotTarget + "' not found.");
+                return;
+            }
+
+            if (!data.series) {
+                A.logError({
+                    msg: "Can't draw bar plot: the series data is empty (data.series=" + data.series + ")",
+                    cause: data.error});
                 return;
             }
 
