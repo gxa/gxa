@@ -94,22 +94,21 @@
 
         function prepareTemplate() {
             for (var i = 0, len = arguments.length; i < len; i++) {
-                var templName = arguments[i];
-                var templ = $(A.hsh(templName));
-                if (templ.length) {
-                    $.template(templName, templ);
+                var template = arguments[i];
+                var el = A.$(template);
+                if (el) {
+                    $.template(template, el);
+                } else {
+                    A.logError("Template '" + template + "' not found.");
                 }
             }
         }
 
-        function renderWithTemplate(templName, templTarget, data) {
-            var target = $(templTarget);
-            if (target.length) {
-                var res = $.tmpl(templName, data);
-                if (res.length) {
-                    res.appendTo(target);
-                    $("a[atlas-uri]", target).atlasRelativeHref();
-                }
+        function renderWithTemplate(template, templTarget, data) {
+            var target = A.$(templTarget);
+            if (target) {
+                $.tmpl(template, data).appendTo(target);
+                $("a[atlas-uri]", target).atlasRelativeHref();
             }
         }
 
