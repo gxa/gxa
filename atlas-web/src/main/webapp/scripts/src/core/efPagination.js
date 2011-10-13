@@ -31,55 +31,47 @@
      */
     A.efPagination = function(opts) {
         opts = opts || {};
-        var targetEl = $(A.hsh(opts.target));
-        if (!targetEl.length) {
-            A.logError("No element found with id: " + opts.target);
-            return {};
-        }
+        var targetEl = A.$(opts.target),
+            withTarget = function(func) {
+                return (!targetEl) ?
+                    function() {
+                        A.logError("EF Pagination: element '" + opts.target + "' doesn't exist.");
+                    } : func;
+            },
+            factors = opts.factors || [],
+            onSelectHandler = opts.onSelect || null;
 
-        var factors = opts.factors || [];
-        var onSelectHandler = opts.onSelect || null;
+        var fillIn =
+            withTarget(function() {
+                var html = [];
+                for (var i = 0, len = factors.length; i < len; i++) {
+                    var item = factors[i];
+                    html.push("<div data-ef=\"" + item + "\">" + item + "</div>");
+                }
+                if (!targetEl.hasClass("pagination_ef")) {
+                    targetEl.addClass("pagination_ef");
+                }
+                targetEl.html(html.join(""));
+            });
 
-        fillIn();
-        bindSelectEvent();
 
-        function fillIn() {
-            var html = [];
-            for (var i = 0, len = factors.length; i < len; i++) {
-                var item = factors[i];
-                html.push("<div data-ef=\"" + item + "\">" + item + "</div>");
-            }
-            if (!targetEl.hasClass("pagination_ef")) {
-                targetEl.addClass("pagination_ef");
-            }
-            targetEl.html(html.join(""));
-        }
-
-        function bindSelectEvent() {
-            targetEl.children().each(function() {
-                $(this).click(function() {
-                    var elem = $(this);
-                    if (elem.hasClass("current")) {
-                        return;
-                    }
-                    var ef = elem.data("ef");
-                    mark(ef);
-                    notifySelectEvent(ef);
+        var bindSelectEvent =
+            withTarget(function() {
+                targetEl.children().each(function() {
+                    $(this).click(function() {
+                        var elem = $(this);
+                        if (elem.hasClass("current")) {
+                            return;
+                        }
+                        var ef = elem.data("ef");
+                        mark(ef);
+                        notifySelectEvent(ef);
+                    });
                 });
             });
-        }
 
-        function notifySelectEvent(ef) {
-            if (onSelectHandler) {
-                try {
-                    onSelectHandler(ef);
-                } catch(e) {
-                    A.logError(e);
-                }
-            }
-        }
-
-        function mark(ef) {
+        var mark =
+            withTarget(function(ef) {
             targetEl.children().each(function() {
                 var elem = $(this);
                 var data = elem.data("ef");
@@ -89,7 +81,21 @@
                     elem.removeClass("current");
                 }
             });
-        }
+        });
+
+        var notifySelectEvent =
+            withTarget(function(ef) {
+                if (onSelectHandler) {
+                    try {
+                        onSelectHandler(ef);
+                    } catch(e) {
+                        A.logError(e);
+                    }
+                }
+            });
+
+        fillIn();
+        bindSelectEvent();
 
         return {
             select: function(ef) {
