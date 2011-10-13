@@ -12,6 +12,7 @@ import java.util.List;
 public class SoftwareDAO {
     public static final String ENSEMBL = "Ensembl";
     public static final String MIRBASE = "miRBase";
+    public static final String GENESIGDB = "genesigdb";
 
     private final JdbcTemplate template;
 

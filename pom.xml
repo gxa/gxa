@@ -35,6 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
+        <wro4j.version>1.3.8</wro4j.version>
     </properties>
 
     <scm>
@@ -283,8 +284,10 @@
         <module>atlas-dao</module>
         <module>atlas-test</module>
         <module>atlas-utils</module>
+        <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
+        <module>atlas-wro4j</module>
     </modules>
 
     <dependencies>
@@ -334,11 +337,32 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
             <version>1.4.0</version>
+            <exclusions>
+                <exclusion>
+                    <!--
+                        Woodstox has changed its groupId to org.codehaus.woodstox a while back:
+                        http://jira.codehaus.org/browse/WSTX-86
+                        see also the dependency on org.codehaus.woodstox:wstx-asl:pom below
+                    -->
+                    <groupId>woodstox</groupId>
+                    <artifactId>wstx-asl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <!--
+                Woodstox has changed its groupId to org.codehaus.woodstox a while back:
+                http://jira.codehaus.org/browse/WSTX-86
+                see also the woodstox:wstx-asl exclusion above
+            -->
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>wstx-asl</artifactId>
+            <version>3.2.7</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.3</version>
+            <version>2.4</version>
         </dependency>
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>
@@ -362,20 +386,26 @@
             <version>${spring.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <repositories>
-        <repository>
-            <!--
-             An internal repository for libraries we cannot distribute, namely:
+        <!--
+         * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
 
-             * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
-
-             Please download and install those yourself.
-             -->
-            <id>coconut.ebi.ac.uk</id>
-            <url>http://bar:8081/artifactory/local-repo/</url>
-        </repository>
+         Please download and install those yourself.
+         -->
         <repository>
             <id>java.net</id>
             <url>http://download.java.net/maven/2/</url>
@@ -422,6 +452,21 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <id>c5-public-repository</id>
+            <url>http://mvn.carbonfive.com/public</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>hasbanana</id>
+            <url>http://www.hasbanana.com/maven/repo</url>
+        </repository>
+        <repository>
+            <id>opencast</id>
+            <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
         </repository>
     </repositories>
 
