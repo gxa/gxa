@@ -96,6 +96,8 @@ $(document).ready(function() {
     };
 
     expList.load({ef:"${ef}"});
+
+    atlas.PageState.init();
 });
 </script>
 

@@ -125,17 +125,23 @@
                             s = s.concat(_serialize(obj[p], prefix ? prefix + "." + p : p));
                         }
                     }
-                } else {
+                } else if (obj || obj === 0) {
                     add(prefix, obj);
                 }
                 return s;
             }
 
             var s = _serialize(obj, "");
-            return s.join("&").replace(/%20/g, "+");
+            return s.join("&") || "%20";
+            /**
+             * Note: An empty string means changing URL hash to "#", which is the valid page top reference;
+             * so the page will jump to the top every time the state is cleared. Returning "%20"
+             * (could be any none existed hash reference) instead of empty string prevents page from jumping.
+             **/
         }
 
         function deserialize(str) {
+            str = str.replace(/\+/g, "%20");
             var _values = {"false":false, "true":true, "null":null, "undefined":undefined};
             var obj = {};
             var parts = str.split("&");
@@ -162,14 +168,10 @@
             return obj;
         }
 
-        function updateHashTag() {
-            $.address.value(A.Params.serialize(state));
-            triggerStateChangedEvent();
+        function triggerStateChangedEvent() {
+            $(_this).trigger("pageStateChanged");
         }
 
-        function triggerStateChangedEvent() {
-            $(_this).trigger("stateChanged");
-        }
         return $.extend(true, _this, {
             update: function(newState, path) {
                 if (path) {
@@ -177,12 +179,20 @@
                 } else {
                     state = $.extend(true, {}, newState);
                 }
-                updateHashTag();
+                $.address.hash(serialize(state));
+                triggerStateChangedEvent();
+            },
+
+            get: function(path) {
+                return A.objProperty(state, path);
             },
 
             init: function() {
                 $.address.externalChange(function() {
-
+                    state = deserialize($.address.hash());
+                    A.logError({msg: "External PageState change", state: state});
+                    triggerStateChangedEvent();
+                    return false;
                 });
             }
         });

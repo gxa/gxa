@@ -21,16 +21,10 @@
  */
 
 (function(A, $) {
-    /**
-     *
-     * @param opts {
-     *     factors - an array of experiment factors
-     *     target - an id of DOM element where to insert pagination
-     *     onSelect - handler for select event
-     * }
-     */
-    A.efPagination = function(opts) {
+
+    function efPaginationView(opts) {
         opts = opts || {};
+
         var targetEl = A.$(opts.target),
             withTarget = function(func) {
                 return (!targetEl) ?
@@ -39,9 +33,11 @@
                     } : func;
             },
             factors = opts.factors || [],
-            onSelectHandler = opts.onSelect || null;
+            currEf = null;
 
-        var fillIn =
+        var _this = {};
+
+        var draw =
             withTarget(function() {
                 var html = [];
                 for (var i = 0, len = factors.length; i < len; i++) {
@@ -54,8 +50,7 @@
                 targetEl.html(html.join(""));
             });
 
-
-        var bindSelectEvent =
+        var bindEvents =
             withTarget(function() {
                 targetEl.children().each(function() {
                     $(this).click(function() {
@@ -65,44 +60,81 @@
                         }
                         var ef = elem.data("ef");
                         mark(ef);
-                        notifySelectEvent(ef);
+                        notifyEfClicked(ef);
                     });
                 });
             });
 
         var mark =
             withTarget(function(ef) {
-            targetEl.children().each(function() {
-                var elem = $(this);
-                var data = elem.data("ef");
-                if (ef === data) {
-                    elem.addClass("current");
-                } else {
-                    elem.removeClass("current");
-                }
-            });
-        });
-
-        var notifySelectEvent =
-            withTarget(function(ef) {
-                if (onSelectHandler) {
-                    try {
-                        onSelectHandler(ef);
-                    } catch(e) {
-                        A.logError(e);
+                targetEl.children().each(function() {
+                    var elem = $(this);
+                    var data = elem.data("ef");
+                    if (ef === data) {
+                        elem.addClass("current");
+                    } else {
+                        elem.removeClass("current");
                     }
-                }
+                });
+                currEf = ef;
+                notifyEfChanged(ef);
             });
 
-        fillIn();
-        bindSelectEvent();
-
-        return {
-            select: function(ef) {
-                mark(ef);
-                notifySelectEvent(ef);
-                return this;
-            }
+        function notifyEfClicked(ef) {
+            $(_this).trigger("efClicked", [ef]);
         }
+
+        function notifyEfChanged(ef) {
+            $(_this).trigger("efChanged", [ef]);
+        }
+
+        draw();
+        bindEvents();
+
+        return $.extend(true, _this, {
+            select: function(ef) {
+                if (ef && ef != currEf) {
+                    mark(ef);
+                }
+            }
+        });
+    }
+
+    /**
+     *
+     * @param opts {
+     *     target - an id of DOM element where to insert pagination
+     *     factors - an array of experiment factors
+     *     pageStateAware - enables/disables storing component state in the PageState object (optional)
+     *     pageStateId - a unique name of PageState parameter; required only if pageStateAware is true
+     *     defaultEf - an ef to select first (optional)
+     * }
+     */
+    A.efPagination = function(opts) {
+        opts = opts || {};
+
+        var defaultEf = opts.defaultEf || null,
+            efpView = efPaginationView({
+                target: opts.target,
+                factors: opts.factors
+            }),
+            pageStateAware = opts.pageStateAware || false,
+            pageStateId = opts.pageStateId || null;
+
+        if (opts.onChange) {
+            $(efpView).bind("efChanged", opts.onChange);
+        }
+
+        if (pageStateAware && pageStateId) {
+            $(efpView).bind("efClicked", function(event, ef) {
+                A.PageState.update(defaultEf == ef ? null : ef, pageStateId);
+            });
+            var selectedEf = A.PageState.get(pageStateId);
+            efpView.select(selectedEf || defaultEf);
+        } else {
+            efpView.select(defaultEf);
+        }
+
+        return efpView;
     };
 })(atlas || {}, jQuery);

@@ -124,18 +124,21 @@
                 A.efPagination({
                     factors: exp.experimentFactors || [],
                     target: exp.accession + "_" + geneId + "_efPagination",
-                    onSelect: function(expAccession, geneId, ef, efv) {
-                        return function(selectedEf) {
-                            A.barPlot({
-                                target: expAccession + "_" + geneId + "_plot",
-                                geneId: geneId,
-                                expAccession: expAccession,
-                                ef: selectedEf,
-                                efv: ef && selectedEf === ef ? efv : null
-                            }).load();
-                        };
-                    }(exp.accession, geneId, expEf, efv)
-                }).select(expEf);
+                    defaultEf: expEf,
+                    pageStateId: exp.accession + "_" + geneId + "_efp",
+                    pageStateAware: true,
+                    onChange: function(expAccession, geneId, ef, efv) {
+                    return function(event, selectedEf) {
+                        A.barPlot({
+                            target: expAccession + "_" + geneId + "_plot",
+                            geneId: geneId,
+                            expAccession: expAccession,
+                            ef: selectedEf,
+                            efv: ef && selectedEf === ef ? efv : null
+                        }).load();
+                    };
+                }(exp.accession, geneId, expEf, efv)
+                });
             }
         }
 
