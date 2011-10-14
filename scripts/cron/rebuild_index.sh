@@ -26,8 +26,15 @@ if [ $num_incomplete_analytics != "0" ]; then
     curl -X POST -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?op=searchexp&pendingOnly=INCOMPLETE_ANALYTICS&indent" 2>&1 >> $process_file.log
     mailx -s `eval date +%HH%MM%ss`" Processing experiments on $3:$4/$5 failed due to incomplete analytics (see message body)" $6 < $process_file.log
 else
-    # re-build index
-    curl -X POST -b $authentication_cookie -H "Accept: application/json" 'http://$3:$4/$5/admin?op=schedule&runMode=RESTART&type=index&autoDepends=false&indent' 2>&1 >> $process_file.log
+    num_incomplete_index=`curl -X POST -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?op=searchexp&pendingOnly=INCOMPLETE_INDEX" | cut -d'{' -f2 | cut -d':' -f2 | cut -d',' -f1`
+    echo "num_incomplete_index = $num_incomplete_index"
+    if [ $num_incomplete_index != "0" ]; then
+        # re-build index
+        echo "Re-building the index"
+        #curl -X POST -b $authentication_cookie -H "Accept: application/json" 'http://$3:$4/$5/admin?op=schedule&runMode=RESTART&type=index&autoDepends=false&indent' 2>&1 >> $process_file.log
+    else
+        echo "No experiments needed indexing - not re-building the index" >> $process_file.log
+    fi
 fi
 
 # logout from Atlas admin
