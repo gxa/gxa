@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 /**
@@ -398,7 +398,7 @@ public class AtlasGene {
         for (EfvAttribute attr : scoringEfvsForGene) {
             if (omittedEfs.contains(attr.getEf()) || (efName != null && !efName.equals(attr.getEf())))
                 continue;
-            List<ExperimentResult> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1);
+            List<ExperimentResult> allExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(getGeneId(), attr, -1, -1, UP_DOWN);
             UpdownCounter counter = result.getOrCreateCaseSensitive(attr.getEf(), attr.getEfv(), maker);
             // Retrieve all up/down counts and pvals/tStatRanks
             for (ExperimentResult exp : allExperimentsForAttribute) {
@@ -419,12 +419,12 @@ public class AtlasGene {
             for (EfvTree.EfEfv<UpdownCounter> f : result.getNameSortedList()) {
                 if (maxNonDEFactors != ExperimentalFactor.NONDE_COUNTS_FOR_ALL_EFVS && i >= maxNonDEFactors) {
                     // if no factor was specified, we only display maximum RESULT_ALL_VALUES_SIZE per factor - no point getting
-                    // non-DE counts for favtor values that won't be displayed to the user.
+                    // non-DE counts for factor values that won't be displayed to the user.
                     break;
                 }
                 long start = System.currentTimeMillis();
-                Attribute attr = new EfvAttribute(f.getEf(), f.getEfv(), StatisticsType.NON_D_E);
-                int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, getGeneId());
+                Attribute attr = new EfvAttribute(f.getEf(), f.getEfv());
+                int numNo = atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, getGeneId(), NON_D_E);
                 f.getPayload().setNones(numNo);
                 bitIndexAccessTime += System.currentTimeMillis() - start;
                 i++;
@@ -471,8 +471,8 @@ public class AtlasGene {
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
         for (String factorName : efs) {
-            EfvAttribute attr = new EfvAttribute(factorName, UP_DOWN);
-            Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr);
+            EfvAttribute attr = new EfvAttribute(factorName);
+            Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr, UP_DOWN);
             ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
             for (ExperimentInfo exp : experiments) {
                 factor.addExperiment(exp.getExperimentId(), exp.getAccession());

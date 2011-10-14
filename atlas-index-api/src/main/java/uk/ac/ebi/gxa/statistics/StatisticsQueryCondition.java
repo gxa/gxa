@@ -50,8 +50,9 @@ public class StatisticsQueryCondition {
      *
      * @param bioEntityIdRestrictionSet
      */
-    public StatisticsQueryCondition(Set<Integer> bioEntityIdRestrictionSet) {
+    public StatisticsQueryCondition(Set<Integer> bioEntityIdRestrictionSet, StatisticsType statisticsType) {
         this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
+        this.statisticsType = statisticsType;
     }
 
     /**

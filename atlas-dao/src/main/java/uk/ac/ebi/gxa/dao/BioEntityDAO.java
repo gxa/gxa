@@ -436,13 +436,14 @@ public class BioEntityDAO {
 
         long ensAnnSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.ENSEMBL);
         long mRNAannSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.MIRBASE);
+        long genesigdbSW = softwareDAO.getLatestVersionOfSoftware(SoftwareDAO.GENESIGDB);
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         for (List<Long> geneIDsChunk : partition(geneIDs, MAX_QUERY_PARAMS)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            Long[] sw = {ensAnnSW, mRNAannSW};
+            Long[] sw = {ensAnnSW, mRNAannSW, genesigdbSW};
             propertyParams.addValue("swid", Arrays.asList(sw));
             propertyParams.addValue("geneids", geneIDsChunk);
 

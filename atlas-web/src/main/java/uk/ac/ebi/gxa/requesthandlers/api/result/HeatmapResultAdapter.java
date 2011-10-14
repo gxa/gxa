@@ -164,8 +164,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<ExperimentResult> expiter() {
-                EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv(), StatisticsType.UP_DOWN);
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
+                EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv());
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN).iterator();
             }
         }
 
@@ -186,8 +186,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<ExperimentResult> expiter() {
-                Attribute attr = new EfoAttribute(efoItem.getId(), StatisticsType.UP_DOWN);
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
+                Attribute attr = new EfoAttribute(efoItem.getId());
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN).iterator();
             }
         }
 

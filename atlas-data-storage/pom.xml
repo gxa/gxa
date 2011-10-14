@@ -47,32 +47,11 @@
             <artifactId>netcdf-java</artifactId>
             <version>4.0.41</version>
         </dependency>
-
-        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency> <!-- log4j itself (note the runtime scope) -->
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
         <!-- ConciseSet used by bit index -->
         <dependency>
             <groupId>extendedset</groupId>
             <artifactId>extendedset</artifactId>
             <version>1.0-patched</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <version>3.0</version>
         </dependency>
     </dependencies>
 </project>

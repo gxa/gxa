@@ -53,7 +53,7 @@ var atlas = atlas || {};
             actype = 'efo';
         }
 
-        fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
+        fvalfield.tokenInput(atlas.fullPathFor("fval"), $.extend(true, {}, commonTokenOptions,
         {
             extraParams: {
                 factor: factor,
@@ -113,7 +113,7 @@ var atlas = atlas || {};
     };
 
     atlas.tokenizeGeneInput = function (fvalfield, property, defaultvalue) {
-        fvalfield.tokenInput(atlas.homeUrl + "fval", $.extend(true, {}, commonTokenOptions,
+        fvalfield.tokenInput(atlas.fullPathFor("fval"), $.extend(true, {}, commonTokenOptions,
         {
             extraParams: {
                 factor: property,
@@ -460,7 +460,7 @@ var atlas = atlas || {};
             sequence.nextVal();
 
             // Enable autocomplete for @EFO_... values
-            if (values.charAt(0) === "@") {
+            if (values && values.charAt(0) === "@") {
                 values = values.substr(1);
             }
 

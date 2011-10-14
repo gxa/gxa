@@ -28,7 +28,7 @@ TABLE_NAMES_SCHEMA="ArrayDesign \
              Organism \
              Property \
              PropertyValue \
-             SchemaChanges \
+             SchemaVersion \
              Software"
 
 create_schema() {
