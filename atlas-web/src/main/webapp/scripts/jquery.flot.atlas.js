@@ -1759,13 +1759,21 @@
 
             var fragments = [];
             var rowStarted = false;
+            var xMin = options.xaxis.min;
+            var xMax = options.xaxis.max;
 
             for (i = 0; i < series.length; ++i) {
+                var s = series[i];
 
-
-                if ((!series[i].label && !series[i].pvalue) || !series[i].legend.show)
+                if ((!s.label && !s.pvalue) || !s.legend.show)
                     continue;
 
+                if (xMin && xMax) {
+                    var d = s.data;
+                    if (d.length && (d[0][0] > xMax || d[d.length -1][0] < xMin)) {
+                        continue;
+                    }
+                }
 
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted){
@@ -1775,13 +1783,13 @@
                     rowStarted = true;
                 }
 
-                var label = series[i].label;
+                var label = s.label;
                 if(label.length > 30) {
                     label = label.substring(0, 30) + '...';
                 }
                 var pValue = '';
-                var expression = series[i].expression;
-                if (series[i].pvalue !== undefined) {
+                var expression = s.expression;
+                if (s.pvalue !== undefined) {
                     pValue = series[i].pvalue;
                     if (typeof(pValue) === 'number' && isFinite(pValue)) {
                         if (options.legend.pValueFormatter != null) {
@@ -1795,7 +1803,7 @@
                     var expdict = { up: '&#8593;', dn: '&#8595;', no: '&#126;' };
                     pValue = expdict[expression] + '&nbsp;' + pValue;
 
-                    if (series[i].legend.isefv) {
+                    if (s.legend.isefv) {
                         // Highlight the label and pValue if it belongs to an efv in focus, e.g. the plot is being output
                         // after the user clicked a cell in a heat map,
                         // in a column corresponding to an efv)

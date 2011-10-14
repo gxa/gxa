@@ -49,6 +49,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
@@ -112,15 +113,10 @@ public class AtlasPlotter {
                 return null;
             }
 
-            String efToPlot;
-
-            if ("default".equals(ef)) {
-                Long geneId = (long) genes.get(0).getGeneId();
-                // First try to get the highest ranking from top gene
-                efToPlot = getHighestRankEF(geneIdsToEfToEfvToEA.get(geneId));
-            } else {
-                efToPlot = ef;
-            }
+            String efToPlot = isNullOrEmpty(ef) ?
+                    getHighestRankEF(geneIdsToEfToEfvToEA.get(
+                            (long) genes.get(0).getGeneId()
+                    )) : ef;
 
             if (efToPlot == null)
                 throw LogUtil.createUnexpected("Can't find EF to plot");

@@ -27,7 +27,7 @@
 
     var ATLAS_APPLICATION_CONTEXTPATH = "${pageContext.request.contextPath}";
     if (window.atlas) {
-        window.atlas.contextPath(ATLAS_APPLICATION_CONTEXTPATH);
+        window.atlas.applicationContext(ATLAS_APPLICATION_CONTEXTPATH);
     }
 </script>
 

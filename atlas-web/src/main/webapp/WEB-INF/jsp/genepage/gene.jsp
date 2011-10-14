@@ -22,9 +22,10 @@
 <%@include file="../includes/global-inc.jsp" %>
 
 <c:set var="timeStart" value="${u:currentTime()}"/>
-<jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
+<jsp:useBean id="gene" type="uk.ac.ebi.gxa.web.controller.GenePageGene" scope="request"/>
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
-<jsp:useBean id="atlasGene" type="ae3.model.AtlasGene" scope="request"/>
+<jsp:useBean id="anatomogramMap" type="java.util.Collection<uk.ac.ebi.gxa.anatomogram.AnatomogramArea>" scope="request"/>
+<jsp:useBean id="hasAnatomogram" type="java.lang.Boolean" scope="request" />
 <jsp:useBean id="ef" class="java.lang.String" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -32,11 +33,11 @@
 <head>
 
     <tmpl:stringTemplate name="genePageHead">
-        <tmpl:param name="gene" value="${atlasGene}"/>
+        <tmpl:param name="gene" value="${gene}"/>
     </tmpl:stringTemplate>
 
     <meta name="Description"
-          content="${atlasGene.geneName} (${atlasGene.geneSpecies}) - Gene Expression Atlas Summary"/>
+          content="${gene.geneName} (${gene.geneSpecies}) - Gene Expression Atlas Summary"/>
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
@@ -62,169 +63,8 @@
 </head>
 
 <script type="text/javascript">
-
-function showThumbTooltip(x, y, contents) {
-    if (contents != 'Mean') {
-        $('<div id="tooltip" />').text(contents).css({
-            position: 'absolute',
-            display: 'none',
-            top: (y + 5) + 'px',
-            left: (x + 5) + 'px',
-            border: '1px solid #005555',
-            margin: '0px',
-            backgroundColor: '#EEF5F5'
-        }).appendTo("body").fadeIn('fast');
-    }
-}
-
-function drawPlot(jsonObj, plot_id) {
-    if (jsonObj.series) {
-        var legend_id = plot_id.replace("_plot", "_legend");
-        jsonObj.options.legend.container = '#' + legend_id;
-        var arraydesign_id = plot_id.replace("_plot", "_arraydesign");
-        jsonObj.options.arrayDesignContainer = '#' + arraydesign_id;
-
-        var plotted_ef = jsonObj.options.ef;
-        var tokens = plot_id.split('_');
-        var eacc = tokens[0];
-        var gid = tokens[1];
-        drawEFpagination(eacc, gid, plotted_ef, "");
-
-        var plot = $.plot($('#' + plot_id), jsonObj.series, jsonObj.options);
-
-        var previousPoint = null;
-        $('#' + plot_id).bind("plothover", function (event, pos, item) {
-            if (item) {
-                if (previousPoint != item.datapoint) {
-                    previousPoint = item.datapoint;
-                    $("#tooltip").remove();
-                    showThumbTooltip(item.pageX, item.pageY, item.series.label);
-                }
-            } else {
-                $("#tooltip").remove();
-                previousPoint = null;
-            }
-        });
-
-        $('#' + plot_id).bind('mouseleave', function () {
-            $("#tooltip").remove();
-        });
-        return plot;
-    }
-    return null;
-}
-
-function redrawPlotForFactor(eacc, gid, ef, mark, efv) {
-    var plot_id = eacc + "_" + gid + "_plot";
-    var el = $("#" + plot_id);
-    if (el) {
-        atlas.ajaxCall("plot", { gid: gid, eacc: eacc, ef: ef || el.attr("name"), efv: efv, plot: 'bar' }, function(o) {
-            var plot = drawPlot(o, plot_id);
-            if (mark && ef && efv) {
-                markClicked(eacc, gid, ef, efv, plot, o);
-            }
-        });
-    }
-}
-
-function drawEFpagination(eacc, gid, currentEF, plotType, efv) {
-    var panelContent = [];
-
-    $("#" + eacc + "_EFpagination").children().each(function() {
-        var ef = $(this).attr("id");
-        var ef_txt = $(this).text();
-        if (ef == currentEF) {
-            panelContent.push("<div id='" + ef + "' class='current'>" + ef_txt + "</div>")
-        }
-        else {
-            panelContent.push("<div id='" + ef + "'><a onclick=\"redrawPlotForFactor('" + eacc + "','" + gid + "','" + ef + "','" + efv + "','" + plotType + "',false)\">" + ef_txt + "</a></div>");
-        }
-    });
-
-    $("#" + eacc + "_EFpagination").empty();
-    $("#" + eacc + "_EFpagination").html(panelContent.join(""));
-}
-
-
-function markClicked(eacc, gid, ef, efv, plot, jsonObj) {
-
-    var plot_id = eacc + '_' + gid + '_plot';
-    var allSeries = plot.getData();
-    var series;
-    var markColor;
-
-    for (var i = 0; i < allSeries.length; ++i) {
-        if (allSeries[i].label) {
-            if (allSeries[i].label.toLowerCase() == efv.toLowerCase()) {
-                series = allSeries[i];
-                markColor = series.color;
-                break;
-            }
-        }
-    }
-
-    if (series == null) {
-        return;
-    }
-
-    var data = series.data;
-    var xMin = data[0][0];
-    var xMax = data[data.length - 1][0];
-
-    var overviewDiv = $('#' + plot_id + '_thm');
-    if (allSeries.length > 10 && data.length < 5) {
-        if (overviewDiv.height() != 0) {
-            var overview = $.plot($('#' + plot_id + '_thm'), jsonObj.series, jsonObj.options);
-
-            overview.setSelection({ xaxis: { from: xMin - 10, to: xMax + 10 }});
-        }
-        plot = $.plot($('#' + plot_id), jsonObj.series, $.extend(true, {}, jsonObj.options, {
-            grid:{ backgroundColor: '#fafafa',    autoHighlight: true, hoverable: true, borderWidth: 1, markings: [
-                { xaxis: { from: xMin - 1, to: xMax + 1 }, color: '#FFFFCC' }
-            ]},
-            xaxis: { min: xMin - 10, max: xMax + 10  }, yaxis: {labelWidth:40}
-        }));
-    }
-    else {
-
-        plot = $.plot($('#' + plot_id), jsonObj.series, $.extend(true, {}, jsonObj.options, {
-            grid:{ backgroundColor: '#fafafa',    autoHighlight: true, hoverable: true, borderWidth: 1, markings: [
-                { xaxis: { from: xMin - 1, to: xMax + 1 }, color: '#FFFFCC' }
-            ]},
-            yaxis: {labelWidth:40}
-        }));
-        if (overviewDiv.height() != 0) {
-            var overview = $.plot($('#' + plot_id + '_thm'), jsonObj.series, $.extend(true, {}, jsonObj.options, {color:['#999999','#D3D3D3']}));
-
-            overview.setSelection({ xaxis: { from: xMin - 10, to: xMax + 10 }});
-        }
-    }
-}
-
-
-var ExperimentList = (function(geneId) {
-    var PAGE_SIZE = 5;
-    var currentParams = {};
-
-    function load(elementId, params) {
-        var el = $("#" + elementId);
-        if (el) {
-            el.empty();
-            el.load("${pageContext.request.contextPath}/geneExpList", $.extend(params, {gid: geneId}));
-        }
-    }
-
-    function loadFirstPage(params, el) {
-        currentParams = params;
-        load("experimentList", $.extend({}, params, {from:0, to: PAGE_SIZE, needPaging: true}));
-        markRow(el);
-    }
-
-    function loadPage(pageId) {
-        var from = pageId * PAGE_SIZE;
-        var to = (pageId + 1) * PAGE_SIZE;
-        load("experimentListPage", $.extend({}, currentParams, {from: from, to: to}));
-    }
+$(document).ready(function() {
+    $("#heatmap_tbl").tablesorter({headers: {2: {sorter: false}}});
 
     function markRow(el) {
         if (el) {
@@ -237,68 +77,25 @@ var ExperimentList = (function(geneId) {
         }
     }
 
-    function redrawPagination(total, target) {
-        $("#allStudiesLink").empty();
-        $("#pagination").empty();
+    var expList = atlas.geneExperimentList({
+        gene: ${gene.geneId},
+        listTarget: "experimentList",
+        listTemplate: "experimentListTemplate",
+        pageTarget: "experimentListPage",
+        pageTemplate: "experimentListPageTemplate",
+        pageSize: 5
+    });
 
-        if (target) {
-            var lnk = $("<a>Show all studies</a>").bind("click", ExperimentList.loadAllExperiments);
-            $("#allStudiesLink").append(lnk);
-        }
+    window.FilterExps = function(el, efv, ef) {
+        expList.load({ef:ef, efv:efv});
+        markRow(el);
+    };
 
-        if (total > PAGE_SIZE) {
-            $("#pagination").pagination(total, {
-                num_edge_entries: 2,
-                num_display_entries: 5,
-                items_per_page: PAGE_SIZE,
-                callback: function(pageId) {
-                    loadPage(pageId);
-                    return false;
-                }
-            });
-        }
-    }
+    window.FilterExpsEfo = function(ef, efo) {
+        expList.load({ef:ef, efo:efo});
+    };
 
-    function redrawPlots(exps) {
-        for (var i = 0; i < exps.length; ++i) {
-            var eacc = jQuery.trim(exps[i].acc);
-            redrawPlotForFactor(eacc, geneId, currentParams.ef, true, currentParams.efv);
-        }
-    }
-
-    return {
-        filterExperiments: function(params, el) {
-            loadFirstPage(params, el);
-        },
-
-        loadAllExperiments: function() {
-            loadFirstPage({ef:""});
-        },
-
-        drawPagination: function(totalNumerOfRows, target) {
-            redrawPagination(totalNumerOfRows, target);
-        },
-
-        drawPlots: function(exps) {
-            redrawPlots(exps);
-        }
-    }
-
-})(${atlasGene.geneId});
-
-function FilterExps(el, efv, ef) {
-    ExperimentList.filterExperiments({ef: ef, efv: efv}, el);
-}
-
-function FilterExpsEfo(el, efo) {
-    ExperimentList.filterExperiments({efo: efo}, el);
-}
-
-$(document).ready(function() {
-    $("#heatmap_tbl").tablesorter({
-        headers: {2: {sorter: false}}});
-
-    ExperimentList.filterExperiments({ef: "${ef}"});
+    expList.load({ef:"${ef}"});
 });
 </script>
 
@@ -314,84 +111,78 @@ $(document).ready(function() {
         <td style="vertical-align:top;">
             <table class="gene-properties">
                 <tr>
-                    <td align="left" class="page-title">${atlasGene.geneName}
+                    <td align="left" class="page-title">${gene.geneName}
                         <div style="font:normal">
                             <c:import url="../includes/apilinks.jsp">
-                                <c:param name="apiUrl" value="geneIs=${atlasGene.geneIdentifier}"/>
+                                <c:param name="apiUrl" value="geneIs=${gene.geneIdentifier}"/>
                             </c:import>
                         </div>
                     </td>
-                    <td style="vertical-align: text-bottom">${atlasGene.geneSpecies}</td>
+                    <td style="vertical-align: text-bottom">${gene.geneSpecies}</td>
                 </tr>
 
                 <tr>
                     <td colspan="2" align="left" style="padding-bottom:1em;padding-top:1em">
-                        ${f:escapeXml(atlasGeneDescription)}
+                        ${f:escapeXml(gene.geneDescription)}
                     </td>
                 </tr>
 
-                <c:set var="synonyms">
-                    <c:forEach items="${atlasProperties.geneAutocompleteNameFields}" var="prop" varStatus="s">
-                        <c:if test="${!empty atlasGene.geneProperties[prop]}">${u:join(atlasGene.geneProperties[prop], ", ")}
-                            <c:if test="${!s.last}">, </c:if>
-                        </c:if>
-                    </c:forEach>
-                </c:set>
-
-                <c:if test="${!empty synonyms}">
+                <c:if test="${!empty gene.synonyms}">
                     <tr>
                         <td class="propname">Synonyms</td>
-                        <td align="left">${synonyms}</td>
+                        <td align="left">${u:join(gene.synonyms, ", ")}</td>
                     </tr>
                 </c:if>
 
-                <c:if test="${!empty orthologs}">
+                <c:if test="${!empty gene.orthologs}">
                     <tr>
                         <td class="propname">Orthologs</td>
 
                         <td align="left">
                             <c:set var="orthoIds" value=""/>
-                            <c:forEach var="ortholog" items="${orthologs}">
-                                <a href="${pageContext.request.contextPath}/gene/${ortholog.geneIdentifier}"
+                            <c:forEach var="ortholog" items="${gene.orthologs}">
+                                <a href="${contextPath}/gene/${ortholog.geneIdentifier}"
                                    target="_self"
                                    title="Gene Atlas Data For ${ortholog.geneName} (${ortholog.geneSpecies})">${ortholog.geneName}
-                                    (${ortholog.geneSpecies})</a>&nbsp;
+                                    (${ortholog.geneSpecies})
+                                </a>&nbsp;
                                 <c:set var="orthoIds" value="${orthoIds}${ortholog.geneIdentifier}+"/>
                             </c:forEach>
-                            (<a href="${pageContext.request.contextPath}/qrs?gprop_0=&gval_0=${orthoIds}${atlasGene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
+                            (<a href="${contextPath}/qrs?gprop_0=&gval_0=${orthoIds}${gene.geneIdentifier}&fexp_0=UP_DOWN&fact_0=&specie_0=&fval_0=(all+conditions)&view=hm"
                                 target="_self">Compare orthologs</a>)
                         </td>
                     </tr>
                 </c:if>
 
-                <c:forEach items="${atlasGene.genePropertiesIterator}" var="prop">
-                    <c:if test="${!u:isIn(atlasProperties.geneAutocompleteNameFields, prop) && !u:isIn(atlasProperties.genePageIgnoreFields, prop)}">
-                        <tr class="${u:isIn(atlasProperties.genePageDefaultFields, prop) ? '' : 'expandable'}"
-                            style="${u:isIn(atlasProperties.genePageDefaultFields, prop) ? '' : 'display:none'}">
-                            <td class="propname">${f:escapeXml(atlasProperties.curatedGeneProperties[prop])}</td>
+                <c:forEach items="${gene.geneFields}" var="field">
+                        <tr class="${field.default ? '' : 'expandable'}"
+                            style="${field.default ? '' : 'display:none'}">
+                            <td class="propname">${f:escapeXml(field.name)}</td>
                             <td align="left">
                                 <c:choose>
-                                    <c:when test="${!empty atlasProperties.genePropertyLinks[prop]}">
-                                        <c:forEach items="${atlasGene.geneProperties[prop]}" var="v" varStatus="s">
-                                            <a href="${f:replace(atlasProperties.genePropertyLinks[prop], '$$', v)}"
-                                               target="_blank">${f:escapeXml(v)}</a><c:if test="${!s.last}">, </c:if>
+                                    <c:when test="${!empty field.urlAware}">
+                                        <c:forEach items="${field.valuesWithUrl}" var="value" varStatus="s">
+                                            <a href="${value.url}" target="_blank">${f:escapeXml(value.value)}</a><c:if test="${!s.last}">, </c:if>
                                         </c:forEach>
                                     </c:when>
+                                    <c:when test="${!empty atlasProperties.geneIdentifierLinks[prop]}">
+                                        <a href="${f:replace(atlasProperties.geneIdentifierLinks[prop], '$$', atlasGene.geneIdentifier)}"
+                                           target="_blank">${f:escapeXml(atlasGene.geneIdentifier)}
+                                    </c:when>
                                     <c:otherwise>
-                                        ${u:join(atlasGene.geneProperties[prop], ", ")}
+                                        ${u:join(field.values, ", ")}
                                     </c:otherwise>
                                 </c:choose>
                             </td>
                         </tr>
-                    </c:if>
                 </c:forEach>
 
                 <tr>
                     <td class="propname">Search EB-eye</td>
                     <td align="left">
                         <a title="Show gene annotation" target="_blank"
-                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=&quot;${atlasGene.geneIdentifier}&quot;&requestFrom=ebi_index&submit=+FIND+">
-                            ${atlasGene.geneIdentifier}
+                           href="http://www.ebi.ac.uk/ebisearch/search.ebi?db=allebi&query=&quot;${gene.geneIdentifier}&quot;&requestFrom=ebi_index&submit=+FIND+">
+                            ${gene.geneIdentifier}
                         </a>
                     </td>
                 </tr>
@@ -399,7 +190,7 @@ $(document).ready(function() {
                 <tr>
                     <td colspan="2" style="padding-top:5px">
                         <a href="#"
-                           onclick="javascript:$(this).parents('table:first').find('.expandable').show();$(this).remove();return false;"><img
+                           onclick="$(this).parents('table:first').find('.expandable').show();$(this).remove();return false;"><img
                                 src="${pageContext.request.contextPath}/images/expp.gif" alt="" border="none"> Show more
                             properties</a>
                     </td>
@@ -419,7 +210,7 @@ $(document).ready(function() {
             <c:when test="${not empty ef}">
                 ${f:escapeXml(atlasProperties.curatedEfs[ef])}
                 <div style="font-size:10px; font-weight:normal;"><a
-                        href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}">&lt;&lt;view all
+                        href="${pageContext.request.contextPath}/gene/${gene.geneIdentifier}">&lt;&lt;view all
                     experimental factors</a></div>
             </c:when>
             <c:otherwise>
@@ -449,7 +240,7 @@ $(document).ready(function() {
             <p style="margin-top:3px; margin-bottom:5px">studied in
                 <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
                     <c:if test="${(i_e.index<5)||(not empty ef)}">
-                        <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}"
+                        <a href="${pageContext.request.contextPath}/experiment/${experiment}/${gene.geneIdentifier}"
                            title="${experiment}">${experiment}</a><c:if test="${!i_e.last}">, </c:if>
                     </c:if>
                     <c:if test="${i_e.last}">
@@ -472,7 +263,7 @@ $(document).ready(function() {
                                 </div>
                             </td>
                             <td>
-                                <div style="padding-left:0px; font-size:12px;">
+                                <div style="padding-left:0; font-size:12px;">
                                     Number of published studies where the gene is <span
                                         style="color:red">over</span>/<span
                                         style="color:blue">under</span> expressed compared to the gene's overall mean
@@ -488,22 +279,22 @@ $(document).ready(function() {
 
                 <map name="anatomogram" class="anatomogram">
                     <c:forEach var="area" items="${anatomogramMap}">
-                        <area shape="poly" onclick="FilterExpsEfo(null, '${area.efo}', 'organism_part');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
+                        <area shape="poly" onclick="FilterExpsEfo('organism_part', '${area.efo}');return false;" coords="${u:join(area.coordinates, ",")}" href="#"/>
                     </c:forEach>
                 </map>
 
-                <img src="${pageContext.request.contextPath}/webanatomogram/${atlasGene.geneIdentifier}.png"
+                <img src="${pageContext.request.contextPath}/webanatomogram/${gene.geneIdentifier}.png"
                          alt="anatomogram" border="none" usemap="#anatomogram"/>
 
                 <c:if test="${empty ef}">
                     <div style="padding-left:0;font-size:10px;">
                        <c:choose>
                            <c:when test="${experimentalFactor.name != 'organism_part'}">
-                                <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
+                                <a href="${pageContext.request.contextPath}/gene/${gene.geneIdentifier}?ef=${experimentalFactor.name}">show
                             this factor only&gt;&gt;</a>
                             </c:when>
                             <c:otherwise>
-                                 <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
+                                 <a href="${pageContext.request.contextPath}/gene/${gene.geneIdentifier}?ef=${experimentalFactor.name}">show
                             expression data for <b>all</b> values of this factor&gt;&gt;</a>
                             </c:otherwise>
                         </c:choose>
@@ -634,7 +425,7 @@ $(document).ready(function() {
                                                             <c:forEach var="experimentID" items="${ud.experiments}"
                                                                        varStatus="i_e">
                                                                 <c:if test="${(i_e.index<5)}">
-                                                                    <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${atlasGene.geneIdentifier}"
+                                                                    <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${gene.geneIdentifier}"
                                                                        onclick="window.location=this.href;event.stopPropagation();return false;"
                                                                        title="${experimentalFactor.experimentAccessions[experimentID]}">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if
                                                                         test="${!i_e.last}">, </c:if>
@@ -661,7 +452,7 @@ $(document).ready(function() {
                     </c:if>
                     <c:if test="${empty ef}">
                         <div style="font-size:10px;">
-                            <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
+                            <a href="${pageContext.request.contextPath}/gene/${gene.geneIdentifier}?ef=${experimentalFactor.name}">show
                                 this factor only&gt;&gt;</a>
                         </div>
                     </c:if>
@@ -687,7 +478,7 @@ $(document).ready(function() {
     studied in
     <c:forEach var="experiment" items="${experimentalFactor.experiments}" varStatus="i_e">
         <c:if test="${(i_e.index<5)||(not empty ef)}">
-            <a href="${pageContext.request.contextPath}/experiment/${experiment}/${atlasGene.geneIdentifier}">${experiment}</a><c:if
+            <a href="${pageContext.request.contextPath}/experiment/${experiment}/${gene.geneIdentifier}">${experiment}</a><c:if
                 test="${!i_e.last}">, </c:if>
         </c:if>
         <c:if test="${i_e.last}">
@@ -698,7 +489,7 @@ $(document).ready(function() {
     </c:forEach>
     <c:if test="${empty ef}">
         <div style="font-size:10px;">
-            <a href="${pageContext.request.contextPath}/gene/${atlasGene.geneIdentifier}?ef=${experimentalFactor.name}">show
+            <a href="${pageContext.request.contextPath}/gene/${gene.geneIdentifier}?ef=${experimentalFactor.name}">show
                 this factor only&gt;&gt;</a>
         </div>
     </c:if>
@@ -710,6 +501,7 @@ $(document).ready(function() {
 
 </td>
 <td valign="top" align="left" width="50%" id="experimentList">
+    <jsp:include page="./experiment-list-template.jsp"></jsp:include>
 </td>
 </tr>
 </table>
