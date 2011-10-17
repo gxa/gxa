@@ -34,10 +34,10 @@
     </tmpl:stringTemplate>
 
     <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
-    <wro4j:all name="bundle-jquery"/>
+    <wro4j:all name="bundle-jquery" />
     <wro4j:all name="bundle-common-libs"/>
-    <wro4j:all name="bundle-gxa"/>
-    <wro4j:all name="bundle-gxa-grid-support"/>
+    <wro4j:all name="bundle-gxa" />
+    <wro4j:all name="bundle-gxa-grid-support" />
     <wro4j:all name="bundle-gxa-page-experiment-design"/>
 
     <style type="text/css">
@@ -51,59 +51,61 @@
 
 <tmpl:stringTemplateWrap name="page">
 
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $("#squery").tablesorter({
-                widgets: ['zebra'],
-                cssHeader: "sortable",
-                cssAsc: "order1",
-                cssDesc: "order2"
-            });
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#squery").tablesorter({
+            widgets: ['zebra'],
+            cssHeader: "sortable",
+            cssAsc: "order1",
+            cssDesc: "order2"
         });
-    </script>
+    });
+</script>
 
-    <div class="contents" id="contents">
-        <div class="ae_pagecontainer">
+<div class="contents" id="contents">
+    <div class="ae_pagecontainer">
 
-            <jsp:include page="../includes/atlas-header.jsp"/>
+        <jsp:include page="../includes/atlas-header.jsp"/>
 
-            <div class="column-container">
-                <div class="left-column">
-                    <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
+        <div class="column-container">
+            <div class="left-column">
 
-                    <p>
-                            ${exp.abstract}
-                        <c:if test="${exp.pubmedId != null}">(<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                            target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
-                    </p>
-                </div>
-                <div class="right-column">
-                    <jsp:include page="experiment-header.jsp"/>
-                </div>
-                <div class="clean">&nbsp;</div>
+                <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
+
+                <p>
+                    ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
             </div>
 
-            <table id="squery" class="atlas-grid sortable experiment-design">
-                <thead>
+            <div class="right-column">
+                <jsp:include page="experiment-header.jsp"/>
+            </div>
+
+            <div class="clean">&nbsp;</div>
+        </div>
+
+        <table id="squery" class="atlas-grid sortable experiment-design">
+            <thead>
+            <tr>
+                <th>Assay</th>
+                <th>Array</th>
+                <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
+                    <th>${f:escapeXml(factor.displayName)}</th>
+                </c:forEach>
+            </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
                 <tr>
-                    <th>Assay</th>
-                    <th>Array</th>
+                    <td class="padded genename" style="border-left:none">
+                            ${assay.accession}
+                    </td>
+                    <td><nobr>${assay.arrayDesign.accession}</nobr></td>
                     <c:forEach var="factor" items="${experimentDesign.factors}">
-                        <th>${f:escapeXml(factor.displayName)}</th>
-                    </c:forEach>
-                </tr>
-                </thead>
-                <tbody>
-                <c:forEach var="assay" items="${experimentDesign.assays}">
-                    <tr>
-                        <td class="padded genename" style="border-left:none">
-                                ${assay.accession}
-                        </td>
-                        <td>
-                            <nobr>${assay.arrayDesign.accession}</nobr>
-                        </td>
-                        <c:forEach var="factor" items="${experimentDesign.factors}">
-                            <td class="padded wrapok">
+                        <td class="padded wrapok">
                                 <c:forEach var="value" items="${experimentDesign.values[factor][assay]}" varStatus="r">
                                     <%--
                                         the line below checks that the value is of the type we need
@@ -113,13 +115,15 @@
                                     <jsp:useBean id="value" type="uk.ac.ebi.microarray.atlas.model.PropertyValue"/>
                                     ${value.displayValue}<c:if test="${not r.last}">,</c:if>
                                 </c:forEach>
-                            </td>
-                        </c:forEach>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </div>
+                        </td>
+                    </c:forEach>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+
     </div>
+</div>
+
 </tmpl:stringTemplateWrap>
 </html>
