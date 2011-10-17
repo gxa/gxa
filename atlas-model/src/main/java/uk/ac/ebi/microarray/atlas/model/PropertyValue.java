@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Immutable
-public final class PropertyValue {
+public final class PropertyValue implements Comparable<PropertyValue> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertyValueSeq")
     @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ", allocationSize = 1)
@@ -53,10 +53,8 @@ public final class PropertyValue {
 
         PropertyValue that = (PropertyValue) o;
 
-        if (property != null ? !property.equals(that.property) : that.property != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-
-        return true;
+        return !(property != null ? !property.equals(that.property) : that.property != null) &&
+                !(value != null ? !value.equals(that.value) : that.value != null);
     }
 
     @Override
@@ -74,5 +72,11 @@ public final class PropertyValue {
                 ", definition=" + property +
                 ", value='" + value + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(PropertyValue o) {
+        int result = property.compareTo(o.property);
+        return result == 0 ? value.compareTo(o.value) : result;
     }
 }

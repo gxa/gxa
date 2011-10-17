@@ -47,7 +47,7 @@ import static com.google.common.collect.Sets.newTreeSet;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Sample {
-    public static final Logger log = LoggerFactory.getLogger(Sample.class);
+    private static final Logger log = LoggerFactory.getLogger(Sample.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sampleSeq")
@@ -94,10 +94,6 @@ public class Sample {
         return accession;
     }
 
-    public void setAccession(String accession) {
-        this.accession = accession;
-    }
-
     public Organism getOrganism() {
         return organism;
     }
@@ -106,10 +102,6 @@ public class Sample {
         return channel;
     }
 
-
-    public Long getSampleID() {
-        return getId();
-    }
 
     public Collection<String> getAssayAccessions() {
         return Collections2.transform(assays, new Function<Assay, String>() {
@@ -189,24 +181,6 @@ public class Sample {
                 }));
     }
 
-    public String getEfoSummary(final String name) {
-        return on(",").join(transform(
-                filter(properties,
-                        new Predicate<SampleProperty>() {
-                            @Override
-                            public boolean apply(@Nonnull SampleProperty input) {
-                                return input.getName().equals(name);
-                            }
-                        }),
-                new Function<SampleProperty, String>() {
-                    @Override
-                    public String apply(@Nonnull SampleProperty input) {
-                        return input.getEfoTerms();
-                    }
-                }
-        ));
-    }
-
     public boolean hasNoProperties() {
         return properties.isEmpty();
     }
@@ -215,7 +189,7 @@ public class Sample {
         properties.add(new SampleProperty(this, pv));
     }
 
-    public void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
+    private void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
         properties.add(new SampleProperty(this, pv, efoTerms));
     }
 
@@ -235,17 +209,13 @@ public class Sample {
         this.experiment = experiment;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
-    }
-
-    public boolean hasProperty(final PropertyValue propertyValue) {
+    private boolean hasNoProperty(final PropertyValue propertyValue) {
         for (SampleProperty property : properties) {
             if (property.getPropertyValue().equals(propertyValue))
-                return true;
+                return false;
         }
 
-        return false;
+        return true;
     }
 
     public SampleProperty getProperty(PropertyValue propertyValue) {
@@ -258,12 +228,29 @@ public class Sample {
     }
 
     public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
-        if (!this.hasProperty(propertyValue)) {
-            this.addProperty(propertyValue, terms);
+        if (hasNoProperty(propertyValue)) {
+            addProperty(propertyValue, terms);
         } else {
-            SampleProperty sampleProperty = this.getProperty(propertyValue);
+            SampleProperty sampleProperty = getProperty(propertyValue);
             sampleProperty.setTerms(terms);
         }
+    }
+
+    public Collection<PropertyValue> getEffectiveValues(Property property) {
+        SortedSet<PropertyValue> result = newTreeSet();
+        for (SampleProperty sp : properties) {
+            if (sp.getDefinition().equals(property))
+                result.add(sp.getPropertyValue());
+        }
+        return result;
+    }
+
+    public Collection<Property> getPropertyDefinitions() {
+        SortedSet<Property> result = newTreeSet();
+        for (SampleProperty sp : properties) {
+            result.add(sp.getDefinition());
+        }
+        return result;
     }
 }
 

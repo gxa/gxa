@@ -13,7 +13,7 @@ import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public final class Property {
+public final class Property implements Comparable<Property> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
     @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ", allocationSize = 1)
@@ -74,5 +74,10 @@ public final class Property {
                 "id=" + propertyid +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Property o) {
+        return name.compareTo(o.name);
     }
 }
