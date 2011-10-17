@@ -118,7 +118,7 @@ public class TestNetCDFProxy extends TestCase {
         Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         List<KeyValuePair> uVals = netCDF.getUniqueValues();
         List<KeyValuePair> uefvs = netCDF.getUniqueFactorValues();
-        assert (uVals.size() >= uefvs.size());
+        assertTrue(uVals.size() >= uefvs.size());
 
         for (KeyValuePair uefv : uVals) {
             if (uniques.contains(uefv)) {
