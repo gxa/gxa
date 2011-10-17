@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.io.Files;
 import junit.framework.TestCase;
 import org.junit.Assert;
 
@@ -3764,14 +3765,16 @@ public class TestNetCDFSplitting extends TestCase {
 		experimentDirectory = new File(tempDirectory.getAbsolutePath() + "/MTAB/00/E-MTAB-25");
 		experimentDirectory.mkdirs();
 		for (String name : new String[] { "E-MTAB-25_A-AFFY-33.nc", "E-MTAB-25_A-AFFY-39.nc", "E-MTAB-25_A-AFFY-40.nc" }) {
-			FileUtil.copyFile(new File(baseExperimentDirectory, name), new File(experimentDirectory, name));
+			Files.copy(new File(baseExperimentDirectory, name), new File(experimentDirectory, name));
 		}
         atlasDataDAO.setAtlasDataRepo(tempDirectory);
+
+        // TODO: initialize EF33, etc., from base test NetCDFs, avoiding duplication of code in test.
     }
 
     @Override
     protected void tearDown() throws Exception {
-		//FileUtil.deleteDirectory(tempDirectory);
+		FileUtil.deleteDirectory(tempDirectory);
     }
 
     public void testSplitting() {

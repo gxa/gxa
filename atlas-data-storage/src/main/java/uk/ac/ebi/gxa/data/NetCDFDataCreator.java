@@ -22,22 +22,20 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
-import uk.ac.ebi.gxa.utils.FlattenIterator;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -249,23 +247,23 @@ public class NetCDFDataCreator {
         final Dimension sampleDimension = netCdf.addDimension("BS", samples.size());
 
         netCdf.addVariable(
-            "BS2AS", DataType.INT,
-            new Dimension[]{sampleDimension, assayDimension}
+                "BS2AS", DataType.INT,
+                new Dimension[]{sampleDimension, assayDimension}
         );
 
         // update the netCDFs with the genes count
         final Dimension designElementDimension =
-            netCdf.addDimension("DE", totalDesignElements);
+                netCdf.addDimension("DE", totalDesignElements);
         final Dimension designElementLenDimension =
-            netCdf.addDimension("DElen", maxDesignElementLength);
+                netCdf.addDimension("DElen", maxDesignElementLength);
 
         netCdf.addVariable(
-            "DEacc", DataType.CHAR,
-            new Dimension[]{designElementDimension, designElementLenDimension}
+                "DEacc", DataType.CHAR,
+                new Dimension[]{designElementDimension, designElementLenDimension}
         );
         netCdf.addVariable(
-            "GN", DataType.DOUBLE,
-            new Dimension[]{designElementDimension}
+                "GN", DataType.DOUBLE,
+                new Dimension[]{designElementDimension}
         );
 
         //accessions for Assays and Samples
@@ -291,7 +289,8 @@ public class NetCDFDataCreator {
                 netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
 
                 Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
-                netCdf.addVariable("SCV", DataType.CHAR, new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+                netCdf.addVariable("SCV", DataType.CHAR,
+                        new Dimension[]{scDimension, sampleDimension, scvlenDimension});
             }
 
             if (!efvMap.isEmpty()) {
@@ -306,8 +305,8 @@ public class NetCDFDataCreator {
         }
 
         netCdf.addVariable(
-            "BDC", DataType.FLOAT,
-            new Dimension[]{designElementDimension, assayDimension}
+                "BDC", DataType.FLOAT,
+                new Dimension[]{designElementDimension, assayDimension}
         );
 
         // add metadata global attributes
@@ -354,7 +353,8 @@ public class NetCDFDataCreator {
     private void writeData(NetcdfFileWriteable netCdf) throws IOException, InvalidRangeException {
         boolean first = true;
         for (DataMatrixStorage storage : storages) {
-            if (getColumnsForStorage(storage) == null || !getColumnsForStorage(storage).iterator().hasNext()) // shouldn't happen, but let's be sure
+            if (getColumnsForStorage(storage) == null || !getColumnsForStorage(
+                    storage).iterator().hasNext()) // shouldn't happen, but let's be sure
                 continue;
 
             if (first) { // skip first
@@ -391,12 +391,14 @@ public class NetCDFDataCreator {
         }
     }
 
-    private void writeDataBlock(NetcdfFileWriteable netCdf, DataMatrixStorage storage, DataMatrixStorage.Block block, int deNum, int deBlockFrom, int deBlockTo)
+    private void writeDataBlock(NetcdfFileWriteable netCdf, DataMatrixStorage storage, DataMatrixStorage.Block block,
+                                int deNum, int deBlockFrom, int deBlockTo)
             throws IOException, InvalidRangeException {
         final String variableName = "BDC";
 
         int width = storage.getWidth();
-        ArrayFloat data = (ArrayFloat) Array.factory(Float.class, new int[]{block.designElements.length, width}, block.expressionValues);
+        ArrayFloat data = (ArrayFloat) Array.factory(Float.class, new int[]{block.designElements.length, width},
+                block.expressionValues);
 
         int startReference = -1;
         int startDestination = -1;
@@ -481,7 +483,8 @@ public class NetCDFDataCreator {
         writeList(netCdf, "BSacc", accessions);
     }
 
-    private void writeList(NetcdfFileWriteable netCdf, String variable, List<String> values) throws IOException, InvalidRangeException {
+    private void writeList(NetcdfFileWriteable netCdf, String variable,
+                           List<String> values) throws IOException, InvalidRangeException {
         int maxValueLength = 0;
         for (String value : values) {
             if ((null != value) && (value.length() > maxValueLength))

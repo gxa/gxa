@@ -34,11 +34,11 @@ import java.util.*;
 
 /**
  * interface class for read access to NetCDF files
- *   has different implementations for NetCDF v1 (1 file for data and statistics) and
- *   NetCDF v2 (separate files for data and statistics)
+ * has different implementations for NetCDF v1 (1 file for data and statistics) and
+ * NetCDF v2 (separate files for data and statistics)
  */
 
-public abstract class NetCDFProxy extends DataProxy {
+abstract class NetCDFProxy implements DataProxy {
     public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
 
     // N/A value in netCDFs
@@ -51,20 +51,21 @@ public abstract class NetCDFProxy extends DataProxy {
             if (var == null) {
                 return new long[0];
             } else {
-                return (long[])var.read().get1DJavaArray(long.class);
+                return (long[]) var.read().get1DJavaArray(long.class);
             }
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
     }
 
-    protected float[] readFloatValuesForRowIndex(NetcdfFile netCDF, int rowIndex, String variableName) throws AtlasDataException {
+    protected float[] readFloatValuesForRowIndex(NetcdfFile netCDF, int rowIndex,
+                                                 String variableName) throws AtlasDataException {
         try {
             Variable variable = netCDF.findVariable(variableName);
             if (variable == null) {
                 return new float[0];
             }
-        
+
             int[] shape = variable.getShape();
             int[] origin = {rowIndex, 0};
             int[] size = new int[]{1, shape[1]};
@@ -76,7 +77,8 @@ public abstract class NetCDFProxy extends DataProxy {
         }
     }
 
-    protected FloatMatrixProxy readFloatValuesForRowIndices(NetcdfFile netCDF, int[] rowIndices, String varName) throws AtlasDataException {
+    protected FloatMatrixProxy readFloatValuesForRowIndices(NetcdfFile netCDF, int[] rowIndices,
+                                                            String varName) throws AtlasDataException {
         try {
             Variable variable = netCDF.findVariable(varName);
             int[] shape = variable.getShape();
@@ -106,7 +108,7 @@ public abstract class NetCDFProxy extends DataProxy {
             if (netCDF.findVariable(variable) == null) {
                 return new String[0];
             }
-            ArrayChar deacc = (ArrayChar)netCDF.findVariable(variable).read();
+            ArrayChar deacc = (ArrayChar) netCDF.findVariable(variable).read();
             ArrayChar.StringIterator si = deacc.getStringIterator();
             String[] result = new String[deacc.getShape()[0]];
             for (int i = 0; i < result.length && si.hasNext(); ++i)
@@ -122,14 +124,14 @@ public abstract class NetCDFProxy extends DataProxy {
             if (netCDF.findVariable(varName) == null) {
                 return new String[0];
             }
-        
+
             // create a array of characters from the varName dimension
-            ArrayChar efs = (ArrayChar)netCDF.findVariable(varName).read();
+            ArrayChar efs = (ArrayChar) netCDF.findVariable(varName).read();
             // convert to a string array and return
-            Object[] efsArray = (Object[])efs.make1DStringArray().get1DJavaArray(String.class);
+            Object[] efsArray = (Object[]) efs.make1DStringArray().get1DJavaArray(String.class);
             String[] result = new String[efsArray.length];
             for (int i = 0; i < efsArray.length; i++) {
-                result[i] = (String)efsArray[i];
+                result[i] = (String) efsArray[i];
                 if (result[i].startsWith("ba_"))
                     result[i] = result[i].substring(3);
             }
@@ -173,10 +175,10 @@ public abstract class NetCDFProxy extends DataProxy {
             // now we have index of our ef, so take a read from efv for this index
             Array efvs = var.read();
             // slice this array on dimension '0' (this is EF dimension), retaining only these efvs ordered by assay
-            ArrayChar ef_efv = (ArrayChar)efvs.slice(0, index);
-        
+            ArrayChar ef_efv = (ArrayChar) efvs.slice(0, index);
+
             // convert to a string array and return
-            Object[] ef_efvArray = (Object[])ef_efv.make1DStringArray().get1DJavaArray(String.class);
+            Object[] ef_efvArray = (Object[]) ef_efv.make1DStringArray().get1DJavaArray(String.class);
             String[] result = new String[ef_efvArray.length];
             for (int i = 0; i < ef_efvArray.length; i++) {
                 result[i] = (String) ef_efvArray[i];
@@ -190,7 +192,7 @@ public abstract class NetCDFProxy extends DataProxy {
     protected TwoDFloatArray readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
         try {
             final Variable variable = netCDF.findVariable(varName);
-            return new TwoDFloatArray(variable != null ? (ArrayFloat.D2)variable.read() : new ArrayFloat.D2(0, 0));
+            return new TwoDFloatArray(variable != null ? (ArrayFloat.D2) variable.read() : new ArrayFloat.D2(0, 0));
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }

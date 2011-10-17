@@ -524,7 +524,7 @@ public class ExperimentWithData {
             try {
                 p.close();
             } catch (Throwable t) {
-                // ignore
+                log.error("Unexpected throwable when closing proxy", t);
             }
         }
         proxies.clear();
@@ -571,9 +571,7 @@ public class ExperimentWithData {
             final NetCDFDataCreator dataCreator = getDataCreator(arrayDesign);
 
             dataCreator.setAssayDataMap(data.getAssayDataMap());
-            // TODO: restore statistics
-            //netCdfCreator.setPvalDataMap(data.getPValDataMap());
-            //netCdfCreator.setTstatDataMap(data.getTStatDataMap());
+            // TODO: Decide if statistics should be migrated on update. Right now this is not done: stats will be empty.
 
             dataCreator.createNetCdf();
 
