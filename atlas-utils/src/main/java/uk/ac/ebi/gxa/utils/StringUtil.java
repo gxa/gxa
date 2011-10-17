@@ -70,6 +70,6 @@ public final class StringUtil {
     }
 
     public static String prettify(String s) {
-        return s;  // TODO String prettify(String s)
+        return upcaseFirst(s.replaceAll("_", " "));
     }
 }

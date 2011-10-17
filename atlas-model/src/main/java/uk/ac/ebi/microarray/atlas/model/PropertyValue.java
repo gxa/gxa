@@ -3,7 +3,6 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
-import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.persistence.*;
 
@@ -43,7 +42,7 @@ public final class PropertyValue implements Comparable<PropertyValue> {
     }
 
     public String getDisplayValue() {
-        return displayName == null ? StringUtil.prettify(value) : displayName;
+        return displayName == null ? value : displayName;
     }
 
     @Override
