@@ -100,7 +100,7 @@
             <tbody>
             <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
                 <tr>
-                    <td class="padded genename" style="border-left:none">
+                    <td class="padded assayName" style="border-left:none">
                             ${assay.accession}
                     </td>
                     <td><nobr>${assay.arrayDesign.accession}</nobr></td>
@@ -113,7 +113,8 @@
                                         the property
                                      --%>
                                     <jsp:useBean id="value" type="uk.ac.ebi.microarray.atlas.model.PropertyValue"/>
-                                    ${value.displayValue}<c:if test="${not r.last}">,</c:if>
+                                    <c:out value="${value.displayValue}"/>
+                                    <c:if test="${not r.last}">,</c:if>
                                 </c:forEach>
                         </td>
                     </c:forEach>
