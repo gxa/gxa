@@ -25,33 +25,33 @@ package uk.ac.ebi.gxa.data;
 import java.util.List;
 import java.io.Closeable;
 
-public abstract class DataProxy implements Closeable {
-    abstract String getVersion();
+interface DataProxy extends Closeable {
+    String getVersion();
 
-    abstract String getExperimentAccession() throws AtlasDataException;
-    abstract String getArrayDesignAccession() throws AtlasDataException;
-    abstract int[][] getSamplesToAssays() throws AtlasDataException;
+    String getExperimentAccession() throws AtlasDataException;
+    String getArrayDesignAccession() throws AtlasDataException;
+    int[][] getSamplesToAssays() throws AtlasDataException;
     /**
      * Gets the array of gene IDs from this data source
      *
      * @return an long[] representing the one dimensional array of gene identifiers
      */
-    abstract long[] getGenes() throws AtlasDataException;
-    abstract String[] getDesignElementAccessions() throws AtlasDataException;
+    long[] getGenes() throws AtlasDataException;
+    String[] getDesignElementAccessions() throws AtlasDataException;
     // TODO: remove 'public' modifier
-    public abstract String[] getAssayAccessions() throws AtlasDataException;
-    abstract String[] getSampleAccessions() throws AtlasDataException;
-    abstract String[] getFactors() throws AtlasDataException;
-    abstract String[] getCharacteristics() throws AtlasDataException;
-    abstract String[] getFactorValues(String factor) throws AtlasDataException;
+    public String[] getAssayAccessions() throws AtlasDataException;
+    String[] getSampleAccessions() throws AtlasDataException;
+    String[] getFactors() throws AtlasDataException;
+    String[] getCharacteristics() throws AtlasDataException;
+    String[] getFactorValues(String factor) throws AtlasDataException;
     /**
      * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
      *
      * @return an array of strings - an array of factor values per assay
      * @throws AtlasDataException if data could not be read form the netCDF file
      */
-    abstract String[][] getFactorValues() throws AtlasDataException;
-    abstract String[] getCharacteristicValues(String characteristic) throws AtlasDataException;
+    String[][] getFactorValues() throws AtlasDataException;
+    String[] getCharacteristicValues(String characteristic) throws AtlasDataException;
     /**
      * Gets a single row from the expression data matrix representing all expression data for a single design element.
      * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
@@ -62,7 +62,7 @@ public abstract class DataProxy implements Closeable {
      * @return the double array representing expression values for this design element
      * @throws AtlasDataException if the NetCDF could not be accessed
      */
-    abstract float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws AtlasDataException;
+    float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws AtlasDataException;
     /**
      * Extracts a matrix of expression values for given design element indices.
      *
@@ -71,15 +71,15 @@ public abstract class DataProxy implements Closeable {
      * @throws AtlasDataException    if the expression data could not be read from the netCDF file
      * @throws AtlasDataException    if the file doesn't contain given deIndices
      */
-    abstract FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
-    abstract TwoDFloatArray getAllExpressionData() throws AtlasDataException;
+    FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
+    TwoDFloatArray getAllExpressionData() throws AtlasDataException;
 
-    abstract List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException;
-    abstract FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
-    abstract float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
-    abstract TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
+    List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException;
+    FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+    float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+    TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
 
-    abstract FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
-    abstract float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
-    abstract TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException;
+    FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+    float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+    TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException;
 }

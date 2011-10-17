@@ -77,36 +77,6 @@ public class FileUtil {
         return System.getProperty("java.io.tmpdir");
     }
 
-	public static void copyFile(File source, File target) throws IOException {
-		InputStream is = null;
-		OutputStream os = null;
-		try {
-			is = new FileInputStream(source);
-			os = new FileOutputStream(target);
-			final byte[] buffer = new byte[4096];
-			while (true) {
-				final int len = is.read(buffer);
-				if (len <= 0) {
-					break;
-				}
-				os.write(buffer, 0, len);
-			}
-		} finally {
-			if (is != null) {
-				try {
-					is.close();
-				} catch (IOException e) {
-				}
-			}
-			if (os != null) {
-				try {
-					os.close();
-				} catch (IOException e) {
-				}
-			}
-		}
-	}
-
     public static byte[] getMD5(File file) throws IOException, NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("MD5");
         InputStream is = new FileInputStream(file);

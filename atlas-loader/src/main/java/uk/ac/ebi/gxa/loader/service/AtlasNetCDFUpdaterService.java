@@ -18,7 +18,6 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
  * @author pashky
  */
 public class AtlasNetCDFUpdaterService {
-    private static final Logger log = LoggerFactory.getLogger(AtlasNetCDFUpdaterService.class);
     private AtlasDAO atlasDAO;
     private AtlasDataDAO atlasDataDAO;
 

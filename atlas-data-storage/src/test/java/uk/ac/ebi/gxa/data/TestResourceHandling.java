@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -22,6 +21,9 @@ public class TestResourceHandling {
             try {
                 netCDF = new NetCDFProxyV1(netCDFfile);
                 netCDF.getArrayDesignAccession();
+            } catch (AtlasDataException ade) {
+                log.error("May be out of file handles on attempt #" + i, ade);
+                throw ade;
             } finally {
                 close(netCDF, false);
             }

@@ -49,7 +49,8 @@ class NetCDFMissingVal {
      * @param v   a missing value to attach
      * @return the same variable
      */
-    //public static Variable attachMissingValue(Variable var, Number v) {
+    // TODO: Not my code, a solution may be needed to uniformly deal with missing values, but this is not used.
+    // public static Variable attachMissingValue(Variable var, Number v) {
     //    for (String attr : MISSING_VALUE_ATTRIBUTES) {
     //        var.addAttribute(new Attribute(attr, v));
     //    }

@@ -67,16 +67,7 @@ class NetCDFData {
     }
 
     int getWidth() {
-        //return assayToSamples.keySet().size() + (isAnalyticsTransferred() ? uniqueValues.size() * 2 : 0);  // expressions + pvals + tstats
         return assayToSamples.keySet().size();
-    }
-
-    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
-        return null;
-    }
-
-    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPValDataMap() {
-        return null;
     }
 
     Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
@@ -89,7 +80,6 @@ class NetCDFData {
         return result;
     }
 
-    //
     // TODO: there was the pattern-matching logic,
     // see rev. 48f0df44ce1fbaea42dff50167827d0138bd4eb1 for an attempt to fix it
     // and rev. 05be531ebb5a93df06d6045f982d0b25e4008a11 for nearly-original version
