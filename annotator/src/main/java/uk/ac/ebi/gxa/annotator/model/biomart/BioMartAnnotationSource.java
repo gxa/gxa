@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.model.biomart;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
@@ -72,7 +71,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    @Cascade({org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
     private Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
 
     @OneToMany(targetEntity = BioMartArrayDesign.class

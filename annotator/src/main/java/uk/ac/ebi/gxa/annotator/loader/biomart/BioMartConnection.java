@@ -113,8 +113,9 @@ public class BioMartConnection {
         String location = martUrl + ATTRIBUTES_QUERY + datasetName;
         URL url = getMartURL(location);
 
+        CSVReader csvReader = null;
         try {
-            CSVReader csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
+            csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
 
             Set<String> martAttributes = new HashSet<String>();
             String[] line;
@@ -133,6 +134,9 @@ public class BioMartConnection {
 
         } catch (IOException e) {
             throw new BioMartAccessException("Cannot read attribures from " + location, e);
+        } finally {
+            log.info("Finished reading from " + url + ", closing");
+            closeQuietly(csvReader);
         }
 
         return missingAttrs;
