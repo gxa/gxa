@@ -20,6 +20,5 @@ update a2_property set displayname='Disease location' where name='diseaseloc';
 update a2_property set displayname='Biometric measurement' where name='biometric';
 update a2_property set displayname='Initial time' where name='initialtime';
 update a2_property set displayname='QC description' where name='qcdescrtype';
-update a2_property set displayname='Source provider' where name='source_provider';
 update a2_property set displayname='Any factor' where name='anything';
 update a2_property set displayname='EFO' where name='efo';
