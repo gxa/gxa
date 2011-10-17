@@ -1,9 +1,3 @@
-alter table a2_property add displayname varchar2(512);
-alter table a2_propertyvalue add displayname varchar2(512);
-
--- alter table a2_property drop column displayname;
--- alter table a2_propertyvalue drop column displayname;
-
 update a2_property set displayname='Clinical info' where name='clinical_information';
 update a2_property set displayname='Compound treatment' where name='compound';
 update a2_property set displayname='Genotype' where name='genotype';
