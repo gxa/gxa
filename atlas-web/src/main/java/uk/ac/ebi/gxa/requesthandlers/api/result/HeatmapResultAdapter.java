@@ -47,7 +47,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
-import static uk.ac.ebi.gxa.statistics.StatisticsQueryUtils.toExpression;
 
 /**
  * Gene search "heatmap" REST API result view.
@@ -63,7 +62,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private final Map<String, ExperimentWithData> experimentsCache = new HashMap<String, ExperimentWithData>();
 
     public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasDataDAO atlasDataDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
@@ -120,19 +118,12 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 new Function<ExperimentResult, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
                                         try {
-
-                                            float pVal = e.getPValTStatRank().getPValue();
-
-                                            // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
                                             ExperimentWithData ewd = getExperiment(e.getAccession());
-                                            UpDownExpression expression = toExpression(e.getPValTStatRank());
-                                            if (expression.isUp()) {
-                                                pVal = ewd.getBestEAForGeneEfEfvInExperiment((long) row.getGene().getGeneId(), e.getHighestRankAttribute().getEf(), e.getHighestRankAttribute().getEfv(), UpDownCondition.CONDITION_UP).getPValAdjusted();
-                                                counter.setMpvup(pVal);
-                                            } else if (expression.isDown()) {
-                                                pVal = ewd.getBestEAForGeneEfEfvInExperiment((long) row.getGene().getGeneId(), e.getHighestRankAttribute().getEf(), e.getHighestRankAttribute().getEfv(), UpDownCondition.CONDITION_DOWN).getPValAdjusted();
-                                                counter.setMpvdn(pVal);
-                                            }
+                                            PTRank ptRank = e.getPValTStatRank();
+                                            UpDownExpression expression = toExpression(ptRank);
+                                            float pVal = getPValueFromNcdf(ewd, e.getHighestRankAttribute().getEf(), e.getHighestRankAttribute().getEfv(), expression, (long) row.getGene().getGeneId(), ptRank.getPValue());
+                                            // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
+                                            updateCounter(counter, expression, pVal);
                                             return new ListResultRowExperiment(ewd.getExperiment(), pVal, expression);
 
                                         } catch (RecordNotFoundException rnfe) {
@@ -245,18 +236,45 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 });
     }
 
+    private static UpDownExpression toExpression(PTRank ptRank) {
+        return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
+    }
+
     /**
      * @param accession experiment accession
      * @return ExperimentWithData corresponding to the accession
      */
     private ExperimentWithData getExperiment(String accession) throws RecordNotFoundException {
-        ExperimentWithData experimentWithData = experimentsCache.get(accession);
-        if (experimentWithData == null) {
-            Experiment experiment = experimentDAO.getByName(accession);
-            if (experiment == null)
-                return null;
-            experimentsCache.put(accession, experimentWithData = atlasDataDAO.createExperimentWithData(experiment));
-        }
-        return experimentWithData;
+        Experiment experiment = experimentDAO.getByName(accession);
+        if (experiment == null)
+            return null;
+        return atlasDataDAO.createExperimentWithData(experiment);
+    }
+
+    /**
+     * @param ewd
+     * @param bestEf
+     * @param bestEfv
+     * @param expression
+     * @param geneId
+     * @param roundedPVal
+     * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
+     */
+    private float getPValueFromNcdf(ExperimentWithData ewd, String bestEf, String bestEfv, UpDownExpression expression, long geneId, float roundedPVal) {
+        float accuratePVal = roundedPVal;
+        if (expression.isUp())
+            accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_UP).getPValAdjusted();
+        else if (expression.isDown())
+            accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_DOWN).getPValAdjusted();
+        return accuratePVal;
+    }
+
+    // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
+    private void updateCounter(
+            UpdownCounter counter, UpDownExpression expression, float pVal) {
+        if (expression.isUp())
+            counter.setMpvUp(pVal);
+        else if (expression.isDown())
+            counter.setMpvDn(pVal);
     }
 }

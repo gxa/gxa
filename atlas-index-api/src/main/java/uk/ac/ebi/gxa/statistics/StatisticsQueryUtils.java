@@ -1,14 +1,11 @@
 package uk.ac.ebi.gxa.statistics;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multiset;
+import com.google.common.collect.*;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.util.*;
 
@@ -208,61 +205,6 @@ public class StatisticsQueryUtils {
         return counts;
     }
 
-    /**
-     * Populate bestExperimentsSoFar with an (unsorted) list of experiments with best pval/tstat rank, for statisticsQuery
-     *
-     * @param statisticsQuery
-     * @param statisticsStorage
-     * @param bestExperimentsSoFar
-     */
-    public static void getBestExperiments(
-            StatisticsQueryCondition statisticsQuery,
-            final StatisticsStorage statisticsStorage,
-            Multimap<Long, ExperimentResult> bestExperimentsSoFar) {
-        Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
-
-
-        if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
-            Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
-
-            Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
-            Set<ExperimentInfo> experiments = statisticsQuery.getExperiments();
-
-            for (EfvAttribute attr : attributes) {
-
-                SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenes =
-                        statisticsStorage.getPvalsTStatRanksForAttribute(attr, statisticsQuery.getStatisticsType());
-
-                if (pValToExpToGenes != null) {
-                    for (Map.Entry<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
-                        Map<ExperimentInfo, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
-                        if (expToGenes != null) {
-                            for (Map.Entry<ExperimentInfo, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
-                                if (experiments.isEmpty() || experiments.contains(expToGenesEntry.getKey())) {
-                                    if (containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
-                                        // If best experiments are collected for an (OR) group of genes, pVal/tStat
-                                        // for any of these genes will be considered here
-                                        ExperimentResult expCandidate = new ExperimentResult(expToGenesEntry.getKey(), attr, pValToExpToGenesEntry.getKey());
-                                        tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            // We only expect one 'AND' condition with set of orConditions inside
-            StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions = andStatisticsQueryConditions.iterator().next();
-            if (orConditions != null) {
-                for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
-                    // Pass gene restriction set down to orCondition
-                    orCondition.setBioEntityIdRestrictionSet(orConditions.getBioEntityIdRestrictionSet());
-                    getBestExperiments(orCondition, statisticsStorage, bestExperimentsSoFar);
-                }
-            }
-        }
-    }
 
     /**
      * If no experiments were specified, inject into statisticsQuery a superset of all experiments for which stats exist across all attributes
@@ -291,7 +233,7 @@ public class StatisticsQueryUtils {
      * @param geneRestrictionIdxs
      * @return true of counts contains at least one element of geneRestrictionIdxs.
      */
-    private static boolean containsAtLeastOne(ConciseSet counts, Set<Integer> geneRestrictionIdxs) {
+    public static boolean containsAtLeastOne(ConciseSet counts, Set<Integer> geneRestrictionIdxs) {
         for (Integer geneIdx : geneRestrictionIdxs) {
             if (counts.contains(geneIdx)) {
                 return true;
@@ -376,37 +318,5 @@ public class StatisticsQueryUtils {
         }
 
         return qualifyingScores;
-    }
-
-
-    /**
-     * If exp's experimentId and expression type cannot be found in exps, add it to exps
-     * If it can be found and its pVal/tStat ranks are better than the ones is exps, replace it in exps
-     *
-     * @param exp
-     * @param exps
-     */
-    private static void tryAddOrReplaceExperiment(ExperimentResult exp, Multimap<Long, ExperimentResult> exps) {
-        long expId = exp.getExperimentId();
-        Collection<ExperimentResult> existingExps = exps.get(expId);
-
-        boolean exprAttrFound = false;
-
-        if (!existingExps.isEmpty()) {
-            for (ExperimentResult existingExp : existingExps) {
-                exprAttrFound = toExpression(exp.getPValTStatRank()).equals(toExpression(existingExp.getPValTStatRank())) &&
-                        exp.getHighestRankAttribute().equals(existingExp.getHighestRankAttribute());
-                if (exprAttrFound && exp.getPValTStatRank().compareTo(existingExp.getPValTStatRank()) < 0) {
-                    existingExp.setPValTstatRank(exp.getPValTStatRank());
-                }
-            }
-        }
-
-        if (!exprAttrFound)
-            exps.put(expId, exp);
-    }
-
-    public static UpDownExpression toExpression(PTRank ptRank) {
-        return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
     }
 }
