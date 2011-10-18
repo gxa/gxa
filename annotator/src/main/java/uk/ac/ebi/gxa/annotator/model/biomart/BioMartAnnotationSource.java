@@ -93,10 +93,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
         super(software, organism);
     }
 
-    public BioMartAnnotationSource(Long annotationSrcId, Software software, Organism organism) {
-        super(annotationSrcId, software, organism);
-    }
-
     public BioEntityType getBioEntityType(final String name) {
         for (BioEntityType type : types) {
             if (type.getName().equals(name))

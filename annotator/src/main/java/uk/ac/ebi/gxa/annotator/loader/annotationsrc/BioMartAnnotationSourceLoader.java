@@ -147,7 +147,7 @@ public class BioMartAnnotationSourceLoader {
 
             annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
             if (annotationSource == null) {
-                annotationSource = new BioMartAnnotationSource(null, software, organism);
+                annotationSource = new BioMartAnnotationSource(software, organism);
             }
 
             updateTypes(properties, annotationSource);
