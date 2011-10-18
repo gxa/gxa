@@ -572,7 +572,7 @@ find.best.design.elements <<-
         pval[,i] <- get.var.ncdf(statistics_nc, "PVAL", start = c(wuval[i],1), count = c(1,-1))[wde]
       }
     } else {
-      if (length(wde) < 0.2 * statistics_nc$dim$DE$len) {
+      if (length(wde) < 0.2 * length(deAcc)) {
         for (i in seq_along(wde)) {
           tstat[i,] <- get.var.ncdf(statistics_nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))
           pval[i,] <- get.var.ncdf(statistics_nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
