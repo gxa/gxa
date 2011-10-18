@@ -501,7 +501,7 @@ $(document).ready(function() {
 
 </td>
 <td valign="top" align="left" width="50%" id="experimentList">
-    <jsp:include page="./experiment-list-template.jsp"></jsp:include>
+    <jsp:include page="experiment-list-template.jsp" />
 </td>
 </tr>
 </table>
