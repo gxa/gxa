@@ -55,8 +55,6 @@ public class TestNetCDFSplitting extends TestCase {
 			Files.copy(new File(baseExperimentDirectory, name), new File(experimentDirectory, name));
 		}
         atlasDataDAO.setAtlasDataRepo(tempDirectory);
-
-        // TODO: initialize EF33, etc., from base test NetCDFs, avoiding duplication of code in test.
     }
 
     @Override
