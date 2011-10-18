@@ -17,7 +17,6 @@ import static junit.framework.Assert.*;
  */
 public class BioMartAnnotatorTest {
 
-
     @Test
     public void testGetMartBEIdentifiersAndNames() throws Exception {
         BioMartAnnotator.BETypeMartAttributesHandler handler =
