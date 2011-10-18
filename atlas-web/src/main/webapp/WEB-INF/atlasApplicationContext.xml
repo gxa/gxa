@@ -265,6 +265,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="experimentDAO" ref="experimentDAO"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
@@ -374,8 +375,8 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentDAO" ref="experimentDAO"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
         <property name="efo" ref="efo"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
     </bean>
