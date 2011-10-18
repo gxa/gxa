@@ -279,6 +279,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService"
           destroy-method="shutdown">
         <property name="atlasRFactory" ref="atlasRFactory"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
     <!-- interface download executor -->
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
