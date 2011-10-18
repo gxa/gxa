@@ -158,6 +158,18 @@ public class BioMartParserTest {
         }
     }
 
+    @Test
+    public void testParseDesignElementMappings1() throws Exception {
+        BioMartParser<DesignElementMappingData> parser = getBioMartParserForDesignElements();
+
+        Organism organism = new Organism(null, "test_org");
+        parser.parseBioEntities(BioMartParserTest.class.getResource("bioentities.txt"), organism);
+
+        DesignElementMappingData data = parser.getData();
+        assertEquals(initTypes().size(), data.getTypeToBioEntities().keySet().size());
+
+    }
+
     @Test(expected = AtlasAnnotationException.class)
     public void testParseIncorrectDesignElementMappings1() throws Exception {
         getBioMartParserForDesignElements().parseDesignElementMappings(BioMartParserTest.class.getResource("designelements_incorrect1.txt"));
