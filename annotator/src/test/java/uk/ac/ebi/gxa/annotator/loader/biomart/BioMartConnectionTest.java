@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 import junit.framework.TestCase;
 import org.junit.Test;
 
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,11 +78,26 @@ public class BioMartConnectionTest extends TestCase {
     }
 
     @Test
-    public void testGetPropertyForOrganismURL() throws Exception {
+    public void testFetchInfoFromRegistry() throws Exception {
         bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
-
-        URL attributesURL = bmService.getAttributesURL(asList("ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"));
-        assertEquals("http://plants.ensembl.org/biomart/martservice?query=%3C%3Fxml+version%3D%221.0%22+encoding%3D%22UTF-8%22%3F%3E%3C%21DOCTYPE+Query%3E%3CQuery++virtualSchemaName+%3D+%22plants_mart_11%22+formatter+%3D+%22TSV%22+header+%3D+%220%22+uniqueRows+%3D+%221%22+count+%3D+%22%22+%3E%3CDataset+name+%3D+%22athaliana_eg_gene%22+interface+%3D+%22default%22+%3E%3CAttribute+name+%3D+%22ensembl_gene_id%22+%2F%3E%3CAttribute+name+%3D+%22ensembl_transcript_id%22+%2F%3E%3CAttribute+name+%3D+%22external_gene_id%22+%2F%3E%3C%2FDataset%3E%3C%2FQuery%3E",
-                attributesURL.toString());
+        assertNotNull(bmService.getBioMartName());
+        assertNotNull(bmService.getServerVirtualSchema());
     }
+
+    @Test
+    public void testPrepareAttributesString() throws Exception {
+        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        final String attStr = bmService.prepareAttributesString(asList("ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"));
+        assertEquals("<Attribute name = \"ensembl_gene_id\" /><Attribute name = \"ensembl_transcript_id\" /><Attribute name = \"external_gene_id\" />", attStr);
+    }
+
+    @Test
+    public void testPrepareURLString() throws Exception {
+        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        final String attStr = bmService.prepareAttributesString(asList("gene", "transcript"));
+        assertEquals("<Attribute name = \"gene\" /><Attribute name = \"transcript\" />", attStr);
+        final String urlStr = bmService.prepareURLString(attStr, "ens_plants", "athaliana_eg_gene");
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE Query><Query  virtualSchemaName = \"ens_plants\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" ><Dataset name = \"athaliana_eg_gene\" interface = \"default\" ><Attribute name = \"gene\" /><Attribute name = \"transcript\" /></Dataset></Query>", urlStr);
+    }
+
 }
