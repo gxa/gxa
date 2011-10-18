@@ -121,24 +121,28 @@
             for (var i = 0, len = exps.length; i < len; i++) {
                 var exp = exps[i];
                 var expEf = ef || exp.highestRankAttribute.ef;
-                A.efPagination({
+                var el = A.$(exp.accession + "_" + geneId + "_efPagination");
+                if (!el) {
+                    continue;
+                }
+
+                el.efPagination({
                     factors: exp.experimentFactors || [],
-                    target: exp.accession + "_" + geneId + "_efPagination",
-                    defaultEf: expEf,
-                    pageStateId: exp.accession + "_" + geneId + "_efp",
-                    pageStateAware: true,
-                    onChange: function(expAccession, geneId, ef, efv) {
-                    return function(event, selectedEf) {
-                        A.barPlot({
-                            target: expAccession + "_" + geneId + "_plot",
-                            geneId: geneId,
-                            expAccession: expAccession,
-                            ef: selectedEf,
-                            efv: ef && selectedEf === ef ? efv : null
-                        }).load();
-                    };
-                }(exp.accession, geneId, expEf, efv)
-                });
+                    pageStateAware: A.PageState,
+                    pageStateId: exp.accession + "_" + geneId + "_efp"
+                }).efChanged(
+                    function(expAccession, geneId, ef, efv) {
+                        return function(event, selectedEf) {
+                            A.barPlot({
+                                target: expAccession + "_" + geneId + "_plot",
+                                geneId: geneId,
+                                expAccession: expAccession,
+                                ef: selectedEf,
+                                efv: ef && selectedEf === ef ? efv : null
+                            }).load();
+                        };
+                    }(exp.accession, geneId, expEf, efv)
+                ).setDefault(expEf);
             }
         }
 
@@ -204,6 +208,18 @@
             }
         });
 
+        var listPagination = A.geneExperimentListPagination({
+            pageSize: pageSize,
+            paginationTarget: opts.paginationTarget || "pagination",
+            allStudiesLinkTarget: opts.allStudiesLinkTarget || "allStudiesLink",
+            onPageClick: function(pageIndex) {
+                loadPage(pageIndex);
+            },
+            onAllStudiesClick: function() {
+                loadInitial();
+            }
+        });
+
         function loadInitial(params) {
             cachedParams = params || {};
             listLoader.load($.extend(true, {
@@ -221,18 +237,6 @@
                 to: to
             }, cachedParams));
         }
-
-        var listPagination = A.geneExperimentListPagination({
-            pageSize: pageSize,
-            paginationTarget: opts.paginationTarget || "pagination",
-            allStudiesLinkTarget: opts.allStudiesLinkTarget || "allStudiesLink",
-            onPageClick: function(pageIndex) {
-                loadPage(pageIndex);
-            },
-            onAllStudiesClick: function() {
-                loadInitial();
-            }
-        });
 
         return {
             /**

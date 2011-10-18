@@ -37,6 +37,7 @@
         <css>/blue/style.css</css>
         <js>/scripts/src/core/main.js</js>
         <js>/scripts/src/core/utils.js</js>
+        <js>/scripts/src/core/pageState.js</js>
         <js>/scripts/src/core/barPlot.js</js>
         <js>/scripts/src/core/efPagination.js</js>
         <js>/scripts/src/core/geneExperimentList.js</js>
