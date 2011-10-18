@@ -532,7 +532,9 @@ find.best.design.elements <<-
 
     wde <- which(gn > 0)
 
-    uval <- statistics_nc$dim$uVAL$vals
+    propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
+    propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
+    uval <- paste(propertyNAME, propertyVALUE, sep = "||")
     wuval <- c()
 
     if ((!is.null(ef) && ef != "") && isEmptyEFV(efv)) {
