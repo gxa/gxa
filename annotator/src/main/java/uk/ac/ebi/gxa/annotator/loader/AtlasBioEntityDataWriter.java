@@ -70,7 +70,7 @@ public class AtlasBioEntityDataWriter {
     @Transactional
     public void writeBioEntities(final BioEntityData data) {
         for (BioEntityType type : data.getBioEntityTypes()) {
-            reportProgress("Writing bioentities of type " + type.getName() + "for Organism " + getOrganismNames(data));
+            reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + getOrganismNames(data));
             Collection<BioEntity> bioEntities = data.getBioEntitiesOfType(type);
             bioEntityDAO.writeBioEntities(bioEntities);
         }
@@ -78,7 +78,7 @@ public class AtlasBioEntityDataWriter {
 
     @Transactional
     public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
-        reportProgress("Writing " + propertyValues.size() + "property values");
+        reportProgress("Writing " + propertyValues.size() + " property values");
         bioEntityDAO.writePropertyValues(propertyValues);
     }
 
@@ -101,7 +101,7 @@ public class AtlasBioEntityDataWriter {
 
     private void deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
         reportProgress("Annotations for organism " + organism.getName() +
-                "already loaded and are going to be deleted before reloading ");
+                " already loaded and are going to be deleted before reloading ");
         int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
         reportProgress("Deleted " + count + " annotations.");
     }
@@ -126,7 +126,7 @@ public class AtlasBioEntityDataWriter {
 
     private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
         reportProgress("Mappings for array design " + arrayDesign.getAccession() +
-                "already loaded and are going to be deleted before reloading ");
+                " already loaded and are going to be deleted before reloading ");
         int count = bioEntityDAO.deleteDesignElementBioEntityMappings(software, arrayDesign);
         reportProgress("Deleted " + count + " mappings.");
     }
