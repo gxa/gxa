@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.R;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -134,12 +135,13 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     }
 
     private RServices setLocalRLibrary(RServices rServices) throws AtlasRServicesException {
+        String rLibDir = Strings.isNullOrEmpty(atlasProperties.getRLibDir()) ? System.getProperty("java.io.tmpdir") : atlasProperties.getRLibDir();
         try {
             // Specify to R which directory to load any required but missing libraries to. If this dir is not specified
             // R will try to add new libs to the global R cloud lib dir: /net/isilon5/ma/home/biocep/local/lib64/R/library and fail
             // Example of such library is http://bioconductor.org/packages/2.9/data/annotation/src/contrib/mogene10stv1cdf_2.9.1.tar.gz
             // when loading E-MEXP-3350
-            rServices.evaluate("try({ .libPaths(c(\"" + atlasProperties.getRLibDir() + "\",.libPaths())) })");
+            rServices.evaluate("try({ .libPaths(c(\"" + rLibDir + "\",.libPaths())) })");
             rServices.evaluate(".libPaths()");
             return rServices;
         } catch (RemoteException re) {

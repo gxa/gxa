@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.properties;
 
-import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -432,8 +431,7 @@ public class AtlasProperties {
     }
 
     public String getRLibDir() {
-        String rLibDir = getProperty("atlas.rservice.rlibdir");
-        return Strings.isNullOrEmpty(rLibDir) ? System.getProperty("java.io.tmpdir") : rLibDir;
+        return getProperty("atlas.rservice.rlibdir");
     }
 
     public String getConfigurationDirectoryPath() {
