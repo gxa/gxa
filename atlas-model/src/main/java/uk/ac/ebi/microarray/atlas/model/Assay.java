@@ -186,6 +186,10 @@ public class Assay {
         return filter(properties, new PropertyNamePredicate(type));
     }
 
+    public Collection<AssayProperty> getProperties(final Property property) {
+        return filter(properties, new PropertyPredicate(property));
+    }
+
     @Deprecated
     public SortedSet<String> getPropertyNames() {
         return newTreeSet(transform(properties, PROPERTY_NAME));
@@ -265,6 +269,19 @@ public class Assay {
         @Override
         public boolean apply(@Nonnull AssayProperty input) {
             return input.getName().equals(type);
+        }
+    }
+
+    private static class PropertyPredicate implements Predicate<AssayProperty> {
+        private final Property type;
+
+        public PropertyPredicate(Property type) {
+            this.type = type;
+        }
+
+        @Override
+        public boolean apply(@Nonnull AssayProperty input) {
+            return type.equals(input.getDefinition());
         }
     }
 }
