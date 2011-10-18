@@ -50,12 +50,6 @@ public class BioMartProperty {
     BioMartProperty() {
     }
 
-    BioMartProperty(Long id, String biomartPropertyName, BioEntityProperty bioEntityProperty) {
-        this.biomartpropertyId = id;
-        this.name = biomartPropertyName;
-        this.bioEntityProperty = bioEntityProperty;
-    }
-
     public BioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty, BioMartAnnotationSource annSrc) {
         this.name = biomartPropertyName;
         this.bioEntityProperty = bioEntityProperty;
@@ -72,14 +66,6 @@ public class BioMartProperty {
 
     public BioEntityProperty getBioEntityProperty() {
         return bioEntityProperty;
-    }
-
-    public Long getBiomartpropertyId() {
-        return biomartpropertyId;
-    }
-
-    public BioMartAnnotationSource getAnnotationSrc() {
-        return annotationSrc;
     }
 
     void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {

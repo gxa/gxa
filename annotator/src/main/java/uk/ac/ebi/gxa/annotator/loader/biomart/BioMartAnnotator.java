@@ -193,7 +193,7 @@ public class BioMartAnnotator {
         return (BioMartAnnotationSource) annotationSource;
     }
 
-    private <T extends BioEntityData> void readBioEntities(URL beURL, BioMartParser<T> parser) throws BioMartAccessException, AtlasAnnotationException {
+    private <T extends BioEntityData> void readBioEntities(URL beURL, BioMartParser<T> parser) throws AtlasAnnotationException {
         if (beURL != null) {
             reportProgress("Reading bioentities for " + organism.getName());
             parser.parseBioEntities(beURL, organism);
