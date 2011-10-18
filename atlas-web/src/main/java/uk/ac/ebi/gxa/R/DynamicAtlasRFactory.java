@@ -122,7 +122,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     }
 
     public RServices createRServices() throws AtlasRServicesException {
-        return setLocalRLibrary(getCurrentRFactory().createRServices());
+        return addLocalRLibraryPath(getCurrentRFactory().createRServices());
     }
 
     public void recycleRServices(RServices rServices) throws AtlasRServicesException {
@@ -134,7 +134,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
             getCurrentRFactory().releaseResources();
     }
 
-    private RServices setLocalRLibrary(RServices rServices) throws AtlasRServicesException {
+    private RServices addLocalRLibraryPath(RServices rServices) throws AtlasRServicesException {
         String rLibDir = Strings.isNullOrEmpty(atlasProperties.getRLibDir()) ? System.getProperty("java.io.tmpdir") : atlasProperties.getRLibDir();
         try {
             // Specify to R which directory to load any required but missing libraries to. If this dir is not specified
