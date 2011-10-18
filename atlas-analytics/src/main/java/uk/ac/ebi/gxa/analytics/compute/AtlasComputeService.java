@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.analytics.compute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.rcloud.server.RServices;
 
 /**
@@ -46,11 +47,16 @@ import uk.ac.ebi.rcloud.server.RServices;
  */
 public class AtlasComputeService {
     private AtlasRFactory atlasRFactory;
+    private AtlasProperties atlasProperties;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public void setAtlasRFactory(AtlasRFactory atlasRFactory) {
         this.atlasRFactory = atlasRFactory;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     /**
@@ -69,6 +75,13 @@ public class AtlasComputeService {
                 log.error("Can't create R service, so can't compute!");
                 throw new ComputeException("Can't create R service, so can't compute!");
             }
+
+            // Specify to R which directory to load any required but missing libraries to. If this dir is not specified
+            // R will try to add new libs to the global R cloud lib dir: /net/isilon5/ma/home/biocep/local/lib64/R/library and fail
+            // Example of such library is http://bioconductor.org/packages/2.9/data/annotation/src/contrib/mogene10stv1cdf_2.9.1.tar.gz
+            // when loading E-MEXP-3350
+            rService.evaluate("try({ .libPaths(c(\"" + atlasProperties.getRLibDir() + "\",.libPaths())) })");
+            rService.evaluate(".libPaths()");
 
             if(rService.getServantName() != null)
                 log.debug("Computing on " + rService.getServantName());
