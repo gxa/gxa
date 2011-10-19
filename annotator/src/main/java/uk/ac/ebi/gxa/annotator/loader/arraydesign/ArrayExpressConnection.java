@@ -81,7 +81,7 @@ public class ArrayExpressConnection {
             int count = 0;
 
             while ((line = csvReader.readNext()) != null) {
-                if (line.length == 2) {
+                if (line.length >= 2) {
                     if (line[0].equals(AD_NAME)) {
                         name = line[1];
                     }
