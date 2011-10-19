@@ -290,46 +290,11 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "PROP_FOR_INDEX int );");
 
         runStatement(conn,
-                "  CREATE TABLE A2_BERELATIONTYPE " +
-                        "(BERELATIONTYPEID bigint, " +
-                        "NAME VARCHAR(255));");
-
-        runStatement(conn,
-                "CREATE TABLE A2_BIOENTITY2BIOENTITY " +
-                        "(BE2BEID bigint, " +
-                        "BIOENTITYIDFROM bigint not null, " +
-                        "BIOENTITYIDTO bigint not null, " +
-                        "SOFTWAREID bigint not null, " +
-                        "BERELATIONTYPEID bigint not null);");
-
-        runStatement(conn,
                 "CREATE TABLE A2_DESIGNELTBIOENTITY " +
                         "(DEBEID bigint, " +
                         "DESIGNELEMENTID bigint not null, " +
                         "SOFTWAREID bigint not null, " +
                         "BIOENTITYID bigint not null);");
-
-        runStatement(conn,
-                "CREATE TABLE VWDESIGNELEMENTGENELINKED " +
-                        "(designelementid bigint not null, " +
-                        "accession VARCHAR(255) NOT NULL, " +
-                        "name VARCHAR(255) NOT NULL, " +
-                        "arraydesignid bigint not null, " +
-                        "bioentityid bigint not null, " +
-                        "identifier VARCHAR(255) NOT NULL, " +
-                        "organismid bigint not null, " +
-                        "mappingswid bigint not null, " +
-                        "annotationswid bigint not null) ");
-
-        runStatement(conn,
-                "CREATE TABLE VWDESIGNELEMENTGENEDIRECT " +
-                        "(designelementid bigint not null, " +
-                        "accession VARCHAR(255) NOT NULL, " +
-                        "name VARCHAR(255) NOT NULL, " +
-                        "arraydesignid bigint not null, " +
-                        "bioentityid bigint not null, " +
-                        "identifier VARCHAR(255) NOT NULL, " +
-                        "organismid bigint not null) ");
 
         runStatement(conn,
                 "CREATE TABLE A2_ANNOTATIONSRC(\n" +

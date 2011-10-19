@@ -200,10 +200,4 @@ CREATE BITMAP INDEX "IDX_BIOENTITYBEPV_BEID_SWID"
 ON "A2_BIOENTITYBEPV" (BIOENTITYID, SOFTWAREID)
 /*INDEX_TABLESPACE*/;
 
-CREATE BITMAP INDEX IDX_BIOENTITYBEPV_organismid
-ON a2_bioentitybepv(a2_bioentity.organismid)
-FROM a2_bioentitybepv, a2_bioentity
-WHERE a2_bioentitybepv.bioentityid = a2_bioentity.bioentityid
-/*INDEX_TABLESPACE*/;
-
 exit;
