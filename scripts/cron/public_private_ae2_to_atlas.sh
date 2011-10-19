@@ -6,7 +6,7 @@
 
 if [ $# -eq 0 ]; then
         echo "Usage: $0 ADMIN_USERNAME ADMIN_PASSWORD ATLAS_URL ATLAS_PORT ATLAS_ROOT ERROR_NOTIFICATION_EMAILADDRESS"
-        echo "e.g. $0 admin <pwd> lime 14032 gxa-load atlas-developers@ebi.ac.uk"
+        echo "e.g. $0 admin <pwd> lime 14032 gxa-load <notifcation_email_address>"
         exit;
 fi
 
@@ -72,7 +72,7 @@ while read line; do
                           echo "$exp_accession - AE2: public; AE2 reldate: $ae2_release_date; Atlas: private - status change in Atlas: private->public"  >> $process_file.log
                           curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentpublic&autoDepends=false&op=schedule"
                       else
-                          echo "$exp_accession - AE2: public; AE2 reldate: $ae2_release_date; Atlas: private - NO status change in Atlas: private->public"  >> $process_file.log
+                          echo "$exp_accession - AE2: public; AE2 release_date: $ae2_release_date; Atlas: private - NO status change in Atlas: private->public"  >> $process_file.log
                       fi
                   fi
                elif [ ! -z $ae2_private_status ]; then
@@ -86,11 +86,13 @@ while read line; do
              err_msg="Updating private/public status of experiments on $3:$4/$5 unsuccessful: failed to find $exp_accession in AE2"
              echo $err_msg >> $process_file.log
              mailx -s "$err_msg" $6 < $process_file.log
+             exit 1
           fi
        else
           err_msg="Updating private/public status of experiments on $3:$4/$5 failed due to incorrect format of Atlas API call output"
           echo $err_msg >> $process_file.log
           mailx -s "$err_msg" $6 < $process_file.log
+          exit 1
        fi
    fi
 done < $all_atlas_experiments_file
@@ -102,4 +104,3 @@ rm -rf $authentication_cookie
 # Remove auxiliary file created by this script
 rm -rf $all_atlas_experiments_file
 rm -rf $all_ae2_experiments_file
-rm -rf $all_ae2_experiments_file.bak
