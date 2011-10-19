@@ -109,7 +109,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
                             <property name="resourcePath" value="atlas.properties"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.EfHeadersStorage">
-                            <property name="efvService" ref="atlasEfvService"/>
+                            <constructor-arg ref="propertyDAO"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.GenePropHeadersStorage">
                             <property name="genePropService" ref="atlasGenePropertyService"/>
