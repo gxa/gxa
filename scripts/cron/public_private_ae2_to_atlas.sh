@@ -35,18 +35,16 @@ if [ ! -f $all_atlas_experiments_file ]; then
    mailx -s "$err_msg" $6 < $process_file.log
 fi
 
-# Retrieve all AE2 experiments into $all_ae2_experiments_file (xml)
-curl -X GET "http://www.ebi.ac.uk/arrayexpress/xml/v2/privacy" > $all_ae2_experiments_file
+# Retrieve all AE2 experiments into $all_ae2_experiments_file (ssv)
+curl -X GET "http://www.ebi.ac.uk/arrayexpress/admin/privacy" > $all_ae2_experiments_file
 if [ ! -f $all_ae2_experiments_file ]; then
    err_msg="Updating private/public status of experiments on $3:$4/$5  was unsuccessful due failure to retrieve all AE2 experiments"
    echo $err_msg >> $process_file.log
    mailx -s "$err_msg" $6 < $process_file.log
 fi
 
-# Move each experiment entry in $all_ae2_experiments_file into its own line
-perl -pi.bak -e 's|<experiment>|\n<experiment>|g' $all_ae2_experiments_file
 
-# Retrieve private status for each Atlas experiment
+# Retrieve from $all_atlas_experiments_file private status for each Atlas experiment
 while read line; do
    val=`echo $line | sed 's|[\", ]||g' | grep -P 'accession' | cut -d':' -f2`
    if [ ! -z $val ]; then
@@ -59,17 +57,23 @@ while read line; do
 
        if [ ! -z $exp_accession ]; then
           # Now get the experiment's private/public status in AE2
-          # E.g. line in $all_ae2_experiments_file : <experiment><accession>E-MEXP-1487</accession><privacy>private</privacy></experiment>
-          ae2_experiment=`grep "$exp_accession<" $all_ae2_experiments_file`
-
+          # E.g. line in $all_ae2_experiments_file: accession:E-MEXP-31 privacy:public releasedate:2004-03-01
+          ae2_experiment=`grep "accession:$exp_accession " $all_ae2_experiments_file`
+	      ae2_release_date=`echo $ae2_experiment | awk '{print $3}' | cut -d':' -f2`
           if [ ! -z ae2_experiment ]; then
-               ae2_public_status=`echo $ae2_experiment | grep -Po public`
-               ae2_private_status=`echo $ae2_experiment | grep -Po private`
+               ae2_public_status=`echo $ae2_experiment | grep -Po 'privacy:public'`
+               ae2_private_status=`echo $ae2_experiment | grep -Po 'privacy:private'`
                if [ ! -z $ae2_public_status ]; then
                   if [ $atlas_private_flag == "true" ]; then
-                      # Experiment public in AE2 and private in Atlas - make it public in Atlas
-                      echo "$exp_accession - AE2: public; Atlas: private - status change in Atlas: private->public"  >> $process_file.log
-                      curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentpublic&autoDepends=false&op=schedule"
+                      # Experiment public in AE2 and private in Atlas - make it public in Atlas if today's date >= ae2_release_date + 1 month
+                      date_diff=$((`eval date +%s` - `date -d "$ae2_release_date 1 month" +%s`))
+                      if [ $date_diff -gt 0 ]; then
+                          # Experiment $exp_accession became public in AE2 more than a month ago, but it's still private in Atlas
+                          echo "$exp_accession - AE2: public; AE2 reldate: $ae2_release_date; Atlas: private - status change in Atlas: private->public"  >> $process_file.log
+                          curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentpublic&autoDepends=false&op=schedule"
+                      else
+                          echo "$exp_accession - AE2: public; AE2 reldate: $ae2_release_date; Atlas: private - NO status change in Atlas: private->public"  >> $process_file.log
+                      fi
                   fi
                elif [ ! -z $ae2_private_status ]; then
                    if [ $atlas_private_flag == "false" ]; then
