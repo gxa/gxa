@@ -1,13 +1,9 @@
 package uk.ac.ebi.gxa.statistics;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Multiset;
 import it.uniroma3.mat.extendedset.ConciseSet;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 import java.util.*;
@@ -302,19 +298,13 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * @return A Collection of All EfvAttributes for which scores exist in this class
      */
     public Collection<EfvAttribute> getAllEfvAttributes() {
-        return
-                Collections2.transform(
-                        Collections2.filter(statistics.keySet(),
-                                new Predicate<EfAttribute>() {
-                                    public boolean apply(@Nullable EfAttribute attribute) {
-                                        return attribute != null && attribute instanceof EfvAttribute;
-                                    }
-                                }), new Function<EfAttribute, EfvAttribute>() {
-                            @Override
-                            public EfvAttribute apply(@Nonnull EfAttribute efAttribute) {
-                                return (EfvAttribute) efAttribute;
-                            }
-                        });
+        List<EfvAttribute> result = new ArrayList<EfvAttribute>();
+        for (EfAttribute attribute : statistics.keySet()) {
+            if (attribute instanceof EfvAttribute) {
+                result.add((EfvAttribute) attribute);
+            }
+        }
+        return result;
     }
 
     /**
