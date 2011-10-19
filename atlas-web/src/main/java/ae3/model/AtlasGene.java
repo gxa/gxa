@@ -26,6 +26,7 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -461,12 +462,18 @@ public class AtlasGene {
      *         is up/down differentially expressed for that factor.
      */
     public List<ExperimentalFactor> getDifferentiallyExpressedFactors(
-            Collection<String> omittedEfs,
+            final Collection<String> omittedEfs,
             @Nullable String ef,
             AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
         List<EfAttribute> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
-        efs.removeAll(omittedEfs);
+
+        Collections2.filter(efs,
+                new Predicate<EfAttribute>() {
+                    public boolean apply(@Nullable EfAttribute attribute) {
+                        return attribute != null && !omittedEfs.contains(attribute.getEf());
+                    }
+                });
 
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
