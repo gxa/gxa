@@ -110,7 +110,7 @@ public class StatisticsStorage implements Serializable {
      *
      * @param attr
      * @param exp
-     * @return efo term which maps to attr and exp
+     * @return efo terms which maps to attr and exp
      */
     public Set<String> getEfoTerms(EfvAttribute attr, ExperimentInfo exp) {
         return efoIndex.getEfoTerms(attr, exp);
