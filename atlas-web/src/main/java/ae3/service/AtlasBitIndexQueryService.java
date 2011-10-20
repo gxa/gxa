@@ -424,7 +424,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
                     if (scoringEfos != null)
                         scoringEfos.addAll(efoTerm);
                     else
-                        log.debug("Skipping efo: " + efoTerm + " for attr: " + efvAttr + " and exp: " + exp);
+                        log.debug("Skipping efo: {} for attr: {} and exp: {}", new Object[]{efoTerm, efvAttr, exp});
                 }
             }
         }
