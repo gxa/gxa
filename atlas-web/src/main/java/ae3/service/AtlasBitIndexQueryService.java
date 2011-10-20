@@ -420,11 +420,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
                 if (attrCounts != null)
                     attrCounts.add(efvAttr, scoringExps.size());
                 for (ExperimentInfo exp : scoringExps) {
-                    Set<String> efoTerm = statisticsStorage.getEfoTerms(efvAttr, exp);
+                    Set<String> efoTerms = statisticsStorage.getEfoTerms(efvAttr, exp);
                     if (scoringEfos != null)
-                        scoringEfos.addAll(efoTerm);
+                        scoringEfos.addAll(efoTerms);
                     else
-                        log.debug("Skipping efo: {} for attr: {} and exp: {}", new Object[]{efoTerm, efvAttr, exp});
+                        log.debug("Skipping efo: {} for attr: {} and exp: {}", new Object[]{efoTerms, efvAttr, exp});
                 }
             }
         }
