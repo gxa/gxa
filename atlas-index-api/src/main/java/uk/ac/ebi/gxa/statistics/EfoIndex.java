@@ -7,6 +7,7 @@ import java.util.Set;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.emptySet;
 
 /**
  * This class stores a mapping between efo terms and their corresponding ef-efv (i.e. Attribute)-Experiment combinations
@@ -55,8 +56,15 @@ public class EfoIndex implements Serializable {
      * @return an efo term one of whose mapping is an efv referenced by attribute in a given experiment
      */
     public Set<String> getEfoTerms(EfvAttribute attribute, ExperimentInfo experiment) {
-        Map<ExperimentInfo, Set<String>> expToEfo = efvToEfoIndex.get(attribute);
-        return expToEfo != null ? expToEfo.get(experiment) : Collections.<String>emptySet();
+        final Map<ExperimentInfo, Set<String>> expToEfo = efvToEfoIndex.get(attribute);
+        if (expToEfo == null)
+            return emptySet();
+
+        final Set<String> terms = expToEfo.get(experiment);
+        if (terms == null)
+            return emptySet();
+
+        return terms;
     }
 
     /**
