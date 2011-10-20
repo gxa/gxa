@@ -117,9 +117,9 @@ public class BioMartAnnotator {
 
             final BioEntityAnnotationData data = parser.getData();
 
-            beDataWriter.writeBioEntities(data);
-            beDataWriter.writePropertyValues(data.getPropertyValues());
-            beDataWriter.writeBioEntityToPropertyValues(data, annSrc);
+            beDataWriter.writeBioEntities(data, listener);
+            beDataWriter.writePropertyValues(data.getPropertyValues(), listener);
+            beDataWriter.writeBioEntityToPropertyValues(data, annSrc, listener);
 
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 
@@ -147,7 +147,7 @@ public class BioMartAnnotator {
             BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
             if (!annSrc.isApplied()) {
                 readBioEntities(martConnection.getAttributesURL(attributesHandler.getMartBEIdentifiersAndNames()), parser);
-                beDataWriter.writeBioEntities(parser.getData());
+                beDataWriter.writeBioEntities(parser.getData(), listener);
             }
 
 
@@ -171,7 +171,7 @@ public class BioMartAnnotator {
                 beDataWriter.writeDesignElements(parser.getData(),
                         bioMartArrayDesign.getArrayDesign(),
                         annSrc.getSoftware(),
-                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, bioMartArrayDesign.getArrayDesign()));
+                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, bioMartArrayDesign.getArrayDesign()), listener);
             }
 
             reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
@@ -218,7 +218,6 @@ public class BioMartAnnotator {
 
     public void setListener(AnnotationLoaderListener listener) {
         this.listener = listener;
-        this.beDataWriter.setListener(listener);
     }
 
     private void reportProgress(String report) {

@@ -62,36 +62,34 @@ public class AtlasBioEntityDataWriter {
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
 
-    private AnnotationLoaderListener listener;
-
     public AtlasBioEntityDataWriter() {
     }
 
     @Transactional
-    public void writeBioEntities(final BioEntityData data) {
+    public void writeBioEntities(final BioEntityData data, AnnotationLoaderListener listener) {
         for (BioEntityType type : data.getBioEntityTypes()) {
-            reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + getOrganismNames(data));
+            reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + getOrganismNames(data).toString(), listener);
             Collection<BioEntity> bioEntities = data.getBioEntitiesOfType(type);
             bioEntityDAO.writeBioEntities(bioEntities);
         }
     }
 
     @Transactional
-    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
-        reportProgress("Writing " + propertyValues.size() + " property values");
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, AnnotationLoaderListener listener) {
+        reportProgress("Writing " + propertyValues.size() + " property values", listener);
         bioEntityDAO.writePropertyValues(propertyValues);
     }
 
     @Transactional
-    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final AnnotationSource annSrc) {
+    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final AnnotationSource annSrc, AnnotationLoaderListener listener) {
         if (annSrc.isApplied()) {
             for (Organism organism : data.getOrganisms()) {
-                deleteBioEntityToPropertyValues(organism, annSrc.getSoftware());
+                deleteBioEntityToPropertyValues(organism, annSrc.getSoftware(), listener);
             }
         }
         for (BioEntityType type : data.getBioEntityTypes()) {
             Collection<Pair<String, BEPropertyValue>> propValues = data.getPropertyValuesForBioEntityType(type);
-            reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data));
+            reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data), listener);
             bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, annSrc.getSoftware());
         }
 
@@ -99,24 +97,24 @@ public class AtlasBioEntityDataWriter {
         annSrcDAO.update(annSrc);
     }
 
-    private void deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
+    private void deleteBioEntityToPropertyValues(final Organism organism, final Software software, AnnotationLoaderListener listener) {
         reportProgress("Annotations for organism " + organism.getName() +
-                " already loaded and are going to be deleted before reloading ");
+                " already loaded and are going to be deleted before reloading ", listener);
         int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
-        reportProgress("Deleted " + count + " annotations.");
+        reportProgress("Deleted " + count + " annotations.", listener);
     }
 
     @Transactional
-    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite) {
+    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite, AnnotationLoaderListener listener) {
         if (deleteBeforeWrite) {
-            deleteDesignElementBioEntityMappings(software, arrayDesign);
+            deleteDesignElementBioEntityMappings(software, arrayDesign, listener);
         }
-        reportProgress("Writing " + data.getDesignElements().size() + " design elements of " + arrayDesign.getAccession());
+        reportProgress("Writing " + data.getDesignElements().size() + " design elements of " + arrayDesign.getAccession(), listener);
         bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign);
         for (BioEntityType bioEntityType : data.getBioEntityTypes()) {
             Collection<Pair<String, String>> designElementToBioEntity = data.getDesignElementToBioEntity(bioEntityType);
             reportProgress("Writing " + designElementToBioEntity.size() + " design elements to " +
-                    bioEntityType.getName() + " mappings of " + arrayDesign.getAccession());
+                    bioEntityType.getName() + " mappings of " + arrayDesign.getAccession(), listener);
             bioEntityDAO.writeDesignElementBioEntityMappings(designElementToBioEntity,
                     bioEntityType,
                     software,
@@ -124,15 +122,11 @@ public class AtlasBioEntityDataWriter {
         }
     }
 
-    private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
+    private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign, AnnotationLoaderListener listener) {
         reportProgress("Mappings for array design " + arrayDesign.getAccession() +
-                " already loaded and are going to be deleted before reloading ");
+                " already loaded and are going to be deleted before reloading ", listener);
         int count = bioEntityDAO.deleteDesignElementBioEntityMappings(software, arrayDesign);
-        reportProgress("Deleted " + count + " mappings.");
-    }
-
-    public void setListener(AnnotationLoaderListener listener) {
-        this.listener = listener;
+        reportProgress("Deleted " + count + " mappings.", listener);
     }
 
     private Collection<String> getOrganismNames(final BioEntityData data) {
@@ -144,7 +138,7 @@ public class AtlasBioEntityDataWriter {
         });
     }
 
-    protected void reportProgress(String report) {
+    protected void reportProgress(String report, AnnotationLoaderListener listener) {
         log.info(report);
         if (listener != null)
             listener.buildProgress(report);
