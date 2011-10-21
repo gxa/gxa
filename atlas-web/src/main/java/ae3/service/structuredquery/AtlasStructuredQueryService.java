@@ -45,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -96,7 +95,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     private ExperimentDAO experimentDAO;
-    private PropertyDAO propertyDAO;
     private AtlasDataDAO atlasDataDAO;
 
     private CoreContainer coreContainer;
@@ -152,10 +150,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
-    }
-
-    public void setPropertyDAO(PropertyDAO propertyDAO) {
-        this.propertyDAO = propertyDAO;
     }
 
     public void setEfvService(AtlasEfvService efvService) {

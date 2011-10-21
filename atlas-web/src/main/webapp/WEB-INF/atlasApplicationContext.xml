@@ -265,7 +265,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="experimentDAO" ref="experimentDAO"/>
-        <property name="propertyDAO" ref="propertyDAO"/>
 
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
