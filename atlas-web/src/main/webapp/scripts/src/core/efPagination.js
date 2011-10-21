@@ -26,15 +26,15 @@
     /**
      * @param opts {
      *     factors - an array of experiment factors
-     *     pageStateAware - enables/disables storing component state in the PageState object (optional)
-     *     pageStateId - a unique name of PageState parameter; required only if pageStateAware is true
+     *     pageState - page state object to register for stateChange event (optional)
+     *     pageStatePrefix - a hierarchical prefix for page state; required if pageState is given
      * }
      */
     function EfPagination(elem, opts) {
         var _this = this,
             factors = opts.factors || [],
-            pageStateAware = opts.pageStateAware || null,
-            pageStateId = opts.pageStateId,
+            pageState = opts.pageState|| null,
+            pageStatePrefix = opts.pageStatePrefix || "",
             defaultEf = null,
             currEf = null;
 
@@ -62,17 +62,17 @@
             draw();
             bindEvents();
 
-            if (pageStateAware && pageStateId) {
-                if (pageStateAware.register && pageStateAware.unregister) {
+            if (pageState) {
+                if (pageState.register && pageState.unregister) {
                     var handlePageStateChanged = function(ev, state) {
-                       _this.select(state);
+                       _this.select(state.ef);
                     };
-                    pageStateAware.register(_this, pageStateId, handlePageStateChanged);
+                    pageState.register(_this, pageStatePrefix, handlePageStateChanged);
                     $(elem).bind("destroyed", function() {
-                        pageStateAware.unregister(_this, pageStateId, handlePageStateChanged);
+                        pageState.unregister(_this, pageStatePrefix, handlePageStateChanged);
                     });
 
-                    currEf = pageStateAware.stateFor(pageStateId);
+                    currEf = pageState.stateFor(pageStatePrefix).ef;
                 }
             }
         }
@@ -120,7 +120,7 @@
 
         function notifyEfClicked(ef) {
             $(_this).trigger("efClicked", [ef]);
-            $(_this).trigger("stateChanged", [ef === defaultEf ? null : ef]);
+            $(_this).trigger("stateChanged", [{ef: ef === defaultEf ? null : ef}]);
         }
 
         function notifyEfChanged(ef) {

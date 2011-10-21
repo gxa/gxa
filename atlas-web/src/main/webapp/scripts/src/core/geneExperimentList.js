@@ -128,8 +128,8 @@
 
                 el.efPagination({
                     factors: exp.experimentFactors || [],
-                    pageStateAware: A.PageState,
-                    pageStateId: exp.accession + "_" + geneId + "_efp"
+                    pageState: A.PageState,
+                    pageStatePrefix: "efp_" + exp.accession + geneId
                 }).efChanged(
                     function(expAccession, geneId, ef, efv) {
                         return function(event, selectedEf) {

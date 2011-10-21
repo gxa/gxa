@@ -36,10 +36,15 @@
 })(jQuery);
 
 (function(A, $) {
-     /**
+    /**
      * Page state; it stores the current state of a page. The state is automatically serialized into
      * url hash tag; so we could use back & forward browser's buttons to switch between page states made by
      * script.
+     * Global page state is a hierarchical object (like a tree); so changing in the upper state can affect
+     * the lower ones. This could be extremely useful for pagination components where changing the page event
+     * forces all other components on this page to clean up (or to be removed). A tree-path prefix is used to
+     * retrieve a hierarchical state. An empty prefix is considered as root and allows to change the top
+     * most state.
      *
      * Note: JQuery Address plugin is used to listen url hash change event.
      * An url hash could be changed internally (by $.address.value('...')) and externally
@@ -47,14 +52,14 @@
      */
     A.PageState = function() {
         var pageState = {},
-            pageStateProps = {},
+            pageStatePrefixes = {},
             _this = {},
             pageStateAware = false,
             pageStateChanged = "pageStateChanged",
             widgetStateChanged = "stateChanged";
 
         /**
-         * Serializes obj into param string. Arrays of objects aren't supported.
+         * Serializes obj into param string; arrays of objects aren't supported.
          * @param obj - an object to serialize
          */
         function serialize(obj) {
@@ -65,13 +70,13 @@
                     };
 
                 if ($.isArray(obj)) {
-                    for(var i=0, len = obj.length; i<len; i++) {
-                       var item = obj[i];
-                       if ($.isArray(item) || $.isPlainObject(item)) {
-                           A.logError("PageState doesn't support arrays of objects");
-                       } else {
-                          add(prefix, item);
-                       }
+                    for (var i = 0, len = obj.length; i < len; i++) {
+                        var item = obj[i];
+                        if ($.isArray(item) || $.isPlainObject(item)) {
+                            A.logError("PageState doesn't support arrays of objects");
+                        } else {
+                            add(prefix, item);
+                        }
                     }
                 } else if ($.isPlainObject(obj)) {
                     for (var p in obj) {
@@ -90,7 +95,7 @@
             /**
              * Note: An empty string means changing URL hash to "#", which is the valid page top reference;
              * so the page will jump to the top every time the state is cleared. Returning "%20"
-             * (could be any none existed hash reference) instead of empty string prevents page from jumping.
+             * (or other meaningless string) instead of empty string prevents page from jumping.
              **/
         }
 
@@ -127,48 +132,57 @@
         }
 
         function triggerStateChangedEvent() {
-            if (pageStateAware) {
-                for(var p in pageStateProps) {
-                    if (pageStateProps.hasOwnProperty(p)) {
-                        $(_this).trigger(pageStateChanged + "_" + p, pageState[p]);
-                    }
+            if (!pageStateAware) {
+                return;
+            }
+            for (var p in pageStatePrefixes) {
+                if (pageStatePrefixes.hasOwnProperty(p)) {
+                    $(_this).trigger(pageStateChanged + "_" + p,
+                        [$.extend({}, A.objProperty(pageState, pageStatePrefixes[p]))]);
                 }
             }
         }
 
         function updateUrlHash() {
-            for (var p in pageState) {
-                if (pageState.hasOwnProperty(p) && !pageStateProps[p]) {
-                    pageState[p] = null;
-                }
-            }
             if (pageStateAware) {
                 $.address.hash(serialize(pageState));
             }
         }
 
+        function addPrefix(prefix) {
+            var v = normalizePrefix(prefix);
+            pageStatePrefixes[v] = prefix;
+            return v;
+        }
+
+        function removePrefix(prefix) {
+            var v = normalizePrefix(prefix);
+            delete pageState[v];
+            return v;
+        }
+
+        function normalizePrefix(prefix) {
+            return prefix.replaceAll(/\./g, "$");
+        }
+
         return $.extend(true, _this, {
-            register: function(widget, uniqProp, handler) {
-                A.logError("register: " + uniqProp);
-                $(_this).bind(pageStateChanged + "_" + uniqProp, handler);
+            register: function(widget, prefix, handler) {
+                A.logError("register state as " + prefix || "root");
+                $(_this).bind(pageStateChanged + addPrefix(prefix), handler);
                 $(widget).bind(widgetStateChanged, function(ev, newState) {
-                    pageState[uniqProp] = newState;
+                    A.objProperty(pageState, prefix, newState);
                     updateUrlHash();
                 });
-                pageStateProps[uniqProp] = 1;
             },
 
-            unregister: function(widget, uniqProp, handler) {
-                A.logError("unregister: " + uniqProp);
-                $(_this).unbind(pageStateChanged + "_" + uniqProp, handler);
+            unregister: function(widget, prefix, handler) {
+                A.logError("unregister state " + prefix);
+                $(_this).unbind(pageStateChanged + removePrefix(prefix), handler);
                 $(widget).unbind(widgetStateChanged);
-                delete pageStateProps[uniqProp];
             },
 
-            stateFor: function(uniqProp) {
-                if (uniqProp) {
-                    return pageState[uniqProp];
-                }
+            stateFor: function(prefix) {
+                return prefix ? A.objProperty(pageState, prefix) : pageState;
             },
 
             init: function() {
