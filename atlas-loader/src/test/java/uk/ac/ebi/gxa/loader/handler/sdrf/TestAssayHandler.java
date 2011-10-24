@@ -34,7 +34,7 @@ public abstract class TestAssayHandler extends TestCase {
             assertEquals("More than one property observed for assay " + assay.getAccession() +
                     ", should be Factor Value[Ecotype] only", 1, props.size());
 
-            assertEquals("Property name is not 'Ecotype'", "Ecotype", props.get(0).getName());
+            assertEquals("Property name is not 'ecotype'", "ecotype", props.get(0).getName());
 
             // test some property values at random
             if (assay.getAccession().equals("E-GEOD-3790::hybridizationname::11 CN A")) {
