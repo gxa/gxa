@@ -200,7 +200,7 @@ $(document).ready(function() {
 
 <table cellspacing="0" cellpadding="0" border="0" style="width:100%;margin-top:40px">
 <tr>
-<td valign="top" width="50%">
+    <td valign="top" width="50%">
 <table>
 <tr>
     <td class="section-header-1" style="padding-right:20px;">
@@ -219,13 +219,12 @@ $(document).ready(function() {
 </tr>
 
 <tr>
-<td style="padding-top: 3px; width:60%;">
+    <td style="padding-top: 3px; width:60%;">
 
-<table cellpadding="0" style="width:100%;" border="0">
+    <table cellpadding="0" style="width:100%;" border="0">
     <tr>
-
-        <c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="i" end="5">
-        <c:if test="${(i.index mod 2)==0}">
+        <c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="j" end="5">
+        <c:if test="${(j.index mod 2)==0}">
     </tr>
     <tr>
         </c:if>
@@ -250,7 +249,7 @@ $(document).ready(function() {
             </p>
 
              <!-- Output legend for the first experimental factor only -->
-             <c:if test="${i.index==0}">
+             <c:if test="${j.index==0}">
                    <table cellspacing="2" cellpadding="0" border="0" width="100%">
                         <tr>
                             <td style="vertical-align:middle;">
@@ -347,9 +346,13 @@ $(document).ready(function() {
                                 <c:set var="ud" value="${e.payload}"/>
                                 <c:choose>
                                     <c:when test="${empty ud || ud.ups + ud.downs + ud.nones == 0}">
-                                        <td class="counter"><c:choose><c:when test="${j.first}">
-                                            <div class="osq"></div>
-                                        </c:when></c:choose></td>
+                                        <td class="counter">
+                                            <c:choose>
+                                                <c:when test="${i.first}">
+                                                    <div class="osq"></div>
+                                                </c:when>
+                                            </c:choose>
+                                        </td>
                                     </c:when>
                                     <c:when test="${ud.ups == 0 && ud.downs == 0 && ud.nones > 0}">
                                         <td class="acounter" style="color:black;"
@@ -419,22 +422,21 @@ $(document).ready(function() {
                                 </c:choose>
 
                                 <td style="border:1px solid #CDCDCD; padding-left:5px;">
-                                                            <span style="font-size:smaller">
-                                                            <c:forEach var="experimentID" items="${ud.experiments}"
-                                                                       varStatus="i_e">
-                                                                <c:if test="${(i_e.index<5)}">
-                                                                    <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${gene.geneIdentifier}"
-                                                                       onclick="window.location=this.href;event.stopPropagation();return false;"
-                                                                       title="${experimentalFactor.experimentAccessions[experimentID]}">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if
-                                                                        test="${!i_e.last}">, </c:if>
-                                                                </c:if>
-                                                                <c:if test="${i_e.last}">
-                                                                    <c:if test="${(i_e.count>=5)}">
-                                                                        ... (${i_e.count} experiments)
-                                                                    </c:if>
-                                                                </c:if>
-                                                            </c:forEach>
-                                                            </span>
+                                    <span style="font-size:smaller">
+                                        <c:forEach var="experimentID" items="${ud.experiments}" varStatus="i_e">
+                                            <c:if test="${(i_e.index<5)}">
+                                                <a href="${pageContext.request.contextPath}/experiment/${experimentalFactor.experimentAccessions[experimentID]}/${gene.geneIdentifier}"
+                                                    onclick="window.location=this.href;event.stopPropagation();return false;"
+                                                    title="${experimentalFactor.experimentAccessions[experimentID]}">${experimentalFactor.experimentAccessions[experimentID]}</a><c:if
+                                                    test="${!i_e.last}">, </c:if>
+                                            </c:if>
+                                            <c:if test="${i_e.last}">
+                                                <c:if test="${(i_e.count>=5)}">
+                                                    ... (${i_e.count} experiments)
+                                                </c:if>
+                                            </c:if>
+                                        </c:forEach>
+                                    </span>
                                 </td>
 
                             </tr>
@@ -462,14 +464,10 @@ $(document).ready(function() {
 
         </td>
         </c:forEach>
-
-        <c:forEach var="k" begin="${4 - i.index mod 2}" end="2">
-            <td></td>
-        </c:forEach>
     </tr>
 </table>
 
-<c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="i" begin="6">
+<c:forEach var="experimentalFactor" items="${differentiallyExpressedFactors}" varStatus="j" begin="6">
     <c:if test="${empty ef}">
         <div class="section-header-2 nowrap">${f:escapeXml(atlasProperties.curatedEfs[experimentalFactor.name])}</div>
     </c:if>
@@ -493,14 +491,14 @@ $(document).ready(function() {
     </c:if>
     <br/><br/>
 </c:forEach>
-</td>
+    </td>
 </tr>
 </table>
 
-</td>
-<td valign="top" align="left" width="50%" id="experimentList">
-    <jsp:include page="experiment-list-template.jsp" />
-</td>
+    </td>
+    <td valign="top" align="left" width="50%" id="experimentList">
+        <jsp:include page="experiment-list-template.jsp" />
+    </td>
 </tr>
 </table>
 
