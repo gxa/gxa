@@ -89,6 +89,57 @@
         return s;
     };
 
+    A.withComplementary = function(obj, defaults) {
+        function _extend(obj1, obj2) {
+            if ($.isArray(obj2)) {
+                if (!obj1) {
+                    obj1 = [];
+                    for (var i = 0, len = v.length; i < len; i++) {
+                        obj1[i] = _extend(obj1[i], obj2[i]);
+                    }
+                }
+            } else if ($.isPlainObject(obj2)) {
+                for (var p in obj2) {
+                    if (obj2.hasOwnProperty(p)) {
+                        obj1[p] = _extend(obj1[p], obj2[p]);
+                    }
+                }
+            } else if (typeof obj1 === undefined || obj1 === null) {
+                obj1 = obj2;
+            }
+            return obj1;
+        }
+
+        return _extend(obj, defaults);
+    };
+
+    A.difference = function(obj, defaults) {
+        function _difference(obj1, obj2) {
+            if ($.isArray(obj2)) {
+                if (obj1 && $.isArray(obj1) && obj1.length == obj2.length) {
+                    for (var len = v.length, i = len - 1; i > 0; i--) {
+                        if (_difference(obj1[i], obj2[i])) {
+                            return obj1;
+                        }
+                    }
+                    return null;
+                }
+            } else if ($.isPlainObject(obj2)) {
+                for (var p in obj2) {
+                    if (obj2.hasOwnProperty(p)) {
+                        obj1[p] = _difference(obj1[p], obj2[p]);
+                        if (obj1[p] == null) {
+                            delete obj1[p];
+                        }
+                    }
+                }
+                return obj1;
+            }
+            return (obj1 === obj2) ? null : obj1;
+        }
+
+        return _difference(obj, defaults);
+    };
 
     /**
      *
