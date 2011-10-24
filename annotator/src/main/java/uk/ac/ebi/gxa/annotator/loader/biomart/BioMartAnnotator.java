@@ -184,7 +184,7 @@ public class BioMartAnnotator {
     }
 
     private BioMartAnnotationSource fetchAnnotationSource(String annotationSrcId) throws AtlasAnnotationException {
-        AnnotationSource annotationSource = annSrcDAO.getById(Long.parseLong(annotationSrcId));
+        AnnotationSource annotationSource = annSrcDAO.getById(Long.parseLong(annotationSrcId), BioMartAnnotationSource.class);
         if (annotationSource == null) {
             throw new AtlasAnnotationException("No annotation source with id " + annotationSrcId);
         }

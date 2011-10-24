@@ -93,7 +93,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetById() {
-        AnnotationSource annotationSource = annSrcDAO.getById(1000);
+        AnnotationSource annotationSource = annSrcDAO.getById(1000, BioMartAnnotationSource.class);
         Assert.assertNotNull(annotationSource);
     }
 

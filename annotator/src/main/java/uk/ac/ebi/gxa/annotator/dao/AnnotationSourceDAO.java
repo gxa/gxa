@@ -51,8 +51,8 @@ public class AnnotationSourceDAO {
         this.atlasJdbcTemplate = atlasJdbcTemplate;
     }
 
-    public AnnotationSource getById(long id) {
-        return template.get(AnnotationSource.class, id);
+    public <T extends AnnotationSource> T getById(long id, Class<T> type) {
+        return template.get(type, id);
     }
 
     public void save(AnnotationSource object) {

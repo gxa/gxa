@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
-import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -39,21 +38,19 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
  * User: nsklyar
  * Date: 09/05/2011
  */
-@Entity
-@Table(name = "A2_ANNOTATIONSRC")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(
-        name = "annsrctype",
-        discriminatorType = DiscriminatorType.STRING
-)
+//@Entity
+//@Table(name = "A2_ANNOTATIONSRC")
+//@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+//@DiscriminatorColumn(
+//        name = "annsrctype",
+//        discriminatorType = DiscriminatorType.STRING
+//)
+ @MappedSuperclass
 public abstract class AnnotationSource implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
     @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ", allocationSize = 1)
     protected Long annotationSrcId;
-
-    @ManyToOne()
-    protected Organism organism;
 
     @ManyToOne()
     protected Software software;
@@ -73,9 +70,8 @@ public abstract class AnnotationSource implements Serializable {
     protected AnnotationSource() {
     }
 
-    public AnnotationSource(Software software, Organism organism) {
+    public AnnotationSource(Software software) {
         this.software = software;
-        this.organism = organism;
     }
 
     public Long getAnnotationSrcId() {
@@ -92,10 +88,6 @@ public abstract class AnnotationSource implements Serializable {
 
     public boolean removeBioEntityType(BioEntityType type) {
         return types.remove(type);
-    }
-
-    public Organism getOrganism() {
-        return organism;
     }
 
 
@@ -116,7 +108,6 @@ public abstract class AnnotationSource implements Serializable {
     public String toString() {
         return "AnnotationSource{" +
                 "annotationSrcId=" + annotationSrcId +
-                ", organism=" + organism +
                 ", software=" + software +
                 ", types=" + types +
                 ", loadDate=" + loadDate +

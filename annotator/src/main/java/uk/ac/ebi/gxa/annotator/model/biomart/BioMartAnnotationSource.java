@@ -40,8 +40,12 @@ import java.util.Set;
  * Date: 10/05/2011
  */
 @Entity
-@DiscriminatorValue("biomart")
+@Table(name = "A2_ANNOTATIONSRC")
 public class BioMartAnnotationSource extends AnnotationSource {
+
+    @ManyToOne()
+    protected Organism organism;
+
     /**
      * Location of biomart martservice, e.g.:
      * "http://www.ensembl.org/biomart/martservice?"
@@ -90,7 +94,12 @@ public class BioMartAnnotationSource extends AnnotationSource {
     }
 
     public BioMartAnnotationSource(Software software, Organism organism) {
-        super(software, organism);
+        super(software);
+        this.organism = organism;
+    }
+
+    public Organism getOrganism() {
+        return organism;
     }
 
     public BioEntityType getBioEntityType(final String name) {

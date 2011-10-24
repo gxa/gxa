@@ -306,7 +306,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  , databaseName VARCHAR(255)\n" +
                         "  , mySqlDbName VARCHAR(255)\n" +
                         "  , mySqlDbUrl VARCHAR(255)\n" +
-                        "  , annsrctype VARCHAR(255) NOT NULL\n" +
                         "  , LOADDATE DATE\n" +
                         "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
                         ");");

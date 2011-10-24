@@ -511,7 +511,6 @@
             databasename="ensembl"
             mySqlDbName = "homo_sapiens"
             mySqlDbUrl = "ensembldb.ensembl.org:5306"
-            annsrctype="biomart"
             LOADDATE="2011-01-06"
             isApplied="F"
             />
