@@ -112,8 +112,8 @@
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-webdav</artifactId>
-                <version>1.0-beta-2</version>
+                <artifactId>wagon-ssh</artifactId>
+                <version>1.0-beta-3</version>
             </extension>
         </extensions>
     </build>
@@ -469,15 +469,27 @@
 
         <repository>
             <id>ebi-repo</id>
+            <name>The EBI internal repository</name>
             <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+        </repository>
+        <repository>
+            <id>ebi-snapshot-repo</id>
+            <name>The EBI internal snapshot repository</name>
+            <url>http://www.ebi.ac.uk/~maven/m2repo_snapshots</url>
         </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
             <id>ebi-repo</id>
-            <name>ebi-repo</name>
-            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+            <name>EBI Repository</name>
+            <url>scp://lobster.ebi.ac.uk/homes/maven/public_html/m2repo</url>
         </repository>
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>ebi-repo-snapshots</id>
+            <name>EBI Snapshots Repository</name>
+            <url>scp://lobster.ebi.ac.uk/homes/maven/public_html/m2repo_snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
