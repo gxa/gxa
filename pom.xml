@@ -436,6 +436,7 @@
             <id>ulisse</id>
             <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
+
         <repository>
             <!--
              A repository for opensource/public JARs not found in any public repositories.
@@ -443,6 +444,7 @@
             <id>gxa.github</id>
             <url>http://gxa.github.com/maven/repo</url>
         </repository>
+
         <repository>
             <id>info-bliki-repository</id>
             <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
@@ -464,22 +466,18 @@
             <id>hasbanana</id>
             <url>http://www.hasbanana.com/maven/repo</url>
         </repository>
+
         <repository>
-            <id>opencast</id>
-            <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
+            <id>ebi-repo</id>
+            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
         </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
-            <id>coconut.ebi.ac.uk-releases</id>
-            <name>coconut.ebi.ac.uk-releases</name>
-            <url>dav:http://bar:8081/artifactory/local-repo</url>
+            <id>ebi-repo</id>
+            <name>ebi-repo</name>
+            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
         </repository>
-        <snapshotRepository>
-            <id>coconut.ebi.ac.uk-snapshots</id>
-            <name>coconut.ebi.ac.uk-snapshots</name>
-            <url>dav:http://bar:8081/artifactory/local-repo</url>
-        </snapshotRepository>
     </distributionManagement>
 </project>
