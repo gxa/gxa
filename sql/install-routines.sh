@@ -4,6 +4,7 @@ TABLE_NAMES_DATA="Assay \
              AssayPVOntology \
              AssaySample \
              Experiment \
+             ExperimentAsset \
              Sample \
              SamplePV \
              SamplePVOntology"
@@ -18,7 +19,6 @@ TABLE_NAMES_SCHEMA="ArrayDesign \
              Berelationtype \
              DesignElement \
              DesignEltBioentity \
-             ExperimentAsset \
              Gene \
              GeneGPV \
              GeneProperty \

@@ -440,6 +440,10 @@ public class AtlasProperties {
         return result;
     }
 
+    public String getRLibDir() {
+        return getProperty("atlas.rservice.rlibdir");
+    }
+
     public String getConfigurationDirectoryPath() {
         return getProperty("atlas.config.dir");
     }
