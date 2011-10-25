@@ -42,8 +42,12 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         template.delete(propertyValue);
     }
 
-    public PropertyValue getOrCreatePropertyValue(String name, String value) {
-        Property property = propertyDAO.getOrCreateProperty(name);
+    public PropertyValue getOrCreatePropertyValue(String propertyAccession, String name, String valueAccession, String value) {
+        Property property = propertyDAO.getOrCreateProperty(propertyAccession, name);
+        return getOrCreatePropertyValue(property, value);
+    }
+
+    public PropertyValue getOrCreatePropertyValue(Property property, String value) {
         try {
             return find(property, value);
         } catch (RecordNotFoundException e) {

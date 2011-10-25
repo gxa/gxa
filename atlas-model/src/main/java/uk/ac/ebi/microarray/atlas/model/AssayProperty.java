@@ -60,13 +60,6 @@ public final class AssayProperty {
     AssayProperty() {
     }
 
-    public AssayProperty(Assay assay, String name, String value, List<OntologyTerm> efoTerms) {
-        this.assaypvid = null; // TODO: 4alf: we must handle this on save
-        this.assay = assay;
-        propertyValue = new PropertyValue(null, new Property(null, name), value);
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
-    }
-
     public AssayProperty(Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
         this.assay = assay;
         propertyValue = pv;

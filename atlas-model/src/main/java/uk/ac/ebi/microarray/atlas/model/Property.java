@@ -28,9 +28,10 @@ public final class Property implements Comparable<Property> {
     Property() {
     }
 
-    public Property(Long id, String name) {
+    public Property(Long id, String accession, String displayName) {
         this.propertyid = id;
-        this.name = name;
+        this.name = accession;
+        this.displayName = displayName;
     }
 
     public Long getId() {

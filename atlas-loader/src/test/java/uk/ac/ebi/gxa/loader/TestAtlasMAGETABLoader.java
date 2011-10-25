@@ -154,7 +154,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private LoaderDAO mockLoaderDAO() {
         final LoaderDAO dao = createMock(LoaderDAO.class);
         expect(dao.getOrCreatePropertyValue(EasyMock.<String>anyObject(), EasyMock.<String>anyObject()))
-                .andReturn(new PropertyValue(null, new Property(null, "test"), "test"))
+                .andReturn(new PropertyValue(null, new Property(null, "test", "Test"), "test"))
                 .anyTimes();
         expect(dao.getArrayDesign("A-AFFY-33"))
                 .andReturn(new ArrayDesign("A-AFFY-33"))

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.*;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -138,7 +139,7 @@ public class CurationService {
         try {
             Property property = propertyDAO.getByName(propertyName);
             PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
-            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(propertyName, newValue);
+            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(property, newValue);
 
             List<Assay> assays = assayDAO.getAssaysByPropertyValue(oldValue);
             for (Assay assay : assays) {
@@ -176,7 +177,7 @@ public class CurationService {
         try {
             Property property = propertyDAO.getByName(propertyName);
             PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
-            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(propertyName, newValue);
+            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(property, newValue);
 
             List<Sample> samples = sampleDAO.getSamplesByPropertyValue(oldValue);
             for (Sample sample : samples) {
@@ -505,7 +506,8 @@ public class CurationService {
     }
 
     private PropertyValue getOrCreatePropertyValue(ApiPropertyValue apv) {
-        return propertyValueDAO.getOrCreatePropertyValue(apv.getProperty().getName(), apv.getValue());
+        return propertyValueDAO.getOrCreatePropertyValue(EscapeUtil.encode(apv.getProperty().getName()).toLowerCase(),
+                apv.getProperty().getName(), apv.getValue(), apv.getValue());
     }
 
     private static ResourceNotFoundException convert(RecordNotFoundException e) {
