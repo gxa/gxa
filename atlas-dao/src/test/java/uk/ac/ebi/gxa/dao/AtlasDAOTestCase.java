@@ -309,6 +309,15 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  , LOADDATE DATE\n" +
                         "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
                         ");");
+        runStatement(conn,
+                "CREATE TABLE A2_GENESIGANNOTATIONSRC(\n" +
+                        "  annotationsrcid bigint NOT NULL\n" +
+                        "  , SOFTWAREID bigint NOT NULL\n" +
+                        "  , BIOENTITYPROPERTYID bigint NOT NULL\n" +
+                        "  , url VARCHAR(512)\n" +
+                        "  , LOADDATE DATE\n" +
+                        "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
+                        ");");
 
         runStatement(conn,
                 "CREATE TABLE A2_ANNSRC_BIOENTITYTYPE(\n" +

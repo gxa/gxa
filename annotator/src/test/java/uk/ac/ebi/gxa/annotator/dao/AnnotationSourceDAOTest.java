@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -98,10 +99,17 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAnnotationSourcesOfType() throws Exception {
+    public void testGetAnnotationSourcesOfType1() throws Exception {
         Collection<BioMartAnnotationSource> annotationSources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
         assertEquals(1, annotationSources.size());
     }
+
+    @Test
+    public void testGetAnnotationSourcesOfType2() throws Exception {
+        Collection<GeneSigAnnotationSource> annotationSources = annSrcDAO.getAnnotationSourcesOfType(GeneSigAnnotationSource.class);
+        assertEquals(1, annotationSources.size());
+    }
+
 
     @Test
     @Transactional

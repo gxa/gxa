@@ -201,6 +201,13 @@
             ISACTIVE="F"
             />
 
+    <A2_SOFTWARE
+            SOFTWAREID="2001"
+            NAME="GeneSigDB"
+            VERSION="4"
+            ISACTIVE="F"
+            />
+    
     <A2_GENEPROPERTY
             genepropertyid="1"
             name="goterm"
@@ -231,6 +238,11 @@
     <A2_BIOENTITYPROPERTY
             BIOENTITYPROPERTYID="100"
             name="goterm"
+            />
+
+    <A2_BIOENTITYPROPERTY
+            BIOENTITYPROPERTYID="400"
+            name="genesigdb"
             />
 
     <A2_BIOENTITYPROPERTYVALUE
@@ -514,6 +526,16 @@
             LOADDATE="2011-01-06"
             isApplied="F"
             />
+
+    <A2_GENESIGANNOTATIONSRC
+            annotationsrcid="1001"
+            SOFTWAREID="2001"
+            url="file://genesigdb"
+            BIOENTITYPROPERTYID="400"
+            LOADDATE="2011-01-06"
+            isApplied="F"
+            />
+
     <A2_ANNSRC_BIOENTITYTYPE
             annotationsrcid="1000"
             BIOENTITYTYPEID="100"

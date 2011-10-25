@@ -31,6 +31,7 @@
 
                 <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
             </list>

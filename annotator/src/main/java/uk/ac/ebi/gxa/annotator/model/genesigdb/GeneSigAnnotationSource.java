@@ -1,9 +1,11 @@
 package uk.ac.ebi.gxa.annotator.model.genesigdb;
 
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -11,11 +13,14 @@ import javax.persistence.Table;
  * Date: 19/10/2011
  */
 @Entity
-@Table(name = "A2_ANNOTATIONSRC")
+@Table(name = "A2_GENESIGANNOTATIONSRC")
 public class GeneSigAnnotationSource extends AnnotationSource{
 
     @Column(name = "url")
     private String url;
+
+    @ManyToOne()
+    private BioEntityProperty bioEntityProperty;
 
     public GeneSigAnnotationSource() {
     }
@@ -26,5 +31,13 @@ public class GeneSigAnnotationSource extends AnnotationSource{
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public BioEntityProperty getBioEntityProperty() {
+        return bioEntityProperty;
+    }
+
+    public void setBioEntityProperty(BioEntityProperty bioEntityProperty) {
+        this.bioEntityProperty = bioEntityProperty;
     }
 }
