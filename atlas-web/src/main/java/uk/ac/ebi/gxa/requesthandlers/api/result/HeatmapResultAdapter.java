@@ -123,7 +123,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                             UpDownExpression expression = toExpression(ptRank);
                                             float pVal = getPValueFromNcdf(ewd, e.getHighestRankAttribute().getEf(), e.getHighestRankAttribute().getEfv(), expression, (long) row.getGene().getGeneId(), ptRank.getPValue());
                                             // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
-                                            updateCounter(counter, expression, pVal);
                                             return new ListResultRowExperiment(ewd.getExperiment(), pVal, expression);
 
                                         } catch (RecordNotFoundException rnfe) {
@@ -267,14 +266,5 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         else if (expression.isDown())
             accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_DOWN).getPValAdjusted();
         return accuratePVal;
-    }
-
-    // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
-    private void updateCounter(
-            UpdownCounter counter, UpDownExpression expression, float pVal) {
-        if (expression.isUp())
-            counter.setMpvUp(pVal);
-        else if (expression.isDown())
-            counter.setMpvDn(pVal);
     }
 }
