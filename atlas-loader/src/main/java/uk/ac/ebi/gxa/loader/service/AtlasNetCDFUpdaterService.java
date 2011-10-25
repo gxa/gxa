@@ -41,9 +41,9 @@ public class AtlasNetCDFUpdaterService {
 
     @Transactional
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
-        listener.setAccession(cmd.getAccession());
-
         final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
+
+        listener.setAccession(cmd.getAccession());
         if (experiment == null) {
             listener.setProgress("Unknown accession: " + cmd.getAccession());
             throw new AtlasLoaderException("Cannot find experiment " + cmd.getAccession());
