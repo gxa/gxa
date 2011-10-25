@@ -43,7 +43,11 @@ public class AtlasNetCDFUpdaterService {
     public void process(UpdateNetCDFForExperimentCommand cmd, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
         final Experiment experiment = atlasDAO.getExperimentByAccession(cmd.getAccession());
 
-        listener.setAccession(experiment.getAccession());
+        listener.setAccession(cmd.getAccession());
+        if (experiment == null) {
+            listener.setProgress("Unknown accession: " + cmd.getAccession());
+            throw new AtlasLoaderException("Cannot find experiment " + cmd.getAccession());
+        }
 
         Map<String, Map<String, Assay>> assaysByArrayDesign = new HashMap<String, Map<String, Assay>>();
         for (Assay assay : experiment.getAssays()) {
