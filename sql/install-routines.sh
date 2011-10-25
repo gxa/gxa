@@ -4,28 +4,28 @@ TABLE_NAMES_DATA="Assay \
              AssayPVOntology \
              AssaySample \
              Experiment \
+             ExperimentAsset \
              Sample \
              SamplePV \
              SamplePVOntology"
 
 TABLE_NAMES_SCHEMA="ArrayDesign \
-             AnnSrc_BioEntityType
+             AnnotationSrc \
+             AnnSrc_BioEntityType \
              BioEntity \
-             BioEntity2BioEntity \
              BioEntitybepv \
              BioEntityproperty \
              BioEntitypropertyvalue \
              BioEntitytype \
              BioMartArrayDesign \
              BioMartProperty \
-             Berelationtype \
              DesignElement \
-             DesignEltBioEntity \
-             ExperimentAsset \
+             DesignEltBioentity \
              Gene \
              GeneGPV \
              GeneProperty \
              GenePropertyValue \
+             GeneSigAnnotationSrc \
              Ontology \
              OntologyTerm \
              Organism \
@@ -50,19 +50,16 @@ create_schema() {
       sed "s/\/\*PK_TABLESPACE\*\//USING INDEX TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" Schema/Tables.sql | \
       sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" > Schema/TablesTablespace.sql
     fi
-    
     for SCRIPT_NAME in $CORE_SCRIPTS
       do
       if [ ! -r Schema/$SCRIPT_NAME ]; then
 	  echo "required script not found in Schema folder:" $SCRIPT_NAME; exit -1
       fi
-      
       if [ "$SCRIPT_NAME" == "Tables.sql" ]; then
 	  if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
 	      SCRIPT_NAME=TablesTablespace.sql 
 	  fi
       fi
-      
       echo "executing " $SCRIPT_NAME
       
       sqlplus -L -S $ATLAS_CONNECTION @Schema/$SCRIPT_NAME
@@ -95,11 +92,9 @@ load_data() {
       if [ "$LDR_RESULT" -ne "0" ]; then
 	  echo "can not execute sqlldr:" $LDR_CTL $LDR_RESULT ; 
       fi
-      
       cat $LDR_CTL.log >> install.log
       rm $LDR_CTL.log
     done
-    
     echo "Enabling constraints and rebuilding sequences..."
     echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION
     echo "call ATLASMGR.RebuildSequences();" | sqlplus -L -S $ATLAS_CONNECTION
