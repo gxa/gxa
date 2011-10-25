@@ -468,16 +468,11 @@ public class AtlasGene {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
         List<EfAttribute> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
 
-        Collections2.filter(efs,
-                new Predicate<EfAttribute>() {
-                    public boolean apply(@Nullable EfAttribute attribute) {
-                        return attribute != null && !omittedEfs.contains(attribute.getEf());
-                    }
-                });
-
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
         for (EfAttribute attr : efs) {
+            if (omittedEfs.contains(attr.getEf()))
+                continue;
             Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr, UP_DOWN);
             ExperimentalFactor factor = new ExperimentalFactor(this, attr.getEf(), omittedEfs, atlasStatisticsQueryService);
             for (ExperimentInfo exp : experiments) {
