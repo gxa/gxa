@@ -253,7 +253,7 @@ public class Assay {
      * That is, effective values are union of property sets from the assay itself and all its samples (if any).
      * 
      * @param property definition of the property to look up values for
-     * @returns all values for the property, including values defined by assay's {@link Sample}s
+     * @return all values for the property, including values defined by assay's {@link Sample}s
      */
     public Collection<PropertyValue> getEffectiveValues(Property property) {
         SortedSet<PropertyValue> result = newTreeSet();
@@ -262,7 +262,7 @@ public class Assay {
                 result.add(ap.getPropertyValue());
         }
         for (Sample sample : samples) {
-            result.addAll(sample.getEffectiveValues(property));
+            result.addAll(sample.getPropertyValues(property));
         }
         return result;
     }

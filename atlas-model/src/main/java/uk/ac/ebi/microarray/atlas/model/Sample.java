@@ -227,7 +227,18 @@ public class Sample {
         }
     }
 
-    public Collection<PropertyValue> getEffectiveValues(Property property) {
+    /**
+     * Returns all the values for a given property
+     * <p/>
+     * <strong>NB:</strong> There shouldn't be more than one value:
+     * we do not really support multiple PV at the moment.
+     * Still, the DB is organised in such a way that we can technically get more than one.
+     * Since it doesn't break anything, let's live with it for a while.
+     *
+     * @param property definition of the property to look up values for
+     * @return all values for the property
+     */
+    public Collection<PropertyValue> getPropertyValues(Property property) {
         SortedSet<PropertyValue> result = newTreeSet();
         for (SampleProperty sp : properties) {
             if (sp.getDefinition().equals(property))
