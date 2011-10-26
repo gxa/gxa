@@ -43,7 +43,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     }
 
     public PropertyValue getOrCreatePropertyValue(String name, String value) {
-        Property property = propertyDAO.getOrCreateProperty(Property.getSanitizedPropertyAccession(name), name);
+        Property property = propertyDAO.getOrCreateProperty(name);
         return getOrCreatePropertyValue(property, value);
     }
 
