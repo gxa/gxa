@@ -26,6 +26,8 @@ import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
+import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.*;
@@ -39,7 +41,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 14/04/2011
  */
-public class BioMartConnection {
+public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotationSource> {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final String MART_NAME_PH = "$MART_NAME";
@@ -80,6 +82,9 @@ public class BioMartConnection {
     }
 
 
+
+
+    @Override
     public String getOnlineMartVersion() throws BioMartAccessException {
         URL url = null;
         BufferedReader bufferedReader = null;
@@ -107,6 +112,7 @@ public class BioMartConnection {
         return version;
     }
 
+    @Override
     public Collection<String> validateAttributeNames(Set<String> properties) throws BioMartAccessException {
         List<String> missingAttrs = new ArrayList<String>();
 

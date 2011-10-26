@@ -56,6 +56,7 @@ public abstract class AnnotationSourceLoader<T extends AnnotationSource> {
         this.arrayDesignService = arrayDesignService;
     }
 
+
     public abstract String getAnnSrcAsStringById(String id);
 
     @Transactional

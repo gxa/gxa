@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.annotator.model.genesigdb;
 
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,6 +24,11 @@ public class GeneSigAnnotationSource extends AnnotationSource{
     private BioEntityProperty bioEntityProperty;
 
     public GeneSigAnnotationSource() {
+    }
+
+    @Override
+    public AnnotationSource createCopyForNewSoftware(Software newSoftware) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public String getUrl() {

@@ -22,15 +22,21 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import uk.ac.ebi.gxa.annotator.loader.filebased.FileBasedConnection;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 
 /**
  * User: nsklyar
  * Date: 22/06/2011
  */
-public class BioMartConnectionFactory {
+public class AnnotationSourceConnectionFactory {
 
     public static BioMartConnection createConnectionForAnnSrc(BioMartAnnotationSource annSrc) throws BioMartAccessException {
         return new BioMartConnection(annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
+    }
+
+    public static FileBasedConnection createConnectionForAnnSrc(GeneSigAnnotationSource annSrc) throws BioMartAccessException {
+        return new FileBasedConnection(annSrc.getUrl());
     }
 }

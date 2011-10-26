@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationLoaderException;
 import uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader;
+import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceConnectionFactory;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -36,7 +36,7 @@ public class AnnotationSourceController {
         
         for (BioMartAnnotationSource annSrc : annotationSources) {
             try {
-                BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
+                BioMartConnection connection = AnnotationSourceConnectionFactory.createConnectionForAnnSrc(annSrc);
                 ValidationReport validationReport = new ValidationReport();
                 if (!connection.isValidDataSetName()) {
                     validationReport.setOrganismName(annSrc.getDatasetName());

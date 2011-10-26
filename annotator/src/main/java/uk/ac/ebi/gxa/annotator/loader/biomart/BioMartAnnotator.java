@@ -88,8 +88,7 @@ public class BioMartAnnotator {
             BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
             BioMartParser<BioEntityAnnotationData> parser = BioMartParser.initParser(attributesHandler.getTypes(), builder);
 
-
-            BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
+            BioMartConnection martConnection = AnnotationSourceConnectionFactory.createConnectionForAnnSrc(annSrc);
 
             //Read BioEntities
             readBioEntities(martConnection.getAttributesURL(attributesHandler.getMartBEIdentifiersAndNames()), parser);
@@ -144,7 +143,7 @@ public class BioMartAnnotator {
             BioMartParser<DesignElementMappingData> parser = BioMartParser.initParser(attributesHandler.getTypes(), new DesignElementDataBuilder());
 
 
-            BioMartConnection martConnection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
+            BioMartConnection martConnection = AnnotationSourceConnectionFactory.createConnectionForAnnSrc(annSrc);
             if (!annSrc.isApplied()) {
                 readBioEntities(martConnection.getAttributesURL(attributesHandler.getMartBEIdentifiersAndNames()), parser);
                 beDataWriter.writeBioEntities(parser.getData(), listener);

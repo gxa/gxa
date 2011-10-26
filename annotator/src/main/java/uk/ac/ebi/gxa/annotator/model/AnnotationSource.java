@@ -121,4 +121,6 @@ public abstract class AnnotationSource implements Serializable {
     public void setApplied(boolean applied) {
         isApplied = applied;
     }
+
+    public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
 }
