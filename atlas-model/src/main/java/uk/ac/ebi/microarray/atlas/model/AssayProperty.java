@@ -39,7 +39,7 @@ import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_ASSAYPV")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public final class AssayProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assayPVSeq")

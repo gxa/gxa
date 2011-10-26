@@ -31,7 +31,7 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class ArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")

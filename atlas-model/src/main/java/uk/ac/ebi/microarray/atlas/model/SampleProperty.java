@@ -37,7 +37,7 @@ import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_SAMPLEPV")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public final class SampleProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "samplePVSeq")

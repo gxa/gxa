@@ -39,7 +39,7 @@ import static com.google.common.collect.Sets.newTreeSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Experiment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "experimentSeq")
@@ -62,12 +62,12 @@ public class Experiment {
     private List<Asset> assets = new ArrayList<Asset>();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @Fetch(FetchMode.SUBSELECT)
     private List<Assay> assays = new ArrayList<Assay>();
 
     @OneToMany(targetEntity = Sample.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @Fetch(FetchMode.SUBSELECT)
     private List<Sample> samples = new ArrayList<Sample>();
 

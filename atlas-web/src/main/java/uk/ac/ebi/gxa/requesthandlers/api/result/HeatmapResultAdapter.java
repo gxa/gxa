@@ -30,6 +30,8 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -37,6 +39,7 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
@@ -55,14 +58,15 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final AtlasStructuredQueryResult r;
     private final ExperimentDAO experimentDAO;
+    private final AtlasDataDAO atlasDataDAO;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private final Map<String, Experiment> experimentsCache = new HashMap<String, Experiment>();
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasDataDAO atlasDataDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
         this.experimentDAO = experimentDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
@@ -99,11 +103,11 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return counter.getNones();
             }
 
-            public double getUpPvalue() {
+            public float getUpPvalue() {
                 return counter.getMpvUp();
             }
 
-            public double getDownPvalue() {
+            public float getDownPvalue() {
                 return counter.getMpvDn();
             }
 
@@ -114,10 +118,13 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 new Function<ExperimentResult, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
                                         try {
-                                            Experiment exp = getExperiment(e.getAccession());
-                                            return new ListResultRowExperiment(exp,
-                                                    e.getPValTStatRank().getPValue(),
-                                                    toExpression(e.getPValTStatRank()));
+                                            ExperimentWithData ewd = getExperiment(e.getAccession());
+                                            PTRank ptRank = e.getPValTStatRank();
+                                            UpDownExpression expression = toExpression(ptRank);
+                                            float pVal = getPValueFromNcdf(ewd, e.getHighestRankAttribute().getEf(), e.getHighestRankAttribute().getEfv(), expression, (long) row.getGene().getGeneId(), ptRank.getPValue());
+                                            // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
+                                            return new ListResultRowExperiment(ewd.getExperiment(), pVal, expression);
+
                                         } catch (RecordNotFoundException rnfe) {
                                             // Quiesce - no experiment matching e.getAccession() was found
                                         }
@@ -234,13 +241,30 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
     /**
      * @param accession experiment accession
-     * @return Experiment corresponding to the accession
+     * @return ExperimentWithData corresponding to the accession
      */
-    private Experiment getExperiment(String accession) throws RecordNotFoundException {
-        Experiment experiment = experimentsCache.get(accession);
-        if (experiment == null) {
-            experimentsCache.put(accession, experiment = experimentDAO.getByName(accession));
-        }
-        return experiment;
+    private ExperimentWithData getExperiment(String accession) throws RecordNotFoundException {
+        Experiment experiment = experimentDAO.getByName(accession);
+        if (experiment == null)
+            return null;
+        return atlasDataDAO.createExperimentWithData(experiment);
+    }
+
+    /**
+     * @param ewd
+     * @param bestEf
+     * @param bestEfv
+     * @param expression
+     * @param geneId
+     * @param roundedPVal
+     * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
+     */
+    private float getPValueFromNcdf(ExperimentWithData ewd, String bestEf, String bestEfv, UpDownExpression expression, long geneId, float roundedPVal) {
+        float accuratePVal = roundedPVal;
+        if (expression.isUp())
+            accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_UP).getPValAdjusted();
+        else if (expression.isDown())
+            accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_DOWN).getPValAdjusted();
+        return accuratePVal;
     }
 }

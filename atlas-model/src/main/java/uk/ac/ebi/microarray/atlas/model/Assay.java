@@ -39,7 +39,7 @@ import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Assay {
     private static final Function<AssayProperty, String> PROPERTY_NAME =
             new Function<AssayProperty, String>() {
@@ -95,7 +95,7 @@ public class Assay {
     @OneToMany(targetEntity = AssayProperty.class, mappedBy = "assay",
             orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     private List<AssayProperty> properties = new ArrayList<AssayProperty>();
 
     Assay() {
