@@ -44,8 +44,8 @@ public class AtlasStatisticsQueryServiceTest {
     @Before
     public void initGene() throws Exception {
         bioEntityId = 838592;  // identifier: ENSG00000162924; name: REL)
-        hematopoieticStemCellEfo = new EfoAttribute("EFO_0000527");
-        hematopoieticCellEfo = new EfoAttribute("EFO_0002436");
+        hematopoieticStemCellEfo = new EfoAttribute("CL_0000037");
+        hematopoieticCellEfo = new EfoAttribute("CL_0000988");
         hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell");
         E_MTAB_62 = new ExperimentInfo("E-MTAB-62", 1036809468l);
     }
@@ -118,7 +118,7 @@ public class AtlasStatisticsQueryServiceTest {
 
         boolean foundMapping = false;
         for (StatisticsQueryCondition condition : conditions) {
-            Set<EfvAttribute> attrs = condition.getAttributes();
+            Set<EfAttribute> attrs = condition.getAttributes();
             Set<ExperimentInfo> exps = condition.getExperiments();
             if (attrs.contains(hematopoieticStemCellEfv) && !exps.isEmpty() && exps.contains(E_MTAB_62))
                 foundMapping = true;
@@ -199,7 +199,7 @@ public class AtlasStatisticsQueryServiceTest {
     public void test_getScoringExperimentsForGeneAndAttribute() {
         Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(bioEntityId, hematopoieticStemCellEfv, StatisticsType.UP);
         assertTrue(experiments.size() > 0);
-        EfvAttribute attr = new EfvAttribute("cell_type");
+        EfAttribute attr = new EfAttribute("cell_type");
         experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(bioEntityId, attr, StatisticsType.UP);
         assertTrue(experiments.size() > 0);
     }
@@ -236,9 +236,9 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getExperimentsSortedByPvalueTRank() {
-        EfvAttribute attr = new EfvAttribute(null, null);
 
-        List<ExperimentResult> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1, StatisticsType.UP_DOWN);
+        EfvAttribute efvAttr = new EfvAttribute("", "");
+        List<ExperimentResult> list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efvAttr, -1, -1, StatisticsType.UP_DOWN);
         assertNotNull(list);
         assertTrue(list.size() > 0);
         ExperimentResult bestExperiment = list.get(0);
@@ -246,13 +246,33 @@ public class AtlasStatisticsQueryServiceTest {
         assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
         assertTrue(isSortedByPValTStatRank(list));
 
-        List<ExperimentResult> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, 0, 5, StatisticsType.UP_DOWN);
+        EfAttribute efAttr = new EfAttribute("");
+        list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.UP_DOWN);
+        assertNotNull(list);
+        assertTrue(list.size() > 0);
+        bestExperiment = list.get(0);
+        assertNotNull(bestExperiment.getHighestRankAttribute());
+        assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
+        assertTrue(isSortedByPValTStatRank(list));
+
+        List<ExperimentResult> list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efvAttr, 0, 5, StatisticsType.UP_DOWN);
         assertNotNull(list2);
         assertEquals(5, list2.size());
         assertTrue(isSortedByPValTStatRank(list2));
 
-        attr = new EfvAttribute("organism_part", "liver");
-        List<ExperimentResult> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attr, -1, -1, StatisticsType.UP_DOWN);
+        list2 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, 0, 5, StatisticsType.UP_DOWN);
+        assertNotNull(list2);
+        assertEquals(5, list2.size());
+        assertTrue(isSortedByPValTStatRank(list2));
+
+        efvAttr = new EfvAttribute("organism_part", "liver");
+        List<ExperimentResult> list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efvAttr, -1, -1, StatisticsType.UP_DOWN);
+        assertNotNull(list3);
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
+
+        efAttr = new EfAttribute("organism_part");
+        list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.UP_DOWN);
         assertNotNull(list3);
         assertTrue(list3.size() > 0);
         assertTrue(isSortedByPValTStatRank(list3));
@@ -260,12 +280,13 @@ public class AtlasStatisticsQueryServiceTest {
 
     @Test
     public void test_getScoringEfsForGene() {
-        List<String> scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
+        EfAttribute cellType = new EfAttribute("cell_type");
+        List<EfAttribute> scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, null);
         assertTrue(scoringEfs.size() > 1);
-        assertTrue(scoringEfs.contains("cell_type"));
-        scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, "cell_type");
+        assertTrue(scoringEfs.contains(cellType));
+        scoringEfs = atlasStatisticsQueryService.getScoringEfsForBioEntity(bioEntityId, StatisticsType.UP_DOWN, cellType.getEf());
         assertEquals(1, scoringEfs.size());
-        assertTrue(scoringEfs.contains("cell_type"));
+        assertTrue(scoringEfs.contains(cellType));
     }
 
     @Test
@@ -278,7 +299,7 @@ public class AtlasStatisticsQueryServiceTest {
     @Test
     public void test_getExperimentsForGeneAndEf() {
         List<ExperimentInfo> experiments =
-                atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(bioEntityId, new EfvAttribute("cell_type"), StatisticsType.UP_DOWN);
+                atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(bioEntityId, new EfAttribute("cell_type"), StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 0);
         experiments = atlasStatisticsQueryService.getExperimentsForBioEntityAndAttribute(bioEntityId, null, StatisticsType.UP_DOWN);
         assertTrue(experiments.size() > 1);
