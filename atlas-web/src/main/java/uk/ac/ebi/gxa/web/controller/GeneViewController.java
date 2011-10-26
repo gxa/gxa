@@ -27,7 +27,6 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.io.Closeables;
-import com.sun.istack.internal.NotNull;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +47,7 @@ import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -220,7 +220,7 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/experiment-list-page";
     }
 
-    private int getNumberOfExperiments(AtlasGene gene, @NotNull Attribute attr) {
+    private int getNumberOfExperiments(AtlasGene gene, @Nonnull Attribute attr) {
         if (attr instanceof EfvAttribute) {
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
