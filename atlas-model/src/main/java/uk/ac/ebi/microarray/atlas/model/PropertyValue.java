@@ -4,6 +4,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 
 @Entity
@@ -14,8 +15,10 @@ public final class PropertyValue implements Comparable<PropertyValue> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertyValueSeq")
     @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ", allocationSize = 1)
     private Long propertyvalueid;
+    @Nonnull
     @ManyToOne
     private Property property;
+    @Nonnull
     @Column(name = "NAME")
     private String value;
     private String displayName;
@@ -24,6 +27,11 @@ public final class PropertyValue implements Comparable<PropertyValue> {
     }
 
     public PropertyValue(Long id, Property definition, String value) {
+        if (definition == null)
+            throw new NullPointerException("Definition must be provided");
+        if (value == null)
+            throw new NullPointerException("Value must be provided");
+
         this.propertyvalueid = id;
         this.property = definition;
         this.value = value;
@@ -33,10 +41,12 @@ public final class PropertyValue implements Comparable<PropertyValue> {
         return propertyvalueid;
     }
 
+    @Nonnull
     public Property getDefinition() {
         return property;
     }
 
+    @Nonnull
     public String getValue() {
         return value;
     }
@@ -52,16 +62,12 @@ public final class PropertyValue implements Comparable<PropertyValue> {
 
         PropertyValue that = (PropertyValue) o;
 
-        return !(property != null ? !property.equals(that.property) : that.property != null) &&
-                !(value != null ? !value.equals(that.value) : that.value != null);
+        return property.equals(that.property) && value.equals(that.value);
     }
 
     @Override
     public int hashCode() {
-        int result = property != null ? property.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-
-        return result;
+        return property.hashCode() * 31 + value.hashCode();
     }
 
     @Override
