@@ -135,9 +135,7 @@ public class ArrayDesign {
 
         ArrayDesign that = (ArrayDesign) o;
 
-        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
-
-        return true;
+        return !(accession != null ? !accession.equals(that.accession) : that.accession != null);
     }
 
     @Override

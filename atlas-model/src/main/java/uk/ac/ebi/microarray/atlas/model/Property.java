@@ -3,20 +3,23 @@ package uk.ac.ebi.microarray.atlas.model;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-public final class Property {
+public final class Property implements Comparable<Property> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
     @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ", allocationSize = 1)
     private Long propertyid;
     private String name;
+    private String displayName;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -25,9 +28,10 @@ public final class Property {
     Property() {
     }
 
-    public Property(Long id, String name) {
+    public Property(Long id, String accession, String displayName) {
         this.propertyid = id;
-        this.name = name;
+        this.name = accession;
+        this.displayName = displayName;
     }
 
     public Long getId() {
@@ -38,8 +42,12 @@ public final class Property {
         return name;
     }
 
+    public String getDisplayName() {
+        return displayName == null ? StringUtil.prettify(name) : displayName;
+    }
+
     public List<PropertyValue> getValues() {
-        return Collections.unmodifiableList(values);
+        return unmodifiableList(values);
     }
 
     public void deleteValue(PropertyValue propertyValue) {
@@ -53,9 +61,7 @@ public final class Property {
 
         Property that = (Property) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-
-        return true;
+        return name == null ? that.name == null : name.equals(that.name);
     }
 
     @Override
@@ -69,5 +75,10 @@ public final class Property {
                 "id=" + propertyid +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Property o) {
+        return name.compareTo(o.name);
     }
 }

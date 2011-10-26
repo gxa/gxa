@@ -330,4 +330,15 @@ public class Experiment {
         }
         return null;
     }
+
+    public SortedSet<Property> getProperties() {
+        SortedSet<Property> result = newTreeSet();
+        for (Assay assay : assays) {
+            result.addAll(assay.getPropertyDefinitions());
+        }
+        for (Sample sample : samples) {
+            result.addAll(sample.getPropertyDefinitions());
+        }
+        return result;
+    }
 }

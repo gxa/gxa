@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
-import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
@@ -38,6 +37,8 @@ import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -45,6 +46,7 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
 import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -73,13 +75,14 @@ public class GeneViewController extends AtlasViewController {
 
     final private Logger log = LoggerFactory.getLogger(getClass());
     private ExperimentDAO experimentDAO;
+    private PropertyDAO propertyDAO;
 
     @Autowired
     public GeneViewController(GeneSolrDAO geneSolrDAO, AtlasProperties atlasProperties,
                               AnatomogramFactory anatomogramFactory,
                               AtlasStatisticsQueryService atlasStatisticsQueryService,
                               BioEntityDAO bioEntityDao,
-                              Efo efo, ExperimentDAO experimentDAO) {
+                              Efo efo, ExperimentDAO experimentDAO, PropertyDAO propertyDAO) {
         this.geneSolrDAO = geneSolrDAO;
         this.atlasProperties = atlasProperties;
         this.anatomogramFactory = anatomogramFactory;
@@ -87,6 +90,7 @@ public class GeneViewController extends AtlasViewController {
         this.bioEntityDAO = bioEntityDao;
         this.efo = efo;
         this.experimentDAO = experimentDAO;
+        this.propertyDAO = propertyDAO;
     }
 
     @RequestMapping(value = "/gene/{gid}", method = RequestMethod.GET)
@@ -286,10 +290,19 @@ public class GeneViewController extends AtlasViewController {
         Anatomogram an = anatomogramFactory.getAnatomogram(gene);
         model.addAttribute("gene", GenePageGene.create(gene, atlasProperties, geneSolrDAO, atlasStatisticsQueryService))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
-                .addAttribute("ef", ef)
+                .addAttribute("ef", parseFactor(ef))
                 .addAttribute("hasAnatomogram", !an.isEmpty())
                 .addAttribute("anatomogramMap", an.getAreaMap());
         return "genepage/gene";
+    }
+
+    private Property parseFactor(String ef) throws ResourceNotFoundException {
+        try {
+            return isNullOrEmpty(ef) ? null : propertyDAO.getByName(ef);
+        } catch (RecordNotFoundException e) {
+            log.warn("Invalid factor '{}': {}", ef, e.getMessage());
+            throw new ResourceNotFoundException("Invalid factor " + ef);
+        }
     }
 }
 

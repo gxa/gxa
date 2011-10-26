@@ -23,6 +23,8 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="experimentDesign"
+             type="uk.ac.ebi.gxa.web.controller.ExperimentDesignUI" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -90,7 +92,7 @@
                 <th>Assay</th>
                 <th>Array</th>
                 <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
-                    <th>${f:escapeXml(atlasProperties.curatedEfs[factor.name])}</th>
+                    <th>${f:escapeXml(factor.displayName)}</th>
                 </c:forEach>
             </tr>
             </thead>
@@ -98,13 +100,22 @@
             <tbody>
             <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
                 <tr>
-                    <td class="padded genename" style="border-left:none">
-                            ${assay.name}
+                    <td class="padded assayName" style="border-left:none">
+                            ${assay.accession}
                     </td>
-                    <td>${assay.arrayDesignAccession}</td>
-                    <c:forEach var="factorValue" items="${assay.factorValues}" varStatus="r">
+                    <td><nobr>${assay.arrayDesign.accession}</nobr></td>
+                    <c:forEach var="factor" items="${experimentDesign.factors}">
                         <td class="padded wrapok">
-                                ${factorValue}
+                                <c:forEach var="value" items="${experimentDesign.values[factor][assay]}" varStatus="r">
+                                    <%--
+                                        the line below checks that the value is of the type we need
+                                        and makes sure usage search works fine in case we want to rename or drop
+                                        the property
+                                     --%>
+                                    <jsp:useBean id="value" type="uk.ac.ebi.microarray.atlas.model.PropertyValue"/>
+                                    <c:out value="${value.displayValue}"/>
+                                    <c:if test="${not r.last}">,</c:if>
+                                </c:forEach>
                         </td>
                     </c:forEach>
                 </tr>

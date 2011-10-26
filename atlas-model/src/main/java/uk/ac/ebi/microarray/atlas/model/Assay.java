@@ -36,7 +36,6 @@ import java.util.*;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
@@ -47,6 +46,13 @@ public class Assay {
                 @Override
                 public String apply(@Nonnull AssayProperty input) {
                     return input.getName();
+                }
+            };
+    private static final Function<AssayProperty, Property> PROPERTY_DEF =
+            new Function<AssayProperty, Property>() {
+                @Override
+                public Property apply(@Nonnull AssayProperty input) {
+                    return input.getDefinition();
                 }
             };
     private static final Function<AssayProperty, String> PROPERTY_VALUE =
@@ -136,10 +142,6 @@ public class Assay {
         return arrayDesign;
     }
 
-    public Long getAssayID() {
-        return getId();
-    }
-
     public List<Sample> getSamples() {
         return samples;
     }
@@ -172,10 +174,6 @@ public class Assay {
         return properties;
     }
 
-    public void addProperty(String type, String nodeName, String s) {
-        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
-    }
-
     public boolean hasNoProperties() {
         return properties.isEmpty();
     }
@@ -188,12 +186,17 @@ public class Assay {
         return filter(properties, new PropertyNamePredicate(type));
     }
 
+    public Collection<AssayProperty> getProperties(final Property property) {
+        return filter(properties, new PropertyPredicate(property));
+    }
+
+    @Deprecated
     public SortedSet<String> getPropertyNames() {
         return newTreeSet(transform(properties, PROPERTY_NAME));
     }
 
-    public String getEfoSummary(String name) {
-        return on(",").join(concat(transform(getProperties(name), PROPERTY_TERMS)));
+    public SortedSet<Property> getPropertyDefinitions() {
+        return newTreeSet(transform(properties, PROPERTY_DEF));
     }
 
     /**
@@ -207,11 +210,11 @@ public class Assay {
     }
 
     public void addProperty(PropertyValue property) {
-        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
+        properties.add(new AssayProperty(this, property, Collections.<OntologyTerm>emptyList()));
     }
 
-    public void addProperty(final PropertyValue property, final List<OntologyTerm> terms) {
-        properties.add(new AssayProperty(null, this, property, terms));
+    private void addProperty(final PropertyValue property, final List<OntologyTerm> terms) {
+        properties.add(new AssayProperty(this, property, terms));
     }
 
     public AssayProperty getProperty(PropertyValue propertyValue) {
@@ -244,6 +247,18 @@ public class Assay {
         }
     }
 
+    public Collection<PropertyValue> getEffectiveValues(Property property) {
+        SortedSet<PropertyValue> result = newTreeSet();
+        for (AssayProperty ap : properties) {
+            if (ap.getDefinition().equals(property))
+                result.add(ap.getPropertyValue());
+        }
+        for (Sample sample : samples) {
+            result.addAll(sample.getEffectiveValues(property));
+        }
+        return result;
+    }
+
     private static class PropertyNamePredicate implements Predicate<AssayProperty> {
         private final String type;
 
@@ -254,6 +269,19 @@ public class Assay {
         @Override
         public boolean apply(@Nonnull AssayProperty input) {
             return input.getName().equals(type);
+        }
+    }
+
+    private static class PropertyPredicate implements Predicate<AssayProperty> {
+        private final Property type;
+
+        public PropertyPredicate(Property type) {
+            this.type = type;
+        }
+
+        @Override
+        public boolean apply(@Nonnull AssayProperty input) {
+            return type.equals(input.getDefinition());
         }
     }
 }

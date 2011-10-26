@@ -50,18 +50,19 @@ public class AtlasGeneDescription {
     private Integer totalExperiments;
     private final AtlasProperties atlasProperties;
 
-    private static int sortOrder(String val) {
+    private int sortOrder(EfvTree.EfEfv<UpdownCounter> efEfv) {
+        String val = efEfv.getEf();
         if (val.equalsIgnoreCase("gene")) {
             return 1;
-        } else if (val.equalsIgnoreCase("organism part")) {
+        } else if (val.equalsIgnoreCase("organism_part")) {
             return 2;
-        } else if (val.equalsIgnoreCase("disease state")) {
+        } else if (val.equalsIgnoreCase("disease_state")) {
             return 3;
-        } else if (val.equalsIgnoreCase("cell type")) {
+        } else if (val.equalsIgnoreCase("cell_type")) {
             return 4;
-        } else if (val.equalsIgnoreCase("cell line")) {
+        } else if (val.equalsIgnoreCase("cell_line")) {
             return 5;
-        } else if (val.equalsIgnoreCase("compound treatment")) {
+        } else if (val.equalsIgnoreCase("compound_treatment") || val.equals("compound")) {
             return 6;
         } else if (val.equalsIgnoreCase("experiment")) {
             return 8;
@@ -235,13 +236,10 @@ public class AtlasGeneDescription {
             public int compare(EfvTree.EfEfv<UpdownCounter> o1, EfvTree.EfEfv<UpdownCounter> o2) {
                 int result;
 
-                String ef1 = atlasProperties.getCuratedEf(o1.getEf());
-                String ef2 = atlasProperties.getCuratedEf(o2.getEf());
-
-                result = sortOrder(ef1) - sortOrder(ef2);
+                result = sortOrder(o1) - sortOrder(o2);
 
                 if (0 == result)
-                    result = ef1.compareTo(ef2);
+                    result = o1.getEf().compareTo(o2.getEf());
 
                 if (0 == result)
                     result = o2.getPayload().getNoStudies() - o1.getPayload().getNoStudies();
@@ -277,7 +275,6 @@ public class AtlasGeneDescription {
         text = experimentCountText + ": " + text;
         //text += "<a href=\"http://www.ebi.ac.uk/gxa\">.</a>";
     }
-
 
     /**
      * @return human readable gene description, like "BRCA2 is differentially expressed in 91 experiments [93 up/91 dn]:  15 organism parts: kidney [0 up/2 dn], bone marrow [2 up/0 dn], ...; 21 disease states: normal [1 up/6 dn], glioblastoma [1 up/0 dn], ...; 21 cell types, 28 cell lines, 19 compound treatments and 17 other conditions."

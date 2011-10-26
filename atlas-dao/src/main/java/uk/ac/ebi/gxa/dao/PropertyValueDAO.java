@@ -25,7 +25,7 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     public PropertyValue find(Property property, String value) throws RecordNotFoundException {
         @SuppressWarnings("unchecked")
         final List<PropertyValue> results = template.find("from PropertyValue where property = ? and value = ?", property, value);
-        return getFirst(results, property + ":" + value);
+        return getOnly(results);
     }
 
     /**
@@ -42,8 +42,12 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         template.delete(propertyValue);
     }
 
-    public PropertyValue getOrCreatePropertyValue(String name, String value) {
-        Property property = propertyDAO.getOrCreateProperty(name);
+    public PropertyValue getOrCreatePropertyValue(String propertyAccession, String name, String valueAccession, String value) {
+        Property property = propertyDAO.getOrCreateProperty(propertyAccession, name);
+        return getOrCreatePropertyValue(property, value);
+    }
+
+    public PropertyValue getOrCreatePropertyValue(Property property, String value) {
         try {
             return find(property, value);
         } catch (RecordNotFoundException e) {

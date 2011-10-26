@@ -25,11 +25,11 @@ package ae3.model;
 import com.google.common.base.Function;
 import org.apache.solr.common.SolrDocument;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.LazyMap;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
@@ -76,13 +76,13 @@ public class AtlasExperiment {
      *
      * @return map of factor values
      */
-    public Map<String, Collection<String>> getFactorValuesForEF() {
-        return new LazyMap<String, Collection<String>>() {
+    public Map<Property, Collection<String>> getFactorValuesForEF() {
+        return new LazyMap<Property, Collection<String>>() {
             @Override
-            protected Collection<String> map(String s) {
+            protected Collection<String> map(Property property) {
                 TreeSet<String> result = newTreeSet();
                 for (uk.ac.ebi.microarray.atlas.model.Assay assay : experiment.getAssays()) {
-                    result.addAll(transform(assay.getProperties(s), new Function<AssayProperty, String>() {
+                    result.addAll(transform(assay.getProperties(property), new Function<AssayProperty, String>() {
                         @Override
                         public String apply(@Nonnull AssayProperty input) {
                             return input.getValue();
@@ -93,8 +93,8 @@ public class AtlasExperiment {
             }
 
             @Override
-            protected Iterator<String> keys() {
-                throw LogUtil.createUnexpected("I'm a JSP function, not a map!");
+            protected Iterator<Property> keys() {
+                return experiment.getProperties().iterator();
             }
         };
     }
@@ -134,8 +134,8 @@ public class AtlasExperiment {
      *
      * @return all factors from the experiment
      */
-    public Set<String> getExperimentFactors() {
-        return experiment.getExperimentFactors();
+    public SortedSet<Property> getExperimentFactors() {
+        return experiment.getProperties();
     }
 
     private String getPlatform() {

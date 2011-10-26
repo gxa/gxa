@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.loader;
 
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -32,7 +33,7 @@ public class MockFactory {
             if (pv == null) {
                 Property p = ps.get(name);
                 if (p == null) {
-                    ps.put(name, p = new Property(null, name));
+                    ps.put(name, p = new Property(null, EscapeUtil.encode(name).toLowerCase(), name));
                 }
                 pvs.put(Pair.create(name, value), pv = new PropertyValue(null, p, value));
             }
