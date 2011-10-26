@@ -465,10 +465,6 @@
             <id>hasbanana</id>
             <url>http://www.hasbanana.com/maven/repo</url>
         </repository>
-        <repository>
-            <id>opencast</id>
-            <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
-        </repository>
     </repositories>
 
     <distributionManagement>
