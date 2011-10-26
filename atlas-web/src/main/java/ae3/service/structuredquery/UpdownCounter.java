@@ -101,6 +101,14 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
         return mpvdn;
     }
 
+    public void setMpvUp(float mpvup) {
+        this.mpvup = mpvup;
+    }
+
+    public void setMpvDn(float mpvdn) {
+        this.mpvdn = mpvdn;
+    }
+
     public void add(boolean isUp, float pvalue) {
         if (isUp) {
             ++ups;
