@@ -37,10 +37,12 @@
         <css>/blue/style.css</css>
         <js>/scripts/src/core/main.js</js>
         <js>/scripts/src/core/utils.js</js>
+        <js>/scripts/src/core/base64.js</js>
         <js>/scripts/src/core/pageState.js</js>
         <js>/scripts/src/core/barPlot.js</js>
         <js>/scripts/src/core/efPagination.js</js>
         <js>/scripts/src/core/geneExperimentList.js</js>
+        <js>/scripts/src/core/genePage.js</js>
         <js>/scripts/common-query.js</js>
         <js>/scripts/feedback.js</js>
     </group>
