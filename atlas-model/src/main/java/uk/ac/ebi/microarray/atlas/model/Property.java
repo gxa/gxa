@@ -7,6 +7,8 @@ import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.StringUtil;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,7 @@ public final class Property implements Comparable<Property> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertySeq")
     @SequenceGenerator(name = "propertySeq", sequenceName = "A2_PROPERTY_SEQ", allocationSize = 1)
     private Long propertyid;
+    @Nonnull
     private String name;
     private String displayName;
     @OneToMany(targetEntity = PropertyValue.class, mappedBy = "property", orphanRemoval = true)
@@ -31,6 +34,9 @@ public final class Property implements Comparable<Property> {
     }
 
     private Property(Long id, String accession, String displayName) {
+        if (!accession.equals(getSanitizedPropertyAccession(accession)))
+            throw new IncompleteArgumentException("Property accession must be sanitized");
+
         this.propertyid = id;
         this.name = accession;
         this.displayName = displayName;
@@ -44,10 +50,7 @@ public final class Property implements Comparable<Property> {
         return createProperty(null, getSanitizedPropertyAccession(displayName), displayName);
     }
 
-    public static Property createProperty(Long id, String accession, String displayName) {
-        if (!accession.equals(getSanitizedPropertyAccession(accession)))
-            throw new IncompleteArgumentException("Property accession must be sanitized");
-
+    public static Property createProperty(@Nullable Long id, String accession, String displayName) {
         return new Property(id, accession, displayName);
     }
 
@@ -55,6 +58,7 @@ public final class Property implements Comparable<Property> {
         return propertyid;
     }
 
+    @Nonnull
     public String getName() {
         return name;
     }
@@ -78,12 +82,12 @@ public final class Property implements Comparable<Property> {
 
         Property that = (Property) o;
 
-        return name == null ? that.name == null : name.equals(that.name);
+        return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return name != null ? name.hashCode() : 0;
+        return name.hashCode();
     }
 
     @Override
