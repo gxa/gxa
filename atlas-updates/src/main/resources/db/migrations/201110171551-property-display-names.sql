@@ -1,6 +1,5 @@
 update a2_property set displayname='Clinical info' where name='clinical_information';
 update a2_property set displayname='Compound treatment' where name='compound';
-update a2_property set displayname='Genotype' where name='genotype';
 update a2_property set displayname='Genotype' where name='individual_genetic_characteristics';
 update a2_property set displayname='Infection' where name='infect';
 update a2_property set displayname='RNAi' where name='rnai';
