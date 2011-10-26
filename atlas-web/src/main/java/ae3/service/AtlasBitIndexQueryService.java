@@ -538,10 +538,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
          if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
              Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
-             Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
+            Set<EfAttribute> attributes = statisticsQuery.getAttributes();
              Set<ExperimentInfo> experiments = statisticsQuery.getExperiments();
 
-             for (EfvAttribute attr : attributes) {
+             for (EfAttribute attr : attributes) {
 
                  SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenes =
                          statisticsStorage.getPvalsTStatRanksForAttribute(attr, statisticsQuery.getStatisticsType());
