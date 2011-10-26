@@ -1,8 +1,10 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import org.apache.commons.lang.IncompleteArgumentException;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
+import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.StringUtil;
 
 import javax.persistence.*;
@@ -28,10 +30,25 @@ public final class Property implements Comparable<Property> {
     Property() {
     }
 
-    public Property(Long id, String accession, String displayName) {
+    private Property(Long id, String accession, String displayName) {
         this.propertyid = id;
         this.name = accession;
         this.displayName = displayName;
+    }
+
+    public static String getSanitizedPropertyAccession(String name) {
+        return EscapeUtil.encode(name).toLowerCase();
+    }
+
+    public static Property createProperty(String displayName) {
+        return createProperty(null, getSanitizedPropertyAccession(displayName), displayName);
+    }
+
+    public static Property createProperty(Long id, String accession, String displayName) {
+        if (!accession.equals(getSanitizedPropertyAccession(accession)))
+            throw new IncompleteArgumentException("Property accession must be sanitized");
+
+        return new Property(id, accession, displayName);
     }
 
     public Long getId() {

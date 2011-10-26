@@ -42,8 +42,8 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         template.delete(propertyValue);
     }
 
-    public PropertyValue getOrCreatePropertyValue(String propertyAccession, String name, String valueAccession, String value) {
-        Property property = propertyDAO.getOrCreateProperty(propertyAccession, name);
+    public PropertyValue getOrCreatePropertyValue(String name, String value) {
+        Property property = propertyDAO.getOrCreateProperty(Property.getSanitizedPropertyAccession(name), name);
         return getOrCreatePropertyValue(property, value);
     }
 

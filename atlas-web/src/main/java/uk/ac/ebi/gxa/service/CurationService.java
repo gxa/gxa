@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.*;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -506,8 +505,7 @@ public class CurationService {
     }
 
     private PropertyValue getOrCreatePropertyValue(ApiPropertyValue apv) {
-        return propertyValueDAO.getOrCreatePropertyValue(EscapeUtil.encode(apv.getProperty().getName()).toLowerCase(),
-                apv.getProperty().getName(), apv.getValue(), apv.getValue());
+        return propertyValueDAO.getOrCreatePropertyValue(apv.getProperty().getName(), apv.getValue());
     }
 
     private static ResourceNotFoundException convert(RecordNotFoundException e) {

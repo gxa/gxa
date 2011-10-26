@@ -244,7 +244,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     private PropertyValue getProperty() {
-        return propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME.toLowerCase(), PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_VALUE);
+        return propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

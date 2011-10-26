@@ -5,7 +5,6 @@ import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -38,9 +37,7 @@ public class LoaderDAO {
      * @return PropertyValue corresponding to the values passed
      */
     public PropertyValue getOrCreatePropertyValue(String name, String value) {
-        String nameAccession = EscapeUtil.encode(name).toLowerCase();
-        String valueAccession = EscapeUtil.encode(name);
-        return propertyValueDAO.getOrCreatePropertyValue(nameAccession, name, valueAccession, value);
+        return propertyValueDAO.getOrCreatePropertyValue(name, value);
     }
 
     public ArrayDesign getArrayDesign(String accession) {
