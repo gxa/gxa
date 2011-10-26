@@ -38,7 +38,6 @@ import java.util.List;
 public class EfHeadersStorage implements Storage {
 
     private final static String PREFIX = "factor.curatedname.";
-    private static final int SUFFIXPOS = PREFIX.length();
 
     private final PropertyDAO propertyDAO;
 
