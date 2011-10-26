@@ -121,7 +121,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                             ExperimentWithData ewd = getExperiment(e.getAccession());
                                             PTRank ptRank = e.getPValTStatRank();
                                             UpDownExpression expression = toExpression(ptRank);
-                                            float pVal = getPValueFromNcdf(ewd, e.getHighestRankAttribute().getEf(), e.getHighestRankAttribute().getEfv(), expression, (long) row.getGene().getGeneId(), ptRank.getPValue());
+                                            float pVal = getPValueFromNcdf(ewd, e, (long) row.getGene().getGeneId(), ptRank.getPValue());
                                             // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
                                             return new ListResultRowExperiment(ewd.getExperiment(), pVal, expression);
 
@@ -252,19 +252,21 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
     /**
      * @param ewd
-     * @param bestEf
-     * @param bestEfv
-     * @param expression
+     * @param e
      * @param geneId
      * @param roundedPVal
      * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
      */
-    private float getPValueFromNcdf(ExperimentWithData ewd, String bestEf, String bestEfv, UpDownExpression expression, long geneId, float roundedPVal) {
+    private float getPValueFromNcdf(ExperimentWithData ewd, ExperimentResult e, long geneId, float roundedPVal) {
         float accuratePVal = roundedPVal;
-        if (expression.isUp())
-            accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_UP).getPValAdjusted();
-        else if (expression.isDown())
-            accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, bestEf, bestEfv, UpDownCondition.CONDITION_DOWN).getPValAdjusted();
+        UpDownExpression expression = toExpression(e.getPValTStatRank());
+        EfAttribute attr = e.getHighestRankAttribute();
+        if (attr instanceof EfvAttribute) {
+            if (expression.isUp())
+                accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(), ((EfvAttribute) attr).getEfv(), UpDownCondition.CONDITION_UP).getPValAdjusted();
+            else if (expression.isDown())
+                accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(), ((EfvAttribute) attr).getEfv(), UpDownCondition.CONDITION_DOWN).getPValAdjusted();
+        }
         return accuratePVal;
     }
 }
