@@ -129,7 +129,7 @@
                         obj1[p] = _extend(obj1[p], obj2[p]);
                     }
                 }
-            } else if (typeof obj1 === undefined || obj1 === null) {
+            } else if (obj1 === undefined || obj1 === null) {
                 obj1 = obj2;
             }
             return obj1;
