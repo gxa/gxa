@@ -247,6 +247,14 @@ public class Assay {
         }
     }
 
+    /**
+     * Returns all the values for a given property, including the ones defined by {@link Sample}s
+     * 
+     * That is, effective values are union of property sets from the assay itself and all its samples (if any).
+     * 
+     * @param property definition of the property to look up values for
+     * @returns all values for the property, including values defined by assay's {@link Sample}s
+     */
     public Collection<PropertyValue> getEffectiveValues(Property property) {
         SortedSet<PropertyValue> result = newTreeSet();
         for (AssayProperty ap : properties) {
