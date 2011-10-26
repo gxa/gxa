@@ -28,21 +28,14 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
-import uk.ac.ebi.gxa.dao.OrganismDAO;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -57,7 +50,7 @@ import static com.google.common.collect.Sets.difference;
 import static com.google.common.io.Closeables.closeQuietly;
 
 @Service
-public class BioMartAnnotationSourceLoader {
+public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMartAnnotationSource>{
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -73,44 +66,9 @@ public class BioMartAnnotationSourceLoader {
     private static final String BIOMARTPROPERTY_PROPNAME = "biomartProperty";
     private static final String ARRAYDESIGN_PROPNAME = "arrayDesign";
 
-    @Autowired
-    private AnnotationSourceDAO annSrcDAO;
 
-    @Autowired
-    private OrganismDAO organismDAO;
-    @Autowired
-    private SoftwareDAO softwareDAO;
-    @Autowired
-    private BioEntityTypeDAO typeDAO;
-    @Autowired
-    private BioEntityPropertyDAO propertyDAO;
-    @Autowired
-    private ArrayDesignService arrayDesignService;
 
-    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
-        this.annSrcDAO = annSrcDAO;
-    }
-
-    public void setOrganismDAO(OrganismDAO organismDAO) {
-        this.organismDAO = organismDAO;
-    }
-
-    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
-        this.softwareDAO = softwareDAO;
-    }
-
-    public void setTypeDAO(BioEntityTypeDAO typeDAO) {
-        this.typeDAO = typeDAO;
-    }
-
-    public void setPropertyDAO(BioEntityPropertyDAO propertyDAO) {
-        this.propertyDAO = propertyDAO;
-    }
-
-    public void setArrayDesignService(ArrayDesignService arrayDesignService) {
-        this.arrayDesignService = arrayDesignService;
-    }
-
+    @Override
     public String getAnnSrcAsStringById(String id) {
         Long aLong = Long.parseLong(id);
         BioMartAnnotationSource annotationSource = annSrcDAO.getById(aLong, BioMartAnnotationSource.class);
@@ -130,6 +88,7 @@ public class BioMartAnnotationSourceLoader {
         }
     }
 
+    @Override
     @Transactional
     public void saveAnnSrc(String text) throws AnnotationLoaderException {
         Reader reader = new StringReader(text);
@@ -197,6 +156,7 @@ public class BioMartAnnotationSourceLoader {
         properties.save(out);
     }
 
+    @Override
     @Transactional
     public Collection<BioMartAnnotationSource> getCurrentAnnotationSources() {
         final Collection<BioMartAnnotationSource> result = new HashSet<BioMartAnnotationSource>();
