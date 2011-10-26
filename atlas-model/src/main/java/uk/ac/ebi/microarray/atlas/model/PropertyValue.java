@@ -7,7 +7,7 @@ import org.hibernate.annotations.Immutable;
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Immutable
 public final class PropertyValue {
     @Id
