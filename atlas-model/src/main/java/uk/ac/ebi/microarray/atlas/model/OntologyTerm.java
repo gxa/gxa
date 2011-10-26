@@ -7,7 +7,7 @@ import uk.ac.ebi.gxa.Temporary;
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class OntologyTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")
