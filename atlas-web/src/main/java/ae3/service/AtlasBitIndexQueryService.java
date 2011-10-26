@@ -276,7 +276,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     *
      * @param bioEntityId Bioentity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
@@ -417,13 +416,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
                 if (attrCounts != null)
                     attrCounts.add(efvAttr, scoringExps.size());
                 for (ExperimentInfo exp : scoringExps) {
-                    String efoTerm = statisticsStorage.getEfoTerm(efvAttr, exp);
-                    if (efoTerm != null) {
-                        if (scoringEfos != null)
-                            scoringEfos.add(efoTerm);
-                        else
-                            log.debug("Skipping efo: " + efoTerm + " for attr: " + efvAttr + " and exp: " + exp);
-                    }
+                    Set<String> efoTerms = statisticsStorage.getEfoTerms(efvAttr, exp);
+                    if (scoringEfos != null)
+                        scoringEfos.addAll(efoTerms);
+                    else
+                        log.debug("Skipping efo: {} for attr: {} and exp: {}", new Object[]{efoTerms, efvAttr, exp});
                 }
             }
         }
@@ -441,7 +438,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
