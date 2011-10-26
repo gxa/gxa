@@ -19,12 +19,12 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     private final GCFriendlyThreadLocal<Statistics> statistics = new GCFriendlyThreadLocal<Statistics>(Statistics.class);
 
     @Override
-    public void addStatistics(final EfvAttribute attribute, final ExperimentInfo experiment, final Collection<Integer> bioEntityIds) {
+    public void addStatistics(final EfAttribute attribute, final ExperimentInfo experiment, final Collection<Integer> bioEntityIds) {
         get().addStatistics(attribute, experiment, bioEntityIds);
     }
 
     @Override
-    public void addBioEntitiesForEfAttribute(final EfvAttribute attribute, final Collection<Integer> bioEntityIds) {
+    public void addBioEntitiesForEfAttribute(final EfAttribute attribute, final Collection<Integer> bioEntityIds) {
         get().addBioEntitiesForEfAttribute(attribute, bioEntityIds);
     }
 
@@ -39,7 +39,7 @@ public class ThreadSafeStatisticsBuilder implements StatisticsBuilder {
     }
 
     @Override
-    public void addPvalueTstatRank(final EfvAttribute attribute, final PTRank ptRank, final ExperimentInfo experiment, final Integer bioEntityId) {
+    public void addPvalueTstatRank(final EfAttribute attribute, final PTRank ptRank, final ExperimentInfo experiment, final Integer bioEntityId) {
         get().addPvalueTstatRank(attribute, ptRank, experiment, bioEntityId);
     }
 

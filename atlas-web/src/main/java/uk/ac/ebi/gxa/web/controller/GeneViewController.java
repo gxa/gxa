@@ -27,6 +27,7 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.io.Closeables;
+import com.sun.istack.internal.NotNull;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,10 +220,8 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/experiment-list-page";
     }
 
-    private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
+    private int getNumberOfExperiments(AtlasGene gene, @NotNull Attribute attr) {
         if (attr instanceof EfvAttribute) {
-            //TODO temporary workaround see ticket #3109 to split EfvAttribute into EfAttribute and EfvAttribute - to separate its dual usage
-            attr = attr.isEmpty() ? null : attr;
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
 

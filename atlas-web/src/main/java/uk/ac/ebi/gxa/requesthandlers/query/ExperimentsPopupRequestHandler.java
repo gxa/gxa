@@ -26,6 +26,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
+import com.google.common.base.Strings;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
@@ -107,6 +108,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 if (term != null) {
                     jsResult.put("efv", term.getTerm());
                 }
+            } else if (Strings.isNullOrEmpty(factorValue)) {
+                attr = new EfAttribute(factor);
             } else {
                 attr = new EfvAttribute(factor, factorValue);
             }
@@ -137,11 +140,11 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             });
 
             // Now retrieve (from ncdfs) PTRank for each exp in nonDEExps and then add to allExperiments
-            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = newHashMap();
+            Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs = newHashMap();
             // Gather all experiment-efefv mappings for attr and all its children (if efo)
             Set<Attribute> attrAndChildren = attr.getAttributeAndChildren(efo);
             for (Attribute attribute : attrAndChildren) {
-                atlasStatisticsQueryService.getEfvExperimentMappings(attribute, allExpsToAttrs);
+                atlasStatisticsQueryService.getAttributeToExperimentMappings(attribute, allExpsToAttrs);
             }
             for (ExperimentResult exp : nonDEExps) {
 
@@ -153,8 +156,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 ExperimentInfo key;
                 if (allExpsToAttrs.containsKey(exp.getExperimentInfo())) { // attr is an efo
                     key = expInfo;
-                } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)) { // attr is an ef-efv
-                    key = EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER;
+                } else if (allExpsToAttrs.containsKey(EfvAttribute.ALL_EXPERIMENTS)) { // attr is an ef(-efv)
+                    key = EfvAttribute.ALL_EXPERIMENTS;
                 } else {
                     // We know that gene is non-differentially expressed in exp for attr, and yet we cannot find exp
                     // in attr's efv-experiment mappings - report an error
@@ -174,11 +177,13 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                     Experiment experiment = experimentDAO.getByName(exp.getAccession());
                     ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-                    for (EfvAttribute attrCandidate : allExpsToAttrs.get(key)) {
-                        ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), attrCandidate.getEf(), attrCandidate.getEfv(), UpDownCondition.CONDITION_NONDE);
-                        if (ea != null) {
-                            highestRankAttribute = attrCandidate;
-                            break;
+                    for (EfAttribute attrCandidate : allExpsToAttrs.get(key)) {
+                        if (attrCandidate instanceof EfvAttribute) {
+                            ea = ewd.getBestEAForGeneEfEfvInExperiment((long) gene.getGeneId(), attrCandidate.getEf(), ((EfvAttribute) attrCandidate).getEfv(), UpDownCondition.CONDITION_NONDE);
+                            if (ea != null) {
+                                highestRankAttribute = (EfvAttribute) attrCandidate;
+                                break;
+                            }
                         }
                     }
                 } catch (RecordNotFoundException e) {
@@ -249,7 +254,9 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                         for (ExperimentResult exp : ef.getValue()) {
                             Map<String, Object> jsEfv = new HashMap<String, Object>();
                             UpDownExpression upDown = UpDownExpression.valueOf(exp.getPValTStatRank().getPValue(), exp.getPValTStatRank().getTStatRank());
-                            jsEfv.put("efv", exp.getHighestRankAttribute().getEfv());
+                            if (exp.getHighestRankAttribute() instanceof EfvAttribute) {
+                                jsEfv.put("efv", ((EfvAttribute) exp.getHighestRankAttribute()).getEfv());
+                            }
                             jsEfv.put("isexp", upDown.isUpOrDown() ? (upDown.isUp() ? "up" : "dn") : "no");
                             jsEfv.put("pvalue", exp.getPValTStatRank().getPValue());
                             jsEfvs.add(jsEfv);
