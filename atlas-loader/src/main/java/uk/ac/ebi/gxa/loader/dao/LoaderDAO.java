@@ -38,7 +38,7 @@ public class LoaderDAO {
         // TODO: 4alf: track newly-created values
         Property property = propertyDAO.getByName(name);
         if (property == null) {
-            propertyDAO.save(property = new Property(null, name));
+            propertyDAO.save(property = new Property(null, name.toLowerCase()));
         }
         PropertyValue propertyValue = propertyValueDAO.find(property, value);
         if (propertyValue == null) {
