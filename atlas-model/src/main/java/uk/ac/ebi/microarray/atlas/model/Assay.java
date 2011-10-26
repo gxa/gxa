@@ -31,11 +31,15 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.SortedSet;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
@@ -74,6 +78,7 @@ public class Assay {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")
     @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ", allocationSize = 1)
     private Long assayID;
+    @Nonnull
     private String accession;
 
     @ManyToOne
@@ -90,34 +95,35 @@ public class Assay {
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
     @Fetch(FetchMode.SUBSELECT)
-    private List<Sample> samples = new ArrayList<Sample>();
+    private List<Sample> samples = newArrayList();
 
     @OneToMany(targetEntity = AssayProperty.class, mappedBy = "assay",
             orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
-    private List<AssayProperty> properties = new ArrayList<AssayProperty>();
+    private List<AssayProperty> properties = newArrayList();
 
     Assay() {
     }
 
-    public Assay(Long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
+    public Assay(String accession, Experiment experiment, ArrayDesign arrayDesign) {
         if (accession == null)
             throw new IllegalArgumentException("Cannot add assay with null accession!");
-        this.assayID = assayID;
+
         this.accession = accession;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
     }
 
     public Assay(String accession) {
-        this(null, accession, null, null);
+        this(accession, null, null);
     }
 
     public Long getId() {
         return assayID;
     }
 
+    @Nonnull
     public String getAccession() {
         return accession;
     }
@@ -162,12 +168,12 @@ public class Assay {
 
         Assay assay = (Assay) o;
 
-        return accession == null ? assay.accession == null : accession.equals(assay.accession);
+        return accession.equals(assay.accession);
     }
 
     @Override
     public int hashCode() {
-        return accession != null ? accession.hashCode() : 0;
+        return accession.hashCode();
     }
 
     public List<AssayProperty> getProperties() {
@@ -249,9 +255,9 @@ public class Assay {
 
     /**
      * Returns all the values for a given property, including the ones defined by {@link Sample}s
-     * 
+     * <p/>
      * That is, effective values are union of property sets from the assay itself and all its samples (if any).
-     * 
+     *
      * @param property definition of the property to look up values for
      * @return all values for the property, including values defined by assay's {@link Sample}s
      */

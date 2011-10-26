@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
@@ -42,6 +41,7 @@ import java.util.SortedSet;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
@@ -53,6 +53,7 @@ public class Sample {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sampleSeq")
     @SequenceGenerator(name = "sampleSeq", sequenceName = "A2_SAMPLE_SEQ", allocationSize = 1)
     private Long sampleid;
+    @Nonnull
     private String accession;
     @ManyToOne
     @Fetch(FetchMode.SELECT)
@@ -62,34 +63,35 @@ public class Sample {
     @Fetch(FetchMode.SELECT)
     private Experiment experiment;
     @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
-    private List<Assay> assays = new ArrayList<Assay>();
+    private List<Assay> assays = newArrayList();
     @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample",
             orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
-    private List<SampleProperty> properties = new ArrayList<SampleProperty>();
+    private List<SampleProperty> properties = newArrayList();
 
     Sample() {
     }
 
-    public Sample(Long id, String accession, Organism organism, String channel) {
+    public Sample(String accession, Organism organism, String channel) {
         if (accession == null)
             throw new IllegalArgumentException("Cannot add sample with null accession!");
-        this.sampleid = id;
+
         this.accession = accession;
         this.organism = organism;
         this.channel = channel;
     }
 
     public Sample(String accession) {
-        this(null, accession, null, null);
+        this(accession, null, null);
     }
 
     public Long getId() {
         return sampleid;
     }
 
+    @Nonnull
     public String getAccession() {
         return accession;
     }
@@ -128,12 +130,12 @@ public class Sample {
 
         Sample sample = (Sample) o;
 
-        return accession == null ? sample.accession == null : accession.equals(sample.accession);
+        return accession.equals(sample.accession);
     }
 
     @Override
     public int hashCode() {
-        return accession != null ? accession.hashCode() : 0;
+        return accession.hashCode();
     }
 
     public void addAssay(Assay assay) {
