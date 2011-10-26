@@ -209,15 +209,6 @@ public class Sample {
         this.experiment = experiment;
     }
 
-    private boolean hasNoProperty(final PropertyValue propertyValue) {
-        for (SampleProperty property : properties) {
-            if (property.getPropertyValue().equals(propertyValue))
-                return false;
-        }
-
-        return true;
-    }
-
     public SampleProperty getProperty(PropertyValue propertyValue) {
         for (SampleProperty property : properties) {
             if (property.getPropertyValue().equals(propertyValue))
@@ -228,10 +219,10 @@ public class Sample {
     }
 
     public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
-        if (hasNoProperty(propertyValue)) {
+        SampleProperty sampleProperty = getProperty(propertyValue);
+        if (sampleProperty == null) {
             addProperty(propertyValue, terms);
         } else {
-            SampleProperty sampleProperty = getProperty(propertyValue);
             sampleProperty.setTerms(terms);
         }
     }
