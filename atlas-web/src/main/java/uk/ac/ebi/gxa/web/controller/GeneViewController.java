@@ -49,6 +49,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -223,10 +224,8 @@ public class GeneViewController extends AtlasViewController {
         return "genepage/experiment-list-page";
     }
 
-    private int getNumberOfExperiments(AtlasGene gene, Attribute attr) {
+    private int getNumberOfExperiments(AtlasGene gene, @Nonnull Attribute attr) {
         if (attr instanceof EfvAttribute) {
-            //TODO temporary workaround see ticket #3109 to split EfvAttribute into EfAttribute and EfvAttribute - to separate its dual usage
-            attr = attr.isEmpty() ? null : attr;
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
 

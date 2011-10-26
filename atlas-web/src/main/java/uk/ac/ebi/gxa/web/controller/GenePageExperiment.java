@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.web.controller;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.statistics.EfvAttribute;
+import uk.ac.ebi.gxa.statistics.EfAttribute;
 import uk.ac.ebi.gxa.statistics.ExperimentResult;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -21,8 +21,8 @@ public class GenePageExperiment {
         this.experimentInfo = experimentInfo;
     }
 
-    public EfvAttribute getHighestRankAttribute() {
-        EfvAttribute attribute = experimentInfo.getHighestRankAttribute();
+    public EfAttribute getHighestRankAttribute() {
+        EfAttribute attribute = experimentInfo.getHighestRankAttribute();
         if (attribute == null || attribute.getEf() == null) {
             log.error("Failed to find highest rank attribute in: " + experimentInfo);
         }

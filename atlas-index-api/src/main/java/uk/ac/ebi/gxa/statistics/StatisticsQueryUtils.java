@@ -40,22 +40,22 @@ public class StatisticsQueryUtils {
 
         // LinkedHashMap used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
         // retrieve sorted lists of experiments to be plotted on the gene page.
-        Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs = new LinkedHashMap<ExperimentInfo, Set<EfvAttribute>>();
+        Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs = new LinkedHashMap<ExperimentInfo, Set<EfAttribute>>();
 
 
         for (Attribute attr : orAttributes) {
-            attr.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
+            attr.getAttributeToExperimentMappings(statisticsStorage, allExpsToAttrs);
         }
 
         // Now process allExpsToAttrs - for all efo terms in orAttributes, grouping into one StatisticsQueryCondition
         // attributes from potentially different efoTerms for one experiment. This has the effect of counting a given
         // experiment only once for an OR collection of Attributes.
-        for (Map.Entry<ExperimentInfo, Set<EfvAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
+        for (Map.Entry<ExperimentInfo, Set<EfAttribute>> expToAttr : allExpsToAttrs.entrySet()) {
             StatisticsQueryCondition cond = new StatisticsQueryCondition(statType);
-            if (expToAttr.getKey() != EfvAttribute.ALL_EXPERIMENTS_PLACEHOLDER)
+            if (expToAttr.getKey() != EfAttribute.ALL_EXPERIMENTS)
                 // For efv Attributes we span all experiments
                 cond.inExperiments(Collections.singletonList(expToAttr.getKey()));
-            for (EfvAttribute attr : expToAttr.getValue()) {
+            for (EfAttribute attr : expToAttr.getValue()) {
                 cond.inAttribute(attr);
             }
             orConditions.orCondition(cond);
@@ -96,7 +96,7 @@ public class StatisticsQueryUtils {
         if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
             Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
 
-            Set<EfvAttribute> attributes = statisticsQuery.getAttributes();
+            Set<EfAttribute> attributes = statisticsQuery.getAttributes();
             if (attributes.isEmpty()) {
 
                 // No attributes were provided - we have to use pre-computed scores across all attributes
@@ -111,7 +111,7 @@ public class StatisticsQueryUtils {
                 // add ConciseSet to Multiset results
                 for (ExperimentInfo exp : statisticsQuery.getExperiments()) {
                     FastSet statsForExperiment = new FastSet();
-                    for (EfvAttribute attr : attributes) {
+                    for (EfAttribute attr : attributes) {
                         Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attr, statisticsStorage);
                         if (expsToStats != null) {
                             if (expsToStats.isEmpty()) {
@@ -205,7 +205,6 @@ public class StatisticsQueryUtils {
         return counts;
     }
 
-
     /**
      * If no experiments were specified, inject into statisticsQuery a superset of all experiments for which stats exist across all attributes
      *
@@ -215,7 +214,7 @@ public class StatisticsQueryUtils {
     private static void setQueryExperiments(StatisticsQueryCondition statisticsQuery, StatisticsStorage statisticsStorage) {
         Set<ExperimentInfo> exps = statisticsQuery.getExperiments();
         if (exps.isEmpty()) { // No experiments conditions were specified - assemble a superset of all experiments for which stats exist across all attributes
-            for (EfvAttribute attr : statisticsQuery.getAttributes()) {
+            for (EfAttribute attr : statisticsQuery.getAttributes()) {
                 Map<ExperimentInfo, ConciseSet> expsToStats = getStatisticsForAttribute(statisticsQuery.getStatisticsType(), attr, statisticsStorage);
                 if (expsToStats != null)
                     exps.addAll(expsToStats.keySet());
@@ -250,7 +249,7 @@ public class StatisticsQueryUtils {
      */
     private static Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(
             final StatisticsType statType,
-            final EfvAttribute attribute,
+            final EfAttribute attribute,
             final StatisticsStorage statisticsStorage) {
         Map<ExperimentInfo, ConciseSet> expToBits = statisticsStorage.getStatisticsForAttribute(attribute, statType);
         if (expToBits != null) {
