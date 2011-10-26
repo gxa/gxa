@@ -243,10 +243,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         experimentDAO.save(experiment);
     }
 
-    private PropertyValue getProperty() {
-        return propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void removeAssayProperty() throws RecordNotFoundException {
         final Experiment experiment = experimentDAO.getByName(E_MEXP_420);
@@ -254,5 +250,9 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         final PropertyValue propertyValue = getProperty();
         assay.deleteProperty(propertyValue);
         experimentDAO.save(experiment);
+    }
+
+    private PropertyValue getProperty() {
+        return propertyValueDAO.getOrCreatePropertyValue(PROPERTY_NAME, PROPERTY_VALUE);
     }
 }

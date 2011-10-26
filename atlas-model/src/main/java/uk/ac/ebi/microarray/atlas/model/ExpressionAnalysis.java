@@ -167,7 +167,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
         if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null)
             return false;
-        // trick IDEA
+
         return true;
     }
 
