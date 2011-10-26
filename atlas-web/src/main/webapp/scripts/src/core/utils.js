@@ -68,28 +68,53 @@
         }
     };
 
-    A.objProperty = function(obj, propName, value) { // dot separated object property path
+    /**
+     * Object property path getter/setter.
+     * If the value (the third argument) is given then it behaves as setter: sets value according the given property
+     * path and returns the updated object; otherwise it is getter and returns the corresponding object property value
+     * or 'undefined' if the property path doesn't exist.
+     *
+     * An empty property path does nothing in setter mode.
+     *
+     * @param obj - an object to update or get properties from
+     * @param propPath - dot separated object property path
+     * @param value - a new value to set for the given property path
+     */
+    A.objProperty = function(obj, propPath, value) {
         obj = obj || {};
         var setter = arguments.length > 2;
-        var parts = propName.split(".");
+        var parts = propPath.split(".");
         var s = obj;
-        for (var i = 0, len = parts.length; i < len; i++) {
-            var p = parts[i];
-            if (!s.hasOwnProperty(p)) {
-                if (! setter) {
+        for (var i = 0, len = parts.length; i < len - 1; i++) {
+            var prop = parts[i];
+            if (!s.hasOwnProperty(prop)) {
+                if (!setter) {
                     return undefined;
                 }
-                s[p] = {};
+                s[prop] = {};
             }
-            if (i == len - 1 && setter) {
-                s[p] = value;
-            }
-            s = s[p];
+
+            s = s[prop];
         }
-        return s;
+
+        var lastProp = parts[parts.length - 1];
+
+        if (setter && lastProp != "") {
+            var copy;
+            if ($.isPlainObject(value)) {
+                copy = $.extend(true, {}, value);
+            } else if ($.isArray(value)) {
+                copy = $.extend(true, [], value);
+            } else {
+                copy = value;
+            }
+            s[lastProp] = copy;
+        }
+
+        return lastProp === "" ? s : s[lastProp];
     };
 
-    A.withComplementary = function(obj, defaults) {
+    A.extendIfUndefined = function(obj, defaults) {
         function _extend(obj1, obj2) {
             if ($.isArray(obj2)) {
                 if (!obj1) {
