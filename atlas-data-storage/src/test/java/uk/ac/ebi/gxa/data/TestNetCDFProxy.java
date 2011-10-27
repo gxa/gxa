@@ -27,7 +27,6 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.io.Closeables.close;

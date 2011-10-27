@@ -51,8 +51,8 @@ public class ExpressionStats {
         this.arrayDesign = arrayDesign;
 
         int valueIndex = 0;
-        for (KeyValuePair uval : experiment.getUniqueValues(arrayDesign)) {
-            efvTree.put(uval.key, uval.value, valueIndex);
+        for (KeyValuePair uefv : experiment.getUniqueEFVs(arrayDesign)) {
+            efvTree.put(uefv.key, uefv.value, valueIndex);
             ++valueIndex;
         }
     }
