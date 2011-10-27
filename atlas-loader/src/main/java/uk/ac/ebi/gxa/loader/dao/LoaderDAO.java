@@ -35,6 +35,10 @@ public class LoaderDAO {
         return propertyValueDAO.getOrCreatePropertyValue(name, value);
     }
 
+    public ArrayDesign getArrayDesignShallow(String accession) {
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+    }
+
     public ArrayDesign getArrayDesign(String accession) {
         return arrayDesignDAO.getArrayDesignByAccession(accession);
     }

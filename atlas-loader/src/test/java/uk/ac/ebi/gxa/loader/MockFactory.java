@@ -40,7 +40,7 @@ public class MockFactory {
         }
 
         @Override
-        public ArrayDesign getArrayDesign(String accession) {
+        public ArrayDesign getArrayDesignShallow(String accession) {
             ArrayDesign ad = ads.get(accession);
             if (ad == null) {
                 ads.put(accession, ad = new ArrayDesign(accession));
