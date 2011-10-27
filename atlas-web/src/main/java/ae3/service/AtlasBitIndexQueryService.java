@@ -1,8 +1,7 @@
 package ae3.service;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
+import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -276,7 +275,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     *
      * @param bioEntityId Bioentity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
@@ -292,13 +290,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             final StatisticsType statType) {
 
         List<Attribute> attrs;
-        if (attribute.isEmpty()) { // Empty attribute
-            List<String> efs = getScoringEfsForBioEntity(bioEntityId, statType, null);
+        if (attribute.isEmpty()) {
             attrs = new ArrayList<Attribute>();
-            for (String expFactor : efs) {
-                EfvAttribute attr = new EfvAttribute(expFactor);
-                attrs.add(attr);
-            }
+            attrs.addAll(getScoringEfsForBioEntity(bioEntityId, statType, null));
         } else {
             attrs = Collections.singletonList(attribute);
         }
@@ -309,8 +303,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
         // retrieve experiments sorted by pValue/tRank for statsQuery
         // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
-        Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
-        StatisticsQueryUtils.getBestExperiments(statsQuery, statisticsStorage, bestExperimentsMap);
+        Map<Long, ExperimentResult> bestExperimentsMap = getBestExperiments(statsQuery);
 
         List<ExperimentResult> bestExperiments = new ArrayList<ExperimentResult>(bestExperimentsMap.values());
         // Sort bestExperiments by best pVal/tStat ranks first
@@ -343,17 +336,17 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param ef
      * @return list all efs for which bioEntityId has statType expression in at least one experiment
      */
-    public List<String> getScoringEfsForBioEntity(final Integer bioEntityId,
-                                                  final StatisticsType statType,
-                                                  @Nullable final String ef) {
+    public List<EfAttribute> getScoringEfsForBioEntity(final Integer bioEntityId,
+                                                       final StatisticsType statType,
+                                                       @Nullable final String ef) {
 
         long timeStart = System.currentTimeMillis();
-        List<String> scoringEfs = new ArrayList<String>();
+        List<EfAttribute> scoringEfs = new ArrayList<EfAttribute>();
         if (bioEntityId != null) {
-            Set<EfvAttribute> scoringEfAttrs = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
-            for (EfvAttribute efAttr : scoringEfAttrs) {
+            Set<EfAttribute> scoringEfAttrs = statisticsStorage.getScoringEfAttributesForBioEntity(bioEntityId, statType);
+            for (EfAttribute efAttr : scoringEfAttrs) {
                 if (efAttr != null && (ef == null || "".equals(ef) || ef.equals(efAttr.getEf()))) {
-                    scoringEfs.add(efAttr.getEf());
+                    scoringEfs.add(new EfAttribute(efAttr.getEf()));
                 }
             }
         }
@@ -391,7 +384,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param statType
      * @return unsorted list of experiments for which bioEntityId has statType expression for ef attr
      */
-    public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nullable EfvAttribute attribute, StatisticsType statType) {
+    public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId, @Nullable EfAttribute attribute, StatisticsType statType) {
         List<ExperimentInfo> exps = new ArrayList<ExperimentInfo>();
         // Note that if ef == null, this method returns list of experiments across all efs for which this bioentity has up/down exp counts
         if (bioEntityId != null) {
@@ -409,7 +402,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      */
     private void collectScoringAttributes(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors,
                                           @Nullable Multiset<EfvAttribute> attrCounts, @Nullable Set<String> scoringEfos) {
-        for (EfvAttribute efvAttr : statisticsStorage.getAllAttributes(statType)) {
+        for (EfvAttribute efvAttr : statisticsStorage.getAllEfvAttributes(statType)) {
             if ((autoFactors != null && !autoFactors.contains(efvAttr.getEf())) || efvAttr.getEfv() == null) {
                 continue; // skip attribute if its factor is not of interest or it's an ef-only attribute
             }
@@ -421,13 +414,11 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
                 if (attrCounts != null)
                     attrCounts.add(efvAttr, scoringExps.size());
                 for (ExperimentInfo exp : scoringExps) {
-                    String efoTerm = statisticsStorage.getEfoTerm(efvAttr, exp);
-                    if (efoTerm != null) {
-                        if (scoringEfos != null)
-                            scoringEfos.add(efoTerm);
-                        else
-                            log.debug("Skipping efo: " + efoTerm + " for attr: " + efvAttr + " and exp: " + exp);
-                    }
+                    Set<String> efoTerms = statisticsStorage.getEfoTerms(efvAttr, exp);
+                    if (scoringEfos != null)
+                        scoringEfos.addAll(efoTerms);
+                    else
+                        log.debug("Skipping efo: {} for attr: {} and exp: {}", new Object[]{efoTerms, efvAttr, exp});
                 }
             }
         }
@@ -445,7 +436,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
@@ -484,10 +474,10 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param attribute
      * @param allExpsToAttrs Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
-    public void getEfvExperimentMappings(
+    public void getAttributeToExperimentMappings(
             final Attribute attribute,
-            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs) {
-        attribute.getEfvExperimentMappings(statisticsStorage, allExpsToAttrs);
+            Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs) {
+        attribute.getAttributeToExperimentMappings(statisticsStorage, allExpsToAttrs);
     }
 
     /**
@@ -518,4 +508,92 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
         statsQuery.and(getStatisticsOrQuery(Collections.singletonList(attribute), statType, 1));
         return StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null).entrySet().size();
     }
+
+    /**
+      * Populate bestExperimentsSoFar with an (unsorted) list of experiments with best pval/tstat rank, for statisticsQuery
+      *
+      * @param statisticsQuery
+      * @return (unordered) Map of experiment id-> best pval/tstat rank for that experiment as a result of
+      *         statisticsQuery against statisticsStorage
+      */
+     private Map<Long, ExperimentResult> getBestExperiments(StatisticsQueryCondition statisticsQuery) {
+         Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
+         getBestExperimentsRecursive(statisticsQuery, bestExperimentsMap);
+         return bestExperimentsMap;
+     }
+
+     /**
+      * Populate bestExperimentsSoFar with an (unordered) Map of experiment id-> best pval/tstat rank for that
+      * experiment as a result of statisticsQuery against statisticsStorage
+      *
+      * @param statisticsQuery
+      * @param bestExperimentsSoFar
+      */
+     private void getBestExperimentsRecursive(
+             StatisticsQueryCondition statisticsQuery,
+             Map<Long, ExperimentResult> bestExperimentsSoFar) {
+         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
+
+
+         if (andStatisticsQueryConditions.isEmpty()) { // End of recursion
+             Set<Integer> bioEntityIdRestrictionSet = statisticsQuery.getBioEntityIdRestrictionSet();
+
+            Set<EfAttribute> attributes = statisticsQuery.getAttributes();
+             Set<ExperimentInfo> experiments = statisticsQuery.getExperiments();
+
+             for (EfAttribute attr : attributes) {
+
+                 SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenes =
+                         statisticsStorage.getPvalsTStatRanksForAttribute(attr, statisticsQuery.getStatisticsType());
+
+                 if (pValToExpToGenes != null) {
+                     for (Map.Entry<PTRank, Map<ExperimentInfo, ConciseSet>> pValToExpToGenesEntry : pValToExpToGenes.entrySet()) {
+                         Map<ExperimentInfo, ConciseSet> expToGenes = pValToExpToGenesEntry.getValue();
+                         if (expToGenes != null) {
+                             for (Map.Entry<ExperimentInfo, ConciseSet> expToGenesEntry : expToGenes.entrySet()) {
+                                 if (experiments.isEmpty() || experiments.contains(expToGenesEntry.getKey())) {
+                                     if (StatisticsQueryUtils.containsAtLeastOne(expToGenesEntry.getValue(), bioEntityIdRestrictionSet)) {
+                                         // If best experiments are collected for an (OR) group of genes, pVal/tStat
+                                         // for any of these genes will be considered here
+                                         ExperimentResult expCandidate = new ExperimentResult(expToGenesEntry.getKey(), attr, pValToExpToGenesEntry.getKey());
+                                         tryAddOrReplaceExperiment(expCandidate, bestExperimentsSoFar);
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+         } else {
+             // We only expect one 'AND' condition with set of orConditions inside
+             StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions = andStatisticsQueryConditions.iterator().next();
+             if (orConditions != null) {
+                 for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
+                     // Pass gene restriction set down to orCondition
+                     orCondition.setBioEntityIdRestrictionSet(orConditions.getBioEntityIdRestrictionSet());
+                     getBestExperimentsRecursive(orCondition, bestExperimentsSoFar);
+                 }
+             }
+         }
+     }
+
+        /**
+     * If exp cannot be found in exps, add it to exps
+     * If it can be found and its pVal/tStat ranks are worse the one is exps, replace it in exps
+     *
+     * @param exp
+     * @param exps
+     */
+    private static void tryAddOrReplaceExperiment(ExperimentResult exp, Map<Long, ExperimentResult> exps) {
+        long expId = exp.getExperimentId();
+        ExperimentResult existingExp = exps.get(expId);
+        if (existingExp != null) {
+            if (exp.getPValTStatRank().compareTo(existingExp.getPValTStatRank()) < 0) {
+                exps.put(expId, exp);
+            }
+        } else {
+            exps.put(expId, exp);
+        }
+    }
+
 }
