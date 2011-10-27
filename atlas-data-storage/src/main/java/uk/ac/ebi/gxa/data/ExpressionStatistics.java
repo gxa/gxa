@@ -47,7 +47,7 @@ public class ExpressionStatistics {
     private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException, AtlasDataException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
-        List<KeyValuePair> values = proxy.getUniqueValues();
+        List<KeyValuePair> values = proxy.getUniqueEFVs();
         for (int i = 0, valuesSize = values.size(); i < valuesSize; i++) {
             final String v = values.get(i).key + "||" + values.get(i).value;
             efEfv.put(v.toLowerCase(), i);

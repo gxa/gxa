@@ -154,8 +154,8 @@ public class AtlasExperimentAnalyticsViewService {
             int[] gIds = rResult.getIntValues("geneids");
             double[] pvals = rResult.getNumericValues("minpvals");
             double[] tstats = rResult.getNumericValues("maxtstats");
-            String[] uvalNames = rResult.getStringValues("uvalNames");
-            String[] uvalValues = rResult.getStringValues("uvalValues");
+            String[] uefvNames = rResult.getStringValues("uefvNames");
+            String[] uefvValues = rResult.getStringValues("uefvValues");
             long total = (long) rResult.getIntAttribute("total")[0];
 
             result.setTotalSize(total);
@@ -174,8 +174,8 @@ public class AtlasExperimentAnalyticsViewService {
                     continue;
                 }
 
-                String ef = uvalNames[i];
-                String efv = uvalValues[i];
+                String ef = uefvNames[i];
+                String efv = uefvValues[i];
 
                 result.add(gene, deIndexes[i] - 1, deAccessions[i], pvals[i], tstats[i], ef, efv);
             }

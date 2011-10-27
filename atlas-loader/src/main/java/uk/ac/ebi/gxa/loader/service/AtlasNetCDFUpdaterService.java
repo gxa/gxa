@@ -97,8 +97,8 @@ public class AtlasNetCDFUpdaterService {
             // and rev. 05be531ebb5a93df06d6045f982d0b25e4008a11 for nearly-original version
 
             // Get unique values
-            final List<KeyValuePair> uniqueValues = ewd.getUniqueValues(arrayDesign);
-            data.setUniqueValues(uniqueValues);
+            final List<KeyValuePair> uniqueEFVs = ewd.getUniqueEFVs(arrayDesign);
+            data.setUniqueEFVs(uniqueEFVs);
 
             final String[] deAccessions = ewd.getDesignElementAccessions(arrayDesign);
             data.setStorage(new DataMatrixStorage(data.getWidth(), deAccessions.length, 1));
@@ -106,14 +106,6 @@ public class AtlasNetCDFUpdaterService {
                 final float[] values = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, i);
                 final float[] pval = ewd.getPValuesForDesignElement(arrayDesign, i);
                 final float[] tstat = ewd.getTStatisticsForDesignElement(arrayDesign, i);
-                // Make sure that pval/tstat arrays are big enough if uniqueValues size is greater than ewd.getUniqueFactorValues()
-                // i.e. we are in the process of enlarging the uniqueValues set from just efvs to efvs+scvs
-                List<Float> pVals = new ArrayList<Float>(asList(pval));
-                while (pVals.size() < uniqueValues.size())
-                    pVals.add(NetCDFProxy.NA_PVAL_TSTAT); // top up pVals with NA values to the required size
-                List<Float> tStats = new ArrayList<Float>(asList(tstat));
-                while (tStats.size() < uniqueValues.size())
-                    tStats.add(NetCDFProxy.NA_PVAL_TSTAT); // top up tStats with NA values to the required size
 
                 data.addToStorage(deAccessions[i], concat(
                         multiget(asList(values), usedAssays).iterator(),

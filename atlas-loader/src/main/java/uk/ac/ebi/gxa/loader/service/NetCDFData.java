@@ -15,10 +15,10 @@ import java.util.*;
 class NetCDFData {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    // Note that matchedUniqueValues includes both ef-efvs ad sc-scvs
-    private EfvTree<CPair<String, String>> matchedUniqueValues = null;
+    // Note that matchedUniqueEFVs includes both ef-efvs ad sc-scvs
+    private EfvTree<CPair<String, String>> matchedUniqueEFVs = null;
     private DataMatrixStorage storage;
-    private List<String> uniqueValues; // scvs/efvs
+    private List<String> uniqueEFVs;
     private final Map<Assay, List<Sample>> assayToSamples = new LinkedHashMap<Assay, List<Sample>>();
 
 
@@ -30,11 +30,11 @@ class NetCDFData {
         storage.add(designElement, values);
     }
 
-    public void setUniqueValues(List<KeyValuePair> uniqueValues) {
-        // TODO: change this.uniqueValues to List of KeyValuePairs
-        this.uniqueValues = new ArrayList<String>(uniqueValues.size());
+    public void setUniqueEFVs(List<KeyValuePair> uniqueValues) {
+        // TODO: change this.uniqueEFVs to List of KeyValuePairs
+        this.uniqueEFVs = new ArrayList<String>(uniqueValues.size());
         for (KeyValuePair pair : uniqueValues) {
-            this.uniqueValues.add(pair.key + "||" + pair.value);
+            this.uniqueEFVs.add(pair.key + "||" + pair.value);
         }
     }
 
@@ -47,11 +47,11 @@ class NetCDFData {
     }
 
     int getWidth() {
-        return assayToSamples.keySet().size() + (isAnalyticsTransferred() ? uniqueValues.size() * 2 : 0);  // expressions + pvals + tstats
+        return assayToSamples.keySet().size() + (isAnalyticsTransferred() ? uniqueEFVs.size() * 2 : 0);  // expressions + pvals + tstats
     }
 
     boolean isAnalyticsTransferred() {
-        return matchedUniqueValues != null;
+        return matchedUniqueEFVs != null;
     }
 
     Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
@@ -59,10 +59,10 @@ class NetCDFData {
             return null;
 
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueValues.getNameSortedList()) {
-            final int oldPos = uniqueValues.indexOf(encodeEfEfv(efEfv.getPayload()));
+        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueEFVs.getNameSortedList()) {
+            final int oldPos = uniqueEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
             tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                    new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + uniqueValues.size() + oldPos));
+                    new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + uniqueEFVs.size() + oldPos));
         }
         return tstatMap;
     }
@@ -72,8 +72,8 @@ class NetCDFData {
             return null;
 
         Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueValues.getNameSortedList()) {
-            final int oldPos = uniqueValues.indexOf(encodeEfEfv(efEfv.getPayload()));
+        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueEFVs.getNameSortedList()) {
+            final int oldPos = uniqueEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
             pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
                     new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + oldPos));
         }
@@ -121,31 +121,6 @@ class NetCDFData {
                 }).set(i, true);
             }
             ++i;
-        }
-
-        // Now add to efvTree sample patterns
-        properties = new HashSet<String>();
-        for (Map.Entry<Assay, List<Sample>> entry : assayToSamples.entrySet()) {
-            for (Sample sample : entry.getValue()) {
-                for (SampleProperty property : sample.getProperties())
-                    properties.add(property.getName());
-            }
-        }
-
-        i = 0;
-        for (Map.Entry<Assay, List<Sample>> entry : assayToSamples.entrySet()) {
-            final List<Sample> samples = entry.getValue();
-            for (Sample sample : samples) {
-                for (final String propName : properties) {
-                    String value = sample.getPropertySummary(propName);
-                    efvTree.getOrCreateCaseSensitive(propName, value, new Maker<CBitSet>() {
-                        public CBitSet make() {
-                            return new CBitSet(samples.size());
-                        }
-                    }).set(i, true);
-                }
-                ++i;
-            }
         }
 
         return efvTree;

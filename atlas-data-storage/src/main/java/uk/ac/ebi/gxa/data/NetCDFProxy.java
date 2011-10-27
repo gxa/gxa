@@ -64,13 +64,12 @@ import static java.lang.Float.isNaN;
  *    char EF(EF, EFlen) ;
  *    char  EFSC(EFSC, EFSlen) ;
  *    char  EFV(EF, AS, EFlen) ;
- *    char  uVAL(uVAL, EFSClen) ; - uVAL contains all unique ef-efvs and sc-scvs (if ef-efv == sc-scv, it is only stored once)
- *    int   uVALnum(EFSC) ;
+ *    char  uEFV(uEFV, EFSClen) ; - uEFV contains all unique ef-efvs
  *    char SC(SC, SClen) ;
  *    char  SCV(SC, BS, SClen) ;
  *    float BDC(DE, AS) ;
- *    float PVAL(DE, uVAL) ;
- *    float TSTAT(DE, uVAL) ;
+ *    float PVAL(DE, uEFV) ;
+ *    float TSTAT(DE, uEFV) ;
  * </pre>
  *
  * @author Tony Burdett
@@ -78,7 +77,6 @@ import static java.lang.Float.isNaN;
 public final class NetCDFProxy implements Closeable {
     public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
     // Default
-    public static final float NA_PVAL_TSTAT = 1e+30f;
     public static final String NCDF_VERSION = "1.0";
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -338,26 +336,21 @@ public final class NetCDFProxy implements Closeable {
         return result;
     }
 
-    public List<KeyValuePair> getUniqueValues() throws IOException, AtlasDataException {
-        Variable uVALVar;
-        uVALVar = netCDF.findVariable("uVAL");
+    public List<KeyValuePair> getUniqueEFVs() throws IOException, AtlasDataException {
+        Variable uEFVVar;
+        uEFVVar = netCDF.findVariable("uEFV");
 
-        if (uVALVar == null) {
-            // This is to allow for backwards compatibility
-            uVALVar = netCDF.findVariable("uEFV");
-        }
-
-        if (uVALVar == null) {
+        if (uEFVVar == null) {
             return Collections.emptyList();
         }
 
-        ArrayChar uVal = (ArrayChar) uVALVar.read();
+        ArrayChar uEFV = (ArrayChar) uEFVVar.read();
 
         final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
-        for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
+        for (Object text : (Object[]) uEFV.make1DStringArray().get1DJavaArray(String.class)) {
             final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
             if (data.length != 2) {
-                throw new AtlasDataException("Invalid uVAL element: " + text);
+                throw new AtlasDataException("Invalid uEFV element: " + text);
             }
 
             if (!"".equals(data[1])) {
@@ -382,43 +375,25 @@ public final class NetCDFProxy implements Closeable {
      * @throws IOException        in case of I/O errors
      * @throws AtlasDataException in case of any other errors during NetCDF handling
      */
-    public List<KeyValuePair> getUVal() throws IOException, AtlasDataException {
-        Variable uVALVar;
-        uVALVar = netCDF.findVariable("uVAL");
+    public List<KeyValuePair> getUEFV() throws IOException, AtlasDataException {
+        Variable uEFVVar;
+        uEFVVar = netCDF.findVariable("uEFV");
 
-        if (uVALVar == null) {
-            // This is to allow for backwards compatibility
-            uVALVar = netCDF.findVariable("uEFV");
-        }
-
-        if (uVALVar == null) {
+        if (uEFVVar == null) {
             return Collections.emptyList();
         }
 
-        ArrayChar uVal = (ArrayChar) uVALVar.read();
+        ArrayChar uEFV = (ArrayChar) uEFVVar.read();
 
         final LinkedList<KeyValuePair> list = new LinkedList<KeyValuePair>();
-        for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
+        for (Object text : (Object[]) uEFV.make1DStringArray().get1DJavaArray(String.class)) {
             final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
             if (data.length != 2) {
-                throw new AtlasDataException("Invalid uVAL element: " + text);
+                throw new AtlasDataException("Invalid uEFV element: " + text);
             }
             list.add(new KeyValuePair(data[0], data[1]));
         }
         return list;
-    }
-
-    public List<KeyValuePair> getUniqueFactorValues() throws IOException, AtlasDataException {
-        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
-        List<String> factors = Arrays.asList(getFactors());
-
-        for (KeyValuePair propVal : getUniqueValues()) {
-            if (factors.contains(propVal.key)) {
-                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
-                uniqueEFVs.add(propVal);
-            }
-        }
-        return uniqueEFVs;
     }
 
     public String[] getCharacteristicValues(String characteristic) throws IOException {
@@ -647,7 +622,7 @@ public final class NetCDFProxy implements Closeable {
         }
 
         private ExpressionAnalysisHelper prepare() throws IOException, AtlasDataException {
-            uniquePropertyValues.addAll(getUVal());
+            uniquePropertyValues.addAll(getUEFV());
             designElementAccessions = getDesignElementAccessions();
             return this;
         }
@@ -738,7 +713,7 @@ public final class NetCDFProxy implements Closeable {
     public Map<String, Collection<String>> getActualEfvTree() throws IOException, AtlasDataException {
         Multimap<String, String> efvs = HashMultimap.create();
 
-        for (KeyValuePair pair : getUniqueFactorValues()) {
+        for (KeyValuePair pair : getUniqueEFVs()) {
             efvs.put(pair.key, pair.value);
         }
         return efvs.asMap();

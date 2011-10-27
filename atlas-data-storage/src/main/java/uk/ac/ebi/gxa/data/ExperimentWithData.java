@@ -158,17 +158,9 @@ public class ExperimentWithData implements Closeable {
         }
     }
 
-    public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException {
+    public List<KeyValuePair> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException {
         try {
-            return getProxy(arrayDesign).getUniqueFactorValues();
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
-        }
-    }
-
-    public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException {
-        try {
-            return getProxy(arrayDesign).getUniqueValues();
+            return getProxy(arrayDesign).getUniqueEFVs();
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }

@@ -103,24 +103,9 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueFactorValues() throws IOException, AtlasDataException {
+    public void testGetUniqueEVFs() throws IOException, AtlasDataException {
         final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
-        for (KeyValuePair uefv : netCDF.getUniqueFactorValues()) {
-            if (uniques.contains(uefv)) {
-                fail("Found a duplicate: " + uefv);
-            } else {
-                uniques.add(uefv);
-            }
-        }
-    }
-
-    public void testGetUniqueValues() throws IOException, AtlasDataException {
-        Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
-        List<KeyValuePair> uVals = netCDF.getUniqueValues();
-        List<KeyValuePair> uefvs = netCDF.getUniqueFactorValues();
-        assertTrue(uVals.size() >= uefvs.size());
-
-        for (KeyValuePair uefv : uVals) {
+        for (KeyValuePair uefv : netCDF.getUniqueEFVs()) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {
