@@ -148,7 +148,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final ArrayFloat.D2 pvals = experimentWithData.getProxy(ad).getPValues();
                     final int[] shape = tstat.getShape();
 
-                    final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
+                    final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
                     for (int j = 0; j < uEFVs.size(); j++) {
                         final KeyValuePair efv = uEFVs.get(j);
 
