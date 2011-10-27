@@ -202,17 +202,38 @@
             }
         }
 
+        function filter(params) {
+            function empty(o) {
+                return o === undefined || o === null || o.length == 0 ||
+                    ($.isPlainObject(o) && $.isEmptyObject(o));
+
+            }
+            if ($.isPlainObject(params)) {
+                for(var p in params) {
+                    if (params.hasOwnProperty(p)) {
+                        if (empty(params[p]) || empty(filter(params[p]))) {
+                            delete params[p];
+                        }
+                    }
+                }
+            } else if ($.isArray(params)) {
+                for (var len = params.length, i = len - 1; i >= 0; i--) {
+                    if (empty(params[i]) || empty(filter(params[i]))) {
+                        params.splice(i, 1);
+                    }
+                }
+            }
+            return params;
+        }
+
         return $.extend(true, _this, {
             load: function(params) {
+                params = $.extend(true, {}, defaultParams, params);
                 $.ajax({
                     url: A.fullPathFor(url),
-                    data: $.extend(true, {}, defaultParams, params),
+                    data: filter(params),
                     dataType: type,
-                    success: function(p) {
-                        return function() {
-                            successHandler.apply(_this, arguments);
-                        }
-                    }(params),
+                    success: successHandler,
                     error: failureHandler
                 });
             }
