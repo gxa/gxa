@@ -31,10 +31,13 @@
      * }
      */
     function EfPagination(elem, opts) {
+        opts = $.extend({
+            factors: [],
+            pageState: null,
+            pageStatePrefix: ""
+        }, opts);
+
         var _this = this,
-            factors = opts.factors || [],
-            pageState = opts.pageState|| null,
-            pageStatePrefix = opts.pageStatePrefix || "",
             defaultEf = null,
             currEf = null;
 
@@ -62,23 +65,18 @@
             draw();
             bindEvents();
 
-            if (pageState) {
-                if (pageState.register && pageState.unregister) {
-                    var handlePageStateChanged = function(ev, state) {
-                       _this.select(state.ef);
-                    };
-                    pageState.register(_this, pageStatePrefix, handlePageStateChanged);
-                    $(elem).bind("destroyed", function() {
-                        pageState.unregister(_this, pageStatePrefix, handlePageStateChanged);
-                    });
+            if (opts.pageState) {
+                opts.pageState.register(_this, opts.pageStatePrefix);
+                $(elem).bind("destroyed", function() {
+                    opts.pageState.unregister(_this, opts.pageStatePrefix);
+                });
 
-                    currEf = pageState.stateFor(pageStatePrefix).ef;
-                }
+                currEf = opts.pageState.stateFor(opts.pageStatePrefix).ef;
             }
         }
 
         function draw() {
-            var html = [];
+            var html = [], factors = opts.factors;
             for (var i = 0, len = factors.length; i < len; i++) {
                 var item = factors[i];
                 html.push("<div data-ef=\"" + item + "\">" + item + "</div>");

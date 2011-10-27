@@ -51,10 +51,9 @@
      * (by clicking on back & forward browser buttons; or by changing url manually in a browser).
      */
     A.PageState = function() {
-        var pageState = {},
-            pageStatePrefixes = {},
+        var _pageState = null,
+            _pageStateAware = false,
             _this = {},
-            pageStateAware = false,
             pageStateChanged = "pageStateChanged",
             widgetStateChanged = "stateChanged";
 
@@ -91,10 +90,10 @@
             }
 
             var s = _serialize(obj, "");
-            return s.join("&") || "%20";
+            return s.join("&") || "all";
             /**
              * Note: An empty string means changing URL hash to "#", which is the valid page top reference;
-             * so the page will jump to the top every time the state is cleared. Returning "%20"
+             * so the page will jump to the top every time the state is cleared. Returning "all"
              * (or other meaningless string) instead of empty string prevents page from jumping.
              **/
         }
@@ -132,63 +131,72 @@
         }
 
         function triggerStateChangedEvent() {
-            if (!pageStateAware) {
-                return;
+            if (_pageStateAware) {
+                $(_this).trigger(pageStateChanged);
             }
-            for (var p in pageStatePrefixes) {
-                if (pageStatePrefixes.hasOwnProperty(p)) {
-                    $(_this).trigger(pageStateChanged + "_" + p,
-                        [$.extend({}, A.objProperty(pageState, pageStatePrefixes[p]))]);
-                }
-            }
+        }
+
+        function pageState(prefix, newState) {
+            _pageState = _pageState || {root: {}};
+            prefix = "root" + (prefix ? "." + prefix : "");
+            return arguments.length > 1 ?
+                A.objProperty(_pageState, prefix, newState) :
+                A.objProperty(_pageState, prefix);
         }
 
         function updateUrlHash() {
-            if (pageStateAware) {
-                $.address.hash(serialize(pageState));
+            if (_pageStateAware) {
+                $.address.value(serialize(pageState()));
+                triggerStateChangedEvent();
             }
         }
 
-        function addPrefix(prefix) {
-            var v = normalizePrefix(prefix);
-            pageStatePrefixes[v] = prefix;
-            return v;
-        }
-
-        function removePrefix(prefix) {
-            var v = normalizePrefix(prefix);
-            delete pageState[v];
-            return v;
-        }
-
-        function normalizePrefix(prefix) {
-            return prefix.replaceAll(/\./g, "$");
-        }
-
         return $.extend(true, _this, {
-            register: function(widget, prefix, handler) {
-                A.logError("register state as " + prefix || "root");
-                $(_this).bind(pageStateChanged + addPrefix(prefix), handler);
+            /**
+             * Subscribes on widget's state changes.
+             * @param widget - a widget to track changes from
+             * @param prefix - a dot separated path in the global tree-like state
+             */
+            register: function(widget, prefix) {
+                A.logDebug("register [" + prefix + "] state");
                 $(widget).bind(widgetStateChanged, function(ev, newState) {
-                    A.objProperty(pageState, prefix, newState);
+                    pageState(prefix, newState);
                     updateUrlHash();
                 });
             },
 
-            unregister: function(widget, prefix, handler) {
-                A.logError("unregister state " + prefix);
-                $(_this).unbind(pageStateChanged + removePrefix(prefix), handler);
+            /**
+             * Unsubscribes from widget's state changes.
+             * @param widget - a widget to unsubscribe from
+             * @param prefix - a dot separated path in the global tree-like state
+             */
+            unregister: function(widget, prefix) {
+                A.logDebug("unregister [" + prefix + "] state");
                 $(widget).unbind(widgetStateChanged);
             },
 
+            /**
+             * Returns, specified by a prefix, subtree of the global state. If the path not found it returns
+             * an empty object.
+             * @param prefix - a dot separated path in the global tree-like state
+             */
             stateFor: function(prefix) {
-                return prefix ? A.objProperty(pageState, prefix) : pageState;
+                return $.extend(true, {}, pageState(prefix));
             },
 
-            init: function() {
+            /**
+             * Page state initialization routine. Until it is called, the page doesn't know about the page state at all.
+             * @param handler - a handler to be invoked every time when url hash changed externally
+             * (e.g. by back and forward buttons).
+             */
+            init: function(handler) {
+                $.address.strict(false);
                 $.address.externalChange(function() {
-                    pageStateAware = true;
-                    pageState = deserialize($.address.hash());
+                    _pageStateAware = true;
+                    pageState(null, deserialize($.address.value()));
+                    if (handler) {
+                        handler(_this);
+                    }
                     triggerStateChangedEvent();
                     return false;
                 });

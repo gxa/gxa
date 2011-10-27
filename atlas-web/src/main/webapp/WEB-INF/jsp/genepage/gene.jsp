@@ -66,19 +66,10 @@
 $(document).ready(function() {
     $("#heatmap_tbl").tablesorter({headers: {2: {sorter: false}}});
 
-    function markRow(el) {
-        if (el) {
-            old = $(".heatmap_over");
-            old.removeClass("heatmap_over");
-            old.addClass("heatmap_row");
-            el.className = "heatmap_over";
-        } else {
-            $(".heatmap_over").removeClass("heatmap_over");
-        }
-    }
-
-    var expList = atlas.geneExperimentList({
+    var genePage = atlas.genePage({
+        ef: "${ef}",
         gene: ${gene.geneId},
+        pageState: atlas.PageState,
         listTarget: "experimentList",
         listTemplate: "experimentListTemplate",
         pageTarget: "experimentListPage",
@@ -86,18 +77,17 @@ $(document).ready(function() {
         pageSize: 5
     });
 
-    window.FilterExps = function(el, efv, ef) {
-        expList.load({ef:ef, efv:efv});
-        markRow(el);
+    window.FilterExps = function(ef, efv) {
+        genePage.filterExperiments({ef:ef, efv:efv});
     };
 
     window.FilterExpsEfo = function(ef, efo) {
-        expList.load({ef:ef, efo:efo});
+        genePage.filterExperiments({ef:ef, efo:efo});
     };
 
-    expList.load({ef:"${ef}"});
-
-    atlas.PageState.init();
+    atlas.PageState.init(function() {
+        genePage.init();
+    });
 });
 </script>
 
@@ -335,8 +325,9 @@ $(document).ready(function() {
                     <c:forEach var="e" items="${values}" varStatus="i">
                         <c:if test='${e.efv!="(empty)"}'>
                             <tr class="heatmap_row"
-                                onclick="FilterExps(this,'${u:escapeJS(e.efv)}','${u:escapeJS(e.ef)}'); return false;"
-                                title="${e.efv}">
+                                onclick="FilterExps('${u:escapeJS(e.ef)}', '${u:escapeJS(e.efv)}'); return false;"
+                                title="${e.efv}"
+                                efefv="${e.ef}${e.efv}">
                                 <td style="padding: 1px 5px 1px 4px;border-bottom:1px solid #CDCDCD; min-width: 100px;border-left:1px solid #CDCDCD;">
                                                                     <span style="font-weight: bold">
                                                                             ${e.efv}
