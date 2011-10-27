@@ -404,12 +404,12 @@
         <repository>
             <id>ebi-repo</id>
             <name>The EBI internal repository</name>
-            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
         </repository>
         <repository>
             <id>ebi-snapshot-repo</id>
             <name>The EBI internal snapshot repository</name>
-            <url>http://www.ebi.ac.uk/~maven/m2repo_snapshots</url>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots/</url>
         </repository>
         <!--
          * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
@@ -451,6 +451,11 @@
             <name>Limpopo Mini-SF Repository</name>
             <url>http://limpopo.sourceforge.net/maven/repo</url>
         </repository>
+        <repository>
+            <id>erroritem</id>
+            <name>erroritem repo</name>
+            <url>http://erroritem.sourceforge.net/maven/repo</url>
+        </repository>
 
         <repository>
             <!--
@@ -480,12 +485,6 @@
         <repository>
             <id>hasbanana</id>
             <url>http://www.hasbanana.com/maven/repo</url>
-        </repository>
-
-        <repository>
-            <id>fg.local</id>
-            <name>FG Artifactory</name>
-            <url>http://bar:8081/artifactory/repo</url>
         </repository>
     </repositories>
 
