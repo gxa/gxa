@@ -18,7 +18,7 @@ public class FileBasedConnection<T extends AnnotationSource> extends AnnotationS
 
     @Override
     public String getOnlineMartVersion() throws BioMartAccessException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return "5";
     }
 
     @Override

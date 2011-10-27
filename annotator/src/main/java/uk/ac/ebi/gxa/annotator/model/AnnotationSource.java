@@ -123,4 +123,5 @@ public abstract class AnnotationSource implements Serializable {
     }
 
     public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
+
 }

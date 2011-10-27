@@ -22,7 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
 import uk.ac.ebi.gxa.annotator.loader.filebased.FileBasedConnection;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 
@@ -31,6 +33,18 @@ import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
  * Date: 22/06/2011
  */
 public class AnnotationSourceConnectionFactory {
+
+    public static <T extends AnnotationSource> AnnotationSourceConnection createConnectionForAnnSrc(T annSrc) throws BioMartAccessException {
+        if (annSrc instanceof BioMartAnnotationSource) {
+            BioMartAnnotationSource bmAnnSrc = (BioMartAnnotationSource) annSrc;
+            return new BioMartConnection(bmAnnSrc.getUrl(), bmAnnSrc.getDatabaseName(), bmAnnSrc.getDatasetName());
+        }
+        if (annSrc instanceof GeneSigAnnotationSource) {
+            GeneSigAnnotationSource gsAnnSrc = (GeneSigAnnotationSource) annSrc;
+            return new FileBasedConnection(gsAnnSrc.getUrl());
+        }
+        throw new IllegalArgumentException("Cannot create Connection for " + annSrc.getClass().getName());
+    }
 
     public static BioMartConnection createConnectionForAnnSrc(BioMartAnnotationSource annSrc) throws BioMartAccessException {
         return new BioMartConnection(annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
