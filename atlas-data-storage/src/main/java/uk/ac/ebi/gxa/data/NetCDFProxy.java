@@ -350,7 +350,7 @@ public final class NetCDFProxy implements Closeable {
         for (Object text : (Object[]) uEFV.make1DStringArray().get1DJavaArray(String.class)) {
             final String[] data = ((String) text).split(NCDF_PROP_VAL_SEP_REGEX, -1);
             if (data.length != 2) {
-                throw new AtlasDataException("Invalid uEFV element: " + text);
+                throw new AtlasDataException("Invalid uEFV element: '" + text + "' in " + pathToNetCDF.getName());
             }
 
             if (!"".equals(data[1])) {
