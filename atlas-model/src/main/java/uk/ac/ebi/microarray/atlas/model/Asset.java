@@ -35,7 +35,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "A2_EXPERIMENTASSET")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Asset {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assetSeq")

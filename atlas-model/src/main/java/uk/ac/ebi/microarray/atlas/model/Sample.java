@@ -45,7 +45,7 @@ import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Sample {
     public static final Logger log = LoggerFactory.getLogger(Sample.class);
 
@@ -67,7 +67,7 @@ public class Sample {
             orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     private List<SampleProperty> properties = new ArrayList<SampleProperty>();
 
     Sample() {
