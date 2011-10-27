@@ -401,6 +401,16 @@
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>ebi-repo</id>
+            <name>The EBI internal repository</name>
+            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+        </repository>
+        <repository>
+            <id>ebi-snapshot-repo</id>
+            <name>The EBI internal snapshot repository</name>
+            <url>http://www.ebi.ac.uk/~maven/m2repo_snapshots</url>
+        </repository>
         <!--
          * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
 
@@ -436,6 +446,11 @@
             <id>ulisse</id>
             <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
+        <repository>
+            <id>limpopo-repo</id>
+            <name>Limpopo Mini-SF Repository</name>
+            <url>http://limpopo.sourceforge.net/maven/repo</url>
+        </repository>
 
         <repository>
             <!--
@@ -468,28 +483,20 @@
         </repository>
 
         <repository>
-            <id>ebi-repo</id>
-            <name>The EBI internal repository</name>
-            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
-        </repository>
-        <repository>
-            <id>ebi-snapshot-repo</id>
-            <name>The EBI internal snapshot repository</name>
-            <url>http://www.ebi.ac.uk/~maven/m2repo_snapshots</url>
+            <id>fg.local</id>
+            <name>FG Artifactory</name>
+            <url>http://bar:8081/artifactory/repo</url>
         </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
             <id>ebi-repo</id>
-            <name>EBI Repository</name>
-            <url>scp://lobster.ebi.ac.uk/homes/maven/public_html/m2repo</url>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo</url>
         </repository>
         <snapshotRepository>
-            <uniqueVersion>false</uniqueVersion>
             <id>ebi-repo-snapshots</id>
-            <name>EBI Snapshots Repository</name>
-            <url>scp://lobster.ebi.ac.uk/homes/maven/public_html/m2repo_snapshots</url>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
