@@ -27,7 +27,9 @@
         <tr>
             <td class="section-header-1">Expression Profiles</td>
             <td align="right">
-                <span id="allStudiesLink" class="pagination_ie"></span>
+                {{if efv }}
+                   <span class="pagination_ie"><a id="allStudiesLink">Show all studies</a></span>
+                {{/if}}
                 <span id="pagination" class="pagination_ie"></span>
             </td>
         </tr>
