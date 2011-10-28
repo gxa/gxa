@@ -273,14 +273,16 @@ computeAnalytics <<-
 
       proc = allupdn(eset)
 
-      uEFV = get.var.ncdf(ncd, "uEFV")
+      propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
+      propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
+      pairs <- paste(propertyNAME, propertyVALUE, sep = "||")
 
       # initialize tstat and pval to NA
-      tstat = matrix(NA, ncol = length(uEFV), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "TSTAT"))
-      pval = matrix(NA, ncol = length(uEFV), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "PVAL"))
+      tstat = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset)); #t(get.var.ncdf(statistics_nc, "TSTAT"))
+      pval = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset)); #t(get.var.ncdf(statistics_nc, "PVAL"))
 
-      colnames(tstat) <- make.names(uEFV)
-      colnames(pval) <- make.names(uEFV)
+      colnames(tstat) <- make.names(pairs)
+      colnames(pval) <- make.names(pairs)
 
       result <- sapply(varLabels(eset),
                        function(varLabel) {
