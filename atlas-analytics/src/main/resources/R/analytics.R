@@ -324,7 +324,7 @@ computeAnalytics <<-
       put.var.ncdf(statistics_nc, "TSTAT", t(tstat))
       put.var.ncdf(statistics_nc, "PVAL", t(pval))
 
-      ef = get.var.ncdf(ncd, "EF")
+      efsc = get.var.ncdf(data_nc, "EF")
       
       sync.ncdf(statistics_nc)
       updateStatOrder(data_nc, statistics_nc)
