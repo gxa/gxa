@@ -84,24 +84,10 @@ read.atlas.nc <<-
       efscv <- data.frame(row.names=as)
     }
 
-    if (1 == 0 && exists("scv")) {
-        for(sc in colnames(scv)) {
-            scvj <- as.factor(unlist(lapply(rownames(b2a), function(assayid)
-                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[assayid,])],sc]),
-                                       sep = ",", collapse = "|"))))
-
-            ef <- sub("bs_","ba_",sc)
-             if( !identical(efscv[[ef]], scvj)) {
-                       efscv[[sc]] <- scvj
-               print(paste("scvj = ", scvj))
-             }
-        }
-    }
-
     fDataFrame = data.frame(gn = gn,de = de) #, deacc = deacc)
     fData = new("AnnotatedDataFrame", data = fDataFrame)
     featureNames(fData) = de
-    pData = new("AnnotatedDataFrame", data = efv)
+    pData = new("AnnotatedDataFrame", data = efscv)
 
     if(exists("scv")) {
       scData = new("AnnotatedDataFrame", data = scv)
@@ -329,9 +315,10 @@ computeAnalytics <<-
       sync.ncdf(statistics_nc)
       updateStatOrder(data_nc, statistics_nc)
 
-      names(result) <- ef
+      close.ncdf(data_nc)
+      close.ncdf(statistics_nc)
 
-      updateStatOrder(nc)
+      names(result) <- efsc
 
       return(result)
     })
