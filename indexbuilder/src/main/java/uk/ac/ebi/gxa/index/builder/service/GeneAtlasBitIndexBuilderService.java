@@ -110,7 +110,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
         final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
-        final ObjectPool<EfvAttribute> attributePool = new ObjectPool<EfvAttribute>();
+        final ObjectPool<EfvAttribute> efvAttributePool = new ObjectPool<EfvAttribute>();
+        final ObjectPool<EfAttribute> efAttributePool = new ObjectPool<EfAttribute>();
 
         final ThreadSafeStatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
         final ThreadSafeStatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
@@ -147,7 +148,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final ArrayFloat.D2 pvals = experimentWithData.getProxy(ad).getPValues();
                     final int[] shape = tstat.getShape();
 
-                    final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
+                    final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
                     for (int j = 0; j < uVals.size(); j++) {
                         final KeyValuePair efv = uVals.get(j);
 
@@ -155,8 +156,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
                             continue;
 
-                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value));
-                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key));
+                        final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.key, efv.value));
+                        final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.key));
 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
@@ -244,7 +245,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         @Override
                         public void run() {
                             // Store rounded minimum up/down pVals per gene for all efs/scs
-                            for (Map.Entry<EfvAttribute, MinPMaxT> entry : efToPTUpDown.entrySet()) {
+                            for (Map.Entry<EfAttribute, MinPMaxT> entry : efToPTUpDown.entrySet()) {
                                 // Store min up/down pVal for efv
                                 entry.getValue().storeStats(updnStats, experimentInfo, entry.getKey());
                             }
@@ -270,7 +271,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
         try {
             // Load efo index
-            EfoIndex efoIndex = loadEfoMapping(attributePool, experimentPool);
+            EfoIndex efoIndex = loadEfoMapping(efvAttributePool, experimentPool);
             statisticsStorage.setEfoIndex(efoIndex);
 
             // wait for statistics updates to finish
@@ -380,9 +381,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             }
         }
 
-        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttribute) {
+        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfAttribute efAttribute) {
             for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                stats.addPvalueTstatRank(efvAttribute,
+                stats.addPvalueTstatRank(efAttribute,
                         PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
                         expIdx, entry.getKey());
             }
