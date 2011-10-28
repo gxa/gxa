@@ -23,6 +23,10 @@
   -->
 
 <dataset>
+    <DUAL
+        dummy="X"
+        />
+
     <A2_EXPERIMENT
             experimentid="174501824"
             accession="E-MEXP-420"
@@ -65,7 +69,6 @@
             type="some_type"
             name="Hello I Am An Array Name"
             provider="Some Company, Somewhere"
-            MAPPINGSWID="1"
             />
 
     <A2_ARRAYDESIGN
@@ -74,7 +77,6 @@
             type="some_other_type"
             name="Hello I Am Another Array Name"
             provider="Another Company"
-            MAPPINGSWID="1"
             />
 
     <A2_PROPERTY
@@ -150,58 +152,53 @@
             />
 
     <A2_BIOENTITYTYPE
-            BIOENTITYTYPEID="1"
+            BIOENTITYTYPEID="100"
             NAME="enstranscript"
             ID_FOR_INDEX="0"
             ID_FOR_ANALYTICS="0"
             PROP_FOR_INDEX="1"
+            identifierPropertyID="200"
+            namePropertyID="200"
             />
 
     <A2_BIOENTITYTYPE
-            BIOENTITYTYPEID="2"
+            BIOENTITYTYPEID="200"
             NAME="ensgene"
             ID_FOR_INDEX="1"
             ID_FOR_ANALYTICS="1"
             PROP_FOR_INDEX="0"
+            identifierPropertyID="300"
+            namePropertyID="300"
             />
 
     <A2_BIOENTITY
             BIOENTITYID="516248"
-            organismid="1"
+            organismid="1000"
             identifier="ENSMUSG00000020275"
-            BIOENTITYTYPEID="2"
+            BIOENTITYTYPEID="200"
+            NAME="testGene"
             />
 
     <A2_BIOENTITY
             BIOENTITYID="2"
-            organismid="1"
+            organismid="1000"
             identifier="ENST0000001"
-            BIOENTITYTYPEID="1"
-            />
-
-    <A2_BERELATIONTYPE
-            BERELATIONTYPEID="1"
-            NAME="ensannotation"
+            BIOENTITYTYPEID="100"
+            NAME="DNAa"
             />
 
     <A2_SOFTWARE
-            SOFTWAREID="1"
+            SOFTWAREID="1000"
             NAME="Ensembl"
             VERSION="60"
+            ISACTIVE="T"
             />
 
     <A2_SOFTWARE
-            SOFTWAREID="2"
+            SOFTWAREID="2000"
             NAME="BioConductor"
             VERSION="4"
-            />
-
-    <A2_BIOENTITY2BIOENTITY
-            BE2BEID="1"
-            BIOENTITYIDFROM="2"
-            BIOENTITYIDTO="1"
-            BERELATIONTYPEID="1"
-            SOFTWAREID='1'
+            ISACTIVE="F"
             />
 
     <A2_GENEPROPERTY
@@ -224,13 +221,21 @@
             />
 
     <A2_BIOENTITYPROPERTY
-            BIOENTITYPROPERTYID="1"
+            BIOENTITYPROPERTYID="200"
+            name="enstranscript"
+            />
+    <A2_BIOENTITYPROPERTY
+            BIOENTITYPROPERTYID="300"
+            name="ensgene"
+            />
+    <A2_BIOENTITYPROPERTY
+            BIOENTITYPROPERTYID="100"
             name="goterm"
             />
 
     <A2_BIOENTITYPROPERTYVALUE
             BEPROPERTYVALUEID="1"
-            BIOENTITYPROPERTYID="1"
+            BIOENTITYPROPERTYID="100"
             value="Some GO value"
             />
 
@@ -238,17 +243,22 @@
             BIOENTITYBEPVID="1"
             BIOENTITYID="2"
             BEPROPERTYVALUEID="1"
-            SOFTWAREID="1"
+            SOFTWAREID="1000"
             />
 
     <A2_ORGANISM
-            organismid="1"
-            name="Homo Sapiens"
+            organismid="1000"
+            name="homo sapiens"
             />
 
     <A2_ORGANISM
             organismid="2"
-            name="Mus Musculus"
+            name="mus musculus"
+            />
+
+    <A2_ORGANISM
+            organismid="3"
+            name="arabidopsis thaliana"
             />
 
     <A2_ASSAY
@@ -335,7 +345,7 @@
             sampleid="1"
             experimentid="174501824"
             accession="abc:some/Sample:ABC_DEFG_123a"
-            organismid="1"
+            organismid="1000"
             channel=""
             />
 
@@ -408,7 +418,7 @@
             sampleid="10"
             experimentid="174501824"
             accession="one:ToMany:TestSample1"
-            organismid="1"
+            organismid="1000"
             channel=""
             />
 
@@ -416,7 +426,7 @@
             sampleid="11"
             experimentid="174501824"
             accession="one:ToMany:TestSample2"
-            organismid="1"
+            organismid="1000"
             channel=""
             />
 
@@ -485,29 +495,71 @@
 
             />
 
-
-    <VWDESIGNELEMENTGENELINKED
-            designelementid="171606351"
-            accession="acc1"
-            name="acc1"
-            arraydesignid="1"
-            bioentityid="516248"
-            identifier="ENSMUSG00000020275"
-            organismid="1"
-            mappingswid="1"
-            annotationswid="1"
+     <A2_DESIGNELTBIOENTITY
+        DEBEID="1000"
+        DESIGNELEMENTID="171606351"
+        BIOENTITYID="516248"
+        SOFTWAREID="1000"
             />
 
-    <VWDESIGNELEMENTGENEDIRECT
-            designelementid="171606351"
-            accession="acc1"
-            name="acc1"
-            arraydesignid="1"
-            bioentityid="516248"
-            identifier="ENSMUSG00000020275"
-            organismid="1"
+    <A2_ANNOTATIONSRC
+            annotationsrcid="1000"
+            SOFTWAREID="1000"
+            ORGANISMID="1000"
+            url="http://www.ensembl.org/biomart/martservice?"
+            biomartorganismname="hsapiens_gene_ensembl"
+            databasename="ensembl"
+            mySqlDbName = "homo_sapiens"
+            mySqlDbUrl = "ensembldb.ensembl.org:5306"
+            annsrctype="biomart"
+            LOADDATE="2011-01-06"
+            isApplied="F"
+            />
+    <A2_ANNSRC_BIOENTITYTYPE
+            annotationsrcid="1000"
+            BIOENTITYTYPEID="100"
             />
 
+    <A2_ANNSRC_BIOENTITYTYPE
+            annotationsrcid="1000"
+            BIOENTITYTYPEID="200"
+            />
+
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="1000"
+            annotationsrcid="1000"
+            BIOENTITYPROPERTYID="100"
+            NAME="name_1006"
+            />
+
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="2000"
+            annotationsrcid="1000"
+            BIOENTITYPROPERTYID="300"
+            NAME="ensembl_gene_id"
+            />
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="3000"
+            annotationsrcid="1000"
+            BIOENTITYPROPERTYID="100"
+            NAME="go_cellular_component__dm_name_1006"
+            />
+
+    <A2_BIOMARTPROPERTY
+            BIOMARTPROPERTYID="4000"
+            annotationsrcid="1000"
+            BIOENTITYPROPERTYID="200"
+            NAME="ensembl_transcript_id"
+            />
+
+    <A2_BIOMARTARRAYDESIGN
+            BIOMARTARRAYDESIGNID="1000"
+            annotationsrcid="1000"
+            ARRAYDESIGNID="1"
+            NAME="affy_74a"
+            />
+
+    
     <A2_ONTOLOGY
             ONTOLOGYID="1"
             name="EFO"
