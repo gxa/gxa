@@ -136,7 +136,8 @@ public class AtlasExperimentAnalyticsViewService {
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(ewd.getPathForR(arrayDesign))
+                .addParam(ewd.getDataPathForR(arrayDesign))
+                .addParam(ewd.getStatisticsPathForR(arrayDesign))
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)

@@ -1,4 +1,26 @@
-package uk.ac.ebi.gxa.loader.service;
+/*
+ * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
+package uk.ac.ebi.gxa.data;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +35,8 @@ import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 import java.util.*;
 
 class NetCDFData {
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    // Note that matchedUniqueEFVs includes both ef-efvs ad sc-scvs
-    private EfvTree<CPair<String, String>> matchedUniqueEFVs = null;
     private DataMatrixStorage storage;
-    private List<String> uniqueEFVs;
     private final Map<Assay, List<Sample>> assayToSamples = new LinkedHashMap<Assay, List<Sample>>();
 
 
@@ -30,14 +48,6 @@ class NetCDFData {
         storage.add(designElement, values);
     }
 
-    public void setUniqueEFVs(List<KeyValuePair> uniqueValues) {
-        // TODO: change this.uniqueEFVs to List of KeyValuePairs
-        this.uniqueEFVs = new ArrayList<String>(uniqueValues.size());
-        for (KeyValuePair pair : uniqueValues) {
-            this.uniqueEFVs.add(pair.key + "||" + pair.value);
-        }
-    }
-
     public List<Assay> getAssays() {
         return new ArrayList<Assay>(assayToSamples.keySet());
     }
@@ -47,41 +57,7 @@ class NetCDFData {
     }
 
     int getWidth() {
-        return assayToSamples.keySet().size() + (isAnalyticsTransferred() ? uniqueEFVs.size() * 2 : 0);  // expressions + pvals + tstats
-    }
-
-    boolean isAnalyticsTransferred() {
-        return matchedUniqueEFVs != null;
-    }
-
-    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getTStatDataMap() {
-        if (!isAnalyticsTransferred())
-            return null;
-
-        Map<Pair<String, String>, DataMatrixStorage.ColumnRef> tstatMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueEFVs.getNameSortedList()) {
-            final int oldPos = uniqueEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
-            tstatMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                    new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + uniqueEFVs.size() + oldPos));
-        }
-        return tstatMap;
-    }
-
-    Map<Pair<String, String>, DataMatrixStorage.ColumnRef> getPValDataMap() {
-        if (!isAnalyticsTransferred())
-            return null;
-
-        Map<Pair<String, String>, DataMatrixStorage.ColumnRef> pvalMap = new HashMap<Pair<String, String>, DataMatrixStorage.ColumnRef>();
-        for (EfvTree.EfEfv<CPair<String, String>> efEfv : matchedUniqueEFVs.getNameSortedList()) {
-            final int oldPos = uniqueEFVs.indexOf(encodeEfEfv(efEfv.getPayload()));
-            pvalMap.put(Pair.create(efEfv.getEf(), efEfv.getEfv()),
-                    new DataMatrixStorage.ColumnRef(storage, assayToSamples.keySet().size() + oldPos));
-        }
-        return pvalMap;
-    }
-
-    private String encodeEfEfv(CPair<String, String> pair) {
-        return pair.getFirst() + "||" + pair.getSecond();
+        return assayToSamples.keySet().size();
     }
 
     Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
