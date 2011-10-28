@@ -24,12 +24,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
     <head>
-
-        <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery-1.4.3.min.js"></script>
-        <script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.progressbar.js"></script>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/atlas.css" type="text/css" />
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css" />
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css" />
+        <wro4j:all name="bundle-jquery" />
+        <wro4j:all name="bundle-gxa" />
+        <wro4j:all name="bundle-gxa-page-downloads" />
 
         <script type="text/javascript">
             $(document).ready(function() {

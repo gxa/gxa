@@ -53,7 +53,7 @@ public class BioMartParser<T extends BioEntityData> {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public static <T extends BioEntityData> BioMartParser initParser(List<BioEntityType> types, BioEntityDataBuilder<T> builder) {
+    public static <T extends BioEntityData> BioMartParser<T> initParser(List<BioEntityType> types, BioEntityDataBuilder<T> builder) {
         BioMartParser<T> parser = new BioMartParser<T>(types);
         parser.setBuilder(builder);
         parser.createNewBioEntityData();
@@ -158,7 +158,7 @@ public class BioMartParser<T extends BioEntityData> {
 
     }
 
-    void setBuilder(BioEntityDataBuilder builder) {
+    void setBuilder(BioEntityDataBuilder<T> builder) {
         this.builder = builder;
     }
 

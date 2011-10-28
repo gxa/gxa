@@ -31,7 +31,9 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
@@ -56,8 +58,15 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Autowired
     protected BioEntityPropertyDAO propertyDAO;
 
+    @Autowired
+    private SoftwareDAO softwareDAO;
+
+    @Autowired
+    private BioEntityTypeDAO typeDAO;
+
+
     private BioMartAnnotationSource fetchAnnotationSource() {
-        Software software = annSrcDAO.findOrCreateSoftware("Ensembl", "60");
+        Software software = softwareDAO.findOrCreate("Ensembl", "60");
         Organism organism = organismDAO.getOrCreateOrganism("homo sapiens");
         return annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
     }
@@ -66,7 +75,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Test
     @Transactional
     public void testSave() throws Exception {
-        Software software = annSrcDAO.findOrCreateSoftware("plants", "8");
+        Software software = softwareDAO.findOrCreate("plants", "8");
         Organism organism = organismDAO.getByName("arabidopsis thaliana");
 
         BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
@@ -97,13 +106,13 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Test
     @Transactional
     public void testFindAnnotationSource() throws Exception {
-        Software software = annSrcDAO.findOrCreateSoftware("Ensembl", "60");
+        Software software = softwareDAO.findOrCreate("Ensembl", "60");
         Organism organism = organismDAO.getByName("homo sapiens");
         BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
         assertNotNull(annotationSource);
 
         //Not existing ann src
-        software = annSrcDAO.findOrCreateSoftware("animals", "8");
+        software = softwareDAO.findOrCreate("animals", "8");
         annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
         assertNull(annotationSource);
     }
@@ -124,12 +133,25 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testUpdate() throws Exception {
+        BioMartAnnotationSource annotationSource = fetchAnnotationSource();
+        assertNotNull(annotationSource);
+        assertEquals(false, annotationSource.isApplied());
+        annotationSource.setApplied(true);
+
+        annSrcDAO.update(annotationSource);
+
+        BioMartAnnotationSource annotationSource1 = fetchAnnotationSource();
+        assertTrue(annotationSource1.isApplied());
+    }
+
+    @Test
     @Transactional
     public void testFindOrCreateOrganism() throws Exception {
-        Organism organism = annSrcDAO.findOrCreateOrganism("homo sapiens");
+        Organism organism = organismDAO.getOrCreateOrganism("homo sapiens");
         assertNotNull(organism);
 
-        organism = annSrcDAO.findOrCreateOrganism("new organism");
+        organism = organismDAO.getOrCreateOrganism("new organism");
         assertNotNull(organism);
         assertNotNull(organism.getId());
     }
@@ -137,10 +159,10 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Test
     @Transactional
     public void testFindOrCreateSoftware() throws Exception {
-        Software software = annSrcDAO.findOrCreateSoftware("Ensembl", "60");
+        Software software = softwareDAO.findOrCreate("Ensembl", "60");
         assertNotNull(software);
 
-        software = annSrcDAO.findOrCreateSoftware("animals", "8");
+        software = softwareDAO.findOrCreate("animals", "8");
         assertNotNull(software);
         assertNotNull(software.getSoftwareid());
 
@@ -149,10 +171,10 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Test
     @Transactional
     public void testFindOrCreateBioEntityType() throws Exception {
-        BioEntityType enstranscript = annSrcDAO.findOrCreateBioEntityType("enstranscript");
+        BioEntityType enstranscript = typeDAO.findOrCreate("enstranscript");
         assertNotNull(enstranscript);
 
-        BioEntityType type = annSrcDAO.findOrCreateBioEntityType("new type");
+        BioEntityType type = typeDAO.findOrCreate("new type");
         assertNotNull(type);
         assertNotNull(type.getNameProperty().getBioEntitypropertyId());
         assertNotNull(type.getIdentifierProperty().getBioEntitypropertyId());
@@ -163,23 +185,17 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Test
     @Transactional
     public void testFindOrCreateBEProperty() throws Exception {
-        BioEntityProperty enstranscript = annSrcDAO.findOrCreateBEProperty("enstranscript");
+        BioEntityProperty enstranscript = propertyDAO.findOrCreate("enstranscript");
         assertNotNull(enstranscript);
 
-        BioEntityProperty property = annSrcDAO.findOrCreateBEProperty("new prop");
+        BioEntityProperty property = propertyDAO.findOrCreate("new prop");
         assertNotNull(property);
-    }
-
-    @Test
-    public void testIsAnnSrcApplied() throws Exception {
-        BioMartAnnotationSource annotationSource = fetchAnnotationSource();
-        assertTrue(annSrcDAO.isAnnSrcApplied(annotationSource, true));
     }
 
     @Test
     public void testIsAnnSrcAppliedForArrayDesignMapping() throws Exception {
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignByAccession("A-AFFY-45");
-        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign, true));
+        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign));
     }
 }

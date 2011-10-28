@@ -1,0 +1,398 @@
+/*
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
+/* Page layout */
+
+.two-column-layout {
+    padding: 0;
+    margin: 20px 0 0;
+    border-spacing: 0;
+}
+
+.two-column-layout td.column {
+    border: none;
+    vertical-align: top;
+    padding: 0 10px 0 0;
+}
+
+/* Refine query section */
+
+#drill {
+    margin-bottom:15px;
+    margin-top: 2px;
+    padding: 7px;
+    position: relative;
+    border: none;
+}
+
+#drill h2 {
+    font-size: 11pt;
+    font-weight: bold;
+    background: none;
+    margin: 0 0 15px 0;
+    color: #005555;
+}
+
+#drill a.fup:link, #drill a.fup:visited {
+    text-decoration: none;
+    color: #c5b0b0;
+}
+
+#drill a.fdn:link, #drill a.fdn:visited {
+    text-decoration: none;
+    color: #b0b0c5;
+}
+
+#drill a.fup:active, #drill a.fup:hover {
+    text-decoration: underline;
+    color: #e33e3e;
+}
+
+#drilldowns {
+    display: none;
+}
+
+#drilldowns .name {
+    color: #005555;
+}
+
+.drillsect ul {
+    padding: 0 5px 10px 0;
+    margin: 0;
+}
+
+.drillsect li {
+    padding-left: 0;
+    list-style: none;
+    color: #999999;
+}
+
+.drillsect .name {
+    font-size: 12px;
+    font-weight: bold
+}
+
+.drillsect .ftot {
+    font-size: 12px
+}
+
+/* Gene tooltips */
+
+#tooltip {
+    position: absolute;
+    z-index: 3000;
+    padding: 10px;
+    max-width: 800px;
+    border: 1px solid #5E9E9E;
+    background-color: #EEF5F5;
+}
+
+#tooltip div {
+    margin-bottom: 5px;
+}
+
+#tooltip .genename {
+    margin-bottom: 10px;
+    font-size: 10px;
+}
+
+#tooltip .genename b {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Experiments pop-up */
+
+.plot {
+    position: relative;
+    width: 240px;
+    height: 100px;
+}
+
+.waiter {
+    position: absolute;
+    padding-top: 16px;
+    background: transparent url(images/indicator.gif) no-repeat;
+    z-index:2000;
+    width: 16px;
+}
+
+#expopup {
+    font-family: Verdana, helvetica, arial, sans-serif;
+    position: absolute;
+    width: 600px;
+    height: 300px;
+    padding: 10px;
+    color: black;
+    text-align: left;
+    z-index: 2000;
+    border: 1px solid #5E9E9E;
+    background-color: #EEF5F5;
+}
+
+#expopup .exptable {
+    position: relative;
+    height: 250px;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    margin-top: 10px;
+}
+
+#expopup .head {
+    font-weight: normal;
+    font-size: 12px;
+}
+
+#expopup .head a {
+    font-size: 12px;
+}
+
+#expopup .exptable > table {
+    border-spacing: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#expopup tr.notlast > td {
+    border-bottom: 1px solid #5E9E9E;
+}
+
+#expopup td.explot {
+    border-right: 1px solid #5E9E9E;
+}
+
+#expopup .expup {
+    color: #990000;
+    font-weight: bold;
+}
+
+#expopup .expdn {
+    color: #000099;
+    font-weight: bold;
+}
+
+#expopup .expno {
+    color: black;
+    font-weight: bold;
+}
+
+#expopup em {
+    font-weight: bold;
+}
+
+#expopup a:link, #expopup a:visited {
+    color: #006666;
+    text-decoration: none;
+}
+
+#expopup a:hover, #expopup a:active {
+    color: #e33e3e;
+    text-decoration: underline;
+}
+
+#expopup table.oneplot .efname {
+    font-size: smaller;
+    font-weight: bold;
+    margin: 6px 0 2px 2px;
+}
+
+/* Common styles for both views (List and Heatmap)*/
+
+.query-result .padded {
+    padding: 1px 4px 1px 4px;
+}
+
+.query-result .gtooltip {
+    display: none;
+}
+
+.query-result td.genename {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* List view */
+
+.list-view th {
+    font-size: 8pt;
+}
+
+.list-view td {
+    padding: 0;
+}
+
+.list-view tr.expand-child {
+    display: none;
+}
+
+.list-view tr.expand-child table {
+    width:100%;
+    border-collapse:collapse;
+    border: 0;
+}
+
+.list-view tr.expand-child td.expdesc {
+    padding: 1px 70px 1px 4px;
+}
+
+.list-view tr.expand-child .expthumb {
+    border: none;
+}
+
+.list-view tr.expand-child .expthumb div.outer {
+    position: relative;
+    height: 45px;
+    width: 100%;
+    line-height: 45px;
+}
+
+.list-view tr.expand-child .expthumb a {
+    border: none;
+    text-decoration: none;
+    outline: none;
+    position: absolute;
+    display: block;
+    right: 0;
+    text-align: center;
+}
+
+.list-view tr.expand-child .expthumb div.thumb {
+    height: 45px;
+    width: 90px;
+}
+
+.list-view tr.expand-child .pvalue {
+    border-right: 2px solid #cdcdcd;
+}
+
+.list-view td.wrapok {
+    white-space: normal;
+}
+
+.list-view span.collapsible {
+    vertical-align: top;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    padding: 0;
+}
+
+.collapsible a.collapsed {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: url(images/expp.gif) no-repeat top left;
+    outline: 0;
+    padding-left: 9px;
+    zoom: 1;
+    *display: inline;
+}
+
+.collapsible a.expanded {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background: url(images/expm.gif) no-repeat top left;
+    outline: 0;
+    padding-left: 9px;
+    zoom: 1;
+    *display: inline;
+}
+
+/* Heatmap view */
+
+.heatmap-view {
+    margin: 0 30px 15px 0;
+}
+
+.heatmap-view th {
+    padding: 0;
+}
+
+.heatmap-view td {
+    padding:  0;
+}
+
+.heatmap-view img, .heatmap-view img:hover, map, map:hover, area, area:hover {
+    border: none;
+    cursor: default;
+}
+
+.heatmap-view th.padded {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.heatmap-view th.factor {
+    text-align: center;
+    font-weight: normal;
+    font-size: 10px
+}
+
+.heatmap-view th.factor div {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+    height: 15px;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.heatmap-view th.factor a {
+    display: block;
+    text-align: center;
+    height: 12px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.heatmap-view div.diaghead {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+    height: 15px;
+    font-weight: bold;
+    font-size: 10px;
+    border-bottom: 1px solid #cdcdcd;
+    background-color: #EEF5F5;
+}
+
+.heatmap-view .divider {
+    border-right: 3px solid #cdcdcd;
+}
+
+.heatmap-view em {
+    font: inherit;
+    background-color: yellow;
+    text-decoration: inherit;
+}
+
+.nosigndiff {
+    width: 0;
+    font-size: 0;
+    line-height: 0%;
+    border-top: 10px solid rgb(232, 232, 232);
+    border-right: 14px solid rgb(216, 216, 216);
+    border-bottom-style: none;
+}

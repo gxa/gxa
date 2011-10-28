@@ -40,7 +40,7 @@ public class DesignElementDataBuilder extends BioEntityDataBuilder<DesignElement
     @Override
     protected boolean isValidData() {
         return super.isValidData() &&
-                (!data.typeToDesignElementBEMapping.isEmpty() &&
+                (data.typeToDesignElementBEMapping.isEmpty() ||               
                         CollectionUtils.isEqualCollection(data.typeToDesignElementBEMapping.keySet(), data.getBioEntityTypes()));
     }
 

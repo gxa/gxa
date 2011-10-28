@@ -66,16 +66,11 @@ public abstract class AnnotationSource implements Serializable {
 
     @Temporal(TemporalType.DATE)
     protected Date loadDate;
-    @Transient
+
+    @org.hibernate.annotations.Type(type="true_false")
     private boolean isApplied = false;
 
     protected AnnotationSource() {
-    }
-
-    protected AnnotationSource(Long annotationSrcId, Software software, Organism organism) {
-        this.annotationSrcId = annotationSrcId;
-        this.organism = organism;
-        this.software = software;
     }
 
     public AnnotationSource(Software software, Organism organism) {

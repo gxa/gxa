@@ -80,9 +80,9 @@ public class ArrayDesignDAO {
                     "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                     "  join a2_bioentity indexedbe on indexedbe.bioentityid = debe.bioentityid\n" +
                     "  join a2_bioentitytype betype on betype.bioentitytypeid = indexedbe.bioentitytypeid\n" +
-                    "  join a2_software sw on sw.softwareid = debe.softwareid\n" +
-                    "  where sw.isactive = 1\n" +
-                    "  and betype.ID_FOR_INDEX = 1\n" +
+                    "  JOIN A2_SOFTWARE SW ON SW.SOFTWAREID = DEBE.SOFTWAREID\n" +
+                    "  where sw.isactive = 'T'\n" +
+                    "  AND BETYPE.ID_FOR_INDEX = 1\n" +
                     "  and de.arraydesignid = ?",
                     new Object[]{arrayDesign.getArrayDesignID()},
                     new ArrayDesignElementCallback(arrayDesign));
@@ -113,7 +113,7 @@ public class ArrayDesignDAO {
     }
 
     private static class ArrayDesignMapper implements RowMapper<ArrayDesign> {
-        private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.mappingswid";
+        private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid";
 
         public ArrayDesign mapRow(ResultSet resultSet, int i) throws SQLException {
             ArrayDesign array = new ArrayDesign(resultSet.getString(1));
@@ -122,7 +122,6 @@ public class ArrayDesignDAO {
             array.setName(resultSet.getString(3));
             array.setProvider(resultSet.getString(4));
             array.setArrayDesignID(resultSet.getLong(5));
-            array.setMappingSoftwareId(resultSet.getLong(6));
 
             return array;
         }

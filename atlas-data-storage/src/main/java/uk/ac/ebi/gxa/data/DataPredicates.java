@@ -55,6 +55,9 @@ public class DataPredicates {
     }
 
     public Predicate<ArrayDesign> containsEfEfv(final String ef, final String efv) {
+        if (isNullOrEmpty(ef)) {
+            return Predicates.alwaysTrue();
+        }
         return
                 new Predicate<ArrayDesign>() {
                     public boolean apply(@Nonnull ArrayDesign arrayDesign) {

@@ -30,34 +30,31 @@
 			
 				// if no anchors, create them
 				if( $a.length == 0 ) $a = $td[settings.addAnchor]('<a href="#" class="' + settings[settings.showCollapsed ? "classCollapse" : "classExpand"] + '"></a>').find("a");
-				
-				$tr = $a.parent().parent()
-					
+
 				$a.bind("click", function(){
 					
 					var $self = $(this),//"#"+this.id + " a:first "), 
-						$tr = $(this).parent().parent(),
+						$tr = $(this).parents("tr:first"),
 						$trc = $tr.next(), 
 						bIsCollapsed = $self.hasClass(settings.classExpand);//alert($self.length)
 					// change the css class
 					$self[bIsCollapsed ? "removeClass" : "addClass"](settings.classExpand)[!bIsCollapsed ? "removeClass" : "addClass"](settings.classCollapse);
-					while( $trc.hasClass(settings.classChildRow) ){
-						if( bHideParentRow ){
-							// get the tablesorter options
-							var ts_config = $.data(self[0], "tablesorter");
-							// hide/show the row
-							$trc[bIsCollapsed ? settings.fx.hide : settings.fx.show]();
-							
-							// if we have the ts settings, we need to up zebra stripping if active
-							if( !bIsCollapsed && ts_config ){
-								if( $tr.hasClass(ts_config.widgetZebra.css[0]) ) $trc.addClass(ts_config.widgetZebra.css[0]).removeClass(ts_config.widgetZebra.css[1]);
-								else if( $tr.hasClass(ts_config.widgetZebra.css[1]) ) $trc.addClass(ts_config.widgetZebra.css[1]).removeClass(ts_config.widgetZebra.css[0]);
-							}
-						}
-						// show all the table cells
-						$("td,th", $trc)[bIsCollapsed ? settings.fx.hide : settings.fx.show]();
-						// get the next row
-						$trc = $trc.next();
+                    while ($trc.hasClass(settings.classChildRow)) {
+                        // hide/show the row
+                        $trc[bIsCollapsed ? settings.fx.hide : settings.fx.show]();
+
+                        // get the tablesorter options
+                        var ts_config = $.data(self[0], "tablesorter");
+
+                        // if we have the ts settings, we need to up zebra stripping if active
+                        if (!bIsCollapsed && ts_config) {
+                            if ($tr.hasClass(ts_config.widgetZebra.css[0])) $trc.addClass(ts_config.widgetZebra.css[0]).removeClass(ts_config.widgetZebra.css[1]);
+                            else if ($tr.hasClass(ts_config.widgetZebra.css[1])) $trc.addClass(ts_config.widgetZebra.css[1]).removeClass(ts_config.widgetZebra.css[0]);
+                        }
+                        // show all the table cells
+                        $("td,th", $trc)[bIsCollapsed ? settings.fx.hide : settings.fx.show]();
+                        // get the next row
+                        $trc = $trc.next();
 					}
 					
 					if(!bIsCollapsed)
@@ -69,11 +66,8 @@
 			
 			// if not IE and we're automatically collapsing rows, collapse them now
 			if( settings.collapse && !bHideParentRow ){
-				$td
-					// get the tr element
-					.parent()
-					.each(function (){
-						var $tr = $(this).next();
+				$td.each(function (){
+						var $tr = $(this).parents("tr:first");
 						while( $tr.hasClass(settings.classChildRow) ){
 							// hide each table cell
 							$tr = $tr.find("td,th").hide().end().next();
@@ -83,11 +77,8 @@
 
 			// if using IE, we need to hide the table rows
 			if( settings.showCollapsed && bHideParentRow ){
-				$td
-					// get the tr element
-					.parent()
-					.each(function (){
-						var $tr = $(this).next();
+				$td.each(function (){
+						var $tr = $(this).parents("tr:first");
 						while( $tr.hasClass(settings.classChildRow) ){
 							$tr = $tr.hide().next();
 						}

@@ -50,10 +50,10 @@ public class BioMartConnection {
 
     private static final String MART_DB = "database=\"" + MART_NAME_PH + "_mart_";
 
-    private static final String DATA_SET_PH = "$DATA_SET";
-    private static final String PROP_NAME_PH = "$PROP_NAME";
-    private static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
-    private static final String ATTRIBUTES_PH = "$ATTRIBUTES";
+    protected static final String DATA_SET_PH = "$DATA_SET";
+    protected static final String PROP_NAME_PH = "$PROP_NAME";
+    protected static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
+    protected static final String ATTRIBUTES_PH = "$ATTRIBUTES";
 
     private static final String PROPERTY_QUERY =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -113,8 +113,9 @@ public class BioMartConnection {
         String location = martUrl + ATTRIBUTES_QUERY + datasetName;
         URL url = getMartURL(location);
 
+        CSVReader csvReader = null;
         try {
-            CSVReader csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
+            csvReader = new CSVReader(new InputStreamReader(url.openStream()), '\t', '"');
 
             Set<String> martAttributes = new HashSet<String>();
             String[] line;
@@ -133,6 +134,9 @@ public class BioMartConnection {
 
         } catch (IOException e) {
             throw new BioMartAccessException("Cannot read attribures from " + location, e);
+        } finally {
+            log.info("Finished reading from " + url + ", closing");
+            closeQuietly(csvReader);
         }
 
         return missingAttrs;
@@ -164,10 +168,6 @@ public class BioMartConnection {
         }
 
         return false;
-    }
-
-    public String getDatasetName() {
-        return datasetName;
     }
 
     /**
@@ -209,16 +209,26 @@ public class BioMartConnection {
     }
 
     private String getAttributesURLLocation(Collection<String> attributes) {
+        String attributesStr= prepareAttributesString(attributes);
+        try {
+            final String preparedURL = prepareURLString(attributesStr, serverVirtualSchema, datasetName);
+            return martUrl + "query=" + URLEncoder.encode(preparedURL, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw LogUtil.createUnexpected("Failed while trying to encode URL ", e);
+        }
+    }
+
+    protected String prepareAttributesString(Collection<String> attributes) {
         StringBuffer attributesSB = new StringBuffer();
         for (String attribute : attributes) {
             attributesSB.append(ATTRIBUTE.replace(PROP_NAME_PH, attribute));
         }
-        try {
-            return martUrl + "query=" + URLEncoder.encode(PROPERTY_QUERY.replace(DATA_SET_PH, datasetName).
-                    replace(ATTRIBUTES_PH, attributesSB.toString()).replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw LogUtil.createUnexpected("Failed while trying to encode URL ", e);
-        }
+        return attributesSB.toString();
+    }
+
+    protected String prepareURLString(String attributes, String serverVirtualSchema, String datasetName) {
+        return PROPERTY_QUERY.replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema).replace(DATA_SET_PH, datasetName).
+                        replace(ATTRIBUTES_PH, attributes);
     }
 
     private void fetchInfoFromRegistry() throws BioMartAccessException {
@@ -251,5 +261,13 @@ public class BioMartConnection {
         if (StringUtils.isEmpty(bioMartName) || StringUtils.isEmpty(serverVirtualSchema)) {
             throw new BioMartAccessException("Problem when reading registry. Check annotation source configuration. " + url);
         }
+    }
+
+    protected String getBioMartName() {
+        return bioMartName;
+    }
+
+    protected String getServerVirtualSchema() {
+        return serverVirtualSchema;
     }
 }

@@ -37,6 +37,7 @@ public class Software {
     private String name;
     private String version;
     // TODO: Ticket #3117 to enable proper handling of isActive field via the Admin UI
+    @org.hibernate.annotations.Type(type="true_false")
     private Boolean isActive = false;
 
     Software() {

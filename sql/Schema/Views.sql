@@ -300,59 +300,5 @@ CREATE OR REPLACE VIEW vwCheck as
 ;
 /
 
-CREATE OR REPLACE VIEW VWDESIGNELEMENTGENELINKED
-AS
-  SELECT
-    de.designelementid    AS designelementid,
-    de.accession          AS accession,
-    de.name               AS name,
-    de.arraydesignid      AS arraydesignid,
-    tobe.bioentityid      AS bioentityid,
-    tobe.identifier       AS identifier,
-    tobe.organismid       AS organismid,
-    tobe.bioentitytypeid  AS bioentitytypeid,
-    be2be.softwareid      AS annotationswid
-  FROM a2_designelement de
-  join a2_designeltbioentity debe on debe.designelementid = de.designelementid
-  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid
-  join a2_bioentity2bioentity be2be on be2be.bioentityidfrom = frombe.bioentityid
-  join a2_bioentity tobe on tobe.bioentityid = be2be.bioentityidto
-  join a2_bioentitytype betype on betype.bioentitytypeid = tobe.bioentitytypeid
-  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid
-  where debe.softwareid = ad.mappingswid
-  and betype.ID_FOR_INDEX = 1;
-/
-
-CREATE OR REPLACE VIEW VWDESIGNELEMENTGENEDIRECT
-AS
-  SELECT
-    de.designelementid    AS designelementid,
-    de.accession          AS accession,
-    de.name               AS name,
-    de.arraydesignid      AS arraydesignid,
-    frombe.bioentityid      AS bioentityid,
-    frombe.identifier       AS identifier,
-    frombe.organismid       AS organismid
-  FROM a2_designelement de
-  join a2_designeltbioentity debe on debe.designelementid = de.designelementid
-  join a2_bioentity frombe on frombe.bioentityid = debe.bioentityid
-  join a2_bioentitytype betype on betype.bioentitytypeid = frombe.bioentitytypeid
-  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid
-  where debe.softwareid = ad.mappingswid
-  and betype.ID_FOR_INDEX = 1;
- /
-
-CREATE OR REPLACE VIEW VWGENEPROPERTIES
-AS
- Select
-   g.GeneID
-  ,g.Identifier
-  ,p.name
-  ,pv.value
-  from a2_Gene g
-  left outer join a2_GeneGPV ggpv on ggpv.GeneID = g.GeneID
-  join a2_GenePropertyValue pv on pv.GenePropertyValueID = ggpv.GenePropertyValueID
-  join a2_GeneProperty p on p.GenePropertyID = pv.GenePropertyID;
-/
 exit;
 

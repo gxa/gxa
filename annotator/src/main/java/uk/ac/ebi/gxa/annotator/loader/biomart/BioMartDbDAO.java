@@ -23,70 +23,64 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Collection;
 
 /**
- * User: nsklyar
- * Date: 11/08/2011
+ * @author Nataliya Sklyar
  */
 public class BioMartDbDAO {
-    protected JdbcTemplate template;
+    private String url;
 
     public BioMartDbDAO(String url) {
-        createTemplate(url);
+        this.url = url;
     }
 
-    public HashSet<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws BioMartAccessException {
-        String dbName = findDBName(dbNameTemplate, version);
-        String query = "SELECT gene_stable_id.stable_id,  external_synonym.synonym \n" +
-                "FROM " + dbName + ".gene_stable_id, " + dbName + ".gene, " + dbName + ".xref, " + dbName + ".external_synonym \n" +
-                "WHERE gene_stable_id.gene_id = gene.gene_id \n" +
-                "AND gene.display_xref_id = xref.xref_id \n" +
-                "AND external_synonym.xref_id = xref.xref_id \n" +
-                "ORDER BY gene_stable_id.stable_id; ";
-        List<Pair<String, String>> result = template.query(query, new RowMapper<Pair<String, String>>() {
-            @Override
-            public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Pair<String, String> pair = Pair.create(rs.getString(1), rs.getString(2));
-
-                return pair;
-            }
-        });
-        return new HashSet<Pair<String, String>>(result);
+    public Collection<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws BioMartAccessException {
+        final String dbName = findSynonymsDBName(dbNameTemplate, version);
+        final JdbcTemplate template = createTemplate(dbName);
+        return template.query(
+                "SELECT DISTINCT gene_stable_id.stable_id, external_synonym.synonym \n" +
+                        "FROM gene_stable_id, gene, xref, external_synonym \n" +
+                        "WHERE gene_stable_id.gene_id = gene.gene_id \n" +
+                        "AND gene.display_xref_id = xref.xref_id \n" +
+                        "AND external_synonym.xref_id = xref.xref_id \n" +
+                        "ORDER BY gene_stable_id.stable_id; ",
+                new RowMapper<Pair<String, String>>() {
+                    @Override
+                    public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return Pair.create(rs.getString(1), rs.getString(2));
+                    }
+                });
     }
 
 
-    protected String findDBName(String dbNameTemplate, String version) throws BioMartAccessException {
-        String query = "SHOW DATABASES LIKE \"" + dbNameTemplate + "_core_" + version + "%\"";
-        List<String> result = template.query(query, new RowMapper<String>() {
-            @Override
-            public String mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return rs.getString(1);
-            }
-        });
-
-        //here it is important that only a single line is returned. In a case Biomart changes format it is potentially possible more then a single result.
-        if (result.size() != 1) {
+    String findSynonymsDBName(String dbNameTemplate, String version) throws BioMartAccessException {
+        final JdbcTemplate template = createTemplate("");
+        try {
+            // here it is important that only a single line is returned.
+            // In a case Biomart changes format it is potentially possible more then a single result.
+            return template.queryForObject("SHOW DATABASES LIKE ?",
+                    new SingleColumnRowMapper<String>(String.class),
+                    dbNameTemplate + "_core_" + version + "%");
+        } catch (DataAccessException e) {
             throw new BioMartAccessException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
         }
-        return result.get(0);
     }
 
-    protected void createTemplate(String url) {
+    JdbcTemplate createTemplate(String name) {
         BasicDataSource source = new BasicDataSource();
         source.setDriverClassName("com.mysql.jdbc.Driver");
-        source.setUrl("jdbc:mysql://" + url);
+        source.setUrl("jdbc:mysql://" + url + "/" + name);
         source.setUsername("anonymous");
         source.setPassword("");
-
-
-        this.template = new JdbcTemplate(source);
+        return new JdbcTemplate(source);
     }
 }

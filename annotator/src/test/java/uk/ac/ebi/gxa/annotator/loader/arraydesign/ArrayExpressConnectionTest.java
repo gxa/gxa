@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.loader.arraydesign;
 
 import junit.framework.TestCase;
-import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 /**
@@ -40,7 +39,15 @@ public class ArrayExpressConnectionTest extends TestCase {
         assertEquals("Affymetrix, Inc. (support@affymetrix.com)", connection.getProvider());
         assertEquals("in_situ_oligo_features", connection.getType());
 
-        connection = new ArrayExpressConnection("WRONG ACC");
-        assertEquals(StringUtils.EMPTY, connection.getName());
     }
+
+    @Test
+    public void testFetchArrayDesignDataFail() throws Exception {
+        ArrayExpressConnection connection = new ArrayExpressConnection("A-AFFY-299999");
+        assertEquals(ArrayExpressConnection.NONAE_AD_NAME + "A-AFFY-299999", connection.getName());
+        assertEquals("", connection.getType());
+        assertEquals("", connection.getProvider());
+    }
+
+    //ToDo: is it possible to simulate a failed connection?
 }

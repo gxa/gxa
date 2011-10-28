@@ -36,44 +36,17 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <script type="text/javascript" src='<c:url value="/scripts/jquery-1.4.3.min.js"/>'></script>
-
-    <script type="text/javascript" src='<c:url value="/scripts/feedback.js"/>'></script>
-
-    <link rel="stylesheet" href='<c:url value="/atlas.css"/>' type="text/css"/>
-    <link rel="stylesheet" href='<c:url value="/geneView.css"/>' type="text/css"/>
-
-    <link rel="stylesheet" href='<c:url value="/blue/style.css"/>' type="text/css" media="print, projection, screen"/>
-    <link rel="stylesheet" href='<c:url value="/structured-query.css"/>' type="text/css"/>
+    <wro4j:all name="bundle-jquery" />
+    <wro4j:all name="bundle-common-libs" />
+    <wro4j:all name="bundle-gxa" />
+    <wro4j:all name="bundle-gxa-grid-support" />
+    <wro4j:all name="bundle-gxa-page-experiment-index"/>
 
     <style type="text/css">
         @media print {
             body, .contents, .header, .contentsarea, .head {
                 position: relative;
             }
-        }
-
-        table.expList {
-            width: 100%;
-        }
-
-        .expList th {
-            padding: 5px;
-        }
-
-        .expList td {
-            padding: 5px;
-            vertical-align: top;
-        }
-
-        .expList td.number {
-            padding: 5px;
-            text-align: right;
-        }
-
-        .expList td.nowrap {
-            padding: 5px;
-            white-space: nowrap;
         }
     </style>
 </head>
@@ -91,7 +64,7 @@
 
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
                            defaultsort="2" defaultorder="descending"
-                           requestURIcontext="false" id="experiment" class="heatmap expList"
+                           requestURIcontext="false" id="experiment" class="atlas-grid noborder hoverable sortable experiment-index"
                            size="${total}" partialList="true" pagesize="${count}">
                 <display:column sortable="true" sortName="accession" title="Experiment" class="nowrap">
                     <a href="${pageContext.request.contextPath}/experiment/${experiment.accession}">${experiment.accession}</a>
