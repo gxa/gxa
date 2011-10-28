@@ -287,7 +287,8 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
-        <module>atlas-wro4j</module>
+                <module>atlas-wro4j</module>
+        <module>annotator</module>
     </modules>
 
     <dependencies>
@@ -362,7 +363,7 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.4</version>
+            <version>2.5</version>
         </dependency>
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>

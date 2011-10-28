@@ -236,10 +236,6 @@ public class LoaderDriver {
 
                 if (load_type.equals("experiment")) {
                     loader.doCommand(new LoadExperimentCommand(url), listener);
-                } else if (load_type.equals("bioentity")) {
-                    loader.doCommand(new LoadBioentityCommand(url), listener);
-                } else if (load_type.equals("mapping")) {
-                    loader.doCommand(new LoadArrayDesignMappingCommand(url), listener);
                 }
 
             } catch (MalformedURLException e) {

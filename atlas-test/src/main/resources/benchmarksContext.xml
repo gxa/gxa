@@ -60,7 +60,7 @@
         <property name="jdbcTemplate" ref="template"/>
     </bean>
 
-    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.BioEntityDAO">
+    <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO">
         <property name="jdbcTemplate" ref="template"/>
     </bean>
 
