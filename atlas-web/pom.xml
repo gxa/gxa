@@ -348,7 +348,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.0.1-rc3</version>
+            <version>1.8.0.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -368,7 +368,7 @@
         <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc6</artifactId>
-            <version>11.2.0.2.0</version>
+            <version>11.2.0.3.0</version>
             <scope>test</scope>
         </dependency>
 
