@@ -875,7 +875,6 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             String efefvId = condEfv.getEfEfvId();
 
                             notifyCache(efefvId + c.getExpression());
-                            Attribute attribute;
 
                             // If ef key equals EFO_WITH_CHILDREN_PREAMBLE (c.f. getCondEfvsForFactor()), set
                             // includeEfoChildren flag for condEfv.getEfv() efo term.
@@ -893,13 +892,11 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef)) {
                                 if (!excludeEfos) {
                                     qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
-                                    attribute = new EfoAttribute(condEfv.getEfv());
-                                    orAttributes.add(attribute);
+                                    orAttributes.add(new EfoAttribute(condEfv.getEfv()));
                                 }
                             } else {
                                 qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
-                                attribute = new EfvAttribute(condEfv.getEf(), condEfv.getEfv());
-                                orAttributes.add(attribute);
+                                orAttributes.add(new EfvAttribute(condEfv.getEf(), condEfv.getEfv()));
                             }
                         }
                         nonemptyQuery = true;
@@ -1162,15 +1159,15 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
 
-        Multiset<EfvAttribute> efAttrCounts = HashMultiset.create();
+        Multiset<EfAttribute> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {
             EfvAttribute attr = attrCount.getElement();
             if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
-                EfvAttribute efAttrIndex = new EfvAttribute(attr.getEf(), null);
+                EfAttribute efAttr = new EfAttribute(attr.getEf());
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
-                if (isFullHeatMap || efAttrCounts.count(efAttrIndex) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
+                if (isFullHeatMap || efAttrCounts.count(efAttr) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
                     qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
-                    efAttrCounts.add(efAttrIndex);
+                    efAttrCounts.add(efAttr);
                 }
             }
         }

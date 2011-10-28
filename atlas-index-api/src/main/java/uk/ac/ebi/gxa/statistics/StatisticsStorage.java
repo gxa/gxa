@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.*;
 
+import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
-import static java.util.Collections.unmodifiableSet;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
@@ -39,7 +39,7 @@ public class StatisticsStorage implements Serializable {
         this.efoIndex = efoIndex;
     }
 
-    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfvAttribute attribute, StatisticsType statType) {
+    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfAttribute attribute, StatisticsType statType) {
         return stats.get(statType).getStatisticsForAttribute(attribute);
     }
 
@@ -51,7 +51,7 @@ public class StatisticsStorage implements Serializable {
      * @param statType
      * @return Set of indexes of experiments with non-zero statType counts for attribute-bioEntityId tuple
      */
-    public Set<ExperimentInfo> getExperimentsForBioEntityAndAttribute(EfvAttribute attribute, Integer bioEntityId, StatisticsType statType) {
+    public Set<ExperimentInfo> getExperimentsForBioEntityAndAttribute(EfAttribute attribute, Integer bioEntityId, StatisticsType statType) {
         return stats.get(statType).getExperimentsForBioEntityAndAttribute(attribute, bioEntityId);
     }
 
@@ -62,7 +62,7 @@ public class StatisticsStorage implements Serializable {
      * @param statType
      * @return Set of Ef-only attribute indexes that have statType up/down experiment counts for bioEntityId
      */
-    public Set<EfvAttribute> getScoringEfAttributesForBioEntity(final Integer bioEntityId,
+    public Set<EfAttribute> getScoringEfAttributesForBioEntity(final Integer bioEntityId,
                                                                 final StatisticsType statType) {
         return stats.get(statType).getScoringEfAttributesForBioEntity(bioEntityId);
     }
@@ -102,17 +102,18 @@ public class StatisticsStorage implements Serializable {
      * @param statType
      * @return Set of attributes or which experiment counts exist for statType
      */
-    public Set<EfvAttribute> getAllAttributes(StatisticsType statType) {
-        return unmodifiableSet(stats.get(statType).getAttributes());
+    public Collection<EfvAttribute> getAllEfvAttributes(StatisticsType statType) {
+        return unmodifiableCollection(stats.get(statType).getAllEfvAttributes());
     }
 
     /**
+     *
      * @param attr
      * @param exp
-     * @return efo term which maps to attr and exp
+     * @return efo terms which maps to attr and exp
      */
-    public String getEfoTerm(EfvAttribute attr, ExperimentInfo exp) {
-        return efoIndex.getEfoTerm(attr, exp);
+    public Set<String> getEfoTerms(EfvAttribute attr, ExperimentInfo exp) {
+        return efoIndex.getEfoTerms(attr, exp);
     }
 
     /**
@@ -120,7 +121,7 @@ public class StatisticsStorage implements Serializable {
      * @param statType
      * @return pValue/tStat rank -> Experiment index -> ConciseSet of BioEntity ids, corresponding to attribute and statType
      */
-    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attribute, StatisticsType statType) {
+    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfAttribute attribute, StatisticsType statType) {
         return stats.get(statType).getPvalsTStatRanksForAttribute(attribute);
     }
 

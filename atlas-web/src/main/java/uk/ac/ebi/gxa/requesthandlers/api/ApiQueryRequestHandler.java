@@ -202,7 +202,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasDataDAO, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }

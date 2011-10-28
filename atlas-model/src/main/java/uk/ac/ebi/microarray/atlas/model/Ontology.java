@@ -6,7 +6,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Ontology {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologySeq")
