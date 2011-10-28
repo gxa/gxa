@@ -24,6 +24,7 @@
     <group name="bundle-common-libs">
         <css>/scripts/jquery-impromptu/css/default.css</css>
         <js>/scripts/jquery-impromptu/jquery-impromptu.3.1.js</js>
+        <js>/scripts/jquery.address-1.4.js</js>
         <js>/scripts/jquery.tooltip.js</js>
         <js>/scripts/jquery.cookie.js</js>
         <js>/scripts/jquery.dimensions.js</js>
@@ -36,9 +37,12 @@
         <css>/blue/style.css</css>
         <js>/scripts/src/core/main.js</js>
         <js>/scripts/src/core/utils.js</js>
+        <js>/scripts/src/core/base64.js</js>
+        <js>/scripts/src/core/pageState.js</js>
         <js>/scripts/src/core/barPlot.js</js>
         <js>/scripts/src/core/efPagination.js</js>
         <js>/scripts/src/core/geneExperimentList.js</js>
+        <js>/scripts/src/core/genePage.js</js>
         <js>/scripts/common-query.js</js>
         <js>/scripts/feedback.js</js>
     </group>
