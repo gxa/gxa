@@ -56,7 +56,7 @@ public abstract class AnnotationSource implements Serializable {
     protected Organism organism;
 
     @ManyToOne()
-    protected Software software;
+    private Software software;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
@@ -65,7 +65,7 @@ public abstract class AnnotationSource implements Serializable {
     protected Set<BioEntityType> types = new HashSet<BioEntityType>();
 
     @Temporal(TemporalType.DATE)
-    protected Date loadDate;
+    private Date loadDate;
 
     @org.hibernate.annotations.Type(type="true_false")
     private boolean isApplied = false;
@@ -103,14 +103,9 @@ public abstract class AnnotationSource implements Serializable {
         return software;
     }
 
-    public Date getLoadDate() {
-        return copyOf(loadDate);
-    }
-
     public void setLoadDate(Date loadDate) {
         this.loadDate = copyOf(loadDate);
     }
-
 
     @Override
     public String toString() {

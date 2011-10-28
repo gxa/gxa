@@ -34,8 +34,4 @@ public class AtlasAnnotationException extends Exception {
     public AtlasAnnotationException(String s, Throwable throwable) {
         super(s, throwable);
     }
-
-    public AtlasAnnotationException(Throwable throwable) {
-        super(throwable);
-    }
 }

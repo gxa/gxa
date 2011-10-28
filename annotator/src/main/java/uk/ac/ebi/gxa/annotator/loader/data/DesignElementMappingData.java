@@ -42,8 +42,8 @@ public class DesignElementMappingData extends BioEntityData {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     //Keeps a Set of Pairs for each BioEntityType, each pair contains a mapping design element acc to bioentity identifier
-    protected final Multimap<BioEntityType, Pair<String, String>> typeToDesignElementBEMapping = HashMultimap.create();
-    protected final Set<DesignElement> designElements = new HashSet<DesignElement>();
+    final Multimap<BioEntityType, Pair<String, String>> typeToDesignElementBEMapping = HashMultimap.create();
+    private final Set<DesignElement> designElements = new HashSet<DesignElement>();
 
     DesignElementMappingData(List<BioEntityType> bioEntityTypes) {
         super(bioEntityTypes);
@@ -70,10 +70,5 @@ public class DesignElementMappingData extends BioEntityData {
 
     public Set<DesignElement> getDesignElements() {
         return Collections.unmodifiableSet(designElements);
-    }
-
-    public void clear() {
-        typeToDesignElementBEMapping.clear();
-        designElements.clear();
     }
 }
