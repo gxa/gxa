@@ -221,7 +221,7 @@ public class GeneViewController extends AtlasViewController {
     }
 
     private int getNumberOfExperiments(AtlasGene gene, @Nonnull Attribute attr) {
-        if (attr instanceof EfvAttribute) {
+        if (attr.getValue() != null && attr instanceof EfvAttribute) {
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
 
