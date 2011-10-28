@@ -41,8 +41,7 @@ public class ArrayDesign {
     private String name;
     private String provider;
     private String type;
-    @Column(name = "MAPPINGSWID")
-    private Long mappingSoftwareId;
+
     @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
     @Transient
@@ -90,14 +89,6 @@ public class ArrayDesign {
 
     public void setArrayDesignID(Long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
-    }
-
-    public Long getMappingSoftwareId() {
-        return mappingSoftwareId;
-    }
-
-    public void setMappingSoftwareId(final Long mappingSoftwareId) {
-        this.mappingSoftwareId = mappingSoftwareId;
     }
 
     public Set<Long> getAllGenes() {

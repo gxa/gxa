@@ -36,15 +36,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ebi.gxa.anatomogram.Anatomogram;
 import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.StringUtil;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
 import javax.annotation.Nullable;
 import javax.annotation.Nonnull;
@@ -221,7 +221,7 @@ public class GeneViewController extends AtlasViewController {
     }
 
     private int getNumberOfExperiments(AtlasGene gene, @Nonnull Attribute attr) {
-        if (attr instanceof EfvAttribute) {
+        if (attr.getValue() != null && attr instanceof EfvAttribute) {
             return gene.getNumberOfExperiments((EfvAttribute) attr, atlasStatisticsQueryService);
         }
 
