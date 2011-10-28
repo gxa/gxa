@@ -34,6 +34,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
@@ -111,6 +112,10 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         // get a database connection, that will create the DB if it doesn't exist yet
         Connection conn = atlasDataSource.getConnection("sa", "");
         System.out.print("Creating test database tables...");
+
+        runStatement(conn,
+                "CREATE TABLE DUAL " +
+                        "(DUMMY VARCHAR(1) );");
 
         runStatement(conn,
                 "CREATE TABLE A2_ORGANISM " +
@@ -245,6 +250,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                 "CREATE TABLE A2_SOFTWARE " +
                         "(SOFTWAREID bigint, " +
                         "NAME VARCHAR(255) NOT NULL, " +
+                        "ISACTIVE VARCHAR(1) NOT NULL, " +
                         "VERSION VARCHAR(255) NOT NULL) ;");
 
         runStatement(conn,
@@ -279,22 +285,11 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                 "  CREATE TABLE A2_BIOENTITYTYPE " +
                         "(BIOENTITYTYPEID bigint, " +
                         "NAME VARCHAR(255), " +
-                        "ID_FOR_INDEX VARCHAR(1), " +
-                        "ID_FOR_ANALYTICS VARCHAR(1), " +
-                        "PROP_FOR_INDEX VARCHAR(1) );");
-
-        runStatement(conn,
-                "  CREATE TABLE A2_BERELATIONTYPE " +
-                        "(BERELATIONTYPEID bigint, " +
-                        "NAME VARCHAR(255));");
-
-        runStatement(conn,
-                "CREATE TABLE A2_BIOENTITY2BIOENTITY " +
-                        "(BE2BEID bigint, " +
-                        "BIOENTITYIDFROM bigint not null, " +
-                        "BIOENTITYIDTO bigint not null, " +
-                        "SOFTWAREID bigint not null, " +
-                        "BERELATIONTYPEID bigint not null);");
+                        "ID_FOR_INDEX int, " +
+                        "ID_FOR_ANALYTICS int, " +
+                        "identifierPropertyID bigint, " +
+                        "namePropertyID bigint, " +
+                        "PROP_FOR_INDEX int );");
 
         runStatement(conn,
                 "CREATE TABLE A2_DESIGNELTBIOENTITY " +
@@ -304,26 +299,41 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "BIOENTITYID bigint not null);");
 
         runStatement(conn,
-                "CREATE TABLE VWDESIGNELEMENTGENELINKED " +
-                        "(designelementid bigint not null, " +
-                        "accession VARCHAR(255) NOT NULL, " +
-                        "name VARCHAR(255) NOT NULL, " +
-                        "arraydesignid bigint not null, " +
-                        "bioentityid bigint not null, " +
-                        "identifier VARCHAR(255) NOT NULL, " +
-                        "organismid bigint not null, " +
-                        "mappingswid bigint not null, " +
-                        "annotationswid bigint not null) ");
+                "CREATE TABLE A2_ANNOTATIONSRC(\n" +
+                        "  annotationsrcid bigint NOT NULL\n" +
+                        "  , SOFTWAREID bigint NOT NULL\n" +
+                        "  , ORGANISMID bigint NOT NULL\n" +
+                        "  , url VARCHAR(512)\n" +
+                        "  , biomartorganismname VARCHAR(255)\n" +
+                        "  , databaseName VARCHAR(255)\n" +
+                        "  , mySqlDbName VARCHAR(255)\n" +
+                        "  , mySqlDbUrl VARCHAR(255)\n" +
+                        "  , annsrctype VARCHAR(255) NOT NULL\n" +
+                        "  , LOADDATE DATE\n" +
+                        "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
+                        ");");
 
         runStatement(conn,
-                "CREATE TABLE VWDESIGNELEMENTGENEDIRECT " +
-                        "(designelementid bigint not null, " +
-                        "accession VARCHAR(255) NOT NULL, " +
-                        "name VARCHAR(255) NOT NULL, " +
-                        "arraydesignid bigint not null, " +
-                        "bioentityid bigint not null, " +
-                        "identifier VARCHAR(255) NOT NULL, " +
-                        "organismid bigint not null) ");
+                "CREATE TABLE A2_ANNSRC_BIOENTITYTYPE(\n" +
+                        "  annotationsrcid bigint NOT NULL\n" +
+                        "  , BIOENTITYTYPEID bigint NOT NULL\n" +
+                        "  );");
+
+        runStatement(conn,
+                "CREATE TABLE A2_BIOMARTPROPERTY (\n" +
+                        "  BIOMARTPROPERTYID bigint NOT NULL\n" +
+                        ", annotationsrcid bigint NOT NULL\n" +
+                        ", BIOENTITYPROPERTYID bigint NOT NULL\n" +
+                        ", NAME VARCHAR(255) NOT NULL\n" +
+                        ");");
+
+        runStatement(conn,
+                "CREATE TABLE A2_BIOMARTARRAYDESIGN (\n" +
+                        "  BIOMARTARRAYDESIGNID bigint NOT NULL\n" +
+                        ", annotationsrcid bigint NOT NULL\n" +
+                        ", ARRAYDESIGNID bigint NOT NULL\n" +
+                        ", NAME VARCHAR(255) NOT NULL\n" +
+                        ");");
 
 
         runStatement(conn,
@@ -393,6 +403,13 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_PROPERTYVALUE_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_SAMPLE_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ START WITH 10000000");
+
+        runStatement(conn, "CREATE SEQUENCE A2_ANNOTATIONSRC_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOMARTPROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYTYPE_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_BIOMARTARRAYDESIGN_SEQ START WITH 10000000");
 
         System.out.println("...done!");
         conn.close();
