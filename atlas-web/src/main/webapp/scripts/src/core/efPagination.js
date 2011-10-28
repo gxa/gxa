@@ -20,59 +20,90 @@
  * http://gxa.github.com/gxa
  */
 
-(function(A, $) {
+(function($) {
+    var pluginName = "efPagination";
+
     /**
-     *
      * @param opts {
      *     factors - an array of experiment factors
-     *     target - an id of DOM element where to insert pagination
-     *     onSelect - handler for select event
+     *     pageState - page state object to register for stateChange event (optional)
+     *     pageStatePrefix - a hierarchical prefix for page state; required if pageState is given
      * }
      */
-    A.efPagination = function(opts) {
-        opts = opts || {};
-        var targetEl = A.$(opts.target),
-            withTarget = function(func) {
-                return (!targetEl) ?
-                    function() {
-                        A.logError("EF Pagination: element '" + opts.target + "' doesn't exist.");
-                    } : func;
+    function EfPagination(elem, opts) {
+        opts = $.extend({
+            factors: [],
+            pageState: null,
+            pageStatePrefix: ""
+        }, opts);
+
+        var _this = this,
+            defaultEf = null,
+            currEf = null;
+
+        $.extend(true, _this, {
+            select: function(ef) {
+                if (ef && ef != currEf) {
+                    mark(ef);
+                }
+                return _this;
             },
-            factors = opts.factors || [],
-            onSelectHandler = opts.onSelect || null;
+            setDefault: function(ef) {
+                defaultEf = ef;
+                mark(currEf || defaultEf);
+                return _this;
+            },
+            efChanged: function(handler) {
+                $(_this).bind("efChanged", handler);
+                return _this;
+            }
+        });
 
-        var fillIn =
-            withTarget(function() {
-                var html = [];
-                for (var i = 0, len = factors.length; i < len; i++) {
-                    var item = factors[i];
-                    html.push("<div data-ef=\"" + item + "\">" + item + "</div>");
-                }
-                if (!targetEl.hasClass("pagination_ef")) {
-                    targetEl.addClass("pagination_ef");
-                }
-                targetEl.html(html.join(""));
-            });
+        init();
 
+        function init() {
+            draw();
+            bindEvents();
 
-        var bindSelectEvent =
-            withTarget(function() {
-                targetEl.children().each(function() {
-                    $(this).click(function() {
-                        var elem = $(this);
-                        if (elem.hasClass("current")) {
-                            return;
-                        }
-                        var ef = elem.data("ef");
-                        mark(ef);
-                        notifySelectEvent(ef);
-                    });
+            if (opts.pageState) {
+                opts.pageState.register(_this, opts.pageStatePrefix);
+                $(elem).bind("destroyed", function() {
+                    opts.pageState.unregister(_this, opts.pageStatePrefix);
+                });
+
+                currEf = opts.pageState.stateFor(opts.pageStatePrefix).ef;
+            }
+        }
+
+        function draw() {
+            var html = [], factors = opts.factors;
+            for (var i = 0, len = factors.length; i < len; i++) {
+                var item = factors[i];
+                html.push("<div data-ef=\"" + item + "\">" + item + "</div>");
+            }
+            var el = $(elem);
+            if (!el.hasClass("pagination_ef")) {
+                el.addClass("pagination_ef");
+            }
+            el.html(html.join(""));
+        }
+
+        function bindEvents() {
+            $(elem).children().each(function() {
+                $(this).click(function() {
+                    var el = $(this);
+                    if (el.hasClass("current")) {
+                        return;
+                    }
+                    var ef = el.data("ef");
+                    mark(ef);
+                    notifyEfClicked(ef);
                 });
             });
+        }
 
-        var mark =
-            withTarget(function(ef) {
-            targetEl.children().each(function() {
+        function mark(ef) {
+            $(elem).children().each(function() {
                 var elem = $(this);
                 var data = elem.data("ef");
                 if (ef === data) {
@@ -81,28 +112,35 @@
                     elem.removeClass("current");
                 }
             });
-        });
+            currEf = ef;
+            notifyEfChanged(ef);
+        }
 
-        var notifySelectEvent =
-            withTarget(function(ef) {
-                if (onSelectHandler) {
-                    try {
-                        onSelectHandler(ef);
-                    } catch(e) {
-                        A.logError(e);
-                    }
-                }
-            });
+        function notifyEfClicked(ef) {
+            $(_this).trigger("efClicked", [ef]);
+            $(_this).trigger("stateChanged", [{ef: ef === defaultEf ? null : ef}]);
+        }
 
-        fillIn();
-        bindSelectEvent();
+        function notifyEfChanged(ef) {
+            $(_this).trigger("efChanged", [ef]);
+        }
+    }
 
-        return {
-            select: function(ef) {
-                mark(ef);
-                notifySelectEvent(ef);
+    $.extend($.fn, {
+        efPagination: function(opts) {
+            if (this.length > 1) {
+                this.each(function() {
+                    $(this).efPagination(opts);
+                });
                 return this;
             }
+
+            var p = $(this).data(pluginName);
+            if (!p) {
+                p = new EfPagination(this, opts);
+                $(this).data(pluginName, p);
+            }
+            return p;
         }
-    };
-})(atlas || {}, jQuery);
+    });
+})(jQuery);
