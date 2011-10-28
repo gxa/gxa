@@ -180,7 +180,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);
                                         } finally {
-                                            ewd.close();
+                                            ewd.closeAllDataSources();
                                         }
                                     }
 

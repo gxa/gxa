@@ -40,12 +40,38 @@ public class AtlasDataDAO {
     // Location of the experiment data files
     private File atlasDataRepo;
 
-    private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc";
+    File getDataFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(
+            getDataDirectory(experiment),
+            experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc"
+        );
     }
 
-    File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(getDataDirectory(experiment), getFilename(experiment, arrayDesign));
+    File getStatisticsFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(
+            getDataDirectory(experiment),
+            experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc"
+        );
+    }
+
+    File getV1File(Experiment experiment, ArrayDesign arrayDesign) {
+        return new File(
+            getDataDirectory(experiment),
+            experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc"
+        );
+    }
+
+    DataProxy createDataProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
+        DataProxy proxy;
+        try {
+            proxy = new NetCDFProxyV2(
+                getDataFile(experiment, arrayDesign),
+                getStatisticsFile(experiment, arrayDesign)
+            );
+        } catch (AtlasDataException e) {
+            proxy = new NetCDFProxyV1(getV1File(experiment, arrayDesign));
+        }
+        return proxy;
     }
 
     public void setAtlasDataRepo(File atlasDataRepo) {
@@ -54,10 +80,6 @@ public class AtlasDataDAO {
 
     public ExperimentWithData createExperimentWithData(Experiment experiment) {
         return new ExperimentWithData(this, experiment);
-    }
-
-    public NetCDFCreator getNetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFCreator(this, experiment, arrayDesign);
     }
 
     public File getDataDirectory(Experiment experiment) {
