@@ -351,6 +351,16 @@
             <version>1.8.0.10</version>
             <scope>test</scope>
         </dependency>
+        <!-- 
+           Oracle is only needed to test (sic!) RServices: consider extracting Biocep-related code 
+           into a separate module (or even project, making it pluggable)
+        -->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.3.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
             <artifactId>atlas-dao</artifactId>
