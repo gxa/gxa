@@ -35,11 +35,28 @@ var atlas = (function(A, $) {
         return normalizedPath.join("/");
     }
 
+    function _dump(obj, depth, indent) {
+        var m = [];
+
+        if (obj === Object(obj) && depth >= 0) {
+            var isArray = $.isArray(obj);
+            m.push(isArray ? "[" : "{");
+            for (var p in obj) {
+                if (obj.hasOwnProperty(p)) {
+                    m.push(indent + p + ": " + _dump(obj[p], depth - 1, indent + "    "));
+                }
+            }
+            m.push(indent + (isArray ? "]" : "}"));
+        } else {
+            return "" + obj;
+        }
+        return m.join("\n");
+    }
+
     /** public **/
 
     /**
      * Gets/sets application context path, which is used e.g. in ajax requests.
-     *
      * @param newContextPath - a new context path to set
      */
     A.applicationContextPath = function(newContextPath) {
@@ -51,7 +68,6 @@ var atlas = (function(A, $) {
 
     /**
      * Extends the given URI with the application context.
-     *
      * @param uri - an URI to extend
      */
     A.fullPathFor = function(uri) {
@@ -59,33 +75,31 @@ var atlas = (function(A, $) {
     };
 
     /**
-     * Dumps error object/message to the js console if it is available.
-     *
+     * Dumps error object/message to the js console.
      * @param e - an error object or string to write in the console
+     * @param depth - a depth to dump error object (optional)
      */
-    A.logError = function(e) {
-        if (!console) {
-            return;
+    A.logError = function(e, depth) {
+        if (console) {
+            console.log("Error:\n" + _dump(e, depth || 3, ""));
         }
+    };
 
-        var msg = ["Error: {"];
-        if (e === Object(e)) {
-            for (var p in e) {
-                if (e.hasOwnProperty(p)) {
-                    msg.push("\t" + p + ": " + e[p]);
-                }
-            }
-        } else {
-            msg.push("\t msg: " + e);
+    /**
+     * Dumps object/message to the js console.
+     * @param obj - an object or string to write in the console
+     * @param depth - a depth to dump error object (optional)
+     */
+    A.logDebug = function(obj, depth) {
+        if (console && A.debug) {
+            console.log("Debug:\n" + _dump(obj, depth || 3, ""));
         }
-        msg.push("}");
-        console.log(msg.join("\n"));
     };
 
     return A;
 })(atlas || {}, jQuery);
 
 /** after initialization stuff **/
-(function(atlas) {
-   atlas.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
+(function(A) {
+   A.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
 })(atlas);

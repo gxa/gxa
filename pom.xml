@@ -112,8 +112,8 @@
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-webdav</artifactId>
-                <version>1.0-beta-2</version>
+                <artifactId>wagon-ssh</artifactId>
+                <version>1.0-beta-3</version>
             </extension>
         </extensions>
     </build>
@@ -287,7 +287,8 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
-        <module>atlas-wro4j</module>
+                <module>atlas-wro4j</module>
+        <module>annotator</module>
     </modules>
 
     <dependencies>
@@ -362,7 +363,7 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.4</version>
+            <version>2.5</version>
         </dependency>
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>
@@ -401,6 +402,16 @@
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>ebi-repo</id>
+            <name>The EBI internal repository</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
+        </repository>
+        <repository>
+            <id>ebi-snapshot-repo</id>
+            <name>The EBI internal snapshot repository</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots/</url>
+        </repository>
         <!--
          * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
 
@@ -437,11 +448,14 @@
             <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
         <repository>
-            <!--
-             A repository for opensource/public JARs not found in any public repositories.
-             -->
-            <id>gxa.github</id>
-            <url>http://gxa.github.com/maven/repo</url>
+            <id>limpopo-repo</id>
+            <name>Limpopo Mini-SF Repository</name>
+            <url>http://limpopo.sourceforge.net/maven/repo</url>
+        </repository>
+        <repository>
+            <id>erroritem</id>
+            <name>erroritem repo</name>
+            <url>http://erroritem.sourceforge.net/maven/repo</url>
         </repository>
         <repository>
             <id>info-bliki-repository</id>
@@ -468,14 +482,12 @@
 
     <distributionManagement>
         <repository>
-            <id>coconut.ebi.ac.uk-releases</id>
-            <name>coconut.ebi.ac.uk-releases</name>
-            <url>dav:http://bar:8081/artifactory/local-repo</url>
+            <id>ebi-repo</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo</url>
         </repository>
         <snapshotRepository>
-            <id>coconut.ebi.ac.uk-snapshots</id>
-            <name>coconut.ebi.ac.uk-snapshots</name>
-            <url>dav:http://bar:8081/artifactory/local-repo</url>
+            <id>ebi-repo-snapshots</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

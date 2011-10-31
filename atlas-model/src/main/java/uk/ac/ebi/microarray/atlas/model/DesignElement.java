@@ -19,4 +19,21 @@ public class DesignElement {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DesignElement that = (DesignElement) o;
+
+        if (!accession.equals(that.accession)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return accession.hashCode();
+    }
 }
