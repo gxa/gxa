@@ -91,8 +91,8 @@
             <tr>
                 <th>Assay</th>
                 <th>Array</th>
-                <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
-                    <th>${f:escapeXml(factor.displayName)}</th>
+                <c:forEach var="property" items="${experimentDesign.properties}" varStatus="r">
+                    <th>${f:escapeXml(property.displayName)}</th>
                 </c:forEach>
             </tr>
             </thead>
@@ -104,9 +104,9 @@
                             ${assay.accession}
                     </td>
                     <td><nobr>${assay.arrayDesign.accession}</nobr></td>
-                    <c:forEach var="factor" items="${experimentDesign.factors}">
+                    <c:forEach var="property" items="${experimentDesign.properties}">
                         <td class="padded wrapok">
-                                <c:forEach var="value" items="${experimentDesign.values[factor][assay]}" varStatus="r">
+                                <c:forEach var="value" items="${experimentDesign.values[property][assay]}" varStatus="r">
                                     <%--
                                         the line below checks that the value is of the type we need
                                         and makes sure usage search works fine in case we want to rename or drop

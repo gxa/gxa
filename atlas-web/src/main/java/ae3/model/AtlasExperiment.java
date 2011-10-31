@@ -94,7 +94,7 @@ public class AtlasExperiment {
 
             @Override
             protected Iterator<Property> keys() {
-                return experiment.getProperties().iterator();
+                return experiment.getFactors().iterator();
             }
         };
     }
@@ -135,7 +135,7 @@ public class AtlasExperiment {
      * @return all factors from the experiment
      */
     public SortedSet<Property> getExperimentFactors() {
-        return experiment.getProperties();
+        return experiment.getFactors();
     }
 
     private String getPlatform() {

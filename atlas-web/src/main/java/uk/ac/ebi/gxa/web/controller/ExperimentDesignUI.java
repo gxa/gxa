@@ -40,7 +40,7 @@ public class ExperimentDesignUI {
         this.exp = exp;
     }
 
-    public SortedSet<Property> getFactors() {
+    public SortedSet<Property> getProperties() {
         return exp.getProperties();
     }
 

@@ -24,7 +24,7 @@ public class ExperimentIndexLine {
     }
 
     public SortedSet<Property> getExperimentFactors() {
-        return experiment.getProperties();
+        return experiment.getFactors();
     }
 
     public int getNumSamples() {

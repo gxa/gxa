@@ -331,11 +331,17 @@ public class Experiment {
         return null;
     }
 
-    public SortedSet<Property> getProperties() {
+    public SortedSet<Property> getFactors() {
         SortedSet<Property> result = newTreeSet();
         for (Assay assay : assays) {
             result.addAll(assay.getPropertyDefinitions());
         }
+        return result;
+    }
+
+    public SortedSet<Property> getProperties() {
+        SortedSet<Property> result = newTreeSet();
+        result.addAll(getFactors());
         for (Sample sample : samples) {
             result.addAll(sample.getPropertyDefinitions());
         }
