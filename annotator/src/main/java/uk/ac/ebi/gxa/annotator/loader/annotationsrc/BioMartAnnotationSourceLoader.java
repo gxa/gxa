@@ -26,8 +26,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,9 +56,6 @@ import static com.google.common.io.Closeables.closeQuietly;
 
 @Service
 public class BioMartAnnotationSourceLoader {
-
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
-
     private static final String ORGANISM_PROPNAME = "organism";
     private static final String SOFTWARE_NAME_PROPNAME = "software.name";
     private static final String SOFTWARE_VERSION_PROPNAME = "software.version";
@@ -137,15 +132,14 @@ public class BioMartAnnotationSourceLoader {
         annSrcDAO.save(annotationSource);
     }
 
-    protected BioMartAnnotationSource readSource(Reader input) throws AnnotationLoaderException {
+    BioMartAnnotationSource readSource(Reader input) throws AnnotationLoaderException {
         Properties properties = new Properties();
-        BioMartAnnotationSource annotationSource = null;
         try {
             properties.load(input);
             Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
             Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
-            annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
+            BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
             if (annotationSource == null) {
                 annotationSource = new BioMartAnnotationSource(software, organism);
             }
@@ -162,14 +156,13 @@ public class BioMartAnnotationSourceLoader {
 
             updateBioMartArrayDesigns(properties, annotationSource);
 
+            return annotationSource;
         } catch (IOException e) {
             throw new AnnotationLoaderException("Cannot read annotation properties", e);
         }
-
-        return annotationSource;
     }
 
-    protected void writeSource(BioMartAnnotationSource annSrc, Writer out) throws ConfigurationException {
+    void writeSource(BioMartAnnotationSource annSrc, Writer out) throws ConfigurationException {
         PropertiesConfiguration properties = new PropertiesConfiguration();
         properties.addProperty(ORGANISM_PROPNAME, annSrc.getOrganism().getName());
         properties.addProperty(SOFTWARE_NAME_PROPNAME, annSrc.getSoftware().getName());
@@ -181,7 +174,7 @@ public class BioMartAnnotationSourceLoader {
         properties.addProperty(MYSQLDBURL_PROPNAME, annSrc.getMySqlDbUrl());
 
         //Write bioentity types
-        StringBuffer types = new StringBuffer();
+        StringBuilder types = new StringBuilder();
         int count = 1;
         for (BioEntityType type : annSrc.getTypes()) {
             types.append(type.getName());
@@ -266,7 +259,7 @@ public class BioMartAnnotationSourceLoader {
 
             if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
                 ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
-                bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
+                bioMartArrayDesigns.add(new BioMartArrayDesign(properties.getProperty(propName).trim(), arrayDesign, annotationSource));
             }
         }
 
@@ -326,7 +319,7 @@ public class BioMartAnnotationSourceLoader {
         int count;
         for (String beProp : bePropToBmProp.keySet()) {
             count = 1;
-            StringBuffer bmProperties = new StringBuffer();
+            StringBuilder bmProperties = new StringBuilder();
             Collection<String> bmPropCollection = bePropToBmProp.get(beProp);
             for (String bmProp : bmPropCollection) {
                 bmProperties.append(bmProp);

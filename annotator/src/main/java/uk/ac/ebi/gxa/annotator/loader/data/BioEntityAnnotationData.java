@@ -42,7 +42,7 @@ public class BioEntityAnnotationData extends BioEntityData {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     //Keeps a Set of Pairs for each bioentity type, each Pair contains bioentity identifier and bioentity property value
-    protected final Multimap<BioEntityType, Pair<String, BEPropertyValue>> typeToBEPropValues = HashMultimap.create();
+    final Multimap<BioEntityType, Pair<String, BEPropertyValue>> typeToBEPropValues = HashMultimap.create();
 
     private final Set<BEPropertyValue> propertyValues = new HashSet<BEPropertyValue>();
 

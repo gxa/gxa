@@ -56,10 +56,6 @@ public class BioMartProperty {
         this.annotationSrc = annSrc;
     }
 
-    public Long getId() {
-        return biomartpropertyId;
-    }
-
     public String getName() {
         return name;
     }

@@ -32,18 +32,13 @@
     padding: 3px;
 }
 
-.heatmap_over {
-    background-color: #deebeb;
+.heatmap_row {
+    background-color: white;
     cursor: pointer;
 }
 
-.heatmap_row {
-    background-color: white
-}
-
-.heatmap_out {
-    background-color: white;
-    color: #404040;
+.heatmap_row.select {
+    background-color: #deebeb;
 }
 
 /* Gene properties table */

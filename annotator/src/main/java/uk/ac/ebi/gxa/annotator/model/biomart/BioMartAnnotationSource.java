@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.collect.Sets.newHashSet;
+
 /**
  * User: nsklyar
  * Date: 10/05/2011
@@ -80,7 +82,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    private Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
+    private Set<BioMartArrayDesign> bioMartArrayDesigns = newHashSet();
 
     private String mySqlDbName;
 
@@ -149,7 +151,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
     }
 
     public Set<String> getBioMartArrayDesignNames() {
-        Set<String> answer = new HashSet<String>(bioMartArrayDesigns.size());
+        Set<String> answer = newHashSet();
         for (BioMartArrayDesign bioMartArrayDesign : bioMartArrayDesigns) {
             answer.add(bioMartArrayDesign.getName());
         }
@@ -200,7 +202,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
             result.addBioMartProperty(bioMartProperty.getName(), bioMartProperty.getBioEntityProperty());
         }
         for (BioMartArrayDesign bioMartArrayDesign : bioMartArrayDesigns) {
-            result.addBioMartArrayDesign(new BioMartArrayDesign(null, bioMartArrayDesign.getName(), bioMartArrayDesign.getArrayDesign(), result));
+            result.addBioMartArrayDesign(new BioMartArrayDesign(bioMartArrayDesign.getName(), bioMartArrayDesign.getArrayDesign(), result));
         }
         for (BioEntityType type : types) {
             result.addBioEntityType(type);

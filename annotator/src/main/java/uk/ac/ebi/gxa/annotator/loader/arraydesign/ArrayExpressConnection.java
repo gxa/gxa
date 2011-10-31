@@ -39,15 +39,15 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 02/09/2011
  */
-public class ArrayExpressConnection {
+class ArrayExpressConnection {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final String ACC_TEML = "$ACC";
     private static final String ADF_URL_TEMPLATE = "http://www.ebi.ac.uk/arrayexpress/files/" + ACC_TEML + "/" + ACC_TEML + ".adf.txt";
 
-    public static final String AD_NAME = "Array Design Name";
-    public static final String PROVIDER = "Provider";
-    public static final String TYPE = "Technology Type";
+    private static final String AD_NAME = "Array Design Name";
+    private static final String PROVIDER = "Provider";
+    private static final String TYPE = "Technology Type";
 
     private String name = StringUtils.EMPTY;
     private String provider = StringUtils.EMPTY;
@@ -111,8 +111,8 @@ public class ArrayExpressConnection {
     }
 
     static final String NONAE_AD_NAME = "Non-ArrayExpress Array Design for accession ";
-    static final String UKNOWN_AD_NAME = "Provisional Array Design for accession ";
-    static final String UKNOWN_AD_TYPE = "PROVISIONAL";
+    private static final String UKNOWN_AD_NAME = "Provisional Array Design for accession ";
+    private static final String UKNOWN_AD_TYPE = "PROVISIONAL";
 
     private void setNonArrayExpressFields(String accession) {
         name = NONAE_AD_NAME + accession;

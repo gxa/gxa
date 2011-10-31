@@ -29,8 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.mydas.configuration.DataSourceConfiguration;
 import uk.ac.ebi.mydas.configuration.PropertyType;
 import uk.ac.ebi.mydas.controller.CacheManager;
@@ -44,6 +47,8 @@ import javax.servlet.ServletContext;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * DAS1.6
@@ -61,6 +66,7 @@ import java.util.*;
  */
 public class GxaS4DasDataSource implements AnnotationDataSource {
     private GeneSolrDAO geneSolrDAO;
+    private PropertyDAO propertyDAO;
     private AtlasProperties atlasProperties;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static final String DESCRIPTION = "description";
@@ -119,6 +125,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
         WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
         geneSolrDAO = context.getBean(GeneSolrDAO.class);
+        propertyDAO = context.getBean(PropertyDAO.class);
         atlasProperties = context.getBean(AtlasProperties.class);
         atlasStatisticsQueryService = context.getBean(AtlasStatisticsQueryService.class);
     }
@@ -164,8 +171,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     null,
                     null
             );
-        }
-        catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             throw new DataSourceException("Tried to create an invalid URL for a LINK element.", e);
         }
     }
@@ -200,10 +206,11 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         }
 
         try {
+            final Property property = propertyDAO.getByName(factor);
             return new DasFeature(
-                    atlasProperties.getCuratedEf(factor),
-                    atlasProperties.getCuratedEf(factor),
-                    new DasType(SUMMARY, SUMMARY, null, getSortableCaption(atlasProperties.getCuratedEf(factor))),
+                    property.getDisplayName(),
+                    property.getDisplayName(),
+                    new DasType(SUMMARY, SUMMARY, null, getSortableCaption(property.getDisplayName())),
                     new DasMethod(EXPERIMENTAL_FACTOR, EXPERIMENTAL_FACTOR, null),
                     0,
                     0,
@@ -213,7 +220,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     Collections.singleton(efStudiedForGene ? notes.toString() : "Not studied for this gene"),
                     efStudiedForGene ?
                             Collections.singletonMap(
-                                    new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + factor),
+                                    new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + property.getName()),
                                     "View all") :
                             Collections.<URL, String>emptyMap(),
                     null,
@@ -222,6 +229,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             );
         } catch (MalformedURLException e) {
             throw new DataSourceException("Error creating DasFeature.", e);
+        } catch (RecordNotFoundException e) {
+            throw createUnexpected("Solr is inconsistent with DB on '" + factor + "'", e);
         }
     }
 
@@ -277,8 +286,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     , null                              //Collection<DasGroup> groups
                     , null
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DataSourceException("Error creating Image DasFeature.", e);
         }
     }

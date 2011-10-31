@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static java.lang.Character.*;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -127,7 +128,7 @@ public class EscapeUtil {
                         curVal.appendCodePoint(c);
                     }
                 } else {
-                    if (c < 0 || Character.isSpaceChar(c)) {
+                    if (c < 0 || isSpaceChar(c)) {
                         if (curVal.length() > 0) {
                             values.add(curVal.toString());
                             curVal.setLength(0);
@@ -183,10 +184,15 @@ public class EscapeUtil {
      */
     public static String encode(String v) {
         try {
-            StringBuffer r = new StringBuffer();
-            for (char x : v.toCharArray()) {
-                if (Character.isJavaIdentifierPart(x))
+            StringBuilder r = new StringBuilder();
+            final char[] chars = v.toCharArray();
+            for (int i = 0; i < chars.length; i++) {
+                char x = chars[i];
+                if (i > 0 && isJavaIdentifierPart(x) ||
+                        isJavaIdentifierStart(x))
                     r.append(x);
+                else if (isSpaceChar(x) || x == '-')
+                    r.append("_");
                 else
                     for (byte b : Character.toString(x).getBytes("UTF-8"))
                         r.append("_").append(String.format("%x", b));

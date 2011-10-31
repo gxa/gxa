@@ -60,7 +60,7 @@ public class BioMartParser<T extends BioEntityData> {
         return parser;
     }
 
-    BioMartParser(List<BioEntityType> bioEntityTypes) {
+    private BioMartParser(List<BioEntityType> bioEntityTypes) {
         this.bioEntityTypes = bioEntityTypes;
     }
 

@@ -68,4 +68,8 @@ public final class StringUtil {
         final String joined = on(separator).join(getFirst(partition(strings, num), Collections.<String>emptyList()));
         return strings.size() > num ? joined + etc : joined;
     }
+
+    public static String prettify(String s) {
+        return upcaseFirst(s.replaceAll("_", " "));
+    }
 }

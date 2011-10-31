@@ -38,7 +38,9 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 
 import javax.sql.DataSource;
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
@@ -158,6 +160,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                 "CREATE TABLE A2_PROPERTY " +
                         "(PROPERTYID bigint not null, " +
                         "NAME VARCHAR(255), " +
+                        "DISPLAYNAME VARCHAR(512), " +
                         "ACCESSION VARCHAR(255), " +
                         "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
 
@@ -166,6 +169,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "(PROPERTYVALUEID bigint not null, " +
                         "PROPERTYID bigint, " +
                         "NAME VARCHAR(255), " +
+                        "DISPLAYNAME VARCHAR(512), " +
                         "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
 
         runStatement(conn,
@@ -389,47 +393,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "CONSTRAINT FK_SAMPLEV FOREIGN KEY (SAMPLEPVID) " +
                         "REFERENCES A2_SAMPLEPV (SAMPLEPVID)  ON DELETE CASCADE) ;");
 
-        runStatement(conn, "CREATE SCHEMA ATLASLDR AUTHORIZATION sa");
-
-        runStatement(conn, "CREATE PROCEDURE A2_EXPERIMENTSET(" +
-                "    IN Accession VARCHAR(255), IN Description VARCHAR(255)," +
-                "    IN Performer VARCHAR(255), IN Lab VARCHAR(255)," +
-                "    IN PMID VARCHAR(255), IN Abstract VARCHAR(255))\n" +
-                "   MODIFIES SQL DATA\n" +
-                "  LANGUAGE JAVA\n" +
-                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2ExperimentSet'");
-
-        runStatement(conn, "CREATE PROCEDURE A2_ASSAYSET(\n" +
-                "   IN Accession VARCHAR(255), IN ExperimentAccession  VARCHAR(255),\n" +
-                "   IN ArrayDesignAccession VARCHAR(255),\n" +
-                "   IN Properties CHAR ARRAY)\n" +
-                "   MODIFIES SQL DATA\n" +
-                "  LANGUAGE JAVA\n" +
-                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.assaySet'");
-
-        runStatement(conn, "CREATE PROCEDURE ATLASLDR.A2_SAMPLESET(\n" +
-                "    IN ExperimentAccession VARCHAR(255), IN SampleAccession VARCHAR(255), " +
-                "    IN Assays INT ARRAY, IN Properties INT ARRAY, IN Channel VARCHAR(255))\n" +
-                "   MODIFIES SQL DATA\n" +
-                "  LANGUAGE JAVA\n" +
-                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.a2SampleSet'");
-
-        runStatement(conn, "CREATE PROCEDURE ATLASLDR.LOAD_PROGRESS(\n" +
-                " IN experiment_accession VARCHAR(255), IN stage VARCHAR(255), " +
-                " IN status VARCHAR(255), IN load_type VARCHAR(255))\n" +
-                "  NO SQL\n" +
-                "  LANGUAGE JAVA\n" +
-                "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.loadProgress'");
-
-        runStatement(conn,
-                "CREATE AGGREGATE FUNCTION wm_concat(" +
-                        "    IN val VARCHAR(255), IN flag BOOLEAN, " +
-                        "    INOUT register VARCHAR(255), INOUT counter INT)\n" +
-                        "  RETURNS VARCHAR(512)\n" +
-                        "  NO SQL\n" +
-                        "  LANGUAGE JAVA\n" +
-                        "  EXTERNAL NAME 'CLASSPATH:uk.ac.ebi.gxa.dao.AtlasDAOTestCase.wmConcat'");
-
         runStatement(conn, "CREATE SEQUENCE A2_ARRAYDESIGN_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_ASSAY_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_ASSAYPV_SEQ START WITH 10000000");
@@ -453,116 +416,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         System.out.println("...done!");
         conn.close();
     }
-
-    @SuppressWarnings("unused")
-    public static String a2SampleOrganism(int id) {
-        return "Sample Organism Placeholder: " + id;
-    }
-
-    @SuppressWarnings("unused")
-    public static void a2ExperimentSet(Connection conn,
-                                       String accession, String description,
-                                       String performer, String lab, String pmid, String anAbstract) throws SQLException {
-        // this mimics the stored procedure A2_EXPERIMENTSET in the actual DB
-        Statement stmt = conn.createStatement();
-
-        // create an experimentid - no oracle id generators here!
-        long experimentid = System.currentTimeMillis();
-
-        stmt.executeUpdate(
-                "INSERT INTO A2_EXPERIMENT(experimentid, accession, description, performer, lab) " +
-                        "values (" + experimentid + ", '" + accession + "', '" +
-                        description + "', '" + performer + "', '" + lab + "');");
-    }
-
-    @SuppressWarnings("unused")
-    public static void assaySet(String accession, String experimentAccession,
-                                String arrayDesignAccession,
-                                Array properties)
-            throws SQLException {
-        Connection con = DriverManager.getConnection("jdbc:default:connection");
-        // this mimics the stored procedure A2_ASSAYSET in the actual DB
-
-        // lookup ids from accession first
-        Statement stmt = con.createStatement();
-
-        long experimentID = -1;
-        long arrayDesignID = -1;
-        ResultSet rs = stmt.executeQuery("SELECT e.experimentid " +
-                "FROM a2_experiment e " +
-                "WHERE e.accession = '" + experimentAccession + "';");
-        while (rs.next()) {
-            experimentID = rs.getLong(1);
-        }
-        rs.close();
-
-        rs = stmt.executeQuery("SELECT d.arraydesignid " +
-                "FROM a2_arraydesign d " +
-                "WHERE d.accession = '" + arrayDesignAccession + "';");
-        while (rs.next()) {
-            arrayDesignID = rs.getLong(1);
-        }
-        rs.close();
-
-        // create an assayid - no oracle id generators here!
-        long assayid = System.currentTimeMillis();
-
-        stmt.executeQuery(
-                "INSERT INTO A2_ASSAY(assayid, accession, experimentid, arraydesignid) " +
-                        "values (" + assayid + ", '" + accession + "', '" +
-                        experimentID + "', '" + arrayDesignID + "');");
-
-        stmt.close();
-    }
-
-    @SuppressWarnings("unused")
-    public static void a2SampleSet(String experimentAccession,
-                                   String sampleAccession,
-                                   Array assays, Array properties,
-                                   String channel) throws SQLException {
-        Connection con = DriverManager.getConnection("jdbc:default:connection");
-        // this mimics the stored procedure A2_SAMPLESET in the actual DB
-        Statement stmt = con.createStatement();
-
-        // create an sampleid - no oracle id generators here!
-        long sampleid = System.currentTimeMillis();
-
-        stmt.executeQuery(
-                "INSERT INTO A2_SAMPLE(sampleid, accession, channel) " +
-                        "values (" + sampleid + ", '" + sampleAccession +
-                        "', '" + channel + "');");
-    }
-
-    @SuppressWarnings("unused")
-    public static String wmConcat(String in, Boolean flag,
-                                  String[] register, Integer[] counter) {
-        if (flag) {
-            if (register[0] == null) {
-                return null;
-            }
-            return register[0];
-        }
-        if (in == null) {
-            return null;
-        }
-        if (register[0] == null) {
-            register[0] = in;
-            counter[0] = 1;
-        } else {
-            register[0] += "," + in;
-            counter[0]++;
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unused")
-    public static void loadProgress(String accession,
-                                    String stage,
-                                    String status,
-                                    String load_type)
-            throws Exception {
-    }
-
 
     public void destroyDatabase() throws SQLException, ClassNotFoundException {
         Connection conn = atlasDataSource.getConnection();
