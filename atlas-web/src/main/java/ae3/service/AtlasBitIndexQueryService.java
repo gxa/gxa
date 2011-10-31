@@ -1,6 +1,8 @@
 package ae3.service;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -275,7 +277,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     * @param bioEntityId Bioentity of interest
+     *
+     * @param bioEntityId BioEntity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
      * @param toRow       ditto

@@ -25,21 +25,17 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.microarray.atlas.model.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -196,20 +192,20 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         // add the gene id field
         int bioEntityId;
         if (bioEntity.getId() <= Integer.MAX_VALUE) {
-            bioEntityId = (int) bioEntity.getId();
+            bioEntityId = bioEntity.getId().intValue();
         } else {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
         }
 
         solrInputDoc.addField("id", bioEntityId);
-        solrInputDoc.addField("species", bioEntity.getSpecies());
+        solrInputDoc.addField("species", bioEntity.getOrganism().getName());
         solrInputDoc.addField("name", bioEntity.getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
         Set<String> propNames = new HashSet<String>();
         for (BEPropertyValue prop : bioEntity.getProperties()) {
             String pv = prop.getValue();
-            String p = prop.getName();
+            String p = prop.getProperty().getName();
             if (pv == null)
                 continue;
             if (p.toLowerCase().contains("ortholog")) {

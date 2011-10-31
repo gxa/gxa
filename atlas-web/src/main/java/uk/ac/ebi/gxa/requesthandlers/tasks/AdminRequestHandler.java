@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.requesthandlers.tasks;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotation.AnnotationSourceController;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -63,6 +65,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     private static SimpleDateFormat OUT_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     private static SimpleDateFormat IN_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private AtlasManager atlasManager;
+
+    @Autowired
+    private AnnotationSourceController annSrcController;
 
     public void setTaskManager(TaskManager taskManager) {
         this.taskManager = taskManager;
@@ -255,6 +260,34 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("arraydesigns", results, "page", page, "numTotal", total);
     }
 
+    private Object processSearchOrganisms() {
+        List<Map> results = new ArrayList<Map>();
+        Collection<AnnotationSourceController.BioMartAnnotationSourceView> bioMartAnnSrcs = annSrcController.getBioMartAnnSrcViews();
+        for (AnnotationSourceController.BioMartAnnotationSourceView sourceView : bioMartAnnSrcs) {
+            results.add(
+                    makeMap("organismName", sourceView.getOrganismName()
+                            , "id", sourceView.getAnnSrcId()
+                            , "beTypes", sourceView.getBioEntityTypes()
+                            , "currName", sourceView.getSoftware()
+                            , "validation", sourceView.getValidationMessage()
+                            , "applied", sourceView.getApplied()
+
+                    ));
+        }
+
+        return makeMap("annSrcs", results);
+    }
+
+    private Object processSearchAnnSrc(String annSrcId) {
+        String emptyAnnSrcString = "CREATE NEW ANNOTATION SOURCE ";
+        String annSrcString = "";
+        if (!StringUtils.EMPTY.equals(annSrcId)) {
+            annSrcString = annSrcController.getAnnSrcString(annSrcId);
+        }
+
+        return makeMap("annSrcText", StringUtils.EMPTY.equals(annSrcString)?emptyAnnSrcString:annSrcString);
+    }
+
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
@@ -326,6 +359,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 atlasProperties.setProperty(e.getKey(), "".equals(newValue) ? null : newValue);
             }
         }
+        return EMPTY;
+    }
+
+    private Object processUpdateAnnSrc(String text){
+        annSrcController.saveAnnSrc(text);
         return EMPTY;
     }
 
@@ -411,6 +449,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getStr("search"),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
+
+        else if ("searchorg".equals(op))
+            return processSearchOrganisms();
+
+        else if ("searchannSrc".equals(op))
+            return processSearchAnnSrc(req.getStr("annSrcId"));
+
+        else if ("annSrcUpdate".equals(op))
+            return processUpdateAnnSrc(req.getStr("asText"));
 
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(

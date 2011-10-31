@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.HttpRequestHandler;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.dao.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.FieldFilter;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;

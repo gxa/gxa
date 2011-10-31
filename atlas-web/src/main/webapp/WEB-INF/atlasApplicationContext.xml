@@ -33,7 +33,8 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
-    <import resource="classpath*:uk/ac/ebi/gxa/dao/hibernateContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotationLoaderContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/web/hibernate/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
@@ -308,6 +309,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="maxWorkingTasks" value="16"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="annotationLoader" ref="annotationLoader"/>
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
@@ -482,6 +484,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="atlasDataDAO" class="uk.ac.ebi.gxa.data.AtlasDataDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
+    </bean>
+
+    <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
     <!--Configure R workbench -->
