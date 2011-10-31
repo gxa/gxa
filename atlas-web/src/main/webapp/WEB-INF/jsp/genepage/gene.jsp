@@ -26,7 +26,8 @@
 <jsp:useBean id="differentiallyExpressedFactors" type="java.util.List<ae3.model.ExperimentalFactor>" scope="request"/>
 <jsp:useBean id="anatomogramMap" type="java.util.Collection<uk.ac.ebi.gxa.anatomogram.AnatomogramArea>" scope="request"/>
 <jsp:useBean id="hasAnatomogram" type="java.lang.Boolean" scope="request" />
-<jsp:useBean id="ef" class="java.lang.String" scope="request"/>
+<%-- TODO: 4alf: The line below doesn't work, as Property isn't technically a Bean. Replace it with a wrapper. --%>
+<%-- jsp:useBean id="ef" type="uk.ac.ebi.microarray.atlas.model.Property" scope="request" / --%>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -67,7 +68,7 @@ $(document).ready(function() {
     $("#heatmap_tbl").tablesorter({headers: {2: {sorter: false}}});
 
     var genePage = atlas.genePage({
-        ef: "${ef}",
+        ef: "${ef.name}",
         gene: ${gene.geneId},
         pageState: atlas.PageState,
         listTarget: "experimentList",
@@ -200,7 +201,7 @@ $(document).ready(function() {
     <td class="section-header-1" style="padding-right:20px;">
         <c:choose>
             <c:when test="${not empty ef}">
-                ${f:escapeXml(atlasProperties.curatedEfs[ef])}
+                <c:out value="${ef.displayName}"/>
                 <div style="font-size:10px; font-weight:normal;"><a
                         href="${pageContext.request.contextPath}/gene/${gene.geneIdentifier}">&lt;&lt;view all
                     experimental factors</a></div>

@@ -55,7 +55,8 @@
 </script>
 
 <script id="source" type="text/javascript">
-    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">curatedEFs['${u:escapeJS(ef)}'] = '${u:escapeJS(atlasProperties.curatedEfs[ef])}';
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
+    curatedEFs['${ef.name}'] = '${u:escapeJS(ef.displayName)}';
     </c:forEach>
 
     $(document).ready(function() {
@@ -311,9 +312,9 @@
                             <select id="efvFilter" style="width:100%;">
                                 <option value="">All factor values</option>
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
-                                    <optgroup label="${f:escapeXml(atlasProperties.curatedEfs[EF])}">
+                                    <optgroup label="${f:escapeXml(EF.displayName)}">
                                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                                            <option value='${EF}||${EFV}'>${f:escapeXml(EFV)}</option>
+                                            <option value='${EF.name}||${EFV}'>${f:escapeXml(EFV)}</option>
                                         </c:forEach>
                                     </optgroup>
                                 </c:forEach>

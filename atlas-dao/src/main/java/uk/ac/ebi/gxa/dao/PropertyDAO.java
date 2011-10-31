@@ -41,12 +41,13 @@ public class PropertyDAO extends AbstractDAO<Property> {
         return true;
     }
 
-    public Property getOrCreateProperty(String name) {
+    public Property getOrCreateProperty(String displayName) {
+        final String accession = Property.getSanitizedPropertyAccession(displayName);
         try {
-            return getByName(name);
+            return getByName(accession);
         } catch (RecordNotFoundException e) {
             // property not found - create a new one
-            Property property = new Property(null, name);
+            Property property = Property.createProperty(null, accession, displayName);
             save(property);
             return property;
         }

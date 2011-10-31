@@ -375,10 +375,20 @@ public class AtlasProperties {
         return getProperty("atlas.feedback.subject");
     }
 
+    /**
+     * @return map from EF name to EF's display name
+     * @deprecated Use uk.ac.ebi.gxa.dao.PropertyDAO instead
+     */
+    @Deprecated
     public String getCuratedEf(String ef) {
         return getProperty("factor.curatedname." + ef);
     }
 
+    /**
+     * @return map from EF name to EF's display name
+     * @deprecated Use uk.ac.ebi.gxa.dao.PropertyDAO instead
+     */
+    @Deprecated
     public Map<String, String> getCuratedEfs() {
         return new LazyKeylessMap<String, String>() {
             @Override
