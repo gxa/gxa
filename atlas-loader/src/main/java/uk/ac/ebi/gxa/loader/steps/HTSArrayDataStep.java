@@ -99,9 +99,8 @@ public class HTSArrayDataStep {
                     log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                     if (assay.getArrayDesign() == null) {
-                        assay.setArrayDesign(dao.getArrayDesign(findArrayDesignName(refNode)));
+                        assay.setArrayDesign(dao.getArrayDesignShallow(findArrayDesignName(refNode)));
                     }
-                    cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                 } else {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");
