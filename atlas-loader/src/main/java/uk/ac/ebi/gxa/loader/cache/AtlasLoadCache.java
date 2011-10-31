@@ -45,12 +45,9 @@ public class AtlasLoadCache implements ExperimentBuilder {
     private static final Logger log = LoggerFactory.getLogger(AtlasLoadCache.class);
 
     private Experiment experiment;
-    private Map<String, ArrayDesign> arrayDesignMap = new HashMap<String, ArrayDesign>();
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private Collection<String> availQTypes;
-
-    private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
 
     public AtlasLoadCache() {
     }
@@ -214,13 +211,5 @@ public class AtlasLoadCache implements ExperimentBuilder {
 
     public Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
         return assayDataMap;
-    }
-
-    public Map<String, List<String>> getArrayDesignToDesignElements() {
-        return arrayDesignToDesignElements;
-    }
-
-    public void setDesignElements(String arrayDesign, List<String> designElements) {
-        arrayDesignToDesignElements.put(arrayDesign, designElements);
     }
 }

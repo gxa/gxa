@@ -247,16 +247,18 @@ public class AtlasMAGETABLoader {
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
 
-        for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-            Collection<Assay> adAssays = experiment.getAssaysForDesign(arrayDesign);
+        for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+
+            Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
             log.info("Starting NetCDF for {} and {} ({} assays)",
-                    new Object[]{experiment.getAccession(), arrayDesign.getAccession(), adAssays.size()});
+                    new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
 
             if (listener != null)
                 listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
-                        " and " + arrayDesign);
+                        " and " + shallowArrayDesign);
 
-            final NetCDFCreator netCdfCreator = atlasDataDAO.getNetCDFCreator(experiment, arrayDesign);
+            final NetCDFCreator netCdfCreator =
+                    atlasDataDAO.getNetCDFCreator(experiment, dao.getArrayDesign(shallowArrayDesign.getAccession()));
 
             netCdfCreator.setAssays(adAssays);
             for (Assay assay : adAssays) {
@@ -273,7 +275,7 @@ public class AtlasMAGETABLoader {
                     listener.setWarning(warning);
                 }
             }
-            log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
+            log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
         }
     }
 
