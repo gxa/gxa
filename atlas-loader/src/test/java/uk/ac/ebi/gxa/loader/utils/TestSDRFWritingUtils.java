@@ -60,7 +60,7 @@ public class TestSDRFWritingUtils extends TestCase {
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
         for (AssayProperty p : assay.getProperties()) {
-            assertEquals("Wrong property name", p.getName(), "Type");
+            assertEquals("Wrong property name", p.getName(), "type");
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
         }
@@ -85,7 +85,7 @@ public class TestSDRFWritingUtils extends TestCase {
         assertSame("Wrong number of properties", sample.getProperties().size(),
                 1);
         for (SampleProperty p : sample.getProperties()) {
-            assertEquals("Wrong property name", p.getName(), "Type");
+            assertEquals("Wrong property name", p.getName(), "type");
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
         }
@@ -110,7 +110,7 @@ public class TestSDRFWritingUtils extends TestCase {
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
         for (AssayProperty p : assay.getProperties()) {
-            assertEquals("Wrong property name", p.getName(), "Type");
+            assertEquals("Wrong property name", p.getName(), "type");
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
         }

@@ -12,22 +12,20 @@ public class SoftwareDAO extends AbstractDAO<Software> {
         super(sessionFactory, Software.class);
     }
 
-
     public Software find(String name, String newVersion) {
-        Software software = new Software(name, newVersion);
-        return software;
+        return new Software(name, newVersion);
     }
 
     public Software findOrCreate(String name, String version) {
-        List<Software> softwareList = template.find("from Software where name = ? and version = ?", name, version);
         try {
-            return getFirst(softwareList, name + " " + version);
+            @SuppressWarnings("unchecked")
+            final List<Software> software = template.find("from Software where name = ? and version = ?", name, version);
+            return getOnly(software);
         } catch (RecordNotFoundException e) {
             Software software = new Software(name, version);
             save(software);
             return software;
         }
-
     }
 
     @Override
@@ -41,8 +39,8 @@ public class SoftwareDAO extends AbstractDAO<Software> {
         template.flush();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Software> getActiveSoftwares() {
         return template.find("from Software where isActive = 'T'");
     }
-
 }

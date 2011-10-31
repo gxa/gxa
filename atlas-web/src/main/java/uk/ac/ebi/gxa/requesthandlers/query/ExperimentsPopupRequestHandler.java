@@ -28,19 +28,16 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.Constants;
 import com.google.common.base.Strings;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.statistics.*;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -49,6 +46,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
@@ -57,8 +55,8 @@ import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
     private GeneSolrDAO geneSolrDAO;
     private ExperimentDAO experimentDAO;
+    private PropertyDAO propertyDAO;
     private Efo efo;
-    private AtlasProperties atlasProperties;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
     private AtlasDataDAO atlasDataDAO;
 
@@ -70,12 +68,12 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
         this.experimentDAO = experimentDAO;
     }
 
-    public void setEfo(Efo efo) {
-        this.efo = efo;
+    public void setPropertyDAO(PropertyDAO propertyDAO) {
+        this.propertyDAO = propertyDAO;
     }
 
-    public void setAtlasProperties(AtlasProperties atlasProperties) {
-        this.atlasProperties = atlasProperties;
+    public void setEfo(Efo efo) {
+        this.efo = efo;
     }
 
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
@@ -95,23 +93,28 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
 
         if (bioEntityIdKey != null && factor != null && factorValue != null) {
             final Integer bioEntityId = Integer.parseInt(bioEntityIdKey);
-            boolean isEfo = Constants.EFO_FACTOR_NAME.equals(factor);
-
-            jsResult.put("ef", factor);
-            jsResult.put("eftext", atlasProperties.getCuratedEf(factor));
-            jsResult.put("efv", factorValue);
 
             Attribute attr;
-            if (isEfo) {
+            if (Constants.EFO_FACTOR_NAME.equals(factor)) {
+                jsResult.put("ef", "efo");
+                jsResult.put("eftext", "EFO");
+
                 attr = new EfoAttribute(factorValue);
                 EfoTerm term = efo.getTermById(factorValue);
-                if (term != null) {
-                    jsResult.put("efv", term.getTerm());
-                }
+                jsResult.put("efv", term != null ? term.getTerm() : factorValue);
             } else if (Strings.isNullOrEmpty(factorValue)) {
                 attr = new EfAttribute(factor);
             } else {
-                attr = new EfvAttribute(factor, factorValue);
+                try {
+                    final Property property = propertyDAO.getByName(factor);
+                    jsResult.put("ef", property.getName());
+                    jsResult.put("eftext", property.getDisplayName());
+                    jsResult.put("efv", factorValue);
+
+                    attr = new EfvAttribute(property.getName(), factorValue);
+                } catch (RecordNotFoundException e) {
+                    throw createUnexpected("Unknow EF: " + factor, e);
+                }
             }
 
             GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneById(bioEntityId);
@@ -236,19 +239,23 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
             List<Map.Entry<Long, Map<String, List<ExperimentResult>>>> exps =
                     newArrayList(exmap.entrySet());
             List<Map> jsExps = new ArrayList<Map>();
-            for (Map.Entry<Long, Map<String, List<ExperimentResult>>> e : exps) {
-                Experiment aexp = experimentDAO.getById(e.getKey());
+            for (Map.Entry<Long, Map<String, List<ExperimentResult>>> entry : exps) {
+                Experiment aexp = experimentDAO.getById(entry.getKey());
                 if (aexp != null) {
                     Map<String, Object> jsExp = new HashMap<String, Object>();
                     jsExp.put("accession", aexp.getAccession());
                     jsExp.put("name", aexp.getDescription());
-                    jsExp.put("id", e.getKey());
+                    jsExp.put("id", entry.getKey());
 
                     List<Map> jsEfs = new ArrayList<Map>();
-                    for (Map.Entry<String, List<ExperimentResult>> ef : e.getValue().entrySet()) {
+                    for (Map.Entry<String, List<ExperimentResult>> ef : entry.getValue().entrySet()) {
                         Map<String, Object> jsEf = new HashMap<String, Object>();
                         jsEf.put("ef", ef.getKey());
-                        jsEf.put("eftext", atlasProperties.getCuratedEf(ef.getKey()));
+                        try {
+                            jsEf.put("eftext", propertyDAO.getByName(ef.getKey()).getDisplayName());
+                        } catch (RecordNotFoundException e) {
+                            throw createUnexpected("Unknow EF: " + ef.getKey(), e);
+                        }
 
                         List<Map> jsEfvs = new ArrayList<Map>();
                         for (ExperimentResult exp : ef.getValue()) {
