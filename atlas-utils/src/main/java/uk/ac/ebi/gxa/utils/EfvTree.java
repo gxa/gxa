@@ -26,13 +26,13 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Experimental factor/values storage collection class. Allows to keep any payload correspoding to several
+ * Experimental factor/values storage collection class. Allows to keep any payload corresponding to several
  * experimental factor values over some factors and retrieve stored information in variety of views sorted by
  * factor values or some custom payload sort orders.
  * <p/>
  * Each payload is associated to one of EFVs which belongs to one of factors.
  *
- * @param <Payload> The class is paramterized with payload type which should be Comparable
+ * @param <Payload> The class is parametrized with payload type which should be Comparable
  * @author pashky
  */
 public class EfvTree<Payload extends Comparable<Payload>> {

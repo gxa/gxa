@@ -160,6 +160,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                 "CREATE TABLE A2_PROPERTY " +
                         "(PROPERTYID bigint not null, " +
                         "NAME VARCHAR(255), " +
+                        "DISPLAYNAME VARCHAR(512), " +
                         "ACCESSION VARCHAR(255), " +
                         "CONSTRAINT SYS_C008064 PRIMARY KEY (PROPERTYID));");
 
@@ -168,6 +169,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "(PROPERTYVALUEID bigint not null, " +
                         "PROPERTYID bigint, " +
                         "NAME VARCHAR(255), " +
+                        "DISPLAYNAME VARCHAR(512), " +
                         "CONSTRAINT SYS_C008066 PRIMARY KEY (PROPERTYVALUEID));");
 
         runStatement(conn,

@@ -111,12 +111,12 @@ public class TestNetCDFSplitting extends TestCase {
                     a.setArrayDesign(ad);
                     for (int j = 0; j < efs.length; ++j) {
                         a.addProperty(new PropertyValue(
-                            ++id, new Property(++id, efs[j]), efvs[j][i]
+                            ++id, Property.createProperty(efs[j]), efvs[j][i]
                         ));
                     }
                     for (int j = 0; j < scs.length; ++j) {
                         s.addProperty(new PropertyValue(
-                            ++id, new Property(++id, scs[j]), scvs[j][i]
+                            ++id, Property.createProperty(scs[j]), scvs[j][i]
                         ));
                     }
 					assays.add(a);

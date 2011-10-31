@@ -24,9 +24,8 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * Lazy expression statistics class
@@ -54,13 +53,6 @@ public class ExpressionStats {
         } catch (StatisticsNotFoundException e) {
             // TODO: ignore
         }
-    }
-
-    private static String normalized(String name, String prefix) {
-        if (name.startsWith(prefix)) {
-            name = name.substring(prefix.length());
-        }
-        return EscapeUtil.encode(name);
     }
 
     /**

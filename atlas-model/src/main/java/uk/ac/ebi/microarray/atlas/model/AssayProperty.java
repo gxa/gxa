@@ -60,15 +60,7 @@ public final class AssayProperty {
     AssayProperty() {
     }
 
-    public AssayProperty(Assay assay, String name, String value, List<OntologyTerm> efoTerms) {
-        this.assaypvid = null; // TODO: 4alf: we must handle this on save
-        this.assay = assay;
-        propertyValue = new PropertyValue(null, new Property(null, name), value);
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
-    }
-
-    public AssayProperty(Long id, Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
-        this.assaypvid = id;
+    public AssayProperty(Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
         this.assay = assay;
         propertyValue = pv;
         this.terms = new ArrayList<OntologyTerm>(efoTerms);
@@ -76,10 +68,6 @@ public final class AssayProperty {
 
     public Long getId() {
         return assaypvid;
-    }
-
-    public Assay getOwner() {
-        return assay;
     }
 
     public String getName() {
@@ -103,16 +91,6 @@ public final class AssayProperty {
     }
 
     @Deprecated
-    public long getPropertyId() {
-        return propertyValue.getDefinition().getId();
-    }
-
-    @Deprecated
-    public long getPropertyValueId() {
-        return propertyValue.getId();
-    }
-
-    @Deprecated
     public String getEfoTerms() {
         return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
             @Override
@@ -128,5 +106,9 @@ public final class AssayProperty {
                 "propertyValue=" + propertyValue +
                 ", terms='" + terms + '\'' +
                 '}';
+    }
+
+    public Property getDefinition() {
+        return getPropertyValue().getDefinition();
     }
 }

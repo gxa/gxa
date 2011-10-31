@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
@@ -60,6 +61,8 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -73,6 +76,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasDataDAO atlasDataDAO;
 
+    private final PropertyDAO propertyDAO;
+
     private final AtlasProperties atlasProperties;
 
     private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
@@ -80,8 +85,11 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
         @Override
         public String apply(@Nullable String input) {
-            String s = atlasProperties.getCuratedEf(input);
-            return (s == null) ? input : s;
+            try {
+                return propertyDAO.getByName(input).getDisplayName();
+            } catch (RecordNotFoundException e) {
+                throw createUnexpected("Cannot find property " + input, e);
+            }
         }
     };
 
@@ -89,10 +97,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
+                                    PropertyDAO propertyDAO,
                                     AtlasProperties atlasProperties,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
+        this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
         this.experimentAnalyticsService = experimentAnalyticsService;
     }
@@ -331,7 +341,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     /**
      * An experiment page handler utility. If the experiment with the given id/accession exists it fills the model with the
      * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part
-     *  note that gid and ef are optional.
+     * note that gid and ef are optional.
      *
      * @param model
      * @param accession

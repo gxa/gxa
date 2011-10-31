@@ -39,13 +39,17 @@ import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.easymock.EasyMock.*;
+import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);
@@ -154,7 +158,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private LoaderDAO mockLoaderDAO() {
         final LoaderDAO dao = createMock(LoaderDAO.class);
         expect(dao.getOrCreatePropertyValue(EasyMock.<String>anyObject(), EasyMock.<String>anyObject()))
-                .andReturn(new PropertyValue(null, new Property(null, "test"), "test"))
+                .andReturn(new PropertyValue(null, createProperty("Test"), "test"))
                 .anyTimes();
         expect(dao.getArrayDesign("A-AFFY-33"))
                 .andReturn(new ArrayDesign("A-AFFY-33"))
