@@ -195,7 +195,8 @@ abstract class NetCDFProxy implements DataProxy {
 
     static void closeQuietly(final NetcdfFile netCDF) {
         try {
-            netCDF.close();
+            if (netCDF != null)
+                netCDF.close();
         } catch (IOException e) {
             log.error("IOException should not have been thrown.", e);
         }
