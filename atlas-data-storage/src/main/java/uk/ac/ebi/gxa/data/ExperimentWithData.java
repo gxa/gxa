@@ -493,19 +493,22 @@ public class ExperimentWithData implements Closeable {
 
     private class DataUpdater {
         void update(ArrayDesign arrayDesign) throws AtlasDataException {
-            log.info("Reading existing NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
+            log.info("Reading existing NetCDF for {} / {}", experiment.getAccession(), arrayDesign.getAccession());
             final NetCDFData data = readNetCDF(arrayDesign);
 
-            log.info("Writing updated NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
+            log.info("Writing updated NetCDF for {} / {}", experiment.getAccession(), arrayDesign.getAccession());
             writeNetCDF(data, arrayDesign);
 
-            log.info("Successfully updated NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
+            log.info("Successfully updated NetCDF for {} / {}", experiment.getAccession(), arrayDesign.getAccession());
 
             final boolean removeObsoleteNetcdf = getProxy(arrayDesign) instanceof NetCDFProxyV1;
             if (removeObsoleteNetcdf) {
+                log.info("Dropping old NetCDF for {} / {}", experiment.getAccession(), arrayDesign.getAccession());
                 File v1File = atlasDataDAO.getV1File(experiment, arrayDesign);
-                if (!v1File.delete())
+                if (!v1File.delete()) {
+                    log.warn("Cannot delete old NetCDF: {}", v1File);
                     throw new AtlasDataException("Cannot delete old NetCDF: " + v1File);
+                }
             }
         }
 
