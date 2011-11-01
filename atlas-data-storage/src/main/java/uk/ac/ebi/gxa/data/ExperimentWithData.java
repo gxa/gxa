@@ -35,6 +35,8 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 public class ExperimentWithData implements Closeable {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -67,10 +69,6 @@ public class ExperimentWithData implements Closeable {
             }
         }
         return null;
-    }
-
-    AtlasDataDAO getDataDAO() {
-        return atlasDataDAO;
     }
 
     DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
@@ -115,31 +113,14 @@ public class ExperimentWithData implements Closeable {
             try {
                 new DataUpdater().update(arrayDesign);
             } finally {
-                try {
-                    proxies.remove(arrayDesign);
-                    proxy.close();
-                } catch (Throwable t) {
-                }
+                proxies.remove(arrayDesign);
+                closeQuietly(proxy);
             }
         }
     }
 
     public NetCDFStatisticsCreator getStatisticsCreator(ArrayDesign arrayDesign) {
         return new NetCDFStatisticsCreator(atlasDataDAO, experiment, arrayDesign);
-    }
-
-    /*
-     * This method returns samples in the order they are stored in netcdf file.
-     * While this order is important we have to use this method,
-     * in future it would be replaced by Experiment method.
-     */
-    public List<Sample> getSamples(ArrayDesign arrayDesign) throws AtlasDataException {
-        final String[] sampleAccessions = getProxy(arrayDesign).getSampleAccessions();
-        final ArrayList<Sample> samples = new ArrayList<Sample>(sampleAccessions.length);
-        for (String accession : sampleAccessions) {
-            samples.add(experiment.getSample(accession));
-        }
-        return samples;
     }
 
     /*

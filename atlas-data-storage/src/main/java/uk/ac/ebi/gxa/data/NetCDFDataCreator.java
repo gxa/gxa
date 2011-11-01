@@ -59,8 +59,8 @@ public class NetCDFDataCreator {
 
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
 
-    private List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
-    private ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
+    private final List<DataMatrixStorage> storages = new ArrayList<DataMatrixStorage>();
+    private final ListMultimap<DataMatrixStorage, Assay> storageAssaysMap = ArrayListMultimap.create();
 
     private Iterable<String> mergedDesignElements;
     private Map<String, Integer> mergedDesignElementsMap;
@@ -69,17 +69,13 @@ public class NetCDFDataCreator {
     // maps of properties
     private LinkedHashMap<String, List<String>> efvMap;
     private LinkedHashMap<String, List<String>> scvMap;
-    private LinkedHashSet<String> efScs; // efs/scs
-    private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
-    private Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
+    private final Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
 
-    private List<String> warnings = new ArrayList<String>();
+    private final List<String> warnings = new ArrayList<String>();
 
     private int totalDesignElements;
-    private int totalUniqueValues; // scvs/efvs
     private int maxDesignElementLength;
     private int maxEfLength;
-    private int maxEfScLength;
     private int maxEfvLength;
     private int maxScLength;
     private int maxScvLength;
@@ -187,11 +183,9 @@ public class NetCDFDataCreator {
             propertyToUnsortedUniqueValues.putAll(scToScvs.getKey(), scToScvs.getValue());
         }
 
-        efScs = getEfScs(efvMap, scvMap);
-
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
-        maxEfScLength = 0;
+        int maxEfScLength = 0;
         maxEfvLength = 0;
         for (String ef : efvMap.keySet()) {
             maxEfLength = Math.max(maxEfLength, ef.length());
@@ -592,18 +586,5 @@ public class NetCDFDataCreator {
         if (attribute != null && value != null) {
             netCdf.addGlobalAttribute(attribute, value);
         }
-    }
-
-    /**
-     * @param efs
-     * @param scs
-     * @return merged LinkedHashSet of efs and scs keySets
-     */
-    private LinkedHashSet<String> getEfScs(LinkedHashMap<String, List<String>> efs,
-                                           LinkedHashMap<String, List<String>> scs) {
-        LinkedHashSet<String> result = new LinkedHashSet<String>();
-        result.addAll(efs.keySet());
-        result.addAll(scs.keySet());
-        return result;
     }
 }

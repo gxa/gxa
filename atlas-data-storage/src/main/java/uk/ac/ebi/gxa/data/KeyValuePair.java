@@ -41,7 +41,7 @@ public final class KeyValuePair {
         if (!(o instanceof KeyValuePair)) {
             return false;
         }
-        final KeyValuePair pair = (KeyValuePair)o;
+        final KeyValuePair pair = (KeyValuePair) o;
         return key.equals(pair.key) && value.equals(pair.value);
     }
 

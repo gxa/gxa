@@ -37,8 +37,8 @@ import java.util.Map;
 public class ExpressionStatistics {
     private FloatMatrixProxy pvalues;
     private FloatMatrixProxy tstatistics;
-    private Map<String, Integer> efEfv = Maps.newHashMap();
-    private Map<Integer, Integer> deIndices = Maps.newHashMap();
+    private final Map<String, Integer> efEfv = Maps.newHashMap();
+    private final Map<Integer, Integer> deIndices = Maps.newHashMap();
 
     private ExpressionStatistics() {
     }

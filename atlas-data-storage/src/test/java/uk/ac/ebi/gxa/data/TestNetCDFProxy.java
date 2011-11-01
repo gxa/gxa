@@ -26,7 +26,6 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.io.Closeables.close;
@@ -66,23 +65,6 @@ public class TestNetCDFProxy extends TestCase {
         System.out.println("ArrayDesign: " + netCDF.getArrayDesignAccession());
     }
 
-    /*
-    public void testGetAssays() throws AtlasDataException {
-        System.out.print("Assays: {");
-        for (long assay : netCDF.getAssays()) {
-            System.out.print(assay + ", ");
-        }
-        System.out.println("}");
-    }
-
-    public void testGetSamples() throws AtlasDataException {
-        System.out.print("Samples: {");
-        for (long sample : netCDF.getSamples()) {
-            System.out.print(sample + ", ");
-        }
-        System.out.println("}");
-    }
-    */
 
     public void testGetFactors() throws AtlasDataException {
         System.out.print("EFs: {");

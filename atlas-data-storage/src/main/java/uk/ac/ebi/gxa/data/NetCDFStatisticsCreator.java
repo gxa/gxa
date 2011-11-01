@@ -50,8 +50,8 @@ public class NetCDFStatisticsCreator {
     private final ArrayDesign arrayDesign;
 
     // maps of properties
-    private Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
-    private Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
+    private final Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
+    private final Map<String, List<String>> propertyToSortedUniqueValues = new LinkedHashMap<String, List<String>>(); // sc/ef -> sorted scs/efvs
 
     private NetcdfFileWriteable statisticsNetCdf;
 
@@ -281,18 +281,5 @@ public class NetCDFStatisticsCreator {
         if (attribute != null && value != null) {
             statisticsNetCdf.addGlobalAttribute(attribute, value);
         }
-    }
-
-    /**
-     * @param efs
-     * @param scs
-     * @return merged LinkedHashSet of efs and scs keySets
-     */
-    private LinkedHashSet<String> getEfScs(LinkedHashMap<String, List<String>> efs,
-                                           LinkedHashMap<String, List<String>> scs) {
-        LinkedHashSet<String> result = new LinkedHashSet<String>();
-        result.addAll(efs.keySet());
-        result.addAll(scs.keySet());
-        return result;
     }
 }

@@ -24,8 +24,8 @@ package uk.ac.ebi.gxa.data;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.io.File;
 
@@ -42,22 +42,22 @@ public class AtlasDataDAO {
 
     File getDataFile(Experiment experiment, ArrayDesign arrayDesign) {
         return new File(
-            getDataDirectory(experiment),
-            experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc"
+                getDataDirectory(experiment),
+                experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc"
         );
     }
 
     File getStatisticsFile(Experiment experiment, ArrayDesign arrayDesign) {
         return new File(
-            getDataDirectory(experiment),
-            experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc"
+                getDataDirectory(experiment),
+                experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc"
         );
     }
 
     File getV1File(Experiment experiment, ArrayDesign arrayDesign) {
         return new File(
-            getDataDirectory(experiment),
-            experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc"
+                getDataDirectory(experiment),
+                experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc"
         );
     }
 
@@ -65,8 +65,8 @@ public class AtlasDataDAO {
         DataProxy proxy;
         try {
             proxy = new NetCDFProxyV2(
-                getDataFile(experiment, arrayDesign),
-                getStatisticsFile(experiment, arrayDesign)
+                    getDataFile(experiment, arrayDesign),
+                    getStatisticsFile(experiment, arrayDesign)
             );
         } catch (AtlasDataException e) {
             proxy = new NetCDFProxyV1(getV1File(experiment, arrayDesign));

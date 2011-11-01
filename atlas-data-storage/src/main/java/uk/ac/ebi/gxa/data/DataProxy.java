@@ -22,28 +22,36 @@
 
 package uk.ac.ebi.gxa.data;
 
-import java.util.List;
 import java.io.Closeable;
+import java.util.List;
 
 interface DataProxy extends Closeable {
     String getVersion();
 
-    String getExperimentAccession() throws AtlasDataException;
-    String getArrayDesignAccession() throws AtlasDataException;
+    String getExperimentAccession();
+
+    String getArrayDesignAccession();
+
     int[][] getSamplesToAssays() throws AtlasDataException;
+
     /**
      * Gets the array of gene IDs from this data source
      *
      * @return an long[] representing the one dimensional array of gene identifiers
      */
     long[] getGenes() throws AtlasDataException;
+
     String[] getDesignElementAccessions() throws AtlasDataException;
+
     // TODO: remove 'public' modifier
     public String[] getAssayAccessions() throws AtlasDataException;
-    String[] getSampleAccessions() throws AtlasDataException;
+
     String[] getFactors() throws AtlasDataException;
+
     String[] getCharacteristics() throws AtlasDataException;
+
     String[] getFactorValues(String factor) throws AtlasDataException;
+
     /**
      * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
      *
@@ -51,7 +59,9 @@ interface DataProxy extends Closeable {
      * @throws AtlasDataException if data could not be read form the netCDF file
      */
     String[][] getFactorValues() throws AtlasDataException;
+
     String[] getCharacteristicValues(String characteristic) throws AtlasDataException;
+
     /**
      * Gets a single row from the expression data matrix representing all expression data for a single design element.
      * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
@@ -63,23 +73,30 @@ interface DataProxy extends Closeable {
      * @throws AtlasDataException if the NetCDF could not be accessed
      */
     float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws AtlasDataException;
+
     /**
      * Extracts a matrix of expression values for given design element indices.
      *
      * @param deIndices an array of design element indices to get expression values for
      * @return a float matrix - a list of expressions per design element index
-     * @throws AtlasDataException    if the expression data could not be read from the netCDF file
-     * @throws AtlasDataException    if the file doesn't contain given deIndices
+     * @throws AtlasDataException if the expression data could not be read from the netCDF file
+     *                            or the file doesn't contain given deIndices
      */
     FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
+
     TwoDFloatArray getAllExpressionData() throws AtlasDataException;
 
     List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException;
+
     FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+
     float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+
     TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
 
     FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+
     float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+
     TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException;
 }

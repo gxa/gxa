@@ -31,9 +31,8 @@ import ucar.nc2.iosp.netcdf3.N3iosp;
  * This is temporary workaround for what we consider as missing values in the netCDF files. Until there is no single substitution
  * for missing value in R and Java code we should manually check it everywhere. This code cares only for Float values,
  * as it is mostly critical one.
- *
+ * <p/>
  * Note: we must remove this class right after the ticket is fixed: #2910.
- *
  *
  * @author Olga Melnichuk
  *         Date: 21/04/2011

@@ -38,10 +38,10 @@ import java.io.IOException;
  */
 
 abstract class NetCDFProxy implements DataProxy {
-    public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
+    static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
 
     // utility methods to be used in implementations
-    protected long[] getLongArray1(NetcdfFile netCDF, String variableName) throws AtlasDataException {
+    long[] getLongArray1(NetcdfFile netCDF, String variableName) throws AtlasDataException {
         try {
             final Variable var = netCDF.findVariable(variableName);
             if (var == null) {
@@ -54,8 +54,8 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    protected float[] readFloatValuesForRowIndex(NetcdfFile netCDF, int rowIndex,
-                                                 String variableName) throws AtlasDataException {
+    float[] readFloatValuesForRowIndex(NetcdfFile netCDF, int rowIndex,
+                                       String variableName) throws AtlasDataException {
         try {
             Variable variable = netCDF.findVariable(variableName);
             if (variable == null) {
@@ -73,8 +73,8 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    protected FloatMatrixProxy readFloatValuesForRowIndices(NetcdfFile netCDF, int[] rowIndices,
-                                                            String varName) throws AtlasDataException {
+    FloatMatrixProxy readFloatValuesForRowIndices(NetcdfFile netCDF, int[] rowIndices,
+                                                  String varName) throws AtlasDataException {
         try {
             Variable variable = netCDF.findVariable(varName);
             int[] shape = variable.getShape();
@@ -94,7 +94,7 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    protected String[] getArrayOfStrings(NetcdfFile netCDF, String variable) throws AtlasDataException {
+    String[] getArrayOfStrings(NetcdfFile netCDF, String variable) throws AtlasDataException {
         try {
             if (netCDF.findVariable(variable) == null) {
                 return new String[0];
@@ -110,7 +110,7 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    protected String[] getFactorsCharacteristics(NetcdfFile netCDF, String varName) throws AtlasDataException {
+    String[] getFactorsCharacteristics(NetcdfFile netCDF, String varName) throws AtlasDataException {
         try {
             if (netCDF.findVariable(varName) == null) {
                 return new String[0];
@@ -132,7 +132,7 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    protected Integer findEfIndex(String factor) throws AtlasDataException {
+    Integer findEfIndex(String factor) throws AtlasDataException {
         String[] efs = getFactors();
         for (int i = 0; i < efs.length; i++) {
             // todo: note flexible matching for ba_<factor> or <factor> - this is hack to work around old style netcdfs
@@ -143,7 +143,7 @@ abstract class NetCDFProxy implements DataProxy {
         return null;
     }
 
-    protected Integer findScIndex(String factor) throws AtlasDataException {
+    Integer findScIndex(String factor) throws AtlasDataException {
         String[] scs = getCharacteristics();
         for (int i = 0; i < scs.length; i++) {
             // todo: note flexible matching for bs_<factor> or <factor> - this is hack to work around old style netcdfs
@@ -156,7 +156,7 @@ abstract class NetCDFProxy implements DataProxy {
 
     //read variable as 3D array of chars, and return
     //slice (by dimension = 0) at index as array of strings
-    protected String[] getSlice3D(NetcdfFile netCDF, String variableName, int index) throws AtlasDataException {
+    String[] getSlice3D(NetcdfFile netCDF, String variableName, int index) throws AtlasDataException {
         try {
             final Variable var = netCDF.findVariable(variableName);
             // if the EFV variable is empty
@@ -180,7 +180,7 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    protected TwoDFloatArray readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
+    TwoDFloatArray readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
         try {
             final Variable variable = netCDF.findVariable(varName);
             return new TwoDFloatArray(variable != null ? (ArrayFloat.D2) variable.read() : new ArrayFloat.D2(0, 0));

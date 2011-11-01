@@ -149,11 +149,6 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     }
 
     @Override
-    public String[] getSampleAccessions() throws AtlasDataException {
-        return getArrayOfStrings(dataNetCDF, "BSacc");
-    }
-
-    @Override
     public String[] getFactors() throws AtlasDataException {
         return getFactorsCharacteristics(dataNetCDF, "EF");
     }
