@@ -41,7 +41,7 @@ public class ExperimentWithData implements Closeable {
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
 
-    private final Map<ArrayDesign,DataProxy> proxies = new HashMap<ArrayDesign,DataProxy>();
+    private final Map<ArrayDesign, DataProxy> proxies = new HashMap<ArrayDesign, DataProxy>();
 
     // cached data
     private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
@@ -95,11 +95,11 @@ public class ExperimentWithData implements Closeable {
 
     /**
      * This method should be removed if Atlas will become an architecure.
-     *   At this moment arrayDesign.getDesignElement(designElementAccession)
-     *   returns null if arrayDesign has an 'incorrect' origin. We have to
-     *   use at this point ArrayDesign's from ArrayDesingDAO, not from other
-     *   sources. Unfortunately we forget to add an annotation @FromArrayDesignDAO
-     *   for using in such cases.
+     * At this moment arrayDesign.getDesignElement(designElementAccession)
+     * returns null if arrayDesign has an 'incorrect' origin. We have to
+     * use at this point ArrayDesign's from ArrayDesingDAO, not from other
+     * sources. Unfortunately we forget to add an annotation @FromArrayDesignDAO
+     * for using in such cases.
      */
     public void updateData(ArrayDesign arrayDesign) throws AtlasDataException {
         new DataUpdater().update(arrayDesign);
@@ -111,7 +111,7 @@ public class ExperimentWithData implements Closeable {
             if ("2.0".equals(proxy.getVersion())) {
                 return;
             }
-        
+
             try {
                 new DataUpdater().update(arrayDesign);
             } finally {
@@ -150,7 +150,7 @@ public class ExperimentWithData implements Closeable {
     public List<Assay> getAssays(ArrayDesign arrayDesign) throws AtlasDataException {
         final String[] assayAccessions = getProxy(arrayDesign).getAssayAccessions();
 
-        final Map<String,Assay> experimentAssays = new HashMap<String,Assay>();
+        final Map<String, Assay> experimentAssays = new HashMap<String, Assay>();
         for (Assay a : experiment.getAssaysForDesign(arrayDesign)) {
             experimentAssays.put(a.getAccession(), a);
         }
@@ -253,8 +253,8 @@ public class ExperimentWithData implements Closeable {
      *
      * @param deIndices an array of design element indices to extract expression statistic for
      * @return an instance of {@link ExpressionStatistics}
-     * @throws AtlasDataException    if the data could not be read from the netCDF file
-     * @throws AtlasDataException    if array of design element indices contains out of bound indices
+     * @throws AtlasDataException if the data could not be read from the netCDF file
+     * @throws AtlasDataException if array of design element indices contains out of bound indices
      */
     public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
         return ExpressionStatistics.create(deIndices, getProxy(arrayDesign));
@@ -276,15 +276,15 @@ public class ExperimentWithData implements Closeable {
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
             final KeyValuePair uniqueValue = getUniqueValues(arrayDesign).get(efIndex);
             if (efName == null ||
-                (uniqueValue.key.equals(efName) && uniqueValue.value.equals(efvName))) {
+                    (uniqueValue.key.equals(efName) && uniqueValue.value.equals(efvName))) {
                 list.add(new ExpressionAnalysis(
-                    arrayDesign.getAccession(),
-                    deAccession,
-                    deIndex,
-                    uniqueValue.key,
-                    uniqueValue.value,
-                    t[efIndex],
-                    p[efIndex]
+                        arrayDesign.getAccession(),
+                        deAccession,
+                        deIndex,
+                        uniqueValue.key,
+                        uniqueValue.value,
+                        t[efIndex],
+                        p[efIndex]
                 ));
             }
         }
@@ -305,8 +305,8 @@ public class ExperimentWithData implements Closeable {
      * @throws AtlasDataException in case of I/O errors
      */
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
-        ArrayDesign arrayDesign,
-        Map<Long,List<Integer>> geneIdsToDEIndexes
+            ArrayDesign arrayDesign,
+            Map<Long, List<Integer>> geneIdsToDEIndexes
     ) throws AtlasDataException, StatisticsNotFoundException {
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdsToDEIndexes, null, null, UpDownCondition.CONDITION_ANY);
     }
@@ -342,18 +342,18 @@ public class ExperimentWithData implements Closeable {
             if (geneId == 0) continue; // skip geneid = 0
 
             final Map<String, Map<String, ExpressionAnalysis>> resultForGene =
-                new HashMap<String, Map<String, ExpressionAnalysis>>();
+                    new HashMap<String, Map<String, ExpressionAnalysis>>();
             result.put(geneId, resultForGene);
 
             for (Integer deIndex : entry.getValue()) {
                 List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
                     final List<ExpressionAnalysis> eas =
-                        getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
+                            getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
                     if (!eas.isEmpty()) { // this means eas.size() == 1
                         final ExpressionAnalysis analysis = eas.get(0);
                         if (upDownCondition.apply(UpDownExpression.valueOf(
-                            analysis.getPValAdjusted(), analysis.getTStatistic()
+                                analysis.getPValAdjusted(), analysis.getTStatistic()
                         ))) {
                             eaList.add(analysis);
                         }
