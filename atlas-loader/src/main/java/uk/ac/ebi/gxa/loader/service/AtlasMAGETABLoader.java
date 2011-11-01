@@ -247,16 +247,16 @@ public class AtlasMAGETABLoader {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
         try {
-            for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-                Collection<Assay> adAssays = experiment.getAssaysForDesign(arrayDesign);
+            for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+                Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
                 log.info("Starting NetCDF for {} and {} ({} assays)",
-                        new Object[]{experiment.getAccession(), arrayDesign.getAccession(), adAssays.size()});
+                    new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
         
                 if (listener != null)
                     listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
-                            " and " + arrayDesign);
+                        " and " + shallowArrayDesign);
         
-                final NetCDFDataCreator dataCreator = ewd.getDataCreator(arrayDesign);
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
                 dataCreator.setAssayDataMap(cache.getAssayDataMap());
         
                 dataCreator.createNetCdf();
@@ -266,7 +266,7 @@ public class AtlasMAGETABLoader {
                         listener.setWarning(warning);
                     }
                 }
-                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
+                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
             }
         } finally {
             ewd.closeAllDataSources();
