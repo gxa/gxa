@@ -232,7 +232,9 @@ public class ExperimentWithData implements Closeable {
     // returns
     //     list of ExpressionAnalyses for given ArrayDesign and ef/efv pair if ef is not null
     //     list of all ExpressionAnalyses for given ArrayDesign otherwise
-    private List<ExpressionAnalysis> getExpressionAnalysesByFactor(ArrayDesign arrayDesign, int deIndex, String efName, String efvName) throws AtlasDataException, StatisticsNotFoundException {
+    private List<ExpressionAnalysis> getExpressionAnalysesByFactor(
+            ArrayDesign arrayDesign, int deIndex,
+            @Nullable String efName, @Nullable String efvName) throws AtlasDataException, StatisticsNotFoundException {
         final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
         final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
         final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
