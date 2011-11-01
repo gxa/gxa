@@ -27,7 +27,10 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.NetCDFDataCreator;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -45,8 +48,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
@@ -281,10 +282,7 @@ public class AtlasMAGETABLoader {
             if (cache.fetchAllAssays().isEmpty())
                 throw new AtlasLoaderException("No assays found");
 
-            Set<String> referencedArrayDesigns = new HashSet<String>();
             for (Assay assay : cache.fetchAllAssays()) {
-                    referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
-
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
 
