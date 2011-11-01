@@ -219,7 +219,7 @@ public class ExperimentWithData implements Closeable {
      * @param deIndices an array of design element indices to extract expression statistic for
      * @return an instance of {@link ExpressionStatistics}
      * @throws AtlasDataException if the data could not be read from the netCDF file
-     * @throws AtlasDataException if array of design element indices contains out of bound indices
+     *                            or if array of design element indices contains out of bound indices
      */
     public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
         return ExpressionStatistics.create(deIndices, getProxy(arrayDesign));
