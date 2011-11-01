@@ -1,16 +1,18 @@
 package uk.ac.ebi.gxa.loader.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.UpdateNetCDFForExperimentCommand;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * NetCDF updater service which preserves expression values information, but updates all properties
@@ -43,7 +45,7 @@ public class AtlasNetCDFUpdaterService {
             listener.setProgress("Failed NetCDF update");
             throw new AtlasLoaderException(e);
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 

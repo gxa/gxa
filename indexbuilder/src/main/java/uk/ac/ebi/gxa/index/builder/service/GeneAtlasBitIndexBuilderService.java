@@ -263,7 +263,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 // some experiments with no statistics
                 getLog().info("Cannot access statistics for experiment " + exp.getAccession() + ", skipping");
             } finally {
-                experimentWithData.closeAllDataSources();
+                closeQuietly(experimentWithData);
             }
         }
 

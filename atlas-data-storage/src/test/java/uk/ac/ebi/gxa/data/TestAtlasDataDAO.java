@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * This class tests functionality of AtlasDataDAO
  *
@@ -59,7 +61,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertNotSame(fvs.length, 0);
             assertTrue(Arrays.asList(fvs).contains(efv));
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 
@@ -89,7 +91,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
             assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 }

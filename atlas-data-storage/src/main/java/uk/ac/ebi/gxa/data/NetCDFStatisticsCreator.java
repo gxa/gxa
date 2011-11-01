@@ -22,15 +22,15 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.collect.*;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.*;
+import ucar.ma2.ArrayChar;
+import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriteable;
-import uk.ac.ebi.gxa.utils.FlattenIterator;
-import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -39,6 +39,8 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static com.google.common.io.Closeables.closeQuietly;
 
 public class NetCDFStatisticsCreator {
     private final Logger log = LoggerFactory.getLogger(NetCDFStatisticsCreator.class);
@@ -271,7 +273,7 @@ public class NetCDFStatisticsCreator {
         } catch (IOException e) {
             throw new AtlasDataException(e);
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 

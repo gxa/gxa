@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -98,16 +99,8 @@ public class AtlasPlotter {
                     return (long) input.getGeneId();
                 }
             });
-            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA = null;
-            try {
-                geneIdsToEfToEfvToEA =
-                        ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
-            } catch (StatisticsNotFoundException e) {   
-                // ignore
-            } finally {
-                ewd.closeAllDataSources();
-            }
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                    getGeneIdsToEfToEfvToEA(experiment, ef, efv, geneIds);
             if (geneIdsToEfToEfvToEA == null) {
                 return null;
             }
@@ -147,6 +140,17 @@ public class AtlasPlotter {
             throw createUnexpected("AtlasDataException whilst trying to read data for experiment " + experiment, e);
         }
         return null;
+    }
+
+    private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getGeneIdsToEfToEfvToEA(Experiment experiment, String ef, String efv, Collection<Long> geneIds) throws AtlasDataException {
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        try {
+            return ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
+        } catch (StatisticsNotFoundException e) {
+            return null;
+        } finally {
+            closeQuietly(ewd);
+        }
     }
 
     private List<AtlasGene> parseGenes(String geneIdKey) {
@@ -530,31 +534,31 @@ public class AtlasPlotter {
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
             Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy = null;
-            
+
             try {
                 bestEAsPerEfvInProxy = ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
                 final AssayFactorValues factorValues = new AssayFactorValues(ewd.getFactorValues(ad, ef));
                 for (String factorValue : factorValues.getUniqueValues()) {
                     ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
-            
+
                     if (bestEA == null) {
                         // If no bestEA expression analysis for factorValue could be found in proxy
                         // (e.g. factorValue is present, but only with pVal == 0) then don't
                         // plot this factorValue for arrayDesign
                         continue;
                     }
-            
+
                     // Get the actual expression data from the proxy-designindex corresponding to the best pValue
                     final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
-            
+
                     Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, Floats.asList(expressions));
-            
+
                     barPlotData.addFactorValue(
                             factorValue,
                             bestEA,
                             efvsToPlot.contains(factorValue),
                             assays);
-            
+
                     if (!efvsToPlot.contains(factorValue))
                         log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
                                 "flagging this series insignificant");
@@ -569,7 +573,7 @@ public class AtlasPlotter {
 
             return barPlotData.toSeries(options);
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 
@@ -584,16 +588,18 @@ public class AtlasPlotter {
         // Get assayFVs from the proxy from which ea came
         final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
         // Get actual expression data from the design element stored in ea
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         final String[] assayFVs;
         final List<String> uniqueFVs;
         final float[] expressions;
-        try {
-            assayFVs = ewd.getFactorValues(arrayDesign, ef);
-            uniqueFVs = sortUniqueFVs(assayFVs);
-            expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
-        } finally {
-            ewd.closeAllDataSources();
+        {
+            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+            try {
+                assayFVs = ewd.getFactorValues(arrayDesign, ef);
+                uniqueFVs = sortUniqueFVs(assayFVs);
+                expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
+            } finally {
+                closeQuietly(ewd);
+            }
         }
 
 

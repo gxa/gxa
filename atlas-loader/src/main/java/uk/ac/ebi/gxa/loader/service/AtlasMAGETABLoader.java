@@ -49,6 +49,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Collection;
 
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
@@ -270,7 +271,7 @@ public class AtlasMAGETABLoader {
                 log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
             }
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 

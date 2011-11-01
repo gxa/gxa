@@ -48,6 +48,7 @@ import java.util.*;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 
 /**
@@ -188,7 +189,7 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 } catch (RecordNotFoundException e) {
                     throw LogUtil.createUnexpected(e.getMessage());
                 } finally {
-                    ewd.closeAllDataSources();
+                    closeQuietly(ewd);
                 }
 
                 if (ea != null) {

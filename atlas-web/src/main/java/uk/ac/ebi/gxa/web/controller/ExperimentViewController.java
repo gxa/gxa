@@ -60,6 +60,7 @@ import java.util.*;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -215,7 +216,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             }
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 
@@ -316,7 +317,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 

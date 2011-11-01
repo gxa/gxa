@@ -55,6 +55,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 public class ExperimentAnalyticsGeneratorService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -251,7 +253,7 @@ public class ExperimentAnalyticsGeneratorService {
                 }
             }
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 

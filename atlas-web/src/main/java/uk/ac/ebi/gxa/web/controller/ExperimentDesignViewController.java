@@ -18,6 +18,8 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * @author Olga Melnichuk
  *         Date: 15/03/2011
@@ -103,7 +105,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
 
             return mergeExperimentDesigns(designs);
         } finally {
-            ewd.closeAllDataSources();
+            closeQuietly(ewd);
         }
     }
 
