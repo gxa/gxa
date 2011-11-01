@@ -185,11 +185,9 @@ public class NetCDFDataCreator {
 
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
-        int maxEfScLength = 0;
         maxEfvLength = 0;
         for (String ef : efvMap.keySet()) {
             maxEfLength = Math.max(maxEfLength, ef.length());
-            maxEfScLength = Math.max(maxEfScLength, ef.length());
             for (String efv : efvMap.get(ef))
                 maxEfvLength = Math.max(maxEfvLength, efv.length());
         }
@@ -198,7 +196,6 @@ public class NetCDFDataCreator {
         maxScvLength = 0;
         for (String sc : scvMap.keySet()) {
             maxScLength = Math.max(maxScLength, sc.length());
-            maxEfScLength = Math.max(maxEfScLength, sc.length());
             for (String scv : scvMap.get(sc))
                 maxScvLength = Math.max(maxScvLength, scv.length());
         }
