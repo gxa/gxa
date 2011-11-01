@@ -33,6 +33,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.File;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -485,20 +486,13 @@ public class ExperimentWithData implements Closeable {
     }
 
     public void close() {
-        for (DataProxy p : proxies.values()) {
-            try {
-                p.close();
-            } catch (Throwable t) {
-                log.error("Unexpected throwable when closing proxy", t);
-            }
-        }
+        for (DataProxy p : proxies.values())
+            closeQuietly(p);
         proxies.clear();
     }
 
     private class DataUpdater {
         void update(ArrayDesign arrayDesign) throws AtlasDataException {
-            final boolean removeObsoleteNetcdf = getProxy(arrayDesign) instanceof NetCDFProxyV1;
-
             log.info("Reading existing NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
             final NetCDFData data = readNetCDF(arrayDesign);
 
@@ -507,8 +501,11 @@ public class ExperimentWithData implements Closeable {
 
             log.info("Successfully updated NetCDF for " + experiment.getAccession() + "/" + arrayDesign.getAccession());
 
+            final boolean removeObsoleteNetcdf = getProxy(arrayDesign) instanceof NetCDFProxyV1;
             if (removeObsoleteNetcdf) {
-                atlasDataDAO.getV1File(experiment, arrayDesign).delete();
+                File v1File = atlasDataDAO.getV1File(experiment, arrayDesign);
+                if (!v1File.delete())
+                    throw new AtlasDataException("Cannot delete old NetCDF: " + v1File);
             }
         }
 
