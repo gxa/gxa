@@ -345,4 +345,12 @@ final class NetCDFProxyV2 extends NetCDFProxy {
             log.error("Unexpected IOException thrown", e);
         }
     }
+
+    @Override
+    public String toString() {
+        return "NetCDFProxyV2{" +
+                "dataNetCDF=" + dataNetCDF.getLocation() +
+                ", statisticsNetCDF=" + statisticsNetCDF.getLocation() +
+                '}';
+    }
 }

@@ -300,4 +300,11 @@ final class NetCDFProxyV1 extends NetCDFProxy {
             netCDF.close();
         }
     }
+
+    @Override
+    public String toString() {
+        return "NetCDFProxyV1{" +
+                "netCDF=" + netCDF.getLocation() +
+                '}';
+    }
 }

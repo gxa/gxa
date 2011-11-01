@@ -188,13 +188,4 @@ abstract class NetCDFProxy implements DataProxy {
             throw new AtlasDataException(e);
         }
     }
-
-    @Override
-    public String toString() {
-        try {
-            return getClass().getName() + " {" + getExperimentAccession() + "/" + getArrayDesignAccession() + "}";
-        } catch (AtlasDataException e) {
-            return super.toString();
-        }
-    }
 }
