@@ -35,9 +35,9 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.util.Collection;
 import java.util.List;
@@ -108,7 +108,7 @@ public class AssayAndHybridizationStep {
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesign(arrayDesignAccession);
+            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
             if (ad == null) {
                 throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
             }
@@ -188,7 +188,7 @@ public class AssayAndHybridizationStep {
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesign(arrayDesignAccession);
+            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
             if (ad == null) {
                 throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
             }

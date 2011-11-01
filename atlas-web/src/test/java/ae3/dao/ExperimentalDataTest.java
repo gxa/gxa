@@ -46,20 +46,17 @@ import static org.junit.Assert.assertNotNull;
  * @author pashky
  */
 public class ExperimentalDataTest {
-    private long assayid = 0;
-    private long sampleid = 0;
-
     private List<Assay> eMexp1586Assays(Experiment eMexp1586, ArrayDesign ad1) {
         List<Assay> result = new ArrayList<Assay>();
         for (int i = 1; i <= 6; i++)
-            result.add(new Assay(assayid++, "A127-0" + i, eMexp1586, ad1));
+            result.add(new Assay("A127-0" + i, eMexp1586, ad1));
         return result;
     }
 
     private List<Sample> eMexp1586Samples() {
         List<Sample> result = new ArrayList<Sample>();
         for (int i = 1; i <= 6; i++) {
-            result.add(new Sample(sampleid++, "A127-0" + i, null, null));
+            result.add(new Sample("A127-0" + i, null, null));
         }
         return result;
     }
@@ -70,7 +67,7 @@ public class ExperimentalDataTest {
                 "H_A_C99I45F 4-25a,H_A_C99V50F 4-52,H_A_C99WT 4-2,H_A_C99I45F 4-13," +
                 "H_A_mock 2-67_2. Negative control,H_A_C99V50F 5-59a," +
                 "H_A_mock 2-67_1. Negative control,H_A_C99WT 5-12,H_A_C99I45F 4-17").split(",")) {
-            result.add(new Assay(assayid++, "" + s, e, ad));
+            result.add(new Assay("" + s, e, ad));
         }
         return result;
     }
@@ -81,7 +78,7 @@ public class ExperimentalDataTest {
                 "H_B_mock 2-67_3. Negative control,H_B_C99V50F 5-59a,H_B_C99I45F 4-25a," +
                 "H_B_mock 2-67_2. Negative control,H_B_C99I45F 4-13,H_B_C99I45F 4-17," +
                 "H_B_C99WT 4-2,H_B_C99WT 5-23,H_B_C99V50F 4-52").split(",")) {
-            result.add(new Assay(assayid++, "" + s, e, ad));
+            result.add(new Assay("" + s, e, ad));
         }
         return result;
     }
@@ -104,7 +101,7 @@ public class ExperimentalDataTest {
         };
 
         for (String s : accessions) {
-            result.add(new Sample(sampleid++, s, null, null));
+            result.add(new Sample(s, null, null));
         }
         return result;
     }

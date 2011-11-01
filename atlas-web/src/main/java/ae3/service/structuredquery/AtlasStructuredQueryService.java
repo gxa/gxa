@@ -58,10 +58,7 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.*;
 
@@ -1810,19 +1807,12 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * Returns set of experimental factor for drop-down, fileterd by config
+     * Returns set of experimental factor for drop-down, filtered by config
      *
      * @return set of strings representing experimental factors
      */
-    public Collection<String> getExperimentalFactorOptions() {
-        List<String> factors = new ArrayList<String>();
-        factors.addAll(efvService.getOptionsFactors());
-        Collections.sort(factors, new Comparator<String>() {
-            public int compare(String o1, String o2) {
-                return atlasProperties.getCuratedEf(o1).compareToIgnoreCase(atlasProperties.getCuratedGeneProperty(o2));
-            }
-        });
-        return factors;
+    public Set<Property> getExperimentalFactorOptions() {
+        return efvService.getOptionsFactors();
     }
 
     /**

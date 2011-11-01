@@ -138,7 +138,7 @@ public class CurationService {
         try {
             Property property = propertyDAO.getByName(propertyName);
             PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
-            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(propertyName, newValue);
+            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(property, newValue);
 
             List<Assay> assays = assayDAO.getAssaysByPropertyValue(oldValue);
             for (Assay assay : assays) {
@@ -176,7 +176,7 @@ public class CurationService {
         try {
             Property property = propertyDAO.getByName(propertyName);
             PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
-            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(propertyName, newValue);
+            PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(property, newValue);
 
             List<Sample> samples = sampleDAO.getSamplesByPropertyValue(oldValue);
             for (Sample sample : samples) {

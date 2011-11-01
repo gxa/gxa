@@ -23,7 +23,7 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
-<jsp:useBean id="experiments" type="java.util.Collection<ae3.model.AtlasExperiment>" scope="request"/>
+<jsp:useBean id="experiments" type="java.util.Collection<uk.ac.ebi.gxa.web.controller.ExperimentIndexLine>" scope="request"/>
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
 
@@ -90,7 +90,7 @@
                         in curation
                     </c:if>
                     <c:forEach var="factor" items="${experiment.experimentFactors}">
-                        ${f:escapeXml(atlasProperties.curatedEfs[factor])}<br/>
+                        <c:out value="${factor.displayName}"/><br/>
                     </c:forEach>
                 </display:column>
             </display:table>

@@ -31,12 +31,15 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.SortedSet;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
@@ -47,6 +50,13 @@ public class Assay {
                 @Override
                 public String apply(@Nonnull AssayProperty input) {
                     return input.getName();
+                }
+            };
+    private static final Function<AssayProperty, Property> PROPERTY_DEF =
+            new Function<AssayProperty, Property>() {
+                @Override
+                public Property apply(@Nonnull AssayProperty input) {
+                    return input.getDefinition();
                 }
             };
     private static final Function<AssayProperty, String> PROPERTY_VALUE =
@@ -68,6 +78,7 @@ public class Assay {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")
     @SequenceGenerator(name = "assaySeq", sequenceName = "A2_ASSAY_SEQ", allocationSize = 1)
     private Long assayID;
+    @Nonnull
     private String accession;
 
     @ManyToOne
@@ -84,34 +95,35 @@ public class Assay {
             joinColumns = @JoinColumn(name = "ASSAYID", referencedColumnName = "ASSAYID"),
             inverseJoinColumns = @JoinColumn(name = "SAMPLEID", referencedColumnName = "SAMPLEID"))
     @Fetch(FetchMode.SUBSELECT)
-    private List<Sample> samples = new ArrayList<Sample>();
+    private List<Sample> samples = newArrayList();
 
     @OneToMany(targetEntity = AssayProperty.class, mappedBy = "assay",
             orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
-    private List<AssayProperty> properties = new ArrayList<AssayProperty>();
+    private List<AssayProperty> properties = newArrayList();
 
     Assay() {
     }
 
-    public Assay(Long assayID, String accession, Experiment experiment, ArrayDesign arrayDesign) {
+    public Assay(String accession, Experiment experiment, ArrayDesign arrayDesign) {
         if (accession == null)
             throw new IllegalArgumentException("Cannot add assay with null accession!");
-        this.assayID = assayID;
+
         this.accession = accession;
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
     }
 
     public Assay(String accession) {
-        this(null, accession, null, null);
+        this(accession, null, null);
     }
 
     public Long getId() {
         return assayID;
     }
 
+    @Nonnull
     public String getAccession() {
         return accession;
     }
@@ -136,10 +148,6 @@ public class Assay {
         return arrayDesign;
     }
 
-    public Long getAssayID() {
-        return getId();
-    }
-
     public List<Sample> getSamples() {
         return samples;
     }
@@ -160,20 +168,16 @@ public class Assay {
 
         Assay assay = (Assay) o;
 
-        return accession == null ? assay.accession == null : accession.equals(assay.accession);
+        return accession.equals(assay.accession);
     }
 
     @Override
     public int hashCode() {
-        return accession != null ? accession.hashCode() : 0;
+        return accession.hashCode();
     }
 
     public List<AssayProperty> getProperties() {
         return properties;
-    }
-
-    public void addProperty(String type, String nodeName, String s) {
-        properties.add(new AssayProperty(this, type, nodeName, Collections.<OntologyTerm>emptyList()));
     }
 
     public boolean hasNoProperties() {
@@ -188,12 +192,17 @@ public class Assay {
         return filter(properties, new PropertyNamePredicate(type));
     }
 
+    public Collection<AssayProperty> getProperties(final Property property) {
+        return filter(properties, new PropertyPredicate(property));
+    }
+
+    @Deprecated
     public SortedSet<String> getPropertyNames() {
         return newTreeSet(transform(properties, PROPERTY_NAME));
     }
 
-    public String getEfoSummary(String name) {
-        return on(",").join(concat(transform(getProperties(name), PROPERTY_TERMS)));
+    public SortedSet<Property> getPropertyDefinitions() {
+        return newTreeSet(transform(properties, PROPERTY_DEF));
     }
 
     /**
@@ -207,11 +216,11 @@ public class Assay {
     }
 
     public void addProperty(PropertyValue property) {
-        properties.add(new AssayProperty(null, this, property, Collections.<OntologyTerm>emptyList()));
+        properties.add(new AssayProperty(this, property, Collections.<OntologyTerm>emptyList()));
     }
 
-    public void addProperty(final PropertyValue property, final List<OntologyTerm> terms) {
-        properties.add(new AssayProperty(null, this, property, terms));
+    private void addProperty(final PropertyValue property, final List<OntologyTerm> terms) {
+        properties.add(new AssayProperty(this, property, terms));
     }
 
     public AssayProperty getProperty(PropertyValue propertyValue) {
@@ -244,6 +253,26 @@ public class Assay {
         }
     }
 
+    /**
+     * Returns all the values for a given property, including the ones defined by {@link Sample}s
+     * <p/>
+     * That is, effective values are union of property sets from the assay itself and all its samples (if any).
+     *
+     * @param property definition of the property to look up values for
+     * @return all values for the property, including values defined by assay's {@link Sample}s
+     */
+    public Collection<PropertyValue> getEffectiveValues(Property property) {
+        SortedSet<PropertyValue> result = newTreeSet();
+        for (AssayProperty ap : properties) {
+            if (ap.getDefinition().equals(property))
+                result.add(ap.getPropertyValue());
+        }
+        for (Sample sample : samples) {
+            result.addAll(sample.getPropertyValues(property));
+        }
+        return result;
+    }
+
     private static class PropertyNamePredicate implements Predicate<AssayProperty> {
         private final String type;
 
@@ -254,6 +283,19 @@ public class Assay {
         @Override
         public boolean apply(@Nonnull AssayProperty input) {
             return input.getName().equals(type);
+        }
+    }
+
+    private static class PropertyPredicate implements Predicate<AssayProperty> {
+        private final Property type;
+
+        public PropertyPredicate(Property type) {
+            this.type = type;
+        }
+
+        @Override
+        public boolean apply(@Nonnull AssayProperty input) {
+            return type.equals(input.getDefinition());
         }
     }
 }

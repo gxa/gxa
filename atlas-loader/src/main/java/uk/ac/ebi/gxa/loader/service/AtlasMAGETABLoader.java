@@ -46,7 +46,6 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.Collection;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -67,12 +66,6 @@ import static uk.ac.ebi.gxa.utils.FileUtil.*;
 public class AtlasMAGETABLoader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            return new DecimalFormat("#.##");
-        }
-    };
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
@@ -240,35 +233,31 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private static String formatDt(long start, long end) {
-        return DECIMAL_FORMAT.get().format((end - start) / 1000);
-    }
-
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
         try {
-            for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-                Collection<Assay> adAssays = experiment.getAssaysForDesign(arrayDesign);
+            for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+                Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
                 log.info("Starting NetCDF for {} and {} ({} assays)",
-                        new Object[]{experiment.getAccession(), arrayDesign.getAccession(), adAssays.size()});
-        
+                        new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
+
                 if (listener != null)
                     listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
-                            " and " + arrayDesign);
-        
-                final NetCDFDataCreator dataCreator = ewd.getDataCreator(arrayDesign);
+                            " and " + shallowArrayDesign);
+
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
                 dataCreator.setAssayDataMap(cache.getAssayDataMap());
-        
+
                 dataCreator.createNetCdf();
-        
+
                 if (dataCreator.hasWarning() && listener != null) {
                     for (String warning : dataCreator.getWarnings()) {
                         listener.setWarning(warning);
                     }
                 }
-                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
+                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
             }
         } finally {
             closeQuietly(ewd);
