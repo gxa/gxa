@@ -239,12 +239,14 @@ public class ExperimentWithData implements Closeable {
         final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
         final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
 
-        final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
+        final List<KeyValuePair> uniqueValues = getUniqueValues(arrayDesign);
+
+        final List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
-            final KeyValuePair uniqueValue = getUniqueValues(arrayDesign).get(efIndex);
+            final KeyValuePair uniqueValue = uniqueValues.get(efIndex);
             if (efName == null ||
                     (uniqueValue.key.equals(efName) && uniqueValue.value.equals(efvName))) {
-                list.add(new ExpressionAnalysis(
+                result.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
                         deIndex,
@@ -255,7 +257,7 @@ public class ExperimentWithData implements Closeable {
                 ));
             }
         }
-        return list;
+        return result;
     }
 
     /**
