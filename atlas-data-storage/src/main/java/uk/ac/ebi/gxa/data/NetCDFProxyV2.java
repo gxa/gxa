@@ -69,7 +69,7 @@ import java.util.List;
  * @author Nikolay Pultsin
  */
 final class NetCDFProxyV2 extends NetCDFProxy {
-    private final Logger log = LoggerFactory.getLogger(NetCDFProxyV2.class);
+    private final static Logger log = LoggerFactory.getLogger(NetCDFProxyV2.class);
 
     private final NetcdfFile dataNetCDF;
     private NetcdfFile statisticsNetCDF;
@@ -80,7 +80,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
             try {
                 this.statisticsNetCDF = NetcdfDataset.acquireFile(statisticsFile.getAbsolutePath(), null);
             } catch (IOException e) {
-                // absent statistics - normal situation, no logging to avoid spamming logs.
+                log.debug("absent statistics - normal situation");
             }
         } catch (IOException e) {
             close();
@@ -324,21 +324,8 @@ final class NetCDFProxyV2 extends NetCDFProxy {
      * Closes the proxied NetCDF file
      */
     public void close() {
-        try {
-            if (dataNetCDF != null) {
-                dataNetCDF.close();
-            }
-        } catch (IOException e) {
-            log.error("Unexpected IOException thrown", e);
-        }
-
-        try {
-            if (statisticsNetCDF != null) {
-                statisticsNetCDF.close();
-            }
-        } catch (IOException e) {
-            log.error("Unexpected IOException thrown", e);
-        }
+        closeQuietly(dataNetCDF);
+        closeQuietly(statisticsNetCDF);
     }
 
     @Override

@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
 import ucar.ma2.ArrayFloat;
@@ -38,6 +40,8 @@ import java.io.IOException;
  */
 
 abstract class NetCDFProxy implements DataProxy {
+    private final static Logger log = LoggerFactory.getLogger(NetCDFProxy.class);
+
     static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
 
     // utility methods to be used in implementations
@@ -186,6 +190,14 @@ abstract class NetCDFProxy implements DataProxy {
             return new TwoDFloatArray(variable != null ? (ArrayFloat.D2) variable.read() : new ArrayFloat.D2(0, 0));
         } catch (IOException e) {
             throw new AtlasDataException(e);
+        }
+    }
+
+    static void closeQuietly(final NetcdfFile netCDF) {
+        try {
+            netCDF.close();
+        } catch (IOException e) {
+            log.error("IOException should not have been thrown.", e);
         }
     }
 }

@@ -69,8 +69,8 @@ final class NetCDFProxyV1 extends NetCDFProxy {
             this.netCDF = NetcdfDataset.acquireFile(path, null);
             if (isOutOfDate()) {
                 close();
-                throw new AtlasDataException(
-                        "ncdf " + path + " is out of date - please update it and then recompute its analytics via Atlas administration interface");
+                throw new AtlasDataException("ncdf " + path + " is out of date - " +
+                        "please update it and then recompute its analytics via Atlas administration interface");
             }
         } catch (IOException e) {
             throw new AtlasDataException(e);
@@ -288,13 +288,9 @@ final class NetCDFProxyV1 extends NetCDFProxy {
 
     /**
      * Closes the proxied NetCDF file
-     *
-     * @throws java.io.IOException on close errors
      */
-    public void close() throws IOException {
-        if (netCDF != null) {
-            netCDF.close();
-        }
+    public void close() {
+        closeQuietly(netCDF);
     }
 
     @Override
