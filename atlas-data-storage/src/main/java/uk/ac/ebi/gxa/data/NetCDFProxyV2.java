@@ -66,7 +66,7 @@ import java.util.List;
  *    float TSTAT(DE, uVAL) ;
  * </pre>
  *
- * @author Tony Burdett
+ * @author Nikolay Pultsin
  */
 final class NetCDFProxyV2 extends NetCDFProxy {
     private final Logger log = LoggerFactory.getLogger(NetCDFProxyV2.class);
