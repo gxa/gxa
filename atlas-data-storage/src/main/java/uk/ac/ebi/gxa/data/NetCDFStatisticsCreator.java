@@ -132,16 +132,16 @@ public class NetCDFStatisticsCreator {
         maxNameLength = 0;
         maxValueLength = 0;
 
-        for (String ef : efvMap.keySet()) {
-            maxNameLength = Math.max(maxNameLength, ef.length());
-            for (String efv : efvMap.get(ef)) {
+        for (Map.Entry<String, List<String>> ef : efvMap.entrySet()) {
+            maxNameLength = Math.max(maxNameLength, ef.getKey().length());
+            for (String efv : ef.getValue()) {
                 maxValueLength = Math.max(maxValueLength, efv.length());
             }
         }
 
-        for (String sc : scvMap.keySet()) {
-            maxNameLength = Math.max(maxNameLength, sc.length());
-            for (String scv : scvMap.get(sc)) {
+        for (Map.Entry<String, List<String>> sc : scvMap.entrySet()) {
+            maxNameLength = Math.max(maxNameLength, sc.getKey().length());
+            for (String scv : sc.getValue()) {
                 maxValueLength = Math.max(maxValueLength, scv.length());
             }
         }
@@ -170,38 +170,38 @@ public class NetCDFStatisticsCreator {
 
     private void create(ExperimentWithData ewd) throws IOException, AtlasDataException {
         final Dimension designElementDimension =
-            statisticsNetCdf.addDimension("DE", ewd.getDesignElementAccessions(arrayDesign).length);
+                statisticsNetCdf.addDimension("DE", ewd.getDesignElementAccessions(arrayDesign).length);
 
         if (totalUniqueValues != 0) {
             // Now add unique values and stats dimensions
             final Dimension uvalDimension = statisticsNetCdf
-                .addDimension("uVAL", totalUniqueValues);
+                    .addDimension("uVAL", totalUniqueValues);
             final Dimension propertyNameLenDimension = statisticsNetCdf
-                .addDimension("propertyNAMElen", maxNameLength);
+                    .addDimension("propertyNAMElen", maxNameLength);
             final Dimension propertyValueLenDimension = statisticsNetCdf
-                .addDimension("propertyVALUElen", maxValueLength);
+                    .addDimension("propertyVALUElen", maxValueLength);
             statisticsNetCdf.addVariable(
-                "propertyNAME", DataType.CHAR,
-                new Dimension[]{uvalDimension, propertyNameLenDimension}
+                    "propertyNAME", DataType.CHAR,
+                    new Dimension[]{uvalDimension, propertyNameLenDimension}
             );
             statisticsNetCdf.addVariable(
-                "propertyVALUE", DataType.CHAR,
-                new Dimension[]{uvalDimension, propertyValueLenDimension}
+                    "propertyVALUE", DataType.CHAR,
+                    new Dimension[]{uvalDimension, propertyValueLenDimension}
             );
             statisticsNetCdf.addVariable(
-                "PVAL", DataType.FLOAT,
-                new Dimension[]{designElementDimension, uvalDimension}
+                    "PVAL", DataType.FLOAT,
+                    new Dimension[]{designElementDimension, uvalDimension}
             );
             statisticsNetCdf.addVariable(
-                "TSTAT", DataType.FLOAT,
-                new Dimension[]{designElementDimension, uvalDimension}
+                    "TSTAT", DataType.FLOAT,
+                    new Dimension[]{designElementDimension, uvalDimension}
             );
 
             final String[] sortOrders = new String[]{"ANY", "UP_DOWN", "UP", "DOWN", "NON_D_E"};
             for (String orderName : sortOrders) {
                 statisticsNetCdf.addVariable(
-                    "ORDER_" + orderName, DataType.INT,
-                    new Dimension[]{designElementDimension}
+                        "ORDER_" + orderName, DataType.INT,
+                        new Dimension[]{designElementDimension}
                 );
             }
         }
