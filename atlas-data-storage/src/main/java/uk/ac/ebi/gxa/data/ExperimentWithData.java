@@ -173,23 +173,6 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getSamplesToAssays();
     }
 
-    /**
-     * @param arrayDesign
-     * @param iAssay
-     * @return List of sample indexes corresponding to assay at index iAssay
-     * @throws AtlasDataException
-     */
-    public List<Integer> getSamplesForAssay(ArrayDesign arrayDesign, int iAssay) throws AtlasDataException {
-        int[][] samplesToAssayMap = getSamplesToAssays(arrayDesign);
-        ArrayList<Integer> result = new ArrayList<Integer>();
-        for (int i = 0; i != samplesToAssayMap.length; i++) {
-            if (1 == samplesToAssayMap[i][iAssay]) {
-                result.add(i);
-            }
-        }
-        return result;
-    }
-
     public String[] getDesignElementAccessions(ArrayDesign arrayDesign) throws AtlasDataException {
         String[] array = designElementAccessions.get(arrayDesign);
         if (array == null) {
