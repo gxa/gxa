@@ -30,7 +30,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.util.*;
 
 /**
  * interface class for read access to NetCDF files
@@ -40,9 +39,6 @@ import java.util.*;
 
 abstract class NetCDFProxy implements DataProxy {
     public static final String NCDF_PROP_VAL_SEP_REGEX = "\\|\\|";
-
-    // N/A value in netCDFs
-    public static final float NA_PVAL_TSTAT = 1e+30f;
 
     // utility methods to be used in implementations
     protected long[] getLongArray1(NetcdfFile netCDF, String variableName) throws AtlasDataException {
@@ -96,11 +92,6 @@ abstract class NetCDFProxy implements DataProxy {
         } catch (InvalidRangeException e) {
             throw new AtlasDataException(e);
         }
-    }
-
-    protected String getGlobalAttribute(NetcdfFile netCDF, String attribute) {
-        ucar.nc2.Attribute a = netCDF.findGlobalAttribute(attribute);
-        return null == a ? null : a.getStringValue();
     }
 
     protected String[] getArrayOfStrings(NetcdfFile netCDF, String variable) throws AtlasDataException {
