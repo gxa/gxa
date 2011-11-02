@@ -22,7 +22,7 @@
 <%@include file="../includes/global-inc.jsp" %>
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-<jsp:useBean id="genes" type="java.util.Collection" scope="request"/>
+<jsp:useBean id="genes" type="java.util.Collection<uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity>" scope="request"/>
 <jsp:useBean id="nextQuery" type="java.lang.String" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
