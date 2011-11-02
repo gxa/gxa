@@ -29,7 +29,10 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+import javax.annotation.Nullable;
 import java.io.File;
+
+import static java.lang.String.format;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
@@ -43,24 +46,21 @@ public class AtlasDataDAO {
     private File atlasDataRepo;
 
     File getDataFile(Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(
-                getDataDirectory(experiment),
-                experiment.getAccession() + "_" + arrayDesign.getAccession() + "_data.nc"
-        );
+        return getFile(experiment, arrayDesign, "data");
     }
 
     File getStatisticsFile(Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(
-                getDataDirectory(experiment),
-                experiment.getAccession() + "_" + arrayDesign.getAccession() + "_statistics.nc"
-        );
+        return getFile(experiment, arrayDesign, "statistics");
     }
 
     File getV1File(Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(
-                getDataDirectory(experiment),
-                experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc"
-        );
+        return getFile(experiment, arrayDesign, null);
+    }
+
+    private File getFile(Experiment experiment, ArrayDesign arrayDesign, @Nullable String suffix) {
+        return new File(getDataDirectory(experiment),
+                format("%s_%s%s.nc", experiment.getAccession(), arrayDesign.getAccession(),
+                        suffix == null ? "" : "_" + suffix));
     }
 
     DataProxy createDataProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
