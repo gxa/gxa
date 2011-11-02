@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.data;
 
 import uk.ac.ebi.gxa.utils.FlattenIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
-import uk.ac.ebi.gxa.utils.PrimitiveIterators;
 
 import java.util.*;
 
@@ -32,10 +31,10 @@ import java.util.*;
  * @author pashky
  */
 public class DataMatrixStorage {
-    private List<Block> dataBlocks = new ArrayList<Block>();
-    private int width;
-    private int initialSize;
-    private int growSize;
+    private final List<Block> dataBlocks = new ArrayList<Block>();
+    private final int width;
+    private final int initialSize;
+    private final int growSize;
 
     public DataMatrixStorage(int width, int initialSize, int growSize) {
         this.width = width;
@@ -84,10 +83,6 @@ public class DataMatrixStorage {
 
     public void add(String designElement, Map<String, Integer> refMap, List<String> referenceNames, String[] line) {
         add(designElement, new SFIterator(referenceNames, refMap, line));
-    }
-
-    public void add(String designElement, float[] values) {
-        add(designElement, PrimitiveIterators.iterator(values));
     }
 
     public void add(String designElement, Iterator<Float> values) {

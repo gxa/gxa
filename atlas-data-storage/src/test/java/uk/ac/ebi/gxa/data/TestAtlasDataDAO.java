@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * This class tests functionality of AtlasDataDAO
  *
@@ -59,11 +61,11 @@ public class TestAtlasDataDAO extends TestCase {
             assertNotSame(fvs.length, 0);
             assertTrue(Arrays.asList(fvs).contains(efv));
         } finally {
-            ewd.close();
+            closeQuietly(ewd);
         }
     }
 
-    public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException {
+    public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException, StatisticsNotFoundException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
@@ -79,8 +81,6 @@ public class TestAtlasDataDAO extends TestCase {
             //assertNotNull("Got null for experiment ID", ea.getExperimentID());
             assertNotNull("Got null for ef name", ea.getEfName());
             assertNotNull("Got null for efv name", ea.getEfvName());
-            assertNotNull("Got null for ef id", ea.getEfId());
-            assertNotNull("Got null for efv id", ea.getEfvId());
             assertNotNull("Got null for pvalue", ea.getPValAdjusted());
             assertNotNull("Got null for tstat", ea.getTStatistic());
             assertNotNull("Got null for arrayDesign accession", ea.getArrayDesignAccession());
@@ -91,7 +91,7 @@ public class TestAtlasDataDAO extends TestCase {
             assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
             assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
         } finally {
-            ewd.close();
+            closeQuietly(ewd);
         }
     }
 }

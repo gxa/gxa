@@ -42,7 +42,7 @@ public class HTSArrayDataStep {
     public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
-        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must be present)
+        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
         //ToDo: add this check in the Loader
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         if (scanNodes.size() == 0) {

@@ -31,14 +31,13 @@ import ucar.nc2.iosp.netcdf3.N3iosp;
  * This is temporary workaround for what we consider as missing values in the netCDF files. Until there is no single substitution
  * for missing value in R and Java code we should manually check it everywhere. This code cares only for Float values,
  * as it is mostly critical one.
- *
+ * <p/>
  * Note: we must remove this class right after the ticket is fixed: #2910.
- *
  *
  * @author Olga Melnichuk
  *         Date: 21/04/2011
  */
-public class NetCDFMissingVal {
+class NetCDFMissingVal {
     private static final String[] MISSING_VALUE_ATTRIBUTES = new String[]{"missing_value", N3iosp.FillValue};
     private static final float FLOAT_MISSING_VALUE_R = 1e+30f;
 
@@ -49,12 +48,13 @@ public class NetCDFMissingVal {
      * @param v   a missing value to attach
      * @return the same variable
      */
-    public static Variable attachMissingValue(Variable var, Number v) {
-        for (String attr : MISSING_VALUE_ATTRIBUTES) {
-            var.addAttribute(new Attribute(attr, v));
-        }
-        return var;
-    }
+    // TODO: Not my code, a solution may be needed to uniformly deal with missing values, but this is not used.
+    // public static Variable attachMissingValue(Variable var, Number v) {
+    //    for (String attr : MISSING_VALUE_ATTRIBUTES) {
+    //        var.addAttribute(new Attribute(attr, v));
+    //    }
+    //    return var;
+    //}
 
     private Object missingVal = null;
 
