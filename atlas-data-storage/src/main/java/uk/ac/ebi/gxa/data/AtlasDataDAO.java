@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -32,11 +34,11 @@ import java.io.File;
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
  *
- * @author Alexey Filippov
  * @author Rober Petryszak
  * @author Nikolay Pultsin
  */
 public class AtlasDataDAO {
+    private static final Logger log = LoggerFactory.getLogger(AtlasDataDAO.class);
     // Location of the experiment data files
     private File atlasDataRepo;
 
@@ -62,16 +64,19 @@ public class AtlasDataDAO {
     }
 
     DataProxy createDataProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
-        DataProxy proxy;
+        final File dataFile = getDataFile(experiment, arrayDesign);
+        final File statisticsFile = getStatisticsFile(experiment, arrayDesign);
+        final File v1File = getV1File(experiment, arrayDesign);
+
         try {
-            proxy = new NetCDFProxyV2(
-                    getDataFile(experiment, arrayDesign),
-                    getStatisticsFile(experiment, arrayDesign)
-            );
+            if (dataFile.exists() && dataFile.canRead())
+                return new NetCDFProxyV2(dataFile, statisticsFile);
+            else
+                return new NetCDFProxyV1(v1File);
         } catch (AtlasDataException e) {
-            proxy = new NetCDFProxyV1(getV1File(experiment, arrayDesign));
+            log.error("Cannot open data files: " + e.getMessage() + ", falling back to V1", e);
+            return new NetCDFProxyV1(v1File);
         }
-        return proxy;
     }
 
     public void setAtlasDataRepo(File atlasDataRepo) {
