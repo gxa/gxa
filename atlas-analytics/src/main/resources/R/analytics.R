@@ -84,20 +84,6 @@ read.atlas.nc <<-
       efscv <- data.frame(row.names=as)
     }
 
-    if (1 == 0 && exists("scv")) {
-        for(sc in colnames(scv)) {
-            scvj <- as.factor(unlist(lapply(rownames(b2a), function(assayid)
-                                      paste(unique(scv[colnames(b2a)[as.logical(b2a[assayid,])],sc]),
-                                       sep = ",", collapse = "|"))))
-
-            ef <- sub("bs_","ba_",sc)
-             if( !identical(efscv[[ef]], scvj)) {
-                       efscv[[sc]] <- scvj
-               print(paste("scvj = ", scvj))
-             }
-        }
-    }
-
     fDataFrame = data.frame(gn = gn,de = de) #, deacc = deacc)
     fData = new("AnnotatedDataFrame", data = fDataFrame)
     featureNames(fData) = de
@@ -538,20 +524,20 @@ find.best.design.elements <<-
     wuval <- c()
 
     if ((!is.null(ef) && ef != "") && isEmptyEFV(efv)) {
-      wuval <- grep(paste(ef,"||",sep = ""), uval, fixed = TRUE)
+      wuefv <- grep(paste(ef,"||",sep = ""), uefv, fixed = TRUE)
 
     } else if ((!is.null(ef) && ef != "") && !isEmptyEFV(efv)) {
       efv <- paste(ef, efv, sep = "||")
-      wuval <- which(uval %in% efv)
+      wuefv <- which(uefv %in% efv)
 
     } else {
-      wuval <- rep(1:length(uval))
+      wuefv <- rep(1:length(uefv))
     }
 
     if (!is.null(gnids) && gnids != "") {
       wde <- which(gn %in% gnids)
       
-    } else if (length(wuval) == length(uval)) { # if no params
+    } else if (length(wuefv) == length(uefv)) { # if no params
       rowOrder <- tryCatch(get.var.ncdf(statistics_nc, paste("ORDER_", statfilter, sep = "")), error = function(e) NULL)
       if (!is.null(rowOrder)) {
          rowOrder <- rowOrder[rowOrder > 0]
@@ -563,13 +549,13 @@ find.best.design.elements <<-
       }
     }
 
-    tstat <- matrix(nrow = length(wde), ncol = length(wuval))
-    pval <- matrix(nrow = length(wde), ncol = length(wuval))
+    tstat <- matrix(nrow = length(wde), ncol = length(wuefv))
+    pval <- matrix(nrow = length(wde), ncol = length(wuefv))
 
-    if (length(wuval) < length(uval)) {
-      for (i in seq_along(wuval)) {
-        tstat[,i] <- get.var.ncdf(statistics_nc, "TSTAT", start = c(wuval[i],1), count = c(1,-1))[wde]
-        pval[,i] <- get.var.ncdf(statistics_nc, "PVAL", start = c(wuval[i],1), count = c(1,-1))[wde]
+    if (length(wuefv) < length(uefv)) {
+      for (i in seq_along(wuefv)) {
+        tstat[,i] <- get.var.ncdf(statistics_nc, "TSTAT", start = c(wuefv[i],1), count = c(1,-1))[wde]
+        pval[,i] <- get.var.ncdf(statistics_nc, "PVAL", start = c(wuefv[i],1), count = c(1,-1))[wde]
       }
     } else {
       if (length(wde) < 0.2 * length(deAcc)) {
@@ -590,7 +576,7 @@ find.best.design.elements <<-
     pval <- replaceMissingValues(pval)
 
     idxs <- c()
-    uvalidxs <- c()
+    uefvidxs <- c()
     minpvals <- c()
     maxtstats <- c()
     totalCount <- 0
@@ -613,20 +599,20 @@ find.best.design.elements <<-
       if (length(residxs) > 0) {
         to <- min(length(residxs), to)
         idxs <- result$rowidxs[from:to]
-        uvalidxs <- result$colidxs[from:to]
+        uefvidxs <- result$colidxs[from:to]
         minpvals <- result$minpvals[from:to]
         maxtstats <- result$maxtstats[from:to]
         totalCount <- length(result$rowidxs)
       }
     }
 
-    uvals <- c()
+    uefvs <- c()
 
-    for (i in seq_along(uvalidxs)) {
-      if (length(wuval) > 1) {
-        uvals[i] <- uval[wuval[uvalidxs[i]]]
+    for (i in seq_along(uefvidxs)) {
+      if (length(wuefv) > 1) {
+        uefvs[i] <- uefv[wuefv[uefvidxs[i]]]
       } else {
-        uvals[i] <- uval[wuval]
+        uefvs[i] <- uefv[wuefv]
       }
     }
 
@@ -635,7 +621,7 @@ find.best.design.elements <<-
     # minpvals[1:length(minpvals)] <- NA
     # maxtstats[1:length(maxtstats)] <- NA
 
-    uvalMatrix = sapply(uvals, function(str) { strsplit(str, "\\|\\|")[[1]] })
+    uefvMatrix = sapply(uefvs, function(str) { strsplit(str, "\\|\\|")[[1]] })
 
     res <-  data.frame(
         deindexes = as.integer(wde[idxs]),
@@ -643,8 +629,8 @@ find.best.design.elements <<-
         geneids = as.integer(gn[wde[idxs]]),
         minpvals = minpvals,
         maxtstats = maxtstats,
-        uvalNames = uvalMatrix[1,],
-        uvalValues = uvalMatrix[2,]
+        uefvNames = uefvMatrix[1,],
+        uefvValues = uefvMatrix[2,]
       )
     attr(res, "total") <- as.integer(max(totalRowCount, totalCount))
     return(res)

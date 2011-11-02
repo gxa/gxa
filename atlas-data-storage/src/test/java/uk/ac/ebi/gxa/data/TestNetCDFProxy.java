@@ -84,9 +84,9 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueValues() throws AtlasDataException, StatisticsNotFoundException {
+    public void testGetUniqueEVFs() throws AtlasDataException, StatisticsNotFoundException {
         final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
-        for (KeyValuePair uefv : netCDF.getUniqueValues()) {
+        for (KeyValuePair uefv : netCDF.getUniqueEFVs()) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {
