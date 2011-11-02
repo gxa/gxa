@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.io.Files;
 import junit.framework.TestCase;
-import org.junit.Assert;
 import ucar.ma2.ArrayChar;
 import ucar.nc2.NetcdfFile;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -35,6 +34,8 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertArrayEquals;
+import static uk.ac.ebi.gxa.utils.FileUtil.getMD5;
 import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class TestNetCDFSplitting extends TestCase {
@@ -129,12 +130,12 @@ public class TestNetCDFSplitting extends TestCase {
             experiment.setAssays(assays);
             experiment.setSamples(samples);
 
-            atlasDataDAO.createExperimentWithData(experiment).updateAllData();
+            atlasDataDAO.createExperimentWithData(experiment).updateDataToNewestVersion();
 
             for (String name : new String[]{"E-MTAB-25_A-AFFY-33_data.nc", "E-MTAB-25_A-AFFY-39_data.nc", "E-MTAB-25_A-AFFY-40_data.nc"}) {
-                Assert.assertArrayEquals(
-                        FileUtil.getMD5(new File(new File(baseExperimentDirectory, "v2"), name)),
-                        FileUtil.getMD5(new File(experimentDirectory, name))
+                assertArrayEquals(
+                        getMD5(new File(new File(baseExperimentDirectory, "v2"), name)),
+                        getMD5(new File(experimentDirectory, name))
                 );
             }
         } catch (Exception e) {

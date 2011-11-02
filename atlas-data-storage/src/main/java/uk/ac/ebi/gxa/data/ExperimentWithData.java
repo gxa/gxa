@@ -87,20 +87,17 @@ public class ExperimentWithData implements Closeable {
         return new NetCDFDataCreator(atlasDataDAO, experiment, arrayDesign);
     }
 
-    public void updateAllData() throws AtlasDataException {
-        final DataUpdater updater = new DataUpdater();
-        for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-            updater.update(arrayDesign);
-        }
-    }
-
     /**
-     * This method should be removed if Atlas will become an architecure.
-     * At this moment arrayDesign.getDesignElement(designElementAccession)
-     * returns null if arrayDesign has an 'incorrect' origin. We have to
-     * use at this point ArrayDesign's from ArrayDesingDAO, not from other
-     * sources. Unfortunately we forget to add an annotation @FromArrayDesignDAO
-     * for using in such cases.
+     * Updates data files according to the {@link ArrayDesign} supplied.
+     * <p/>
+     * Please note that due to duality of the DAO layer {@link ArrayDesign}
+     * may or may not contain design elements depending on how you got it.
+     * <p/>
+     * This is indeed a problem which should be addressed ASAP.
+     * <p/>
+     * TODO: check whether arrayDesign is shallow, and load full one if it is.
+     *
+     * @param arrayDesign array design (with DEs) to update data files for
      */
     public void updateData(ArrayDesign arrayDesign) throws AtlasDataException {
         new DataUpdater().update(arrayDesign);
@@ -116,8 +113,8 @@ public class ExperimentWithData implements Closeable {
             try {
                 new DataUpdater().update(arrayDesign);
             } finally {
-                proxies.remove(arrayDesign);
                 closeQuietly(proxy);
+                proxies.remove(arrayDesign);
             }
         }
     }
