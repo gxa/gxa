@@ -321,9 +321,7 @@ public class ExperimentWithData implements Closeable {
                             getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
                     if (!eas.isEmpty()) { // this means eas.size() == 1
                         final ExpressionAnalysis analysis = eas.get(0);
-                        if (upDownCondition.apply(UpDownExpression.valueOf(
-                                analysis.getPValAdjusted(), analysis.getTStatistic()
-                        ))) {
+                        if (upDownCondition.apply(analysis.getUpDownExpression())) {
                             eaList.add(analysis);
                         }
                     }
