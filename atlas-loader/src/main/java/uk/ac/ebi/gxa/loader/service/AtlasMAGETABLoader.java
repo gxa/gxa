@@ -29,7 +29,8 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.NetCDFCreator;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.NetCDFDataCreator;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -45,11 +46,9 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
@@ -67,12 +66,6 @@ import static uk.ac.ebi.gxa.utils.FileUtil.*;
 public class AtlasMAGETABLoader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            return new DecimalFormat("#.##");
-        }
-    };
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
@@ -240,42 +233,34 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private static String formatDt(long start, long end) {
-        return DECIMAL_FORMAT.get().format((end - start) / 1000);
-    }
-
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-        for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+        try {
+            for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+                Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
+                log.info("Starting NetCDF for {} and {} ({} assays)",
+                        new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
 
-            Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
-            log.info("Starting NetCDF for {} and {} ({} assays)",
-                    new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
+                if (listener != null)
+                    listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
+                            " and " + shallowArrayDesign);
 
-            if (listener != null)
-                listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
-                        " and " + shallowArrayDesign);
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
+                dataCreator.setAssayDataMap(cache.getAssayDataMap());
 
-            final NetCDFCreator netCdfCreator =
-                    atlasDataDAO.getNetCDFCreator(experiment, dao.getArrayDesign(shallowArrayDesign.getAccession()));
+                dataCreator.createNetCdf();
 
-            netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays) {
-                for (Sample sample : assay.getSamples()) {
-                    netCdfCreator.setSample(assay, sample);
+                if (dataCreator.hasWarning() && listener != null) {
+                    for (String warning : dataCreator.getWarnings()) {
+                        listener.setWarning(warning);
+                    }
                 }
+                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
             }
-            netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
-
-            netCdfCreator.createNetCdf();
-
-            if (netCdfCreator.hasWarning() && listener != null) {
-                for (String warning : netCdfCreator.getWarnings()) {
-                    listener.setWarning(warning);
-                }
-            }
-            log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
+        } finally {
+            closeQuietly(ewd);
         }
     }
 
@@ -287,10 +272,7 @@ public class AtlasMAGETABLoader {
             if (cache.fetchAllAssays().isEmpty())
                 throw new AtlasLoaderException("No assays found");
 
-            Set<String> referencedArrayDesigns = new HashSet<String>();
             for (Assay assay : cache.fetchAllAssays()) {
-                    referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
-
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
 

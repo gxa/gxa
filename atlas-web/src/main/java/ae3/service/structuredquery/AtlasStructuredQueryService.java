@@ -63,6 +63,7 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
@@ -1675,7 +1676,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     experimentsForRow.add(experiment);
                 }
             } finally {
-                ewd.close();
+                closeQuietly(ewd);
             }
         }
 
@@ -1710,7 +1711,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         experimentsForRow.add(experiment);
                     }
                 } finally {
-                    ewd.close();
+                    closeQuietly(ewd);
                 }
             }
         }

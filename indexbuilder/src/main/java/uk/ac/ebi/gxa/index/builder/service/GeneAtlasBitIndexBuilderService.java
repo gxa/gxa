@@ -3,11 +3,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ucar.ma2.ArrayFloat;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.KeyValuePair;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -144,9 +140,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     }
 
                     final long[] bioEntityIdsArr = experimentWithData.getGenes(ad);
-                    final ArrayFloat.D2 tstat = experimentWithData.getProxy(ad).getTStatistics();
-                    final ArrayFloat.D2 pvals = experimentWithData.getProxy(ad).getPValues();
-                    final int[] shape = tstat.getShape();
+                    final TwoDFloatArray tstat = experimentWithData.getTStatistics(ad);
+                    final TwoDFloatArray pvals = experimentWithData.getPValues(ad);
+                    final int rowCount = tstat.getRowCount();
 
                     final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
                     for (int j = 0; j < uVals.size(); j++) {
@@ -174,7 +170,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final MinPMaxT ptUp = new MinPMaxT();
                         final MinPMaxT ptDown = new MinPMaxT();
 
-                        for (int i = 0; i < shape[0]; i++) {
+                        for (int i = 0; i < rowCount; i++) {
                             int bioEntityId = safelyCastToInt(bioEntityIdsArr[i]);
 
                             // in order to create a resource used for unit tests,
@@ -261,11 +257,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 task.done(exp);
                 progressUpdater.update(task.progress());
             } catch (AtlasDataException e) {
-                throw new IndexBuilderException(e.getMessage(), e);
-            } catch (IOException e) {
-                throw new IndexBuilderException(e.getMessage(), e);
+                getLog().warn("Cannot access data for experiment " + exp.getAccession() + ", skipping", e);
+            } catch (StatisticsNotFoundException e) {
+                // this is just info, not warning because Atlas normally includes
+                // some experiments with no statistics
+                getLog().info("Cannot access statistics for experiment " + exp.getAccession() + ", skipping");
             } finally {
-                experimentWithData.close();
+                closeQuietly(experimentWithData);
             }
         }
 

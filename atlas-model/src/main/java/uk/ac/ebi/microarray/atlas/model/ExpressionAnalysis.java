@@ -30,89 +30,61 @@ import java.io.Serializable;
 public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAnalysis> {
     public static final long serialVersionUID = -6759797835522535043L;
 
-    private String arrayDesignAccession;
-    private String efName;
-    private String efvName;
-    private String designElementAccession;  // we don't care about it
+    private final String arrayDesignAccession;
+    private final String designElementAccession;  // we don't care about it
+    // Index of a design element (in netcdf file) in which data to populate this object were found
+    private final int designElementIndex;
+
+    private final String efName;
+    private final String efvName;
+
     private float tStatistic;
     private float pValAdjusted;
-    private transient long efId;  // TODO: make it properly
-    private transient long efvId; // TODO: make it properly
-    // Index of a design element (in netcdf file) in which data to populate this object were found
-    private Integer designElementIndex;
+
+    public ExpressionAnalysis(String arrayDesignAccession, String designElementAccession, int designElementIndex, String efName, String efvName, float tStatistic, float pValAdjusted) {
+        this.arrayDesignAccession = arrayDesignAccession;
+        this.designElementAccession = designElementAccession;
+        this.designElementIndex = designElementIndex;
+        this.efName = efName;
+        this.efvName = efvName;
+        this.tStatistic = tStatistic;
+        this.pValAdjusted = pValAdjusted;
+    }
 
     public String getArrayDesignAccession() {
         return arrayDesignAccession;
-    }
-
-    public void setArrayDesignAccession(String arrayDesignAccession) {
-        this.arrayDesignAccession = arrayDesignAccession;
     }
 
     public Integer getDesignElementIndex() {
         return designElementIndex;
     }
 
-    public void setDesignElementIndex(Integer designElementIndex) {
-        this.designElementIndex = designElementIndex;
-    }
-
     public String getEfName() {
         return efName;
-    }
-
-    public void setEfName(String efName) {
-        this.efName = efName;
     }
 
     public String getEfvName() {
         return efvName;
     }
 
-    public void setEfvName(String efvName) {
-        this.efvName = efvName;
-    }
-
-    /*
-    public long getExperimentID() {
-        return experimentID;
-    }
-
-    public void setExperimentID(long experimentID) {
-        this.experimentID = experimentID;
-    }
-    */
-
     public String getDesignElementAccession() {
         return designElementAccession;
-    }
-
-    public void setDesignElementAccession(String designElementAccession) {
-        this.designElementAccession = designElementAccession;
     }
 
     public float getPValAdjusted() {
         return pValAdjusted;
     }
 
-    public void setPValAdjusted(float pValAdjusted) {
-        this.pValAdjusted = pValAdjusted;
-    }
-
     public float getTStatistic() {
         return tStatistic;
     }
 
+    public void setPValAdjusted(float pValAdjusted) {
+        this.pValAdjusted = pValAdjusted;
+    }
+
     public void setTStatistic(float tStatistic) {
         this.tStatistic = tStatistic;
-    }
-
-    public long getEfId() {
-        return efId;
-    }
-
-    public long getEfvId() {
-        return efvId;
     }
 
     public int compareTo(ExpressionAnalysis o) {
@@ -144,8 +116,6 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
                 ", designElementAccession=" + designElementAccession +
                 ", tStatistic=" + tStatistic +
                 ", pValAdjusted=" + pValAdjusted +
-                ", efId=" + efId +
-                ", efvId=" + efvId +
                 ", designElementIndex=" + designElementIndex +
                 '}';
     }
@@ -158,15 +128,11 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         ExpressionAnalysis that = (ExpressionAnalysis) o;
 
         if (!designElementAccession.equals(that.designElementAccession)) return false;
-        if (efId != that.efId) return false;
-        if (efvId != that.efvId) return false;
-        //if (experimentID != that.experimentID) return false;
         if (Float.compare(that.pValAdjusted, pValAdjusted) != 0) return false;
         if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
         if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
         if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
-        if (designElementIndex != null ? !designElementIndex.equals(that.designElementIndex) : that.designElementIndex != null)
-            return false;
+        if (designElementIndex != that.designElementIndex) return false;
 
         return true;
     }
@@ -179,9 +145,7 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         result = 31 * result + designElementAccession.hashCode();
         result = 31 * result + (tStatistic != +0.0f ? Float.floatToIntBits(tStatistic) : 0);
         result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
-        result = 31 * result + (int) (efId ^ (efId >>> 32));
-        result = 31 * result + (int) (efvId ^ (efvId >>> 32));
-        result = 31 * result + (designElementIndex != null ? designElementIndex : 0);
+        result = 31 * result + designElementIndex;
 
         return result;
     }

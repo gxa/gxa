@@ -261,10 +261,11 @@ process.atlas.nc<-
 
 ### Atlas analytics, returns instead of writing
 computeAnalytics <<-
-  function (nc) {
+  function (data_ncdf, statistics_ncdf) {
     e <- try({
-      eset = read.atlas.nc(nc)
-      ncd = open.ncdf(nc, write = TRUE)
+      eset = read.atlas.nc(data_ncdf)
+      data_nc = open.ncdf(data_ncdf)
+      statistics_nc = open.ncdf(statistics_ncdf, write = TRUE)
 
       if (dim(eset)[2] == 1) {
         return(sapply(varLabels(eset), function(i) "NOK"))
@@ -272,14 +273,16 @@ computeAnalytics <<-
 
       proc = allupdn(eset)
 
-      uVAL = get.var.ncdf(ncd, "uVAL")
+      propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
+      propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
+      pairs <- paste(propertyNAME, propertyVALUE, sep = "||")
 
       # initialize tstat and pval to NA
-      tstat = matrix(NA, ncol = length(uVAL), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "TSTAT"))
-      pval = matrix(NA, ncol = length(uVAL), nrow = nrow(eset)); #t(get.var.ncdf(ncd, "PVAL"))
+      tstat = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset)); #t(get.var.ncdf(statistics_nc, "TSTAT"))
+      pval = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset)); #t(get.var.ncdf(statistics_nc, "PVAL"))
 
-      colnames(tstat) <- make.names(uVAL)
-      colnames(pval) <- make.names(uVAL)
+      colnames(tstat) <- make.names(pairs)
+      colnames(pval) <- make.names(pairs)
 
       result <- sapply(varLabels(eset),
                        function(varLabel) {
@@ -318,17 +321,18 @@ computeAnalytics <<-
                        })
 
       print(paste("Writing tstat and pval to NetCDF:", ncol(tstat), "x", nrow(tstat)))
-      put.var.ncdf(ncd, "TSTAT", t(tstat))
-      put.var.ncdf(ncd, "PVAL", t(pval))
+      put.var.ncdf(statistics_nc, "TSTAT", t(tstat))
+      put.var.ncdf(statistics_nc, "PVAL", t(pval))
 
-      efsc = get.var.ncdf(ncd, "EF")
-      #efsc = get.var.ncdf(ncd, "EFSC")
+      efsc = get.var.ncdf(data_nc, "EF")
       
-      close.ncdf(ncd)
+      sync.ncdf(statistics_nc)
+      updateStatOrder(data_nc, statistics_nc)
+
+      close.ncdf(data_nc)
+      close.ncdf(statistics_nc)
 
       names(result) <- efsc
-
-      updateStatOrder(nc)
 
       return(result)
     })
@@ -338,15 +342,11 @@ computeAnalytics <<-
 
 # Computes and saves the order of design elements for each statfilter value
 updateStatOrder <<-
-  function(filename) {
-    
-    ncd <- open.ncdf(filename, write = TRUE)
-    on.exit(close.ncdf(ncd))
-
-    nCols <- length(get.var.ncdf(ncd, "uVAL"))
-    pval <- transposeMatrix(get.var.ncdf(ncd, "PVAL"), nCols)
-    tstat <- transposeMatrix(get.var.ncdf(ncd, "TSTAT"), nCols)
-    gn <- get.var.ncdf(ncd, "GN")
+  function(data_nc, statistics_nc) {
+    nCols <- length(get.var.ncdf(statistics_nc, "propertyNAME"))
+    pval <- transposeMatrix(get.var.ncdf(statistics_nc, "PVAL"), nCols)
+    tstat <- transposeMatrix(get.var.ncdf(statistics_nc, "TSTAT"), nCols)
+    gn <- get.var.ncdf(data_nc, "GN")
 
     print(paste("T(rows:", nrow(tstat), "cols:", ncol(tstat), ")"))
     print(paste("P(rows:", nrow(pval), "cols:", ncol(pval), ")"))
@@ -389,7 +389,7 @@ updateStatOrder <<-
 
       tryCatch({
         print(paste(vname, "written..."))
-        put.var.ncdf(ncd, vname, filtered)
+        put.var.ncdf(statistics_nc, vname, filtered)
       }, error = function(e) print(e))
     }
     return("OK")
@@ -507,7 +507,7 @@ orderByStatfilter <-
 ### Returns T and P values for selected genes and factors.
 ### If nothing is specified it returns the best genes arcording the statfilter (default is ANY).
 find.best.design.elements <<-
-  function(ncdf, gnids = NULL, ef = NULL, efv = NULL, statfilter = c('ANY','UP_DOWN','DOWN','UP','NON_D_E'), statsort = "PVAL", from = 1, rows = 10) {
+  function(data_ncdf, statistics_ncdf, gnids = NULL, ef = NULL, efv = NULL, statfilter = c('ANY','UP_DOWN','DOWN','UP','NON_D_E'), statsort = "PVAL", from = 1, rows = 10) {
 
     # info = sessionInfo()
     # print(info)
@@ -523,19 +523,18 @@ find.best.design.elements <<-
     
     statfilter = match.arg(statfilter)
 
-    nc <- open.ncdf(ncdf)
+    data_nc <- open.ncdf(data_ncdf)
+    statistics_nc <- open.ncdf(statistics_ncdf)
 
-    gn <- get.var.ncdf(nc, "GN")
+    gn <- get.var.ncdf(data_nc, "GN")
 
-    deAcc <- get.var.ncdf(nc, "DEacc")
+    deAcc <- get.var.ncdf(data_nc, "DEacc")
 
     wde <- which(gn > 0)
 
-    uval <- tryCatch(nc$dim$uVAL$vals, error = function(e) NULL)
-    if (is.null(uval)) {
-        print(paste("Outdated ncdf - no uVAL variable present; reading uEFV..."))
-        uval <- nc$dim$uEFV$vals
-    }
+    propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
+    propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
+    uval <- paste(propertyNAME, propertyVALUE, sep = "||")
     wuval <- c()
 
     if ((!is.null(ef) && ef != "") && isEmptyEFV(efv)) {
@@ -553,7 +552,7 @@ find.best.design.elements <<-
       wde <- which(gn %in% gnids)
       
     } else if (length(wuval) == length(uval)) { # if no params
-      rowOrder <- tryCatch(get.var.ncdf(nc, paste("ORDER_", statfilter, sep = "")), error = function(e) NULL)
+      rowOrder <- tryCatch(get.var.ncdf(statistics_nc, paste("ORDER_", statfilter, sep = "")), error = function(e) NULL)
       if (!is.null(rowOrder)) {
          rowOrder <- rowOrder[rowOrder > 0]
          to <- min(to, length(rowOrder))
@@ -569,21 +568,22 @@ find.best.design.elements <<-
 
     if (length(wuval) < length(uval)) {
       for (i in seq_along(wuval)) {
-        tstat[,i] <- get.var.ncdf(nc, "TSTAT", start = c(wuval[i],1), count = c(1,-1))[wde]
-        pval[,i] <- get.var.ncdf(nc, "PVAL", start = c(wuval[i],1), count = c(1,-1))[wde]
+        tstat[,i] <- get.var.ncdf(statistics_nc, "TSTAT", start = c(wuval[i],1), count = c(1,-1))[wde]
+        pval[,i] <- get.var.ncdf(statistics_nc, "PVAL", start = c(wuval[i],1), count = c(1,-1))[wde]
       }
     } else {
-      if (length(wde) < 0.2 * nc$dim$DE$len) {
+      if (length(wde) < 0.2 * length(deAcc)) {
         for (i in seq_along(wde)) {
-          tstat[i,] <- get.var.ncdf(nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))
-          pval[i,] <- get.var.ncdf(nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
+          tstat[i,] <- get.var.ncdf(statistics_nc, "TSTAT", start = c(1,wde[i]), count = c(-1,1))
+          pval[i,] <- get.var.ncdf(statistics_nc, "PVAL", start = c(1,wde[i]), count = c(-1,1))
         }
       } else {
-        tstat <- transposeMatrix(get.var.ncdf(nc, "TSTAT"))[wde,]
-        pval <- transposeMatrix(get.var.ncdf(nc, "PVAL"))[wde,]
+        tstat <- transposeMatrix(get.var.ncdf(statistics_nc, "TSTAT"))[wde,]
+        pval <- transposeMatrix(get.var.ncdf(statistics_nc, "PVAL"))[wde,]
       }
     }
-    close(nc)
+    close(data_nc)
+    close(statistics_nc)
     print(Sys.time())
 
     tstat <- replaceMissingValues(tstat)
