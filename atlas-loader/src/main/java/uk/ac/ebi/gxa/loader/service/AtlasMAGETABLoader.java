@@ -27,9 +27,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.NetCDFCreator;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -246,36 +244,32 @@ public class AtlasMAGETABLoader {
 
     private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-        for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
-
-            Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
-            log.info("Starting NetCDF for {} and {} ({} assays)",
+        try {
+            for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+                Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
+                log.info("Starting NetCDF for {} and {} ({} assays)",
                     new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
-
-            if (listener != null)
-                listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
+        
+                if (listener != null)
+                    listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                         " and " + shallowArrayDesign);
-
-            final NetCDFCreator netCdfCreator =
-                    atlasDataDAO.getNetCDFCreator(experiment, dao.getArrayDesign(shallowArrayDesign.getAccession()));
-
-            netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays) {
-                for (Sample sample : assay.getSamples()) {
-                    netCdfCreator.setSample(assay, sample);
+        
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
+                dataCreator.setAssayDataMap(cache.getAssayDataMap());
+        
+                dataCreator.createNetCdf();
+        
+                if (dataCreator.hasWarning() && listener != null) {
+                    for (String warning : dataCreator.getWarnings()) {
+                        listener.setWarning(warning);
+                    }
                 }
+                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
             }
-            netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
-
-            netCdfCreator.createNetCdf();
-
-            if (netCdfCreator.hasWarning() && listener != null) {
-                for (String warning : netCdfCreator.getWarnings()) {
-                    listener.setWarning(warning);
-                }
-            }
-            log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
+        } finally {
+            ewd.closeAllDataSources();
         }
     }
 

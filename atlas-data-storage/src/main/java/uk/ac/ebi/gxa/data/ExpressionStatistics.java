@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.data;
 import com.google.common.collect.Maps;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -44,10 +43,10 @@ public class ExpressionStatistics {
     private ExpressionStatistics() {
     }
 
-    private ExpressionStatistics load(int[] deIndices, NetCDFProxy proxy) throws IOException, AtlasDataException {
+    private ExpressionStatistics load(int[] deIndices, DataProxy proxy) throws AtlasDataException, StatisticsNotFoundException {
         tstatistics = proxy.getTStatistics(deIndices);
         pvalues = proxy.getPValues(deIndices);
-        List<KeyValuePair> values = proxy.getUniqueValues();
+        List<KeyValuePair> values = proxy.getUniqueEFVs();
         for (int i = 0, valuesSize = values.size(); i < valuesSize; i++) {
             final String v = values.get(i).key + "||" + values.get(i).value;
             efEfv.put(v.toLowerCase(), i);
@@ -58,7 +57,7 @@ public class ExpressionStatistics {
         return this;
     }
 
-    public static ExpressionStatistics create(int[] deIndices, NetCDFProxy proxy) throws IOException, AtlasDataException {
+    static ExpressionStatistics create(int[] deIndices, DataProxy proxy) throws AtlasDataException, StatisticsNotFoundException {
         return (new ExpressionStatistics()).load(deIndices, proxy);
     }
 

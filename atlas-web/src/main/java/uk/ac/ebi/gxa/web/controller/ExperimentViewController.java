@@ -225,7 +225,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             }
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            closeQuietly(ewd);
+            ewd.closeAllDataSources();
         }
     }
 
@@ -326,7 +326,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
-            closeQuietly(ewd);
+            ewd.closeAllDataSources();
         }
     }
 

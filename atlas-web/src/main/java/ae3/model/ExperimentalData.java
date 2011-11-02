@@ -38,6 +38,7 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.io.Closeable;
 
 /**
  * A wrapper for ExperimentWithData class that is used in API v1
@@ -65,7 +66,11 @@ public class ExperimentalData {
         log.info("loading data for experiment" + experimentWithData.getExperiment().getAccession());
         this.experimentWithData = experimentWithData;
 
-        ResourceWatchdogFilter.register(experimentWithData);
+        ResourceWatchdogFilter.register(new Closeable() {
+            public void close() {
+                ExperimentalData.this.experimentWithData.closeAllDataSources();
+            }
+        });
 
         collectSamples();
         collectAssays();

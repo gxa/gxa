@@ -94,7 +94,7 @@ public class AssayProperties {
         try {
             return new AssayProperties().load(ewd, ad, nameConverter);
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
     }
 }

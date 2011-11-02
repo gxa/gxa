@@ -174,8 +174,13 @@ public class ExperimentAnalyticsGeneratorService {
         if (arrayDesigns.isEmpty()) {
             throw new AnalyticsGeneratorException("No array designs present for " + experiment);
         }
-        final List<String> analysedEFSCs = new ArrayList<String>();
+        final List<String> analysedEFs = new ArrayList<String>();
         int count = 0;
+        try {
+            ewd.updateDataToNewestVersion();
+        } catch (AtlasDataException e) {
+            throw new AnalyticsGeneratorException(e);
+        }
         try {
             for (ArrayDesign ad : arrayDesigns) {
                 count++;
@@ -185,7 +190,8 @@ public class ExperimentAnalyticsGeneratorService {
                     return;
                 }
 
-                final String pathForR = ewd.getPathForR(ad);
+                final String dataPathForR = ewd.getDataPathForR(ad);
+                final String statisticsPathForR = ewd.getStatisticsPathForR(ad);
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
                     public Void compute(RServices rs) throws ComputeException {
                         try {
@@ -193,20 +199,20 @@ public class ExperimentAnalyticsGeneratorService {
                             rs.sourceFromBuffer(RUtil.getRCodeFromResource("R/analytics.R"));
 
                             // note - the netCDF file MUST be on the same file system where the workers run
-                            log.debug("Starting compute task for " + pathForR);
-                            RObject r = rs.getObject("computeAnalytics(\"" + pathForR + "\")");
-                            log.debug("Completed compute task for " + pathForR);
+                            log.debug("Starting compute task for " + statisticsPathForR);
+                            RObject r = rs.getObject("computeAnalytics(\"" + dataPathForR + "\", \"" + statisticsPathForR + "\")");
+                            log.debug("Completed compute task for " + statisticsPathForR);
 
                             if (r instanceof RChar) {
-                                String[] efScs = ((RChar) r).getNames();
+                                String[] efs = ((RChar) r).getNames();
                                 String[] analysedOK = ((RChar) r).getValue();
 
-                                if (efScs != null)
-                                    for (int i = 0; i < efScs.length; i++) {
-                                        log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{pathForR, efScs[i], analysedOK[i]});
+                                if (efs != null)
+                                    for (int i = 0; i < efs.length; i++) {
+                                        log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{statisticsPathForR, efs[i], analysedOK[i]});
 
                                         if ("OK".equals(analysedOK[i]))
-                                            analysedEFSCs.add(efScs[i]);
+                                            analysedEFs.add(efs[i]);
                                     }
 
                                 for (String rc : analysedOK) {
@@ -226,15 +232,18 @@ public class ExperimentAnalyticsGeneratorService {
 
                 // now run this compute task
                 try {
-                    listener.buildProgress("Computing analytics for " + experimentAccession);
+                    listener.buildProgress("Creating analytics file for " + experimentAccession + "/" + ad.getAccession());
+                    ewd.getStatisticsCreator(ad).createNetCdf();
+                    listener.buildProgress("Computing analytics for " + experimentAccession + "/" + ad.getAccession());
                     // computeAnalytics writes analytics data back to NetCDF
                     atlasComputeService.computeTask(computeAnalytics);
-                    log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experimentAccession +
-                            " has completed.");
+                    log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experimentAccession + " has completed.");
 
-                    if (analysedEFSCs.size() == 0) {
+                    if (analysedEFs.size() == 0) {
                         listener.buildWarning("No analytics were computed for this experiment!");
                     }
+                } catch (AtlasDataException e) {
+                    throw new AnalyticsGeneratorException("Computation of analytics for " + experimentAccession + "/" + ad.getAccession() + " failed: " + e.getMessage(), e);
                 } catch (ComputeException e) {
                     throw new AnalyticsGeneratorException("Computation of analytics for " + experimentAccession + "/" + ad.getAccession() + " failed: " + e.getMessage(), e);
                 } catch (Exception e) {
@@ -242,7 +251,7 @@ public class ExperimentAnalyticsGeneratorService {
                 }
             }
         } finally {
-            ewd.close();
+            ewd.closeAllDataSources();
         }
     }
 
