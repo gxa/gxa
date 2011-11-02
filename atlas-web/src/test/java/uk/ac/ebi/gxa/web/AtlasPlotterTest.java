@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.web;
 
 import ae3.dao.GeneSolrDAO;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +44,7 @@ public class AtlasPlotterTest extends AbstractIndexDataTestCase {
     private AtlasPlotter plotter;
     private GeneSolrDAO geneSolrDAO;
 
-    @Override
+    @Before
     public void setUp() throws Exception {
         super.setUp();
 
@@ -55,7 +57,7 @@ public class AtlasPlotterTest extends AbstractIndexDataTestCase {
         plotter.setAtlasDataDAO(getDataDAO());
     }
 
-    @Override
+    @After
     public void tearDown() throws Exception {
         plotter = null;
         super.tearDown();

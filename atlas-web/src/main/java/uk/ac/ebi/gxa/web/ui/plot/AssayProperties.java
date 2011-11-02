@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * Loads assay properties in order to convert into JSON. Used by assay tooltips on the experiment page.
  * Not appropriate for using in the backend services.
@@ -94,7 +96,7 @@ public class AssayProperties {
         try {
             return new AssayProperties().load(ewd, ad, nameConverter);
         } finally {
-            ewd.close();
+            closeQuietly(ewd);
         }
     }
 }

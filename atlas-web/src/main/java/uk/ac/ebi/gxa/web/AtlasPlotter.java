@@ -35,10 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.DataPredicates;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -51,6 +48,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -101,14 +99,8 @@ public class AtlasPlotter {
                     return (long) input.getGeneId();
                 }
             });
-            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-            final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA;
-            try {
-                geneIdsToEfToEfvToEA =
-                        ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
-            } finally {
-                ewd.close();
-            }
+            Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                    getGeneIdsToEfToEfvToEA(experiment, ef, efv, geneIds);
             if (geneIdsToEfToEfvToEA == null) {
                 return null;
             }
@@ -148,6 +140,17 @@ public class AtlasPlotter {
             throw createUnexpected("AtlasDataException whilst trying to read data for experiment " + experiment, e);
         }
         return null;
+    }
+
+    private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getGeneIdsToEfToEfvToEA(Experiment experiment, String ef, String efv, Collection<Long> geneIds) throws AtlasDataException {
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+        try {
+            return ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
+        } catch (StatisticsNotFoundException e) {
+            return null;
+        } finally {
+            closeQuietly(ewd);
+        }
     }
 
     private List<AtlasGene> parseGenes(String geneIdKey) {
@@ -527,48 +530,50 @@ public class AtlasPlotter {
             String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession).getName();
             String arrayDesignDescription = bestArrayDesignAccession + (arrayDesignName != null ? " " + arrayDesignName : "");
 
+            final BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();
             // Find best pValue expressions for geneId and ef in bestProxyId - it's expression values for these
             // that will be plotted
-            Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy =
-                    ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
+            Map<String, ExpressionAnalysis> bestEAsPerEfvInProxy = null;
 
-            AssayFactorValues factorValues = new AssayFactorValues(ewd.getFactorValues(ad, ef));
-            BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();
+            try {
+                bestEAsPerEfvInProxy = ewd.getBestEAsPerEfvInProxy(ad, geneId, ef);
+                final AssayFactorValues factorValues = new AssayFactorValues(ewd.getFactorValues(ad, ef));
+                for (String factorValue : factorValues.getUniqueValues()) {
+                    ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
 
+                    if (bestEA == null) {
+                        // If no bestEA expression analysis for factorValue could be found in proxy
+                        // (e.g. factorValue is present, but only with pVal == 0) then don't
+                        // plot this factorValue for arrayDesign
+                        continue;
+                    }
 
-            for (String factorValue : factorValues.getUniqueValues()) {
-                ExpressionAnalysis bestEA = bestEAsPerEfvInProxy.get(factorValue);
+                    // Get the actual expression data from the proxy-designindex corresponding to the best pValue
+                    final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
 
-                if (bestEA == null) {
-                    // If no bestEA expression analysis for factorValue could be found in proxy
-                    // (e.g. factorValue is present, but only with pVal == 0) then don't
-                    // plot this factorValue for arrayDesign
-                    continue;
+                    Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, Floats.asList(expressions));
+
+                    barPlotData.addFactorValue(
+                            factorValue,
+                            bestEA,
+                            efvsToPlot.contains(factorValue),
+                            assays);
+
+                    if (!efvsToPlot.contains(factorValue))
+                        log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
+                                "flagging this series insignificant");
                 }
-
-                // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
-
-                Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, Floats.asList(expressions));
-
-                barPlotData.addFactorValue(
-                        factorValue,
-                        bestEA,
-                        efvsToPlot.contains(factorValue),
-                        assays);
-
-                if (!efvsToPlot.contains(factorValue))
-                    log.debug(experiment + ": Factor value: " + factorValue + " not present in efvsToPlot (" + StringUtils.join(efvsToPlot, ",") + "), " +
-                            "flagging this series insignificant");
+            } catch (StatisticsNotFoundException e) {
+                // ignore
             }
 
-            Map<String, Object> options = makeMap(
+            final Map<String, Object> options = makeMap(
                     "arrayDesign", arrayDesignDescription,
                     "ef", ef);
 
             return barPlotData.toSeries(options);
         } finally {
-            ewd.close();
+            closeQuietly(ewd);
         }
     }
 
@@ -583,16 +588,18 @@ public class AtlasPlotter {
         // Get assayFVs from the proxy from which ea came
         final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
         // Get actual expression data from the design element stored in ea
-        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         final String[] assayFVs;
         final List<String> uniqueFVs;
         final float[] expressions;
-        try {
-            assayFVs = ewd.getFactorValues(arrayDesign, ef);
-            uniqueFVs = sortUniqueFVs(assayFVs);
-            expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
-        } finally {
-            ewd.close();
+        {
+            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
+            try {
+                assayFVs = ewd.getFactorValues(arrayDesign, ef);
+                uniqueFVs = sortUniqueFVs(assayFVs);
+                expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
+            } finally {
+                closeQuietly(ewd);
+            }
         }
 
 

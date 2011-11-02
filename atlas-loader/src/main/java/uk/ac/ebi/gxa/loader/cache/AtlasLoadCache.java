@@ -25,16 +25,18 @@ package uk.ac.ebi.gxa.loader.cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.data.DataMatrixStorage;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
