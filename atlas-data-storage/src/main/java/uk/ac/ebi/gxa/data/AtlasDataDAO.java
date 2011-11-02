@@ -32,6 +32,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import javax.annotation.Nullable;
 import java.io.File;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.String.format;
 
 /**
@@ -60,7 +61,7 @@ public class AtlasDataDAO {
     private File getFile(Experiment experiment, ArrayDesign arrayDesign, @Nullable String suffix) {
         return new File(getDataDirectory(experiment),
                 format("%s_%s%s.nc", experiment.getAccession(), arrayDesign.getAccession(),
-                        suffix == null ? "" : "_" + suffix));
+                        isNullOrEmpty(suffix) ? "" : "_" + suffix));
     }
 
     DataProxy createDataProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
