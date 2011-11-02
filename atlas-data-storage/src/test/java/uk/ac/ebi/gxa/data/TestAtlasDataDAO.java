@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicates;
 import junit.framework.TestCase;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -68,8 +67,9 @@ public class TestAtlasDataDAO extends TestCase {
     public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException, StatisticsNotFoundException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
+            ExperimentPart expPart = new ArrayDesignAmbiguity().containsGenes(geneIds).resolve(ewd);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    ewd.getExpressionAnalysesForGeneIds(geneIds, Predicates.<ArrayDesign>alwaysTrue());
+                    expPart.getExpressionAnalysesForGeneIds(geneIds);
 
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));

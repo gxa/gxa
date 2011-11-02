@@ -145,7 +145,11 @@ public class AtlasPlotter {
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getGeneIdsToEfToEfvToEA(Experiment experiment, String ef, String efv, Collection<Long> geneIds) throws AtlasDataException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            return ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
+            ExperimentPart expPart = new ArrayDesignAmbiguity()
+                    .containsGenes(geneIds)
+                    .containsEfEfv(ef, efv)
+                    .resolve(ewd);
+            return expPart.getExpressionAnalysesForGeneIds(geneIds);
         } catch (StatisticsNotFoundException e) {
             return null;
         } finally {
