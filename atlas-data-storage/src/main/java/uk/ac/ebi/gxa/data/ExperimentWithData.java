@@ -36,7 +36,9 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class ExperimentWithData implements Closeable {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -229,9 +231,16 @@ public class ExperimentWithData implements Closeable {
         return getExpressionAnalysesByFactor(arrayDesign, deIndex, null, null);
     }
 
-    // returns
-    //     list of ExpressionAnalyses for given ArrayDesign and ef/efv pair if ef is not null
-    //     list of all ExpressionAnalyses for given ArrayDesign otherwise
+    /**
+     * @param arrayDesign ArrayDesign to search in
+     * @param deIndex     index of DE of interest
+     * @param efName      name of EF to search for (<code>null</code> for all EFs)
+     * @param efvName     value of EF to search for
+     * @return list of ExpressionAnalyses for given ArrayDesign and ef/efv pair if ef is not null
+     *         list of all ExpressionAnalyses for given ArrayDesign otherwise
+     * @throws AtlasDataException          if data files are not found, broken or otherwise cause an error reading
+     * @throws StatisticsNotFoundException if statistics is not ready
+     */
     private List<ExpressionAnalysis> getExpressionAnalysesByFactor(
             ArrayDesign arrayDesign, int deIndex,
             @Nullable String efName, @Nullable String efvName) throws AtlasDataException, StatisticsNotFoundException {
@@ -261,7 +270,6 @@ public class ExperimentWithData implements Closeable {
     }
 
     /**
-     * /**
      * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueValues,
      * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
@@ -303,15 +311,14 @@ public class ExperimentWithData implements Closeable {
             @Nullable final String efvVal,
             final UpDownCondition upDownCondition
     ) throws AtlasDataException, StatisticsNotFoundException {
-        final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = new HashMap<Long, Map<String, Map<String, ExpressionAnalysis>>>();
+        final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = newHashMap();
 
         for (Map.Entry<Long, List<Integer>> entry : geneIdsToDEIndexes.entrySet()) {
             final Long geneId = entry.getKey();
 
             if (geneId == 0) continue; // skip geneid = 0
 
-            final Map<String, Map<String, ExpressionAnalysis>> resultForGene =
-                    new HashMap<String, Map<String, ExpressionAnalysis>>();
+            final Map<String, Map<String, ExpressionAnalysis>> resultForGene = newHashMap();
             result.put(geneId, resultForGene);
 
             for (Integer deIndex : entry.getValue()) {
@@ -319,11 +326,14 @@ public class ExperimentWithData implements Closeable {
                 if (efVal != null && efvVal != null) {
                     final List<ExpressionAnalysis> eas =
                             getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
-                    if (!eas.isEmpty()) { // this means eas.size() == 1
-                        final ExpressionAnalysis analysis = eas.get(0);
-                        if (upDownCondition.apply(analysis.getUpDownExpression())) {
-                            eaList.add(analysis);
-                        }
+                    if (!eas.isEmpty()) {
+                        if (eas.size() == 1) {
+                            final ExpressionAnalysis analysis = eas.get(0);
+                            if (upDownCondition.apply(analysis.getUpDownExpression())) {
+                                eaList.add(analysis);
+                            }
+                        } else
+                            throw createUnexpected("We always expect eas to be either empty or of size == 1");
                     }
                 } else {
                     eaList.addAll(getAllExpressionAnalyses(arrayDesign, deIndex));
