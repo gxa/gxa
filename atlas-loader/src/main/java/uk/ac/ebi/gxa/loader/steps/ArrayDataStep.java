@@ -280,7 +280,6 @@ public class ArrayDataStep {
                     for (int i = 0; i < fileNames.size(); ++i) {
                         final Assay assay = assayMap.get(fileNames.get(i));
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
-                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     }
                     if (!mergedFile.delete()) {
                         log.warn("Cannot delete" + mergedFile.getAbsolutePath());

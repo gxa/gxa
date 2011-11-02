@@ -108,7 +108,7 @@ public class AssayAndHybridizationStep {
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesign(arrayDesignAccession);
+            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
             if (ad == null) {
                 throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
             }
@@ -188,7 +188,7 @@ public class AssayAndHybridizationStep {
 
         // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesign(arrayDesignAccession);
+            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
             if (ad == null) {
                 throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
             }
