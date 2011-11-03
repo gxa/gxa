@@ -31,7 +31,7 @@ done
 # logout from Atlas admin
 curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$4:$5/$6/admin?op=logout&indent" >> /dev/null
 
-mailx -s `eval date +%H:%M:%S`" The following experiments were unloaded from Atlas: " $7 < $process_file.log
+mailx -s `eval date +%H:%M:%S`" The following experiments were scheduled for unloading from Atlas: " $7 < $process_file.log
 
 rm -rf /tmp/experiments_ef_status.txt.$process_data
 rm -rf /tmp/uncurated_experiments.txt.$process_data
