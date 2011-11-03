@@ -520,8 +520,8 @@ find.best.design.elements <<-
 
     propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
     propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
-    uval <- paste(propertyNAME, propertyVALUE, sep = "||")
-    wuval <- c()
+    uefv <- paste(propertyNAME, propertyVALUE, sep = "||")
+    wuefv <- c()
 
     if ((!is.null(ef) && ef != "") && isEmptyEFV(efv)) {
       wuefv <- grep(paste(ef,"||",sep = ""), uefv, fixed = TRUE)
