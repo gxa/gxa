@@ -86,12 +86,10 @@ public class ListResultRow implements Comparable<ListResultRow> {
     }
 
     public float getMinPval() {
-        if (isMixedCell())
+        if (isMixedCell()) {
             return Math.min(Math.abs(minPval_dn), Math.abs(minPval_up));
-        else if (count_dn > 0)
-            return minPval_dn;
-        else
-            return minPval_up;
+        }
+        return (count_dn > 0) ? minPval_dn : minPval_up;
     }
 
     public String getRow_id() {
@@ -114,9 +112,8 @@ public class ListResultRow implements Comparable<ListResultRow> {
     }
 
     public String getExpr() {
-        if (count_dn > 0) return "dn";
-        else if (count_up > 0) return "up";
-        else return "";
+        return (count_dn > 0) ? "dn" :
+                (count_up > 0) ? "up" : "";
     }
 
 
