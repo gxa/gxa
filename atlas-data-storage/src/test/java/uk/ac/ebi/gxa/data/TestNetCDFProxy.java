@@ -31,21 +31,22 @@ import java.util.Set;
 import static com.google.common.io.Closeables.close;
 
 public class TestNetCDFProxy extends TestCase {
-    private File netCDFfile;
-
-    private DataProxy netCDF;
+    private DataProxy netCDFV1;
+    private DataProxy netCDFV2;
 
     @Override
     protected void setUp() throws Exception {
-        netCDFfile = new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI());
-        netCDF = new NetCDFProxyV1(netCDFfile);
+        netCDFV1 = new NetCDFProxyV1(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/E-MEXP-1586_A-AFFY-44.nc").toURI()));
+        netCDFV2 = new NetCDFProxyV2(new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/v2/E-MEXP-1586_A-AFFY-44_data.nc").toURI()),
+                new File(getClass().getClassLoader().getResource("MEXP/1500/E-MEXP-1586/v2/E-MEXP-1586_A-AFFY-44_statistics.nc").toURI()));
     }
 
     @Override
     protected void tearDown() throws Exception {
-        netCDFfile = null;
-        close(netCDF, false);
-        netCDF = null;
+        close(netCDFV1, false);
+        netCDFV1 = null;
+        close(netCDFV2, false);
+        netCDFV2 = null;
     }
 
     public void testisOutOfDate() throws Exception {
@@ -58,23 +59,31 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     public void testGetExperiment() throws AtlasDataException {
-        System.out.println("Experiment: " + netCDF.getExperimentAccession());
+        System.out.println("Experiment: " + netCDFV1.getExperimentAccession());
+        System.out.println("Experiment: " + netCDFV2.getExperimentAccession());
     }
 
     public void testGetArrayDesign() throws AtlasDataException {
-        System.out.println("ArrayDesign: " + netCDF.getArrayDesignAccession());
-    }
-
-
-    public void testGetFactors() throws AtlasDataException {
-        System.out.print("EFs: {");
-        for (String factor : netCDF.getFactors()) {
-            System.out.print(factor + ", ");
-        }
-        System.out.println("}");
+        System.out.println("ArrayDesign: " + netCDFV1.getArrayDesignAccession());
+        System.out.println("ArrayDesign: " + netCDFV1.getArrayDesignAccession());
     }
 
     public void testGetFactorValues() throws AtlasDataException {
+        testGetFactorValues(netCDFV1);
+        testGetFactorValues(netCDFV2);
+    }
+
+    public void testGetUniqueEVFs() throws AtlasDataException, StatisticsNotFoundException {
+        testGetUniqueEVFs(netCDFV1);
+        testGetUniqueEVFs(netCDFV2);
+    }
+
+    public void testGetCharacteristicValues() throws AtlasDataException {
+        testGetCharacteristicValues(netCDFV1);
+        testGetCharacteristicValues(netCDFV2);
+    }
+
+    private void testGetFactorValues(DataProxy netCDF) throws AtlasDataException {
         for (String factor : netCDF.getFactors()) {
             System.out.print("EFVs for " + factor + " {");
             for (String efv : netCDF.getFactorValues(factor)) {
@@ -84,7 +93,7 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    public void testGetUniqueEVFs() throws AtlasDataException, StatisticsNotFoundException {
+    private void testGetUniqueEVFs(DataProxy netCDF) throws AtlasDataException, StatisticsNotFoundException {
         final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
         for (KeyValuePair uefv : netCDF.getUniqueEFVs()) {
             if (uniques.contains(uefv)) {
@@ -95,34 +104,9 @@ public class TestNetCDFProxy extends TestCase {
         }
     }
 
-    /*
-    public void testGetUniqueValues() throws AtlasDataException {
-        Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
-        List<KeyValuePair> uVals = netCDF.getUniqueValues();
-        List<KeyValuePair> uefvs = netCDF.getUniqueFactorValues();
-        assertTrue(uVals.size() >= uefvs.size());
-
-        for (KeyValuePair uefv : uVals) {
-            if (uniques.contains(uefv)) {
-                fail("Found a duplicate: " + uefv);
-            } else {
-                uniques.add(uefv);
-            }
-        }
-    }
-    */
-
-    public void testGetCharacteristics() throws AtlasDataException {
-        System.out.print("SCs: {");
+    private void testGetCharacteristicValues(DataProxy netCDF) throws AtlasDataException {
         for (String characteristic : netCDF.getCharacteristics()) {
-            System.out.print(characteristic + ", ");
-        }
-        System.out.println("}");
-    }
-
-    public void testGetCharacteristicValues() throws AtlasDataException {
-        for (String characteristic : netCDF.getCharacteristics()) {
-            System.out.print("SCVs: {");
+            System.out.print("EFVs for " + characteristic + " {");
             for (String scv : netCDF.getCharacteristicValues(characteristic)) {
                 System.out.print(scv + ", ");
             }
