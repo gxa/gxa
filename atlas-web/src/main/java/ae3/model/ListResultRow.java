@@ -35,15 +35,15 @@ import java.util.Collection;
  * @author iemam
  */
 public class ListResultRow implements Comparable<ListResultRow> {
-    private String fv;
-    private String ef;
-    private int count_up;
-    private int count_dn;
-    private int count_no;
-    private float minPval_up;
-    private float minPval_dn;
+    private final String fv;
+    private final String ef;
+    private final int count_up;
+    private final int count_dn;
+    private final int count_no;
+    private final float minPval_up;
+    private final float minPval_dn;
     private AtlasGene gene;
-    public String designElementAccession;
+    public final String designElementAccession;
 
     Collection<ListResultRowExperiment> exp_list = new ArrayList<ListResultRowExperiment>();
 
