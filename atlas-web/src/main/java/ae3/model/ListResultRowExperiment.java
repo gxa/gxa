@@ -23,16 +23,16 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * @author pashky
  */
 public class ListResultRowExperiment {
-    private UpDownExpression updn;
-    private float pvalue;
-    private Experiment experiment;
+    private final UpDownExpression updn;
+    private final float pvalue;
+    private final Experiment experiment;
 
     /**
      * Constructor
