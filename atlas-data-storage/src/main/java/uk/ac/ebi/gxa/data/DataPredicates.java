@@ -62,7 +62,7 @@ public class DataPredicates {
                 new Predicate<ArrayDesign>() {
                     public boolean apply(@Nonnull ArrayDesign arrayDesign) {
                         try {
-                            for (KeyValuePair uefv : ewd.getUniqueFactorValues(arrayDesign)) {
+                            for (KeyValuePair uefv : ewd.getUniqueEFVs(arrayDesign)) {
                                 if (uefv.key.equals(ef) &&
                                         (isNullOrEmpty(efv) || uefv.value.equals(efv))) {
                                     return true;

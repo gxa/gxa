@@ -167,22 +167,9 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getGenes();
     }
 
-    public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
-        List<String> factors = Arrays.asList(getFactors(arrayDesign));
-
-        for (KeyValuePair propVal : getUniqueValues(arrayDesign)) {
-            if (factors.contains(propVal.key)) {
-                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
-                uniqueEFVs.add(propVal);
+    public List<KeyValuePair> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+        return getProxy(arrayDesign).getUniqueEFVs();
             }
-        }
-        return uniqueEFVs;
-    }
-
-    public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        return getProxy(arrayDesign).getUniqueValues();
-    }
 
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getFactors();
@@ -245,29 +232,28 @@ public class ExperimentWithData implements Closeable {
         final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
         final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
 
-        final List<KeyValuePair> uniqueValues = getUniqueValues(arrayDesign);
-
-        final List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
+        final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
-            final KeyValuePair uniqueValue = uniqueValues.get(efIndex);
+            final KeyValuePair uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
             if (efName == null ||
-                    (uniqueValue.key.equals(efName) && uniqueValue.value.equals(efvName))) {
-                result.add(new ExpressionAnalysis(
+                (uniqueEFV.key.equals(efName) && uniqueEFV.value.equals(efvName))) {
+                list.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
                         deIndex,
-                        uniqueValue.key,
-                        uniqueValue.value,
+                    uniqueEFV.key,
+                    uniqueEFV.value,
                         t[efIndex],
                         p[efIndex]
                 ));
             }
         }
-        return result;
+        return list;
     }
 
     /**
-     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueValues,
+     * /**
+     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueEFVs,
      * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
@@ -287,7 +273,7 @@ public class ExperimentWithData implements Closeable {
 
     /**
      * For each gene in the keySet() of geneIdsToDEIndexes,  and for either efVal-efvVal or (if both arguments are not null)
-     * for each efv in uniqueValues, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * for each efv in uniqueEFVs, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA - if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
      *

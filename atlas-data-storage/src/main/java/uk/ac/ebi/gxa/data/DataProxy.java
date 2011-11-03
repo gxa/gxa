@@ -86,7 +86,7 @@ interface DataProxy extends Closeable {
 
     TwoDFloatArray getAllExpressionData() throws AtlasDataException;
 
-    List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException;
+    List<KeyValuePair> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
 
     FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
 
