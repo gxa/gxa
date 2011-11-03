@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
@@ -126,7 +127,7 @@ public class AtlasMAGETABLoader {
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, isHTS(investigation));
 
                 boolean arrayDataRead = false;
                 //use raw data
@@ -145,8 +146,10 @@ public class AtlasMAGETABLoader {
 
                 //load RNA-seq experiment
                 //ToDo: add condition based on "getUserData"
-                logProgress(listener, 7, HTSArrayDataStep.displayName());
-                new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                if (isHTS(investigation)) {
+                    logProgress(listener, 7, HTSArrayDataStep.displayName());
+                    new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
@@ -309,5 +312,21 @@ public class AtlasMAGETABLoader {
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public boolean isHTS(MAGETABInvestigation investigation) {
+        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
+        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        if (scanNodes.size() == 0) {
+            log.info("No comment scan nodes found - investigation: " + investigation.accession + " not HTS");
+            return false;
+        }
+        for (ScanNode scanNode : scanNodes) {
+            if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
+                log.info("No comment[ENA_RUN] found - investigation: " + investigation.accession + " not HTS");
+                return false;
+            }
+        }
+        return true;
     }
 }

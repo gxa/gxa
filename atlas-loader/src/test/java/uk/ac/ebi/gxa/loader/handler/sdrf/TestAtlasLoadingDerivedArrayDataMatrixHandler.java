@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
@@ -110,7 +111,7 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, (new AtlasMAGETABLoader()).isHTS(investigation));
         new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
 
         System.out.println("Parsing done");
