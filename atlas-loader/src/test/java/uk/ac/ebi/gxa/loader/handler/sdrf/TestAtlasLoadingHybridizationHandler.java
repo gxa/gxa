@@ -34,7 +34,6 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -45,6 +44,8 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 
 public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
     private URL parseURL;
@@ -120,7 +121,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, (new AtlasMAGETABLoader()).isHTS(investigation));
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, isHTS(investigation));
 
         System.out.println("parse() completed!");
 

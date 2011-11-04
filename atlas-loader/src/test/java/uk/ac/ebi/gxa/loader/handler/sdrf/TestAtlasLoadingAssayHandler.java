@@ -34,7 +34,6 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -45,24 +44,21 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
+
 public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
     private URL parseURL;
-
-    private volatile Integer counter;
 
     public void setUp() {
         cache = new AtlasLoadCache();
 
         parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790B.idf.txt");
 
-        counter = 0;
-
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
     }
 
     public void tearDown() throws Exception {
-        counter = null;
     }
 
     public void testWriteValues() throws AtlasLoaderException {
@@ -74,7 +70,6 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
 
             public void errorOccurred(ErrorItem item) {
                 // update counter
-                counter++;
 
                 // lookup message
                 String message = "";
@@ -100,8 +95,7 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
                         } else {
                             message = "Unknown error";
                         }
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         message = "Unknown error";
                     }
                 }
@@ -120,7 +114,7 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, (new AtlasMAGETABLoader()).isHTS(investigation));
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, isHTS(investigation));
 
         System.out.println("Parsing done");
         checkAssaysInCache();
