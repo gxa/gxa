@@ -105,7 +105,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(expt);
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, (new AtlasMAGETABLoader()).isHTS(investigation));
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, AtlasMAGETABLoader.isHTS(investigation));
 
         log.debug("JLP =" + System.getProperty("java.library.path"));
         new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache, dao);
@@ -143,7 +143,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, (new AtlasMAGETABLoader()).isHTS(investigation));
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, AtlasMAGETABLoader.isHTS(investigation));
 
 
         // parsing finished, look in our cache...

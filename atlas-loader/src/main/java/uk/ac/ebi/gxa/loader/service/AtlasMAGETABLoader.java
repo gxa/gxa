@@ -65,7 +65,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.*;
  * @author Tony Burdett
  */
 public class AtlasMAGETABLoader {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(AtlasMAGETABLoader.class);
 
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
@@ -314,7 +314,7 @@ public class AtlasMAGETABLoader {
         this.unloaderService = unloaderService;
     }
 
-    public boolean isHTS(MAGETABInvestigation investigation) {
+    public static boolean isHTS(MAGETABInvestigation investigation) {
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         if (scanNodes.size() == 0) {
