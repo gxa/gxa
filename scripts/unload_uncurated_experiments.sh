@@ -5,7 +5,7 @@
 # This script serves to identify and then unload all experiments that don't contain experimental factors (i.e. are uncurated). To be run on a server where NCDF_DIR is nfs-mounted.
 
 if [ $# -eq 0 ]; then
-        echo "Usage: $0 NCDF_DIR ADMIN_USERNAME ADMIN_PASSWORD ATLAS_URL ATLAS_PORT ATLAS_ROOT ERROR_NOTIFICATION_EMAILADDRESS"
+        echo "Usage: $0 NCDF_DIR ADMIN_USERNAME ADMIN_PASSWORD ATLAS_HOST ATLAS_PORT ATLAS_ROOT ERROR_NOTIFICATION_EMAILADDRESS"
         echo "e.g. $0 <ncdf_dir> admin <pwd> lime 14032 gxa-load atlas-developers@ebi.ac.uk"
         exit;
 fi
