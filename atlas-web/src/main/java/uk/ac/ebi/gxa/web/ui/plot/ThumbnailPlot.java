@@ -113,7 +113,7 @@ public class ThumbnailPlot {
                 i++;
             }
             list = new ArrayList<Point>();
-            if (iMax > iMin) {
+            if (iMax < iMin) {
                 list.add(pMax);
                 list.add(pMin);
             } else {
