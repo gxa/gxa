@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,17 +55,15 @@ public class AssayAndHybridizationStep {
     }
 
     public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao, boolean isHTS) throws AtlasLoaderException {
-        boolean isRNASeq = false;
 
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
                 writeScanNode(scanNode, cache, investigation, dao, isHTS);
-                isRNASeq = true;
             }
         }
 
-        if (!isRNASeq) {
+        if (!isHTS) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
                 writeHybridizationNode(hybridizationNode, cache, investigation, dao, isHTS);
             }
@@ -85,7 +84,7 @@ public class AssayAndHybridizationStep {
             log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
         } else {
-            // create a new sample and add it to the cache
+            // create a new assay and add it to the cache
             assay = new Assay(node.getNodeName());
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
@@ -222,7 +221,7 @@ public class AssayAndHybridizationStep {
 
             // does this assay already contain this property/property value pair?
             boolean existing = false;
-            for (AssayProperty ap : assay.getProperties(factorValueAttribute.type)) {
+            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(factorValueAttribute.type))) {
                 existing = true;
                 if (!ap.getValue().equals(factorValueName)) {
                     throw new AtlasLoaderException(
