@@ -90,7 +90,7 @@ public class ThumbnailPlot {
         return this;
     }
 
-    private Collection<Object> rangeOf(List<Point> list) {
+    private Collection<Object> range(List<Point> list) {
         if (list.size() >= 3) {
             Point pMin = null, pMax = null;
             int iMax = 0, iMin = 0, i = 0;
@@ -139,7 +139,7 @@ public class ThumbnailPlot {
             Point scaled = p.scale(xScale, yScale);
             if (scaled.x > xPrev || scaled.isNaN()) {
                 if (!subset.isEmpty()) {
-                    series.addAll(rangeOf(subset));
+                    series.addAll(range(subset));
                     subset.clear();
                 }
             }
