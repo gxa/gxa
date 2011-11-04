@@ -169,16 +169,16 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private void populateArrayDesign(HybridizationNode node, Assay assay, LoaderDAO dao) throws AtlasLoaderException {
+    private void populateArrayDesign(HybridizationNode assayNode, Assay assay, LoaderDAO dao) throws AtlasLoaderException {
         // add array design accession
-        if (node.arrayDesigns.size() > 1) {
-            throw new AtlasLoaderException(node.arrayDesigns.size() == 0 ?
+        if (assayNode.arrayDesigns.size() > 1) {
+            throw new AtlasLoaderException(assayNode.arrayDesigns.size() == 0 ?
                     "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
                     "Assay references more than one array design, this is disallowed");
         }
 
-        final String arrayDesignAccession = node.arrayDesigns.size() == 1 ?
-                node.arrayDesigns.get(0).getNodeName()
+        final String arrayDesignAccession = assayNode.arrayDesigns.size() == 1 ?
+                assayNode.arrayDesigns.get(0).getNodeName()
                 : StringUtils.EMPTY;
 
         // only one, so set the accession
