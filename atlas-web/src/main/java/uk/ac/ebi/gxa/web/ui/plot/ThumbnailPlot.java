@@ -194,6 +194,7 @@ public class ThumbnailPlot {
             }
 
             float value = ev.getValue();
+            //TODO move this -1e6 value check to the lower layers
             seriesData.add(new Point(seriesData.size() + 1, value <= -1000000 ? Float.NaN : value));
         }
 
