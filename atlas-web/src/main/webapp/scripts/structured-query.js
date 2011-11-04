@@ -373,13 +373,12 @@ if(!atlas)
             var i = m[3];
 
             $(".thumb" + i).not(".done").each(function() {
-                var plot_id = this.id;
-                var tokens = plot_id.split('_');
-                var eacc = tokens[1];
-                var divEle = $(this);
-                atlas.ajaxCall("/thumbnailPlot", {gid: gid, eacc: eacc, ef: ef, efv: efv}, function(jsonObj) {
+                var el = $(this),
+                    eacc = el.attr("eacc"),
+                    deacc = el.attr("deacc");
+                atlas.ajaxCall("/deThumbnail", {eacc: eacc, ef: ef, efv: efv, deacc: deacc}, function(jsonObj) {
                     if (jsonObj.plot) {
-                        $.plot(divEle, jsonObj.plot.series, jsonObj.plot.options);
+                        $.plot(el, jsonObj.plot.series, jsonObj.plot.options);
                     }
                 });
 

@@ -31,6 +31,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -100,6 +101,24 @@ public class ArrayDesignAmbiguity {
             @Override
             public String toString() {
                 return "ContainsGenes(" + geneIds + ")";
+            }
+        });
+    }
+
+    public ArrayDesignAmbiguity containsDeAccessions(final List<String> deAccessions) {
+        return addCriteria(new Predicate<ExperimentPart>() {
+            public boolean apply(@Nonnull ExperimentPart expPart) {
+                try {
+                    return expPart.containsDeAccessions(deAccessions);
+                } catch (AtlasDataException e) {
+                    log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
+                    return false;
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "ContainsDEAccessions(" + deAccessions + ")";
             }
         });
     }

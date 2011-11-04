@@ -26,9 +26,9 @@ import com.google.common.primitives.Longs;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * @author Olga Melnichuk
@@ -55,12 +55,50 @@ public class ExperimentPart {
         return ewd.getExpressionAnalysesForGeneIds(geneIds, arrayDesign);
     }
 
-    public float[] getExpressionDataForDesignElementAtIndex(int deIndex) throws AtlasDataException {
-        return ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, deIndex);
-    }
-
     public String[] getFactorValues(String ef) throws AtlasDataException {
         return ewd.getFactorValues(arrayDesign, ef);
+    }
+
+    public List<ExpressionValue> getBestGeneExpressionValues(Long geneId, String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
+        Map<Long, Map<String, Map<String, ExpressionAnalysis>>> bestEAValues =
+                ewd.getExpressionAnalysesForGeneIds(Arrays.asList(geneId), arrayDesign);
+
+        if (bestEAValues == null) {
+            return Collections.emptyList();
+        }
+        Map<String, Map<String, ExpressionAnalysis>> eaByEfEfv = bestEAValues.get(geneId);
+        if (eaByEfEfv == null) {
+            return Collections.emptyList();
+        }
+        Map<String, ExpressionAnalysis> eaByEf = eaByEfEfv.get(ef);
+        if (eaByEf == null) {
+            return Collections.emptyList();
+        }
+        ExpressionAnalysis bestEA = eaByEf.get(efv);
+        return getDeExpressionValues(bestEA.getDesignElementIndex(), ef);
+    }
+
+    public List<ExpressionValue> getDeExpressionValues(String deAccession, String ef) throws AtlasDataException {
+        String[] deAccessions = ewd.getDesignElementAccessions(arrayDesign);
+        for (int i = 0; i < deAccessions.length; i++) {
+            if (deAccessions[i].equals(deAccession)) {
+                return getDeExpressionValues(i + 1, ef);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private List<ExpressionValue> getDeExpressionValues(int deIndex, String ef) throws AtlasDataException {
+        List<ExpressionValue> res = new ArrayList<ExpressionValue>();
+        float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, deIndex);
+        String[] assayEfvs = ewd.getFactorValues(arrayDesign, ef);
+        if (expressions.length != assayEfvs.length) {
+            throw createUnexpected("Inconsistent parallel arrays in " + toString() + ": " + expressions.length + " != " + assayEfvs.length);
+        }
+        for (int i = 0; i < expressions.length; i++) {
+            res.add(new ExpressionValue(ef, assayEfvs[i], expressions[i]));
+        }
+        return res;
     }
 
     @Override
@@ -68,5 +106,10 @@ public class ExperimentPart {
         return "ExperimentPart@{" +
                 ewd.getExperiment().getAccession() + "/" +
                 arrayDesign.getAccession() + "}";
+    }
+
+    public boolean containsDeAccessions(List<String> list) throws AtlasDataException {
+        String[] deAccessions = ewd.getDesignElementAccessions(arrayDesign);
+        return Arrays.asList(deAccessions).containsAll(list);
     }
 }
