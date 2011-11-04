@@ -78,12 +78,12 @@ public class FileUtil {
     }
 
     public static File getTempDirectory() {
-        File file = new File(System.getProperty("java.io.tmpdir"));
-        if (!file.canWrite())
-            throw createUnexpected(file + " is not writable");
-        if (!file.isDirectory())
-            throw createUnexpected(file + " is a directory");
-        return file;
+        File result = new File(System.getProperty("java.io.tmpdir"));
+        if (!result.canWrite())
+            throw createUnexpected(result + " is not writable");
+        if (!result.isDirectory())
+            throw createUnexpected(result + " is not a directory");
+        return result;
     }
 
     public static byte[] getMD5(File file) throws IOException, NoSuchAlgorithmException {
