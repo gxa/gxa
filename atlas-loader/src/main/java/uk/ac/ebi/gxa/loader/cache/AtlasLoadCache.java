@@ -32,6 +32,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
+import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
@@ -157,7 +158,7 @@ public class AtlasLoadCache implements ExperimentBuilder {
         return getDataMatrixFileBuffer(url, fileName, true);
     }
 
-    public DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName, boolean hasQtTypes)
+    public DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, @Nullable String fileName, boolean hasQtTypes)
             throws AtlasLoaderException {
 
         String filePath = url.toExternalForm();

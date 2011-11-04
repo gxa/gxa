@@ -22,21 +22,20 @@
 
 package uk.ac.ebi.gxa.requesthandlers.dump;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 
 import java.io.File;
 import java.io.FilenameFilter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.gxa.utils.FileUtil.getTempDirectory;
 import static uk.ac.ebi.gxa.utils.FileUtil.tempFile;
-
-import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
-import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.properties.ResourceFileStorage;
-import uk.ac.ebi.gxa.utils.FileUtil;
 
 /**
  * @author ostolop
@@ -47,7 +46,7 @@ public class GoogleSitemapXmlRequestHandlerTest extends AbstractOnceIndexTest {
     @After
     public void tearDown() {
         // cleanup
-        String[] filesToDelete = new File(getTempDirectory()).list(new FilenameFilter() {
+        String[] filesToDelete = getTempDirectory().list(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.startsWith("geneSitemap");
 
