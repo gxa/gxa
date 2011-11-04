@@ -23,12 +23,14 @@
 package uk.ac.ebi.gxa.web.ui.plot;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentPart;
 import uk.ac.ebi.gxa.data.ExpressionValue;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.utils.FactorValueOrdering;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -39,37 +41,124 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  */
 public class ThumbnailPlot {
 
-    public static Map<String, Object> create(ExperimentPart expPart, String deAccession, String ef, String efv) throws AtlasDataException {
+    private final List<Point> seriesData;
+    private final int startMark;
+    private final int endMark;
+    private float yScale = 1.0f;
+    private float xScale = 1.0f;
+
+    private ThumbnailPlot(@Nonnull List<Point> seriesData, int startMark, int endMark) {
+        this.seriesData = seriesData;
+        this.startMark = startMark;
+        this.endMark = endMark;
+    }
+
+    public static ThumbnailPlot create(ExperimentPart expPart, String deAccession, String ef, String efv) throws AtlasDataException {
         List<ExpressionValue> expressionValues = expPart.getDeExpressionValues(deAccession, ef);
         return createPlot(expressionValues, efv);
     }
 
-    public static Map<String, Object> create(ExperimentPart expPart, Long geneId, String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
+    public static ThumbnailPlot create(ExperimentPart expPart, Long geneId, String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
         List<ExpressionValue> expressionValues = expPart.getBestGeneExpressionValues(geneId, ef, efv);
         return createPlot(expressionValues, efv);
     }
 
-    private static Map<String, Object> createPlot(List<ExpressionValue> expressionValues, String efv) {
-        sortByFactorValues(expressionValues);
-
-        List<Object> seriesData = new ArrayList<Object>();
-        int startMark = -1;
-        int endMark = -1;
-
-        for (ExpressionValue ev : expressionValues) {
-            String efvi = ev.getEfv();
-            if (efvi.equals(efv)) {
-                startMark = startMark < 0 ? seriesData.size() + 1 : startMark;
-                endMark = seriesData.size() + 1;
-            }
-
-            float value = ev.getValue();
-            seriesData.add(Arrays.<Number>asList(seriesData.size() + 1, value <= -1000000 ? null : value));
+    public ThumbnailPlot scale(int width, int height) {
+        if (seriesData.isEmpty()) {
+            return this;
         }
+
+        int xMax = seriesData.size();
+        boolean found = false;
+        float yMin = 0;
+        float yMax = 0;
+        for (Point p : seriesData) {
+            if (!found && !p.isNaN()) {
+                yMin = p.y;
+                yMax = p.y;
+                found = true;
+            } else if (!p.isNaN()) {
+                yMin = Math.min(yMin, p.y);
+                yMax = Math.max(yMax, p.y);
+            }
+        }
+
+        if (found) {
+            xScale = (1.0f * width) / xMax;
+            yScale = (1.0f * height) / Math.abs(yMax - yMin);
+        }
+        return this;
+    }
+
+    private Collection<Object> rangeOf(List<Point> list) {
+        if (list.size() >= 3) {
+            Point pMin = null, pMax = null;
+            int iMax = 0, iMin = 0, i = 0;
+            for (Point p : list) {
+                if (pMin == null) {
+                    pMin = p;
+                    pMax = p;
+                    iMin = i;
+                    iMax = i;
+                } else {
+                    float yMin1 = Math.min(pMin.y, p.y);
+                    float yMax1 = Math.max(pMax.y, p.y);
+                    if (Math.abs(yMin1 - pMin.y) > Math.abs(yMin1 - p.y)) {
+                        iMin = i;
+                        pMin = p;
+                    }
+                    if (Math.abs(yMax1 - pMax.y) > Math.abs(yMax1 - p.y)) {
+                        iMax = i;
+                        pMax = p;
+                    }
+                }
+                i++;
+            }
+            list = new ArrayList<Point>();
+            if (iMax > iMin) {
+                list.add(pMax);
+                list.add(pMin);
+            } else {
+                list.add(pMin);
+                list.add(pMax);
+            }
+        }
+        return Lists.transform(list, new Function<Point, Object>() {
+            @Override
+            public Object apply(@Nullable Point input) {
+                return input == null ? null : input.asList();
+            }
+        });
+    }
+
+    public Map<String, Object> asMap() {
+        List<Object> series = new ArrayList<Object>();
+
+        int xPrev = -1;
+        List<Point> subset = new ArrayList<Point>();
+
+        for (Point p : seriesData) {
+            Point scaled = p.scale(xScale, yScale);
+            if (scaled.x > xPrev || scaled.isNaN()) {
+                if (!subset.isEmpty()) {
+                    series.addAll(rangeOf(subset));
+                    subset.clear();
+                }
+            }
+            if (scaled.isNaN()) {
+                series.add(scaled.asList());
+            } else {
+                subset.add(scaled);
+            }
+            xPrev = scaled.x;
+        }
+
+        int startMark = Math.round(this.startMark * xScale);
+        int endMark = Math.round(this.endMark * xScale);
 
         return makeMap(
                 "series", Collections.singletonList(makeMap(
-                "data", seriesData,
+                "data", series,
                 "lines", makeMap("show", true, "lineWidth", 2, "fill", false),
                 "legend", makeMap("show", false))),
                 "options", makeMap(
@@ -92,6 +181,27 @@ public class ThumbnailPlot {
         );
     }
 
+    private static ThumbnailPlot createPlot(List<ExpressionValue> expressionValues, String efv) {
+        sortByFactorValues(expressionValues);
+
+        List<Point> seriesData = new ArrayList<Point>();
+        int startMark = -1;
+        int endMark = -1;
+
+        for (ExpressionValue ev : expressionValues) {
+            String efvi = ev.getEfv();
+            if (efvi.equals(efv)) {
+                startMark = startMark < 0 ? seriesData.size() + 1 : startMark;
+                endMark = seriesData.size() + 1;
+            }
+
+            float value = ev.getValue();
+            seriesData.add(new Point(seriesData.size() + 1, value <= -1000000 ? Float.NaN : value));
+        }
+
+        return new ThumbnailPlot(seriesData, startMark, endMark);
+    }
+
     private static void sortByFactorValues(List<ExpressionValue> expressions) {
         Collections.sort(expressions, (new FactorValueOrdering()).onResultOf(
                 new Function<ExpressionValue, String>() {
@@ -101,6 +211,30 @@ public class ThumbnailPlot {
                     }
                 }
         ));
+    }
+
+    private static class Point {
+        private final int x;
+        private final float y;
+
+        private Point(int x, float y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        private List<Number> asList() {
+            return Arrays.<Number>asList(x, isNaN() ? null : y);
+        }
+
+        private boolean isNaN() {
+            return Float.isNaN(y);
+        }
+
+        private Point scale(float xScale, float yScale) {
+            return new Point(
+                    Math.round(x * xScale),
+                    isNaN() ? y : y * yScale);
+        }
     }
 
 }

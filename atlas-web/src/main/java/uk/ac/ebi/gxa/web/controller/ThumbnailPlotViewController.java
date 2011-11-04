@@ -66,8 +66,8 @@ public class ThumbnailPlotViewController extends AtlasViewController {
             @RequestParam("deacc") String deacc,
             @RequestParam("ef") String ef,
             @RequestParam("efv") String efv,
-            @RequestParam(value = "width", required = false, defaultValue = "90") String width,
-            @RequestParam(value = "height", required = false, defaultValue = "45") String height,
+            @RequestParam(value = "width", required = false, defaultValue = "90") Integer width,
+            @RequestParam(value = "height", required = false, defaultValue = "45") Integer height,
             Model model
     ) throws RecordNotFoundException, AtlasDataException, StatisticsNotFoundException {
 
@@ -81,7 +81,9 @@ public class ThumbnailPlotViewController extends AtlasViewController {
                     .resolve(ewd);
 
             model.addAttribute("plot",
-                    ThumbnailPlot.create(expPart, deacc, ef, efv));
+                    ThumbnailPlot.create(expPart, deacc, ef, efv)
+                            .scale(width, height)
+                            .asMap());
             return UNSUPPORTED_HTML_VIEW;
         } finally {
             closeQuietly(ewd);
@@ -94,8 +96,8 @@ public class ThumbnailPlotViewController extends AtlasViewController {
             @RequestParam("gid") Long geneId,
             @RequestParam("ef") String ef,
             @RequestParam("efv") String efv,
-            @RequestParam(value = "width", required = false, defaultValue = "90") String width,
-            @RequestParam(value = "height", required = false, defaultValue = "45") String height,
+            @RequestParam(value = "width", required = false, defaultValue = "90") Integer width,
+            @RequestParam(value = "height", required = false, defaultValue = "45") Integer height,
             Model model
     ) throws RecordNotFoundException, AtlasDataException, StatisticsNotFoundException {
         GeneSolrDAO.AtlasGeneResult geneResult = geneSolrDAO.getGeneById(geneId);
@@ -116,7 +118,9 @@ public class ThumbnailPlotViewController extends AtlasViewController {
                     .resolve(ewd);
 
             model.addAttribute("plot",
-                    ThumbnailPlot.create(expPart, geneId, ef, efv));
+                    ThumbnailPlot.create(expPart, geneId, ef, efv)
+                            .scale(width, height)
+                            .asMap());
             return UNSUPPORTED_HTML_VIEW;
         } finally {
             closeQuietly(ewd);
