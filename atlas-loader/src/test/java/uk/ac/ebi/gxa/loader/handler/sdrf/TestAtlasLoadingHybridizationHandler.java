@@ -45,8 +45,6 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
-
 public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
     private URL parseURL;
 
@@ -121,7 +119,7 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, isHTS(investigation));
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
         System.out.println("parse() completed!");
 

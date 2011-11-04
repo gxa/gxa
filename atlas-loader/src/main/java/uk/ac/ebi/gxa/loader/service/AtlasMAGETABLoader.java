@@ -127,7 +127,7 @@ public class AtlasMAGETABLoader {
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, isHTS(investigation));
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
                 boolean arrayDataRead = false;
                 //use raw data

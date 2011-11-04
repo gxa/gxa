@@ -26,7 +26,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -39,6 +42,8 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.Collection;
 import java.util.List;
+
+import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 
 /**
  * Experiment loading step that stores assay and hybridization nodes information
@@ -54,27 +59,28 @@ public class AssayAndHybridizationStep {
         return "Processing assay and hybridization nodes";
     }
 
-    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao, boolean isHTS) throws AtlasLoaderException {
-
+    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                writeScanNode(scanNode, cache, investigation, dao, isHTS);
+                writeScanNode(scanNode, cache, investigation, dao);
             }
         }
 
-        if (!isHTS) {
+        if (!isHTS(investigation)) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
-                writeHybridizationNode(hybridizationNode, cache, investigation, dao, isHTS);
+                writeHybridizationNode(hybridizationNode, cache, investigation, dao);
             }
 
             for (AssayNode assayNode : investigation.SDRF.lookupNodes(AssayNode.class)) {
-                writeHybridizationNode(assayNode, cache, investigation, dao, isHTS);
+                writeHybridizationNode(assayNode, cache, investigation, dao);
             }
         }
     }
 
-    private void writeHybridizationNode(HybridizationNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao, boolean isHTS) throws AtlasLoaderException {
+    private void writeHybridizationNode(HybridizationNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+        assert !isHTS(investigation);
+
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
 
         // create/retrieve the new assay
@@ -91,9 +97,7 @@ public class AssayAndHybridizationStep {
                     "count now = " + cache.fetchAllAssays().size());
         }
 
-        if (!isHTS) {
-            populateArrayDesign(node, assay, dao);
-        }
+        populateArrayDesign(node, assay, dao);
 
         // now record any properties
         writeAssayProperties(investigation, assay, node, dao);
@@ -108,7 +112,7 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private void writeScanNode(ScanNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao, boolean isHTS) throws AtlasLoaderException {
+    private void writeScanNode(ScanNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
         String enaRunName = node.comments.get("ENA_RUN");
 
         log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);
@@ -148,7 +152,7 @@ public class AssayAndHybridizationStep {
             );
         }
 
-        if (!isHTS) {
+        if (!isHTS(investigation)) {
             populateArrayDesign(assayNode, assay, dao);
         }
 
