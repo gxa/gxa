@@ -101,13 +101,11 @@ public class ThumbnailPlot {
                     iMin = i;
                     iMax = i;
                 } else {
-                    float yMin1 = Math.min(pMin.y, p.y);
-                    float yMax1 = Math.max(pMax.y, p.y);
-                    if (Math.abs(yMin1 - pMin.y) > Math.abs(yMin1 - p.y)) {
+                    if (pMin.y > p.y) {
                         iMin = i;
                         pMin = p;
                     }
-                    if (Math.abs(yMax1 - pMax.y) > Math.abs(yMax1 - p.y)) {
+                    if (pMax.y < p.y) {
                         iMax = i;
                         pMax = p;
                     }
