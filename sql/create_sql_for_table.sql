@@ -11,6 +11,7 @@ set verify off
 
 SELECT 'SELECT ' || WM_CONCAT(
   DECODE(data_type, 'DATE', 'TO_CHAR(' || column_name || ',''YYYY-MM-DD HH24:MI:SS'')',
+         'TIMESTAMP(6)', 'TO_CHAR(' || column_name || ',''YYYY-MM-DD HH24:MI:SS'')',
          DECODE(data_type, 'VARCHAR2',
                   ' DECODE(' || column_name || ', null, ' || column_name || ', REPLACE(' || column_name ||', chr(10), chr(32)))', column_name)))
  || ' FROM ' || UPPER('A2_&1')

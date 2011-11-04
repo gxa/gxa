@@ -12,6 +12,7 @@ set verify off
 SELECT  'OPTIONS(DIRECT=TRUE,ROWS=1000000) LOAD DATA TRUNCATE INTO TABLE ' || upper('A2_&1') ||
         ' FIELDS TERMINATED BY ''\t''' ||
         ' TRAILING NULLCOLS (' || WM_CONCAT(Column_Name ||
-          Decode(Data_Type, 'VARCHAR2', ' CHAR(' || data_length || ')', 'DATE', ' DATE "YYYY-MM-DD HH24:MI:SS"' )) || ')'
+          Decode(Data_Type, 'VARCHAR2', ' CHAR(' || data_length || ')', 'DATE', ' DATE "YYYY-MM-DD HH24:MI:SS"',
+           'TIMESTAMP(6)', ' TIMESTAMP "YYYY-MM-DD HH24:MI:SS"')) || ')'
 FROM user_tab_columns WHERE table_name=upper('A2_&1');
 exit;
