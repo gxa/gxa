@@ -11,7 +11,7 @@ if [ $# -eq 0 ]; then
 fi
 
 process_data="$4.$5.`eval date +%Y%m%d`"
-process_file="/tmp/unload_curated_experiments.$process_data"
+process_file="/tmp/unload_uncurated_experiments.$process_data"
 authentication_cookie=$process_file.$$
 
 rm -rf $process_file.log
