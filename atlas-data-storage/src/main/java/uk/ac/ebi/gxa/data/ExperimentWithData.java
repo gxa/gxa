@@ -168,7 +168,7 @@ public class ExperimentWithData implements Closeable {
 
     public List<KeyValuePair> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueEFVs();
-            }
+    }
 
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getFactors();
