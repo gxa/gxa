@@ -22,15 +22,13 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
@@ -117,6 +115,9 @@ public abstract class AnnotationSource implements Serializable {
         isApplied = applied;
     }
 
-    public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
+    public abstract  AnnotationSource createCopyForNewSoftware(Software newSoftware);
 
+    public abstract AnnotationSourceConnection createConnection();
+
+    public abstract Collection<String> findInvalidProperties();
 }

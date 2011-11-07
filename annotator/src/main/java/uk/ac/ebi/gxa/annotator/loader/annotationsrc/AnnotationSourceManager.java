@@ -1,14 +1,14 @@
 package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
 import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
-import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceConnectionFactory;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
@@ -23,11 +23,11 @@ import java.util.HashSet;
  * User: nsklyar
  * Date: 26/10/2011
  */
+@Service
 public class AnnotationSourceManager {
 
     @Autowired
     protected AnnotationSourceDAO annSrcDAO;
-
     @Autowired
     protected OrganismDAO organismDAO;
     @Autowired
@@ -38,23 +38,26 @@ public class AnnotationSourceManager {
     protected BioEntityPropertyDAO propertyDAO;
     @Autowired
     protected ArrayDesignService arrayDesignService;
+    @Autowired
+    protected AnnotationSourceStringConverter annSrcConverter;
 
     public Collection<AnnotationSource> getCurrentAnnotationSources() {
         final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
         for (AnnotationSourceClass sourceClass : AnnotationSourceClass.values()) {
-            final Collection<AnnotationSource> currentAnnotationSourcesOfType = getCurrentAnnotationSourcesOfType(sourceClass.getClazz());
+            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = getCurrentAnnotationSourcesOfType(sourceClass.getClazz());
             result.addAll(currentAnnotationSourcesOfType);
         }
         return result;
     }
 
-    private <T extends AnnotationSource> Collection<AnnotationSource> getCurrentAnnotationSourcesOfType(Class<T> type) {
+    @Transactional
+    public <T extends AnnotationSource> Collection<AnnotationSource> getCurrentAnnotationSourcesOfType(Class<T> type) {
         final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
         final Collection<T> currentAnnSrcs = annSrcDAO.getAnnotationSourcesOfType(type);
-        final Collection<T> oldSources = new HashSet<T>(currentAnnSrcs.size());
-        for (T annSrc : currentAnnSrcs) {
+        final Collection<AnnotationSource> oldSources = new HashSet<AnnotationSource>(currentAnnSrcs.size());
+        for (AnnotationSource annSrc : currentAnnSrcs) {
             try {
-                AnnotationSourceConnection connection = AnnotationSourceConnectionFactory.createConnectionForAnnSrc(annSrc);
+                AnnotationSourceConnection connection = annSrc.createConnection();
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
@@ -62,12 +65,8 @@ public class AnnotationSourceManager {
                 } else {
                     //check if AnnotationSource exists for new version
                     Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
-//                    BioMartAnnotationSource newAnnSrc = annSrcDAO.findAnnotationSource(newSoftware, annSrc.getOrganism(), BioMartAnnotationSource.class);
-//                    //create and Save new AnnotationSource
-//                    if (newAnnSrc == null) {
-                        AnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
-                        annSrcDAO.save(newAnnSrc);
-//                    }
+                    AnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
+                    annSrcDAO.save(newAnnSrc);
                     oldSources.add(annSrc);
                     result.add(newAnnSrc);
                 }
@@ -85,27 +84,15 @@ public class AnnotationSourceManager {
         }
     }
 
-    public String getAnnSrcString(String id) {
-        return null;
+    public String getAnnSrcString(String id,  AnnotationSourceClass type) {
+        Long aLong = Long.parseLong(id);
+        final AnnotationSource annotationSource = annSrcDAO.getById(aLong, type.getClazz());
+        return annSrcConverter.convertToString(annotationSource);
     }
 
-    public void saveAnnSrc(String text) {
-
-    }
-
-    public static enum AnnotationSourceClass{
-        BIOMART(BioMartAnnotationSource.class),
-        FILE(GeneSigAnnotationSource.class);
-
-       private final Class clazz;
-
-        <T extends AnnotationSource> AnnotationSourceClass(Class<T> clazz) {
-            this.clazz = clazz;
-        }
-
-        public <T extends AnnotationSource> Class<T> getClazz() {
-            return clazz;
-        }
+    public void saveAnnSrc(String text, AnnotationSourceClass type) {
+        final AnnotationSource annotationSource = annSrcConverter.convertToAnnotationSource(text, type);
+        annSrcDAO.save(annotationSource);
     }
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
@@ -130,5 +117,9 @@ public class AnnotationSourceManager {
 
     public void setArrayDesignService(ArrayDesignService arrayDesignService) {
         this.arrayDesignService = arrayDesignService;
+    }
+
+    public void setAnnSrcConverter(AnnotationSourceStringConverter annSrcConverter) {
+        this.annSrcConverter = annSrcConverter;
     }
 }

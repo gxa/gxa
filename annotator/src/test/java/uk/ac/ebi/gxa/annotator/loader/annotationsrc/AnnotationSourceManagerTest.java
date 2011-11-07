@@ -21,7 +21,7 @@ import java.util.Collection;
 @ContextConfiguration
 public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
 
-      @Autowired
+    @Autowired
     private AnnotationSourceDAO annSrcDAO;
     @Autowired
     private OrganismDAO organismDAO;
@@ -51,8 +51,7 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
     @Test
     public void testGetCurrentAnnotationSources() throws Exception {
         final Collection<AnnotationSource> currentAnnotationSources = manager.getCurrentAnnotationSources();
-        System.out.println("currentAnnotationSources = " + currentAnnotationSources);
-
+        assertEquals(2, currentAnnotationSources.size());
     }
 
     @Test

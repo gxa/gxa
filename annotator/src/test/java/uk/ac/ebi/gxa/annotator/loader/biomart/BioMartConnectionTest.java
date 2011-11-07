@@ -80,6 +80,7 @@ public class BioMartConnectionTest extends TestCase {
     @Test
     public void testFetchInfoFromRegistry() throws Exception {
         bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        bmService.connect();
         assertNotNull(bmService.getBioMartName());
         assertNotNull(bmService.getServerVirtualSchema());
     }

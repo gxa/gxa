@@ -2,7 +2,7 @@ package uk.ac.ebi.gxa.annotator.loader.filebased;
 
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 
 import java.util.Collection;
 import java.util.Set;
@@ -11,7 +11,7 @@ import java.util.Set;
  * User: nsklyar
  * Date: 26/10/2011
  */
-public class FileBasedConnection<T extends AnnotationSource> extends AnnotationSourceConnection<T> {
+public class FileBasedConnection extends AnnotationSourceConnection<GeneSigAnnotationSource> {
     public FileBasedConnection(String url) {
         //To change body of created methods use File | Settings | File Templates.
     }

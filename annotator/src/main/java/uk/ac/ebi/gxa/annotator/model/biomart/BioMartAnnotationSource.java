@@ -24,13 +24,17 @@ package uk.ac.ebi.gxa.annotator.model.biomart;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
+import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -232,4 +236,27 @@ public class BioMartAnnotationSource extends AnnotationSource {
                 ", bioMartProperties=" + bioMartProperties +
                 "} ";
     }
+
+    @Override
+    public BioMartConnection createConnection() {
+        return new BioMartConnection(this.getUrl(), this.getDatabaseName(), this.getDatasetName());
+    }
+
+    @Override
+    public Collection<String> findInvalidProperties() {
+        Collection<String> missingProperties = new HashSet<String>();
+        try {
+            final BioMartConnection connection = createConnection();
+            missingProperties.addAll(connection.validateAttributeNames(getBioMartPropertyNames()));
+            missingProperties.addAll(connection.validateAttributeNames(getBioMartArrayDesignNames()));
+            if (!connection.isValidDataSetName()) {
+                missingProperties.add(this.getDatasetName());
+            }
+        } catch (BioMartAccessException e) {
+            throw LogUtil.createUnexpected("Problem when fetching version for " + this.getSoftware().getName(), e);
+        }
+        return missingProperties;
+    }
+
+
 }

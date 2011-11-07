@@ -74,18 +74,25 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     private String bioMartName;
     private String serverVirtualSchema;
 
-    public BioMartConnection(String martUrl, String databaseName, String datasetName) throws BioMartAccessException {
+    private boolean connected = false;
+
+    public BioMartConnection(String martUrl, String databaseName, String datasetName) {
         this.martUrl = martUrl;
         this.datasetName = datasetName;
         this.databaseName = databaseName;
-        fetchInfoFromRegistry();
     }
 
 
-
+    void connect() throws BioMartAccessException {
+        if (!connected) {
+            fetchInfoFromRegistry();
+            connected = true;
+        }
+    }
 
     @Override
     public String getOnlineMartVersion() throws BioMartAccessException {
+        connect();
         URL url = null;
         BufferedReader bufferedReader = null;
         String version = null;
@@ -114,6 +121,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
 
     @Override
     public Collection<String> validateAttributeNames(Set<String> properties) throws BioMartAccessException {
+        connect();
         List<String> missingAttrs = new ArrayList<String>();
 
         String location = martUrl + ATTRIBUTES_QUERY + datasetName;
@@ -149,7 +157,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     }
 
     public boolean isValidDataSetName() throws BioMartAccessException {
-
+        connect();
         String location = martUrl + DATASETLIST_QUERY + bioMartName;
         URL url = getMartURL(location);
 
@@ -206,6 +214,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     }
 
     public URL getAttributesURL(Collection<String> attributes) throws BioMartAccessException {
+        connect();
         return getMartURL(getAttributesURLLocation(attributes));
     }
 

@@ -887,7 +887,8 @@ function compileTemplates() {
      compileTpl('orgList', {
         'tbody tr': {
             'annSrc <- annSrcs': {
-                'label.name': 'annSrc.organismName',
+                'label.annSrcType': 'annSrc.type',
+                '.name': 'annSrc.organismName',
                 '.types': 'annSrc.beTypes',
                 '.currAnnSrc': 'annSrc.currName',
                 '.validation': 'annSrc.validation',

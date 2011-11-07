@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceConnectionFactory;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
@@ -164,7 +163,7 @@ public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMar
         final Collection<BioMartAnnotationSource> oldSources = new HashSet<BioMartAnnotationSource>(currentAnnSrcs.size());
         for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
             try {
-                BioMartConnection connection = AnnotationSourceConnectionFactory.createConnectionForAnnSrc(annSrc);
+                BioMartConnection connection = annSrc.createConnection();
                 String newVersion = connection.getOnlineMartVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
