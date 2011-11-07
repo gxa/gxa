@@ -171,7 +171,7 @@ public class AtlasMAGETABLoader {
     }
 
     private void logProgress(AtlasLoaderServiceListener listener, int index, String displayName) {
-        final String progress = "Step " + ++index + " of 7: " + displayName;
+        final String progress = "Step " + ++index + " of 8: " + displayName;
         listener.setProgress(progress);
         log.info(progress);
     }
