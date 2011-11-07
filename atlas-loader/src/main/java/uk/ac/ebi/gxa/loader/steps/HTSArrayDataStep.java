@@ -42,20 +42,6 @@ public class HTSArrayDataStep {
     public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
-        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
-        //ToDo: add this check in the Loader
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
-        if (scanNodes.size() == 0) {
-            log.info("Exit HTSArrayDataStep. No comment scan nodes found.");
-            return;
-        }
-        for (ScanNode scanNode : scanNodes) {
-            if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                log.info("Exit HTSArrayDataStep. No comment[ENA_RUN] found.");
-                return;
-            }
-        }
-
         // sdrf location
         URL sdrfURL = investigation.SDRF.getLocation();
 
@@ -175,15 +161,13 @@ public class HTSArrayDataStep {
             }
         }
 
-//        File outFilePath = new File(createTempDir(), "out.txt");
-        File outFilePath = new File(FileUtil.getTempDirectory(), "out.txt");
-
-        log.debug("Output file " + outFilePath);
-
-        if (!outFilePath.setWritable(true, false)) {
-            log.error("File " + outFilePath + " cannot be set to writable!");
-            throw new AtlasLoaderException("Cannot write into file " + outFilePath + " which is need to keep temp data from R pipeline.");
+        File tempDir = FileUtil.getTempDirectory();
+        if (!tempDir.setWritable(true, false)) {
+            log.error("Directory {} cannot be set to writable by all!", tempDir);
+            throw new AtlasLoaderException("Cannot set to writable by all directory " + tempDir + " which is needed to keep temp data from R pipeline.");
         }
+        File outFilePath = new File(tempDir, "out.txt");
+        log.debug("Output file " + outFilePath);
 
         final String inFile = inFilePath.getAbsolutePath();
         final String outFile = outFilePath.getAbsolutePath();

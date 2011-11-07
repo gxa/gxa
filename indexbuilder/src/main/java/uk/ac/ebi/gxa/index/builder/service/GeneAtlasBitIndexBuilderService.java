@@ -127,13 +127,13 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
-                    final List<KeyValuePair> uVals = experimentWithData.getUniqueValues(ad);
+                    final List<KeyValuePair> uEFVs = experimentWithData.getUniqueEFVs(ad);
 
                     // TODO to switch on inclusion of sc-scv stats in bit index, remove getFactors & !contains filter below
                     final Set<String> factorNames = new HashSet<String>(Arrays.asList(experimentWithData.getFactors(ad)));
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
-                    if (uVals.size() == 0) {
+                    if (uEFVs.size() == 0) {
                         //task.skipEmpty(f);
                         getLog().info("Skipping empty " + exp.getAccession() + "/" + ad.getAccession());
                         continue;
@@ -145,10 +145,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final int rowCount = tstat.getRowCount();
 
                     final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
-                    for (int j = 0; j < uVals.size(); j++) {
-                        final KeyValuePair efv = uVals.get(j);
+                    for (int j = 0; j < uEFVs.size(); j++) {
+                        final KeyValuePair efv = uEFVs.get(j);
 
-                        if (!factorNames.contains(efv.key) || // TODO: remove this to process all uVALs
+                        if (!factorNames.contains(efv.key) || // TODO: remove this to process all uEFVs
                                 isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
                             continue;
 
@@ -165,7 +165,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             efToPTUpDown.put(efAttribute, ptUpDownForEf = new MinPMaxT());
                         }
 
-                        // Initialise pval/tstat storage for ef-efv/sc-scv
+                        // Initialise pval/tstat storage for ef-efv
                         final MinPMaxT ptUpDown = new MinPMaxT();
                         final MinPMaxT ptUp = new MinPMaxT();
                         final MinPMaxT ptDown = new MinPMaxT();
@@ -192,12 +192,12 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                     ptUp.update(bioEntityId, p, t);
                                 } else {
                                     dnBioEntityIds.add(bioEntityId);
-                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv/sc-scv (down)
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (down)
                                     ptDown.update(bioEntityId, p, t);
                                 }
-                                // Store if the lowest pVal/highest absolute value of tStat for ef-efv/sc-scv (up/down)
+                                // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
                                 ptUpDown.update(bioEntityId, p, t);
-                                // Store if the lowest pVal/highest absolute value of tStat for ef/sc  (up/down)
+                                // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
                                 ptUpDownForEf.update(bioEntityId, p, t);
                             }
                         }
@@ -205,34 +205,34 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         summarizer.submit(new Runnable() {
                             @Override
                             public void run() {
-                                // Store rounded minimum up pVals per gene for ef-efv/sc-scv
+                                // Store rounded minimum up pVals per gene for ef-efv
                                 ptUp.storeStats(upStats, experimentInfo, efvAttribute);
-                                // Store rounded minimum down pVals per gene for ef-efv/sc-scv
+                                // Store rounded minimum down pVals per gene for ef-efv
                                 ptDown.storeStats(dnStats, experimentInfo, efvAttribute);
-                                // Store rounded minimum up/down pVals per gene for ef-efv/sc-scv
+                                // Store rounded minimum up/down pVals per gene for ef-efv
                                 ptUpDown.storeStats(updnStats, experimentInfo, efvAttribute);
                             }
                         });
 
-                        // Store stats for ef-efv/sc-scv
+                        // Store stats for ef-efv
                         upStats.addStatistics(efvAttribute, experimentInfo, upBioEntityIds);
                         dnStats.addStatistics(efvAttribute, experimentInfo, dnBioEntityIds);
                         updnStats.addStatistics(efvAttribute, experimentInfo, upBioEntityIds);
                         updnStats.addStatistics(efvAttribute, experimentInfo, dnBioEntityIds);
                         noStats.addStatistics(efvAttribute, experimentInfo, noBioEntityIds);
 
-                        // Store stats for ef/sc
+                        // Store stats for ef
                         upStats.addStatistics(efAttribute, experimentInfo, upBioEntityIds);
                         dnStats.addStatistics(efAttribute, experimentInfo, dnBioEntityIds);
                         updnStats.addStatistics(efAttribute, experimentInfo, upBioEntityIds);
                         updnStats.addStatistics(efAttribute, experimentInfo, dnBioEntityIds);
                         noStats.addStatistics(efAttribute, experimentInfo, noBioEntityIds);
 
-                        // Add genes for ef/sc attributes across all experiments
+                        // Add genes for ef attributes across all experiments
                         updnStats.addBioEntitiesForEfAttribute(efAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfAttribute(efAttribute, dnBioEntityIds);
 
-                        // Add genes for ef-efv/sc-scv attributes across all experiments
+                        // Add genes for ef-efv attributes across all experiments
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, dnBioEntityIds);
                     }
@@ -250,7 +250,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                     task.processedStats(car);
                     if (car == 0) {
-                        getLog().debug(exp.getAccession() + "/" + ad.getAccession() + " num uVals : " + uVals.size() + " [" + car + "]");
+                        getLog().debug(exp.getAccession() + "/" + ad.getAccession() + " num uEFVs : " + uEFVs.size() + " [" + car + "]");
                     }
                 }
 

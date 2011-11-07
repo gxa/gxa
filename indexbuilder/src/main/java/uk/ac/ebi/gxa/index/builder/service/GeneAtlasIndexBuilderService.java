@@ -199,17 +199,19 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         solrInputDoc.addField("id", bioEntityId);
         solrInputDoc.addField("species", bioEntity.getOrganism().getName());
-        solrInputDoc.addField("name", bioEntity.getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
         Set<String> propNames = new HashSet<String>();
         for (BEPropertyValue prop : bioEntity.getProperties()) {
+
             String pv = prop.getValue();
             String p = prop.getProperty().getName();
             if (pv == null)
                 continue;
             if (p.toLowerCase().contains("ortholog")) {
                 solrInputDoc.addField("orthologs", pv);
+            } else if (p.toLowerCase().equals("symbol")) {
+                solrInputDoc.addField("name", pv);
             } else {
                 getLog().trace("Updating index, gene property " + p + " = " + pv);
                 solrInputDoc.addField("property_" + p, pv);

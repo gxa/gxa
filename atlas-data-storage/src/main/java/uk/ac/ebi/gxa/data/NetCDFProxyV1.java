@@ -177,7 +177,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
 
     private List<KeyValuePair> uniqueValues;
 
-    public List<KeyValuePair> getUniqueValues() throws AtlasDataException {
+    public List<KeyValuePair> getUniqueEFVs() throws AtlasDataException {
         try {
             if (uniqueValues == null) {
                 Variable uVALVar = netCDF.findVariable("uVAL");
