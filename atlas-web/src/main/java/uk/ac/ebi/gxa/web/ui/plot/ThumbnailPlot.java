@@ -176,6 +176,11 @@ public class ThumbnailPlot {
             xPrev = scaled.x;
         }
 
+        if (!subset.isEmpty()) {
+            series.addAll(range(subset));
+            subset.clear();
+        }
+
         int startMark = Math.round(this.startMark * xScale);
         int endMark = Math.round(this.endMark * xScale);
 
