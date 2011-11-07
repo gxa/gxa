@@ -161,7 +161,12 @@ public class HTSArrayDataStep {
             }
         }
 
-        File outFilePath = new File(FileUtil.getTempDirectory(), "out.txt");
+        File tempDir = FileUtil.getTempDirectory();
+        if (!tempDir.setWritable(true, false)) {
+            log.error("Directory {} cannot be set to writable by all!", tempDir);
+            throw new AtlasLoaderException("Cannot set to writable by all directory " + tempDir + " which is needed to keep temp data from R pipeline.");
+        }
+        File outFilePath = new File(tempDir, "out.txt");
         log.debug("Output file " + outFilePath);
 
         final String inFile = inFilePath.getAbsolutePath();
