@@ -109,13 +109,13 @@ public class ThumbnailPlot {
         }
 
         if (found) {
-            xScale = (1.0f * width) / xMax;
+            xScale = (1.0f * width) / Math.abs(xMax - 1);
             yScale = (1.0f * height) / Math.abs(yMax - yMin);
         }
         return this;
     }
 
-    private Collection<Object> range(List<Point> list) {
+    protected static List<Point> range(List<Point> list) {
         if (list.size() >= 3) {
             Point pMin = null, pMax = null;
             int iMax = 0, iMin = 0, i = 0;
@@ -146,7 +146,11 @@ public class ThumbnailPlot {
                 list.add(pMax);
             }
         }
-        return Lists.transform(list, new Function<Point, Object>() {
+        return list;
+    }
+
+    private static List<Object> asLists(List<Point> points) {
+        return Lists.transform(points, new Function<Point, Object>() {
             @Override
             public Object apply(@Nullable Point input) {
                 return input == null ? null : input.asList();
@@ -164,7 +168,7 @@ public class ThumbnailPlot {
             Point scaled = p.scale(xScale, yScale);
             if (scaled.x > xPrev || scaled.isNaN()) {
                 if (!subset.isEmpty()) {
-                    series.addAll(range(subset));
+                    series.addAll(asLists(range(subset)));
                     subset.clear();
                 }
             }
@@ -177,12 +181,12 @@ public class ThumbnailPlot {
         }
 
         if (!subset.isEmpty()) {
-            series.addAll(range(subset));
+            series.addAll(asLists(range(subset)));
             subset.clear();
         }
 
-        int startMark = Math.round(this.startMark * xScale);
-        int endMark = Math.round(this.endMark * xScale);
+        int startMark = (int) (this.startMark * xScale);
+        int endMark = (int) (this.endMark * xScale);
 
         return makeMap(
                 "series", Collections.singletonList(makeMap(
@@ -242,11 +246,11 @@ public class ThumbnailPlot {
         ));
     }
 
-    private static class Point {
+    protected static class Point {
         private final int x;
         private final float y;
 
-        private Point(int x, float y) {
+        protected Point(int x, float y) {
             this.x = x;
             this.y = y;
         }
@@ -261,8 +265,28 @@ public class ThumbnailPlot {
 
         private Point scale(float xScale, float yScale) {
             return new Point(
-                    Math.round(x * xScale),
+                    (int) (x * xScale),
                     isNaN() ? y : y * yScale);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Point)) return false;
+
+            Point point = (Point) o;
+
+            if (x != point.x) return false;
+            if (Float.compare(point.y, y) != 0) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = x;
+            result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
+            return result;
         }
     }
 
