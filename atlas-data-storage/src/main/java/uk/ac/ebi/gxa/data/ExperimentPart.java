@@ -42,8 +42,8 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public List<KeyValuePair> getUniqueFactorValues() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getUniqueFactorValues(arrayDesign);
+    public List<KeyValuePair> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getUniqueEFVs(arrayDesign);
     }
 
     public Collection<Long> getGeneIds() throws AtlasDataException {

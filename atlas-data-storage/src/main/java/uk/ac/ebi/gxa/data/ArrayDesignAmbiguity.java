@@ -61,7 +61,7 @@ public class ArrayDesignAmbiguity {
                 new Predicate<ExperimentPart>() {
                     public boolean apply(@Nonnull ExperimentPart expPart) {
                         try {
-                            for (KeyValuePair efEfv : expPart.getUniqueFactorValues()) {
+                            for (KeyValuePair efEfv : expPart.getUniqueEFVs()) {
                                 if (efEfv.key.equals(ef) &&
                                         (isNullOrEmpty(efv) || efEfv.value.equals(efv))) {
                                     return true;
