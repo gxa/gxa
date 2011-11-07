@@ -53,11 +53,36 @@ public class ThumbnailPlot {
         this.endMark = endMark;
     }
 
+    /**
+     * Creates a thumbnail plot of design element's expression data. Where values on the x- and y-axis are
+     * the experiment assay indices and expression values correspondingly.
+     *
+     * @param expPart     an experiment coupled with array design
+     * @param deAccession a design element accession to create the plot for
+     * @param ef          an experiment factor to label values along x-axis
+     * @param efv         an experiment factor value to highlight on the plot
+     * @return an instance of {@link ThumbnailPlot}
+     * @throws AtlasDataException if any problem with retrieving experiment data happens
+     */
     public static ThumbnailPlot create(ExperimentPart expPart, String deAccession, String ef, String efv) throws AtlasDataException {
         List<ExpressionValue> expressionValues = expPart.getDeExpressionValues(deAccession, ef);
         return createPlot(expressionValues, efv);
     }
 
+    /**
+     * Creates a thumbnail plot of the best design element's expression data. Where values on the x- and y-axis
+     * are the experiment assay indices and expression values correspondingly.
+     * <p/>
+     * The gene parameter specifies the set of design elements to choose the one with the best statistics.
+     *
+     * @param expPart an experiment coupled with array design
+     * @param geneId  a gene id to find design element with the best expression analysis values
+     * @param ef      an experiment factor to label values along x-axis
+     * @param efv     an experiment factor value to highlight on the plot
+     * @return an instance of {@link ThumbnailPlot}
+     * @throws AtlasDataException          if any problem with retrieving experiment data happens
+     * @throws StatisticsNotFoundException if no statistics found for experiment
+     */
     public static ThumbnailPlot create(ExperimentPart expPart, Long geneId, String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
         List<ExpressionValue> expressionValues = expPart.getBestGeneExpressionValues(geneId, ef, efv);
         return createPlot(expressionValues, efv);
