@@ -29,11 +29,16 @@ import org.junit.Test;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.AbstractIndexDataTestCase;
+import uk.ac.ebi.gxa.data.ArrayDesignAmbiguity;
+import uk.ac.ebi.gxa.data.ExperimentPart;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.web.ui.plot.ThumbnailPlot;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +46,7 @@ import java.util.Map;
  * @author Tony Burdett
  */
 public class AtlasPlotterTest extends AbstractIndexDataTestCase {
-    private AtlasPlotter plotter;
+
     private GeneSolrDAO geneSolrDAO;
 
     @Before
@@ -50,23 +55,17 @@ public class AtlasPlotterTest extends AbstractIndexDataTestCase {
 
         geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(getSolrServerAtlas());
-
-        plotter = new AtlasPlotter();
-        plotter.setAtlasDatabaseDAO(atlasDAO);
-        plotter.setGeneSolrDAO(getAtlasSolrDao());
-        plotter.setAtlasDataDAO(getDataDAO());
     }
 
     @After
     public void tearDown() throws Exception {
-        plotter = null;
         super.tearDown();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRED)
     public void testGetGeneInExpPlotData() throws Exception {
-        final String geneid = getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString();
+        final Long geneid = Long.parseLong(getDataSet().getTable("A2_BIOENTITY").getValue(0, "BIOENTITYID").toString());
 
         Experiment experiment = atlasDAO.getExperimentByAccession(getDataSet().getTable("A2_EXPERIMENT").getValue(0, "accession").toString());
 
@@ -76,7 +75,12 @@ public class AtlasPlotterTest extends AbstractIndexDataTestCase {
         final String ef = property.getName();
         final String efv = property.getValue();
 
-        Map<String, Object> plot = plotter.getGeneInExpPlotData(geneid, experiment, ef, efv, "thumb");
+        final ExperimentWithData ewd = getDataDAO().createExperimentWithData(experiment);
+        ExperimentPart expPart = new ArrayDesignAmbiguity()
+                .containsGenes(Arrays.asList(geneid))
+                .resolve(ewd);
+
+        Map<String, Object> plot = ThumbnailPlot.create(expPart, geneid, ef, efv).asMap();
         assertNotNull("Plot object was not constructed", plot);
 
         @SuppressWarnings("unchecked")
