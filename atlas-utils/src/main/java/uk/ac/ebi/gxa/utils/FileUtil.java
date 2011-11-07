@@ -22,8 +22,10 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * File utility functions
@@ -75,5 +77,20 @@ public class FileUtil {
 
     public static String getTempDirectory() {
         return System.getProperty("java.io.tmpdir");
+    }
+
+    public static byte[] getMD5(File file) throws IOException, NoSuchAlgorithmException {
+        final MessageDigest md = MessageDigest.getInstance("MD5");
+        InputStream is = new FileInputStream(file);
+        try {
+            is = new DigestInputStream(is, md);
+            byte[] buffer = new byte[4096];
+            while (is.read(buffer) > 0) {
+                // just read all bytes
+            }
+            return md.digest();
+        } finally {
+            is.close();
+        }
     }
 }

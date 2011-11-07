@@ -226,7 +226,7 @@ public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMar
 
             if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
                 ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
-                bioMartArrayDesigns.add(new BioMartArrayDesign(null, properties.getProperty(propName).trim(), arrayDesign, annotationSource));
+                bioMartArrayDesigns.add(new BioMartArrayDesign(properties.getProperty(propName).trim(), arrayDesign, annotationSource));
             }
         }
 
@@ -286,7 +286,7 @@ public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMar
         int count;
         for (String beProp : bePropToBmProp.keySet()) {
             count = 1;
-            StringBuffer bmProperties = new StringBuffer();
+            StringBuilder bmProperties = new StringBuilder();
             Collection<String> bmPropCollection = bePropToBmProp.get(beProp);
             for (String bmProp : bmPropCollection) {
                 bmProperties.append(bmProp);

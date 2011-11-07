@@ -22,30 +22,62 @@
 
 package uk.ac.ebi.gxa.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.FileUtil;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+import javax.annotation.Nullable;
 import java.io.File;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.String.format;
 
 /**
  * This class wraps the functionality of retrieving values across multiple instances of NetCDFProxy
  *
- * @author Alexey Filippov
  * @author Rober Petryszak
  * @author Nikolay Pultsin
  */
 public class AtlasDataDAO {
+    private static final Logger log = LoggerFactory.getLogger(AtlasDataDAO.class);
     // Location of the experiment data files
     private File atlasDataRepo;
 
-    private static String getFilename(Experiment experiment, ArrayDesign arrayDesign) {
-        return experiment.getAccession() + "_" + arrayDesign.getAccession() + ".nc";
+    File getDataFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return getFile(experiment, arrayDesign, "data");
     }
 
-    File getNetCDFLocation(Experiment experiment, ArrayDesign arrayDesign) {
-        return new File(getDataDirectory(experiment), getFilename(experiment, arrayDesign));
+    File getStatisticsFile(Experiment experiment, ArrayDesign arrayDesign) {
+        return getFile(experiment, arrayDesign, "statistics");
+    }
+
+    File getV1File(Experiment experiment, ArrayDesign arrayDesign) {
+        return getFile(experiment, arrayDesign, null);
+    }
+
+    private File getFile(Experiment experiment, ArrayDesign arrayDesign, @Nullable String suffix) {
+        return new File(getDataDirectory(experiment),
+                format("%s_%s%s.nc", experiment.getAccession(), arrayDesign.getAccession(),
+                        isNullOrEmpty(suffix) ? "" : "_" + suffix));
+    }
+
+    DataProxy createDataProxy(Experiment experiment, ArrayDesign arrayDesign) throws AtlasDataException {
+        final File dataFile = getDataFile(experiment, arrayDesign);
+        final File statisticsFile = getStatisticsFile(experiment, arrayDesign);
+        final File v1File = getV1File(experiment, arrayDesign);
+
+        try {
+            if (dataFile.exists() && dataFile.canRead())
+                return new NetCDFProxyV2(dataFile, statisticsFile);
+            else
+                return new NetCDFProxyV1(v1File);
+        } catch (AtlasDataException e) {
+            log.error("Cannot open data files: " + e.getMessage() + ", falling back to V1", e);
+            return new NetCDFProxyV1(v1File);
+        }
     }
 
     public void setAtlasDataRepo(File atlasDataRepo) {
@@ -54,10 +86,6 @@ public class AtlasDataDAO {
 
     public ExperimentWithData createExperimentWithData(Experiment experiment) {
         return new ExperimentWithData(this, experiment);
-    }
-
-    public NetCDFCreator getNetCDFCreator(Experiment experiment, ArrayDesign arrayDesign) {
-        return new NetCDFCreator(this, experiment, arrayDesign);
     }
 
     public File getDataDirectory(Experiment experiment) {

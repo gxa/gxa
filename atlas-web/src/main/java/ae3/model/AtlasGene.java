@@ -40,7 +40,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 /**
@@ -461,19 +462,19 @@ public class AtlasGene {
      *         is up/down differentially expressed for that factor.
      */
     public List<ExperimentalFactor> getDifferentiallyExpressedFactors(
-            Collection<String> omittedEfs,
+            final Collection<String> omittedEfs,
             @Nullable String ef,
             AtlasStatisticsQueryService atlasStatisticsQueryService) {
         List<ExperimentalFactor> result = new ArrayList<ExperimentalFactor>();
-        List<String> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
-        efs.removeAll(omittedEfs);
+        List<EfAttribute> efs = atlasStatisticsQueryService.getScoringEfsForBioEntity(getGeneId(), UP_DOWN, ef);
 
         // Now retrieve (unsorted) set all experiments for in which efs have up/down expression
         long start = System.currentTimeMillis();
-        for (String factorName : efs) {
-            EfvAttribute attr = new EfvAttribute(factorName);
+        for (EfAttribute attr : efs) {
+            if (omittedEfs.contains(attr.getEf()))
+                continue;
             Set<ExperimentInfo> experiments = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(getGeneId(), attr, UP_DOWN);
-            ExperimentalFactor factor = new ExperimentalFactor(this, factorName, omittedEfs, atlasStatisticsQueryService);
+            ExperimentalFactor factor = new ExperimentalFactor(this, attr.getEf(), omittedEfs, atlasStatisticsQueryService);
             for (ExperimentInfo exp : experiments) {
                 factor.addExperiment(exp.getExperimentId(), exp.getAccession());
             }

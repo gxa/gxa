@@ -138,7 +138,7 @@ public class AtlasBioEntityDataWriter {
         });
     }
 
-    protected void reportProgress(String report, AnnotationLoaderListener listener) {
+    void reportProgress(String report, AnnotationLoaderListener listener) {
         log.info(report);
         if (listener != null)
             listener.buildProgress(report);

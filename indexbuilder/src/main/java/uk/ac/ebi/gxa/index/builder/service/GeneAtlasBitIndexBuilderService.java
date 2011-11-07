@@ -3,11 +3,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ucar.ma2.ArrayFloat;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.KeyValuePair;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
@@ -110,7 +106,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
         final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
-        final ObjectPool<EfvAttribute> attributePool = new ObjectPool<EfvAttribute>();
+        final ObjectPool<EfvAttribute> efvAttributePool = new ObjectPool<EfvAttribute>();
+        final ObjectPool<EfAttribute> efAttributePool = new ObjectPool<EfAttribute>();
 
         final ThreadSafeStatisticsBuilder upStats = new ThreadSafeStatisticsBuilder();
         final ThreadSafeStatisticsBuilder dnStats = new ThreadSafeStatisticsBuilder();
@@ -143,11 +140,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     }
 
                     final long[] bioEntityIdsArr = experimentWithData.getGenes(ad);
-                    final ArrayFloat.D2 tstat = experimentWithData.getProxy(ad).getTStatistics();
-                    final ArrayFloat.D2 pvals = experimentWithData.getProxy(ad).getPValues();
-                    final int[] shape = tstat.getShape();
+                    final TwoDFloatArray tstat = experimentWithData.getTStatistics(ad);
+                    final TwoDFloatArray pvals = experimentWithData.getPValues(ad);
+                    final int rowCount = tstat.getRowCount();
 
-                    final Map<EfvAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfvAttribute, MinPMaxT>();
+                    final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
                     for (int j = 0; j < uVals.size(); j++) {
                         final KeyValuePair efv = uVals.get(j);
 
@@ -155,8 +152,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
                             continue;
 
-                        final EfvAttribute efvAttribute = attributePool.intern(new EfvAttribute(efv.key, efv.value));
-                        final EfvAttribute efAttribute = attributePool.intern(new EfvAttribute(efv.key));
+                        final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.key, efv.value));
+                        final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.key));
 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
@@ -173,7 +170,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final MinPMaxT ptUp = new MinPMaxT();
                         final MinPMaxT ptDown = new MinPMaxT();
 
-                        for (int i = 0; i < shape[0]; i++) {
+                        for (int i = 0; i < rowCount; i++) {
                             int bioEntityId = safelyCastToInt(bioEntityIdsArr[i]);
 
                             // in order to create a resource used for unit tests,
@@ -244,7 +241,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         @Override
                         public void run() {
                             // Store rounded minimum up/down pVals per gene for all efs/scs
-                            for (Map.Entry<EfvAttribute, MinPMaxT> entry : efToPTUpDown.entrySet()) {
+                            for (Map.Entry<EfAttribute, MinPMaxT> entry : efToPTUpDown.entrySet()) {
                                 // Store min up/down pVal for efv
                                 entry.getValue().storeStats(updnStats, experimentInfo, entry.getKey());
                             }
@@ -260,17 +257,19 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 task.done(exp);
                 progressUpdater.update(task.progress());
             } catch (AtlasDataException e) {
-                throw new IndexBuilderException(e.getMessage(), e);
-            } catch (IOException e) {
-                throw new IndexBuilderException(e.getMessage(), e);
+                getLog().warn("Cannot access data for experiment " + exp.getAccession() + ", skipping", e);
+            } catch (StatisticsNotFoundException e) {
+                // this is just info, not warning because Atlas normally includes
+                // some experiments with no statistics
+                getLog().info("Cannot access statistics for experiment " + exp.getAccession() + ", skipping");
             } finally {
-                experimentWithData.close();
+                closeQuietly(experimentWithData);
             }
         }
 
         try {
             // Load efo index
-            EfoIndex efoIndex = loadEfoMapping(attributePool, experimentPool);
+            EfoIndex efoIndex = loadEfoMapping(efvAttributePool, experimentPool);
             statisticsStorage.setEfoIndex(efoIndex);
 
             // wait for statistics updates to finish
@@ -380,9 +379,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             }
         }
 
-        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfvAttribute efvAttribute) {
+        public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfAttribute efAttribute) {
             for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                stats.addPvalueTstatRank(efvAttribute,
+                stats.addPvalueTstatRank(efAttribute,
                         PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
                         expIdx, entry.getKey());
             }

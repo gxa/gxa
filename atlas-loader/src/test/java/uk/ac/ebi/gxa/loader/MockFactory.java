@@ -10,6 +10,7 @@ import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class MockFactory {
     public static LoaderDAO createLoaderDAO() {
@@ -32,7 +33,7 @@ public class MockFactory {
             if (pv == null) {
                 Property p = ps.get(name);
                 if (p == null) {
-                    ps.put(name, p = new Property(null, name));
+                    ps.put(name, p = createProperty(name));
                 }
                 pvs.put(Pair.create(name, value), pv = new PropertyValue(null, p, value));
             }
@@ -40,7 +41,7 @@ public class MockFactory {
         }
 
         @Override
-        public ArrayDesign getArrayDesign(String accession) {
+        public ArrayDesign getArrayDesignShallow(String accession) {
             ArrayDesign ad = ads.get(accession);
             if (ad == null) {
                 ads.put(accession, ad = new ArrayDesign(accession));

@@ -31,8 +31,17 @@ public class LoaderDAO {
         return organismDAO.getOrCreateOrganism(name);
     }
 
+    /**
+     * @param name  Free-form string describing EF
+     * @param value Free-form string describing EFV
+     * @return PropertyValue corresponding to the values passed
+     */
     public PropertyValue getOrCreatePropertyValue(String name, String value) {
         return propertyValueDAO.getOrCreatePropertyValue(name, value);
+    }
+
+    public ArrayDesign getArrayDesignShallow(String accession) {
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
 
     public ArrayDesign getArrayDesign(String accession) {

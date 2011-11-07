@@ -22,16 +22,14 @@
 
 package ae3.model;
 
-import uk.ac.ebi.gxa.exceptions.LogUtil;
+
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.KeyValuePair;
-import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.utils.EfvTree;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-
-import java.util.List;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * Lazy expression statistics class
@@ -51,17 +49,14 @@ public class ExpressionStats {
         this.arrayDesign = arrayDesign;
 
         int valueIndex = 0;
-        for (KeyValuePair uval : experiment.getUniqueValues(arrayDesign)) {
-            efvTree.put(uval.key, uval.value, valueIndex);
-            ++valueIndex;
+        try {
+            for (KeyValuePair uval : experiment.getUniqueValues(arrayDesign)) {
+                efvTree.put(uval.key, uval.value, valueIndex);
+                ++valueIndex;
+            }
+        } catch (StatisticsNotFoundException e) {
+            // TODO: ignore
         }
-    }
-
-    private static String normalized(String name, String prefix) {
-        if (name.startsWith(prefix)) {
-            name = name.substring(prefix.length());
-        }
-        return EscapeUtil.encode(name);
     }
 
     /**
@@ -75,10 +70,10 @@ public class ExpressionStats {
             return lastData;
         }
 
+        final EfvTree<Stat> result = new EfvTree<Stat>();
         try {
             final float[] pvals = experiment.getPValuesForDesignElement(arrayDesign, designElementId);
             final float[] tstats = experiment.getTStatisticsForDesignElement(arrayDesign, designElementId);
-            final EfvTree<Stat> result = new EfvTree<Stat>();
             for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
                 float pvalue = pvals[efefv.getPayload()];
                 float tstat = tstats[efefv.getPayload()];
@@ -86,12 +81,12 @@ public class ExpressionStats {
                     result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
                 }
             }
-            lastDesignElement = designElementId;
-            lastData = result;
-            return result;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw LogUtil.createUnexpected("Exception during pvalue/tstat load", e);
+        } catch (StatisticsNotFoundException e) {
+            // TODO: throw this exception outside?
         }
+        lastDesignElement = designElementId;
+        lastData = result;
+        return result;
     }
 
     /**

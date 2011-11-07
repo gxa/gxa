@@ -34,8 +34,4 @@ public class AnnotationLoaderException extends Exception {
     public AnnotationLoaderException(String s, Throwable throwable) {
         super(s, throwable);
     }
-
-    public AnnotationLoaderException(Throwable throwable) {
-        super(throwable);
-    }
 }

@@ -52,10 +52,10 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
 
     private static final String MART_DB = "database=\"" + MART_NAME_PH + "_mart_";
 
-    protected static final String DATA_SET_PH = "$DATA_SET";
-    protected static final String PROP_NAME_PH = "$PROP_NAME";
-    protected static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
-    protected static final String ATTRIBUTES_PH = "$ATTRIBUTES";
+    private static final String DATA_SET_PH = "$DATA_SET";
+    private static final String PROP_NAME_PH = "$PROP_NAME";
+    private static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
+    private static final String ATTRIBUTES_PH = "$ATTRIBUTES";
 
     private static final String PROPERTY_QUERY =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -224,15 +224,15 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
         }
     }
 
-    protected String prepareAttributesString(Collection<String> attributes) {
-        StringBuffer attributesSB = new StringBuffer();
+    String prepareAttributesString(Collection<String> attributes) {
+        StringBuilder attributesSB = new StringBuilder();
         for (String attribute : attributes) {
             attributesSB.append(ATTRIBUTE.replace(PROP_NAME_PH, attribute));
         }
         return attributesSB.toString();
     }
 
-    protected String prepareURLString(String attributes, String serverVirtualSchema, String datasetName) {
+    String prepareURLString(String attributes, String serverVirtualSchema, String datasetName) {
         return PROPERTY_QUERY.replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema).replace(DATA_SET_PH, datasetName).
                         replace(ATTRIBUTES_PH, attributes);
     }
@@ -269,11 +269,11 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
         }
     }
 
-    protected String getBioMartName() {
+    String getBioMartName() {
         return bioMartName;
     }
 
-    protected String getServerVirtualSchema() {
+    String getServerVirtualSchema() {
         return serverVirtualSchema;
     }
 }

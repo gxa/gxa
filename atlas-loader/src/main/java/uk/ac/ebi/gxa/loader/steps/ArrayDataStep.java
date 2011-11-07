@@ -38,8 +38,8 @@ import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.rcloud.server.RType.RObject;
 import uk.ac.ebi.rcloud.server.RType.RChar;
+import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -280,7 +280,6 @@ public class ArrayDataStep {
                     for (int i = 0; i < fileNames.size(); ++i) {
                         final Assay assay = assayMap.get(fileNames.get(i));
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
-                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     }
                     if (!mergedFile.delete()) {
                         log.warn("Cannot delete" + mergedFile.getAbsolutePath());

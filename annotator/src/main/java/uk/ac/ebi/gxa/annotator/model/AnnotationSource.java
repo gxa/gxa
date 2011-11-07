@@ -95,14 +95,9 @@ public abstract class AnnotationSource implements Serializable {
         return software;
     }
 
-    public Date getLoadDate() {
-        return copyOf(loadDate);
-    }
-
     public void setLoadDate(Date loadDate) {
         this.loadDate = copyOf(loadDate);
     }
-
 
     @Override
     public String toString() {

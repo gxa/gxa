@@ -34,6 +34,7 @@ import java.util.*;
 
 /**
  * Atlas structured query result container class
+ *
  * @author pashky
  */
 public class AtlasStructuredQueryResult {
@@ -54,11 +55,12 @@ public class AtlasStructuredQueryResult {
     private String userErrorMsg = null;
 
     private EfvTree<FacetUpDn> efvFacet;
-    private final Map<String,Iterable<FacetCounter>> geneFacets = new HashMap<String, Iterable<FacetCounter>>();
+    private final Map<String, Iterable<FacetCounter>> geneFacets = new HashMap<String, Iterable<FacetCounter>>();
 
     /**
      * Constructor
-     * @param start starting position in paging
+     *
+     * @param start       starting position in paging
      * @param rowsPerPage number of rows in page
      */
     public AtlasStructuredQueryResult(long start, long rowsPerPage, int expsPerGene) {
@@ -69,6 +71,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Adds result to list
+     *
      * @param result result to add
      */
     public void addResult(StructuredResultRow result) {
@@ -76,7 +79,6 @@ public class AtlasStructuredQueryResult {
     }
 
     /**
-     *
      * @param userErrorMsg error message to be presented back to the user
      */
     public void setUserErrorMsg(String userErrorMsg) {
@@ -84,7 +86,6 @@ public class AtlasStructuredQueryResult {
     }
 
     /**
-     *
      * @return error message to be presented back to the user
      */
     public String getUserErrorMsg() {
@@ -93,15 +94,17 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns number of results
+     *
      * @return number of results in result list
      */
-    @RestOut(name="numberOfResultGenes")
+    @RestOut(name = "numberOfResultGenes")
     public int getSize() {
         return results.size();
     }
 
     /**
      * Return iterable results
+     *
      * @return iterable results
      */
     public Collection<StructuredResultRow> getResults() {
@@ -110,6 +113,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns tree of resulting EFOs
+     *
      * @return result EFO terms
      */
     public EfoTree<ColumnInfo> getResultEfos() {
@@ -118,6 +122,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Sets result EFO terms
+     *
      * @param resultEfos efvtree of result EFO columns
      */
     public void setResultEfos(EfoTree<ColumnInfo> resultEfos) {
@@ -126,29 +131,30 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns sorted list of atlas list view results sorted by number of studies and p-value
+     *
      * @return list of result rows
      */
     public List<ListResultRow> getListResults() {
         long start = System.currentTimeMillis();
         List<ListResultRow> allRows = new ArrayList<ListResultRow>();
         Map<String, List<ListResultRow>> efToListResultRows = new TreeMap<String, List<ListResultRow>>();
-         for(List<ListResultRow> rows : listResults.values()) {
-             for (ListResultRow row : rows) {
-                 String ef = row.getEf();
-                 if (!efToListResultRows.containsKey(ef)) {
+        for (List<ListResultRow> rows : listResults.values()) {
+            for (ListResultRow row : rows) {
+                String ef = row.getEf();
+                if (!efToListResultRows.containsKey(ef)) {
                     efToListResultRows.put(ef, new ArrayList<ListResultRow>());
-                 }
-                 efToListResultRows.get(ef).add(row);
-             }
-         }
+                }
+                efToListResultRows.get(ef).add(row);
+            }
+        }
 
-        for(List<ListResultRow> rows : efToListResultRows.values()) {
-            Collections.sort(rows,Collections.reverseOrder());
+        for (List<ListResultRow> rows : efToListResultRows.values()) {
+            Collections.sort(rows, Collections.reverseOrder());
             allRows.addAll(rows);
         }
-        log.debug("Got list results in: " +(System.currentTimeMillis() - start) + " ms");
-		return allRows;
-	}
+        log.debug("Got list results in: " + (System.currentTimeMillis() - start) + " ms");
+        return allRows;
+    }
 
 
     /**
@@ -167,26 +173,36 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Adds listResult to list
+     *
      * @param listRow to add
      */
-	public void addListResult(ListResultRow listRow) {
+    public void addListResult(ListResultRow listRow) {
         List<ListResultRow> list = listResults.get(listRow.getGene());
-        if(list == null)
+        if (list == null)
             listResults.put(listRow.getGene(), list = new ArrayList<ListResultRow>());
-		list.add(listRow);
-	}
+        list.add(listRow);
+    }
 
     /**
      * Result gene class aggregating several list results for one gene
      */
     public static class ListResultGene {
         private List<ListResultRow> rows;
-        public ListResultGene(List<ListResultRow> rows) { this.rows = rows; }
-        public AtlasGene getGene() { return rows.get(0).getGene(); }
-        public List<ListResultRow> getExpressions() { return rows; }
+
+        public ListResultGene(List<ListResultRow> rows) {
+            this.rows = rows;
+        }
+
+        public AtlasGene getGene() {
+            return rows.get(0).getGene();
+        }
+
+        public List<ListResultRow> getExpressions() {
+            return rows;
+        }
     }
 
-    @RestOut(name="genes")
+    @RestOut(name = "genes")
     public Iterable<ListResultGene> getListResultsGenes() {
         return new Iterable<ListResultGene>() {
             public Iterator<ListResultGene> iterator() {
@@ -199,8 +215,9 @@ public class AtlasStructuredQueryResult {
         };
     }
 
-	/**
+    /**
      * Set results EFVs tree
+     *
      * @param resultEfvs result EFVs tree
      */
     public void setResultEfvs(EfvTree<ColumnInfo> resultEfvs) {
@@ -209,6 +226,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns result EFVs tree
+     *
      * @return tree of result EFV columns
      */
     public EfvTree<ColumnInfo> getResultEfvs() {
@@ -217,6 +235,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns results current page number
+     *
      * @return page number
      */
     public long getPage() {
@@ -225,24 +244,27 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns results start position in paging
+     *
      * @return start position
      */
-    @RestOut(name="startingFrom")
+    @RestOut(name = "startingFrom")
     public long getStart() {
         return start;
     }
 
     /**
      * Returns total number of results
+     *
      * @return total number of results
      */
-    @RestOut(name="totalResultGenes")
+    @RestOut(name = "totalResultGenes")
     public long getTotal() {
         return total;
     }
 
     /**
      * Returns number of rows in page
+     *
      * @return number of rows in page
      */
     public long getRowsPerPage() {
@@ -251,22 +273,25 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns number of rows (Factor values) allowed to show in list view per gene
+     *
      * @return
      */
     public int getRowsPerGene() {
-		return rowsPerGene;
-	}
+        return rowsPerGene;
+    }
 
     /**
      * Sets number of rows per gene
-     * @param listRowsPerGene maximum number of list rows per gene       
+     *
+     * @param listRowsPerGene maximum number of list rows per gene
      */
-	public void setRowsPerGene(int listRowsPerGene) {
-		this.rowsPerGene = listRowsPerGene;
-	}
+    public void setRowsPerGene(int listRowsPerGene) {
+        this.rowsPerGene = listRowsPerGene;
+    }
 
-	/**
+    /**
      * Sets total number of results
+     *
      * @param total total number of results
      */
     public void setTotal(long total) {
@@ -275,32 +300,34 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Sets EFV facet tree
+     *
      * @param efvFacet tree of EFVs with {@link FacetUpDn} objects as payload
      */
-    public void setEfvFacet(EfvTree<FacetUpDn> efvFacet)
-    {
+    public void setEfvFacet(EfvTree<FacetUpDn> efvFacet) {
         this.efvFacet = efvFacet;
     }
 
     /**
      * Returns EFV facet tree
+     *
      * @return tree of EFVs with {@link ae3.service.structuredquery.FacetUpDn} objects as payload
      */
-    public EfvTree<FacetUpDn> getEfvFacet()
-    {
+    public EfvTree<FacetUpDn> getEfvFacet() {
         return efvFacet;
     }
 
     /**
      * Returns map of gene facets
+     *
      * @return map of string to iterable list of {@link ae3.service.structuredquery.FacetCounter} objects
      */
-    public Map<String,Iterable<FacetCounter>> getGeneFacets() {
+    public Map<String, Iterable<FacetCounter>> getGeneFacets() {
         return geneFacets;
     }
 
     /**
      * Returns one gene facet by name
+     *
      * @param name facet name to get
      * @return iterable list of {@link ae3.service.structuredquery.FacetCounter} objects
      */
@@ -310,7 +337,8 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Sets gene facet by name
-     * @param name gene facet name
+     *
+     * @param name  gene facet name
      * @param facet iterable list of {@link ae3.service.structuredquery.FacetCounter} objects
      */
     public void setGeneFacet(String name, Iterable<FacetCounter> facet) {
@@ -319,6 +347,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns query result condition
+     *
      * @return list of conditions
      */
     public Collection<ExpFactorResultCondition> getConditions() {
@@ -327,6 +356,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Sets list of query result conditions
+     *
      * @param conditions iterable list of conditions
      */
     public void setConditions(Collection<ExpFactorResultCondition> conditions) {
@@ -336,6 +366,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Returns set of EFs collapsed by heatmap trimming function and available for expansion
+     *
      * @return set of strings representing EF names
      */
     public Set<String> getExpandableEfs() {
@@ -344,6 +375,7 @@ public class AtlasStructuredQueryResult {
 
     /**
      * Sets set of EFs collapsed by heatmap trimming function and available for expansion
+     *
      * @param expandableEfs collection of strings
      */
     public void setExpandableEfs(Collection<String> expandableEfs) {

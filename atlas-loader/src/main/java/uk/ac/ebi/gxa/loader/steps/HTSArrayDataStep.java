@@ -42,7 +42,7 @@ public class HTSArrayDataStep {
     public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         log.info("Starting HTS data load");
 
-        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"	"Comment [FASTQ_URI]" must be present)
+        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
         //ToDo: add this check in the Loader
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         if (scanNodes.size() == 0) {
@@ -99,9 +99,8 @@ public class HTSArrayDataStep {
                     log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                     if (assay.getArrayDesign() == null) {
-                        assay.setArrayDesign(dao.getArrayDesign(findArrayDesignName(refNode)));
+                        assay.setArrayDesign(dao.getArrayDesignShallow(findArrayDesignName(refNode)));
                     }
-                    cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                 } else {
                     // generate error item and throw exception
                     throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");

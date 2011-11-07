@@ -36,7 +36,7 @@ import java.util.Collection;
 /**
  * @author Nataliya Sklyar
  */
-public class BioMartDbDAO {
+class BioMartDbDAO {
     private String url;
 
     public BioMartDbDAO(String url) {

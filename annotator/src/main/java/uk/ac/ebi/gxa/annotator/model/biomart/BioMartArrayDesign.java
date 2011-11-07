@@ -51,15 +51,10 @@ public class BioMartArrayDesign {
     BioMartArrayDesign() {
     }
 
-    public BioMartArrayDesign(Long biomartarraydesignId, String name, ArrayDesign arrayDesign, BioMartAnnotationSource annSrc) {
-        this.biomartarraydesignId = biomartarraydesignId;
+    public BioMartArrayDesign(String name, ArrayDesign arrayDesign, BioMartAnnotationSource annSrc) {
         this.name = name;
         this.arrayDesign = arrayDesign;
         this.annotationSrc = annSrc;
-    }
-
-    public Long getBiomartarraydesignId() {
-        return biomartarraydesignId;
     }
 
     public String getName() {
@@ -70,11 +65,7 @@ public class BioMartArrayDesign {
         return arrayDesign;
     }
 
-    public BioMartAnnotationSource getAnnotationSrc() {
-        return annotationSrc;
-    }
-
-    public void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
+    void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
         this.annotationSrc = annotationSrc;
     }
 

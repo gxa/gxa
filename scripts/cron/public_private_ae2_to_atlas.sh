@@ -60,7 +60,7 @@ while read line; do
           # E.g. line in $all_ae2_experiments_file: accession:E-MEXP-31 privacy:public releasedate:2004-03-01
           ae2_experiment=`grep "accession:$exp_accession " $all_ae2_experiments_file`
 	      ae2_release_date=`echo $ae2_experiment | awk '{print $3}' | cut -d':' -f2`
-          if [ ! -z $ae2_experiment ]; then
+          if [ ! -z "$ae2_experiment" ]; then
                ae2_public_status=`echo $ae2_experiment | grep -Po 'privacy:public'`
                ae2_private_status=`echo $ae2_experiment | grep -Po 'privacy:private'`
                if [ ! -z $ae2_public_status ]; then

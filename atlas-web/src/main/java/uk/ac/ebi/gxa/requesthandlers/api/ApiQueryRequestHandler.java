@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -180,7 +181,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);
                                         } finally {
-                                            ewd.close();
+                                            closeQuietly(ewd);
                                         }
                                     }
 
@@ -202,7 +203,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasDataDAO, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }

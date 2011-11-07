@@ -66,7 +66,7 @@ public class BioMartAnnotator {
 
     private BioEntityPropertyDAO propertyDAO;
 
-    protected final AtlasBioEntityDataWriter beDataWriter;
+    private final AtlasBioEntityDataWriter beDataWriter;
 
     public BioMartAnnotator(AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
         this.annSrcDAO = annSrcDAO;
@@ -225,13 +225,13 @@ public class BioMartAnnotator {
             listener.buildProgress(report);
     }
 
-    protected void reportError(Throwable error) {
+    void reportError(Throwable error) {
         log.error("Annotation failed! ", error);
         if (listener != null)
             listener.buildError(error);
     }
 
-    protected void reportSuccess(String message) {
+    void reportSuccess(String message) {
         log.info(message);
         if (listener != null)
             listener.buildSuccess(message);

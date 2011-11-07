@@ -32,7 +32,7 @@ import java.util.Collection;
  * @author Nataliya Sklyar
  */
 public class BioMartDbDAOTest extends TestCase {
-    protected BioMartDbDAO bioMartDbDAO;
+    private BioMartDbDAO bioMartDbDAO;
 
     @Override
     protected void setUp() throws Exception {

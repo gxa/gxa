@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.collect.Iterables;
 import org.hibernate.SessionFactory;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
@@ -61,20 +60,19 @@ public abstract class AbstractDAO<T> {
     public T getByName(String name, String colName) throws RecordNotFoundException {
         @SuppressWarnings("unchecked")
         final List<T> results = template.find("from " + clazz.getSimpleName() + " where " + colName + " = ?", (lowerCaseNameMatch() ? name.toLowerCase() : name));
-        return getFirst(results, name);
+        return getOnly(results);
     }
 
     /**
      * @param objects
-     * @param name
      * @return first element of objects
      * @throws uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException
      *          if objects' length == 0
      */
-    protected T getFirst(List<T> objects, String name) throws RecordNotFoundException {
-        if (objects.size() != 1)
-            throw new RecordNotFoundException(clazz.getName() + ": " + name + " not found" +
-                    " (" + objects.size() + "objects returned)");
-        return Iterables.getFirst(objects, null);
+    protected T getOnly(List<T> objects) throws RecordNotFoundException {
+        if (objects.size() == 1)
+            return objects.get(0);
+        else
+            throw new RecordNotFoundException(clazz.getName() + ": " + objects.size() + "objects returned; expected 1)");
     }
 }

@@ -52,9 +52,9 @@ public class EfoAttribute extends Attribute {
      *                          This is so that when the query is scored, we don't count the experiment multiple times for a given efo term.
      */
     @Override
-    public void getEfvExperimentMappings(
+    public void getAttributeToExperimentMappings(
             final StatisticsStorage statisticsStorage,
-            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs
+            Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs
     ) {
 
         Map<ExperimentInfo, Set<EfvAttribute>> expsToAttr = statisticsStorage.getMappingsForEfo(getValue());
@@ -62,7 +62,7 @@ public class EfoAttribute extends Attribute {
         if (!expsToAttr.isEmpty()) {
             for (Map.Entry<ExperimentInfo, Set<EfvAttribute>> expToAttr : expsToAttr.entrySet()) {
                 if (!allExpsToAttrs.containsKey(expToAttr.getKey())) {
-                    allExpsToAttrs.put(expToAttr.getKey(), new HashSet<EfvAttribute>());
+                    allExpsToAttrs.put(expToAttr.getKey(), new HashSet<EfAttribute>());
                 }
 
                 allExpsToAttrs.get(expToAttr.getKey()).addAll(expToAttr.getValue());

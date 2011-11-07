@@ -198,8 +198,8 @@
                         <option value="" selected="selected">Experimental factor</option>
                         <option value="">(any)</option>
                         <option value="efo">EFO</option>
-                        <c:forEach var="i" items="${atlasQueryService.experimentalFactorOptions}">
-                            <option value="${f:escapeXml(i)}">${f:escapeXml(atlasProperties.curatedEfs[i])}</option>
+                        <c:forEach var="factor" items="${atlasQueryService.experimentalFactorOptions}">
+                            <option value="${factor.name}">${f:escapeXml(factor.displayName)}</option>
                         </c:forEach>
                     </select>
                 </td>

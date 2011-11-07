@@ -25,10 +25,9 @@ package uk.ac.ebi.gxa.web.ui.plot;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.ExpressionStatistics;
-import uk.ac.ebi.gxa.data.FloatMatrixProxy;
-import uk.ac.ebi.gxa.data.AtlasDataException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueComparator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -48,6 +47,7 @@ import static java.util.Collections.unmodifiableList;
  * @author Olga Melnichuk
  */
 public class ExperimentPlot {
+    private static final Logger log = LoggerFactory.getLogger(ExperimentPlot.class);
 
     private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueComparator();
 
@@ -91,7 +91,6 @@ public class ExperimentPlot {
     }
 
     private void load(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
-
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
         expressions = ewd.getExpressionValues(ad, deIndices);
@@ -139,7 +138,11 @@ public class ExperimentPlot {
             }
         }
 
-        prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
+        try {
+            prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
+        } catch (StatisticsNotFoundException e) {
+            log.warn("No statistics found for {}", ewd);
+        }
     }
 
     private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {

@@ -141,7 +141,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @param ef
      * @return list all efs for which bioEntityId has statType expression in at least one experiment
      */
-    public List<String> getScoringEfsForBioEntity(final Integer bioEntityId,
+    public List<EfAttribute> getScoringEfsForBioEntity(final Integer bioEntityId,
                                                   final StatisticsType statType,
                                                   @Nullable final String ef);
 
@@ -160,16 +160,16 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @return unsorted list of experiments for which bioEntityId has statType expression for attribute
      */
     public List<ExperimentInfo> getExperimentsForBioEntityAndAttribute(Integer bioEntityId,
-                                                                       @Nullable EfvAttribute attribute,
+                                                                       @Nullable EfAttribute attribute,
                                                                        StatisticsType statType);
 
     /**
      * @param attribute
      * @param allExpsToAttrs Map: ExperimentInfo -> Set<Attribute> to which mappings for an Attribute are to be added.
      */
-    public void getEfvExperimentMappings(
+    public void getAttributeToExperimentMappings(
             final Attribute attribute,
-            Map<ExperimentInfo, Set<EfvAttribute>> allExpsToAttrs);
+            Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs);
 
     /**
      * @param statType
