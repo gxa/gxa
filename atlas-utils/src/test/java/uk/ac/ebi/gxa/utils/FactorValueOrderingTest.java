@@ -32,9 +32,9 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Olga Melnichuk
  */
-public class FactorValueComparatorTest {
+public class FactorValueOrderingTest {
 
-    private static final Comparator<String> comparator = new FactorValueComparator();
+    private static final Comparator<String> comparator = new FactorValueOrdering();
     private static final Random RANDOM = new Random(12345L);
 
     @Test
@@ -43,11 +43,11 @@ public class FactorValueComparatorTest {
         eq("", null);
         eq("", "");
         eq("abc", "abc");
-        eq("abc", "ABc");
+        gt("abc", "ABc");
         eq("123", "123");
 
-        eq("12abc", "12ABC");
-        eq("abc12", "ABC12");
+        gt("12abc", "12ABC");
+        gt("abc12", "ABC12");
 
         gt(null, "a");
         lt("a", null);
@@ -61,8 +61,8 @@ public class FactorValueComparatorTest {
         gt("b", "a");
         lt("a", "b");
 
-        gt("12a", "11b");
-        lt("11b", "12a");
+        lt("12a", "11b");
+        gt("11b", "12a");
 
         gt("12b", "b11");
         lt("b11", "12b");
@@ -70,8 +70,8 @@ public class FactorValueComparatorTest {
         gt("a", "1");
         lt("1", "a");
 
-        gt("a1", "1a");
-        lt("1a", "a1");
+        lt("a1", "1a");
+        gt("1a", "a1");
 
         gt("a1", "a");
         lt("a", "a1");
@@ -91,10 +91,11 @@ public class FactorValueComparatorTest {
 
     @Test
     public void testCollectionSort() {
-        arrayCheck("10ab", "12abc", "ab", "ABC", "abc122", "abc123", "abcd", "", "");
+        arrayCheck("ABC", "ab", "10ab", "abc122", "abc123", "12abc", "abcd", "", "");
         arrayCheck("0 abc", "2 abc", "5 abc", "9 abc", "12 abc", "234 abc");
         arrayCheck("abc 0", "abc 2", "abc 5", "abc 9", "abc 12", "abc 234");
-        arrayCheck("abc 0", "2 abc", "abc 5", "9 abc", "abc 12", "234 abc");
+        arrayCheck("abc 0", "abc 5", "abc 12", "2 abc", "9 abc", "234 abc");
+        arrayCheck("abc", "abc", "abc 1", "abc 1", "abc 2");
     }
 
     private static void eq(String o1, String o2) {

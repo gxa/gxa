@@ -1671,6 +1671,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                             ea.getPValAdjusted(),
+                            ea.getDesignElementAccession(),
                             UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
 
                     experimentsForRow.add(experiment);
@@ -1707,6 +1708,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                 // This is just a placeholder as pValues for nonDE expressions are currently (not available here
                                 // and therefore) not displayed in experiment pop-ups off the list view
                                 ea.getPValAdjusted(),
+                                ea.getDesignElementAccession(),
                                 UpDownExpression.NONDE);
                         experimentsForRow.add(experiment);
                     }
