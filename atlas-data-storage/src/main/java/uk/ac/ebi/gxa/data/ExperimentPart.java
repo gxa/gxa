@@ -108,8 +108,20 @@ public class ExperimentPart {
                 arrayDesign.getAccession() + "}";
     }
 
-    public boolean containsDeAccessions(List<String> list) throws AtlasDataException {
+    public boolean containsDeAccessions(Collection<String> list) throws AtlasDataException {
         String[] deAccessions = ewd.getDesignElementAccessions(arrayDesign);
         return Arrays.asList(deAccessions).containsAll(list);
+    }
+
+    public ArrayDesign getArrayDesign() {
+        return arrayDesign;
+    }
+
+    public String getDataPathForR() {
+        return ewd.getDataPathForR(arrayDesign);
+    }
+
+    public String getStatisticsPathForR() {
+        return ewd.getStatisticsPathForR(arrayDesign);
     }
 }

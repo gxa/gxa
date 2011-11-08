@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.slf4j.Logger;
@@ -30,16 +31,21 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
+import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Collections2.transform;
 
 /**
  * @author Olga Melnichuk
  */
 public class ArrayDesignAmbiguity {
+
     private static final Logger log = LoggerFactory.getLogger(ArrayDesignAmbiguity.class);
+
     private Predicate<ExperimentPart> criteria = Predicates.alwaysTrue();
 
     public ExperimentPart resolve(ExperimentWithData ewd) {
@@ -53,78 +59,118 @@ public class ArrayDesignAmbiguity {
         return null;
     }
 
-    public ArrayDesignAmbiguity containsEfEfv(final String ef, final String efv) {
+    public ArrayDesignAmbiguity containsEfEfv(String ef, String efv) {
         if (isNullOrEmpty(ef)) {
-            return this;
+            throw new IllegalArgumentException("'ef' argument can not be null or empty");
         }
-        return addCriteria(
-                new Predicate<ExperimentPart>() {
-                    public boolean apply(@Nonnull ExperimentPart expPart) {
-                        try {
-                            for (KeyValuePair efEfv : expPart.getUniqueEFVs()) {
-                                if (efEfv.key.equals(ef) &&
-                                        (isNullOrEmpty(efv) || efEfv.value.equals(efv))) {
-                                    return true;
-                                }
-                            }
-                        } catch (AtlasDataException e) {
-                            log.error("Cannot read unique factor values for " + expPart.toString(), e);
-                        } catch (StatisticsNotFoundException e) {
-                            log.error("No statistics were found for " + expPart.toString());
-                        }
-                        return false;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return isNullOrEmpty(efv)
-                                ? "HasEF(" + ef + ")" : "HasEFV(" + ef + "||" + efv + ")";
-                    }
-                });
+        return addCriteria(ExperimentPartPredicates.containsEfEfv(ef, efv));
     }
 
-    public ArrayDesignAmbiguity containsGenes(final Collection<Long> geneIds) {
+    public ArrayDesignAmbiguity containsGenes(Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty()) {
-            return this;
+            throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
         }
-
-        return addCriteria(new Predicate<ExperimentPart>() {
-            public boolean apply(@Nonnull ExperimentPart expPart) {
-                try {
-                    return expPart.getGeneIds().containsAll(geneIds);
-                } catch (AtlasDataException e) {
-                    log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
-                    return false;
-                }
-            }
-
-            @Override
-            public String toString() {
-                return "ContainsGenes(" + geneIds + ")";
-            }
-        });
+        return addCriteria(ExperimentPartPredicates.containsGenes(geneIds));
     }
 
-    public ArrayDesignAmbiguity containsDeAccessions(final List<String> deAccessions) {
-        return addCriteria(new Predicate<ExperimentPart>() {
-            public boolean apply(@Nonnull ExperimentPart expPart) {
-                try {
-                    return expPart.containsDeAccessions(deAccessions);
-                } catch (AtlasDataException e) {
-                    log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
-                    return false;
-                }
-            }
 
-            @Override
-            public String toString() {
-                return "ContainsDEAccessions(" + deAccessions + ")";
-            }
-        });
+    public ArrayDesignAmbiguity containsAtLeastOneGene(final Collection<Long> geneIds) {
+        if (geneIds == null || geneIds.isEmpty()) {
+            throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
+        }
+        return addCriteria(ExperimentPartPredicates.containsAtLeastOneGene(geneIds));
+    }
+
+    public ArrayDesignAmbiguity containsDeAccessions(Collection<String> deAccessions) {
+        if (deAccessions == null || deAccessions.isEmpty()) {
+            throw new IllegalArgumentException("'deAccessions' argument can not be null or empty");
+        }
+        return addCriteria(ExperimentPartPredicates.containsDeAccessions(deAccessions));
+    }
+
+    public ArrayDesignAmbiguity hasArrayDesignAccession(String adAccession) {
+        if (isNullOrEmpty(adAccession)) {
+            throw new IllegalArgumentException("'adAccession' argument can not be null or empty");
+        }
+        return addCriteria(ExperimentPartPredicates.hasArrayDesignAccession(adAccession));
     }
 
     private ArrayDesignAmbiguity addCriteria(Predicate<ExperimentPart> predicate) {
         criteria = Predicates.and(criteria, predicate);
         return this;
+    }
+
+    protected static class ExperimentPartPredicates {
+
+        static Predicate<ExperimentPart> containsGenes(final Collection<Long> geneIds) {
+            return new Predicate<ExperimentPart>() {
+                @Override
+                public boolean apply(@Nonnull ExperimentPart expPart) {
+                    try {
+                        return expPart.getGeneIds().containsAll(geneIds);
+                    } catch (AtlasDataException e) {
+                        log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
+                        return false;
+                    }
+                }
+            };
+        }
+
+        static Predicate<ExperimentPart> containsAtLeastOneGene(Collection<Long> geneIds) {
+            return or(
+                    transform(geneIds,
+                            new Function<Long, Predicate<ExperimentPart>>() {
+                                @Override
+                                public Predicate<ExperimentPart> apply(@Nullable Long geneId) {
+                                    return containsGenes(Arrays.asList(geneId));
+                                }
+                            })
+            );
+        }
+
+        static Predicate<ExperimentPart> containsDeAccessions(final Collection<String> deAccessions) {
+            return new Predicate<ExperimentPart>() {
+                @Override
+                public boolean apply(@Nonnull ExperimentPart expPart) {
+                    try {
+                        return expPart.containsDeAccessions(deAccessions);
+                    } catch (AtlasDataException e) {
+                        log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
+                        return false;
+                    }
+                }
+            };
+        }
+
+        static Predicate<ExperimentPart> hasArrayDesignAccession(final String adAccession) {
+            return new Predicate<ExperimentPart>() {
+                @Override
+                public boolean apply(@Nonnull ExperimentPart expPart) {
+                    return adAccession.equals(expPart.getArrayDesign().getAccession());
+                }
+            };
+        }
+
+        static Predicate<ExperimentPart> containsEfEfv(final String ef, final String efv) {
+            return new Predicate<ExperimentPart>() {
+                @Override
+                public boolean apply(@Nonnull ExperimentPart expPart) {
+                    try {
+                        for (KeyValuePair efEfv : expPart.getUniqueEFVs()) {
+                            if (efEfv.key.equals(ef) &&
+                                    (isNullOrEmpty(efv) || efEfv.value.equals(efv))) {
+                                return true;
+                            }
+                        }
+                    } catch (AtlasDataException e) {
+                        log.error("Cannot read unique factor values for " + expPart.toString(), e);
+                    } catch (StatisticsNotFoundException e) {
+                        log.error("No statistics were found for " + expPart.toString());
+                    }
+                    return false;
+                }
+            };
+        }
+
     }
 }

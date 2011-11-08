@@ -125,6 +125,10 @@ public class AtlasPlotter {
     }
 
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getGeneIdsToEfToEfvToEA(Experiment experiment, String ef, String efv, Collection<Long> geneIds) throws AtlasDataException {
+        if (geneIds == null || geneIds.isEmpty() || isNullOrEmpty(ef)) {
+            return null;
+        }
+
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
             ExperimentPart expPart = new ArrayDesignAmbiguity()
