@@ -29,10 +29,10 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -44,21 +44,21 @@ public class ExperimentPartCriteriaTest {
     private static final ArrayDesign AD1 = new ArrayDesign("AD-1");
     private static final ArrayDesign AD2 = new ArrayDesign("AD-2");
 
-    private static final Map<String, long[]> GENE_IDS = new HashMap<String, long[]>();
+    private static final Map<String, long[]> GENE_IDS = newHashMap();
 
     static {
         GENE_IDS.put(AD1.getAccession(), new long[]{1L, 2L, 3L});
         GENE_IDS.put(AD2.getAccession(), new long[]{1L, 4L, 5L});
     }
 
-    private static final Map<String, String[]> DE_ACCESSIONS = new HashMap<String, String[]>();
+    private static final Map<String, String[]> DE_ACCESSIONS = newHashMap();
 
     static {
         DE_ACCESSIONS.put(AD1.getAccession(), new String[]{"DE-1", "DE-2"});
         DE_ACCESSIONS.put(AD2.getAccession(), new String[]{"DE-3", "DE-4"});
     }
 
-    private static final Map<String, List<KeyValuePair>> UNIQUE_EFEFVS = new HashMap<String, List<KeyValuePair>>();
+    private static final Map<String, List<KeyValuePair>> UNIQUE_EFEFVS = newHashMap();
 
     static {
         UNIQUE_EFEFVS.put(AD1.getAccession(), asList(new KeyValuePair("EF1", "EFV11"), new KeyValuePair("EF1", "EFV12")));
