@@ -34,6 +34,7 @@ import javax.persistence.*;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
@@ -59,22 +60,20 @@ public class Experiment {
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Asset> assets = new ArrayList<Asset>();
+    private List<Asset> assets = newArrayList();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Assay> assays = new ArrayList<Assay>();
+    private List<Assay> assays = newArrayList();
 
     @OneToMany(targetEntity = Sample.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Sample> samples = new ArrayList<Sample>();
+    private List<Sample> samples = newArrayList();
 
     @Column(name = "PRIVATE")
     private boolean isprivate;
-
-    private boolean curated;
 
     Experiment() {
     }
@@ -204,14 +203,6 @@ public class Experiment {
 
     public void setPrivate(boolean isprivate) {
         this.isprivate = isprivate;
-    }
-
-    public boolean isCurated() {
-        return curated;
-    }
-
-    public void setCurated(boolean curated) {
-        this.curated = curated;
     }
 
     @Override
