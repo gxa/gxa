@@ -26,6 +26,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.base.Strings;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
@@ -156,7 +157,7 @@ public class GenePageGene {
         }
 
         public boolean isUrlAware() {
-            return urlTemplate != null;
+            return !Strings.isNullOrEmpty(urlTemplate);
         }
 
         public Collection<String> getValues() {

@@ -52,8 +52,6 @@ public class CreateExperimentStep {
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
-        if (userData.containsKey("curated"))
-            experiment.setCurated(Boolean.parseBoolean(userData.get("curated").iterator().next()));
 
         experiment.setDescription(investigation.IDF.investigationTitle);
 

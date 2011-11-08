@@ -69,10 +69,6 @@ public class ExperimentLine {
         return experiment.isPrivate();
     }
 
-    public boolean isCurated() {
-        return experiment.isCurated();
-    }
-
     public boolean isAnalyticsComplete() {
         return analyticsComplete;
     }

@@ -5,22 +5,20 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
-import com.google.common.base.Predicate;
 import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.data.DataPredicates;
+import uk.ac.ebi.gxa.data.ExperimentPart;
+import uk.ac.ebi.gxa.data.ExperimentPartCriteria;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
 
@@ -99,30 +97,22 @@ public class AtlasExperimentAnalyticsViewService {
             return EMPTY_DESIGN_ELEMENT_RESULT;
         }
 
-        final Predicate<ArrayDesign> adQuery;
+        ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
         if (!isNullOrEmpty(arrayDesignAccession)) {
-            adQuery = new Predicate<ArrayDesign>() {
-                @Override
-                public boolean apply(@Nullable ArrayDesign input) {
-                    return input != null && input.getAccession().equals(arrayDesignAccession);
-                }
-            };
+            criteria.hasArrayDesignAccession(arrayDesignAccession);
         } else if (!geneIds.isEmpty()) {
-            adQuery = new DataPredicates(ewd).containsAtLeastOneGene(geneIds);
-        } else {
-            adQuery = alwaysTrue();
+            criteria.containsAtLeastOneGene(geneIds);
         }
 
-        final ArrayDesign arrayDesign = ewd.findArrayDesign(adQuery);
-        if (arrayDesign == null)
+        final ExperimentPart expPart = criteria.retrieveFrom(ewd);
+        if (expPart == null)
             return EMPTY_DESIGN_ELEMENT_RESULT;
 
-        return findBestGenesForExperiment(ewd, arrayDesign, geneIds, factors, factorValues, upDownCondition, offset, limit);
+        return findBestGenesForExperiment(expPart, geneIds, factors, factorValues, upDownCondition, offset, limit);
     }
 
     private BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull ExperimentWithData ewd,
-            final @Nonnull ArrayDesign arrayDesign,
+            final @Nonnull ExperimentPart expPart,
             final @Nonnull Collection<Long> geneIds,
             final @Nonnull Collection<String> factors,
             final @Nonnull Collection<String> factorValues,
@@ -130,14 +120,14 @@ public class AtlasExperimentAnalyticsViewService {
             final int offset,
             final int limit) throws ComputeException {
         final BestDesignElementsResult result = new BestDesignElementsResult();
-        result.setArrayDesignAccession(arrayDesign.getAccession());
+        result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
 
         long startTime = System.currentTimeMillis();
 
         RCommand command = new RCommand(computeService, "R/analytics.R");
         RCommandResult rResult = command.execute(new RCommandStatement("find.best.design.elements")
-                .addParam(ewd.getDataPathForR(arrayDesign))
-                .addParam(ewd.getStatisticsPathForR(arrayDesign))
+                .addParam(expPart.getDataPathForR())
+                .addParam(expPart.getStatisticsPathForR())
                 .addParam(geneIds)
                 .addParam(factors)
                 .addParam(factorValues)

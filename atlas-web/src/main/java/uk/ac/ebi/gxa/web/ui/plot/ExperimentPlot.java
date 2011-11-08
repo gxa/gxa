@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
-import uk.ac.ebi.gxa.utils.FactorValueComparator;
+import uk.ac.ebi.gxa.utils.FactorValueOrdering;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -49,7 +49,7 @@ import static java.util.Collections.unmodifiableList;
 public class ExperimentPlot {
     private static final Logger log = LoggerFactory.getLogger(ExperimentPlot.class);
 
-    private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueComparator();
+    private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueOrdering();
 
     private FloatMatrixProxy expressions;
     private List<List<BoxAndWhisker>> boxAndWhisker;

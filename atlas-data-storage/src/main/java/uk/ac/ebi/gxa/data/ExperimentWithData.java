@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.primitives.Floats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,20 +56,6 @@ public class ExperimentWithData implements Closeable {
 
     public Experiment getExperiment() {
         return experiment;
-    }
-
-    /**
-     * @param criteria the criteria to choose arrayDesign
-     * @return first arrayDesign used in experiment, that matches criteria;
-     *         or null if no arrayDesign has been found
-     */
-    public ArrayDesign findArrayDesign(Predicate<ArrayDesign> criteria) {
-        for (ArrayDesign ad : experiment.getArrayDesigns()) {
-            if (criteria.apply(ad)) {
-                return ad;
-            }
-        }
-        return null;
     }
 
     DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
@@ -169,7 +153,7 @@ public class ExperimentWithData implements Closeable {
 
     public List<KeyValuePair> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueEFVs();
-            }
+    }
 
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getFactors();
@@ -384,20 +368,15 @@ public class ExperimentWithData implements Closeable {
         return geneIdToDEIndexes;
     }
 
-    /**
+     /**
      * @param geneIds  ids of genes to plot
-     * @param criteria other criteria to choose NetCDF to plot
+     * @param arrayDesign an array design to get expression analyses data
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
      * @throws AtlasDataException in case of I/O errors
      */
-    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<ArrayDesign> criteria) throws AtlasDataException, StatisticsNotFoundException {
-        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<ArrayDesign>and(new DataPredicates(this).containsGenes(geneIds), criteria));
-        if (arrayDesign == null) {
-            return null;
-        }
-
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
     }
