@@ -35,15 +35,15 @@ import java.util.Collection;
  * @author iemam
  */
 public class ListResultRow implements Comparable<ListResultRow> {
-    private String fv;
-    private String ef;
-    private int count_up;
-    private int count_dn;
-    private int count_no;
-    private float minPval_up;
-    private float minPval_dn;
+    private final String fv;
+    private final String ef;
+    private final int count_up;
+    private final int count_dn;
+    private final int count_no;
+    private final float minPval_up;
+    private final float minPval_dn;
     private AtlasGene gene;
-    public String designElementAccession;
+    public final String designElementAccession;
 
     Collection<ListResultRowExperiment> exp_list = new ArrayList<ListResultRowExperiment>();
 
@@ -86,12 +86,10 @@ public class ListResultRow implements Comparable<ListResultRow> {
     }
 
     public float getMinPval() {
-        if (isMixedCell())
+        if (isMixedCell()) {
             return Math.min(Math.abs(minPval_dn), Math.abs(minPval_up));
-        else if (count_dn > 0)
-            return minPval_dn;
-        else
-            return minPval_up;
+        }
+        return (count_dn > 0) ? minPval_dn : minPval_up;
     }
 
     public String getRow_id() {
@@ -114,9 +112,8 @@ public class ListResultRow implements Comparable<ListResultRow> {
     }
 
     public String getExpr() {
-        if (count_dn > 0) return "dn";
-        else if (count_up > 0) return "up";
-        else return "";
+        return (count_dn > 0) ? "dn" :
+                (count_up > 0) ? "up" : "";
     }
 
 

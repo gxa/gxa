@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.ExperimentPartCriteria.experimentPart;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -83,8 +84,7 @@ public class AtlasPlotter {
     public Map<String, Object> getGeneInExpPlotData(final String geneIdKey,
                                                     final Experiment experiment,
                                                     final String ef,
-                                                    final String efv,
-                                                    final String plotType) {
+                                                    final String efv) {
 
         log.debug("Plotting gene {}, experiment {}, factor {}", new Object[]{geneIdKey, experiment, ef});
 
@@ -113,28 +113,11 @@ public class AtlasPlotter {
             if (efToPlot == null)
                 throw LogUtil.createUnexpected("Can't find EF to plot");
 
-            if (plotType.equals("thumb")) {
-                AtlasGene geneToPlot = genes.get(0);
-                Long geneId = (long) geneToPlot.getGeneId();
-                final Map<String, Map<String, ExpressionAnalysis>> geneDetails = geneIdsToEfToEfvToEA.get(geneId);
-                if (geneDetails == null)
-                    throw LogUtil.createUnexpected("Can't find analysis data for gene " + geneId);
-                final Map<String, ExpressionAnalysis> analysisForEF = geneDetails.get(efToPlot);
-                if (analysisForEF == null)
-                    throw LogUtil.createUnexpected("Can't find analysis data for gene " + geneId + ", " +
-                            " EF '" + efToPlot + "'");
-                ExpressionAnalysis bestEA = analysisForEF.get(efv);
-                if (bestEA == null)
-                    throw LogUtil.createUnexpected("Can't find deIndex for min pValue for gene " + geneId + ", " +
-                            " EF '" + efToPlot + "', value '" + efv + "'");
-                return createThumbnailPlot(efToPlot, efv, bestEA, experiment);
-            } else if (plotType.equals("bar")) {
-                AtlasGene geneToPlot = genes.get(0);
-                Long geneId = (long) geneToPlot.getGeneId();
-                Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
-                if (!efvToBestEA.isEmpty())
-                    return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experiment);
-            }
+            AtlasGene geneToPlot = genes.get(0);
+            Long geneId = (long) geneToPlot.getGeneId();
+            Map<String, ExpressionAnalysis> efvToBestEA = geneIdsToEfToEfvToEA.get(geneId).get(efToPlot);
+            if (!efvToBestEA.isEmpty())
+                return createBarPlot(geneId, efToPlot, efv, efvToBestEA, experiment);
 
         } catch (AtlasDataException e) {
             throw createUnexpected("AtlasDataException whilst trying to read data for experiment " + experiment, e);
@@ -143,9 +126,17 @@ public class AtlasPlotter {
     }
 
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getGeneIdsToEfToEfvToEA(Experiment experiment, String ef, String efv, Collection<Long> geneIds) throws AtlasDataException {
+        if (geneIds == null || geneIds.isEmpty() || isNullOrEmpty(ef)) {
+            return null;
+        }
+
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            return ewd.getExpressionAnalysesForGeneIds(geneIds, new DataPredicates(ewd).containsEfEfv(ef, efv));
+            ExperimentPart expPart = experimentPart()
+                    .containsGenes(geneIds)
+                    .containsEfEfv(ef, efv)
+                    .retrieveFrom(ewd);
+            return expPart == null ? null : expPart.getExpressionAnalysesForGeneIds(geneIds);
         } catch (StatisticsNotFoundException e) {
             return null;
         } finally {
@@ -575,112 +566,6 @@ public class AtlasPlotter {
         } finally {
             closeQuietly(ewd);
         }
-    }
-
-
-    private Map<String, Object> createThumbnailPlot(String ef, String efv, ExpressionAnalysis ea, Experiment experiment) throws AtlasDataException {
-        log.debug("Creating thumbnail plot... EF: {}, Top FVs: {}, ExpressionAnalysis: {}",
-                new Object[]{ef, efv, ea});
-
-        List<Object> seriesData = new ArrayList<Object>();
-        int startMark = 0;
-        int endMark = 0;
-        // Get assayFVs from the proxy from which ea came
-        final ArrayDesign arrayDesign = new ArrayDesign(ea.getArrayDesignAccession());
-        // Get actual expression data from the design element stored in ea
-        final String[] assayFVs;
-        final List<String> uniqueFVs;
-        final float[] expressions;
-        {
-            final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-            try {
-                assayFVs = ewd.getFactorValues(arrayDesign, ef);
-                uniqueFVs = sortUniqueFVs(assayFVs);
-                expressions = ewd.getExpressionDataForDesignElementAtIndex(arrayDesign, ea.getDesignElementIndex());
-            } finally {
-                closeQuietly(ewd);
-            }
-        }
-
-
-        // iterate over each factor value (in sorted order)
-        for (String factorValue : uniqueFVs) {
-            // mark start position, in list of all samples, of the factor value we're after
-            if (factorValue.equals(efv)) {
-                startMark = seriesData.size() + 1;
-            }
-
-            for (int assayIndex = 0; assayIndex < assayFVs.length; assayIndex++)
-                if (assayFVs[assayIndex].equals(factorValue)) {
-                    float value = expressions[assayIndex];
-                    seriesData.add(Arrays.<Number>asList(seriesData.size() + 1, value <= -1000000 ? null : value));
-                }
-
-            // mark end position, in list of all samples, of the factor value we're after
-            if (factorValue.equals(efv)) {
-                endMark = seriesData.size();
-            }
-        }
-
-        return makeMap(
-                "series", Collections.singletonList(makeMap(
-                "data", seriesData,
-                "lines", makeMap("show", true, "lineWidth", 2, "fill", false),
-                "legend", makeMap("show", false))),
-                "options", makeMap(
-                "xaxis", makeMap("ticks", 0),
-                "yaxis", makeMap("ticks", 0),
-                "legend", makeMap("show", false),
-                "colors", Collections.singletonList("#edc240"),
-                "grid", makeMap(
-                "backgroundColor", "#f0ffff",
-                "autoHighlight", false,
-                "hoverable", true,
-                "clickable", true,
-                "borderWidth", 1,
-                "markings", Collections.singletonList(
-                makeMap("xaxis", makeMap("from", startMark, "to", endMark),
-                        "color", "#F5F5DC"))
-        ),
-                "selection", makeMap("mode", "x")
-        )
-        );
-    }
-
-    private static List<String> sortUniqueFVs(String[] assayFVs) {
-        Set<String> uniqueSet = new HashSet<String>(Arrays.asList(assayFVs));
-        List<String> uniqueFVs = new ArrayList<String>(uniqueSet);
-        Collections.sort(uniqueFVs, new Comparator<String>() {
-            public int compare(String s1, String s2) {
-                // want to make sure that empty strings are pushed to the back
-                boolean isEmptyS1 = (s1.length() == 0);
-                boolean isEmptyS2 = (s2.length() == 0);
-
-                if (isEmptyS1 && isEmptyS2) {
-                    return 0;
-                }
-                if (isEmptyS1) {
-                    return 1;
-                }
-                if (isEmptyS2) {
-                    return -1;
-                }
-
-                java.util.regex.Matcher m1 = startsOrEndsWithDigits.matcher(s1);
-                java.util.regex.Matcher m2 = startsOrEndsWithDigits.matcher(s2);
-
-                if (m1.find() && m2.find()) {
-                    Long i1 = new Long(s1.substring(m1.start(), m1.end()));
-                    Long i2 = new Long(s2.substring(m2.start(), m2.end()));
-
-                    int compareRes = i1.compareTo(i2);
-                    return (compareRes == 0) ? s1.compareToIgnoreCase(s2) : compareRes;
-                }
-
-                return s1.compareToIgnoreCase(s2);
-            }
-        });
-        return uniqueFVs;
     }
 
     /**

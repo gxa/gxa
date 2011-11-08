@@ -37,7 +37,7 @@ public class AtlasViewController {
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ModelAndView handleError(ResourceNotFoundException e) {
-        log.info(e.getMessage());
+        log.error(e.getMessage());
         return errorDetails(e);
     }
 
