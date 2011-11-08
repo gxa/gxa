@@ -74,7 +74,7 @@ public class ExperimentPartCriteria {
     }
 
 
-    public ExperimentPartCriteria containsAtLeastOneGene(final Collection<Long> geneIds) {
+    public ExperimentPartCriteria containsAtLeastOneGene(Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty()) {
             throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
         }
