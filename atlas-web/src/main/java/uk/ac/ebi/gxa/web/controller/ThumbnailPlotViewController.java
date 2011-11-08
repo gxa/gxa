@@ -78,7 +78,7 @@ public class ThumbnailPlotViewController extends AtlasViewController {
 
             ExperimentPart expPart = new ExperimentPartCriteria()
                     .containsDeAccessions(Arrays.asList(deacc))
-                    .apply(ewd);
+                    .retrieve(ewd);
 
             model.addAttribute("plot",
                     expPart == null ? null :
@@ -116,7 +116,7 @@ public class ThumbnailPlotViewController extends AtlasViewController {
             ExperimentPart expPart = new ExperimentPartCriteria()
                     .containsGenes(geneIds)
                     .containsEfEfv(ef, efv)
-                    .apply(ewd);
+                    .retrieve(ewd);
 
             model.addAttribute("plot",
                     expPart == null ? null :

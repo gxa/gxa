@@ -104,7 +104,7 @@ public class AtlasExperimentAnalyticsViewService {
             adSelector.containsAtLeastOneGene(geneIds);
         }
 
-        final ExperimentPart expPart = adSelector.apply(ewd);
+        final ExperimentPart expPart = adSelector.retrieve(ewd);
         if (expPart == null)
             return EMPTY_DESIGN_ELEMENT_RESULT;
 

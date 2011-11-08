@@ -134,7 +134,7 @@ public class AtlasPlotter {
             ExperimentPart expPart = new ExperimentPartCriteria()
                     .containsGenes(geneIds)
                     .containsEfEfv(ef, efv)
-                    .apply(ewd);
+                    .retrieve(ewd);
             return expPart == null ? null : expPart.getExpressionAnalysesForGeneIds(geneIds);
         } catch (StatisticsNotFoundException e) {
             return null;

@@ -48,7 +48,7 @@ public class ExperimentPartCriteria {
 
     private Predicate<ExperimentPart> criteria = Predicates.alwaysTrue();
 
-    public ExperimentPart apply(ExperimentWithData ewd) {
+    public ExperimentPart retrieve(ExperimentWithData ewd) {
         Experiment exp = ewd.getExperiment();
         for (ArrayDesign ad : exp.getArrayDesigns()) {
             ExperimentPart expPart = new ExperimentPart(ewd, ad);
