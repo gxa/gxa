@@ -1662,7 +1662,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if (designElementAccession == null) {
                         designElementAccession = ea.getDesignElementAccession();
                     }
-
+                    assert pup >= 0 && pup <= 1;
+                    assert pdn >= 0 && pdn <= 1;
+                    assert ea.getPValAdjusted() >= 0 && ea.getPValAdjusted() <= 1;
                     if (ea.isUp()) {
                         pup = Math.min(pup, ea.getPValAdjusted());
                     } else if (ea.isDown()) {
@@ -1722,6 +1724,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (experimentsForRow.size() > 1) {
             Collections.sort(experimentsForRow, new Comparator<ListResultRowExperiment>() {
                 public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {
+                    assert o1.getPvalue() >= 0 && o1.getPvalue() <= 1;
+                    assert o2.getPvalue() >= 0 && o2.getPvalue() <= 1;
                     return Float.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
                 }
             });
