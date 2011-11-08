@@ -100,7 +100,7 @@ public class ExperimentPartCriteria {
         return this;
     }
 
-    protected static class ExperimentPartPredicates {
+    private static class ExperimentPartPredicates {
 
         static Predicate<ExperimentPart> containsGenes(final Collection<Long> geneIds) {
             return new Predicate<ExperimentPart>() {
