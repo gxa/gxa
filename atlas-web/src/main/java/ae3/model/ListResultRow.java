@@ -86,9 +86,11 @@ public class ListResultRow implements Comparable<ListResultRow> {
     }
 
     public float getMinPval() {
-        if (isMixedCell())
-            return Math.min(Math.abs(minPval_dn), Math.abs(minPval_up));
-        else if (count_dn > 0)
+        if (isMixedCell()) {
+            assert minPval_dn >= 0 && minPval_dn <= 1;
+            assert minPval_dn >= 0 && minPval_dn <= 1;
+            return Math.min(minPval_dn, minPval_up);
+        } else if (count_dn > 0)
             return minPval_dn;
         else
             return minPval_up;
