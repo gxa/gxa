@@ -142,6 +142,8 @@ public class ExpressionStats {
          * @return 1, 0 or -1
          */
         public int compareTo(Stat o) {
+            assert o.getPvalue() >= 0 && o.getPvalue() <= 1;
+            assert getPvalue() >= 0 && getPvalue() <= 1;
             return Float.valueOf(getPvalue()).compareTo(o.getPvalue());
         }
 
