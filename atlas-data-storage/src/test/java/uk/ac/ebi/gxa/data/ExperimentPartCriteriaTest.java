@@ -189,7 +189,7 @@ public class ExperimentPartCriteriaTest {
                     .containsEfEfv("", "anything")
                     .retrieveFrom(ewd);
             fail();
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             // ok
         }
 
@@ -198,7 +198,7 @@ public class ExperimentPartCriteriaTest {
                     .containsEfEfv(null, "anything")
                     .retrieveFrom(ewd);
             fail();
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             // ok
         }
     }
