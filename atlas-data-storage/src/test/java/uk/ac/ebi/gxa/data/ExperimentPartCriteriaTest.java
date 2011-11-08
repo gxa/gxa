@@ -36,6 +36,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.data.ExperimentPartCriteria.experimentPart;
 
 /**
  * @author Olga Melnichuk
@@ -67,7 +68,7 @@ public class ExperimentPartCriteriaTest {
 
     @Test
     public void testEmptyCriteria() throws AtlasDataException, StatisticsNotFoundException {
-        ExperimentPart expPart = (new ExperimentPartCriteria()).retrieve(createExperimentWithData());
+        ExperimentPart expPart = experimentPart().retrieve(createExperimentWithData());
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
     }
@@ -76,20 +77,20 @@ public class ExperimentPartCriteriaTest {
     public void testArrayDesignAccessionCriteria() throws AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = createExperimentWithData();
 
-        ExperimentPart expPart = (new ExperimentPartCriteria())
+        ExperimentPart expPart = experimentPart()
                 .hasArrayDesignAccession(AD2.getAccession())
                 .retrieve(ewd);
         assertNotNull(expPart);
         assertEquals(AD2.getAccession(), expPart.getArrayDesign().getAccession());
 
-        expPart = (new ExperimentPartCriteria())
+        expPart = experimentPart()
                 .hasArrayDesignAccession(AD1.getAccession())
                 .hasArrayDesignAccession(AD2.getAccession())
                 .retrieve(ewd);
         assertNull(expPart);
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .hasArrayDesignAccession(null)
                     .retrieve(ewd);
             fail();
@@ -98,7 +99,7 @@ public class ExperimentPartCriteriaTest {
         }
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .hasArrayDesignAccession("")
                     .retrieve(ewd);
             fail();
@@ -111,14 +112,14 @@ public class ExperimentPartCriteriaTest {
     public void testContainsGenesCriteria() throws AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = createExperimentWithData();
 
-        ExperimentPart expPart = (new ExperimentPartCriteria())
+        ExperimentPart expPart = experimentPart()
                 .containsGenes(asList(1L, 2L))
                 .retrieve(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .containsGenes(Collections.<Long>emptyList())
                     .retrieve(ewd);
             fail();
@@ -131,14 +132,14 @@ public class ExperimentPartCriteriaTest {
     public void testContainsAtLeastOneGeneCriteria() throws AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = createExperimentWithData();
 
-        ExperimentPart expPart = (new ExperimentPartCriteria())
+        ExperimentPart expPart = experimentPart()
                 .containsAtLeastOneGene(asList(4L, 2L))
                 .retrieve(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .containsAtLeastOneGene(Collections.<Long>emptyList())
                     .retrieve(ewd);
             fail();
@@ -151,14 +152,14 @@ public class ExperimentPartCriteriaTest {
     public void testContainsDesignElementAccessionsCriteria() throws AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = createExperimentWithData();
 
-        ExperimentPart expPart = (new ExperimentPartCriteria())
+        ExperimentPart expPart = experimentPart()
                 .containsDeAccessions(asList("DE-3"))
                 .retrieve(ewd);
         assertNotNull(expPart);
         assertEquals(AD2.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .containsDeAccessions(Collections.<String>emptyList())
                     .retrieve(ewd);
             fail();
@@ -171,20 +172,20 @@ public class ExperimentPartCriteriaTest {
     public void testContainsEfEfvCriteria() throws AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = createExperimentWithData();
 
-        ExperimentPart expPart = (new ExperimentPartCriteria())
+        ExperimentPart expPart = experimentPart()
                 .containsEfEfv("EF1", "EFV11")
                 .retrieve(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
 
-        expPart = (new ExperimentPartCriteria())
+        expPart = experimentPart()
                 .containsEfEfv("EF2", null)
                 .retrieve(ewd);
         assertNotNull(expPart);
         assertEquals(AD2.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .containsEfEfv("", "anything")
                     .retrieve(ewd);
             fail();
@@ -193,7 +194,7 @@ public class ExperimentPartCriteriaTest {
         }
 
         try {
-            (new ExperimentPartCriteria())
+            experimentPart()
                     .containsEfEfv(null, "anything")
                     .retrieve(ewd);
             fail();

@@ -12,6 +12,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.ExperimentPartCriteria.experimentPart;
 
 /**
  * This class tests functionality of AtlasDataDAO
@@ -67,7 +68,7 @@ public class TestAtlasDataDAO extends TestCase {
     public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException, StatisticsNotFoundException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            ExperimentPart expPart = new ExperimentPartCriteria().containsGenes(geneIds).retrieve(ewd);
+            ExperimentPart expPart = experimentPart().containsGenes(geneIds).retrieve(ewd);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     expPart.getExpressionAnalysesForGeneIds(geneIds);
 

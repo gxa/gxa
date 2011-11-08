@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.ExperimentPartCriteria.experimentPart;
 
 /**
  * @author Olga Melnichuk
@@ -76,7 +77,7 @@ public class ThumbnailPlotViewController extends AtlasViewController {
         try {
             ewd = atlasDataDAO.createExperimentWithData(exp);
 
-            ExperimentPart expPart = new ExperimentPartCriteria()
+            ExperimentPart expPart = experimentPart()
                     .containsDeAccessions(Arrays.asList(deacc))
                     .retrieve(ewd);
 
@@ -113,7 +114,7 @@ public class ThumbnailPlotViewController extends AtlasViewController {
             ewd = atlasDataDAO.createExperimentWithData(exp);
 
             List<Long> geneIds = Arrays.asList(geneId);
-            ExperimentPart expPart = new ExperimentPartCriteria()
+            ExperimentPart expPart = experimentPart()
                     .containsGenes(geneIds)
                     .containsEfEfv(ef, efv)
                     .retrieve(ewd);

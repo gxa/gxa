@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.ExperimentPartCriteria.experimentPart;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -131,7 +132,7 @@ public class AtlasPlotter {
 
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            ExperimentPart expPart = new ExperimentPartCriteria()
+            ExperimentPart expPart = experimentPart()
                     .containsGenes(geneIds)
                     .containsEfEfv(ef, efv)
                     .retrieve(ewd);

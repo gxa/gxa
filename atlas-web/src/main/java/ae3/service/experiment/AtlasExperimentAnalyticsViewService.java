@@ -97,14 +97,14 @@ public class AtlasExperimentAnalyticsViewService {
             return EMPTY_DESIGN_ELEMENT_RESULT;
         }
 
-        ExperimentPartCriteria adSelector = (new ExperimentPartCriteria());
+        ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
         if (!isNullOrEmpty(arrayDesignAccession)) {
-            adSelector.hasArrayDesignAccession(arrayDesignAccession);
+            criteria.hasArrayDesignAccession(arrayDesignAccession);
         } else if (!geneIds.isEmpty()) {
-            adSelector.containsAtLeastOneGene(geneIds);
+            criteria.containsAtLeastOneGene(geneIds);
         }
 
-        final ExperimentPart expPart = adSelector.retrieve(ewd);
+        final ExperimentPart expPart = criteria.retrieve(ewd);
         if (expPart == null)
             return EMPTY_DESIGN_ELEMENT_RESULT;
 

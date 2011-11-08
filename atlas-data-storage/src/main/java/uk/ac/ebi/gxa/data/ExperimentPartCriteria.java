@@ -46,7 +46,11 @@ public class ExperimentPartCriteria {
 
     private static final Logger log = LoggerFactory.getLogger(ExperimentPartCriteria.class);
 
-    private Predicate<ExperimentPart> criteria = Predicates.alwaysTrue();
+    private Predicate<ExperimentPart> criteria;
+
+    private ExperimentPartCriteria(Predicate<ExperimentPart> criteria) {
+        this.criteria = criteria;
+    }
 
     public ExperimentPart retrieve(ExperimentWithData ewd) {
         Experiment exp = ewd.getExperiment();
@@ -73,7 +77,6 @@ public class ExperimentPartCriteria {
         return addCriteria(ExperimentPartPredicates.containsGenes(geneIds));
     }
 
-
     public ExperimentPartCriteria containsAtLeastOneGene(Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty()) {
             throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
@@ -98,6 +101,10 @@ public class ExperimentPartCriteria {
     private ExperimentPartCriteria addCriteria(Predicate<ExperimentPart> predicate) {
         criteria = Predicates.and(criteria, predicate);
         return this;
+    }
+
+    public static ExperimentPartCriteria experimentPart() {
+        return new ExperimentPartCriteria(Predicates.<ExperimentPart>alwaysTrue());
     }
 
     private static class ExperimentPartPredicates {
