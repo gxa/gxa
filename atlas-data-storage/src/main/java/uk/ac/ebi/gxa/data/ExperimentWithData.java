@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicate;
 import com.google.common.primitives.Floats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,20 +56,6 @@ public class ExperimentWithData implements Closeable {
 
     public Experiment getExperiment() {
         return experiment;
-    }
-
-    /**
-     * @param criteria the criteria to choose arrayDesign
-     * @return first arrayDesign used in experiment, that matches criteria;
-     *         or null if no arrayDesign has been found
-     */
-    public ArrayDesign findArrayDesign(Predicate<ArrayDesign> criteria) {
-        for (ArrayDesign ad : experiment.getArrayDesigns()) {
-            if (criteria.apply(ad)) {
-                return ad;
-            }
-        }
-        return null;
     }
 
     DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
