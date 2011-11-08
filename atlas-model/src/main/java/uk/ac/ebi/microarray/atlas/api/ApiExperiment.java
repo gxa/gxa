@@ -26,14 +26,13 @@ public class ApiExperiment {
     private Collection<ApiAssay> assays;
     private Collection<ApiSample> samples;
     private Boolean isPrivate;
-    private Boolean curated;
 
-    public ApiExperiment() {}
+    public ApiExperiment() {
+    }
 
     public ApiExperiment(final String accession, final String description, final String performer, final String lab,
                          final Date loadDate, final String pmid, final Collection<ApiAsset> assets,
-                         final Collection<ApiAssay> assays, final Collection<ApiSample> samples, final Boolean isPrivate,
-                         final Boolean curated) {
+                         final Collection<ApiAssay> assays, final Collection<ApiSample> samples, final Boolean isPrivate) {
         this.accession = accession;
         this.description = description;
         this.performer = performer;
@@ -44,7 +43,6 @@ public class ApiExperiment {
         this.assays = assays;
         this.samples = samples;
         this.isPrivate = isPrivate;
-        this.curated = curated;
     }
 
     public ApiExperiment(final Experiment experiment) {
@@ -60,13 +58,12 @@ public class ApiExperiment {
                 TransformerUtil.instanceTransformer(Asset.class, ApiAsset.class));
 
         this.assays = Collections2.transform(experiment.getAssays(),
-                 TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
+                TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
 
         this.samples = Collections2.transform(experiment.getSamples(),
                 TransformerUtil.instanceTransformer(Sample.class, ApiSample.class));
 
         this.isPrivate = experiment.isPrivate();
-        this.curated = experiment.isCurated();
     }
 
     public String getAccession() {
@@ -155,13 +152,5 @@ public class ApiExperiment {
 
     public void setPrivate(boolean isPrivate) {
         this.isPrivate = isPrivate;
-    }
-
-    public boolean isCurated() {
-        return curated;
-    }
-
-    public void setCurated(boolean curated) {
-        this.curated = curated;
     }
 }

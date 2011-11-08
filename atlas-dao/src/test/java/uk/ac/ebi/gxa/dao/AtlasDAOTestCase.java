@@ -134,7 +134,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "LOADDATE timestamp, " +
                         "PMID VARCHAR(255)," +
                         "PRIVATE bit," +
-                        "CURATED bit, " +
                         "CONSTRAINT SYS_C008053 PRIMARY KEY (EXPERIMENTID)) ;");
 
         runStatement(conn,

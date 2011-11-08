@@ -832,8 +832,6 @@ function compileTemplates() {
                 'label.accession': 'experiment.accession',
                 '.analytics': function (r) {
                     var t = '';
-                    if(!r.item.curated)
-                        t += ' NotCurated';
                     if(r.item.private)
                         t += ' Private';
                     if(!r.item.netcdf)
@@ -1021,7 +1019,6 @@ $(document).ready(function () {
         var autoDep = $('#loadAutodep').is(':checked');
         var useRawData = $('#useRawData').is(':checked');
         var private = $('#private').is(':checked');
-        var curated = $('#curated').is(':checked');
         if(url.length == 0 || (url.length == 1 && url[0] == ""))
             return;
         
@@ -1045,7 +1042,6 @@ $(document).ready(function () {
                     autoDepends: autoDep,
                     useRawData: useRawData,
                     private: private,
-                    curated: curated
                 }, updateQueueAndLog);
 
             if(arraydesigns.length)
