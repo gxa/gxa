@@ -68,7 +68,7 @@ public class ExperimentPartCriteriaTest {
 
     @Test
     public void testEmptyCriteria() throws AtlasDataException, StatisticsNotFoundException {
-        ExperimentPart expPart = experimentPart().retrieve(createExperimentWithData());
+        ExperimentPart expPart = experimentPart().retrieveFrom(createExperimentWithData());
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
     }
@@ -79,20 +79,20 @@ public class ExperimentPartCriteriaTest {
 
         ExperimentPart expPart = experimentPart()
                 .hasArrayDesignAccession(AD2.getAccession())
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD2.getAccession(), expPart.getArrayDesign().getAccession());
 
         expPart = experimentPart()
                 .hasArrayDesignAccession(AD1.getAccession())
                 .hasArrayDesignAccession(AD2.getAccession())
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNull(expPart);
 
         try {
             experimentPart()
                     .hasArrayDesignAccession(null)
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (IllegalArgumentException e) {
             // ok
@@ -101,7 +101,7 @@ public class ExperimentPartCriteriaTest {
         try {
             experimentPart()
                     .hasArrayDesignAccession("")
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (IllegalArgumentException e) {
             // ok
@@ -114,14 +114,14 @@ public class ExperimentPartCriteriaTest {
 
         ExperimentPart expPart = experimentPart()
                 .containsGenes(asList(1L, 2L))
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
             experimentPart()
                     .containsGenes(Collections.<Long>emptyList())
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (IllegalArgumentException e) {
             // ok
@@ -134,14 +134,14 @@ public class ExperimentPartCriteriaTest {
 
         ExperimentPart expPart = experimentPart()
                 .containsAtLeastOneGene(asList(4L, 2L))
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
             experimentPart()
                     .containsAtLeastOneGene(Collections.<Long>emptyList())
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (IllegalArgumentException e) {
             // ok
@@ -154,14 +154,14 @@ public class ExperimentPartCriteriaTest {
 
         ExperimentPart expPart = experimentPart()
                 .containsDeAccessions(asList("DE-3"))
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD2.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
             experimentPart()
                     .containsDeAccessions(Collections.<String>emptyList())
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (IllegalArgumentException e) {
             // ok
@@ -174,20 +174,20 @@ public class ExperimentPartCriteriaTest {
 
         ExperimentPart expPart = experimentPart()
                 .containsEfEfv("EF1", "EFV11")
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
 
         expPart = experimentPart()
                 .containsEfEfv("EF2", null)
-                .retrieve(ewd);
+                .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD2.getAccession(), expPart.getArrayDesign().getAccession());
 
         try {
             experimentPart()
                     .containsEfEfv("", "anything")
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (Exception e) {
             // ok
@@ -196,7 +196,7 @@ public class ExperimentPartCriteriaTest {
         try {
             experimentPart()
                     .containsEfEfv(null, "anything")
-                    .retrieve(ewd);
+                    .retrieveFrom(ewd);
             fail();
         } catch (Exception e) {
             // ok

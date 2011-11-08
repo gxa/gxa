@@ -52,7 +52,7 @@ public class ExperimentPartCriteria {
         this.criteria = criteria;
     }
 
-    public ExperimentPart retrieve(ExperimentWithData ewd) {
+    public ExperimentPart retrieveFrom(ExperimentWithData ewd) {
         Experiment exp = ewd.getExperiment();
         for (ArrayDesign ad : exp.getArrayDesigns()) {
             ExperimentPart expPart = new ExperimentPart(ewd, ad);

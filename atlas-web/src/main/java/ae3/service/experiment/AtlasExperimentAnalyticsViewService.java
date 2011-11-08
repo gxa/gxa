@@ -104,7 +104,7 @@ public class AtlasExperimentAnalyticsViewService {
             criteria.containsAtLeastOneGene(geneIds);
         }
 
-        final ExperimentPart expPart = criteria.retrieve(ewd);
+        final ExperimentPart expPart = criteria.retrieveFrom(ewd);
         if (expPart == null)
             return EMPTY_DESIGN_ELEMENT_RESULT;
 
