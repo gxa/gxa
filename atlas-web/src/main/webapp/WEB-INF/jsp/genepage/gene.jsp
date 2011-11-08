@@ -153,7 +153,7 @@ $(document).ready(function() {
                             <td class="propname">${f:escapeXml(field.name)}</td>
                             <td align="left">
                                 <c:choose>
-                                    <c:when test="${field.urlAware == 'true'}">
+                                    <c:when test="${field.urlAware}">
                                         <c:forEach items="${field.valuesWithUrl}" var="value" varStatus="s">
                                             <a href="${value.url}" target="_blank">${f:escapeXml(value.value)}</a><c:if test="${!s.last}">, </c:if>
                                         </c:forEach>
