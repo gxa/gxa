@@ -67,7 +67,7 @@ public class TestAtlasDataDAO extends TestCase {
     public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException, StatisticsNotFoundException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            ExperimentPart expPart = new ArrayDesignAmbiguity().containsGenes(geneIds).resolve(ewd);
+            ExperimentPart expPart = new ExperimentPartCriteria().containsGenes(geneIds).apply(ewd);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
                     expPart.getExpressionAnalysesForGeneIds(geneIds);
 

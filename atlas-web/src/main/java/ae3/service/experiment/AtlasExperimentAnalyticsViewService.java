@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.data.ArrayDesignAmbiguity;
 import uk.ac.ebi.gxa.data.ExperimentPart;
+import uk.ac.ebi.gxa.data.ExperimentPartCriteria;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
@@ -97,14 +97,14 @@ public class AtlasExperimentAnalyticsViewService {
             return EMPTY_DESIGN_ELEMENT_RESULT;
         }
 
-        ArrayDesignAmbiguity adSelector = (new ArrayDesignAmbiguity());
+        ExperimentPartCriteria adSelector = (new ExperimentPartCriteria());
         if (!isNullOrEmpty(arrayDesignAccession)) {
             adSelector.hasArrayDesignAccession(arrayDesignAccession);
         } else if (!geneIds.isEmpty()) {
             adSelector.containsAtLeastOneGene(geneIds);
         }
 
-        final ExperimentPart expPart = adSelector.resolve(ewd);
+        final ExperimentPart expPart = adSelector.apply(ewd);
         if (expPart == null)
             return EMPTY_DESIGN_ELEMENT_RESULT;
 

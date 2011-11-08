@@ -131,11 +131,11 @@ public class AtlasPlotter {
 
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
-            ExperimentPart expPart = new ArrayDesignAmbiguity()
+            ExperimentPart expPart = new ExperimentPartCriteria()
                     .containsGenes(geneIds)
                     .containsEfEfv(ef, efv)
-                    .resolve(ewd);
-            return expPart.getExpressionAnalysesForGeneIds(geneIds);
+                    .apply(ewd);
+            return expPart == null ? null : expPart.getExpressionAnalysesForGeneIds(geneIds);
         } catch (StatisticsNotFoundException e) {
             return null;
         } finally {

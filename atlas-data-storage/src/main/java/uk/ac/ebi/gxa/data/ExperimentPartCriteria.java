@@ -42,13 +42,13 @@ import static com.google.common.collect.Collections2.transform;
 /**
  * @author Olga Melnichuk
  */
-public class ArrayDesignAmbiguity {
+public class ExperimentPartCriteria {
 
-    private static final Logger log = LoggerFactory.getLogger(ArrayDesignAmbiguity.class);
+    private static final Logger log = LoggerFactory.getLogger(ExperimentPartCriteria.class);
 
     private Predicate<ExperimentPart> criteria = Predicates.alwaysTrue();
 
-    public ExperimentPart resolve(ExperimentWithData ewd) {
+    public ExperimentPart apply(ExperimentWithData ewd) {
         Experiment exp = ewd.getExperiment();
         for (ArrayDesign ad : exp.getArrayDesigns()) {
             ExperimentPart expPart = new ExperimentPart(ewd, ad);
@@ -59,14 +59,14 @@ public class ArrayDesignAmbiguity {
         return null;
     }
 
-    public ArrayDesignAmbiguity containsEfEfv(String ef, String efv) {
+    public ExperimentPartCriteria containsEfEfv(String ef, String efv) {
         if (isNullOrEmpty(ef)) {
             throw new IllegalArgumentException("'ef' argument can not be null or empty");
         }
         return addCriteria(ExperimentPartPredicates.containsEfEfv(ef, efv));
     }
 
-    public ArrayDesignAmbiguity containsGenes(Collection<Long> geneIds) {
+    public ExperimentPartCriteria containsGenes(Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty()) {
             throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
         }
@@ -74,28 +74,28 @@ public class ArrayDesignAmbiguity {
     }
 
 
-    public ArrayDesignAmbiguity containsAtLeastOneGene(final Collection<Long> geneIds) {
+    public ExperimentPartCriteria containsAtLeastOneGene(final Collection<Long> geneIds) {
         if (geneIds == null || geneIds.isEmpty()) {
             throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
         }
         return addCriteria(ExperimentPartPredicates.containsAtLeastOneGene(geneIds));
     }
 
-    public ArrayDesignAmbiguity containsDeAccessions(Collection<String> deAccessions) {
+    public ExperimentPartCriteria containsDeAccessions(Collection<String> deAccessions) {
         if (deAccessions == null || deAccessions.isEmpty()) {
             throw new IllegalArgumentException("'deAccessions' argument can not be null or empty");
         }
         return addCriteria(ExperimentPartPredicates.containsDeAccessions(deAccessions));
     }
 
-    public ArrayDesignAmbiguity hasArrayDesignAccession(String adAccession) {
+    public ExperimentPartCriteria hasArrayDesignAccession(String adAccession) {
         if (isNullOrEmpty(adAccession)) {
             throw new IllegalArgumentException("'adAccession' argument can not be null or empty");
         }
         return addCriteria(ExperimentPartPredicates.hasArrayDesignAccession(adAccession));
     }
 
-    private ArrayDesignAmbiguity addCriteria(Predicate<ExperimentPart> predicate) {
+    private ExperimentPartCriteria addCriteria(Predicate<ExperimentPart> predicate) {
         criteria = Predicates.and(criteria, predicate);
         return this;
     }

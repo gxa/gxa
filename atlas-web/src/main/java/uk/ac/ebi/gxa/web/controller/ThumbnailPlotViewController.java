@@ -76,14 +76,15 @@ public class ThumbnailPlotViewController extends AtlasViewController {
         try {
             ewd = atlasDataDAO.createExperimentWithData(exp);
 
-            ExperimentPart expPart = new ArrayDesignAmbiguity()
+            ExperimentPart expPart = new ExperimentPartCriteria()
                     .containsDeAccessions(Arrays.asList(deacc))
-                    .resolve(ewd);
+                    .apply(ewd);
 
             model.addAttribute("plot",
-                    ThumbnailPlot.create(expPart, deacc, ef, efv)
-                            .scale(width, height)
-                            .asMap());
+                    expPart == null ? null :
+                            ThumbnailPlot.create(expPart, deacc, ef, efv)
+                                    .scale(width, height)
+                                    .asMap());
             return UNSUPPORTED_HTML_VIEW;
         } finally {
             closeQuietly(ewd);
@@ -112,15 +113,16 @@ public class ThumbnailPlotViewController extends AtlasViewController {
             ewd = atlasDataDAO.createExperimentWithData(exp);
 
             List<Long> geneIds = Arrays.asList(geneId);
-            ExperimentPart expPart = new ArrayDesignAmbiguity()
+            ExperimentPart expPart = new ExperimentPartCriteria()
                     .containsGenes(geneIds)
                     .containsEfEfv(ef, efv)
-                    .resolve(ewd);
+                    .apply(ewd);
 
             model.addAttribute("plot",
-                    ThumbnailPlot.create(expPart, geneId, ef, efv)
-                            .scale(width, height)
-                            .asMap());
+                    expPart == null ? null :
+                            ThumbnailPlot.create(expPart, geneId, ef, efv)
+                                    .scale(width, height)
+                                    .asMap());
             return UNSUPPORTED_HTML_VIEW;
         } finally {
             closeQuietly(ewd);
