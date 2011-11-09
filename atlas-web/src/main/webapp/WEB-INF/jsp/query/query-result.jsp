@@ -140,6 +140,8 @@
                 var td  = $(this).parents("td:first");
                 return $('.gtooltip', td).html();
             },
+            extraClass: "tooltip",
+            id: "tooltip-over-results",
             showURL: false
         });
 

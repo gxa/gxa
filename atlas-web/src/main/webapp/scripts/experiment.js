@@ -1799,6 +1799,8 @@
                 bodyHandler: function () {
                     return $("#geneToolTipTemplate").tmpl(toolTips[this.text]);
                 },
+                id: "tooltip-over-grid",
+                extraClass: "tooltip",
                 showURL: false
             });
 
@@ -1807,6 +1809,8 @@
                 bodyHandler: function () {
                     return "View in the Ensembl Genome Browser (new window)";
                 },
+                id: "tooltip-over-grid",
+                extraClass: "tooltip",
                 showURL: false
             });
         }

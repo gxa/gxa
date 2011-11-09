@@ -33,7 +33,7 @@
 }
 
 /* basic colors */
-#expopup, #expopup .exptable, #tooltip, .waiter {
+#expopup, #expopup .exptable, .waiter {
     border: 1px solid #5E9E9E
 }
 
@@ -41,7 +41,7 @@ fieldset, #drill {
     border: none
 }
 
-#squery th, #tooltip, #expopup, .diaghead {
+#squery th, #expopup, .diaghead {
     background-color: #EEF5F5;
 }
 
@@ -120,7 +120,7 @@ fieldset, #drill {
 
 #squery td.genename { font-size: 12px; font-weight: bold; }
 
-#squery em, #tooltip em { font: inherit; background-color: yellow;text-decoration:inherit;  }
+#squery em { font: inherit; background-color: yellow;text-decoration:inherit;  }
 
 #squery .downback, .downback {
     background: #0000ff;
@@ -334,17 +334,6 @@ fieldset, #drill {
 
 #tooltipPlot .genename { margin-bottom: 10px;font-size:10px; }
 #tooltipPlot .genename b { font-weight: bold; font-size: 14px; }
-
-#tooltip {
-	position: absolute;
-	z-index: 3000;
-    padding: 10px;
-    max-width:800px;
-}
-#tooltip div { margin-bottom: 5px; }
-
-#tooltip .genename { margin-bottom: 10px;font-size:10px; }
-#tooltip .genename b { font-weight: bold; font-size: 14px; }
 
 .plot { position: relative; width: 240px; height: 100px; }
 
