@@ -59,12 +59,20 @@ public class AnnotationSourceController {
         return loader.getAnnSrcAsStringById(id);
     }
 
+    public String getAnnSrcString(String id, String type) {
+        return annotationSourceManager.getAnnSrcString(id, AnnotationSourceClass.getByName(type));
+    }
+
     public void saveAnnSrc(String text) {
         try {
             loader.saveAnnSrc(text);
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save AnnotationSource! ", e);
         }
+    }
+
+    public void saveAnnSrc(String id, String type, String text) {
+        annotationSourceManager.saveAnnSrc(id, AnnotationSourceClass.getByName(type), text);
     }
 
     public static class AnnotationSourceView {

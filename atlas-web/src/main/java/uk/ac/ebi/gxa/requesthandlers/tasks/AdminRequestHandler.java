@@ -271,7 +271,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                             , "currName", sourceView.getSoftware()
                             , "validation", sourceView.getValidationMessage()
                             , "applied", sourceView.getApplied()
-                            , "type", sourceView.getType()
+                            , "annSrcType", sourceView.getType()
 
                     ));
         }
@@ -279,14 +279,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("annSrcs", results);
     }
 
-    private Object processSearchAnnSrc(String annSrcId) {
-        String emptyAnnSrcString = "CREATE NEW ANNOTATION SOURCE ";
-        String annSrcString = "";
+    private Object processSearchAnnSrc(String annSrcId, String type) {
+        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
         if (!StringUtils.EMPTY.equals(annSrcId)) {
-            annSrcString = annSrcController.getAnnSrcString(annSrcId);
+            annSrcString = annSrcController.getAnnSrcString(annSrcId, type);
         }
 
-        return makeMap("annSrcText", StringUtils.EMPTY.equals(annSrcString)?emptyAnnSrcString:annSrcString);
+        return makeMap("annSrcText", annSrcString, "type", type);
     }
 
     private Date parseDate(String toDateStr) {
@@ -363,8 +362,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Object processUpdateAnnSrc(String text){
-        annSrcController.saveAnnSrc(text);
+    private Object processUpdateAnnSrc(String id, String type, String text){
+        annSrcController.saveAnnSrc(id, type, text);
         return EMPTY;
     }
 
@@ -454,11 +453,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         else if ("searchorg".equals(op))
             return processSearchOrganisms();
 
-        else if ("searchannSrc".equals(op))
-            return processSearchAnnSrc(req.getStr("annSrcId"));
-
+        else if ("searchannSrc".equals(op)) {
+            return processSearchAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
+        }
         else if ("annSrcUpdate".equals(op))
-            return processUpdateAnnSrc(req.getStr("asText"));
+            return processUpdateAnnSrc(req.getStr("annSrcId"), req.getStr("type"), req.getStr("asText"));
 
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(

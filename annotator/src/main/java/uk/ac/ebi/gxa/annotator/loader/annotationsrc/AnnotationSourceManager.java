@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,9 +91,16 @@ public class AnnotationSourceManager {
         return annSrcConverter.convertToString(annotationSource);
     }
 
-    public void saveAnnSrc(String text, AnnotationSourceClass type) {
-        final AnnotationSource annotationSource = annSrcConverter.convertToAnnotationSource(text, type);
-        annSrcDAO.save(annotationSource);
+    public void saveAnnSrc(String id, AnnotationSourceClass type, String text) {
+        AnnotationSource annSrc = null;
+        if (!StringUtils.EMPTY.equals(id)) {
+            annSrc = annSrcDAO.getById(Long.getLong(id), type.getClazz());
+            annSrcConverter.editAnnotationSource(annSrc, text);
+        } else {
+            annSrc = annSrcConverter.createAnnotationSource(id, type);
+        }
+
+        annSrcDAO.save(annSrc);
     }
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {

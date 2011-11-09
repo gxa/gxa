@@ -63,6 +63,7 @@ var $options = {
 };
 
 var annSrcId;
+var annSrcType;
 
 var $msg = {
     taskType: {
@@ -698,6 +699,7 @@ function updateAnnSrcs() {
 
             $(e).click(function() {
                annSrcId = li.id;
+               annSrcType=li.annSrcType;
                $('#tabs').tabs('select', $tab.annSrcEd);
             });
 
@@ -711,12 +713,20 @@ function updateAnnSrcs() {
             startSelectedTasks('mappingupdate', 'RESTART', 'update annotations for organism ');
         });
 
+        $('#orgList input.newannsrc').click(function () {
+            annSrcType=$('#annSrcSelect').val();
+            $('#tabs').tabs('select', $tab.annSrcEd);
+        });
+        
         bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
     });
 }
 
-function editAnnSrc(annSrcId) {
-    adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
+function editAnnSrc(id, type) {
+    adminCall('searchannSrc', {
+        annSrcId:id
+        , type: type
+    }, function (result) {
 
         renderTpl('annSrcEd', result);
 
@@ -725,6 +735,8 @@ function editAnnSrc(annSrcId) {
         });
 
          $('#cancelAnnSrcButton').click(function () {
+            annSrcId="";
+            annSrcType="";
             $('#tabs').tabs('select', $tab.annSrc);
         });
     });
@@ -734,11 +746,15 @@ function saveAnnSrc() {
     var asText = $('#txtAnnSrc').val();
 
     function switchToAnnSrcList() {
+        annSrcId="";
+        annSrcType="";
         $('#tabs').tabs('select', $tab.annSrc);
     }
 
     adminCall('annSrcUpdate', {
-                asText: asText
+                asText: asText,
+                annSrcId:annSrcId,
+                type:annSrcType
             }, switchToAnnSrcList);
 }
 
@@ -781,7 +797,7 @@ function redrawCurrentState() {
         updateAnnSrcs();
         $('#tabs').tabs('select', $tab.annSrc);
     } else if(currentState['tab'] == $tab.annSrcEd) {
-        editAnnSrc(annSrcId);
+        editAnnSrc(annSrcId, annSrcType);
         $('#tabs').tabs('select', $tab.annSrcEd);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
@@ -887,7 +903,7 @@ function compileTemplates() {
      compileTpl('orgList', {
         'tbody tr': {
             'annSrc <- annSrcs': {
-                'label.annSrcType': 'annSrc.type',
+                'label.annSrcType': 'annSrc.annSrcType',
                 '.name': 'annSrc.organismName',
                 '.types': 'annSrc.beTypes',
                 '.currAnnSrc': 'annSrc.currName',
@@ -900,7 +916,7 @@ function compileTemplates() {
     });
 
     compileTpl('annSrcEd', {
-
+        '.type':'type',
         'textarea.value':'annSrcText'
     });
 
