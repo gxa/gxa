@@ -279,7 +279,10 @@ public class GeneViewController extends AtlasViewController {
      */
     private String getGene(final Model model, final String geneId, @Nullable final String ef) throws ResourceNotFoundException {
         GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
-        if (result.isMulti()) {
+        if (result.isMulti() &&
+                // This is to exclude cases when multiple bioentities with the same identifier are found, only one of which has expression data in Atlas
+                // (e.g. ENSG00000171564 - for more info see ticket #3174). This additional clause prevents a re-direct loop between heatmap and gene page.
+                !geneSolrDAO.getGeneByIdentifier(geneId).isMulti()) {
             model.addAttribute("gprop_0", "")
                     .addAttribute("gval_0", geneId)
                     .addAttribute("fexp_0", "UP_DOWN")
