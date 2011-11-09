@@ -38,7 +38,10 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -105,9 +108,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
         new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
-
-        log.debug("JLP =" + System.getProperty("java.library.path"));
-        new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache, dao);
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
