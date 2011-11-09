@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.Test;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.utils.ResourceUtil;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -146,7 +147,7 @@ public class ExperimentalDataTest {
 
     private static File getTestNCDir() throws URISyntaxException {
         // won't work for JARs, networks and stuff, but so far so good...
-        return new File(ExperimentalData.class.getClassLoader().getResource("").getPath());
+        return ResourceUtil.getResourceRoot(ExperimentalDataTest.class);
     }
 
     @After

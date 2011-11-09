@@ -27,6 +27,7 @@ import junit.framework.TestCase;
 import ucar.ma2.ArrayChar;
 import ucar.nc2.NetcdfFile;
 import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.gxa.utils.ResourceUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
@@ -47,7 +48,7 @@ public class TestNetCDFSplitting extends TestCase {
     @Override
     protected void setUp() throws Exception {
         atlasDataDAO = new AtlasDataDAO();
-        File baseDirectory = new File(getClass().getClassLoader().getResource("").getPath());
+        File baseDirectory = ResourceUtil.getResourceRoot(getClass());
         tempDirectory = FileUtil.createTempDirectory("atlas-test");
         baseExperimentDirectory = new File(baseDirectory.getAbsolutePath() + "/MTAB/00/E-MTAB-25");
         experimentDirectory = new File(tempDirectory.getAbsolutePath() + "/MTAB/00/E-MTAB-25");
