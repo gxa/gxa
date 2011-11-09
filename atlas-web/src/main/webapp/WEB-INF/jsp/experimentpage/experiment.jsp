@@ -271,7 +271,7 @@
 </script>
 
 <script id="geneToolTipTemplate" type="text/x-jquery-tmpl">
-    <div class="gtooltip">
+    <div>
       <div class="genename">
         <b>\${name}</b> \${identifiers}
        </div>
