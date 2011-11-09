@@ -165,19 +165,33 @@ public class GeneSolrDAO {
      * Returns AtlasGenes corresponding to the specified gene identifiers, i.e. matching one of the terms in the
      * "gene_ids" field in Solr schema.
      *
+     * @param ids           Collection of ids
+     * @param additionalIds additional properties to search for
+     * @return Iterable<AtlasGene>
+     */
+    public Iterable<AtlasGene> getGenesByAnyIdentifiers(Collection ids, List<String> additionalIds) {
+        if (ids.isEmpty()) return Collections.emptyList();
+
+        StringBuilder sb = new StringBuilder();
+        for (Object id : ids) {
+            sb.append(" id:").append(id).append(" identifier:").append(id);
+            for (String idprop : additionalIds)
+                sb.append(" property_").append(idprop).append(":").append(id);
+        }
+        return createIteratorForQuery(new SolrQuery(sb.toString()));
+    }
+
+    /**
+     * Returns AtlasGenes corresponding to the specified gene identifiers, i.e. matching one of the terms in the
+     * "gene_ids" field in Solr schema.
+     *
      * @param ids Collection of ids
      * @return Iterable<AtlasGene>
      */
     public Iterable<AtlasGene> getGenesByIdentifiers(Collection ids) {
-        if (ids.isEmpty()) return Collections.emptyList();
-
-        StringBuilder sb = new StringBuilder();
-        for (Object id : ids)
-            sb.append(" id:").append(id).append(" identifier:").append(id);
-
-        final SolrQuery q = new SolrQuery(sb.toString());
-        return createIteratorForQuery(q);
+        return getGenesByAnyIdentifiers(ids, Collections.<String>emptyList());
     }
+
 
     /**
      * @param name name of genes to search for
@@ -279,22 +293,24 @@ public class GeneSolrDAO {
         return result;
     }
 
-    public List<Long> findGeneIds(Collection<String> query) {
+    public List<Long> findGeneIds(Collection<String> query, List<String> additionalIds) {
         List<Long> genes = Lists.newArrayList();
 
         for (String text : query) {
             if (Strings.isNullOrEmpty(text)) {
                 continue;
             }
-            AtlasGeneResult res = getGeneByIdentifier(text);
-            if (!res.isFound()) {
+            Iterator<AtlasGene> res = getGenesByAnyIdentifiers(Collections.singleton(text), additionalIds).iterator();
+            if (!res.hasNext()) {
                 for (AtlasGene gene : getGenesByName(text)) {
                     genes.add((long) gene.getGeneId());
                 }
             } else {
-                genes.add((long) res.getGene().getGeneId());
+                while (res.hasNext())
+                    genes.add((long) res.next().getGeneId());
             }
         }
         return genes;
     }
+
 }

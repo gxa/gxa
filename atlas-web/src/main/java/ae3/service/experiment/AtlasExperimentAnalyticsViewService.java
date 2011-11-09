@@ -13,6 +13,7 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeException;
 import uk.ac.ebi.gxa.data.ExperimentPart;
 import uk.ac.ebi.gxa.data.ExperimentPartCriteria;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
@@ -31,6 +32,7 @@ import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
 
 public class AtlasExperimentAnalyticsViewService {
 
+    private AtlasProperties atlasProperties;
     private static final BestDesignElementsResult EMPTY_DESIGN_ELEMENT_RESULT = new BestDesignElementsResult();
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -43,6 +45,10 @@ public class AtlasExperimentAnalyticsViewService {
         upDownConditionInR.put(CONDITION_DOWN, "DOWN");
         upDownConditionInR.put(CONDITION_NONDE, "NON_D_E");
         upDownConditionInR.put(CONDITION_ANY, "ANY");
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     private GeneSolrDAO geneSolrDAO;
@@ -91,7 +97,7 @@ public class AtlasExperimentAnalyticsViewService {
         final boolean genesSpecified = !geneIdentifierQuery.isEmpty();
 
         final List<Long> geneIds = genesSpecified
-                ? geneSolrDAO.findGeneIds(geneIdentifierQuery)
+                ? geneSolrDAO.findGeneIds(geneIdentifierQuery, atlasProperties.getGeneAutocompleteIdFields())
                 : Collections.<Long>emptyList();
         if (genesSpecified && geneIds.isEmpty()) {
             return EMPTY_DESIGN_ELEMENT_RESULT;

@@ -244,6 +244,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="atlasExperimentAnalyticsViewService" class="ae3.service.experiment.AtlasExperimentAnalyticsViewService">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="computeService" ref="atlasComputeService"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasBitIndexQueryService">
