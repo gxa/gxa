@@ -52,7 +52,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
@@ -126,7 +125,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentResult, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
-                                        ExperimentWithData ewd = null;
                                         try {
                                             Experiment experiment = experimentDAO.getByName((e.getAccession()));
                                             PTRank ptRank = e.getPValTStatRank();
@@ -134,8 +132,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                         } catch (RecordNotFoundException rnfe) {
                                             log.debug("Quiesce - no experiment matching e.getAccession() was found");
                                             return null;
-                                        } finally {
-                                            closeQuietly(ewd);
                                         }
                                     }
                                 }),
