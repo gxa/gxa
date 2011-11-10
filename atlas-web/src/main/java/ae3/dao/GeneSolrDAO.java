@@ -177,7 +177,7 @@ public class GeneSolrDAO {
      * @param additionalIds additional properties to search for
      * @return Iterable<AtlasGene>
      */
-    private Iterable<AtlasGene> getGenesByAnyIdentifiers(Collection ids, List<String> additionalIds) {
+    private Iterable<AtlasGene> getGenesByAnyIdentifiers(Collection<String> ids, List<String> additionalIds) {
         if (ids.isEmpty()) return Collections.emptyList();
 
         StringBuilder sb = new StringBuilder();
@@ -196,7 +196,7 @@ public class GeneSolrDAO {
      * @param ids Collection of ids
      * @return Iterable<AtlasGene>
      */
-    public Iterable<AtlasGene> getGenesByIdentifiers(Collection ids) {
+    public Iterable<AtlasGene> getGenesByIdentifiers(Collection<String> ids) {
         return getGenesByAnyIdentifiers(ids, Collections.<String>emptyList());
     }
 
