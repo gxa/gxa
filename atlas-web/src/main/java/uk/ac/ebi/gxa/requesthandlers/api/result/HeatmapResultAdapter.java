@@ -262,22 +262,26 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
      * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
      */
     private float getPValueFromNcdf(ExperimentWithData ewd, ExperimentResult e, long geneId, float roundedPVal) {
-        UpDownExpression expression = toExpression(e.getPValTStatRank());
-        EfAttribute attr = e.getHighestRankAttribute();
-        if (attr instanceof EfvAttribute) {
-            final String efv = ((EfvAttribute) attr).getEfv();
-            if (expression.isUp()) {
-                final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
-                        efv, UpDownCondition.CONDITION_UP);
-                return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+        try {
+            UpDownExpression expression = toExpression(e.getPValTStatRank());
+            EfAttribute attr = e.getHighestRankAttribute();
+            if (attr instanceof EfvAttribute) {
+                final String efv = ((EfvAttribute) attr).getEfv();
+                if (expression.isUp()) {
+                    final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
+                            efv, UpDownCondition.CONDITION_UP);
+                    return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+                }
+                if (expression.isDown()) {
+                    final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
+                            efv, UpDownCondition.CONDITION_DOWN);
+                    return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+                }
             }
-            if (expression.isDown()) {
-                final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
-                        efv, UpDownCondition.CONDITION_DOWN);
-                return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
-            }
+            // gave up
+            return roundedPVal;
+        } finally {
+            ewd.close();
         }
-        // gave up
-        return roundedPVal;
     }
 }
