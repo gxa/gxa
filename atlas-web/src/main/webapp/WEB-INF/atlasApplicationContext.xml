@@ -210,6 +210,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">
         <property name="geneSolr" ref="solrServerAtlas"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">

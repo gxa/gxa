@@ -5,6 +5,8 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.rcommand.RCommand;
 import ae3.service.experiment.rcommand.RCommandResult;
 import ae3.service.experiment.rcommand.RCommandStatement;
+import com.google.common.base.Functions;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +154,7 @@ public class AtlasExperimentAnalyticsViewService {
             result.setTotalSize(total);
 
             Map<Integer, AtlasGene> geneMap = new HashMap<Integer, AtlasGene>();
-            Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(Ints.asList(gIds));
+            Iterable<AtlasGene> solrGenes = geneSolrDAO.getGenesByIdentifiers(Lists.transform(Ints.asList(gIds), Functions.toStringFunction()));
             for (AtlasGene gene : solrGenes) {
                 geneMap.put(gene.getGeneId(), gene);
             }
