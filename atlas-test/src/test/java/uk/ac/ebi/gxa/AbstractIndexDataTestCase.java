@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.gxa.utils.ResourceUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -80,7 +81,7 @@ public abstract class AbstractIndexDataTestCase extends AtlasDAOTestCase {
 
         buildSolrIndexes();
 
-        final File classPath = new File(this.getClass().getClassLoader().getResource("").getPath());
+        final File classPath = ResourceUtil.getResourceRoot(getClass());
         atlasDataDAO = new AtlasDataDAO();
         atlasDataDAO.setAtlasDataRepo(new File(classPath, "netcdfs"));
     }
