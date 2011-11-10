@@ -65,8 +65,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         super.setUp();
 
         cache = new AtlasLoadCache();
-        parseURL = this.getClass().getClassLoader().getResource(
-                "E-GEOD-3790.idf.txt");
+        parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790.idf.txt");
     }
 
     public void tearDown() throws Exception {

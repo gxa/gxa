@@ -1,12 +1,12 @@
 package uk.ac.ebi.gxa.data;
 
 import junit.framework.TestCase;
+import uk.ac.ebi.gxa.utils.ResourceUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -47,7 +47,7 @@ public class TestAtlasDataDAO extends TestCase {
         experiment.setAssays(Collections.singletonList(assay));
 
         atlasDataDAO = new AtlasDataDAO();
-        atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
+        atlasDataDAO.setAtlasDataRepo(ResourceUtil.getResourceRoot(getClass()));
 
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
