@@ -128,12 +128,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                     public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
                                         ExperimentWithData ewd = null;
                                         try {
-                                            ewd = getExperiment(e.getAccession());
+                                            Experiment experiment = experimentDAO.getByName((e.getAccession()));
                                             PTRank ptRank = e.getPValTStatRank();
-                                            UpDownExpression expression = toExpression(ptRank);
-                                            float pVal = getPValueFromNcdf(ewd, e, (long) row.getGene().getGeneId(), ptRank.getPValue());
-                                            // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
-                                            return new ListResultRowExperiment(ewd.getExperiment(), pVal, null, expression);
+                                            return new ListResultRowExperiment(experiment, ptRank.getPValue(), null, toExpression(ptRank));
                                         } catch (RecordNotFoundException rnfe) {
                                             log.debug("Quiesce - no experiment matching e.getAccession() was found");
                                             return null;
