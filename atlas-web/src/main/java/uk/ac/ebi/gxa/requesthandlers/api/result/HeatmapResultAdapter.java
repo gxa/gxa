@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -261,15 +262,26 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
      * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
      */
     private float getPValueFromNcdf(ExperimentWithData ewd, ExperimentResult e, long geneId, float roundedPVal) {
-        float accuratePVal = roundedPVal;
-        UpDownExpression expression = toExpression(e.getPValTStatRank());
-        EfAttribute attr = e.getHighestRankAttribute();
-        if (attr instanceof EfvAttribute) {
-            if (expression.isUp())
-                accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(), ((EfvAttribute) attr).getEfv(), UpDownCondition.CONDITION_UP).getPValAdjusted();
-            else if (expression.isDown())
-                accuratePVal = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(), ((EfvAttribute) attr).getEfv(), UpDownCondition.CONDITION_DOWN).getPValAdjusted();
+        try {
+            UpDownExpression expression = toExpression(e.getPValTStatRank());
+            EfAttribute attr = e.getHighestRankAttribute();
+            if (attr instanceof EfvAttribute) {
+                final String efv = ((EfvAttribute) attr).getEfv();
+                if (expression.isUp()) {
+                    final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
+                            efv, UpDownCondition.CONDITION_UP);
+                    return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+                }
+                if (expression.isDown()) {
+                    final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
+                            efv, UpDownCondition.CONDITION_DOWN);
+                    return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+                }
+            }
+            // gave up
+            return roundedPVal;
+        } finally {
+            ewd.close();
         }
-        return accuratePVal;
     }
 }
