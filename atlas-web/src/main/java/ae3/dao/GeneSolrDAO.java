@@ -180,7 +180,7 @@ public class GeneSolrDAO {
         if (ids.isEmpty()) return Collections.emptyList();
 
         StringBuilder sb = new StringBuilder();
-        for (Object id : ids) {
+        for (String id : ids) {
             sb.append(" id:").append(id).append(" identifier:").append(id);
             for (String idprop : additionalIds)
                 sb.append(" property_").append(idprop).append(":").append(id);
