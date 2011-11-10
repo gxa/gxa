@@ -248,17 +248,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     }
 
     /**
-     * @param accession experiment accession
-     * @return ExperimentWithData corresponding to the accession
-     */
-    private ExperimentWithData getExperiment(String accession) throws RecordNotFoundException {
-        Experiment experiment = experimentDAO.getByName(accession);
-        if (experiment == null)
-            return null;
-        return atlasDataDAO.createExperimentWithData(experiment);
-    }
-
-    /**
      * @param ewd
      * @param e
      * @param geneId
