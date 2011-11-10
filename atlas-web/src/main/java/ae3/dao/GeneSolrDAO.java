@@ -47,10 +47,9 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  * @author ostolop, mdylag, pashky
  */
 public class GeneSolrDAO {
+    private static final Logger log = LoggerFactory.getLogger(GeneSolrDAO.class);
 
     private AtlasProperties atlasProperties;
-
-    private static final Logger log = LoggerFactory.getLogger(GeneSolrDAO.class);
 
     private SolrServer geneSolr;
 
