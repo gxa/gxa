@@ -34,10 +34,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
-import static java.lang.Float.isNaN;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class ExperimentWithData implements Closeable {
@@ -222,13 +220,13 @@ public class ExperimentWithData implements Closeable {
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
             final KeyValuePair uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
             if (efName == null ||
-                    (uniqueEFV.key.equals(efName) && uniqueEFV.value.equals(efvName))) {
+                (uniqueEFV.key.equals(efName) && uniqueEFV.value.equals(efvName))) {
                 list.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
                         deIndex,
-                        uniqueEFV.key,
-                        uniqueEFV.value,
+                    uniqueEFV.key,
+                    uniqueEFV.value,
                         t[efIndex],
                         p[efIndex]
                 ));
@@ -291,7 +289,7 @@ public class ExperimentWithData implements Closeable {
             result.put(geneId, resultForGene);
 
             for (Integer deIndex : entry.getValue()) {
-                List<ExpressionAnalysis> eaList = newArrayList();
+                List<ExpressionAnalysis> eaList = new ArrayList<ExpressionAnalysis>();
                 if (efVal != null && efvVal != null) {
                     final List<ExpressionAnalysis> eas =
                             getExpressionAnalysesByFactor(arrayDesign, deIndex, efVal, efvVal);
@@ -321,11 +319,11 @@ public class ExperimentWithData implements Closeable {
                     ExpressionAnalysis prevBestPValueEA = resultForFactor.get(efv);
                     if ((prevBestPValueEA == null ||
                             // Mo stats were available in the previously seen ExpressionAnalysis
-                            isNaN(prevBestPValueEA.getPValAdjusted()) || isNaN(prevBestPValueEA.getTStatistic()) ||
+                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) || Float.isNaN(prevBestPValueEA.getTStatistic()) ||
                             // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
-                            (!isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
                             // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
-                            (!isNaN(ea.getPValAdjusted()) && !isNaN(ea.getTStatistic()) &&
+                            (!Float.isNaN(ea.getPValAdjusted()) && !Float.isNaN(ea.getTStatistic()) &&
                                     prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
                                     Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
                             ) {
@@ -353,14 +351,14 @@ public class ExperimentWithData implements Closeable {
         // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
         // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
         // proxy.getGenes().size() == proxy.getDesignElements().size())
-        Map<Long, List<Integer>> geneIdToDEIndexes = newHashMap();
+        Map<Long, List<Integer>> geneIdToDEIndexes = new HashMap<Long, List<Integer>>();
 
         int deIndex = 0;
         for (Long geneId : getGenes(ad)) {
             if (geneIds.contains(geneId)) {
                 List<Integer> deIndexes = geneIdToDEIndexes.get(geneId);
                 if (deIndexes == null) {
-                    deIndexes = newArrayList();
+                    deIndexes = new ArrayList<Integer>();
                 }
                 deIndexes.add(deIndex);
                 geneIdToDEIndexes.put(geneId, deIndexes);
@@ -370,8 +368,8 @@ public class ExperimentWithData implements Closeable {
         return geneIdToDEIndexes;
     }
 
-    /**
-     * @param geneIds     ids of genes to plot
+     /**
+     * @param geneIds  ids of genes to plot
      * @param arrayDesign an array design to get expression analyses data
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
