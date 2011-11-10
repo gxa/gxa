@@ -52,7 +52,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
@@ -126,19 +125,13 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentResult, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
-                                        ExperimentWithData ewd = null;
                                         try {
-                                            ewd = getExperiment(e.getAccession());
+                                            Experiment experiment = experimentDAO.getByName((e.getAccession()));
                                             PTRank ptRank = e.getPValTStatRank();
-                                            UpDownExpression expression = toExpression(ptRank);
-                                            float pVal = getPValueFromNcdf(ewd, e, (long) row.getGene().getGeneId(), ptRank.getPValue());
-                                            // For up/down expressions replace that rounded pval from bitindex with the accurate pvalue from ncdfs
-                                            return new ListResultRowExperiment(ewd.getExperiment(), pVal, null, expression);
+                                            return new ListResultRowExperiment(experiment, ptRank.getPValue(), null, toExpression(ptRank));
                                         } catch (RecordNotFoundException rnfe) {
                                             log.debug("Quiesce - no experiment matching e.getAccession() was found");
                                             return null;
-                                        } finally {
-                                            closeQuietly(ewd);
                                         }
                                     }
                                 }),
@@ -248,17 +241,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
     private static UpDownExpression toExpression(PTRank ptRank) {
         return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
-    }
-
-    /**
-     * @param accession experiment accession
-     * @return ExperimentWithData corresponding to the accession
-     */
-    private ExperimentWithData getExperiment(String accession) throws RecordNotFoundException {
-        Experiment experiment = experimentDAO.getByName(accession);
-        if (experiment == null)
-            return null;
-        return atlasDataDAO.createExperimentWithData(experiment);
     }
 
     /**
