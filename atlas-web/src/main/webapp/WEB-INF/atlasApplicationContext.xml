@@ -256,7 +256,8 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <constructor-arg value="bitstats"/>
     </bean>
 
-    <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
+    <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
+            destroy-method="destroy">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="efoService" ref="atlasEfoService"/>
