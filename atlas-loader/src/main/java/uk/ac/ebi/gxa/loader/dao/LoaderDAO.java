@@ -1,10 +1,14 @@
 package uk.ac.ebi.gxa.loader.dao;
 
-import uk.ac.ebi.gxa.dao.*;
-import uk.ac.ebi.microarray.atlas.model.*;
-
-import java.util.Collection;
-import java.util.Collections;
+import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
+import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.OrganismDAO;
+import uk.ac.ebi.gxa.dao.PropertyValueDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Organism;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 /**
  * The bridge between loader and the rest of the application - encapsulates external services
@@ -12,56 +16,43 @@ import java.util.Collections;
  */
 public class LoaderDAO {
     private final ExperimentDAO experimentDAO;
-    private final PropertyDAO propertyDAO;
     private final PropertyValueDAO propertyValueDAO;
     private final OrganismDAO organismDAO;
     private final ArrayDesignDAO arrayDesignDAO;
 
-    public LoaderDAO(ExperimentDAO experimentDAO, PropertyDAO propertyDAO, PropertyValueDAO propertyValueDAO, OrganismDAO organismDAO, ArrayDesignDAO arrayDesignDAO) {
+    public LoaderDAO(ExperimentDAO experimentDAO, PropertyValueDAO propertyValueDAO, OrganismDAO organismDAO, ArrayDesignDAO arrayDesignDAO) {
         this.experimentDAO = experimentDAO;
-        this.propertyDAO = propertyDAO;
         this.propertyValueDAO = propertyValueDAO;
         this.organismDAO = organismDAO;
         this.arrayDesignDAO = arrayDesignDAO;
     }
 
     public Organism getOrCreateOrganism(String name) {
-        // TODO: 4alf: track newly-created values
-        Organism organism = organismDAO.getByName(name);
-        if (organism == null) {
-            organismDAO.save(organism = new Organism(null, name));
-        }
-        return organism;
+        return organismDAO.getOrCreateOrganism(name);
     }
 
-    public PropertyValue getOrCreateProperty(String name, String value) {
-        // TODO: 4alf: track newly-created values
-        Property property = propertyDAO.getByName(name);
-        if (property == null) {
-            propertyDAO.save(property = new Property(null, name));
-        }
-        PropertyValue propertyValue = propertyValueDAO.find(property, value);
-        if (propertyValue == null) {
-            propertyValueDAO.save(propertyValue = new PropertyValue(null, property, value));
-        }
-        return propertyValue;
+    /**
+     * @param name  Free-form string describing EF
+     * @param value Free-form string describing EFV
+     * @return PropertyValue corresponding to the values passed
+     */
+    public PropertyValue getOrCreatePropertyValue(String name, String value) {
+        return propertyValueDAO.getOrCreatePropertyValue(name, value);
+    }
+
+    public ArrayDesign getArrayDesignShallow(String accession) {
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
 
     public ArrayDesign getArrayDesign(String accession) {
         return arrayDesignDAO.getArrayDesignByAccession(accession);
     }
 
-    public Collection<OntologyTerm> getOrCreateEfoTerms(String efoTerms) {
-        // TODO: 4alf: check DAO first
-        // TODO: 4alf: track newly-created values
-        return Collections.emptyList();
-    }
-
     public void save(Experiment experiment) {
         experimentDAO.save(experiment);
     }
 
-    public Experiment getExperiment(String accession) {
-        return experimentDAO.getExperimentByAccession(accession);
+    public Experiment getExperiment(String accession) throws RecordNotFoundException {
+        return experimentDAO.getByName(accession);
     }
 }

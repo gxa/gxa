@@ -25,12 +25,12 @@ package uk.ac.ebi.gxa.dao;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -61,16 +61,14 @@ public class AtlasDAO {
     private final JdbcTemplate template;
     private final ExperimentDAO experimentDAO;
     private final AssayDAO assayDAO;
-    private final SessionFactory sessionFactory;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SessionFactory sessionFactory) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
-        this.sessionFactory = sessionFactory;
 
         CacheManager cacheManager = CacheManager.getInstance();
         if (!cacheManager.cacheExists(AD_CACHE))
@@ -87,8 +85,8 @@ public class AtlasDAO {
      * @param accession the experiment's accession number (usually in the format E-ABCD-1234)
      * @return an object modelling this experiment
      */
-    public Experiment getExperimentByAccession(String accession) {
-        return experimentDAO.getExperimentByAccession(accession);
+    public Experiment getExperimentByAccession(String accession) throws RecordNotFoundException {
+        return experimentDAO.getByName(accession);
     }
 
     public List<Experiment> getExperimentsByArrayDesignAccession(String accession) {
@@ -100,14 +98,13 @@ public class AtlasDAO {
         Cache cache = CacheManager.getInstance().getCache(AD_CACHE);
         Element element = cache.get(accession);
 
-        ArrayDesign result;
         if (element == null || element.isExpired() || element.getObjectValue() == null) {
-            result = arrayDesignDAO.getArrayDesignByAccession(accession);
+            ArrayDesign result = arrayDesignDAO.getArrayDesignByAccession(accession);
             cache.put(new Element(accession, result));
+            return result;
         } else {
-            result = ArrayDesign.class.cast(element.getObjectValue());
+            return ArrayDesign.class.cast(element.getObjectValue());
         }
-        return result;
     }
 
     /**
@@ -162,27 +159,6 @@ public class AtlasDAO {
 
         return stats;
     }
-
-    /**
-     * Replace with {@link @Transactional}
-     *
-     * @deprecated
-     */
-    public void startSession() {
-        log.debug("startSession()");
-        SessionFactoryUtils.initDeferredClose(sessionFactory);
-    }
-
-    /**
-     * Replace with {@link @Transactional}
-     *
-     * @deprecated
-     */
-    public void finishSession() {
-        log.debug("finishSession()");
-        SessionFactoryUtils.processDeferredClose(sessionFactory);
-    }
-
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
         public OntologyMapping mapRow(ResultSet resultSet, int i) throws SQLException {

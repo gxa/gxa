@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -46,6 +47,9 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Sets.newTreeSet;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 
@@ -83,14 +87,16 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         this.propertyDAO = propertyDAO;
     }
 
-    public Set<String> getOptionsFactors() {
+    public Set<Property> getOptionsFactors() {
         return getFilteredFactors(atlasProperties.getOptionsIgnoredEfs());
     }
 
-    private Set<String> getFilteredFactors(Collection<String> ignored) {
-        Set<String> result = new TreeSet<String>();
-        result.addAll(getAllFactors());
-        result.removeAll(ignored);
+    private SortedSet<Property> getFilteredFactors(Collection<String> ignored) {
+        SortedSet<Property> result = newTreeSet();
+        for (Property property : propertyDAO.getAll()) {
+            if (!ignored.contains(property.getName()))
+                result.add(property);
+        }
         return result;
     }
 
@@ -123,17 +129,20 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 log.info("Loading factor values and counts for " + property);
 
                 root = new PrefixNode();
-
-                final Property p = propertyDAO.getByName(property);
-                for (PropertyValue pv : p.getValues()) {
-                    EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue(), StatisticsType.UP_DOWN);
-                    int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
-                    if (geneCount > 0) {
-                        root.add(attr.getEfv(), geneCount);
+                try {
+                    final Property p = propertyDAO.getByName(property);
+                    for (PropertyValue pv : p.getValues()) {
+                        EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue());
+                        int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
+                        if (geneCount > 0) {
+                            root.add(attr.getEfv(), geneCount);
+                        }
                     }
+                    prefixTrees.put(property, root);
+                    log.info("Done loading factor values and counts for " + property);
+                } catch (RecordNotFoundException e) {
+                    throw createUnexpected(e.getMessage(), e);
                 }
-                prefixTrees.put(property, root);
-                log.info("Done loading factor values and counts for " + property);
             }
             root = prefixTrees.get(property);
         }
@@ -161,26 +170,43 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return autoCompleteValues(property, prefix, limit, null);
     }
 
-    public Collection<AutoCompleteItem> autoCompleteValues(final String property, @Nonnull String prefix, final int limit, @Nullable Map<String, String> filters) {
-        boolean everywhere = isNullOrEmpty(property);
-
-        Collection<String> properties = everywhere ? getOptionsFactors() :
-               (getOptionsFactors().contains(property) ? Arrays.asList(property) : Collections.<String>emptyList());
-        return treeAutocomplete(properties, prefix.toLowerCase(), limit);
+    public Collection<AutoCompleteItem> autoCompleteValues(final String name, @Nonnull String prefix, final int limit, @Nullable Map<String, String> filters) {
+        return treeAutocomplete(getPropertyList(name), prefix.toLowerCase(), limit);
     }
 
-    private Collection<AutoCompleteItem> treeAutocomplete(Collection<String> properties, final @Nonnull String prefix, final int limit) {
+    private Collection<Property> getPropertyList(String name) {
+        if (isNullOrEmpty(name))
+            return getOptionsFactors();
+
+        try {
+            final Property property = propertyDAO.getByName(name);
+
+            if (isProhibited(property))
+                return emptyList();
+
+            return asList(property);
+        } catch (RecordNotFoundException e) {
+            log.warn("Unknown property name requested: " + name, e);
+            return emptyList();
+        }
+    }
+
+    private boolean isProhibited(Property property) {
+        return !getOptionsFactors().contains(property);
+    }
+
+    private Collection<AutoCompleteItem> treeAutocomplete(Collection<Property> properties, final @Nonnull String prefix, final int limit) {
         final List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
 
-        for (final String property : properties) {
-            PrefixNode root = treeGetOrLoad(property);
+        for (final Property property : properties) {
+            PrefixNode root = treeGetOrLoad(property.getName());
             if (root != null) {
                 root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                     public void put(String name, int count) {
                         result.add(
                                 new EfvAutoCompleteItem(
-                                        property,
-                                        curatedName(property),
+                                        property.getName(),
+                                        property.getDisplayName(),
                                         name,
                                         (long) count,
                                         new Rank(1.0 * prefix.length() / name.length())));
@@ -195,9 +221,13 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return result;
     }
 
-    private String curatedName(String property) {
-        String curated = atlasProperties.getCuratedEf(property);
-        return curated == null ? property : curated;
+    private String curatedName(String name) {
+        try {
+            Property property = propertyDAO.getByName(name);
+            return property.getDisplayName();
+        } catch (RecordNotFoundException e) {
+            throw createUnexpected("Unknown property: " + name, e);
+        }
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {

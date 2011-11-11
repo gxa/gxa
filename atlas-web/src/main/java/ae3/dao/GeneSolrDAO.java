@@ -23,6 +23,8 @@
 package ae3.dao;
 
 import ae3.model.AtlasGene;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -32,6 +34,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 
 import java.util.*;
@@ -46,10 +49,16 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 public class GeneSolrDAO {
     private static final Logger log = LoggerFactory.getLogger(GeneSolrDAO.class);
 
+    private AtlasProperties atlasProperties;
+
     private SolrServer geneSolr;
 
     public void setGeneSolr(SolrServer geneSolr) {
         this.geneSolr = geneSolr;
+    }
+
+    public void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 
     /**
@@ -163,18 +172,31 @@ public class GeneSolrDAO {
      * Returns AtlasGenes corresponding to the specified gene identifiers, i.e. matching one of the terms in the
      * "gene_ids" field in Solr schema.
      *
-     * @param ids Collection of ids
+     * @param ids           Collection of ids
+     * @param additionalIds additional properties to search for
      * @return Iterable<AtlasGene>
      */
-    public Iterable<AtlasGene> getGenesByIdentifiers(Collection ids) {
+    private Iterable<AtlasGene> getGenesByAnyIdentifiers(Collection<String> ids, List<String> additionalIds) {
         if (ids.isEmpty()) return Collections.emptyList();
 
         StringBuilder sb = new StringBuilder();
-        for (Object id : ids)
+        for (String id : ids) {
             sb.append(" id:").append(id).append(" identifier:").append(id);
+            for (String idprop : additionalIds)
+                sb.append(" property_").append(idprop).append(":").append(id);
+        }
+        return createIteratorForQuery(new SolrQuery(sb.toString()));
+    }
 
-        final SolrQuery q = new SolrQuery(sb.toString());
-        return createIteratorForQuery(q);
+    /**
+     * Returns AtlasGenes corresponding to the specified gene identifiers, i.e. matching one of the terms in the
+     * "gene_ids" field in Solr schema.
+     *
+     * @param ids Collection of ids
+     * @return Iterable<AtlasGene>
+     */
+    public Iterable<AtlasGene> getGenesByIdentifiers(Collection<String> ids) {
+        return getGenesByAnyIdentifiers(ids, Collections.<String>emptyList());
     }
 
     /**
@@ -276,4 +298,25 @@ public class GeneSolrDAO {
         }
         return result;
     }
+
+    public List<Long> findGeneIds(Collection<String> query) {
+        List<Long> genes = Lists.newArrayList();
+
+        for (String text : query) {
+            if (Strings.isNullOrEmpty(text)) {
+                continue;
+            }
+            Iterator<AtlasGene> res = getGenesByAnyIdentifiers(Collections.singleton(text), atlasProperties.getGeneAutocompleteIdFields()).iterator();
+            if (!res.hasNext()) {
+                for (AtlasGene gene : getGenesByName(text)) {
+                    genes.add((long) gene.getGeneId());
+                }
+            } else {
+                while (res.hasNext())
+                    genes.add((long) res.next().getGeneId());
+            }
+        }
+        return genes;
+    }
+
 }

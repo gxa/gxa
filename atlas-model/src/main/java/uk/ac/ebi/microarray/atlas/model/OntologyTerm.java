@@ -2,14 +2,12 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Immutable;
 import uk.ac.ebi.gxa.Temporary;
 
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@Immutable
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class OntologyTerm {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologyTermSeq")
@@ -19,13 +17,19 @@ public class OntologyTerm {
     private Ontology ontology;
     private String accession;
     private String description;
+    private String term;
 
     OntologyTerm() {
     }
 
-    public OntologyTerm(long id, Ontology ontology, String accession, String description) {
+    private OntologyTerm(String name) {
+        term = name;
+    }
+
+    public OntologyTerm(Long id, Ontology ontology, String term, String accession, String description) {
         this.ontologytermid = id;
         this.ontology = ontology;
+        this.term = term;
         this.accession = accession;
         this.description = description;
     }
@@ -44,6 +48,26 @@ public class OntologyTerm {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setOntology(Ontology ontology) {
+        this.ontology = ontology;
+    }
+
+    public void setAccession(String accession) {
+        this.accession = accession;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
     }
 
     // TODO: 4alf: so far it's a String replacement, must be done properly as soon as we have all the values in place

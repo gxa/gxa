@@ -22,15 +22,16 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RequestWrapper;
 import uk.ac.ebi.gxa.web.AtlasPlotter;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -47,13 +48,14 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
         this.experimentDAO = experimentDAO;
     }
 
-    public Object process(HttpServletRequest request) {
+    public Object process(HttpServletRequest request) throws ServletException {
         RequestWrapper req = new RequestWrapper(request);
 
-        String ef = req.getStr("ef");
-        if (Strings.isNullOrEmpty(ef))
-            ef = "default";
-        final Experiment eacc = experimentDAO.getExperimentByAccession(req.getStr("eacc"));
-        return plotter.getGeneInExpPlotData(req.getStr("gid"), eacc, ef, req.getStr("efv"), req.getStr("plot"));
+        try {
+            final Experiment eacc = experimentDAO.getByName(req.getStr("eacc"));
+            return plotter.getGeneInExpPlotData(req.getStr("gid"), eacc, req.getStr("ef"), req.getStr("efv"));
+        } catch (RecordNotFoundException e) {
+            throw new ServletException(e.getMessage());
+        }
     }
 }

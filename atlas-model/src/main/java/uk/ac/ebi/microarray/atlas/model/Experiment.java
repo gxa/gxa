@@ -34,12 +34,13 @@ import javax.persistence.*;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Experiment {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "experimentSeq")
@@ -59,22 +60,20 @@ public class Experiment {
 
     @OneToMany(targetEntity = Asset.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Asset> assets = new ArrayList<Asset>();
+    private List<Asset> assets = newArrayList();
 
     @OneToMany(targetEntity = Assay.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Assay> assays = new ArrayList<Assay>();
+    private List<Assay> assays = newArrayList();
 
     @OneToMany(targetEntity = Sample.class, mappedBy = "experiment", orphanRemoval = true, cascade = CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @Fetch(FetchMode.SUBSELECT)
-    private List<Sample> samples = new ArrayList<Sample>();
+    private List<Sample> samples = newArrayList();
 
     @Column(name = "PRIVATE")
     private boolean isprivate;
-
-    private boolean curated;
 
     Experiment() {
     }
@@ -163,6 +162,9 @@ public class Experiment {
 
     public void setAssays(List<Assay> assays) {
         this.assays = assays;
+        for (Assay assay : assays) {
+            assay.setExperiment(this);
+        }
     }
 
     public List<Sample> getSamples() {
@@ -171,6 +173,9 @@ public class Experiment {
 
     public void setSamples(List<Sample> samples) {
         this.samples = samples;
+        for (Sample sample : samples) {
+            sample.setExperiment(this);
+        }
     }
 
     public List<String> getSpecies() {
@@ -198,14 +203,6 @@ public class Experiment {
 
     public void setPrivate(boolean isprivate) {
         this.isprivate = isprivate;
-    }
-
-    public boolean isCurated() {
-        return curated;
-    }
-
-    public void setCurated(boolean curated) {
-        this.curated = curated;
     }
 
     @Override
@@ -314,5 +311,31 @@ public class Experiment {
                 return input != null && input.getArrayDesign().equals(arrayDesign);
             }
         });
+    }
+
+    public Asset getAsset(String filename) {
+        for (Asset asset : getAssets()) {
+            if (filename.equals(asset.getFileName())) {
+                return asset;
+            }
+        }
+        return null;
+    }
+
+    public SortedSet<Property> getFactors() {
+        SortedSet<Property> result = newTreeSet();
+        for (Assay assay : assays) {
+            result.addAll(assay.getPropertyDefinitions());
+        }
+        return result;
+    }
+
+    public SortedSet<Property> getProperties() {
+        SortedSet<Property> result = newTreeSet();
+        result.addAll(getFactors());
+        for (Sample sample : samples) {
+            result.addAll(sample.getPropertyDefinitions());
+        }
+        return result;
     }
 }

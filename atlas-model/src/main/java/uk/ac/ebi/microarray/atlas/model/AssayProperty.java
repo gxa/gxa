@@ -39,7 +39,7 @@ import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_ASSAYPV")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public final class AssayProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assayPVSeq")
@@ -60,15 +60,7 @@ public final class AssayProperty {
     AssayProperty() {
     }
 
-    public AssayProperty(Assay assay, String name, String value, List<OntologyTerm> efoTerms) {
-        this.assaypvid = null; // TODO: 4alf: we must handle this on save
-        this.assay = assay;
-        propertyValue = new PropertyValue(null, new Property(null, name), value);
-        this.terms = new ArrayList<OntologyTerm>(efoTerms);
-    }
-
-    public AssayProperty(Long id, Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
-        this.assaypvid = id;
+    public AssayProperty(Assay assay, PropertyValue pv, List<OntologyTerm> efoTerms) {
         this.assay = assay;
         propertyValue = pv;
         this.terms = new ArrayList<OntologyTerm>(efoTerms);
@@ -76,10 +68,6 @@ public final class AssayProperty {
 
     public Long getId() {
         return assaypvid;
-    }
-
-    public Assay getOwner() {
-        return assay;
     }
 
     public String getName() {
@@ -98,14 +86,8 @@ public final class AssayProperty {
         return unmodifiableList(terms);
     }
 
-    @Deprecated
-    public long getPropertyId() {
-        return propertyValue.getDefinition().getId();
-    }
-
-    @Deprecated
-    public long getPropertyValueId() {
-        return propertyValue.getId();
+    public void setTerms(List<OntologyTerm> terms) {
+        this.terms = terms;
     }
 
     @Deprecated
@@ -124,5 +106,9 @@ public final class AssayProperty {
                 "propertyValue=" + propertyValue +
                 ", terms='" + terms + '\'' +
                 '}';
+    }
+
+    public Property getDefinition() {
+        return getPropertyValue().getDefinition();
     }
 }

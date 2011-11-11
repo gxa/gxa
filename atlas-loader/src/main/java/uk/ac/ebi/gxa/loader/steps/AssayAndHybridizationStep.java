@@ -35,12 +35,15 @@ import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.Collection;
 import java.util.List;
+
+import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 
 /**
  * Experiment loading step that stores assay and hybridization nodes information
@@ -57,17 +60,14 @@ public class AssayAndHybridizationStep {
     }
 
     public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
-        boolean isRNASeq = false;
-
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
                 writeScanNode(scanNode, cache, investigation, dao);
-                isRNASeq = true;
             }
         }
 
-        if (!isRNASeq) {
+        if (!isHTS(investigation)) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
                 writeHybridizationNode(hybridizationNode, cache, investigation, dao);
             }
@@ -79,6 +79,8 @@ public class AssayAndHybridizationStep {
     }
 
     private void writeHybridizationNode(HybridizationNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+        assert !isHTS(investigation);
+
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
 
         // create/retrieve the new assay
@@ -88,36 +90,14 @@ public class AssayAndHybridizationStep {
             log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
         } else {
-            // create a new sample and add it to the cache
+            // create a new assay and add it to the cache
             assay = new Assay(node.getNodeName());
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
         }
 
-        // add array design accession
-        if (node.arrayDesigns.size() > 1) {
-            throw new AtlasLoaderException(node.arrayDesigns.size() == 0 ?
-                    "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
-                    "Assay references more than one array design, this is disallowed");
-        }
-
-        final String arrayDesignAccession = node.arrayDesigns.size() == 1 ?
-                node.arrayDesigns.get(0).getNodeName()
-                : StringUtils.EMPTY;
-
-        // only one, so set the accession
-        if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesign(arrayDesignAccession);
-            if (ad == null) {
-                throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
-            }
-            assay.setArrayDesign(ad);
-        } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
-            throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
-        } else {
-            // already set, and equal, so ignore
-        }
+        populateArrayDesign(node, assay, dao);
 
         // now record any properties
         writeAssayProperties(investigation, assay, node, dao);
@@ -172,31 +152,8 @@ public class AssayAndHybridizationStep {
             );
         }
 
-        // add array design accession
-        if (assayNode.arrayDesigns.size() > 1) {
-            throw new AtlasLoaderException(assayNode.arrayDesigns.size() == 0 ?
-                    "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
-                    "Assay references more than one array design, this is disallowed");
-        }
-
-        //Case of HTS, no array design available, create one.
-        //ToDo: add more checks if the experiment is really HTS
-        //ToDo: get organism from Characteristics[Organism]
-        final String arrayDesignAccession = assayNode.arrayDesigns.size() == 1 ?
-                assayNode.arrayDesigns.get(0).getNodeName()
-                : StringUtils.EMPTY;
-
-        // only one, so set the accession
-        if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesign(arrayDesignAccession);
-            if (ad == null) {
-                throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
-            }
-            assay.setArrayDesign(ad);
-        } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
-            throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
-        } else {
-            // already set, and equal, so ignore
+        if (!isHTS(investigation)) {
+            populateArrayDesign(assayNode, assay, dao);
         }
 
         // now record any properties
@@ -209,6 +166,32 @@ public class AssayAndHybridizationStep {
         for (SourceNode source : upstreamSources) {
             // retrieve the samples with the matching accession
             cache.linkAssayToSample(assay, source.getNodeName());
+        }
+    }
+
+    private void populateArrayDesign(HybridizationNode assayNode, Assay assay, LoaderDAO dao) throws AtlasLoaderException {
+        // add array design accession
+        if (assayNode.arrayDesigns.size() > 1) {
+            throw new AtlasLoaderException(assayNode.arrayDesigns.size() == 0 ?
+                    "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
+                    "Assay references more than one array design, this is disallowed");
+        }
+
+        final String arrayDesignAccession = assayNode.arrayDesigns.size() == 1 ?
+                assayNode.arrayDesigns.get(0).getNodeName()
+                : StringUtils.EMPTY;
+
+        // only one, so set the accession
+        if (assay.getArrayDesign() == null) {
+            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
+            if (ad == null) {
+                throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
+            }
+            assay.setArrayDesign(ad);
+        } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
+            throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
+        } else {
+            // already set, and equal, so ignore
         }
     }
 
@@ -242,7 +225,7 @@ public class AssayAndHybridizationStep {
 
             // does this assay already contain this property/property value pair?
             boolean existing = false;
-            for (AssayProperty ap : assay.getProperties(factorValueAttribute.type)) {
+            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(factorValueAttribute.type))) {
                 existing = true;
                 if (!ap.getValue().equals(factorValueName)) {
                     throw new AtlasLoaderException(
@@ -277,7 +260,7 @@ public class AssayAndHybridizationStep {
                     type = efType;
                 }
 
-                assay.addProperty(dao.getOrCreateProperty(type, factorValueName));
+                assay.addProperty(dao.getOrCreatePropertyValue(type, factorValueName));
 
                 // todo - factor values can have ontology entries, set these values
             }

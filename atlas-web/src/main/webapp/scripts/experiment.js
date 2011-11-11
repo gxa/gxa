@@ -591,9 +591,7 @@
             return new ZoomControls();
         }
 
-        var initialized = false;
-
-        var target = opts.target;
+        var target = opts.target || "";
         var zoomin = target + "_zoomin";
         var zoomout = target + "_zoomout";
         var panright = target + "_panright";
@@ -618,11 +616,8 @@
                 return;
             }
 
-            if (!initialized) {
-                drawZoomControls();
-                bindEvents();
-                initialized = true;
-            }
+            drawZoomControls();
+            bindEvents();
 
             if (mode.canZoom) {
                 $("#" + zoomin).show();
@@ -651,53 +646,24 @@
             $("#" + target).css({paddingLeft: 15});
             $("#" + target).html(contents.join(""));
 
-            $("#" + zoomin + " > img").hover(
-                    function() {
-                        $(this).attr("src", "images/zoominO.gif");
-                    },
-                    function() {
-                        $(this).attr("src", "images/zoomin.gif");
-                    }).mousedown(function() {
-                $(this).attr("src", "images/zoominC.gif");
-            }).mouseup(function() {
-                $(this).attr("src", "images/zoominO.gif");
-            });
-
-            $("#" + zoomout + " > img").hover(
-                    function() {
-                        $(this).attr("src", "images/zoomoutO.gif");
-                    },
-                    function() {
-                        $(this).attr("src", "images/zoomout.gif");
-                    }).mousedown(function() {
-                $(this).attr("src", "images/zoomoutC.gif");
-            }).mouseup(function() {
-                $(this).attr("src", "images/zoomoutO.gif");
-            });
-
-            $("#" + panright + " > img").hover(
-                    function() {
-                        $(this).attr("src", "images/panrightO.gif");
-                    },
-                    function() {
-                        $(this).attr("src", "images/panright.gif");
-                    }).mousedown(function() {
-                $(this).attr("src", "images/panrightC.gif");
-            }).mouseup(function() {
-                $(this).attr("src", "images/panrightO.gif");
-            });
-
-            $("#" + panleft + " > img").hover(
-                    function() {
-                        $(this).attr("src", "images/panleftO.gif");
-                    },
-                    function() {
-                        $(this).attr("src", "images/panleft.gif");
-                    }).mousedown(function() {
-                $(this).attr("src", "images/panleftC.gif");
-            }).mouseup(function() {
-                $(this).attr("src", "images/panleftO.gif");
-            });
+            $("#" + target).children()
+                .hover(
+                function() {
+                    $(this).addClass("hovered");
+                },
+                function() {
+                    $(this).removeClass("hovered");
+                })
+                .mousedown(
+                function() {
+                    $(this).addClass("clicked");
+                    return false;
+                })
+                .mouseup(
+                function() {
+                    $(this).removeClass("clicked");
+                    return false;
+                });
         }
 
         function bindEvents() {
@@ -714,13 +680,11 @@
                 triggerZoomOutEvent(true);
             });
 
-            $("#" + panright + " > img").unbind("click");
-            $("#" + panright + " > img").bind("click", function() {
+            $("#" + panright).bind("click", function() {
                 triggerPanRightEvent();
             });
 
-            $("#" + panleft + " > img").unbind("click");
-            $("#" + panleft + " > img ").bind("click", function() {
+            $("#" + panleft).bind("click", function() {
                 triggerPanLeftEvent();
             });
         }
@@ -1759,6 +1723,7 @@
             var tableItems = {};
             var tableSize = 0;
             var geneToolTips = {};
+            var arrayDesign = null;
 
             if (!data || data.totalSize == 0) {
                 $("#divErrorMessage").css("visibility", "visible");
@@ -1769,6 +1734,7 @@
                 tableSize = data.totalSize;
                 geneToolTips = data.geneToolTips;
                 $('#arrayDesign').html(data.arrayDesign);
+                arrayDesign = data.arrayDesign;
             }
 
             $("#expressionTableBody").data("json", data);
@@ -1810,7 +1776,7 @@
                 updatePagination(tableSize);
 
                 var ef = tableItems.length > 0 ? tableItems[0].ef : "";
-                updatePlot(_designElements.slice(0, 3), ef, data.arrayDesign);
+                updatePlot(_designElements.slice(0, 3), ef, arrayDesign);
             }
         }
 
@@ -1833,6 +1799,8 @@
                 bodyHandler: function () {
                     return $("#geneToolTipTemplate").tmpl(toolTips[this.text]);
                 },
+                id: "tooltip-over-grid",
+                extraClass: "tooltip",
                 showURL: false
             });
 
@@ -1841,6 +1809,8 @@
                 bodyHandler: function () {
                     return "View in the Ensembl Genome Browser (new window)";
                 },
+                id: "tooltip-over-grid",
+                extraClass: "tooltip",
                 showURL: false
             });
         }

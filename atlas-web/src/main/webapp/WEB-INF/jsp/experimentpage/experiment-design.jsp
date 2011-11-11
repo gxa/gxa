@@ -23,27 +23,29 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
+<jsp:useBean id="experimentDesign"
+             type="uk.ac.ebi.gxa.web.controller.ExperimentDesignUI" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
     <tmpl:stringTemplate name="expPageHead">
-       <tmpl:param name="experiment" value="${exp}"/>
+        <tmpl:param name="experiment" value="${exp}"/>
     </tmpl:stringTemplate>
 
-    <jsp:include page="../includes/query-includes.jsp"/>
+    <c:import url="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+    <wro4j:all name="bundle-jquery" />
+    <wro4j:all name="bundle-common-libs"/>
+    <wro4j:all name="bundle-gxa" />
+    <wro4j:all name="bundle-gxa-grid-support" />
+    <wro4j:all name="bundle-gxa-page-experiment-design"/>
 
-<script type="text/javascript" src="${pageContext.request.contextPath}/scripts/jquery.tablesorter.min.js"></script>
-
-<link rel="stylesheet" href="${pageContext.request.contextPath}/structured-query.css" type="text/css"/>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/geneView.css" type="text/css"/>
-
-<style type="text/css">
-    @media print {
-        body, .contents, .header, .contentsarea, .head {
-            position: relative;
+    <style type="text/css">
+        @media print {
+            body, .contents, .header, .contentsarea, .head {
+                position: relative;
+            }
         }
-    }
     </style>
 </head>
 
@@ -51,7 +53,12 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $("#squery").tablesorter({});
+        $("#squery").tablesorter({
+            widgets: ['zebra'],
+            cssHeader: "sortable",
+            cssAsc: "order1",
+            cssDesc: "order2"
+        });
     });
 </script>
 
@@ -63,11 +70,11 @@
         <div class="column-container">
             <div class="left-column">
 
-                <span class="sectionHeader" style="vertical-align: baseline">${exp.description}</span>
+                <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
 
                 <p>
                     ${exp.abstract}
-                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                    <c:if test="${exp.pubmedId!=null}">(<a class="external" href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
                         target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
                 </p>
             </div>
@@ -79,38 +86,42 @@
             <div class="clean">&nbsp;</div>
         </div>
 
-        <div class="hrClear" style="margin-top:20px;width:100%;">
-            <hr/>
+        <table id="squery" class="atlas-grid sortable experiment-design">
+            <thead>
+            <tr>
+                <th>Assay</th>
+                <th>Array</th>
+                <c:forEach var="property" items="${experimentDesign.properties}" varStatus="r">
+                    <th>${f:escapeXml(property.displayName)}</th>
+                </c:forEach>
+            </tr>
+            </thead>
 
-            <table id="squery" class="tablesorter">
-                <thead>
-                <tr class="header">
-                    <th style="border-left:none" class="padded">Assay</th>
-                    <th style="border-left:none" class="padded">Array</th>
-                    <c:forEach var="factor" items="${experimentDesign.factors}" varStatus="r">
-                        <th>${f:escapeXml(atlasProperties.curatedEfs[factor.name])}</th>
+            <tbody>
+            <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
+                <tr>
+                    <td class="padded assayName" style="border-left:none">
+                            ${assay.accession}
+                    </td>
+                    <td><nobr>${assay.arrayDesign.accession}</nobr></td>
+                    <c:forEach var="property" items="${experimentDesign.properties}">
+                        <td class="padded wrapok">
+                                <c:forEach var="value" items="${experimentDesign.values[property][assay]}" varStatus="r">
+                                    <%--
+                                        the line below checks that the value is of the type we need
+                                        and makes sure usage search works fine in case we want to rename or drop
+                                        the property
+                                     --%>
+                                    <jsp:useBean id="value" type="uk.ac.ebi.microarray.atlas.model.PropertyValue"/>
+                                    <c:out value="${value.displayValue}"/>
+                                    <c:if test="${not r.last}">,</c:if>
+                                </c:forEach>
+                        </td>
                     </c:forEach>
                 </tr>
-                </thead>
-
-                <tbody>
-
-                <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
-                    <tr>
-                        <td class="padded genename" style="border-left:none">
-                                ${assay.name}
-                        </td>
-                        <td>${assay.arrayDesignAccession}</td>
-                        <c:forEach var="factorValue" items="${assay.factorValues}" varStatus="r">
-                            <td class="padded wrapok">
-                                    ${factorValue}
-                            </td>
-                        </c:forEach>
-                    </tr>
-                </c:forEach>
-                </tbody>
-            </table>
-        </div>
+            </c:forEach>
+            </tbody>
+        </table>
 
     </div>
 </div>

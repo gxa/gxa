@@ -43,7 +43,7 @@ function sendFeedback(v,m){
         }
 
         $.post(
-          atlas.homeUrl + "feedback",
+          atlas.fullPathFor("feedback"),
           { context:    m.children('#feedback_context').val(),
             error:      m.children('#feedback_error').val(),
             dobetter:   m.children('#feedback_dobetter').val(),
@@ -67,6 +67,7 @@ function sendFeedback(v,m){
 function showFeedbackForm() {
     $.prompt(feedback_formtxt,{
       submit: sendFeedback,
+      useiframe: true,
       buttons: { Send: true, Cancel: false }
     });
 }

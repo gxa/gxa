@@ -70,12 +70,6 @@
         </param-value>
     </context-param>
 
-    <!-- localization -->
-    <context-param>
-        <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
-        <param-value>Curated</param-value>
-    </context-param>
-
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
@@ -429,8 +423,31 @@
     </filter>
 
     <filter>
+        <filter-name>ExpiresFilter</filter-name>
+        <filter-class>fr.xebia.servlet.filter.ExpiresFilter</filter-class>
+        <init-param>
+            <param-name>ExpiresByType image</param-name>
+            <param-value>access plus 1 month</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ExpiresByType text/css</param-name>
+            <param-value>access plus 1 month</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ExpiresByType text/javascript</param-name>
+            <param-value>access plus 1 month</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
         <filter-name>NoCacheHeaderFilter</filter-name>
         <filter-class>uk.ac.ebi.gxa.web.filter.NoCacheHeaderFilter</filter-class>
+    </filter>
+
+    <!-- Only needed for Tomcat which stamps the eTag header to all responses -->
+    <filter>
+        <filter-name>NoEtagHeaderFilter</filter-name>
+        <filter-class>uk.ac.ebi.gxa.web.filter.NoEtagHeaderFilter</filter-class>
     </filter>
 
     <filter>
@@ -464,6 +481,43 @@
     <filter-mapping>
         <filter-name>NoCacheHeaderFilter</filter-name>
         <url-pattern>/scripts/admin.js</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>NoEtagHeaderFilter</filter-name>
+        <servlet-name>default</servlet-name>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ExpiresFilter</filter-name>
+        <url-pattern>*.gif</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ExpiresFilter</filter-name>
+        <url-pattern>*.png</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ExpiresFilter</filter-name>
+        <url-pattern>*.jpg</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ExpiresFilter</filter-name>
+        <url-pattern>/scripts/aggregated/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ExpiresFilter</filter-name>
+        <url-pattern>/css/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
 
     <filter-mapping>

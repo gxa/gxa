@@ -1,17 +1,37 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 
-import java.util.List;
-
 public class OrganismDAO extends AbstractDAO<Organism> {
+
     public OrganismDAO(SessionFactory sessionFactory) {
         super(sessionFactory, Organism.class);
     }
 
-    public Organism getByName(String name) {
-        final List results = template.find("from Organism where name = ?", name.toLowerCase());
-        return (Organism) results.get(0);
+    @Override
+    protected String getNameColumn() {
+        return "name";
+    }
+
+    /**
+     * @return lower case matching required in getByName() queries
+     */
+    @Override
+    protected boolean lowerCaseNameMatch() {
+        return true;
+    }
+
+    public Organism getOrCreateOrganism(String name) {
+        try {
+            return getByName(name);
+        } catch (RecordNotFoundException e) {
+            // organism not found - create a new one
+            Organism organism = new Organism(null, name);
+            save(organism);
+            template.flush();
+            return organism;
+        }
     }
 }

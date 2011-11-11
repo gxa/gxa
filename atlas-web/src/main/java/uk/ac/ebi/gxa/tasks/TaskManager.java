@@ -26,6 +26,7 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationLoader;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.loader.AtlasLoader;
@@ -52,6 +53,7 @@ public class TaskManager  {
     private AnalyticsGenerator analyticsGenerator;
     private IndexBuilder indexBuilder;
     private AtlasLoader loader;
+    private AnnotationLoader annotationLoader;
     private AtlasProperties atlasProperties;
     private AtlasDAO atlasDAO;
 
@@ -68,6 +70,7 @@ public class TaskManager  {
         taskFactories.add(AnalyticsTask.FACTORY);
         taskFactories.add(IndexTask.FACTORY);
         taskFactories.add(LoaderTask.FACTORY);
+        taskFactories.add(AnnotationLoaderTask.FACTORY);
         taskFactories.add(RepairExperimentTask.FACTORY);
     }
 
@@ -117,6 +120,14 @@ public class TaskManager  {
 
     public void setLoader(AtlasLoader loader) {
         this.loader = loader;
+    }
+
+    public AnnotationLoader getAnnotationLoader() {
+        return annotationLoader;
+    }
+
+    public void setAnnotationLoader(AnnotationLoader annotationLoader) {
+        this.annotationLoader = annotationLoader;
     }
 
     /**

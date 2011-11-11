@@ -31,11 +31,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.statistics.Attribute;
@@ -64,7 +64,6 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
     @Before
     public void createService() throws Exception {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
-        EmbeddedSolrServer expt = new EmbeddedSolrServer(getContainer(), "expt");
         EmbeddedSolrServer serverProp = new EmbeddedSolrServer(getContainer(), "properties");
 
         ResourceFileStorage storage = new ResourceFileStorage();
@@ -103,11 +102,10 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         gpService.setAtlasProperties(atlasProperties);
         gpService.setSolrServerAtlas(solrServerAtlas);
 
-        AtlasNetCDFDAO atlasNetCDFDAO = new AtlasNetCDFDAO();
+        AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
 
         service = new AtlasStructuredQueryService();
         service.setSolrServerAtlas(solrServerAtlas);
-        service.setSolrServerExpt(expt);
         service.setSolrServerProp(serverProp);
         service.setExperimentDAO(experimentDAO);
         service.setEfoService(efoService);
@@ -115,7 +113,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         service.setEfo(efo);
         service.setAtlasProperties(atlasProperties);
         service.setGenePropService(gpService);
-        service.setAtlasNetCDFDAO(atlasNetCDFDAO);
+        service.setAtlasDataDAO(atlasDataDAO);
         service.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
     }
 
@@ -158,7 +156,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache = service.getScoresCache();
 
         int bioEntityId = 516248;  // identifier: ENSMUSG00000020275; name: Rel)
-        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell", UP_DOWN);
+        Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell");
         boolean showNonDEData = true;
         UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, bioEntityId,
                 Collections.singleton(bioEntityId), showNonDEData, true);

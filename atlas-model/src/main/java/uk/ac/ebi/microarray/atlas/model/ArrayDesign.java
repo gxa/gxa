@@ -31,7 +31,7 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class ArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "arrayDesignSeq")
@@ -41,14 +41,14 @@ public class ArrayDesign {
     private String name;
     private String provider;
     private String type;
-    @Column(name = "MAPPINGSWID")
-    private Long mappingSoftwareId;
+
     @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
     @Transient
     private Map<Long, List<Long>> genes = new HashMap<Long, List<Long>>();
 
-    public ArrayDesign() {
+    // this constructor can be used in hibernate only
+    ArrayDesign() {
     }
 
     public ArrayDesign(String accession) {
@@ -57,10 +57,6 @@ public class ArrayDesign {
 
     public String getAccession() {
         return accession;
-    }
-
-    public void setAccession(String accession) {
-        this.accession = accession;
     }
 
     public String getName() {
@@ -93,14 +89,6 @@ public class ArrayDesign {
 
     public void setArrayDesignID(Long arrayDesignID) {
         this.arrayDesignID = arrayDesignID;
-    }
-
-    public long getMappingSoftwareId() {
-        return mappingSoftwareId;
-    }
-
-    public void setMappingSoftwareId(final Long mappingSoftwareId) {
-        this.mappingSoftwareId = mappingSoftwareId;
     }
 
     public Set<Long> getAllGenes() {

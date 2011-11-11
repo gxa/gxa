@@ -38,14 +38,21 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.microarray.atlas.model.*;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Assay;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.easymock.EasyMock.*;
+import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);
@@ -102,9 +109,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         new SourceStep().readSamples(investigation, cache, dao);
         new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
-        log.debug("JLP =" + System.getProperty("java.library.path"));
-        new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache, dao);
-
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
         assertEquals("Wrong experiment", "E-GEOD-3790", expt.getAccession());
@@ -153,13 +157,13 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     private LoaderDAO mockLoaderDAO() {
         final LoaderDAO dao = createMock(LoaderDAO.class);
-        expect(dao.getOrCreateProperty(EasyMock.<String>anyObject(), EasyMock.<String>anyObject()))
-                .andReturn(new PropertyValue(null, new Property(null, "test"), "test"))
+        expect(dao.getOrCreatePropertyValue(EasyMock.<String>anyObject(), EasyMock.<String>anyObject()))
+                .andReturn(new PropertyValue(null, createProperty("Test"), "test"))
                 .anyTimes();
-        expect(dao.getArrayDesign("A-AFFY-33"))
+        expect(dao.getArrayDesignShallow("A-AFFY-33"))
                 .andReturn(new ArrayDesign("A-AFFY-33"))
                 .anyTimes();
-        expect(dao.getArrayDesign("A-AFFY-34"))
+        expect(dao.getArrayDesignShallow("A-AFFY-34"))
                 .andReturn(new ArrayDesign("A-AFFY-34"))
                 .anyTimes();
         replay(dao);

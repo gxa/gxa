@@ -30,7 +30,7 @@ import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,8 +51,8 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testCreateAnalyticsForExperimentWithoutFactors() throws AnalyticsGeneratorException {
-        final AtlasNetCDFDAO atlasDataDAO = new AtlasNetCDFDAO();
+    public void testCreateAnalyticsForExperimentWithoutFactors() throws Exception {
+        final AtlasDataDAO atlasDataDAO = new AtlasDataDAO();
         atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
 
         final AtlasComputeService atlasComputeService = createMock(AtlasComputeService.class);

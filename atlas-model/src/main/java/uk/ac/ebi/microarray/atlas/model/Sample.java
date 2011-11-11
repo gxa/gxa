@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
@@ -42,17 +41,19 @@ import java.util.SortedSet;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newTreeSet;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Sample {
-    public static final Logger log = LoggerFactory.getLogger(Sample.class);
+    private static final Logger log = LoggerFactory.getLogger(Sample.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sampleSeq")
     @SequenceGenerator(name = "sampleSeq", sequenceName = "A2_SAMPLE_SEQ", allocationSize = 1)
     private Long sampleid;
+    @Nonnull
     private String accession;
     @ManyToOne
     @Fetch(FetchMode.SELECT)
@@ -62,40 +63,37 @@ public class Sample {
     @Fetch(FetchMode.SELECT)
     private Experiment experiment;
     @ManyToMany(targetEntity = Assay.class, mappedBy = "samples")
-    private List<Assay> assays = new ArrayList<Assay>();
+    private List<Assay> assays = newArrayList();
     @OneToMany(targetEntity = SampleProperty.class, cascade = CascadeType.ALL, mappedBy = "sample",
             orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private List<SampleProperty> properties = new ArrayList<SampleProperty>();
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+    private List<SampleProperty> properties = newArrayList();
 
     Sample() {
     }
 
-    public Sample(Long id, String accession, Organism organism, String channel) {
+    public Sample(String accession, Organism organism, String channel) {
         if (accession == null)
             throw new IllegalArgumentException("Cannot add sample with null accession!");
-        this.sampleid = id;
+
         this.accession = accession;
         this.organism = organism;
         this.channel = channel;
     }
 
     public Sample(String accession) {
-        this(null, accession, null, null);
+        this(accession, null, null);
     }
 
     public Long getId() {
         return sampleid;
     }
 
+    @Nonnull
     public String getAccession() {
         return accession;
-    }
-
-    public void setAccession(String accession) {
-        this.accession = accession;
     }
 
     public Organism getOrganism() {
@@ -106,9 +104,6 @@ public class Sample {
         return channel;
     }
 
-    public long getSampleID() {
-        return getId();
-    }
 
     public Collection<String> getAssayAccessions() {
         return Collections2.transform(assays, new Function<Assay, String>() {
@@ -129,13 +124,18 @@ public class Sample {
     }
 
     @Override
-    public int hashCode() {
-        return sampleid == null ? 0 : sampleid.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Sample sample = (Sample) o;
+
+        return accession.equals(sample.accession);
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o instanceof Sample && ((Sample) o).sampleid.equals(sampleid);
+    public int hashCode() {
+        return accession.hashCode();
     }
 
     public void addAssay(Assay assay) {
@@ -183,24 +183,6 @@ public class Sample {
                 }));
     }
 
-    public String getEfoSummary(final String name) {
-        return on(",").join(transform(
-                filter(properties,
-                        new Predicate<SampleProperty>() {
-                            @Override
-                            public boolean apply(@Nonnull SampleProperty input) {
-                                return input.getName().equals(name);
-                            }
-                        }),
-                new Function<SampleProperty, String>() {
-                    @Override
-                    public String apply(@Nonnull SampleProperty input) {
-                        return input.getEfoTerms();
-                    }
-                }
-        ));
-    }
-
     public boolean hasNoProperties() {
         return properties.isEmpty();
     }
@@ -209,8 +191,16 @@ public class Sample {
         properties.add(new SampleProperty(this, pv));
     }
 
-    public void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
+    private void addProperty(PropertyValue pv, Collection<OntologyTerm> efoTerms) {
         properties.add(new SampleProperty(this, pv, efoTerms));
+    }
+
+    public void deleteProperty(final PropertyValue propertyValue) {
+        SampleProperty property = getProperty(propertyValue);
+        while (property != null) {
+            properties.remove(property);
+            property = getProperty(propertyValue);
+        }
     }
 
     public void setOrganism(Organism organism) {
@@ -219,6 +209,52 @@ public class Sample {
 
     void setExperiment(Experiment experiment) {
         this.experiment = experiment;
+    }
+
+    public SampleProperty getProperty(PropertyValue propertyValue) {
+        for (SampleProperty property : properties) {
+            if (property.getPropertyValue().equals(propertyValue))
+                return property;
+        }
+
+        return null;
+    }
+
+    public void addOrUpdateProperty(PropertyValue propertyValue, List<OntologyTerm> terms) {
+        SampleProperty sampleProperty = getProperty(propertyValue);
+        if (sampleProperty == null) {
+            addProperty(propertyValue, terms);
+        } else {
+            sampleProperty.setTerms(terms);
+        }
+    }
+
+    /**
+     * Returns all the values for a given property
+     * <p/>
+     * <strong>NB:</strong> There shouldn't be more than one value:
+     * we do not really support multiple PV at the moment.
+     * Still, the DB is organised in such a way that we can technically get more than one.
+     * Since it doesn't break anything, let's live with it for a while.
+     *
+     * @param property definition of the property to look up values for
+     * @return all values for the property
+     */
+    public Collection<PropertyValue> getPropertyValues(Property property) {
+        SortedSet<PropertyValue> result = newTreeSet();
+        for (SampleProperty sp : properties) {
+            if (sp.getDefinition().equals(property))
+                result.add(sp.getPropertyValue());
+        }
+        return result;
+    }
+
+    public Collection<Property> getPropertyDefinitions() {
+        SortedSet<Property> result = newTreeSet();
+        for (SampleProperty sp : properties) {
+            result.add(sp.getDefinition());
+        }
+        return result;
     }
 }
 

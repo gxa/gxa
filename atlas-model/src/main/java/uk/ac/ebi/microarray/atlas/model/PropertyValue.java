@@ -4,25 +4,34 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Immutable;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Immutable
-public final class PropertyValue {
+public final class PropertyValue implements Comparable<PropertyValue> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "propertyValueSeq")
     @SequenceGenerator(name = "propertyValueSeq", sequenceName = "A2_PROPERTYVALUE_SEQ", allocationSize = 1)
     private Long propertyvalueid;
+    @Nonnull
     @ManyToOne
     private Property property;
+    @Nonnull
     @Column(name = "NAME")
     private String value;
+    private String displayName;
 
     PropertyValue() {
     }
 
     public PropertyValue(Long id, Property definition, String value) {
+        if (definition == null)
+            throw new NullPointerException("Definition must be provided");
+        if (value == null)
+            throw new NullPointerException("Value must be provided");
+
         this.propertyvalueid = id;
         this.property = definition;
         this.value = value;
@@ -32,12 +41,18 @@ public final class PropertyValue {
         return propertyvalueid;
     }
 
+    @Nonnull
     public Property getDefinition() {
         return property;
     }
 
+    @Nonnull
     public String getValue() {
         return value;
+    }
+
+    public String getDisplayValue() {
+        return displayName == null ? value : displayName;
     }
 
     @Override
@@ -47,20 +62,12 @@ public final class PropertyValue {
 
         PropertyValue that = (PropertyValue) o;
 
-        if (property != null ? !property.equals(that.property) : that.property != null) return false;
-        if (propertyvalueid != null ? !propertyvalueid.equals(that.propertyvalueid) : that.propertyvalueid != null)
-            return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-
-        return true;
+        return property.equals(that.property) && value.equals(that.value);
     }
 
     @Override
     public int hashCode() {
-        int result = propertyvalueid != null ? propertyvalueid.hashCode() : 0;
-        result = 31 * result + (property != null ? property.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
+        return property.hashCode() * 31 + value.hashCode();
     }
 
     @Override
@@ -70,5 +77,11 @@ public final class PropertyValue {
                 ", definition=" + property +
                 ", value='" + value + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(PropertyValue o) {
+        int result = property.compareTo(o.property);
+        return result == 0 ? value.compareTo(o.value) : result;
     }
 }

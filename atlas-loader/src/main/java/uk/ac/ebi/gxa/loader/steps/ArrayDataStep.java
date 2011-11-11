@@ -38,8 +38,8 @@ import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.rcloud.server.RServices;
-import uk.ac.ebi.rcloud.server.RType.RObject;
 import uk.ac.ebi.rcloud.server.RType.RChar;
+import uk.ac.ebi.rcloud.server.RType.RObject;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -57,7 +57,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 
 /**
- * Experiment loading step that prepares data matrix to be stored into a NetCDF file.
+ * Experiment loading step that prepares data matrix to be stored in data files.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
@@ -280,7 +280,6 @@ public class ArrayDataStep {
                     for (int i = 0; i < fileNames.size(); ++i) {
                         final Assay assay = assayMap.get(fileNames.get(i));
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), i);
-                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     }
                     if (!mergedFile.delete()) {
                         log.warn("Cannot delete" + mergedFile.getAbsolutePath());
@@ -339,6 +338,9 @@ public class ArrayDataStep {
             }
             files.append(")");
             scans.append(")");
+            log.info(files.toString());
+            log.info(scans.toString());
+            log.info("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(files.toString());
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");

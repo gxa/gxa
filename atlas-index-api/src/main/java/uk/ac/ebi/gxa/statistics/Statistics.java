@@ -47,7 +47,7 @@ import static java.util.Collections.unmodifiableSet;
  * ...
  * **** D. ef-only Attribute -> ConciseSet of BioEntity ids
  * This is a condensed version (across all experiments) of Statistics (cf. A.) object, just for Ef-only Attributes. It serves
- * to speed up finding of experiment counts for each experiments factor on gene page - by narrowing down the set of experimental
+ * to speed up finding of experiment counts for each experiment factor on gene page - by narrowing down the set of experimental
  * factors before searching (and counting of) experiments for each factor for a given bioentity.
  * <p/>
  * <p/>
@@ -63,10 +63,10 @@ import static java.util.Collections.unmodifiableSet;
  */
 @NotThreadSafe
 public class Statistics implements Serializable, StatisticsBuilder {
-    private static final long serialVersionUID = 201106061720L;
 
+    private static final long serialVersionUID = -818594062454837033L;
     // Attribute -> Experiment -> ConciseSet of BioEntity ids (See class description A. for more information)
-    private Map<EfvAttribute, Map<ExperimentInfo, ConciseSet>> statistics = newHashMap();
+    private Map<EfAttribute, Map<ExperimentInfo, ConciseSet>> statistics = newHashMap();
 
     // Pre-computed (Multiset) scores for all bio entities, across all efos. These scores are used
     // to order bio entities in user queries containing no efv/efo conditions.
@@ -77,13 +77,13 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * more information). Note that at the level of pValue/tStat ranks the map is sorted in best first order - this will
      * help in ranking experiments w.r.t. to a bioentity-ef-efv triple by lowest pValue/highest absolute value of tStat rank first.
      */
-    private Map<EfvAttribute, SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>>> pValuesTStatRanks = newHashMap();
+    private Map<EfAttribute, SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>>> pValuesTStatRanks = newHashMap();
 
     // ef-only Attribute -> ConciseSet of BioEntity ids (See class description D. for more information)
     // LinkedHashMap is used to always return ef keySet() in the same order - important for maintaining consistent ordering of experiment lists
     // returned by atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank() - in cases when many experiments share
     // the same pVal/tStatRank
-    private Map<EfvAttribute, ConciseSet> efAttributeToBioEntities = newLinkedHashMap();
+    private Map<EfAttribute, ConciseSet> efAttributeToBioEntities = newLinkedHashMap();
 
     // Ef-efv Attribute -> ConciseSet of BioEntity ids with up down expressions for ef-efv (See class description E. for more information)
     private Map<EfvAttribute, ConciseSet> efvAttributeToBioEntities = newHashMap();
@@ -146,7 +146,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
     }
 
     @Override
-    public void addStatistics(@Nonnull final EfvAttribute attribute,
+    public void addStatistics(@Nonnull final EfAttribute attribute,
                               final ExperimentInfo experiment,
                               final Collection<Integer> bioEntityIds) {
 
@@ -173,7 +173,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * @param bioEntityIds
      */
     @Override
-    public void addBioEntitiesForEfAttribute(final EfvAttribute attribute,
+    public void addBioEntitiesForEfAttribute(final EfAttribute attribute,
                                              final Collection<Integer> bioEntityIds) {
 
         final ConciseSet efBioEntities = efAttributeToBioEntities.get(attribute);
@@ -207,12 +207,12 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * @param bioEntityId
      * @return Set of Ef-only Attribute indexes that have non-zero up/down experiment counts for geneIdx
      */
-    public Set<EfvAttribute> getScoringEfAttributesForBioEntity(final Integer bioEntityId) {
+    public Set<EfAttribute> getScoringEfAttributesForBioEntity(final Integer bioEntityId) {
         // LinkedHashSet is used to preserve order of entry - important for maintaining consistent ordering of experiment lists
         // returned by atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank() - in cases when many experiments share
         // tha same pVal/tStatRank
-        final Set<EfvAttribute> scoringEfs = newLinkedHashSet();
-        for (Map.Entry<EfvAttribute, ConciseSet> entry : efAttributeToBioEntities.entrySet()) {
+        final Set<EfAttribute> scoringEfs = newLinkedHashSet();
+        for (Map.Entry<EfAttribute, ConciseSet> entry : efAttributeToBioEntities.entrySet()) {
             if (entry.getValue().contains(bioEntityId)) {
                 scoringEfs.add(entry.getKey());
             }
@@ -243,8 +243,8 @@ public class Statistics implements Serializable, StatisticsBuilder {
         return bioEntities == null ? 0 : bioEntities.size();
     }
 
-    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfvAttribute attributeIndex) {
-        return statistics.get(attributeIndex);
+    public Map<ExperimentInfo, ConciseSet> getStatisticsForAttribute(EfAttribute attribute) {
+        return statistics.get(attribute);
     }
 
     /**
@@ -252,13 +252,13 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * @param bioEntityId
      * @return Set of indexes of experiments with non-zero counts for attribute-bioEntityId tuple
      */
-    public Set<ExperimentInfo> getExperimentsForBioEntityAndAttribute(EfvAttribute attribute, Integer bioEntityId) {
-        final Set<EfvAttribute> scoringEfsForBioEntities;
+    public Set<ExperimentInfo> getExperimentsForBioEntityAndAttribute(EfAttribute attribute, Integer bioEntityId) {
+        final Set<EfAttribute> scoringEfsForBioEntities;
         scoringEfsForBioEntities = attribute != null ?
                 Collections.singleton(attribute) : getScoringEfAttributesForBioEntity(bioEntityId);
 
         Set<ExperimentInfo> expsForBioEntity = newHashSet();
-        for (EfvAttribute attr : scoringEfsForBioEntities) {
+        for (EfAttribute attr : scoringEfsForBioEntities) {
             Map<ExperimentInfo, ConciseSet> expToBioEntities = statistics.get(attr);
             if (expToBioEntities == null)
                 continue;
@@ -277,7 +277,7 @@ public class Statistics implements Serializable, StatisticsBuilder {
      * @param attribute
      * @return pValue/tStat rank -> Experiment -> ConciseSet of bioEntityId, corresponding to attribute
      */
-    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfvAttribute attribute) {
+    public SortedMap<PTRank, Map<ExperimentInfo, ConciseSet>> getPvalsTStatRanksForAttribute(EfAttribute attribute) {
         return pValuesTStatRanks.get(attribute);
     }
 
@@ -295,17 +295,23 @@ public class Statistics implements Serializable, StatisticsBuilder {
     }
 
     /**
-     * @return Set of All Attributes for which scores exist in this class
+     * @return A Collection of All EfvAttributes for which scores exist in this class
      */
-    public Set<EfvAttribute> getAttributes() {
-        return statistics.keySet();
+    public Collection<EfvAttribute> getAllEfvAttributes() {
+        List<EfvAttribute> result = new ArrayList<EfvAttribute>();
+        for (EfAttribute attribute : statistics.keySet()) {
+            if (attribute instanceof EfvAttribute) {
+                result.add((EfvAttribute) attribute);
+            }
+        }
+        return result;
     }
 
     /**
      * Add pValue/tstat ranks for attribute-experiment-bioentity combination
      */
     @Override
-    public void addPvalueTstatRank(final EfvAttribute attribute,
+    public void addPvalueTstatRank(final EfAttribute attribute,
                                    final PTRank ptRank,
                                    final ExperimentInfo experiment,
                                    final Integer bioEntityId) {

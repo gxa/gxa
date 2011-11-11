@@ -328,4 +328,12 @@ public class AtlasStructuredQuery {
                     }
                 }).isEmpty();
     }
+
+    /**
+     * @return true if any gene conditions defined in the query
+     */
+    @JsonIgnore
+    public boolean hasGeneConditions() {
+        return !geneConditions.isEmpty();
+    }
 }

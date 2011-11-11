@@ -97,16 +97,13 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
         AtlasStatisticsQueryService atlasStatisticsQueryService = EasyMock.createMock(AtlasStatisticsQueryService.class);
 
         // Inject required functionality
-        EfvAttribute attr = new EfvAttribute("cell_type", "B220+ b cell", StatisticsType.UP_DOWN);
+        EfvAttribute attr = new EfvAttribute("cell_type", "B220+ b cell");
         ExperimentInfo ei = new ExperimentInfo("E-MTAB-25", 411512559l);
-        ExperimentResult exp = new ExperimentResult(ei);
-        exp.setPValTstatRank(PTRank.of(0.007f, 0));
+        ExperimentResult exp = new ExperimentResult(ei, null, PTRank.of(0.007f, 0));
         EasyMock.expect(atlasStatisticsQueryService.getScoringEfvsForBioEntity(gene.getGeneId(), StatisticsType.UP_DOWN)).andReturn(Collections.<EfvAttribute>singletonList(attr));
 
-        EasyMock.expect(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1)).andReturn(Collections.<ExperimentResult>singletonList(exp));
-        attr = attr.withStatType(StatisticsType.NON_D_E);
-
-        EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId())).andReturn(1);
+        EasyMock.expect(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(gene.getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN)).andReturn(Collections.<ExperimentResult>singletonList(exp));
+        EasyMock.expect(atlasStatisticsQueryService.getExperimentCountsForBioEntity(attr, gene.getGeneId(), StatisticsType.NON_D_E)).andReturn(1);
 
         // Prepare injected functionality for test
         EasyMock.replay(atlasStatisticsQueryService);

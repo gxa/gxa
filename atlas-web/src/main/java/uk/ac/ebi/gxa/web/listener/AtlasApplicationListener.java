@@ -120,7 +120,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
         }
 
         // discover our datasource URL from the database metadata
-        DataSource atlasDataSource = context.getBean(DataSource.class);
+        DataSource atlasDataSource = (DataSource) context.getBean("atlasDataSource");
         String atlasDatasourceUrl, atlasDatasourceUser;
         try {
             Connection c = DataSourceUtils.getConnection(atlasDataSource);
@@ -134,7 +134,7 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
 
         // read versioning info
 
-        // read index, netcdf directory locations
+        // read index, data directory locations
         String atlasIndex = context.getBean("atlasIndex", File.class).getAbsolutePath();
         String atlasDataRepo = context.getBean("atlasDataRepo", File.class).getAbsolutePath();
 

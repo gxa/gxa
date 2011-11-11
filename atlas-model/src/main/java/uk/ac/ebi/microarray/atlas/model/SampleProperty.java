@@ -22,26 +22,22 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import com.google.common.base.Function;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.base.Joiner.on;
-import static com.google.common.collect.Collections2.transform;
 import static java.util.Collections.unmodifiableList;
 
 @Entity
 @Table(name = "A2_SAMPLEPV")
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public final class SampleProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "samplePVSeq")
@@ -78,10 +74,6 @@ public final class SampleProperty {
         return samplepvid;
     }
 
-    public Sample getOwner() {
-        return sample;
-    }
-
     public String getName() {
         return propertyValue.getDefinition().getName();
     }
@@ -98,26 +90,6 @@ public final class SampleProperty {
         return unmodifiableList(terms);
     }
 
-    @Deprecated
-    public long getPropertyId() {
-        return propertyValue.getDefinition().getId();
-    }
-
-    @Deprecated
-    public long getPropertyValueId() {
-        return propertyValue.getId();
-    }
-
-    @Deprecated
-    public String getEfoTerms() {
-        return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
-            @Override
-            public Object apply(@Nonnull OntologyTerm term) {
-                return term.getAccession();
-            }
-        }));
-    }
-
     @Override
     public String toString() {
         return "SampleProperty{" +
@@ -126,7 +98,11 @@ public final class SampleProperty {
                 '}';
     }
 
-    void setSample(Sample sample) {
-        this.sample = sample;
+    public void setTerms(List<OntologyTerm> terms) {
+        this.terms = terms;
+    }
+
+    public Property getDefinition() {
+        return propertyValue.getDefinition();
     }
 }

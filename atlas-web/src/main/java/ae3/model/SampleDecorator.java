@@ -33,8 +33,7 @@ import java.util.*;
 import static java.util.Collections.unmodifiableSet;
 
 /**
- * A class, representing on experiment sample for use in {@link ae3.model.ExperimentalData}
- * Is used only in NetCDFReader and should be replaced with newer model class.
+ * A decorator class, representing an experiment sample for use in {@link ae3.model.ExperimentalData}
  *
  * @author pashky
  */
@@ -46,7 +45,7 @@ public class SampleDecorator {
     /**
      * Constructor
      *
-     * @param number                sample number
+     * @param number sample number
      */
     SampleDecorator(Sample sample, int number) {
         this.sample = sample;
@@ -107,6 +106,10 @@ public class SampleDecorator {
      */
     String getAccession() {
         return sample.getAccession();
+    }
+
+    Sample getSample() {
+        return sample;
     }
 
     /**

@@ -29,18 +29,28 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
@@ -52,16 +62,19 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
  * @author pashky
  */
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
+    private final static Logger log = LoggerFactory.getLogger(HeatmapResultAdapter.class);
+
     private final AtlasStructuredQueryResult r;
     private final ExperimentDAO experimentDAO;
+    private final AtlasDataDAO atlasDataDAO;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private final Map<String, Experiment> experimentsCache = new HashMap<String, Experiment>();
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasDataDAO atlasDataDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
         this.experimentDAO = experimentDAO;
+        this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
@@ -98,11 +111,11 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 return counter.getNones();
             }
 
-            public double getUpPvalue() {
+            public float getUpPvalue() {
                 return counter.getMpvUp();
             }
 
-            public double getDownPvalue() {
+            public float getDownPvalue() {
                 return counter.getMpvDn();
             }
 
@@ -112,11 +125,14 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                                 Iterators.filter(expiter(), Predicates.<Object>notNull()),
                                 new Function<ExperimentResult, ListResultRowExperiment>() {
                                     public ListResultRowExperiment apply(@Nonnull ExperimentResult e) {
-                                        Experiment exp = getExperiment(e.getAccession());
-                                        if (exp == null) return null;
-                                        return new ListResultRowExperiment(exp,
-                                                e.getPValTStatRank().getPValue(),
-                                                toExpression(e.getPValTStatRank()));
+                                        try {
+                                            Experiment experiment = experimentDAO.getByName((e.getAccession()));
+                                            PTRank ptRank = e.getPValTStatRank();
+                                            return new ListResultRowExperiment(experiment, ptRank.getPValue(), null, toExpression(ptRank));
+                                        } catch (RecordNotFoundException rnfe) {
+                                            log.debug("Quiesce - no experiment matching e.getAccession() was found");
+                                            return null;
+                                        }
                                     }
                                 }),
                         Predicates.<ListResultRowExperiment>notNull());
@@ -142,8 +158,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<ExperimentResult> expiter() {
-                EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv(), StatisticsType.UP_DOWN);
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
+                EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv());
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN).iterator();
             }
         }
 
@@ -164,8 +180,8 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<ExperimentResult> expiter() {
-                Attribute attr = new EfoAttribute(efoItem.getId(), StatisticsType.UP_DOWN);
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1).iterator();
+                Attribute attr = new EfoAttribute(efoItem.getId());
+                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN).iterator();
             }
         }
 
@@ -228,14 +244,29 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     }
 
     /**
-     * @param accession experiment accession
-     * @return Experiment corresponding to the accession
+     * @param ewd
+     * @param e
+     * @param geneId
+     * @param roundedPVal
+     * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
      */
-    private Experiment getExperiment(String accession) {
-        Experiment experiment = experimentsCache.get(accession);
-        if (experiment == null) {
-            experimentsCache.put(accession, experiment = experimentDAO.getExperimentByAccession(accession));
+    private float getPValueFromNcdf(ExperimentWithData ewd, ExperimentResult e, long geneId, float roundedPVal) {
+        UpDownExpression expression = toExpression(e.getPValTStatRank());
+        EfAttribute attr = e.getHighestRankAttribute();
+        if (attr instanceof EfvAttribute) {
+            final String efv = ((EfvAttribute) attr).getEfv();
+            if (expression.isUp()) {
+                final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
+                        efv, UpDownCondition.CONDITION_UP);
+                return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+            }
+            if (expression.isDown()) {
+                final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
+                        efv, UpDownCondition.CONDITION_DOWN);
+                return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
+            }
         }
-        return experiment;
+        // gave up
+        return roundedPVal;
     }
 }

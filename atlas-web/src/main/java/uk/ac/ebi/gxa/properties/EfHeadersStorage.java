@@ -21,8 +21,9 @@
  */
 package uk.ac.ebi.gxa.properties;
 
-import ae3.service.structuredquery.AtlasEfvService;
-import uk.ac.ebi.gxa.utils.StringUtil;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,17 +32,17 @@ import java.util.List;
 /**
  * A fake "storage" class which just enumerates possible EF headers curated properties. Can't store anything,
  * but can return some default value as well as available keys
+ *
  * @author pashky
  */
 public class EfHeadersStorage implements Storage {
 
     private final static String PREFIX = "factor.curatedname.";
-    private static final int SUFFIXPOS = PREFIX.length();
 
-    private AtlasEfvService efvService;
+    private final PropertyDAO propertyDAO;
 
-    public void setEfvService(AtlasEfvService efvService) {
-        this.efvService = efvService;
+    public EfHeadersStorage(PropertyDAO propertyDAO) {
+        this.propertyDAO = propertyDAO;
     }
 
     public void setProperty(String name, String value) {
@@ -49,8 +50,14 @@ public class EfHeadersStorage implements Storage {
     }
 
     public String getProperty(String name) {
-        return name.startsWith(PREFIX) 
-                ? StringUtil.upcaseFirst(name.substring(SUFFIXPOS)) : null;
+        if (!name.startsWith(PREFIX))
+            return null;
+
+        try {
+            return propertyDAO.getByName(name.substring(PREFIX.length())).getDisplayName();
+        } catch (RecordNotFoundException e) {
+            return null;
+        }
     }
 
     public boolean isWritePersistent() {
@@ -59,8 +66,8 @@ public class EfHeadersStorage implements Storage {
 
     public Collection<String> getAvailablePropertyNames() {
         List<String> result = new ArrayList<String>();
-        for(String ef : efvService.getAllFactors())
-            result.add(PREFIX + ef);
+        for (Property ef : propertyDAO.getAll())
+            result.add(PREFIX + ef.getName());
         return result;
     }
 

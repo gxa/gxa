@@ -101,7 +101,6 @@ public class DefaultAnalyticsGenerator implements AnalyticsGenerator {
                 } catch (Exception e) {
                     throw new AnalyticsGeneratorException("Error", e);
                 }
-
             }
         }));
 

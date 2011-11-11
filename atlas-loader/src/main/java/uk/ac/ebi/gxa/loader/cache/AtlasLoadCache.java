@@ -25,16 +25,19 @@ package uk.ac.ebi.gxa.loader.cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
-import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixStorage;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
+import javax.annotation.Nullable;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * A cache of objects that need to be loaded into the Atlas DB.  This temporarily stores objects during parsing
@@ -45,12 +48,9 @@ public class AtlasLoadCache implements ExperimentBuilder {
     private static final Logger log = LoggerFactory.getLogger(AtlasLoadCache.class);
 
     private Experiment experiment;
-    private Map<String, ArrayDesign> arrayDesignMap = new HashMap<String, ArrayDesign>();
     private Map<String, DataMatrixFileBuffer> dataMatrixBuffers = new HashMap<String, DataMatrixFileBuffer>();
     private Map<String, DataMatrixStorage.ColumnRef> assayDataMap = new HashMap<String, DataMatrixStorage.ColumnRef>();
     private Collection<String> availQTypes;
-
-    private Map<String, List<String>> arrayDesignToDesignElements = new HashMap<String, List<String>>();
 
     public AtlasLoadCache() {
     }
@@ -158,7 +158,7 @@ public class AtlasLoadCache implements ExperimentBuilder {
         return getDataMatrixFileBuffer(url, fileName, true);
     }
 
-    public DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, String fileName, boolean hasQtTypes)
+    public DataMatrixFileBuffer getDataMatrixFileBuffer(URL url, @Nullable String fileName, boolean hasQtTypes)
             throws AtlasLoaderException {
 
         String filePath = url.toExternalForm();
@@ -214,13 +214,5 @@ public class AtlasLoadCache implements ExperimentBuilder {
 
     public Map<String, DataMatrixStorage.ColumnRef> getAssayDataMap() {
         return assayDataMap;
-    }
-
-    public Map<String, List<String>> getArrayDesignToDesignElements() {
-        return arrayDesignToDesignElements;
-    }
-
-    public void setDesignElements(String arrayDesign, List<String> designElements) {
-        arrayDesignToDesignElements.put(arrayDesign, designElements);
     }
 }

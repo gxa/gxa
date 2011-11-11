@@ -65,6 +65,8 @@
     <li><a href="#tab-ad">Array designs</a></li>
     <li><a href="#tab-prop">Configuration</a></li>
     <li><a href="#tab-asys">System info</a></li>
+    <li><a href="#tab-annSrc">Annotation Sources</a><sup>beta</sup></li>
+    <li><a href="#tab-annSrcEd">Annotation Source Editor</a><sup>beta</sup></li>
 </ul>
 
 <div id="tab-exp">
@@ -237,6 +239,72 @@
     </div>
 </div>
 
+<div id="tab-annSrc">
+    <div id="orgList">
+        <table>
+            <thead>
+                <tr>
+                    <td class="sel">
+                    </td>
+                    <td>Organism</td>
+                    <td>BioEntity Types</td>
+                    <td>Current software</td>
+                    <td>Validation message</td>
+                    <td>Applied</td>
+                    <td>Edit</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="orgrow">
+                    <td>
+                        <input class="orgSelector" type="checkbox" value="" id="selOrg">
+                    </td>
+                    <td class="name"><label class="name" for="selOrg">Mouse</label></td>
+                    <td class="types">ensgene</td>
+                    <td class="currAnnSrc">Ens 61</td>
+                    <td class="validation">valid</td>
+                    <td class="applied">false</td>
+                    <td class="edit"><input type="button" value="Edit"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <fieldset class="orgall">
+
+            <div class="orgbuttons">
+                <input type="button" value="Update Annotations" class="update">
+                <input type="button" value="Update Array Design Mappings" class="updateMapping">
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<div id="tab-annSrcEd">
+    <div id="annSrcEd">
+        <table>
+
+            <tr>
+                <td class="label"><label for="txtAnnSrc">Annotation Source:</label></td>
+                <td>
+                    <form action="#" id="editAnnSrcForm">
+                        <textarea rows="20" cols="50" id="txtAnnSrc" class="value">lll</textarea>
+                    </form>
+                </td>
+            </tr>
+
+            <tr>
+                <td>&nbsp;</td>
+                <td>
+                    <fieldset>
+                        <input type="button" value="Save" id="saveAnnSrcButton" class="saveannsrc">
+                        <input type="button" value="Cancel" id="cancelAnnSrcButton" class="cancelannsrc">
+                    </fieldset>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
 <div id="tab-que">
     <fieldset>
         <legend>Load experiment / array design</legend>
@@ -261,7 +329,7 @@
             <tr>
                 <td></td>
                 <td>
-                    <input type="checkbox" id="loadAutodep" checked="checked">
+                    <input type="checkbox" id="loadAutodep">
                     <label for="loadAutodep">Automatically process the experiment after loading</label>
                 </td>
                 <td></td>
@@ -277,15 +345,7 @@
             <tr>
                 <td></td>
                 <td>
-                    <input type="checkbox" id="curated">
-                    <label for="curated">Mark the experiment as already curated and ready for public release</label>
-                </td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td>
-                    <input type="checkbox" id="useRawData">
+                    <input type="checkbox" id="useRawData" checked="checked">
                     <label for="useRawData">Use raw experimental data if possible</label>
                 </td>
                 <td style="text-align:right">

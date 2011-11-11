@@ -25,21 +25,18 @@ package uk.ac.ebi.gxa.web.ui.plot;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import ucar.ma2.InvalidRangeException;
-import uk.ac.ebi.gxa.netcdf.reader.ExpressionStatistics;
-import uk.ac.ebi.gxa.netcdf.reader.FloatMatrixProxy;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
-import uk.ac.ebi.gxa.utils.FactorValueComparator;
+import uk.ac.ebi.gxa.utils.FactorValueOrdering;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.io.Closeables.closeQuietly;
 import static com.google.common.primitives.Ints.asList;
 import static java.util.Collections.unmodifiableList;
 
@@ -50,8 +47,9 @@ import static java.util.Collections.unmodifiableList;
  * @author Olga Melnichuk
  */
 public class ExperimentPlot {
+    private static final Logger log = LoggerFactory.getLogger(ExperimentPlot.class);
 
-    private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueComparator();
+    private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueOrdering();
 
     private FloatMatrixProxy expressions;
     private List<List<BoxAndWhisker>> boxAndWhisker;
@@ -86,30 +84,22 @@ public class ExperimentPlot {
         return efEfvAssays;
     }
 
-    public static ExperimentPlot create(int[] deIndices, NetCDFDescriptor proxyDescr, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
-        NetCDFProxy proxy = null;
-
-        try {
-            proxy = proxyDescr.createProxy();
-            ExperimentPlot plot = new ExperimentPlot();
-            plot.load(deIndices, proxy, stringConverter);
-            return plot;
-        } finally {
-            closeQuietly(proxy);
-        }
+    public static ExperimentPlot create(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
+        ExperimentPlot plot = new ExperimentPlot();
+        plot.load(deIndices, ewd, ad, stringConverter);
+        return plot;
     }
 
-    private void load(int[] deIndices, NetCDFProxy proxy, Function<String, String> stringConverter) throws IOException, InvalidRangeException {
-
+    private void load(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
 
-        expressions = proxy.getExpressionValues(deIndices);
+        expressions = ewd.getExpressionValues(ad, deIndices);
 
-        efNames = createEfNames(proxy.getFactors(), stringConverter);
+        efNames = createEfNames(ewd.getFactors(ad), stringConverter);
         efvNames = Lists.newArrayList();
         efEfvAssays = Maps.newHashMap();
 
-        String[][] factorValues = proxy.getFactorValues();
+        String[][] factorValues = ewd.getFactorValues(ad);
 
         for (int i = 0; i < efNames.size(); i++) {
             String[] efvs = factorValues[i];
@@ -148,7 +138,11 @@ public class ExperimentPlot {
             }
         }
 
-        prepareBoxAndWhiskerData(proxy.getExpressionStatistics(deIndices));
+        try {
+            prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
+        } catch (StatisticsNotFoundException e) {
+            log.warn("No statistics found for {}", ewd);
+        }
     }
 
     private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {

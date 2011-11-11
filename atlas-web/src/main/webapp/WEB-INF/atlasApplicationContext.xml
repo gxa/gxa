@@ -33,7 +33,8 @@ http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
 http://www.springframework.org/schema/util/spring-util.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
-    <import resource="classpath*:uk/ac/ebi/gxa/dao/hibernateContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotationLoaderContext.xml"/>
+    <import resource="classpath*:uk/ac/ebi/gxa/web/hibernate/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
@@ -109,7 +110,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
                             <property name="resourcePath" value="atlas.properties"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.EfHeadersStorage">
-                            <property name="efvService" ref="atlasEfvService"/>
+                            <constructor-arg ref="propertyDAO"/>
                         </bean>
                         <bean class="uk.ac.ebi.gxa.properties.GenePropHeadersStorage">
                             <property name="genePropService" ref="atlasGenePropertyService"/>
@@ -140,8 +141,8 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <!-- Index Builder component -->
     <bean name="indexBuilderServiceProperties"
           class="uk.ac.ebi.gxa.index.builder.service.PropertiesIndexBuilderService">
-        <property name="propertyDAO" ref="propertyDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
         <property name="solrServer" ref="solrServerProp"/>
     </bean>
 
@@ -164,8 +165,8 @@ http://www.springframework.org/schema/util/spring-util.xsd">
           class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasIndex" ref="atlasIndex"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
-        <constructor-arg value="bitstats"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
+        <property name="indexFileName" value="bitstats"/>
     </bean>
 
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
@@ -194,7 +195,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="experimentAnalyticsService"
           class="uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService">
         <constructor-arg ref="atlasDAO"/>
-        <constructor-arg ref="atlasNetCDFDAO"/>
+        <constructor-arg ref="atlasDataDAO"/>
         <constructor-arg ref="atlasComputeService"/>
         <constructor-arg ref="threadPool"/>
     </bean>
@@ -209,6 +210,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">
         <property name="geneSolr" ref="solrServerAtlas"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
     </bean>
 
     <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">
@@ -256,7 +258,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
-        <property name="solrServerExpt" ref="solrServerExpt"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="efoService" ref="atlasEfoService"/>
         <property name="efvService" ref="atlasEfvService"/>
@@ -264,7 +265,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="efo" ref="efo"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="experimentDAO" ref="experimentDAO"/>
 
         <!-- needs it for cache updates -->
@@ -292,7 +293,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="atlasPlotter" class="uk.ac.ebi.gxa.web.AtlasPlotter">
         <property name="atlasDatabaseDAO" ref="atlasDAO"/>
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
     </bean>
 
     <!-- Task manager -->
@@ -309,6 +310,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="maxWorkingTasks" value="16"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="annotationLoader" ref="annotationLoader"/>
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
@@ -354,11 +356,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
-        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
@@ -370,16 +371,16 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
     </bean>
 
     <bean name="experimentsRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.ExperimentsPopupRequestHandler">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="experimentDAO" ref="experimentDAO"/>
+        <property name="propertyDAO" ref="propertyDAO"/>
         <property name="efo" ref="efo"/>
-        <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
     </bean>
 
     <bean name="geneIdsDownloadRequestHandler"
@@ -422,7 +423,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="wiggleRequestHandler"
           class="uk.ac.ebi.gxa.requesthandlers.wiggle.WiggleRequestHandler">
-        <property name="atlasNetCDFDAO" ref="atlasNetCDFDAO"/>
+        <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="atlasDAO" ref="atlasDAO"/>
     </bean>
 
@@ -482,8 +483,11 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Required spring driven data access configuration -->
 
-    <bean name="atlasNetCDFDAO" class="uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO">
+    <bean name="atlasDataDAO" class="uk.ac.ebi.gxa.data.AtlasDataDAO">
         <property name="atlasDataRepo" ref="atlasDataRepo"/>
+    </bean>
+
+    <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
     <!--Configure R workbench -->

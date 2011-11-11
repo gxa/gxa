@@ -26,7 +26,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.9.3</version>
+    <version>2.0.10</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -34,6 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
+        <wro4j.version>1.3.8</wro4j.version>
     </properties>
 
     <scm>
@@ -110,8 +111,8 @@
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-webdav</artifactId>
-                <version>1.0-beta-2</version>
+                <artifactId>wagon-ssh</artifactId>
+                <version>1.0-beta-3</version>
             </extension>
         </extensions>
     </build>
@@ -282,8 +283,11 @@
         <module>atlas-dao</module>
         <module>atlas-test</module>
         <module>atlas-utils</module>
+        <module>atlas-updates</module>
         <module>atlas-analytics</module>
-        <module>netcdf-reader</module>
+        <module>atlas-data-storage</module>
+                <module>atlas-wro4j</module>
+        <module>annotator</module>
     </modules>
 
     <dependencies>
@@ -333,11 +337,32 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-core</artifactId>
             <version>1.4.0</version>
+            <exclusions>
+                <exclusion>
+                    <!--
+                        Woodstox has changed its groupId to org.codehaus.woodstox a while back:
+                        http://jira.codehaus.org/browse/WSTX-86
+                        see also the dependency on org.codehaus.woodstox:wstx-asl:pom below
+                    -->
+                    <groupId>woodstox</groupId>
+                    <artifactId>wstx-asl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <!--
+                Woodstox has changed its groupId to org.codehaus.woodstox a while back:
+                http://jira.codehaus.org/browse/WSTX-86
+                see also the woodstox:wstx-asl exclusion above
+            -->
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>wstx-asl</artifactId>
+            <version>3.2.7</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.3</version>
+            <version>2.5</version>
         </dependency>
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>
@@ -347,24 +372,50 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <repositories>
         <repository>
-            <!--
-             An internal repository for libraries we cannot distribute, namely:
-
-             * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
-
-             Please download and install those yourself.
-             -->
-            <id>coconut.ebi.ac.uk</id>
-            <url>http://bar:8081/artifactory/local-repo/</url>
+            <id>ebi-repo</id>
+            <name>The EBI internal repository</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
         </repository>
+        <repository>
+            <id>ebi-snapshot-repo</id>
+            <name>The EBI internal snapshot repository</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots/</url>
+        </repository>
+        <!--
+         * Oracle Drivers: http://www.oracle.com/technetwork/database/enterprise-edition/jdbc-112010-090769.html
+
+         Please download and install those yourself.
+         -->
         <repository>
             <id>java.net</id>
             <url>http://download.java.net/maven/2/</url>
@@ -372,12 +423,16 @@
         <repository>
             <id>apache.releases</id>
             <url>https://repository.apache.org/content/repositories/releases/</url>
-            <releases><enabled>true</enabled></releases>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
         </repository>
         <repository>
             <id>apache.snapshots</id>
             <url>https://repository.apache.org/content/repositories/snapshots/</url>
-            <snapshots><enabled>true</enabled></snapshots>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>jboss-public</id>
@@ -392,11 +447,14 @@
             <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
         </repository>
         <repository>
-            <!--
-             A repository for opensource/public JARs not found in any public repositories.
-             -->
-            <id>gxa.github</id>
-            <url>http://gxa.github.com/maven/repo</url>
+            <id>limpopo-repo</id>
+            <name>Limpopo Mini-SF Repository</name>
+            <url>http://limpopo.sourceforge.net/maven/repo</url>
+        </repository>
+        <repository>
+            <id>erroritem</id>
+            <name>erroritem repo</name>
+            <url>http://erroritem.sourceforge.net/maven/repo</url>
         </repository>
         <repository>
             <id>info-bliki-repository</id>
@@ -408,18 +466,27 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>c5-public-repository</id>
+            <url>http://mvn.carbonfive.com/public</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>hasbanana</id>
+            <url>http://www.hasbanana.com/maven/repo</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
         <repository>
-            <id>coconut.ebi.ac.uk-releases</id>
-            <name>coconut.ebi.ac.uk-releases</name>
-            <url>dav:http://bar:8081/artifactory/local-repo</url>
+            <id>ebi-repo</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo</url>
         </repository>
         <snapshotRepository>
-            <id>coconut.ebi.ac.uk-snapshots</id>
-            <name>coconut.ebi.ac.uk-snapshots</name>
-            <url>dav:http://bar:8081/artifactory/local-repo</url>
+            <id>ebi-repo-snapshots</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

@@ -7,10 +7,18 @@ public class ExperimentResult {
     private PTRank pValTstatRank;
 
     // Attribute for which pValue and tStatRank were found e.g. when obtaining a list of experiments to display on the gene page
-    private EfvAttribute highestRankAttribute;
+    private EfAttribute highestRankAttribute;
 
-    public ExperimentResult(ExperimentInfo experiment) {
+    /**
+     *
+     * @param experiment
+     * @param highestRankAttribute
+     * @param pValTstatRank
+     */
+    public ExperimentResult(ExperimentInfo experiment, EfAttribute highestRankAttribute, PTRank pValTstatRank) {
         this.experiment = experiment;
+        this.highestRankAttribute = highestRankAttribute;
+        this.pValTstatRank = pValTstatRank;
     }
 
     public String getAccession() {
@@ -25,16 +33,8 @@ public class ExperimentResult {
         return pValTstatRank;
     }
 
-    public void setPValTstatRank(PTRank pValTstatRank) {
-        this.pValTstatRank = pValTstatRank;
-    }
-
-    public EfvAttribute getHighestRankAttribute() {
+    public EfAttribute getHighestRankAttribute() {
         return highestRankAttribute;
-    }
-
-    public void setHighestRankAttribute(EfvAttribute highestRankAttribute) {
-        this.highestRankAttribute = highestRankAttribute;
     }
 
     public ExperimentInfo getExperimentInfo() {

@@ -101,7 +101,18 @@ public class UpdownCounter implements Comparable<UpdownCounter> {
         return mpvdn;
     }
 
+    public void setMpvUp(float mpvup) {
+        this.mpvup = mpvup;
+    }
+
+    public void setMpvDn(float mpvdn) {
+        this.mpvdn = mpvdn;
+    }
+
     public void add(boolean isUp, float pvalue) {
+        assert mpvup >= 0 && mpvup <= 1;
+        assert mpvdn >= 0 && mpvdn <= 1;
+        assert pvalue >= 0 && pvalue <= 1;
         if (isUp) {
             ++ups;
             mpvup = Math.min(mpvup, pvalue);

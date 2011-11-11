@@ -18,7 +18,7 @@ public class StatisticsQueryCondition {
     // a list of experiments, sorted by pVal/tStatRank across many ef attributes/experiments. Processing attributes and experiments
     // in the same order maintains a consistent ordering of the list of experiments in subsequent executions of the same query.
     private Set<ExperimentInfo> experiments = new LinkedHashSet<ExperimentInfo>();  // OR set of experiments
-    private Set<EfvAttribute> attributes = new LinkedHashSet<EfvAttribute>(); // OR set of attributes
+    private Set<EfAttribute> attributes = new LinkedHashSet<EfAttribute>(); // OR set of attributes
     // StatisticsType corresponding to this condition
     // NB Assumption: all the sub-clauses inherit the top level StatisticsType
     private StatisticsType statisticsType;
@@ -50,8 +50,9 @@ public class StatisticsQueryCondition {
      *
      * @param bioEntityIdRestrictionSet
      */
-    public StatisticsQueryCondition(Set<Integer> bioEntityIdRestrictionSet) {
+    public StatisticsQueryCondition(Set<Integer> bioEntityIdRestrictionSet, StatisticsType statisticsType) {
         this.bioEntityIdRestrictionSet = bioEntityIdRestrictionSet;
+        this.statisticsType = statisticsType;
     }
 
     /**
@@ -104,12 +105,12 @@ public class StatisticsQueryCondition {
      * @param attribute
      * @return this query condition with attribute added to its attributes OR clause
      */
-    public StatisticsQueryCondition inAttribute(EfvAttribute attribute) {
+    public StatisticsQueryCondition inAttribute(EfAttribute attribute) {
         this.attributes.add(attribute);
         return this;
     }
 
-    public Set<EfvAttribute> getAttributes() {
+    public Set<EfAttribute> getAttributes() {
         return attributes;
     }
 
@@ -143,7 +144,7 @@ public class StatisticsQueryCondition {
             sb.append("\n").append(offset).append(" ] ");
         } else { // TODO end of recursion
 
-            Set<EfvAttribute> attrs = getAttributes();
+            Set<EfAttribute> attrs = getAttributes();
             Set<ExperimentInfo> exps = getExperiments();
 
             // Output attributes

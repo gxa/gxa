@@ -43,7 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Experiment loading step that prepares derived data matrix to be stored into a NetCDF file.
+ * Experiment loading step that prepares derived data matrix to be stored in data files.
  * Based on the original handlers code by Tony Burdett.
  *
  * @author Nikolay Pultsin
@@ -163,7 +163,6 @@ public class DerivedArrayDataMatrixStep {
                         log.trace("Updating assay " + assay.getAccession() + " with expression values, " +
                                 "must be stored first...");
                         cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
-                        cache.setDesignElements(assay.getArrayDesign().getAccession(), buffer.getDesignElements());
                     } else {
                         // generate error item and throw exception
                         throw new AtlasLoaderException("Data file references elements that are not present in the SDRF (" + refNodeName + ", " + refName + ")");

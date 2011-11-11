@@ -47,21 +47,16 @@ import java.util.Properties;
 public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
     private URL parseURL;
 
-    private volatile Integer counter;
-
     public void setUp() {
         cache = new AtlasLoadCache();
 
         parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790B.idf.txt");
-
-        counter = 0;
 
         HandlerPool pool = HandlerPool.getInstance();
         pool.useDefaultHandlers();
     }
 
     public void tearDown() throws Exception {
-        counter = null;
     }
 
     public void testWriteValues() throws AtlasLoaderException {
@@ -73,7 +68,6 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
 
             public void errorOccurred(ErrorItem item) {
                 // update counter
-                counter++;
 
                 // lookup message
                 String message = "";
@@ -99,8 +93,7 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
                         } else {
                             message = "Unknown error";
                         }
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         message = "Unknown error";
                     }
                 }

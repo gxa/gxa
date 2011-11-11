@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.index.builder.service;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -46,8 +47,8 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
         this.pdao = pdao;
     }
 
-    @Transactional
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 

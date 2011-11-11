@@ -23,16 +23,12 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
-import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,20 +39,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import ucar.ma2.InvalidRangeException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFDescriptor;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
-import uk.ac.ebi.microarray.atlas.model.Asset;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -66,12 +60,9 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
-import static com.google.common.base.Predicates.alwaysFalse;
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.containsAtLeastOneGene;
-import static uk.ac.ebi.gxa.netcdf.reader.NetCDFPredicates.hasArrayDesign;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 
@@ -83,33 +74,36 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewController.class);
 
-    private final AtlasNetCDFDAO netCDFDAO;
+    private final AtlasDataDAO atlasDataDAO;
+
+    private final PropertyDAO propertyDAO;
 
     private final AtlasProperties atlasProperties;
-
-    private final GeneSolrDAO geneSolrDAO;
 
     private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
 
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
         @Override
         public String apply(@Nullable String input) {
-            String s = atlasProperties.getCuratedEf(input);
-            return (s == null) ? input : s;
+            try {
+                return propertyDAO.getByName(input).getDisplayName();
+            } catch (RecordNotFoundException e) {
+                throw createUnexpected("Cannot find property " + input, e);
+            }
         }
     };
 
     @Autowired
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
                                     AtlasDAO atlasDAO,
-                                    AtlasNetCDFDAO netCDFDAO,
+                                    AtlasDataDAO atlasDataDAO,
+                                    PropertyDAO propertyDAO,
                                     AtlasProperties atlasProperties,
-                                    GeneSolrDAO geneSolrDAO,
                                     AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
         super(solrDAO, atlasDAO);
-        this.netCDFDAO = netCDFDAO;
+        this.atlasDataDAO = atlasDataDAO;
+        this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
-        this.geneSolrDAO = geneSolrDAO;
         this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
@@ -197,15 +191,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * Returns experiment plots for given set of design elements.
      * (JSON view only supported)
      *
-     * @param accession               an experiment accession to find out the required netCDF
-     * @param adAcc                   an array design accession to find out the required netCDF
+     * @param accession               an experiment accession to find out the required data
+     * @param adAcc                   an array design accession to find out the required data
      * @param des                     an array of design element indexes to get plot data for
      * @param assayPropertiesRequired a boolean value to specify if assay properties ard needed
      * @param model                   a model for the view to render
      * @return the view path
-     * @throws ResourceNotFoundException      if an experiment or array design is not found
-     * @throws IOException                    if any netCDF file reading error happened
-     * @throws ucar.ma2.InvalidRangeException if given design element indexes are out of range
+     * @throws ResourceNotFoundException if an experiment or array design is not found
+     * @throws AtlasDataException        if any data reading error happened (including index out of range)
      */
     @RequestMapping(value = "/experimentPlot", method = RequestMethod.GET)
     public String getExperimentPlot(
@@ -214,26 +207,32 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, IOException, InvalidRangeException {
+    ) throws ResourceNotFoundException, AtlasDataException, RecordNotFoundException {
 
-        ExperimentPage page = createExperimentPage(accession);
-        if (page.getExperiment().getArrayDesign(adAcc) == null) {
+        final ExperimentPage page = createExperimentPage(accession);
+        final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
+        if (ad == null) {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor proxyDescr = netCDFDAO.getNetCdfFile(experiment, hasArrayDesign(adAcc));
-        model.addAttribute("plot", ExperimentPlot.create(des, proxyDescr, curatedStringConverter));
-        if (assayPropertiesRequired) {
-            model.addAttribute("assayProperties", AssayProperties.create(proxyDescr, curatedStringConverter));
+        ExperimentWithData ewd = null;
+        try {
+            ewd = atlasDataDAO.createExperimentWithData(experiment);
+            model.addAttribute("plot", ExperimentPlot.create(des, ewd, ad, curatedStringConverter));
+            if (assayPropertiesRequired) {
+                model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
+            }
+            return UNSUPPORTED_HTML_VIEW;
+        } finally {
+            closeQuietly(ewd);
         }
-        return UNSUPPORTED_HTML_VIEW;
     }
 
     /**
      * This method HTTP GET's assetFileName's content for a given experiment provided that
      * 1. assetFileName is listed against that experiment in DB
-     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourcePattern)
+     * 2. assetFileName has a file extension corresponding to a valid experiment asset mime type (c.f. ResourceType)
      *
      * @param accession     experiment accession
      * @param assetFileName asset file name
@@ -245,35 +244,38 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public void getExperimentAsset(
             @RequestParam("eid") String accession,
             @RequestParam("asset") String assetFileName,
-            HttpServletResponse response
-    ) throws IOException, ResourceNotFoundException {
+            HttpServletResponse response) throws IOException, ResourceNotFoundException, RecordNotFoundException {
 
-        if (!Strings.isNullOrEmpty(accession) && !Strings.isNullOrEmpty(assetFileName)) {
-            Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        if (isNullOrEmpty(accession) || isNullOrEmpty(assetFileName))
+            throw new ResourceNotFoundException("Incomplete request");
 
-            if (experiment != null) {
-                for (Asset asset : experiment.getAssets()) {
-                    if (assetFileName.equals(asset.getFileName())) {
-                        for (ResourcePattern rp : ResourcePattern.values()) {
-                            if (rp.handle(new File(netCDFDAO.getDataDirectory(experiment), "assets"), assetFileName, response)) {
-                                return;
-                            }
-                        }
-                        break;
-                    }
+        Experiment experiment = atlasDAO.getExperimentByAccession(accession);
 
-                }
-            }
-        }
-        throw new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
+        Asset asset = experiment.getAsset(assetFileName);
+        if (asset == null)
+            throw assetNotFound(accession, assetFileName);
+
+        final File assetFile = new File(new File(atlasDataDAO.getDataDirectory(experiment), "assets"), asset.getFileName());
+        if (!assetFile.exists())
+            throw assetNotFound(accession, assetFileName);
+
+        ResourceType type = ResourceType.getByFileName(assetFileName);
+        if (type == null)
+            throw assetNotFound(accession, assetFileName);
+
+        send(response, assetFile, type);
+    }
+
+    private ResourceNotFoundException assetNotFound(String accession, String assetFileName) {
+        return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
 
     /**
      * Returns experiment table data for given search parameters.
      * (JSON view only supported)
      *
-     * @param accession an experiment accession to find out the required netCDF
-     * @param adAcc     an array design accession to find out the required netCDF
+     * @param accession an experiment accession to find out the required data
+     * @param adAcc     an array design accession to find out the required data
      * @param gid       a gene param to search with
      * @param ef        an experiment factor param to search with
      * @param efv       an experiment factor value param to search with
@@ -282,7 +284,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param limit     a size of result set to take
      * @param model     a model for the view to render
      * @return the view path
-     * @throws java.io.IOException if netCDF file could not be read
+     * @throws AtlasDataException if data could not be read
      */
     @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
     public String getExperimentTable(
@@ -295,47 +297,37 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws IOException {
+    ) throws ResourceNotFoundException, RecordNotFoundException {
+        ExperimentWithData ewd = null;
+        try {
+            final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+            ewd = atlasDataDAO.createExperimentWithData(experiment);
+            final BestDesignElementsResult res =
+                    experimentAnalyticsService.findBestGenesForExperiment(
+                            ewd,
+                            adAcc,
+                            isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
+                            isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
+                            isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
+                            updown,
+                            offset,
+                            limit
+                    );
 
-        List<Long> geneIds = findGeneIds(gid);
-        boolean noGenesFound = !isNullOrEmpty(gid) && geneIds.isEmpty();
-
-        final Predicate<NetCDFProxy> ncdfPredicate;
-        if (noGenesFound) {
-            ncdfPredicate = alwaysFalse();
-        } else if (!isNullOrEmpty(adAcc)) {
-            ncdfPredicate = hasArrayDesign(adAcc);
-        } else if (!geneIds.isEmpty()) {
-            ncdfPredicate = containsAtLeastOneGene(geneIds);
-        } else {
-            ncdfPredicate = alwaysTrue();
+            model.addAttribute("arrayDesign", res.getArrayDesignAccession());
+            model.addAttribute("totalSize", res.getTotalSize());
+            model.addAttribute("items", Iterables.transform(res,
+                    new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
+                        public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
+                            return new ExperimentTableRow(item);
+                        }
+                    })
+            );
+            model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
+            return UNSUPPORTED_HTML_VIEW;
+        } finally {
+            closeQuietly(ewd);
         }
-
-        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
-        NetCDFDescriptor ncdfDescr = netCDFDAO.getNetCdfFile(experiment, ncdfPredicate);
-
-        final BestDesignElementsResult res = (ncdfDescr == null) ?
-                BestDesignElementsResult.empty() :
-                experimentAnalyticsService.findBestGenesForExperiment(
-                        ncdfDescr,
-                        geneIds,
-                        isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                        isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                        updown,
-                        offset,
-                        limit);
-
-        model.addAttribute("arrayDesign", getArrayDesignAccession(ncdfDescr));
-        model.addAttribute("totalSize", res.getTotalSize());
-        model.addAttribute("items", Iterables.transform(res,
-                new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
-                    public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                        return new ExperimentTableRow(item);
-                    }
-                })
-        );
-        model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
-        return UNSUPPORTED_HTML_VIEW;
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
@@ -346,43 +338,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         return tips;
     }
 
-    private String getArrayDesignAccession(NetCDFDescriptor descr) throws IOException {
-        if (descr == null) {
-            return null;
-        }
-
-        NetCDFProxy proxy = null;
-        try {
-            proxy = descr.createProxy();
-            return proxy.getArrayDesignAccession();
-        } finally {
-            closeQuietly(proxy);
-        }
-    }
-
-    private List<Long> findGeneIds(String... query) {
-        List<Long> genes = Lists.newArrayList();
-
-        for (String text : query) {
-            if (Strings.isNullOrEmpty(text)) {
-                continue;
-            }
-            GeneSolrDAO.AtlasGeneResult res = geneSolrDAO.getGeneByIdentifier(text);
-            if (!res.isFound()) {
-                for (AtlasGene gene : geneSolrDAO.getGenesByName(text)) {
-                    genes.add((long) gene.getGeneId());
-                }
-            } else {
-                genes.add((long) res.getGene().getGeneId());
-            }
-        }
-        return genes;
-    }
-
     /**
      * An experiment page handler utility. If the experiment with the given id/accession exists it fills the model with the
      * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part
-     *  note that gid and ef are optional.
+     * note that gid and ef are optional.
      *
      * @param model
      * @param accession

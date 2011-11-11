@@ -70,11 +70,70 @@ a.external {
     background: url(images/ext-link.gif) right 0 repeat-y;
 }
 
+/* page */
+
+.page-title {
+    margin: 0;
+    padding: 0 10px 0 0;
+    color: #005555;
+	text-align: left;
+	font-size: 20pt;
+	font-weight: bold;
+    vertical-align: text-bottom;
+}
+
+.section-header-1 {
+    font-family: Verdana, helvetica, arial, sans-serif;
+    font-size: 11pt;
+    font-weight: bold;
+	color: #005555;
+}
+
+.section-header-2 {
+    font-family: Verdana, helvetica, arial, sans-serif;
+    font-size: 9pt;
+    font-weight: bold;
+    color: #005555;
+}
+
+/* EF pagination */
+
+.pagination_ef {
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.pagination_ef div {
+    float: left;
+    padding: 1px 2px;
+    margin: 2px 3px;
+    border: 1px solid #066;
+    font-weight: bold;
+    font-size: 75%;
+    color: #006666;
+    white-space: nowrap;
+}
+
+.pagination_ef a, .pagination_ef a:hover, .pagination_ef a:link, .pagination_ef a:visited {
+    white-space: nowrap;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #006666;
+    text-decoration: none;
+}
+
+.pagination_ef .current {
+    background: #006666;
+    color: #fff;
+}
+
 /* pagination styles */
 
 .pagination_ie {
     font-size: 80%;
-    text-transform: capitalize;
     margin: 1em 0;
 }
 
@@ -213,83 +272,42 @@ padding: 0;
     text-decoration: underline;
 }
 
-/* two column liquid layout (experiment page) */
+/* tooltips */
 
-.column-container {
-    width: 100%;
-    padding: 0;
-    margin: 0;
+.tooltip {
+    position: absolute;
+    z-index: 3001;
+    padding: 10px;
+    max-width: 800px;
+    border: 1px solid #5E9E9E;
+    background-color: #EEF5F5;
 }
 
-.column-container.exp-page {
-    min-width: 980px;
-    width: expression(document.body.clientWidth < 980? "980px": "auto" );
+.tooltip em {
+    font: inherit;
+    background-color: yellow;
+    text-decoration: inherit;
 }
 
-.left-column {
-    clear: left;
-    float: left;
-    padding: 0;
-    margin: 0;
-    display: inline;
-    width: 70%;
+.tooltip .genename {
+    margin-bottom: 10px;
+    font-size: 10px;
 }
 
-.right-column {
-    float: right;
-    width: 30%;
-    padding: 0;
-    margin: 0;
-    display: inline;
+.tooltip .genename b {
+    font-weight: bold;
+    font-size: 14px;
 }
 
-/* experiment page */
-
-.zoomin-btn {
-    cursor: pointer;
-    background: url(images/zoomin.gif) no-repeat;
-    width: 21px;
-    height: 21px;
-}
-
-.zoomout-btn {
-    cursor: pointer;
-    background: url(images/zoomout.gif) no-repeat;
-    width: 21px;
-    height: 23px;
-}
-
-.panright-btn {
-    cursor: pointer;
-    background: url(images/panright.gif) no-repeat;
-    width: 15px;
-    height: 34px;
-}
-
-.panleft-btn {
-    cursor: pointer;
-    background: url(images/panleft.gif) no-repeat;
-    width: 15px;
-    height: 34px;
-}
-
-.chartIcon.add-btn {
-    cursor: pointer;
-    background: url(images/chart_line_add.png) no-repeat;
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-}
-
-.chartIcon.delete-btn {
-    cursor: pointer;
-    background: url(images/chart_line_delete.png) no-repeat;
-    display: inline-block;
-    width: 32px;
-    height: 32px;
+.tooltip div {
+    margin-bottom: 5px;
 }
 
 /* unsorted */
+
+.nowrap {
+    white-space: nowrap;
+}
 
 .clean {
     clear: left;

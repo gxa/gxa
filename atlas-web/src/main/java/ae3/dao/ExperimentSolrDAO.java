@@ -23,7 +23,10 @@
 package ae3.dao;
 
 import ae3.model.AtlasExperiment;
+import ae3.service.experiment.AtlasExperimentQuery;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Multimap;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -42,6 +45,7 @@ import java.util.List;
 
 import static com.google.common.collect.Lists.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.escapeSolrValueList;
 
 /**
  * Atlas basic model elements access class
@@ -158,45 +162,77 @@ public class ExperimentSolrDAO {
      * Search experiments by SOLR query
      *
      * @param query SOLR query string
-     * @param start starting position
-     * @param rows  number of rows to fetch
      * @return experiments matching the query
      */
-    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows) {
-        return getExperimentsByQuery(query, start, rows, "accession", SolrQuery.ORDER.asc);
+    public AtlasExperimentsResult getExperimentsByQuery(AtlasExperimentQuery query) {
+        return getExperimentsByQuery(toSolrQuery(query, "accession", SolrQuery.ORDER.asc));
     }
 
-    /**
-     * Search experiments by SOLR query
-     *
-     * @param query SOLR query string
-     * @param start starting position
-     * @param rows  number of rows to fetch
-     * @param sort  the index of first entry to retrieve
-     * @param order the field to sort by (or "score" if you want to sort by relevance)
-     * @return experiments matching the query
-     */
     public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) {
-        log.debug("getExperimentsByQuery({},{},{},{},{})", new Object[]{query, start, rows, sort, order});
-        SolrQuery q = new SolrQuery(query);
-        q.setRows(rows);
-        q.setStart(start);
-        q.setFields("*");
-        q.setSortField(sort, order);
+        return getExperimentsByQuery(toSolrQuery(query, start, rows, sort, order));
+    }
 
+    private AtlasExperimentsResult getExperimentsByQuery(SolrQuery query) {
         try {
-            QueryResponse queryResponse = experimentSolr.query(q);
+            QueryResponse queryResponse = experimentSolr.query(query);
             SolrDocumentList documentList = queryResponse.getResults();
             List<AtlasExperiment> result = new ArrayList<AtlasExperiment>();
 
-            if (documentList != null)
-                for (SolrDocument exptDoc : documentList)
+            if (documentList != null) {
+                for (SolrDocument exptDoc : documentList) {
                     result.add(AtlasExperiment.createExperiment(experimentDAO, exptDoc));
+                }
+            }
 
-            return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), start);
+            return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), query.getStart());
         } catch (SolrServerException e) {
             throw createUnexpected("Error querying for experiments", e);
         }
     }
 
+    static SolrQuery toSolrQuery(AtlasExperimentQuery query, String sort, SolrQuery.ORDER order) {
+        final List<String> parts = new ArrayList<String>();
+
+        if (query.isListAll()) {
+            parts.add("*:*");
+        } else {
+            if (query.hasExperimentKeywords()) {
+                String vals = escapeSolrValueList(query.getExperimentKeywords());
+                parts.add(new StringBuilder()
+                        .append("(")
+                        .append(" accession:(").append(vals).append(") ")
+                        .append(" id:(").append(vals).append(") ")
+                        .append(" ").append(vals)
+                        .append(" )").toString());
+            }
+
+            if (query.hasFactors()) {
+                parts.add(new StringBuilder()
+                        .append("a_properties:(").append(escapeSolrValueList(query.getFactors())).append(")").toString());
+            }
+
+            if (query.hasAnyFactorValues()) {
+                parts.add(new StringBuilder()
+                        .append("a_allvalues:(").append(escapeSolrValueList(query.getAnyFactorValues())).append(")").toString());
+            } else if (query.hasFactorValues()) {
+                Multimap<String, String> factorValues = query.getFactorValues();
+                StringBuilder sb = new StringBuilder();
+                for (String factor : factorValues.keySet()) {
+                    sb.append("a_property_").append(factor).append(":(").append(escapeSolrValueList(factorValues.get(factor))).append(")");
+                }
+                parts.add(sb.toString());
+            }
+        }
+        return toSolrQuery(Joiner.on(" AND ").join(parts), query.getStart(), query.getRows(), sort, order);
+    }
+
+    static SolrQuery toSolrQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) {
+        SolrQuery q = new SolrQuery();
+        q.setQuery(query);
+        q.setRows(rows);
+        q.setStart(start);
+        q.setFields("*");
+        q.setSortField(sort, order);
+        return q;
+    }
 }

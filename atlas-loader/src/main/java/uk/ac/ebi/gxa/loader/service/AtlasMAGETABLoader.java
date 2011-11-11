@@ -25,17 +25,19 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.NetCDFDataCreator;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.steps.*;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreator;
-import uk.ac.ebi.gxa.netcdf.generator.NetCDFCreatorException;
-import uk.ac.ebi.gxa.netcdf.reader.AtlasNetCDFDAO;
-import uk.ac.ebi.gxa.netcdf.reader.NetCDFProxy;
 import uk.ac.ebi.gxa.utils.ZipUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -45,11 +47,9 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
+import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.utils.FileUtil.*;
 
 /**
@@ -65,16 +65,10 @@ import static uk.ac.ebi.gxa.utils.FileUtil.*;
  * @author Tony Burdett
  */
 public class AtlasMAGETABLoader {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(AtlasMAGETABLoader.class);
 
-    private static final ThreadLocal<DecimalFormat> DECIMAL_FORMAT = new ThreadLocal<DecimalFormat>() {
-        @Override
-        protected DecimalFormat initialValue() {
-            return new DecimalFormat("#.##");
-        }
-    };
     private AtlasComputeService atlasComputeService;
-    private AtlasNetCDFDAO atlasNetCDFDAO;
+    private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
 
     private AtlasExperimentUnloaderService unloaderService;
@@ -152,8 +146,10 @@ public class AtlasMAGETABLoader {
 
                 //load RNA-seq experiment
                 //ToDo: add condition based on "getUserData"
-                logProgress(listener, 7, HTSArrayDataStep.displayName());
-                new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                if (isHTS(investigation)) {
+                    logProgress(listener, 7, HTSArrayDataStep.displayName());
+                    new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
@@ -175,7 +171,7 @@ public class AtlasMAGETABLoader {
     }
 
     private void logProgress(AtlasLoaderServiceListener listener, int index, String displayName) {
-        final String progress = "Step " + ++index + " of 7: " + displayName;
+        final String progress = "Step " + ++index + " of 8: " + displayName;
         listener.setProgress(progress);
         log.info(progress);
     }
@@ -208,7 +204,9 @@ public class AtlasMAGETABLoader {
 
         // check experiment exists in database, and not just in the loadmonitor
         String experimentAccession = cache.fetchExperiment().getAccession();
-        if (dao.getExperiment(experimentAccession) != null) {
+
+        try {
+            dao.getExperiment(experimentAccession);
             // experiment genuinely was already in the DB, so remove old experiment
             log.info("Deleting existing version of experiment " + experimentAccession);
             try {
@@ -218,6 +216,8 @@ public class AtlasMAGETABLoader {
             } catch (AtlasLoaderException e) {
                 throw new AtlasLoaderException(e);
             }
+        } catch (RecordNotFoundException e) {
+            // do nothing - experiment matching experimentAccession not found is a valid situation here
         }
 
         // start the load(s)
@@ -236,45 +236,34 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private static String formatDt(long start, long end) {
-        return DECIMAL_FORMAT.get().format((end - start) / 1000);
-    }
-
-    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws NetCDFCreatorException, IOException {
+    private void writeExperimentNetCDF(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasDataException {
         final Experiment experiment = cache.fetchExperiment();
+        final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-        for (final ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-            Collection<Assay> adAssays = experiment.getAssaysForDesign(arrayDesign);
-            log.info("Starting NetCDF for {} and {} ({} assays)",
-                    new Object[]{experiment.getAccession(), arrayDesign.getAccession(), adAssays.size()});
+        try {
+            for (final ArrayDesign shallowArrayDesign : experiment.getArrayDesigns()) {
+                Collection<Assay> adAssays = experiment.getAssaysForDesign(shallowArrayDesign);
+                log.info("Starting NetCDF for {} and {} ({} assays)",
+                        new Object[]{experiment.getAccession(), shallowArrayDesign.getAccession(), adAssays.size()});
 
-            if (listener != null)
-                listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
-                        " and " + arrayDesign);
+                if (listener != null)
+                    listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
+                            " and " + shallowArrayDesign);
 
-            NetCDFCreator netCdfCreator = new NetCDFCreator();
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
+                dataCreator.setAssayDataMap(cache.getAssayDataMap());
 
-            netCdfCreator.setAssays(adAssays);
-            for (Assay assay : adAssays)
-                for (Sample sample : assay.getSamples())
-                    netCdfCreator.setSample(assay, sample);
+                dataCreator.createNetCdf();
 
-            netCdfCreator.setArrayDesign(arrayDesign);
-            netCdfCreator.setExperiment(experiment);
-            netCdfCreator.setAssayDataMap(cache.getAssayDataMap());
-            netCdfCreator.setVersion(NetCDFProxy.NCDF_VERSION);
-
-
-            final File netCDFLocation = atlasNetCDFDAO.getNetCDFLocation(experiment, arrayDesign);
-            if (!netCDFLocation.getParentFile().exists() && !netCDFLocation.getParentFile().mkdirs())
-                throw new IOException("Cannot create folder for the output file" + netCDFLocation);
-            netCdfCreator.createNetCdf(netCDFLocation);
-
-            if (netCdfCreator.hasWarning() && listener != null) {
-                for (String warning : netCdfCreator.getWarnings())
-                    listener.setWarning(warning);
+                if (dataCreator.hasWarning() && listener != null) {
+                    for (String warning : dataCreator.getWarnings()) {
+                        listener.setWarning(warning);
+                    }
+                }
+                log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), shallowArrayDesign.getAccession());
             }
-            log.info("Finalising NetCDF changes for {} and {}", experiment.getAccession(), arrayDesign.getAccession());
+        } finally {
+            closeQuietly(ewd);
         }
     }
 
@@ -286,10 +275,7 @@ public class AtlasMAGETABLoader {
             if (cache.fetchAllAssays().isEmpty())
                 throw new AtlasLoaderException("No assays found");
 
-            Set<String> referencedArrayDesigns = new HashSet<String>();
             for (Assay assay : cache.fetchAllAssays()) {
-                    referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
-
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
 
@@ -320,11 +306,27 @@ public class AtlasMAGETABLoader {
         this.atlasComputeService = atlasComputeService;
     }
 
-    public void setAtlasNetCDFDAO(AtlasNetCDFDAO atlasNetCDFDAO) {
-        this.atlasNetCDFDAO = atlasNetCDFDAO;
+    public void setAtlasDataDAO(AtlasDataDAO atlasDataDAO) {
+        this.atlasDataDAO = atlasDataDAO;
     }
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public static boolean isHTS(MAGETABInvestigation investigation) {
+        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
+        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        if (scanNodes.size() == 0) {
+            log.info("No comment scan nodes found - investigation {} is not HTS", investigation.accession);
+            return false;
+        }
+        for (ScanNode scanNode : scanNodes) {
+            if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
+                log.info("No comment[ENA_RUN] found - investigation {} is not HTS", investigation.accession);
+                return false;
+            }
+        }
+        return true;
     }
 }

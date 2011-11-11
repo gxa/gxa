@@ -2,13 +2,11 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Immutable;
 
 import javax.persistence.*;
 
 @Entity
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-@Immutable
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Ontology {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ontologySeq")
@@ -49,5 +47,21 @@ public class Ontology {
 
     public String getVersion() {
         return version;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSourceUri(String sourceUri) {
+        this.sourceUri = sourceUri;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 }

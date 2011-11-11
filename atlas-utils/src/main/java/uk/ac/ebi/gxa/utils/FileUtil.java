@@ -22,8 +22,12 @@
 
 package uk.ac.ebi.gxa.utils;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * File utility functions
@@ -73,7 +77,27 @@ public class FileUtil {
         return new File(getTempDirectory(), name);
     }
 
-    public static String getTempDirectory() {
-        return System.getProperty("java.io.tmpdir");
+    public static File getTempDirectory() {
+        File result = new File(System.getProperty("java.io.tmpdir"));
+        if (!result.canWrite())
+            throw createUnexpected(result + " is not writable");
+        if (!result.isDirectory())
+            throw createUnexpected(result + " is not a directory");
+        return result;
+    }
+
+    public static byte[] getMD5(File file) throws IOException, NoSuchAlgorithmException {
+        final MessageDigest md = MessageDigest.getInstance("MD5");
+        InputStream is = new FileInputStream(file);
+        try {
+            is = new DigestInputStream(is, md);
+            byte[] buffer = new byte[4096];
+            while (is.read(buffer) > 0) {
+                // just read all bytes
+            }
+            return md.digest();
+        } finally {
+            is.close();
+        }
     }
 }

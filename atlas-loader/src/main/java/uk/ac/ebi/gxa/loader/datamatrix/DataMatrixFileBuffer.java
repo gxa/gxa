@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.steps.DataUtils;
 
@@ -66,8 +67,6 @@ public class DataMatrixFileBuffer {
 
     private DataMatrixStorage storage;
 
-    private List<String> designElements = new ArrayList<String>();
-
     private static Logger log = LoggerFactory.getLogger(DataMatrixFileBuffer.class);
 
     private boolean hasQtTypes = true;
@@ -101,10 +100,6 @@ public class DataMatrixFileBuffer {
 
     public DataMatrixStorage getStorage() {
         return storage;
-    }
-
-    public List<String> getDesignElements() {
-        return designElements;
     }
 
     /**
@@ -257,7 +252,6 @@ public class DataMatrixFileBuffer {
 
                 String de = new String(line[0].toCharArray());
                 storage.add(de, refToEVColumn, referenceNames, line);
-                designElements.add(de);
             }
         } catch (IOException e) {
             // generate error item and throw exception
