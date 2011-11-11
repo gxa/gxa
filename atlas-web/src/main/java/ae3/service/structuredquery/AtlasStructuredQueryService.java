@@ -43,7 +43,6 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
@@ -74,7 +73,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  *
  * @author pashky
  */
-public class AtlasStructuredQueryService implements IndexBuilderEventHandler, DisposableBean {
+public class AtlasStructuredQueryService {
 
     // This variable acts as a place holder for a heatmap column index that has not been set yet
     private static final int POS_NOT_SET = -1;
@@ -106,6 +105,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     private final Set<String> cacheFill = new HashSet<String>();
     private SortedSet<String> allSpecies = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+    private final IndexBuilderEventHandler indexBuilderEventHandler =
+            new IndexBuilderEventHandler() {
+                @Override
+                public void onIndexBuildFinish() {
+                    allSpecies.clear();
+                }
+
+                @Override
+                public void onIndexBuildStart() {
+                }
+            };
 
     /**
      * Hack: prevents OOMs by clearing Lucene field cache by closing the searcher which closes the IndexReader
@@ -167,9 +177,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         this.atlasDataDAO = atlasDataDAO;
     }
 
-    public void setIndexBuilder(IndexBuilder indexBuilder) {
+    public synchronized void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
-        indexBuilder.registerIndexBuildEventHandler(this);
+        indexBuilder.registerIndexBuildEventHandler(indexBuilderEventHandler);
     }
 
     public Efo getEfo() {
@@ -1429,7 +1439,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         if (query.getViewType() == ViewType.LIST) {
                             // In list view we display gene-ef-efv rows, hence if a given ef-efv counter doesn't qualify
                             // remove it from the rows to be displayed for the current gene
-                                attrToCounter.remove(attr);
+                            attrToCounter.remove(attr);
                         }
                     }
 
@@ -1871,23 +1881,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * Index rebuild notification handler
-     */
-    public void onIndexBuildFinish() {
-        allSpecies.clear();
-    }
-
-    public void onIndexBuildStart() {
-
-    }
-
-    /**
      * Destructor called by Spring
-     *
-     * @throws Exception
      */
-    public void destroy() throws Exception {
+    public void destroy() {
         if (indexBuilder != null)
-            indexBuilder.unregisterIndexBuildEventHandler(this);
+            indexBuilder.unregisterIndexBuildEventHandler(indexBuilderEventHandler);
     }
 }
