@@ -177,7 +177,7 @@ public class AtlasStructuredQueryService {
         this.atlasDataDAO = atlasDataDAO;
     }
 
-    public synchronized void setIndexBuilder(IndexBuilder indexBuilder) {
+    public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
         indexBuilder.registerIndexBuildEventHandler(indexBuilderEventHandler);
     }
