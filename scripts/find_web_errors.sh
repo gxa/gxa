@@ -5,16 +5,15 @@
 # This script allows to find the errors in atlas.log.<YYYY-MM-DD> along with their usage context in access.log<YYYY-MM-DD>
 # This script is to be run on each of Atlas production tomcat machines
 
-if [ $# -eq 0 ]; then
-        echo "Usage: $0 NOTIFICATION_EMAILADDRESS"
+if [ $# -lt 2 ]; then
+        echo "Usage: $0 WEBLOG_DIR NOTIFICATION_EMAILADDRESS"
         exit;
 fi
 
 today="`eval date +%Y-%m-%d`"
 process_file="/tmp/find_web_errors.$today"
-log_dir="/ebi/www/jlive/servers/tc-fg-gxa/logs"
-atlaslog_file="$log_dir/atlas.log"
-accesslog_file="$log_dir/access_$today.log"
+atlaslog_file="$1/atlas.log"
+accesslog_file="$1/access_$today.log"
 
 rm -rf $process_file.log
 
@@ -40,6 +39,6 @@ while read error_id; do
       grep "$error_id" $atlaslog_file | awk '{print $2}' | awk -F, '{print $1}' | xargs -I % grep % $accesslog_file | xargs -I % echo % | awk '{print $1, $4, $7, $9, $11}' | egrep -v ' 200 ' >> $process_file.log
 done < $process_file.error_ids
 
-mailx -s "[gxa/cron] "`eval date +%Y-%m-%d`": Atlas web error report for: "`hostname`  $1 < $process_file.log
+mailx -s "[gxa/cron] "`eval date +%Y-%m-%d`": Atlas web error report for: "`hostname`  $2 < $process_file.log
 rm -rf $process_file.error_breakdown
 rm -rf $process_file.error_ids
