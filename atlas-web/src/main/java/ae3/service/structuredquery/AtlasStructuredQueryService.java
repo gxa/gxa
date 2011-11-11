@@ -44,6 +44,8 @@ import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -609,6 +611,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param query parsed query
      * @return matching results
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) {
 
         // Flag to indicate if pvals/tstats should be retrieved from bit index and used for heatmap row ordering - for more
