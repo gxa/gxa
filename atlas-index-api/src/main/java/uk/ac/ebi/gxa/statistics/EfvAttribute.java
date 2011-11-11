@@ -29,6 +29,9 @@ public class EfvAttribute extends EfAttribute implements Serializable {
      */
     public EfvAttribute(@Nonnull final String ef, @Nonnull final String efv) {
         super(ef);
+        if (Strings.isNullOrEmpty(efv)) {
+            throw new IllegalArgumentException(this.getClass().getName() + " cannot be instantiated with an empty efv argument - EfAttribute should have been used instead!");
+        }
         this.efv = efv;
         this.value = encodePair(ef, efv);
     }
@@ -43,7 +46,7 @@ public class EfvAttribute extends EfAttribute implements Serializable {
     }
 
     private static String encodePair(@Nonnull final String ef, @Nonnull final String efv) {
-        return !Strings.isNullOrEmpty(ef) && !Strings.isNullOrEmpty(ef) ? ef + EF_EFV_SEP + efv : null;
+        return !Strings.isNullOrEmpty(ef) && !Strings.isNullOrEmpty(efv) ? ef + EF_EFV_SEP + efv : null;
     }
 
     /**

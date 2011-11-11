@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web.controller;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -211,7 +212,9 @@ public class GeneViewController extends AtlasViewController {
         Attribute attr =
                 efoId.length() > 0 ?
                         new EfoAttribute(efoId) :
-                        new EfvAttribute(ef, efv);
+                        Strings.isNullOrEmpty(efv) ?
+                                new EfAttribute(ef) :
+                                new EfvAttribute(ef, efv);
 
         List<GenePageExperiment> exps = getRankedGeneExperiments(gene, attr, fromRow, toRow);
 
