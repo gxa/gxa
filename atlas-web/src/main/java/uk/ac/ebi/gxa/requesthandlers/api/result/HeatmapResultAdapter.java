@@ -210,7 +210,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                     EfoTree.EfoItem<ColumnInfo>,
                     ResultRow.Expression
                     >(r.getResultEfvs().getNameSortedList().iterator(),
-                    r.getResultEfos().getExplicitList().iterator()) {
+                    r.getResultEfos().getMarkedSubTreeList().iterator()) {
 
                 public Expression map1(EfvTree.EfEfv<ColumnInfo> from) {
                     UpdownCounter cnt = row.getCounters().get(from.getPayload().getPosition());
