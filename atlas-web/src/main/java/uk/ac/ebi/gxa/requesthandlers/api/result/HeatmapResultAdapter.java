@@ -47,11 +47,10 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
@@ -64,6 +63,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapter.ResultRow> {
     private final static Logger log = LoggerFactory.getLogger(HeatmapResultAdapter.class);
 
+    private final static PTRank NONDE_PTRANK = PTRank.of(1.0f, 0);
     private final AtlasStructuredQueryResult r;
     private final ExperimentDAO experimentDAO;
     private final AtlasDataDAO atlasDataDAO;
@@ -159,7 +159,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
             Iterator<ExperimentResult> expiter() {
                 EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv());
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN).iterator();
+                List<ExperimentResult> allExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, UP_DOWN);
+                allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
+                return allExps.iterator();
             }
         }
 
@@ -181,7 +183,9 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
             Iterator<ExperimentResult> expiter() {
                 Attribute attr = new EfoAttribute(efoItem.getId());
-                return atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP_DOWN).iterator();
+                List<ExperimentResult> allExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, UP_DOWN);
+                allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
+                return allExps.iterator();
             }
         }
 
@@ -210,7 +214,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                     EfoTree.EfoItem<ColumnInfo>,
                     ResultRow.Expression
                     >(r.getResultEfvs().getNameSortedList().iterator(),
-                    r.getResultEfos().getExplicitList().iterator()) {
+                    r.getResultEfos().getMarkedSubTreeList().iterator()) {
 
                 public Expression map1(EfvTree.EfEfv<ColumnInfo> from) {
                     UpdownCounter cnt = row.getCounters().get(from.getPayload().getPosition());
@@ -268,5 +272,13 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
         }
         // gave up
         return roundedPVal;
+    }
+
+    private static List<ExperimentResult> toNonDEResults(Collection<ExperimentInfo> experimentInfos) {
+        ArrayList<ExperimentResult> results = newArrayList();
+        for (ExperimentInfo ei : experimentInfos) {
+            results.add(new ExperimentResult(ei, null, NONDE_PTRANK));
+        }
+        return results;
     }
 }
