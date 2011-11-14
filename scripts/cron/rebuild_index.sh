@@ -24,7 +24,7 @@ num_incomplete_analytics=`curl -X GET -b $authentication_cookie -H "Accept: appl
 if [ $num_incomplete_analytics != "0" ]; then
     # If the number of experiments with incomplete analytics is not 0, email an error to ERROR_NOTIFICATION_EMAILADDRESS and quit
     curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?op=searchexp&pendingOnly=INCOMPLETE_ANALYTICS&indent" 2>&1 >> $process_file.log
-    mailx -s `eval date +%H:%M:%S`" Processing experiments on $3:$4/$5 failed due to incomplete analytics (see message body)" $6 < $process_file.log
+    mailx -s "Processing experiments on $3:$4/$5 failed due to incomplete analytics (see message body)" $6 < $process_file.log
 else
     num_incomplete_index=`curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$3:$4/$5/admin?op=searchexp&pendingOnly=INCOMPLETE_INDEX" | cut -d'{' -f2 | cut -d':' -f2 | cut -d',' -f1`
     if [ $num_incomplete_index != "0" ]; then
