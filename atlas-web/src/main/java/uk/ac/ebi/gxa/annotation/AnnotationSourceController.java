@@ -5,13 +5,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationLoaderException;
 import uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationSourceManager;
-import uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.*;
@@ -23,9 +20,6 @@ import java.util.*;
 public class AnnotationSourceController {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
-
-    @Autowired
-    private BioMartAnnotationSourceLoader loader;
 
     @Autowired
     private AnnotationSourceManager annotationSourceManager;
@@ -55,20 +49,8 @@ public class AnnotationSourceController {
         return viewSources;
     }
 
-    public String getAnnSrcString(String id) {
-        return loader.getAnnSrcAsStringById(id);
-    }
-
     public String getAnnSrcString(String id, String type) {
         return annotationSourceManager.getAnnSrcString(id, AnnotationSourceClass.getByName(type));
-    }
-
-    public void saveAnnSrc(String text) {
-        try {
-            loader.saveAnnSrc(text);
-        } catch (AnnotationLoaderException e) {
-            throw LogUtil.createUnexpected("Cannot save AnnotationSource! ", e);
-        }
     }
 
     public void saveAnnSrc(String id, String type, String text) {

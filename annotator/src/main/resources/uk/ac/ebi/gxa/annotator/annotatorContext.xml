@@ -60,7 +60,12 @@
     <bean name="annotationSourceManager"
           class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationSourceManager"/>
 
-    <bean name="annSrcConverter"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationSourceStringConverter"/>
+    <bean name="bioMartAnnotationSourceConverter"
+          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceConverter"/>
 
+    <bean name="fileBasedAnnotationSourceConverter"
+          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.FileBasedAnnotationSourceConverter"/>
+
+    <bean name="annotationSourceConverterFactory"
+          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.ConverterFactory"/>
 </beans>

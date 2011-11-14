@@ -42,11 +42,7 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
         super.setUp();
         manager = new AnnotationSourceManager();
         manager.setAnnSrcDAO(annSrcDAO);
-        manager.setOrganismDAO(organismDAO);
-        manager.setPropertyDAO(propertyDAO);
         manager.setSoftwareDAO(softwareDAO);
-        manager.setTypeDAO(typeDAO);
-        manager.setArrayDesignService(arrayDesignService);
     }
     @Test
     public void testGetCurrentAnnotationSources() throws Exception {

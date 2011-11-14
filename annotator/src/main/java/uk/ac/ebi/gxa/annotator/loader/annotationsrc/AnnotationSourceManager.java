@@ -1,19 +1,14 @@
 package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
-import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
-import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -30,17 +25,10 @@ public class AnnotationSourceManager {
     @Autowired
     protected AnnotationSourceDAO annSrcDAO;
     @Autowired
-    protected OrganismDAO organismDAO;
-    @Autowired
     protected SoftwareDAO softwareDAO;
+
     @Autowired
-    protected BioEntityTypeDAO typeDAO;
-    @Autowired
-    protected BioEntityPropertyDAO propertyDAO;
-    @Autowired
-    protected ArrayDesignService arrayDesignService;
-    @Autowired
-    protected AnnotationSourceStringConverter annSrcConverter;
+    protected ConverterFactory annotationSourceConverterFactory;
 
     public Collection<AnnotationSource> getCurrentAnnotationSources() {
         final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
@@ -85,49 +73,27 @@ public class AnnotationSourceManager {
         }
     }
 
-    public String getAnnSrcString(String id,  AnnotationSourceClass type) {
-        Long aLong = Long.parseLong(id);
-        final AnnotationSource annotationSource = annSrcDAO.getById(aLong, type.getClazz());
-        return annSrcConverter.convertToString(annotationSource);
+    public String getAnnSrcString(String id, AnnotationSourceClass type) {
+        final AnnotationSourceConverter converter = annotationSourceConverterFactory.getConverter(type.getClazz());
+        return converter.convertToString(id);
     }
 
+    @Transactional
     public void saveAnnSrc(String id, AnnotationSourceClass type, String text) {
-        AnnotationSource annSrc = null;
-        if (!StringUtils.EMPTY.equals(id)) {
-            annSrc = annSrcDAO.getById(Long.getLong(id), type.getClazz());
-            annSrcConverter.editAnnotationSource(annSrc, text);
-        } else {
-            annSrc = annSrcConverter.createAnnotationSource(id, type);
+        final AnnotationSourceConverter converter = annotationSourceConverterFactory.getConverter(type.getClazz());
+        try {
+            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(id, text);
+            annSrcDAO.save(annotationSource);
+        } catch (AnnotationLoaderException e) {
+            throw LogUtil.createUnexpected("Cannot save Annotation Source", e);
         }
-
-        annSrcDAO.save(annSrc);
     }
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
     }
 
-    public void setOrganismDAO(OrganismDAO organismDAO) {
-        this.organismDAO = organismDAO;
-    }
-
     public void setSoftwareDAO(SoftwareDAO softwareDAO) {
         this.softwareDAO = softwareDAO;
-    }
-
-    public void setTypeDAO(BioEntityTypeDAO typeDAO) {
-        this.typeDAO = typeDAO;
-    }
-
-    public void setPropertyDAO(BioEntityPropertyDAO propertyDAO) {
-        this.propertyDAO = propertyDAO;
-    }
-
-    public void setArrayDesignService(ArrayDesignService arrayDesignService) {
-        this.arrayDesignService = arrayDesignService;
-    }
-
-    public void setAnnSrcConverter(AnnotationSourceStringConverter annSrcConverter) {
-        this.annSrcConverter = annSrcConverter;
     }
 }

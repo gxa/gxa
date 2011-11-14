@@ -77,6 +77,13 @@ public class AnnotationSourceDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
+    public <T extends AnnotationSource> T findAnnotationSource(Software software,  Class<T> type) {
+        String queryString = "from " + type.getSimpleName() + " where software = ?";
+        @SuppressWarnings("unchecked")
+        final List<T> results = template.find(queryString, software);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
     public void remove(AnnotationSource annSrc) {
 
         template.delete(annSrc);
