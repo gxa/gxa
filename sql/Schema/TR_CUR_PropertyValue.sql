@@ -1,5 +1,5 @@
 /*******************************************************************************
-insert/update trigger to manage property values
+insert/update trigger to manage propertyAnnotated values
 *******************************************************************************/
 create or replace
 trigger TRU_CUR_PropertyValue instead of UPDATE OR INSERT OR DELETE on CUR_PropertyValue
@@ -37,7 +37,7 @@ begin
   
   if(mPropertyValueID_new is not null) then
     if(mPropertyValueID_old is not null) then
-        dbms_output.put_line('merge property value with existing property value');
+        dbms_output.put_line('merge propertyAnnotated value with existing propertyAnnotated value');
         CUR_MergePropertyValue(mPropertyValueID_old,mPropertyValueID_new);
     else
         dbms_output.put_line('inserted value exists, do nothing');
@@ -51,7 +51,7 @@ begin
        set name = :new.Value, PropertyID = mPropertyID_new
        where propertyvalueid = mPropertyValueID_old;
       else
-        dbms_output.put_line('insert property value');
+        dbms_output.put_line('insert propertyAnnotated value');
   
         Insert into a2_PropertyValue (PropertyValueID,PropertyID,Name) 
         select a2_PropertyValue_SEQ.nextval,mPropertyID_new,:new.Value from dual;
@@ -59,10 +59,10 @@ begin
     else -- mPropertyID_new is null
       if((:new.Property is null)or(:new.Value = '')) then
         if(mPropertyValueID_old is not null) then
-            dbms_output.put_line('delete property value');
+            dbms_output.put_line('delete propertyAnnotated value');
            
             if(:old.Assays + :old.Samples > 0) then
-                raise_application_error(-20010,'can not delete property associated to sample or assay');
+                raise_application_error(-20010,'can not delete propertyAnnotated associated to sample or assay');
             end if;
             
             delete from a2_propertyvalue where propertyvalueid = mPropertyValueID_old;
@@ -70,7 +70,7 @@ begin
           dbms_output.put_line('empty value inserted, do nothing');
         end if;
       else --not empty
-        dbms_output.put_line('create new property and value, and migrate old if old exists');
+        dbms_output.put_line('create new propertyAnnotated and value, and migrate old if old exists');
       
         select a2_Property_Seq.nextval into mPropertyID_new from dual;
         Insert into a2_Property (PropertyID, name) 

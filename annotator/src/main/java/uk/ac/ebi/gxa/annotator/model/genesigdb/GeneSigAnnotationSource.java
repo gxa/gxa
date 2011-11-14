@@ -5,10 +5,9 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -17,13 +16,12 @@ import java.util.HashSet;
  * Date: 19/10/2011
  */
 @Entity
-@Table(name = "A2_GENESIGANNOTATIONSRC")
+//@Table(name = "A2_GENESIGANNOTATIONSRC")
+@DiscriminatorValue("genesigdb")
 public class GeneSigAnnotationSource extends AnnotationSource {
 
-    @Column(name = "url")
-    private String url;
-
-    @ManyToOne()
+//    @ManyToOne()
+    @Transient
     private BioEntityProperty bioEntityProperty;
 
     GeneSigAnnotationSource() {
@@ -31,14 +29,6 @@ public class GeneSigAnnotationSource extends AnnotationSource {
 
     public GeneSigAnnotationSource(Software software) {
         super(software);
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public BioEntityProperty getBioEntityProperty() {

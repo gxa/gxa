@@ -1,5 +1,5 @@
 /*******************************************************************************
-ediatable property values 
+ediatable propertyAnnotated values
 *******************************************************************************/
 create or replace view CUR_PropertyValue as
 select p.PropertyID, pv.PropertyValueID, P.Name Property, PV.Name Value

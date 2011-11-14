@@ -100,7 +100,7 @@ begin
 
  --RAISE_APPLICATION_ERROR(-20001, 'A2_ARRAYDESIGNSET not implemented');
  
- --convert all property names to lowercase
+ --convert all propertyAnnotated names to lowercase
  if(LowerCaseDesignElements is not null) then 
   for j in LowerCaseDesignElements.first..LowerCaseDesignElements.last loop
     LowerCaseDesignElements(j).EntryName := LOWER(LowerCaseDesignElements(j).EntryName);
@@ -353,13 +353,13 @@ begin
   dbms_output.put_line('cleanup');
   delete a2_assaypv pv where pv.assayid = A2_AssaySet.AssayID;
 
-  dbms_output.put_line('insert property');
+  dbms_output.put_line('insert propertyAnnotated');
   Insert into a2_Property(Name /*, Accession*/)
   select distinct t.Name
   from table(CAST(LowerCaseProperties as PropertyTable)) t
   where not exists (select 1 from a2_Property where Name = t.Name);
   
-  dbms_output.put_line('insert property value');
+  dbms_output.put_line('insert propertyAnnotated value');
   Insert into a2_propertyvalue(propertyid,name)
   select distinct p.PropertyID, t.Value
   from table(CAST(LowerCaseProperties as PropertyTable)) t
@@ -367,7 +367,7 @@ begin
   where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value)
   and not(t.Value is null);
 
-  dbms_output.put_line('link property value to assay');
+  dbms_output.put_line('link propertyAnnotated value to assay');
   Insert into a2_assayPV(AssayID, PropertyValueID)
   select distinct A2_AssaySet.AssayID, pv.PropertyValueID
   from table(CAST(LowerCaseProperties as PropertyTable)) t
@@ -516,13 +516,13 @@ begin
   --select * from a2_AssaySample
   --select * from a2_Assay
   
-  dbms_output.put_line('insert property');
+  dbms_output.put_line('insert propertyAnnotated');
   Insert into a2_Property(Name /*, Accession*/)
   select distinct t.Name
   from table(CAST(A2_SAMPLESET.LowerCaseProperties as PropertyTable)) t
   where not exists (select 1 from a2_Property where Name = t.Name);
   
-  dbms_output.put_line('insert property value');
+  dbms_output.put_line('insert propertyAnnotated value');
   Insert into a2_propertyvalue(propertyid,name)
   select distinct p.PropertyID, t.Value
   from table(CAST(LowerCaseProperties as PropertyTable)) t
@@ -530,7 +530,7 @@ begin
   where not exists(select 1 from a2_propertyvalue where PropertyID = p.PropertyID and name = t.Value)
   and not(t.Value is null);
 
-  dbms_output.put_line('link property value to assay');
+  dbms_output.put_line('link propertyAnnotated value to assay');
   Insert into a2_samplePV(SampleID, PropertyValueID)
   select distinct SampleID, pv.PropertyValueID
   from table(CAST(LowerCaseProperties as PropertyTable)) t

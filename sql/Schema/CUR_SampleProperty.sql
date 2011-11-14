@@ -9,7 +9,7 @@ select
   join a2_AssaySample asa on asa.AssayID = a.AssayID
   where asa.SampleID = s.SampleID) Experiment
 ,s.Accession 
-,p.Name property
+,p.Name propertyAnnotated
 ,pv.Name value
 from a2_Sample s
 join a2_SamplePV apv on apv.SampleID = s.SampleID

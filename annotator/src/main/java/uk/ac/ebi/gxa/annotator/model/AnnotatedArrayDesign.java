@@ -20,39 +20,40 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.model.biomart;
+package uk.ac.ebi.gxa.annotator.model;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.persistence.*;
 
 /**
  * User: nsklyar
- * Date: 23/05/2011
+ * Date: 19/07/2011
  */
 @Entity
-public class BioMartProperty {
+public class AnnotatedArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
-    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_BIOMARTPROPERTY_SEQ", allocationSize = 1)
-    private Long biomartpropertyId;
+    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_ANNOTATEDARRAYDESIGN_SEQ", allocationSize = 1)
+    private Long biomartarraydesignId;
     private String name;
-
-    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
-    private BioEntityProperty bioEntityProperty;
 
     @ManyToOne
     @Fetch(FetchMode.SELECT)
-    private BioMartAnnotationSource annotationSrc;
+    private ArrayDesign arrayDesign;
 
-    BioMartProperty() {
+    @ManyToOne
+    @Fetch(FetchMode.SELECT)
+    private AnnotationSource annotationSrc;
+
+    AnnotatedArrayDesign() {
     }
 
-    public BioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty, BioMartAnnotationSource annSrc) {
-        this.name = biomartPropertyName;
-        this.bioEntityProperty = bioEntityProperty;
+    public AnnotatedArrayDesign(String name, ArrayDesign arrayDesign, AnnotationSource annSrc) {
+        this.name = name;
+        this.arrayDesign = arrayDesign;
         this.annotationSrc = annSrc;
     }
 
@@ -60,11 +61,11 @@ public class BioMartProperty {
         return name;
     }
 
-    public BioEntityProperty getBioEntityProperty() {
-        return bioEntityProperty;
+    public ArrayDesign getArrayDesign() {
+        return arrayDesign;
     }
 
-    void setAnnotationSrc(BioMartAnnotationSource annotationSrc) {
+    public void setAnnotationSrc(AnnotationSource annotationSrc) {
         this.annotationSrc = annotationSrc;
     }
 
@@ -73,12 +74,11 @@ public class BioMartProperty {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        BioMartProperty that = (BioMartProperty) o;
+        AnnotatedArrayDesign that = (AnnotatedArrayDesign) o;
 
         if (annotationSrc != null ? !annotationSrc.equals(that.annotationSrc) : that.annotationSrc != null)
             return false;
-        if (bioEntityProperty != null ? !bioEntityProperty.equals(that.bioEntityProperty) : that.bioEntityProperty != null)
-            return false;
+        if (arrayDesign != null ? !arrayDesign.equals(that.arrayDesign) : that.arrayDesign != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
@@ -87,7 +87,7 @@ public class BioMartProperty {
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (bioEntityProperty != null ? bioEntityProperty.hashCode() : 0);
+        result = 31 * result + (arrayDesign != null ? arrayDesign.hashCode() : 0);
         result = 31 * result + (annotationSrc != null ? annotationSrc.hashCode() : 0);
         return result;
     }

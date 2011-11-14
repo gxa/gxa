@@ -75,7 +75,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     @Test
     @Transactional
-    public void testSave() throws Exception {
+    public void testSaveBioMart() throws Exception {
         Software software = softwareDAO.findOrCreate("plants", "8");
         Organism organism = organismDAO.getByName("arabidopsis thaliana");
 
@@ -92,6 +92,23 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         Assert.assertNotNull(annotationSource.getAnnotationSrcId());
     }
 
+    @Test
+    @Transactional
+    public void testSaveGineSig() throws Exception {
+        Software software = softwareDAO.findOrCreate("genesigdb", "63");
+
+        GeneSigAnnotationSource annotationSource = new GeneSigAnnotationSource(software);
+
+        annotationSource.setUrl("ftp://files");
+        BioEntityType type1 = typeDAO.findOrCreate("ensgene");
+        assertNotNull(type1);
+
+        annotationSource.addBioEntityType(type1);
+
+        annSrcDAO.save(annotationSource);
+        Assert.assertNotNull(annotationSource.getAnnotationSrcId());
+    }
+    
     @Test
     public void testGetById() {
         AnnotationSource annotationSource = annSrcDAO.getById(1000, BioMartAnnotationSource.class);

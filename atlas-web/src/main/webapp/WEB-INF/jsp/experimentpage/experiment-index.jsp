@@ -82,7 +82,7 @@
                 <display:column property="numSamples" sortable="true" sortName="numSamples"
                                 title="Samples" class="number"/>
                 <%-- Postponed until implemented
-                <display:column property="studyType" sortable="true" sortName="studyType"
+                <display:column propertyAnnotated="studyType" sortable="true" sortName="studyType"
                                 title="Type"/>
                                 --%>
                 <display:column title="Experiment Factors" class="nowrap">

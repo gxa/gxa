@@ -32,9 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
+import uk.ac.ebi.gxa.annotator.model.AnnotatedArrayDesign;
+import uk.ac.ebi.gxa.annotator.model.AnnotatedBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -195,48 +195,48 @@ public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMar
     }
 
     private void updateBioMartProperties(Properties properties, BioMartAnnotationSource annotationSource) {
-        Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
+        Set<AnnotatedBioEntityProperty> annotatedBioEntityProperties = new HashSet<AnnotatedBioEntityProperty>();
         for (String propName : properties.stringPropertyNames()) {
 
             if (propName.startsWith(BIOMARTPROPERTY_PROPNAME)) {
                 BioEntityProperty beProperty = propertyDAO.findOrCreate(propName.substring(BIOMARTPROPERTY_PROPNAME.length() + 1));
                 StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
                 while (tokenizer.hasMoreElements()) {
-                    bioMartProperties.add(new BioMartProperty(tokenizer.nextToken().trim(), beProperty, annotationSource));
+                    annotatedBioEntityProperties.add(new AnnotatedBioEntityProperty(tokenizer.nextToken().trim(), beProperty, annotationSource));
                 }
             }
         }
 
-        Set<BioMartProperty> removedProperties = new HashSet<BioMartProperty>(difference(annotationSource.getBioMartProperties(), bioMartProperties));
-        Set<BioMartProperty> addedProperties = new HashSet<BioMartProperty>(difference(bioMartProperties, annotationSource.getBioMartProperties()));
+        Set<AnnotatedBioEntityProperty> removedPropertyAnnotateds = new HashSet<AnnotatedBioEntityProperty>(difference(annotationSource.getAnnotatedBioEntityProperties(), annotatedBioEntityProperties));
+        Set<AnnotatedBioEntityProperty> addedPropertyAnnotateds = new HashSet<AnnotatedBioEntityProperty>(difference(annotatedBioEntityProperties, annotationSource.getAnnotatedBioEntityProperties()));
 
-        for (BioMartProperty removedProperty : removedProperties) {
-            annotationSource.removeBioMartProperty(removedProperty);
+        for (AnnotatedBioEntityProperty removedPropertyAnnotated : removedPropertyAnnotateds) {
+            annotationSource.removeBioMartProperty(removedPropertyAnnotated);
         }
 
-        for (BioMartProperty addedProperty : addedProperties) {
-            annotationSource.addBioMartProperty(addedProperty);
+        for (AnnotatedBioEntityProperty addedPropertyAnnotated : addedPropertyAnnotateds) {
+            annotationSource.addBioMartProperty(addedPropertyAnnotated);
         }
     }
 
     private void updateBioMartArrayDesigns(Properties properties, BioMartAnnotationSource annotationSource) {
-        Set<BioMartArrayDesign> bioMartArrayDesigns = new HashSet<BioMartArrayDesign>();
+        Set<AnnotatedArrayDesign> annotatedArrayDesigns = new HashSet<AnnotatedArrayDesign>();
         for (String propName : properties.stringPropertyNames()) {
 
             if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
                 ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
-                bioMartArrayDesigns.add(new BioMartArrayDesign(properties.getProperty(propName).trim(), arrayDesign, annotationSource));
+                annotatedArrayDesigns.add(new AnnotatedArrayDesign(properties.getProperty(propName).trim(), arrayDesign, annotationSource));
             }
         }
 
-        Set<BioMartArrayDesign> removedProperties = new HashSet<BioMartArrayDesign>(difference(annotationSource.getBioMartArrayDesigns(), bioMartArrayDesigns));
-        Set<BioMartArrayDesign> addedProperties = new HashSet<BioMartArrayDesign>(difference(bioMartArrayDesigns, annotationSource.getBioMartArrayDesigns()));
+        Set<AnnotatedArrayDesign> removedProperties = new HashSet<AnnotatedArrayDesign>(difference(annotationSource.getAnnotatedArrayDesigns(), annotatedArrayDesigns));
+        Set<AnnotatedArrayDesign> addedProperties = new HashSet<AnnotatedArrayDesign>(difference(annotatedArrayDesigns, annotationSource.getAnnotatedArrayDesigns()));
 
-        for (BioMartArrayDesign removedProperty : removedProperties) {
+        for (AnnotatedArrayDesign removedProperty : removedProperties) {
             annotationSource.removeBioMartArrayDesign(removedProperty);
         }
 
-        for (BioMartArrayDesign addedProperty : addedProperties) {
+        for (AnnotatedArrayDesign addedProperty : addedProperties) {
             annotationSource.addBioMartArrayDesign(addedProperty);
         }
     }
@@ -263,8 +263,8 @@ public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMar
 
     private void writeBioMartProperties(BioMartAnnotationSource annSrc, PropertiesConfiguration properties) {
         Multimap<String, String> bePropToBmProp = HashMultimap.create();
-        for (BioMartProperty bioMartProperty : annSrc.getBioMartProperties()) {
-            bePropToBmProp.put(bioMartProperty.getBioEntityProperty().getName(), bioMartProperty.getName());
+        for (AnnotatedBioEntityProperty annotatedBioEntityProperty : annSrc.getAnnotatedBioEntityProperties()) {
+            bePropToBmProp.put(annotatedBioEntityProperty.getBioEntityProperty().getName(), annotatedBioEntityProperty.getName());
         }
 
         addCommaSeparatedProperties(BIOMARTPROPERTY_PROPNAME, properties, bePropToBmProp);
@@ -274,8 +274,8 @@ public class BioMartAnnotationSourceLoader extends AnnotationSourceLoader<BioMar
     private void writeBioMartArrayDesign(BioMartAnnotationSource annSrc, PropertiesConfiguration properties) {
         Multimap<String, String> bePropToBmProp = HashMultimap.create();
 
-        for (BioMartArrayDesign bioMartArrayDesign : annSrc.getBioMartArrayDesigns()) {
-            bePropToBmProp.put(bioMartArrayDesign.getArrayDesign().getAccession(), bioMartArrayDesign.getName());
+        for (AnnotatedArrayDesign annotatedArrayDesign : annSrc.getAnnotatedArrayDesigns()) {
+            bePropToBmProp.put(annotatedArrayDesign.getArrayDesign().getAccession(), annotatedArrayDesign.getName());
         }
 
         addCommaSeparatedProperties(ARRAYDESIGN_PROPNAME, properties, bePropToBmProp);

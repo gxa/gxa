@@ -22,78 +22,51 @@
 
 package uk.ac.ebi.gxa.annotator.model.biomart;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
+import uk.ac.ebi.gxa.annotator.model.AnnotatedArrayDesign;
+import uk.ac.ebi.gxa.annotator.model.AnnotatedBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Organism;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
-
-import static com.google.common.collect.Sets.newHashSet;
 
 /**
  * User: nsklyar
  * Date: 10/05/2011
  */
 @Entity
-@Table(name = "A2_ANNOTATIONSRC")
+@DiscriminatorValue("biomart")
+@SecondaryTable(name = "A2_BIOMART_ANNSRC",
+pkJoinColumns = @PrimaryKeyJoinColumn(name = "annotationsrcid"))
 public class BioMartAnnotationSource extends AnnotationSource {
 
+    @JoinColumn(table= "A2_BIOMART_ANNSRC")
     @ManyToOne()
     protected Organism organism;
 
     /**
-     * Location of biomart martservice, e.g.:
-     * "http://www.ensembl.org/biomart/martservice?"
-     * "http://plants.ensembl.org/biomart/martservice?"
-     */
-
-    @Column(name = "url")
-    private String url;
-
-    /**
      * e.g. "hsapiens_gene_ensembl", "spombe_eg_gene"
      */
-    @Column(name = "biomartorganismname")
+    @Column(table= "A2_BIOMART_ANNSRC", name = "biomartorganismname")
     private String datasetName;
 
     /**
      * Value of property "database" in BioMart registry, version number is removed.
      * e.g. "metazoa", "fungal"
      */
-    @Column(name = "databaseName")
+    @Column(table= "A2_BIOMART_ANNSRC", name = "databaseName")
     private String databaseName;
 
-    @OneToMany(targetEntity = BioMartProperty.class
-            , mappedBy = "annotationSrc"
-            , cascade = {CascadeType.ALL}
-            , fetch = FetchType.EAGER
-            , orphanRemoval = true
-    )
-    @Fetch(FetchMode.SUBSELECT)
-    private Set<BioMartProperty> bioMartProperties = new HashSet<BioMartProperty>();
-
-    @OneToMany(targetEntity = BioMartArrayDesign.class
-            , mappedBy = "annotationSrc"
-            , cascade = {CascadeType.ALL}
-            , fetch = FetchType.EAGER
-            , orphanRemoval = true
-    )
-    @Fetch(FetchMode.SUBSELECT)
-    private Set<BioMartArrayDesign> bioMartArrayDesigns = newHashSet();
-
+    @Column(table= "A2_BIOMART_ANNSRC")
     private String mySqlDbName;
 
+    @Column(table= "A2_BIOMART_ANNSRC")
     private String mySqlDbUrl;
 
     BioMartAnnotationSource() {
@@ -114,61 +87,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
                 return type;
         }
         return null;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public Set<BioMartProperty> getBioMartProperties() {
-        return Collections.unmodifiableSet(bioMartProperties);
-    }
-
-    public Set<String> getBioMartPropertyNames() {
-        Set<String> answer = new HashSet<String>(bioMartProperties.size());
-        for (BioMartProperty bioMartProperty : bioMartProperties) {
-            answer.add(bioMartProperty.getName());
-        }
-        return answer;
-    }
-
-    public void addBioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty) {
-        BioMartProperty bioMartProperty = new BioMartProperty(biomartPropertyName, bioEntityProperty, this);
-        this.bioMartProperties.add(bioMartProperty);
-    }
-
-    public void addBioMartProperty(BioMartProperty bioMartProperty) {
-        bioMartProperty.setAnnotationSrc(this);
-        this.bioMartProperties.add(bioMartProperty);
-    }
-
-    public boolean removeBioMartProperty(BioMartProperty property) {
-        return bioMartProperties.remove(property);
-    }
-
-    public Set<BioMartArrayDesign> getBioMartArrayDesigns() {
-        return bioMartArrayDesigns;
-    }
-
-    public void addBioMartArrayDesign(BioMartArrayDesign bioMartArrayDesign) {
-        bioMartArrayDesign.setAnnotationSrc(this);
-        this.bioMartArrayDesigns.add(bioMartArrayDesign);
-    }
-
-    public boolean removeBioMartArrayDesign(BioMartArrayDesign bioMartArrayDesign) {
-        return bioMartArrayDesigns.remove(bioMartArrayDesign);
-    }
-
-    public Set<String> getBioMartArrayDesignNames() {
-        Set<String> answer = newHashSet();
-        for (BioMartArrayDesign bioMartArrayDesign : bioMartArrayDesigns) {
-            answer.add(bioMartArrayDesign.getName());
-        }
-        return answer;
     }
 
     public String getDatasetName() {
@@ -211,11 +129,11 @@ public class BioMartAnnotationSource extends AnnotationSource {
         BioMartAnnotationSource result = new BioMartAnnotationSource(newSoftware, this.organism);
         result.setDatasetName(this.datasetName);
         result.setUrl(this.url);
-        for (BioMartProperty bioMartProperty : bioMartProperties) {
-            result.addBioMartProperty(bioMartProperty.getName(), bioMartProperty.getBioEntityProperty());
+        for (AnnotatedBioEntityProperty annotatedBioEntityProperty : annotatedBioEntityProperties) {
+            result.addBioMartProperty(annotatedBioEntityProperty.getName(), annotatedBioEntityProperty.getBioEntityProperty());
         }
-        for (BioMartArrayDesign bioMartArrayDesign : bioMartArrayDesigns) {
-            result.addBioMartArrayDesign(new BioMartArrayDesign(bioMartArrayDesign.getName(), bioMartArrayDesign.getArrayDesign(), result));
+        for (AnnotatedArrayDesign annotatedArrayDesign : annotatedArrayDesigns) {
+            result.addBioMartArrayDesign(new AnnotatedArrayDesign(annotatedArrayDesign.getName(), annotatedArrayDesign.getArrayDesign(), result));
         }
         for (BioEntityType type : types) {
             result.addBioEntityType(type);
@@ -233,7 +151,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
                 super.toString() + '\'' +
                 "url='" + url + '\'' +
                 ", datasetName='" + datasetName + '\'' +
-                ", bioMartProperties=" + bioMartProperties +
+                ", annotatedBioEntityProperties=" + annotatedBioEntityProperties +
                 "} ";
     }
 
