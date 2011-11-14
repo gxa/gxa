@@ -18,14 +18,14 @@ accesslog_file="$1/access_$today.log"
 rm -rf $process_file.log
 
 # Sort error types by frequency
-grep "ERROR" $atlaslog_file | egrep -v "Exception|Failed to borrow an RServices object|No results were found|There are no records for experiment|Invalid factor|mydasGxaServlet" | awk -F'-' '{print $6}' | sort | uniq -c | sort -rg > $process_file.error_breakdown
+grep "ERROR" $atlaslog_file | egrep -v "Exception|Failed to borrow an RServices object|No results were found|There are no records for experiment|Invalid factor|mydasGxaServlet|No existing genes specified by query" | awk -F'-' '{print $6}' | sort | uniq -c | sort -rg > $process_file.error_breakdown
 echo "The following Atlas error frequencies/types occurred on "`hostname`" on "`eval date +%Y-%m-%d`": " >> $process_file.log
 echo "-----------------------------------------------------------------------------------------------" >> $process_file.log
 cat $process_file.error_breakdown >> $process_file.log
 echo "" >> $process_file.log
 echo "The following Atlas exceptions frequencies/types occurred on "`hostname`" on "`eval date +%Y-%m-%d`": " >> $process_file.log
 echo "-----------------------------------------------------------------------------------------------" >> $process_file.log
-grep "Exception" $atlaslog_file | egrep -v "ERROR|WARN|UnimplementedFeatureException|Caused by" | sort | uniq -c | sort -rg >> $process_file.log
+grep "Exception" $atlaslog_file | egrep -v "ERROR|WARN|UnimplementedFeatureException|Caused by|No existing genes specified by query" | sort | uniq -c | sort -rg >> $process_file.log
 
 # for each error in $process_file.error_ids find time of query from $atlaslog_file
 cat $process_file.error_breakdown | awk '{print $2,$3,$4,$5,$6,$7}' > $process_file.error_ids
