@@ -44,6 +44,9 @@ public class CurationService {
     @Autowired
     private PropertyValueDAO propertyValueDAO;
 
+    @Autowired
+    private ExperimentDAO experimentDAO;
+
     private static final Function<Property, ApiPropertyName> PROPERTY_NAME =
             new Function<Property, ApiPropertyName>() {
                 public ApiPropertyName apply(@Nonnull Property p) {
@@ -58,6 +61,26 @@ public class CurationService {
                 }
             };
 
+    private static final Function<Experiment, ApiExperiment> EXPERIMENT =
+            new Function<Experiment, ApiExperiment>() {
+                public ApiExperiment apply(@Nonnull Experiment e) {
+                    return new ApiExperiment(e);
+                }
+            };
+
+    private static final Function<Assay, ApiAssay> ASSAY =
+            new Function<Assay, ApiAssay>() {
+                public ApiAssay apply(@Nonnull Assay e) {
+                    return new ApiAssay(e);
+                }
+            };
+
+    private static final Function<Sample, ApiSample> SAMPLE =
+            new Function<Sample, ApiSample>() {
+                public ApiSample apply(@Nonnull Sample e) {
+                    return new ApiSample(e);
+                }
+            };
 
     /**
      * @return alphabetically sorted collection of all property names
@@ -97,6 +120,60 @@ public class CurationService {
         } catch (RecordNotFoundException e) {
             throw convert(e);
         }
+    }
+
+    /**
+     * @param propertyValue
+     * @return List of ApiAssay's containing propertyName-propertyValue
+     */
+    public Collection<ApiAssay> getAssaysByPropertyValue(final String propertyValue) {
+        return transform(assayDAO.getAssaysByPropertyValue(propertyValue), ASSAY);
+
+    }
+
+    /**
+     * @param propertyValue
+     * @return List of ApiSample's containing propertyName-propertyValue
+     */
+    public Collection<ApiSample> getSamplesByPropertyValue(final String propertyValue) {
+        return transform(sampleDAO.getSamplesByPropertyValue(propertyValue), SAMPLE);
+
+    }
+
+    /**
+     * @param ontologyTerm
+     * @return List of ApiAssay's containing a property value mapped to  ontologyTerm
+     */
+    public Collection<ApiAssay> getAssaysByOntologyTerm(final String ontologyTerm) {
+        return transform(assayDAO.getAssaysByOntologyTerm(ontologyTerm), ASSAY);
+
+    }
+
+    /**
+     * @param ontologyTerm
+     * @return List of ApiSample's containing  a property value mapped to  ontologyTerm
+     */
+    public Collection<ApiSample> getSamplesByOntologyTerm(final String ontologyTerm) {
+        return transform(sampleDAO.getSamplesByOntologyTerm(ontologyTerm), SAMPLE);
+
+    }
+
+    /**
+     * @param assayAccession
+     * @return List of ApiExperiments's containing assay assayAccession
+     */
+    public Collection<ApiExperiment> getExperimentsByAssay(final String assayAccession) {
+        return transform(experimentDAO.getExperimentsByAssay(assayAccession), EXPERIMENT);
+
+    }
+
+    /**
+     * @param sampleAccession
+     * @return List of ApiExperiments's containing sample sampleAccession
+     */
+    public Collection<ApiExperiment> getExperimentsBySample(final String sampleAccession) {
+        return transform(experimentDAO.getExperimentsBySample(sampleAccession), EXPERIMENT);
+
     }
 
     /**

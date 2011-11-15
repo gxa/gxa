@@ -26,6 +26,16 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
         return template.find("select e from Experiment e left join e.assays a where a.arrayDesign.accession = ? ", accession);
     }
 
+    @SuppressWarnings("unchecked")
+    public List<Experiment> getExperimentsByAssay(String accession) {
+        return template.find("select e from Experiment e left join e.assays a where a.accession = ? ", accession);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Experiment> getExperimentsBySample(String accession) {
+        return template.find("select e from Experiment e left join e.samples s where s.accession = ? ", accession);
+    }
+
     long getTotalCount() {
         return (Long) template.find("select count(e) FROM Experiment e").get(0);
     }

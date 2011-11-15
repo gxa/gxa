@@ -95,6 +95,60 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperiment(experimentAccession);
     }
 
+    @RequestMapping(value = "/experiments/assays/{assayAccession}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiExperiment> getExperimentsByAssay(@PathVariable("v") final ApiVersionType version,
+                                                           @PathVariable("assayAccession") final String assayAccession,
+                                                           HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getExperimentsByAssay(assayAccession);
+    }
+
+    @RequestMapping(value = "/experiments/samples/{sampleAccession}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiExperiment> getExperimentsBySample(@PathVariable("v") final ApiVersionType version,
+                                                            @PathVariable("sampleAccession") final String sampleAccession,
+                                                            HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getExperimentsBySample(sampleAccession);
+    }
+
+    @RequestMapping(value = "/assays/properties/{propertyValue}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiAssay> getAssaysByPropertyValue(@PathVariable("v") final ApiVersionType version,
+                                                         @PathVariable("propertyValue") final String propertyValue,
+                                                         HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getAssaysByPropertyValue(propertyValue);
+    }
+
+    @RequestMapping(value = "/samples/properties/{propertyValue}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiSample> getSamplesByPropertyValue(@PathVariable("v") final ApiVersionType version,
+                                                           @PathVariable("propertyValue") final String propertyValue,
+                                                           HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getSamplesByPropertyValue(propertyValue);
+    }
+
+    @RequestMapping(value = "/assays/ontologyterms/{ontologyTerm}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiAssay> getAssaysByOntologyTerm(@PathVariable("v") final ApiVersionType version,
+                                                        @PathVariable("ontologyTerm") final String ontologyTerm,
+                                                        HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getAssaysByOntologyTerm(ontologyTerm);
+    }
+
+    @RequestMapping(value = "/samples/ontologyterms/{ontologyTerm}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiSample> getSamplesByOntologyTerm(@PathVariable("v") final ApiVersionType version,
+                                                          @PathVariable("ontologyTerm") final String ontologyTerm,
+                                                          HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getSamplesByOntologyTerm(ontologyTerm);
+    }
+
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)

@@ -28,6 +28,11 @@ public class SampleDAO extends AbstractDAO<Sample> {
         return template.find("select s from Experiment e left join e.samples s left join s.properties p where p.propertyValue.value = ? ", propertyValue);
     }
 
+    @SuppressWarnings("unchecked")
+    public List<Sample> getSamplesByOntologyTerm(String ontologyTerm) {
+        return template.find("select a from Experiment e left join e.samples s left join s.properties p left join p.terms t where t.accession = ? ", ontologyTerm);
+    }
+
     @Override
     public void save(Sample object) {
         super.save(object);
