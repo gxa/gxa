@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.*;
@@ -155,6 +156,10 @@ public class Sample {
         return properties;
     }
 
+    public Collection<SampleProperty> getProperties(final String type, final String value) {
+        return filter(properties, new PropertyValuePredicate(type, value));
+    }
+
     public String getPropertySummary(final String propName) {
         return on(",").join(transform(
                 filter(properties,
@@ -255,6 +260,21 @@ public class Sample {
             result.add(sp.getDefinition());
         }
         return result;
+    }
+
+    private static class PropertyValuePredicate implements Predicate<SampleProperty> {
+        private final String type;
+        private final String value;
+
+        public PropertyValuePredicate(String type, @Nullable String value) {
+            this.type = type;
+            this.value = value;
+        }
+
+        @Override
+        public boolean apply(@Nonnull SampleProperty input) {
+            return input.getName().equals(type) && (value == null || input.getPropertyValue().getValue().equals(value));
+        }
     }
 }
 

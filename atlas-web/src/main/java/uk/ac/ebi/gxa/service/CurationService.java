@@ -12,6 +12,7 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
@@ -82,6 +83,22 @@ public class CurationService {
                 }
             };
 
+    private static final Function<AssayProperty, PropertyValue> ASSAY_PROPERTY =
+            new Function<AssayProperty, PropertyValue>() {
+                @Override
+                public PropertyValue apply(@Nonnull AssayProperty input) {
+                    return input.getPropertyValue();
+                }
+            };
+
+    private static final Function<SampleProperty, PropertyValue> SAMPLE_PROPERTY =
+            new Function<SampleProperty, PropertyValue>() {
+                @Override
+                public PropertyValue apply(@Nonnull SampleProperty input) {
+                    return input.getPropertyValue();
+                }
+            };
+
     /**
      * @return alphabetically sorted collection of all property names
      */
@@ -123,20 +140,40 @@ public class CurationService {
     }
 
     /**
-     * @param propertyValue
+     * @param propertyName
      * @return List of ApiAssay's containing propertyName-propertyValue
      */
-    public Collection<ApiAssay> getAssaysByPropertyValue(final String propertyValue) {
-        return transform(assayDAO.getAssaysByPropertyValue(propertyValue), ASSAY);
+    public Collection<ApiAssay> getAssaysByProperty(final String propertyName) {
+        return transform(assayDAO.getAssaysByProperty(propertyName), ASSAY);
 
     }
 
     /**
+     * @param propertyName
+     * @return List of ApiSample's containing propertyName-propertyValue
+     */
+    public Collection<ApiSample> getSamplesByProperty(final String propertyName) {
+        return transform(sampleDAO.getSamplesByProperty(propertyName), SAMPLE);
+
+    }
+
+    /**
+     * @param propertyName
+     * @param propertyValue
+     * @return List of ApiAssay's containing propertyName-propertyValue
+     */
+    public Collection<ApiAssay> getAssaysByPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(assayDAO.getAssaysByPropertyValue(propertyName, propertyValue), ASSAY);
+
+    }
+
+    /**
+     * @param propertyName
      * @param propertyValue
      * @return List of ApiSample's containing propertyName-propertyValue
      */
-    public Collection<ApiSample> getSamplesByPropertyValue(final String propertyValue) {
-        return transform(sampleDAO.getSamplesByPropertyValue(propertyValue), SAMPLE);
+    public Collection<ApiSample> getSamplesByPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(sampleDAO.getSamplesByPropertyValue(propertyName, propertyValue), SAMPLE);
 
     }
 
@@ -197,6 +234,40 @@ public class CurationService {
     }
 
     /**
+     * Remove all AssayProperties from assays which have property values for property: propertyName; if propertyValue is not null,
+     * remove only those AssayProperties for propertyName that match propertyValue.
+     *
+     * @param propertyName
+     * @param propertyValue
+     */
+    @Transactional
+    public void removePropertyFromAssays(
+            @Nonnull final String propertyName, @Nullable final String propertyValue) {
+        for (Assay assay : assayDAO.getAssaysByProperty(propertyName)) {
+            for (PropertyValue propValue : Lists.newArrayList(transform(assay.getProperties(propertyName, propertyValue), ASSAY_PROPERTY)))
+                assay.deleteProperty(propValue);
+            assayDAO.save(assay);
+        }
+    }
+
+    /**
+     * Remove all SampleProperties from assays which have property values for property: propertyName; if propertyValue is not null,
+     * remove only those SampleProperties for propertyName that match propertyValue.
+     *
+     * @param propertyName
+     * @param propertyValue
+     */
+    @Transactional
+    public void removePropertyFromSamples(
+            @Nonnull final String propertyName, @Nullable final String propertyValue) {
+        for (Sample sample : sampleDAO.getSamplesByProperty(propertyName)) {
+            for (PropertyValue propValue : Lists.newArrayList(transform(sample.getProperties(propertyName, propertyValue), SAMPLE_PROPERTY)))
+                sample.deleteProperty(propValue);
+            sampleDAO.save(sample);
+        }
+    }
+
+    /**
      * Replaces oldValue of property: propertyName with newValue in all assays in which propertyName-oldValue exists.
      * In cases when a given assay contains both oldValue and newValue, the retained newValue gets mapped to the superset of OntologyTerms
      * assigned to oldValue and newValue.
@@ -217,7 +288,7 @@ public class CurationService {
             PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
             PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(property, newValue);
 
-            List<Assay> assays = assayDAO.getAssaysByPropertyValue(oldValue);
+            List<Assay> assays = assayDAO.getAssaysByPropertyValue(propertyName, oldValue);
             for (Assay assay : assays) {
                 AssayProperty oldAssayProperty = assay.getProperty(oldPropertyValue);
                 AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
@@ -255,7 +326,7 @@ public class CurationService {
             PropertyValue oldPropertyValue = propertyValueDAO.find(property, oldValue);
             PropertyValue newPropertyValue = propertyValueDAO.getOrCreatePropertyValue(property, newValue);
 
-            List<Sample> samples = sampleDAO.getSamplesByPropertyValue(oldValue);
+            List<Sample> samples = sampleDAO.getSamplesByPropertyValue(propertyName, oldValue);
             for (Sample sample : samples) {
                 SampleProperty oldSampleProperty = sample.getProperty(oldPropertyValue);
                 SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);

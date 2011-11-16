@@ -95,6 +95,56 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testGetAssaysByOntologyTerm() throws Exception {
+        assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
+                curationService.getAssaysByOntologyTerm(EFO_0000827).size() > 0);
+    }
+
+    @Test
+    public void testGetSamplesByOntologyTerm() throws Exception {
+        assertTrue("Some samples should contain property values mapped to ontology term: " + EFO_0000827,
+                curationService.getSamplesByOntologyTerm(EFO_0000827).size() > 0);
+    }
+
+    @Test
+    public void testGetAssaysByProperty() throws Exception {
+        assertTrue("Some assays should contain property: " + PROP3,
+                curationService.getAssaysByProperty(PROP3).size() > 0);
+    }
+
+    @Test
+    public void testGetSamplesByProperty() throws Exception {
+        assertTrue("Some samples should contain property: " + PROP3,
+                curationService.getSamplesByProperty(PROP3).size() > 0);
+    }
+
+
+    @Test
+    public void testGetAssaysByPropertyValue() throws Exception {
+        assertTrue("Some assays should contain property value: " + PROP3 + ":" + VALUE004,
+                curationService.getAssaysByPropertyValue(PROP3, VALUE004).size() > 0);
+    }
+
+    @Test
+    public void testGetSamplesByPropertyValue() throws Exception {
+        assertTrue("Some samples should contain property value: " + PROP3 + ":" + VALUE004,
+                curationService.getSamplesByPropertyValue(PROP3, VALUE004).size() > 0);
+    }
+
+    @Test
+    public void testGetExperimentsByAssay() throws Exception {
+        assertTrue("Some experiments should contain assay: " + ASSAY_ACC,
+                curationService.getExperimentsByAssay(ASSAY_ACC).size() > 0);
+    }
+
+    @Test
+    public void testGetExperimentsBySample() throws Exception {
+        assertTrue("Some experiments should contain sample: " + SAMPLE_ACC,
+                curationService.getExperimentsBySample(SAMPLE_ACC).size() > 0);
+    }
+
+
+    @Test
     public void testReplacePropertyValueInAssays() throws Exception {
         // Test replace VALUE007 (already a property of ASSAY_ACC) with VALUE010 (not a property of ASSAY_ACC)
         Collection<ApiProperty> assayProperties = curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC);
@@ -188,16 +238,16 @@ public class TestCurationService extends AtlasDAOTestCase {
         // Now that both MICROGLIAL_CELL and VALUE004 are both present in ASSAY_ACC, replace VALUE004 with VALUE010
         curationService.replacePropertyValueInSamples(PROP3, VALUE004, VALUE010);
 
-        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in assay properties",
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in sample properties",
                 propertyPresent(sampleProperties, PROP3, VALUE004));
-        assertTrue("Property : " + PROP3 + ":" + VALUE010 + " not found in assay properties",
+        assertTrue("Property : " + PROP3 + ":" + VALUE010 + " not found in sample properties",
                 propertyPresent(sampleProperties, PROP3, VALUE010));
 
         for (ApiProperty property : sampleProperties) {
             if (PROP3.equals(property.getPropertyValue().getProperty().getName()) &&
                     VALUE010.equals(property.getPropertyValue().getValue())) {
                 Set<ApiOntologyTerm> newTerms = property.getTerms();
-                assertEquals(1, newTerms.size());
+                assertEquals(2, newTerms.size());
                 // Set of terms in the retained VALUE004 property should be a superset of terms assigned
                 // to the replaced VALUE010 and to the replacing VALUE004
                 assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
@@ -227,6 +277,48 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         propertyValues = curationService.getPropertyValues(PROP3);
         assertFalse("Property value: " + VALUE004 + " found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE004));
+    }
+
+    @Test
+    public void testRemovePropertyFromAssaysSamples() throws Exception {
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
+        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
+
+        curationService.removePropertyFromAssays(CELL_TYPE, null);
+        curationService.removePropertyFromSamples(PROP3, null);
+
+        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
+
+        Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
+        assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
+        assertTrue("Property: " + PROP3 + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(PROP3));
+    }
+
+    @Test
+    public void testRemovePropertyValueFromAssaysSamples() throws Exception {
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
+        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
+
+        curationService.removePropertyFromAssays(CELL_TYPE, VALUE007);
+        curationService.removePropertyFromSamples(PROP3, VALUE004);
+
+        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
+
+        Collection<ApiPropertyValue> propertyValues = curationService.getPropertyValues(CELL_TYPE);
+        assertTrue("Property value: " + VALUE007 + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE007));
+
+        propertyValues = curationService.getPropertyValues(PROP3);
+        assertTrue("Property value: " + VALUE004 + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE004));
     }
 
     @Test

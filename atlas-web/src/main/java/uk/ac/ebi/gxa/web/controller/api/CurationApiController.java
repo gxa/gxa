@@ -113,22 +113,80 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperimentsBySample(sampleAccession);
     }
 
-    @RequestMapping(value = "/assays/properties/{propertyValue}",
+    @RequestMapping(value = "/assays/properties/{propertyName}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiAssay> getAssaysByPropertyValue(@PathVariable("v") final ApiVersionType version,
-                                                         @PathVariable("propertyValue") final String propertyValue,
+                                                         @PathVariable("propertyName") final String propertyName,
                                                          HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getAssaysByPropertyValue(propertyValue);
+        return curationService.getAssaysByProperty(propertyName);
     }
 
-    @RequestMapping(value = "/samples/properties/{propertyValue}",
+    @RequestMapping(value = "/samples/properties/{propertyName}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiSample> getSamplesByPropertyValue(@PathVariable("v") final ApiVersionType version,
+                                                           @PathVariable("propertyName") final String propertyName,
+                                                           HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getSamplesByProperty(propertyName);
+    }
+
+    @RequestMapping(value = "/assays/properties/{propertyName}",
+            method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void removePropertyFromAssays(@PathVariable("v") final ApiVersionType version,
+                                         @PathVariable("propertyName") final String propertyName,
+                                         HttpServletResponse response) {
+        curationService.removePropertyFromSamples(propertyName, null);
+    }
+
+    @RequestMapping(value = "/samples/properties/{propertyName}",
+            method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void removePropertyFromSamples(@PathVariable("v") final ApiVersionType version,
+                                          @PathVariable("propertyName") final String propertyName,
+                                          HttpServletResponse response) {
+        curationService.removePropertyFromSamples(propertyName, null);
+    }
+
+    @RequestMapping(value = "/assays/properties/{propertyName}/{propertyValue}",
+            method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void removePropertyValueFromAssays(@PathVariable("v") final ApiVersionType version,
+                                              @PathVariable("propertyName") final String propertyName,
+                                              @PathVariable("propertyValue") final String propertyValue,
+                                              HttpServletResponse response) {
+        curationService.removePropertyFromSamples(propertyName, propertyValue);
+    }
+
+    @RequestMapping(value = "/samples/properties/{propertyName}/{propertyValue}",
+            method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void removePropertyValueFromSamples(@PathVariable("v") final ApiVersionType version,
+                                               @PathVariable("propertyName") final String propertyName,
+                                               @PathVariable("propertyValue") final String propertyValue,
+                                               HttpServletResponse response) {
+        curationService.removePropertyFromSamples(propertyName, propertyValue);
+    }
+
+    @RequestMapping(value = "/assays/properties/{propertyName}/{propertyValue}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiAssay> getAssaysByPropertyValue(@PathVariable("v") final ApiVersionType version,
+                                                         @PathVariable("propertyName") final String propertyName,
+                                                         @PathVariable("propertyValue") final String propertyValue,
+                                                         HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getAssaysByPropertyValue(propertyName, propertyValue);
+    }
+
+    @RequestMapping(value = "/samples/properties/{propertyName}/{propertyValue}",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiSample> getSamplesByPropertyValue(@PathVariable("v") final ApiVersionType version,
+                                                           @PathVariable("propertyName") final String propertyName,
                                                            @PathVariable("propertyValue") final String propertyValue,
                                                            HttpServletResponse response) throws ResourceNotFoundException {
-        return curationService.getSamplesByPropertyValue(propertyValue);
+        return curationService.getSamplesByPropertyValue(propertyName, propertyValue);
     }
 
     @RequestMapping(value = "/assays/ontologyterms/{ontologyTerm}",

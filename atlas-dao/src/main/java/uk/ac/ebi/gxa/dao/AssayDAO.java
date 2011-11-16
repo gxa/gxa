@@ -21,8 +21,14 @@ public class AssayDAO extends AbstractDAO<Assay> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Assay> getAssaysByPropertyValue(String propertyValue) {
-        return template.find("select a from Experiment e left join e.assays a left join a.properties p where p.propertyValue.value = ? ", propertyValue);
+    public List<Assay> getAssaysByProperty(String propertyName) {
+        return template.find("select a from Experiment e left join e.assays a left join a.properties p where p.propertyValue.property.name = ? ", propertyName);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Assay> getAssaysByPropertyValue(String propertyName, String propertyValue) {
+        return template.find("select a from Experiment e left join e.assays a left join a.properties p " +
+                "where p.propertyValue.property.name = ? and p.propertyValue.value = ?", propertyName, propertyValue);
     }
 
     @SuppressWarnings("unchecked")

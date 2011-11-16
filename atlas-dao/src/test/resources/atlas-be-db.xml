@@ -579,4 +579,8 @@
     <A2_ASSAYPVONTOLOGY
             ONTOLOGYTERMID="1"
             ASSAYPVID="1"/>
+
+    <A2_SAMPLEPVONTOLOGY
+            ONTOLOGYTERMID="1"
+            SAMPLEPVID="1"/>
 </dataset>
