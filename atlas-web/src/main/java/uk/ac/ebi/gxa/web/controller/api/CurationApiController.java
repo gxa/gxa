@@ -137,7 +137,7 @@ public class CurationApiController extends AtlasViewController {
     public void removePropertyFromAssays(@PathVariable("v") final ApiVersionType version,
                                          @PathVariable("propertyName") final String propertyName,
                                          HttpServletResponse response) {
-        curationService.removePropertyFromSamples(propertyName, null);
+        curationService.removePropertyFromAssays(propertyName, null);
     }
 
     @RequestMapping(value = "/samples/properties/{propertyName}",
@@ -156,7 +156,7 @@ public class CurationApiController extends AtlasViewController {
                                               @PathVariable("propertyName") final String propertyName,
                                               @PathVariable("propertyValue") final String propertyValue,
                                               HttpServletResponse response) {
-        curationService.removePropertyFromSamples(propertyName, propertyValue);
+        curationService.removePropertyFromAssays(propertyName, propertyValue);
     }
 
     @RequestMapping(value = "/samples/properties/{propertyName}/{propertyValue}",
