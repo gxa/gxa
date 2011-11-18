@@ -107,28 +107,28 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAssaysByProperty() throws Exception {
+    public void testGetAssayPropertiesByProperty() throws Exception {
         assertTrue("Some assays should contain property: " + PROP3,
-                curationService.getAssaysByProperty(PROP3).size() > 0);
+                curationService.getAssayPropertiesByProperty(PROP3).size() > 0);
     }
 
     @Test
-    public void testGetSamplesByProperty() throws Exception {
+    public void testGetSamplePropertiesByProperty() throws Exception {
         assertTrue("Some samples should contain property: " + PROP3,
-                curationService.getSamplesByProperty(PROP3).size() > 0);
+                curationService.getSamplePropertiesByProperty(PROP3).size() > 0);
     }
 
 
     @Test
-    public void testGetAssaysByPropertyValue() throws Exception {
+    public void testGetAssayPropertiesByPropertyValue() throws Exception {
         assertTrue("Some assays should contain property value: " + PROP3 + ":" + VALUE004,
-                curationService.getAssaysByPropertyValue(PROP3, VALUE004).size() > 0);
+                curationService.getAssayPropertiesByPropertyValue(PROP3, VALUE004).size() > 0);
     }
 
     @Test
-    public void testGetSamplesByPropertyValue() throws Exception {
+    public void testGetSamplePropertiesByPropertyValue() throws Exception {
         assertTrue("Some samples should contain property value: " + PROP3 + ":" + VALUE004,
-                curationService.getSamplesByPropertyValue(PROP3, VALUE004).size() > 0);
+                curationService.getSamplePropertiesByPropertyValue(PROP3, VALUE004).size() > 0);
     }
 
     @Test

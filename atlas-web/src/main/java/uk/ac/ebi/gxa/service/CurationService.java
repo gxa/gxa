@@ -83,6 +83,19 @@ public class CurationService {
                 }
             };
 
+    private static final Function<AssayProperty, ApiProperty> ASSAYPROPERTY_APIPROPERTY =
+            new Function<AssayProperty, ApiProperty>() {
+                public ApiProperty apply(@Nonnull AssayProperty e) {
+                    return new ApiProperty(e);
+                }
+            };
+    private static final Function<SampleProperty, ApiProperty> SAMPLEPROPERTY_APIPROPERTY =
+            new Function<SampleProperty, ApiProperty>() {
+                public ApiProperty apply(@Nonnull SampleProperty e) {
+                    return new ApiProperty(e);
+                }
+            };
+
     private static final Function<AssayProperty, PropertyValue> ASSAY_PROPERTY =
             new Function<AssayProperty, PropertyValue>() {
                 @Override
@@ -143,8 +156,8 @@ public class CurationService {
      * @param propertyName
      * @return List of ApiAssay's containing propertyName-propertyValue
      */
-    public Collection<ApiAssay> getAssaysByProperty(final String propertyName) {
-        return transform(assayDAO.getAssaysByProperty(propertyName), ASSAY);
+    public Collection<ApiProperty> getAssayPropertiesByProperty(final String propertyName) {
+        return transform(assayDAO.getAssayPropertiesByProperty(propertyName), ASSAYPROPERTY_APIPROPERTY);
 
     }
 
@@ -152,28 +165,28 @@ public class CurationService {
      * @param propertyName
      * @return List of ApiSample's containing propertyName-propertyValue
      */
-    public Collection<ApiSample> getSamplesByProperty(final String propertyName) {
-        return transform(sampleDAO.getSamplesByProperty(propertyName), SAMPLE);
+    public Collection<ApiProperty> getSamplePropertiesByProperty(final String propertyName) {
+        return transform(sampleDAO.getSamplePropertiesByProperty(propertyName), SAMPLEPROPERTY_APIPROPERTY);
+
+    }
+
+        /**
+     * @param propertyName
+     * @param propertyValue
+     * @return List of ApiProperty's containing propertyName-propertyValue
+     */
+    public Collection<ApiProperty> getAssayPropertiesByPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue), ASSAYPROPERTY_APIPROPERTY);
 
     }
 
     /**
      * @param propertyName
      * @param propertyValue
-     * @return List of ApiAssay's containing propertyName-propertyValue
+     * @return List of ApiProperty's containing propertyName-propertyValue
      */
-    public Collection<ApiAssay> getAssaysByPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(assayDAO.getAssaysByPropertyValue(propertyName, propertyValue), ASSAY);
-
-    }
-
-    /**
-     * @param propertyName
-     * @param propertyValue
-     * @return List of ApiSample's containing propertyName-propertyValue
-     */
-    public Collection<ApiSample> getSamplesByPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(sampleDAO.getSamplesByPropertyValue(propertyName, propertyValue), SAMPLE);
+    public Collection<ApiProperty> getSamplePropertiesByPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue), SAMPLEPROPERTY_APIPROPERTY);
 
     }
 
