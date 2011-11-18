@@ -42,11 +42,6 @@ public class SampleDAO extends AbstractDAO<Sample> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByPropertyValue(String propertyName, String propertyValue) {
-        return template.find("select p " + COMMON_HQL + " and p.propertyValue.value = ?", propertyName, propertyValue);
-    }
-
-    @SuppressWarnings("unchecked")
     public List<Sample> getSamplesByOntologyTerm(String ontologyTerm) {
         return template.find("select s from Experiment e left join e.samples s left join s.properties p left join p.terms t where t.accession = ? ", ontologyTerm);
     }

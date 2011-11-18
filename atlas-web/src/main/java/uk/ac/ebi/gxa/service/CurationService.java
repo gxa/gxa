@@ -170,23 +170,23 @@ public class CurationService {
 
     }
 
-        /**
+    /**
      * @param propertyName
      * @param propertyValue
-     * @return List of ApiProperty's containing propertyName-propertyValue
+     * @return List of ApiAssay's containing propertyName-propertyValue
      */
-    public Collection<ApiProperty> getAssayPropertiesByPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue), ASSAYPROPERTY_APIPROPERTY);
+    public Collection<ApiAssay> getAssaysByPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(assayDAO.getAssaysByPropertyValue(propertyName, propertyValue), ASSAY);
 
     }
 
     /**
      * @param propertyName
      * @param propertyValue
-     * @return List of ApiProperty's containing propertyName-propertyValue
+     * @return List of ApiSample's containing propertyName-propertyValue
      */
-    public Collection<ApiProperty> getSamplePropertiesByPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue), SAMPLEPROPERTY_APIPROPERTY);
+    public Collection<ApiSample> getSamplesByPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(sampleDAO.getSamplesByPropertyValue(propertyName, propertyValue), SAMPLE);
 
     }
 

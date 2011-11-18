@@ -39,11 +39,6 @@ public class AssayDAO extends AbstractDAO<Assay> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propertyName, String propertyValue) {
-        return template.find("select p " + COMMON_HQL + " and p.propertyValue.value = ?", propertyName, propertyValue);
-    }
-
-    @SuppressWarnings("unchecked")
     public List<Assay> getAssaysByOntologyTerm(String ontologyTerm) {
         return template.find("select a from Experiment e left join e.assays a left join a.properties p left join p.terms t where t.accession = ? ", ontologyTerm);
     }
