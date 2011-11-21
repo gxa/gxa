@@ -56,6 +56,7 @@ public final class AssayProperty {
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",
             joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
+    @Fetch(FetchMode.SUBSELECT)
     private List<OntologyTerm> terms = newArrayList();
 
     AssayProperty() {
