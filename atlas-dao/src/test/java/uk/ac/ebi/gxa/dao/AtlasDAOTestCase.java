@@ -22,9 +22,15 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.io.Resources;
 import org.dbunit.DataSourceBasedDBTestCase;
+import org.dbunit.DataSourceDatabaseTester;
+import org.dbunit.IDatabaseTester;
+import org.dbunit.database.DatabaseConfig;
+import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
 import org.hibernate.SessionFactory;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 
 import javax.sql.DataSource;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -79,14 +84,25 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     protected SessionFactory sessionFactory;
 
     protected IDataSet getDataSet() throws Exception {
-        InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
-
-        return new FlatXmlDataSet(in);
+        final FlatXmlDataSetBuilder builder = new FlatXmlDataSetBuilder();
+        return builder.build(Resources.getResource(ATLAS_DATA_RESOURCE));
     }
 
     @Override
     protected DataSource getDataSource() {
         return atlasDataSource;
+    }
+
+    @Override
+    protected IDatabaseTester newDatabaseTester() {
+        return new DataSourceDatabaseTester(this.getDataSource()) {
+            @Override
+            public IDatabaseConnection getConnection() throws Exception {
+                final IDatabaseConnection connection = super.getConnection();
+                connection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new HsqldbDataTypeFactory());
+                return connection;
+            }
+        };
     }
 
     /**
