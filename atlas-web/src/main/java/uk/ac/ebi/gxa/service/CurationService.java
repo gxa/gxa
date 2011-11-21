@@ -69,20 +69,6 @@ public class CurationService {
                 }
             };
 
-    private static final Function<Assay, ApiAssay> ASSAY =
-            new Function<Assay, ApiAssay>() {
-                public ApiAssay apply(@Nonnull Assay e) {
-                    return new ApiAssay(e);
-                }
-            };
-
-    private static final Function<Sample, ApiSample> SAMPLE =
-            new Function<Sample, ApiSample>() {
-                public ApiSample apply(@Nonnull Sample e) {
-                    return new ApiSample(e);
-                }
-            };
-
     private static final Function<AssayProperty, ApiProperty> ASSAYPROPERTY_APIPROPERTY =
             new Function<AssayProperty, ApiProperty>() {
                 public ApiProperty apply(@Nonnull AssayProperty e) {
@@ -175,8 +161,8 @@ public class CurationService {
      * @param propertyValue
      * @return List of ApiAssay's containing propertyName-propertyValue
      */
-    public Collection<ApiAssay> getAssaysByPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(assayDAO.getAssaysByPropertyValue(propertyName, propertyValue), ASSAY);
+    public Collection<ApiExperiment> getExperimentsByAssayPropertyValue(final String propertyName, final String propertyValue) {
+        return transform(experimentDAO.getExperimentsByAssayPropertyValue(propertyName, propertyValue), EXPERIMENT);
 
     }
 
@@ -185,8 +171,8 @@ public class CurationService {
      * @param propertyValue
      * @return List of ApiSample's containing propertyName-propertyValue
      */
-    public Collection<ApiSample> getSamplesByPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(sampleDAO.getSamplesByPropertyValue(propertyName, propertyValue), SAMPLE);
+    public Collection<ApiExperiment> getExperimentsBySamplePropertyValue(final String propertyName, final String propertyValue) {
+        return transform(experimentDAO.getExperimentsBySamplePropertyValue(propertyName, propertyValue), EXPERIMENT);
 
     }
 
@@ -194,8 +180,8 @@ public class CurationService {
      * @param ontologyTerm
      * @return List of ApiAssay's containing a property value mapped to  ontologyTerm
      */
-    public Collection<ApiAssay> getAssaysByOntologyTerm(final String ontologyTerm) {
-        return transform(assayDAO.getAssaysByOntologyTerm(ontologyTerm), ASSAY);
+    public Collection<ApiExperiment> getExperimentsByAssayPropertyOntologyTerm(final String ontologyTerm) {
+        return transform(experimentDAO.getExperimentsByAssayPropertyOntologyTerm(ontologyTerm), EXPERIMENT);
 
     }
 
@@ -203,8 +189,8 @@ public class CurationService {
      * @param ontologyTerm
      * @return List of ApiSample's containing  a property value mapped to  ontologyTerm
      */
-    public Collection<ApiSample> getSamplesByOntologyTerm(final String ontologyTerm) {
-        return transform(sampleDAO.getSamplesByOntologyTerm(ontologyTerm), SAMPLE);
+    public Collection<ApiExperiment> getExperimentsBySamplePropertyOntologyTerm(final String ontologyTerm) {
+        return transform(experimentDAO.getExperimentsBySamplePropertyOntologyTerm(ontologyTerm), EXPERIMENT);
 
     }
 

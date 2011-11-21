@@ -36,6 +36,26 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
         return template.find("select e from Experiment e left join e.samples s where s.accession = ? ", accession);
     }
 
+    @SuppressWarnings("unchecked")
+    public List<Experiment> getExperimentsBySamplePropertyOntologyTerm(String ontologyTerm) {
+        return template.find("select e from Experiment e left join e.samples s left join s.properties p left join p.terms t where t.accession = ? ", ontologyTerm);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Experiment> getExperimentsBySamplePropertyValue(String propertyName, String propertyValue) {
+        return template.find("select e from Experiment e left join e.samples s left join s.properties p where p.propertyValue.property.name = ?  and p.propertyValue.value = ?", propertyName, propertyValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Experiment> getExperimentsByAssayPropertyOntologyTerm(String ontologyTerm) {
+        return template.find("select e from Experiment e left join e.assays a left join a.properties p left join p.terms t where t.accession = ? ", ontologyTerm);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Experiment> getExperimentsByAssayPropertyValue(String propertyName, String propertyValue) {
+        return template.find("select e from Experiment e left join e.assays a left join a.properties p where p.propertyValue.property.name = ?  and p.propertyValue.value = ?", propertyName, propertyValue);
+    }
+
     long getTotalCount() {
         return (Long) template.find("select count(e) FROM Experiment e").get(0);
     }

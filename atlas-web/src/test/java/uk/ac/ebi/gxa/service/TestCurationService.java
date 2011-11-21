@@ -95,15 +95,15 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAssaysByOntologyTerm() throws Exception {
+    public void testGetExperimentsByAssayPropertyOntologyTerm() throws Exception {
         assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
-                curationService.getAssaysByOntologyTerm(EFO_0000827).size() > 0);
+                curationService.getExperimentsByAssayPropertyOntologyTerm(EFO_0000827).size() > 0);
     }
 
     @Test
-    public void testGetSamplesByOntologyTerm() throws Exception {
+    public void testGetExperimentsBySamplePropertyOntologyTerm() throws Exception {
         assertTrue("Some samples should contain property values mapped to ontology term: " + EFO_0000827,
-                curationService.getSamplesByOntologyTerm(EFO_0000827).size() > 0);
+                curationService.getExperimentsBySamplePropertyOntologyTerm(EFO_0000827).size() > 0);
     }
 
     @Test
@@ -120,15 +120,15 @@ public class TestCurationService extends AtlasDAOTestCase {
 
 
     @Test
-    public void testGetAssaysByPropertyValue() throws Exception {
+    public void testGetExperimentsByAssayPropertyValue() throws Exception {
         assertTrue("Some assays should contain property value: " + PROP3 + ":" + VALUE004,
-                curationService.getAssaysByPropertyValue(PROP3, VALUE004).size() > 0);
+                curationService.getExperimentsByAssayPropertyValue(PROP3, VALUE004).size() > 0);
     }
 
     @Test
-    public void testGetSamplesByPropertyValue() throws Exception {
+    public void testGetExperimentsBySamplePropertyValue() throws Exception {
         assertTrue("Some samples should contain property value: " + PROP3 + ":" + VALUE004,
-                curationService.getSamplesByPropertyValue(PROP3, VALUE004).size() > 0);
+                curationService.getExperimentsBySamplePropertyValue(PROP3, VALUE004).size() > 0);
     }
 
     @Test
@@ -142,7 +142,6 @@ public class TestCurationService extends AtlasDAOTestCase {
         assertTrue("Some experiments should contain sample: " + SAMPLE_ACC,
                 curationService.getExperimentsBySample(SAMPLE_ACC).size() > 0);
     }
-
 
     @Test
     public void testReplacePropertyValueInAssays() throws Exception {
