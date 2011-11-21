@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.service.CurationService;
 import uk.ac.ebi.gxa.web.controller.AtlasViewController;
-import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -31,8 +31,7 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("v") final ApiVersionType version,
             HttpServletResponse response)
             throws ResourceNotFoundException {
-        Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
-        return propertyNames;
+        return curationService.getPropertyNames();
     }
 
 
@@ -43,8 +42,7 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("v") final ApiVersionType version,
             @PathVariable("propertyName") final String propertyName, HttpServletResponse response)
             throws ResourceNotFoundException {
-        Collection<ApiPropertyValue> properties = curationService.getPropertyValues(propertyName);
-        return properties;
+        return curationService.getPropertyValues(propertyName);
     }
 
     @RequestMapping(value = "/properties/{propertyName}/{propertyValue}",
