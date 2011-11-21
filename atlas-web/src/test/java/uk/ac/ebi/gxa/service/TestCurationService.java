@@ -108,14 +108,18 @@ public class TestCurationService extends AtlasDAOTestCase {
 
     @Test
     public void testGetAssayPropertiesByProperty() throws Exception {
-        assertTrue("Some assays should contain property: " + PROP3,
-                curationService.getAssayPropertiesByProperty(PROP3).size() > 0);
+        final Collection<ApiProperty> properties = curationService.getAssayPropertiesByProperty(PROP3);
+        assertTrue("Some assays should contain property: " + PROP3, properties.size() > 0);
+        for (ApiProperty property : properties)
+            property.getTerms();
     }
 
     @Test
     public void testGetSamplePropertiesByProperty() throws Exception {
-        assertTrue("Some samples should contain property: " + PROP3,
-                curationService.getSamplePropertiesByProperty(PROP3).size() > 0);
+        final Collection<ApiProperty> properties = curationService.getSamplePropertiesByProperty(PROP3);
+        assertTrue("Some samples should contain property: " + PROP3, properties.size() > 0);
+        for (ApiProperty property : properties)
+            property.getTerms();
     }
 
 
