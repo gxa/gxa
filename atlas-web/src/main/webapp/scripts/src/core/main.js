@@ -71,7 +71,15 @@ var atlas = (function(A, $) {
      * @param uri - an URI to extend
      */
     A.fullPathFor = function(uri) {
-        return "/" + contextPath + "/" + normalizePath(uri);
+        uri = uri || "";
+        if (uri.length > 4 && uri.substring(0, 4) === "http") {
+            return uri;
+        }
+        var np = normalizePath(uri);
+        if (np.length >= contextPath.length && np.substring(0, contextPath.length) === contextPath) {
+            return "/" + np;
+        }
+        return "/" + contextPath + "/" + np;
     };
 
     /**
