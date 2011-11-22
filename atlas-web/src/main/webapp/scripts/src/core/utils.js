@@ -27,7 +27,7 @@
      * @param s - a string with-or-without hash symbol
      */
     A.hsh = function(s) {
-        return s ? (s.charAt(0) === "#" ? s : "#" + s) : s;
+        return typeof s === "string" ? (s.charAt(0) === "#" ? s : "#" + s) : s;
     };
 
     A.$ = function(s) {
@@ -167,31 +167,30 @@
     };
 
     /**
-     *
      * @param opts {
-     *     * url -
-     *     * onSuccess -
-     *     * onFailure - (optional, by default error message is logged in the js console)
-     *     * defaultParams - (optional)
-     *     * type - (optional, default is "json")
+     *      url            - relative to context path url of a service
+     *      type           - type of response data (optional, default is "json")
+     *      onSuccess      - a function to handle loading success (optional)
+     *      onFailure      - a function to handle loading failure (optional, by default error message is logged in the js console)
+     *      defaultParams  - params to add to every ajax call (optional)
      * }
      */
     A.ajaxLoader = function(opts) {
         opts = opts || {};
-        var url = opts.url;
-        var type = opts.type || "json";
-        var defaultParams = opts.defaultParams || {};
-        var _this = {};
+
+        var url = opts.url,
+            type = opts.type || "json",
+            defaultParams = opts.defaultParams || {},
+            _this = {},
+            context = opts.context || _this;
 
         function successHandler() {
-            var context = opts.context || _this;
             if (opts.onSuccess) {
                 opts.onSuccess.apply(context, arguments);
             }
         }
 
         function failureHandler(request, errorType, errorMessage) {
-            var context = opts.context || _this;
             if (opts.onFailure) {
                 opts.onFailure.apply(context, arguments);
             } else {
@@ -199,6 +198,22 @@
                     errorType:errorType,
                     errorMessage:errorMessage
                 });
+            }
+        }
+
+        function startActivity(el) {
+            if (el) {
+                el.append("<div><span class='loading'>&nbsp;</span></div>");
+            }
+        }
+
+        function stopActivity(func, el) {
+            if (!el) {
+                return func;
+            }
+            return function() {
+                el.children(":last").remove();
+                func.apply(context, arguments);
             }
         }
 
@@ -227,14 +242,16 @@
         }
 
         return $.extend(true, _this, {
-            load: function(params) {
+            load: function(params, activityTarget) {
                 params = $.extend(true, {}, defaultParams, params);
+                var activityElem = A.$(activityTarget);
+                startActivity(activityElem);
                 $.ajax({
                     url: A.fullPathFor(url),
                     data: filter(params),
                     dataType: type,
-                    success: successHandler,
-                    error: failureHandler
+                    success: stopActivity(successHandler, activityElem),
+                    error: stopActivity(failureHandler, activityElem)
                 });
             }
         });
