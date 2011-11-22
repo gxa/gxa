@@ -192,7 +192,7 @@
 
         function failureHandler(request, errorType, errorMessage) {
             var context = opts.context || _this;
-            if (opts.onFailure()) {
+            if (opts.onFailure) {
                 opts.onFailure.apply(context, arguments);
             } else {
                 A.logError({
