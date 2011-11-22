@@ -52,19 +52,15 @@
 
             $("#moreResults").each(function() {
                 $(this).click(function(e) {
-                    var  link = $(this),
-                         url = link.attr("href"),
-                         html = $("<div><span class='loading'>&nbsp;</span></div>");
+                    var link = $(this),
+                            url = link.attr("href");
 
                     link.hide();
-                    link.before(html);
 
-                    $.ajax({
+                    atlas.ajaxLoader({
                         url: url,
-                        cache:false,
-                        dataType:"json",
-                        success: function(data) {
-                            html.empty();
+                        onSuccess: function(data) {
+                            var html = $("<div/>");
                             var sample = $("#geneList a").get(0);
                             for (var i = 0; i < data.genes.length; i++) {
                                 var gene = data.genes[i];
@@ -82,18 +78,19 @@
                                 html.append(" ");
                             }
 
+                            link.before(html);
+
                             if (data.nextQuery) {
                                 var j = url.indexOf("?"),
-                                    newUrl = url.substring(0, (j < 0 ? url.length : j)) + data.nextQuery;
+                                        newUrl = url.substring(0, (j < 0 ? url.length : j)) + data.nextQuery;
                                 link.attr("href", newUrl);
                                 link.show();
                             }
                         }
-                    });
+                    }).load({}, link.parent());
                     return false;
                 });
             });
-
         });
     </script>
 </head>
