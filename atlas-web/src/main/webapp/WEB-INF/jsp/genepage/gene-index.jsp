@@ -51,15 +51,20 @@
         $(document).ready(function() {
 
             $("#moreResults").each(function() {
-                var link = $(this);
+                $(this).click(function(e) {
+                    var  link = $(this),
+                         url = link.attr("href"),
+                         html = $("<div><span class='loading'>&nbsp;</span></div>");
 
-                link.click(function() {
+                    link.hide();
+                    link.before(html);
+
                     $.ajax({
-                        url:link.attr("href"),
+                        url: url,
                         cache:false,
                         dataType:"json",
                         success: function(data) {
-                            var html = $("<div/>");
+                            html.empty();
                             var sample = $("#geneList a").get(0);
                             for (var i = 0; i < data.genes.length; i++) {
                                 var gene = data.genes[i];
@@ -77,16 +82,11 @@
                                 html.append(" ");
                             }
 
-                            /* chrome 9.0.597.102 has some problems of showing thousands of children in one div;
-                             * so we wrap new gene lists in <div/> */
-                            link.before(html);
-
                             if (data.nextQuery) {
-                                var href = link.attr("href");
-                                var j = href.indexOf("?");
-                                link.attr("href", href.substring(0, (j < 0 ? href.length : j)) + data.nextQuery);
-                            } else {
-                                link.remove();
+                                var j = url.indexOf("?"),
+                                    newUrl = url.substring(0, (j < 0 ? url.length : j)) + data.nextQuery;
+                                link.attr("href", newUrl);
+                                link.show();
                             }
                         }
                     });
@@ -105,7 +105,7 @@
 
         <jsp:include page="../includes/atlas-header.jsp"/>
 
-        <c:set var="url"><c:url value="/gene/index.htm"/></c:set>
+        <c:set var="url">${contextPath}/gene/index.htm</c:set>
         <div class="alphabet-index">
             <c:forTokens items="123 a b c d e f g h i j k l m n o p q r s t u v w x y z" delims=" " var="letter">
                <c:set var="prefix" value="${letter == '123' ? '0' : letter}"/>
@@ -117,7 +117,7 @@
         <div id="geneList" class="gene-list">
             <div>
                 <c:forEach var="gene" items="${genes}" varStatus="status">
-                    <a id="${gene.identifier}" href='<c:url value="/gene/${gene.identifier}"/>'
+                    <a id="${gene.identifier}" href="${contextPath}/gene/${gene.identifier}"
                        title="Gene Expression Atlas Data For ${gene.name}">
                         <nobr>${gene.name}</nobr>
                     </a>
@@ -125,7 +125,7 @@
             </div>
 
             <c:if test="${! empty nextQuery}">
-                <a id="moreResults" href='<c:url value="/gene/index.html${nextQuery}"/>'>
+                <a id="moreResults" href="${contextPath}/gene/index.html${nextQuery}">
                     <nobr>more&gt;&gt;</nobr>
                 </a>
             </c:if>
