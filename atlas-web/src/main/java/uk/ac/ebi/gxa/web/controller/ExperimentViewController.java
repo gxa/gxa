@@ -288,7 +288,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      */
     @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
     public String getExperimentTable(
-            @RequestParam("eid") String accession,
+            @RequestParam("eacc") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
             @RequestParam(value = "gid", required = false) String gid,
             @RequestParam(value = "ef", required = false) String ef,
