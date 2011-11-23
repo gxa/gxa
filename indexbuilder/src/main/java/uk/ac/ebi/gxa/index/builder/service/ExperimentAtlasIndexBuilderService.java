@@ -37,13 +37,12 @@ import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Sets.*;
 
 /**
  * An {@link IndexBuilderService} that generates index documents from the experiments in the Atlas database.
@@ -131,8 +130,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             getLog().trace("No assays present for {}", experiment);
         }
 
-        Set<String> assayPropertyNames = new HashSet<String>();
-        Set<String> arrayDesignAccessions = new LinkedHashSet<String>();
+        Set<String> assayPropertyNames = newHashSet();
+        Set<String> arrayDesignAccessions = newLinkedHashSet();
         for (Assay assay : experiment.getAssays()) {
             if (assay.hasNoProperties()) {
                 getLog().trace("No properties present for {} ({})", assay);
@@ -145,11 +144,14 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
         solrInputDoc.addField("a_properties", assayPropertyNames);
         solrInputDoc.addField("platform", on(",").join(arrayDesignAccessions));
+        solrInputDoc.addField("numAssays", experiment.getAssays().size());
     }
 
     private void addSampleInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
-        Set<String> samplePropertyNames = new HashSet<String>();
+        Set<String> samplePropertyNames = newHashSet();
+        Set<String> organismNames = newTreeSet();
         for (Sample sample : experiment.getSamples()) {
+            organismNames.add(sample.getOrganism().getName());
             if (sample.hasNoProperties()) {
                 getLog().trace("No properties present for {}", sample);
             }
@@ -162,6 +164,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         }
         solrInputDoc.addField("s_properties", samplePropertyNames);
         solrInputDoc.addField("numSamples", experiment.getSamples().size());
+        solrInputDoc.addField("organism", organismNames);
     }
 
     private void addAssetInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
