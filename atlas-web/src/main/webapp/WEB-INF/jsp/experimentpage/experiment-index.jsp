@@ -81,6 +81,10 @@
                            class="external">${experiment.pubmedId}</a>
                     </c:if>
                 </display:column>
+                <display:column property="numAssays" sortable="true" sortName="numAssays"
+                                title="Assays" class="number">
+                    <a href="${pageContext.request.contextPath}/experimentDesign/${experiment.accession}">${experiment.accession}</a>
+                </display:column>
                 <display:column property="numSamples" sortable="true" sortName="numSamples"
                                 title="Samples" class="number"/>
                 <%-- Postponed until implemented
