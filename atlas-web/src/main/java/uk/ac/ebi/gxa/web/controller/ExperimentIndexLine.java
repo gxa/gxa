@@ -37,6 +37,10 @@ public class ExperimentIndexLine {
         return experiment.getSamples().size();
     }
 
+    public int getNumAssays() {
+        return experiment.getAssays().size();
+    }
+
     public Date getLoadDate() {
         return experiment.getLoadDate();
     }
