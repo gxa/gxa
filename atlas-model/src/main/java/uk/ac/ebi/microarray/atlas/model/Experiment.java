@@ -338,4 +338,12 @@ public class Experiment {
         }
         return result;
     }
+
+    public SortedSet<Organism> getOrganisms() {
+        SortedSet<Organism> result = newTreeSet();
+        for (Sample sample : samples) {
+            result.add(sample.getOrganism());
+        }
+        return result;
+    }
 }

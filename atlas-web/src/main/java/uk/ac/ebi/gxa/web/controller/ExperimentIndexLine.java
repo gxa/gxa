@@ -1,12 +1,14 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.Date;
 import java.util.SortedSet;
 
 // mostly used via display tag, which is not tracked by IntelliJ IDEA
+// refer to
 @SuppressWarnings("unused")
 public class ExperimentIndexLine {
     private Experiment experiment;
@@ -25,6 +27,10 @@ public class ExperimentIndexLine {
 
     public SortedSet<Property> getExperimentFactors() {
         return experiment.getFactors();
+    }
+
+    public SortedSet<Organism> getOrganisms() {
+        return experiment.getOrganisms();
     }
 
     public int getNumSamples() {
