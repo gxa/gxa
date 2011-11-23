@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @Immutable
-public class Organism {
+public class Organism implements Comparable<Organism> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organismSeq")
     @SequenceGenerator(name = "organismSeq", sequenceName = "A2_ORGANISM_SEQ", allocationSize = 1)
@@ -30,5 +30,10 @@ public class Organism {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public int compareTo(Organism o) {
+        return name.compareTo(o.name);
     }
 }
