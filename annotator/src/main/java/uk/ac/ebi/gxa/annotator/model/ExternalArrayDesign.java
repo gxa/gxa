@@ -33,11 +33,13 @@ import javax.persistence.*;
  * Date: 19/07/2011
  */
 @Entity
-public class AnnotatedArrayDesign {
+@Table(name = "A2_EXTERNAL_ARRAYDESIGN")
+public class ExternalArrayDesign {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
-    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_ANNOTATEDARRAYDESIGN_SEQ", allocationSize = 1)
-    private Long biomartarraydesignId;
+    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_EXTERNAL_ARRAYDESIGN_SEQ", allocationSize = 1)
+    @Column(name = "EXTARRAYDESIGNID")
+    private Long extArraydesignId;
     private String name;
 
     @ManyToOne
@@ -48,10 +50,10 @@ public class AnnotatedArrayDesign {
     @Fetch(FetchMode.SELECT)
     private AnnotationSource annotationSrc;
 
-    AnnotatedArrayDesign() {
+    ExternalArrayDesign() {
     }
 
-    public AnnotatedArrayDesign(String name, ArrayDesign arrayDesign, AnnotationSource annSrc) {
+    public ExternalArrayDesign(String name, ArrayDesign arrayDesign, AnnotationSource annSrc) {
         this.name = name;
         this.arrayDesign = arrayDesign;
         this.annotationSrc = annSrc;
@@ -74,7 +76,7 @@ public class AnnotatedArrayDesign {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AnnotatedArrayDesign that = (AnnotatedArrayDesign) o;
+        ExternalArrayDesign that = (ExternalArrayDesign) o;
 
         if (annotationSrc != null ? !annotationSrc.equals(that.annotationSrc) : that.annotationSrc != null)
             return false;

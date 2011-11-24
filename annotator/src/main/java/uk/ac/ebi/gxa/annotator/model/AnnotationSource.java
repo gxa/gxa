@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
@@ -47,7 +48,6 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
         name = "annsrctype",
         discriminatorType = DiscriminatorType.STRING
 )
-// @MappedSuperclass
 public abstract class AnnotationSource implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
@@ -77,22 +77,24 @@ public abstract class AnnotationSource implements Serializable {
 
     @org.hibernate.annotations.Type(type = "true_false")
     private boolean isApplied = false;
-    @OneToMany(targetEntity = AnnotatedBioEntityProperty.class
+    @OneToMany(targetEntity = ExternalBioEntityProperty.class
             , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}
             , fetch = FetchType.EAGER
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    protected Set<AnnotatedBioEntityProperty> annotatedBioEntityProperties = new HashSet<AnnotatedBioEntityProperty>();
-    @OneToMany(targetEntity = AnnotatedArrayDesign.class
+    protected Set<ExternalBioEntityProperty> externalBioEntityProperties = new HashSet<ExternalBioEntityProperty>();
+    @OneToMany(targetEntity = ExternalArrayDesign.class
             , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}
             , fetch = FetchType.EAGER
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    protected Set<AnnotatedArrayDesign> annotatedArrayDesigns = newHashSet();
+    protected Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
+
+    private String name ;
 
     protected AnnotationSource() {
     }
@@ -104,6 +106,16 @@ public abstract class AnnotationSource implements Serializable {
     public Long getAnnotationSrcId() {
         return annotationSrcId;
     }
+
+    @Column(name = "name")
+    public String getName() {
+        if (StringUtils.isEmpty(name)) {
+            name = createName();
+        }
+        return name;
+    }
+
+    protected abstract String createName();
 
     public String getUrl() {
         return url;
@@ -158,49 +170,49 @@ public abstract class AnnotationSource implements Serializable {
 
     public abstract Collection<String> findInvalidProperties();
 
-    public Set<AnnotatedBioEntityProperty> getAnnotatedBioEntityProperties() {
-        return Collections.unmodifiableSet(annotatedBioEntityProperties);
+    public Set<ExternalBioEntityProperty> getExternalBioEntityProperties() {
+        return Collections.unmodifiableSet(externalBioEntityProperties);
     }
 
-    public Set<String> getBioMartPropertyNames() {
-        Set<String> answer = new HashSet<String>(annotatedBioEntityProperties.size());
-        for (AnnotatedBioEntityProperty annotatedBioEntityProperty : annotatedBioEntityProperties) {
-            answer.add(annotatedBioEntityProperty.getName());
+    public Set<String> getExternalPropertyNames() {
+        Set<String> answer = new HashSet<String>(externalBioEntityProperties.size());
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            answer.add(externalBioEntityProperty.getName());
         }
         return answer;
     }
 
-    public void addBioMartProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty) {
-        AnnotatedBioEntityProperty annotatedBioEntityProperty = new AnnotatedBioEntityProperty(biomartPropertyName, bioEntityProperty, this);
-        this.annotatedBioEntityProperties.add(annotatedBioEntityProperty);
+    public void addExternalProperty(String externalPropertyName, BioEntityProperty bioEntityProperty) {
+        ExternalBioEntityProperty externalBioEntityProperty = new ExternalBioEntityProperty(externalPropertyName, bioEntityProperty, this);
+        this.externalBioEntityProperties.add(externalBioEntityProperty);
     }
 
-    public void addBioMartProperty(AnnotatedBioEntityProperty annotatedBioEntityProperty) {
-        annotatedBioEntityProperty.setAnnotationSrc(this);
-        this.annotatedBioEntityProperties.add(annotatedBioEntityProperty);
+    public void addExternalProperty(ExternalBioEntityProperty externalBioEntityProperty) {
+        externalBioEntityProperty.setAnnotationSrc(this);
+        this.externalBioEntityProperties.add(externalBioEntityProperty);
     }
 
-    public boolean removeBioMartProperty(AnnotatedBioEntityProperty propertyAnnotated) {
-        return annotatedBioEntityProperties.remove(propertyAnnotated);
+    public boolean removeExternalProperty(ExternalBioEntityProperty propertyExternal) {
+        return externalBioEntityProperties.remove(propertyExternal);
     }
 
-    public Set<AnnotatedArrayDesign> getAnnotatedArrayDesigns() {
-        return annotatedArrayDesigns;
+    public Set<ExternalArrayDesign> getExternalArrayDesigns() {
+        return externalArrayDesigns;
     }
 
-    public void addBioMartArrayDesign(AnnotatedArrayDesign annotatedArrayDesign) {
-        annotatedArrayDesign.setAnnotationSrc(this);
-        this.annotatedArrayDesigns.add(annotatedArrayDesign);
+    public void addExternalArrayDesign(ExternalArrayDesign externalArrayDesign) {
+        externalArrayDesign.setAnnotationSrc(this);
+        this.externalArrayDesigns.add(externalArrayDesign);
     }
 
-    public boolean removeBioMartArrayDesign(AnnotatedArrayDesign annotatedArrayDesign) {
-        return annotatedArrayDesigns.remove(annotatedArrayDesign);
+    public boolean removeExternalArrayDesign(ExternalArrayDesign externalArrayDesign) {
+        return externalArrayDesigns.remove(externalArrayDesign);
     }
 
-    public Set<String> getBioMartArrayDesignNames() {
+    public Set<String> getExternalArrayDesignNames() {
         Set<String> answer = newHashSet();
-        for (AnnotatedArrayDesign annotatedArrayDesign : annotatedArrayDesigns) {
-            answer.add(annotatedArrayDesign.getName());
+        for (ExternalArrayDesign externalArrayDesign : externalArrayDesigns) {
+            answer.add(externalArrayDesign.getName());
         }
         return answer;
     }

@@ -32,9 +32,9 @@ import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
 import uk.ac.ebi.gxa.annotator.loader.data.*;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
-import uk.ac.ebi.gxa.annotator.model.AnnotatedArrayDesign;
-import uk.ac.ebi.gxa.annotator.model.AnnotatedBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
+import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -97,18 +97,18 @@ public class BioMartAnnotator {
             fetchSynonyms(annSrc, builder);
 
             //read properties
-            for (AnnotatedBioEntityProperty entityPropertyAnnotated : annSrc.getAnnotatedBioEntityProperties()) {
+            for (ExternalBioEntityProperty entityPropertyExternal : annSrc.getExternalBioEntityProperties()) {
                 //List of Attributes contains for example: {"ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"}
                 List<String> attributes = new ArrayList<String>(attributesHandler.getMartBEIdentifiers());
-                attributes.add(entityPropertyAnnotated.getName());
+                attributes.add(entityPropertyExternal.getName());
 
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
-                    reportProgress("Reading property " + entityPropertyAnnotated.getBioEntityProperty().getName() + " (" + entityPropertyAnnotated.getName() + ") for " + organism.getName());
-                    log.debug("Parsing property {} ", entityPropertyAnnotated.getBioEntityProperty().getName());
+                    reportProgress("Reading property " + entityPropertyExternal.getBioEntityProperty().getName() + " (" + entityPropertyExternal.getName() + ") for " + organism.getName());
+                    log.debug("Parsing property {} ", entityPropertyExternal.getBioEntityProperty().getName());
                     long startTime = currentTimeMillis();
 
-                    parser.parseBioMartPropertyValues(entityPropertyAnnotated.getBioEntityProperty(), url);
+                    parser.parseBioMartPropertyValues(entityPropertyExternal.getBioEntityProperty(), url);
 
                     log.debug("Done. {} millseconds).\n", (currentTimeMillis() - startTime));
                 }
@@ -150,16 +150,16 @@ public class BioMartAnnotator {
             }
 
 
-            for (AnnotatedArrayDesign annotatedArrayDesign : annSrc.getAnnotatedArrayDesigns()) {
+            for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
                 parser.createNewBioEntityData();
 
                 List<String> attributes = new ArrayList<String>(attributesHandler.getMartBEIdentifiers());
-                attributes.add(annotatedArrayDesign.getName());
+                attributes.add(externalArrayDesign.getName());
 
 
                 URL url = martConnection.getAttributesURL(attributes);
                 if (url != null) {
-                    reportProgress("Reading design elements for " + annotatedArrayDesign.getArrayDesign().getAccession() + " (" + annotatedArrayDesign.getName() + ") for " + organism.getName());
+                    reportProgress("Reading design elements for " + externalArrayDesign.getArrayDesign().getAccession() + " (" + externalArrayDesign.getName() + ") for " + organism.getName());
 
                     long startTime = currentTimeMillis();
 
@@ -168,9 +168,9 @@ public class BioMartAnnotator {
                 }
 
                 beDataWriter.writeDesignElements(parser.getData(),
-                        annotatedArrayDesign.getArrayDesign(),
+                        externalArrayDesign.getArrayDesign(),
                         annSrc.getSoftware(),
-                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, annotatedArrayDesign.getArrayDesign()), listener);
+                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign()), listener);
             }
 
             reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
@@ -240,11 +240,11 @@ public class BioMartAnnotator {
     static class BETypeMartAttributesHandler {
 
         private final List<BioEntityTypeColumns> bioEntityTypeColumns;
-        private final Set<AnnotatedBioEntityProperty> annotatedBioEntityProperties;
+        private final Set<ExternalBioEntityProperty> externalBioEntityProperties;
 
 
         BETypeMartAttributesHandler(BioMartAnnotationSource annSrc) throws AtlasAnnotationException {
-            this.annotatedBioEntityProperties = Collections.unmodifiableSet(annSrc.getAnnotatedBioEntityProperties());
+            this.externalBioEntityProperties = Collections.unmodifiableSet(annSrc.getExternalBioEntityProperties());
             bioEntityTypeColumns = new ArrayList<BioEntityTypeColumns>(annSrc.getTypes().size());
             for (BioEntityType type : annSrc.getTypes()) {
 
@@ -298,16 +298,16 @@ public class BioMartAnnotator {
 
         private Set<String> getBioMartPropertyNamesForProperty(@Nonnull final BioEntityProperty beProperty) {
             return new HashSet<String>(Collections2.transform(
-                    Collections2.filter(annotatedBioEntityProperties,
-                            new Predicate<AnnotatedBioEntityProperty>() {
-                                public boolean apply(@Nullable AnnotatedBioEntityProperty annotatedBioEntityProperty) {
-                                    return annotatedBioEntityProperty != null && beProperty.equals(annotatedBioEntityProperty.getBioEntityProperty());
+                    Collections2.filter(externalBioEntityProperties,
+                            new Predicate<ExternalBioEntityProperty>() {
+                                public boolean apply(@Nullable ExternalBioEntityProperty externalBioEntityProperty) {
+                                    return externalBioEntityProperty != null && beProperty.equals(externalBioEntityProperty.getBioEntityProperty());
                                 }
                             }),
-                    new Function<AnnotatedBioEntityProperty, String>() {
+                    new Function<ExternalBioEntityProperty, String>() {
                 @Override
-                public String apply(@Nonnull AnnotatedBioEntityProperty annotatedBioEntityProperty) {
-                    return annotatedBioEntityProperty.getName();
+                public String apply(@Nonnull ExternalBioEntityProperty externalBioEntityProperty) {
+                    return externalBioEntityProperty.getName();
                 }
             }));
         }

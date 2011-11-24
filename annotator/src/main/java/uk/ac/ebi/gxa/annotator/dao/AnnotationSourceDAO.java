@@ -54,9 +54,12 @@ public class AnnotationSourceDAO {
         return template.get(type, id);
     }
 
-    public void save(AnnotationSource object) {
-        object.setLoadDate(new Date());
-        template.save(object);
+    public void save(AnnotationSource annSrc) {
+        annSrc.setLoadDate(new Date());
+        //ToDo: Find better solution.This method call is needed to initialize "name" field, if it was not called before name=null.
+        // NS didn't manage to find how to force hibernate to access the field via getter.
+        annSrc.getName();
+        template.save(annSrc);
         template.flush();
     }
 

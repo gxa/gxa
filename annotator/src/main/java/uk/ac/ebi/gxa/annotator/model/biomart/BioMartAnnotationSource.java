@@ -24,9 +24,9 @@ package uk.ac.ebi.gxa.annotator.model.biomart;
 
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
-import uk.ac.ebi.gxa.annotator.model.AnnotatedArrayDesign;
-import uk.ac.ebi.gxa.annotator.model.AnnotatedBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
+import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -72,10 +72,18 @@ public class BioMartAnnotationSource extends AnnotationSource {
     BioMartAnnotationSource() {
     }
 
+    @Override
+    protected String createName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(organism.getName()).append(" / ").append(software.getFullName());
+        return sb.toString();
+    }
+
     public BioMartAnnotationSource(Software software, Organism organism) {
         super(software);
         this.organism = organism;
     }
+
 
     public Organism getOrganism() {
         return organism;
@@ -129,11 +137,11 @@ public class BioMartAnnotationSource extends AnnotationSource {
         BioMartAnnotationSource result = new BioMartAnnotationSource(newSoftware, this.organism);
         result.setDatasetName(this.datasetName);
         result.setUrl(this.url);
-        for (AnnotatedBioEntityProperty annotatedBioEntityProperty : annotatedBioEntityProperties) {
-            result.addBioMartProperty(annotatedBioEntityProperty.getName(), annotatedBioEntityProperty.getBioEntityProperty());
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            result.addExternalProperty(externalBioEntityProperty.getName(), externalBioEntityProperty.getBioEntityProperty());
         }
-        for (AnnotatedArrayDesign annotatedArrayDesign : annotatedArrayDesigns) {
-            result.addBioMartArrayDesign(new AnnotatedArrayDesign(annotatedArrayDesign.getName(), annotatedArrayDesign.getArrayDesign(), result));
+        for (ExternalArrayDesign externalArrayDesign : externalArrayDesigns) {
+            result.addExternalArrayDesign(new ExternalArrayDesign(externalArrayDesign.getName(), externalArrayDesign.getArrayDesign(), result));
         }
         for (BioEntityType type : types) {
             result.addBioEntityType(type);
@@ -151,7 +159,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
                 super.toString() + '\'' +
                 "url='" + url + '\'' +
                 ", datasetName='" + datasetName + '\'' +
-                ", annotatedBioEntityProperties=" + annotatedBioEntityProperties +
+                ", externalBioEntityProperties=" + externalBioEntityProperties +
                 "} ";
     }
 
@@ -165,8 +173,8 @@ public class BioMartAnnotationSource extends AnnotationSource {
         Collection<String> missingProperties = new HashSet<String>();
         try {
             final BioMartConnection connection = createConnection();
-            missingProperties.addAll(connection.validateAttributeNames(getBioMartPropertyNames()));
-            missingProperties.addAll(connection.validateAttributeNames(getBioMartArrayDesignNames()));
+            missingProperties.addAll(connection.validateAttributeNames(getExternalPropertyNames()));
+            missingProperties.addAll(connection.validateAttributeNames(getExternalArrayDesignNames()));
             if (!connection.isValidDataSetName()) {
                 missingProperties.add(this.getDatasetName());
             }

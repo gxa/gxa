@@ -84,8 +84,8 @@ public class BioMartAnnotationSourceLoaderTest extends AtlasDAOTestCase {
         assertNotNull(annotationSource);
         assertEquals("gallus gallus", annotationSource.getOrganism().getName());
         assertEquals(new Software("Ensembl", "63"), annotationSource.getSoftware());
-        assertEquals(10, annotationSource.getAnnotatedBioEntityProperties().size());
-        assertEquals(1, annotationSource.getBioMartArrayDesignNames().size());
+        assertEquals(10, annotationSource.getExternalBioEntityProperties().size());
+        assertEquals(1, annotationSource.getExternalArrayDesignNames().size());
     }
 
     @Test

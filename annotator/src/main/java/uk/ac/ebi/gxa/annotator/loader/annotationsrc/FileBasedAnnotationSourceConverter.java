@@ -3,7 +3,6 @@ package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -88,10 +87,8 @@ public class FileBasedAnnotationSourceConverter extends AnnotationSourceConverte
         annotationSource.setUrl(getProperty(URL_PROPNAME, properties));
         for (String propName : properties.stringPropertyNames()) {
 
-            if (propName.startsWith(BIOENTITYPROPERTY_PROPNAME)) {
-                BioEntityProperty beProperty = propertyDAO.findOrCreate(propName.substring(BIOENTITYPROPERTY_PROPNAME.length() + 1));
-                annotationSource.setBioEntityProperty(beProperty);
-            }
+            //ToDO: use copy of properties like in BiomartAnnSrc
+
         }
 
     }

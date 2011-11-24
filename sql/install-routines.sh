@@ -17,10 +17,11 @@ TABLE_NAMES_SCHEMA="ArrayDesign \
              BioEntityproperty \
              BioEntitypropertyvalue \
              BioEntitytype \
-             BioMartArrayDesign \
-             BioMartProperty \
+             BIOMART_ANNSRC \
              DesignElement \
              DesignEltBioentity \
+             EXTERNAL_ARRAYDESIGN \
+             EXTERNAL_BEPROPERTY \
              Gene \
              GeneGPV \
              GeneProperty \

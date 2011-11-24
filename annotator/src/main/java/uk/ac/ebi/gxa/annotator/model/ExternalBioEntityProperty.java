@@ -33,12 +33,13 @@ import javax.persistence.*;
  * Date: 23/05/2011
  */
 @Entity
-@Table(name= "A2_ANNOTATED_BEPROPERTY")
-public class AnnotatedBioEntityProperty {
+@Table(name= "A2_EXTERNAL_BEPROPERTY")
+public class ExternalBioEntityProperty {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
-    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_ANNOTATED_BEPROPERTY_SEQ", allocationSize = 1)
-    private Long biomartpropertyId;
+    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_EXTERNAL_BEPROPERTY_SEQ", allocationSize = 1)
+    @Column(name = "EXTBEPROPERTYID")
+    private Long externalpropertyId;
     private String name;
 
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
@@ -48,10 +49,10 @@ public class AnnotatedBioEntityProperty {
     @Fetch(FetchMode.SELECT)
     private AnnotationSource annotationSrc;
 
-    AnnotatedBioEntityProperty() {
+    ExternalBioEntityProperty() {
     }
 
-    public AnnotatedBioEntityProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty, AnnotationSource annSrc) {
+    public ExternalBioEntityProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty, AnnotationSource annSrc) {
         this.name = biomartPropertyName;
         this.bioEntityProperty = bioEntityProperty;
         this.annotationSrc = annSrc;
@@ -74,7 +75,7 @@ public class AnnotatedBioEntityProperty {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AnnotatedBioEntityProperty that = (AnnotatedBioEntityProperty) o;
+        ExternalBioEntityProperty that = (ExternalBioEntityProperty) o;
 
         if (annotationSrc != null ? !annotationSrc.equals(that.annotationSrc) : that.annotationSrc != null)
             return false;

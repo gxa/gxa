@@ -86,7 +86,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
         BioEntityProperty goterm = propertyDAO.findOrCreate("goterm");
         Assert.assertNotNull(goterm);
-        annotationSource.addBioMartProperty("name_1006", goterm);
+        annotationSource.addExternalProperty("name_1006", goterm);
 
         annSrcDAO.save(annotationSource);
         Assert.assertNotNull(annotationSource.getAnnotationSrcId());

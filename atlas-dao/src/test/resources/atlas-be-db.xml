@@ -518,6 +518,7 @@
             annotationsrcid="1000"
             SOFTWAREID="1000"
             url="http://www.ensembl.org/biomart/martservice?"
+            name="homo sapiens / Ensembl v.61"
             LOADDATE="2011-01-06"
             isApplied="F"
             annsrctype="biomart"
@@ -536,6 +537,7 @@
             annotationsrcid="1001"
             SOFTWAREID="2001"
             url="file://genesigdb"
+            name="GeneGigDB v.63"
             LOADDATE="2011-01-06"
             isApplied="F"
             annsrctype="genesigdb"
@@ -551,35 +553,35 @@
             BIOENTITYTYPEID="200"
             />
 
-    <A2_ANNOTATED_BEPROPERTY
-            BIOMARTPROPERTYID="1000"
+    <A2_EXTERNAL_BEPROPERTY
+            EXTBEPROPERTYID="1000"
             annotationsrcid="1000"
             BIOENTITYPROPERTYID="100"
             NAME="name_1006"
             />
 
-    <A2_ANNOTATED_BEPROPERTY
-            BIOMARTPROPERTYID="2000"
+    <A2_EXTERNAL_BEPROPERTY
+            EXTBEPROPERTYID="2000"
             annotationsrcid="1000"
             BIOENTITYPROPERTYID="300"
             NAME="ensembl_gene_id"
             />
-    <A2_ANNOTATED_BEPROPERTY
-            BIOMARTPROPERTYID="3000"
+    <A2_EXTERNAL_BEPROPERTY
+            EXTBEPROPERTYID="3000"
             annotationsrcid="1000"
             BIOENTITYPROPERTYID="100"
             NAME="go_cellular_component__dm_name_1006"
             />
 
-    <A2_ANNOTATED_BEPROPERTY
-            BIOMARTPROPERTYID="4000"
+    <A2_EXTERNAL_BEPROPERTY
+            EXTBEPROPERTYID="4000"
             annotationsrcid="1000"
             BIOENTITYPROPERTYID="200"
             NAME="ensembl_transcript_id"
             />
 
-    <A2_ANNOTATEDARRAYDESIGN
-            BIOMARTARRAYDESIGNID="1000"
+    <A2_EXTERNAL_ARRAYDESIGN
+            EXTARRAYDESIGNID="1000"
             annotationsrcid="1000"
             ARRAYDESIGNID="1"
             NAME="affy_74a"

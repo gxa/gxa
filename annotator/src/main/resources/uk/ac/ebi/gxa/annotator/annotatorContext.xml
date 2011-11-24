@@ -31,8 +31,8 @@
                 <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource</value>
-                <value>uk.ac.ebi.gxa.annotator.model.AnnotatedBioEntityProperty</value>
-                <value>uk.ac.ebi.gxa.annotator.model.AnnotatedArrayDesign</value>
+                <value>uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty</value>
+                <value>uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign</value>
             </list>
         </property>
     </bean>

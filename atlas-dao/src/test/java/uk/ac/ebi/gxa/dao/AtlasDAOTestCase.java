@@ -305,6 +305,7 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  annotationsrcid bigint NOT NULL\n" +
                         "  , SOFTWAREID bigint NOT NULL\n" +
                         "  , url VARCHAR(512)\n" +
+                        "  , name VARCHAR(255) NOT NULL\n" +
                         "  , annsrctype VARCHAR(100) NOT NULL\n" +
                         "  , LOADDATE DATE\n" +
                         "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
@@ -318,15 +319,6 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  , mySqlDbName VARCHAR(255)\n" +
                         "  , mySqlDbUrl VARCHAR(255)\n" +
                         ");");
-        runStatement(conn,
-                "CREATE TABLE A2_GENESIGANNOTATIONSRC(\n" +
-                        "  annotationsrcid bigint NOT NULL\n" +
-                        "  , SOFTWAREID bigint NOT NULL\n" +
-                        "  , BIOENTITYPROPERTYID bigint NOT NULL\n" +
-                        "  , url VARCHAR(512)\n" +
-                        "  , LOADDATE DATE\n" +
-                        "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
-                        ");");
 
         runStatement(conn,
                 "CREATE TABLE A2_ANNSRC_BIOENTITYTYPE(\n" +
@@ -335,16 +327,16 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
                         "  );");
 
         runStatement(conn,
-                "CREATE TABLE A2_ANNOTATED_BEPROPERTY (\n" +
-                        "  BIOMARTPROPERTYID bigint NOT NULL\n" +
+                "CREATE TABLE A2_EXTERNAL_BEPROPERTY (\n" +
+                        "  EXTBEPROPERTYID bigint NOT NULL\n" +
                         ", annotationsrcid bigint NOT NULL\n" +
                         ", BIOENTITYPROPERTYID bigint NOT NULL\n" +
                         ", NAME VARCHAR(255) NOT NULL\n" +
                         ");");
 
         runStatement(conn,
-                "CREATE TABLE A2_ANNOTATEDARRAYDESIGN (\n" +
-                        "  BIOMARTARRAYDESIGNID bigint NOT NULL\n" +
+                "CREATE TABLE A2_EXTERNAL_ARRAYDESIGN (\n" +
+                        "  EXTARRAYDESIGNID bigint NOT NULL\n" +
                         ", annotationsrcid bigint NOT NULL\n" +
                         ", ARRAYDESIGNID bigint NOT NULL\n" +
                         ", NAME VARCHAR(255) NOT NULL\n" +
@@ -420,11 +412,11 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
         runStatement(conn, "CREATE SEQUENCE A2_SAMPLEPV_SEQ START WITH 10000000");
 
         runStatement(conn, "CREATE SEQUENCE A2_ANNOTATIONSRC_SEQ START WITH 10000000");
-        runStatement(conn, "CREATE SEQUENCE A2_ANNOTATED_BEPROPERTY_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_EXTERNAL_BEPROPERTY_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYPROPERTY_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_SOFTWARE_SEQ START WITH 10000000");
         runStatement(conn, "CREATE SEQUENCE A2_BIOENTITYTYPE_SEQ START WITH 10000000");
-        runStatement(conn, "CREATE SEQUENCE A2_ANNOTATEDARRAYDESIGN_SEQ START WITH 10000000");
+        runStatement(conn, "CREATE SEQUENCE A2_EXTERNAL_ARRAYDESIGN_SEQ START WITH 10000000");
 
         System.out.println("...done!");
         conn.close();

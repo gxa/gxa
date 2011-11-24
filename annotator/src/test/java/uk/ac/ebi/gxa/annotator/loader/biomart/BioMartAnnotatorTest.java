@@ -79,10 +79,10 @@ public class BioMartAnnotatorTest {
         BioEntityProperty nameProp = new BioEntityProperty(null, "name");
         BioEntityProperty idenProp = new BioEntityProperty(null, "identifier");
 
-        annotationSource.addBioMartProperty("gene", geneProp);
-        annotationSource.addBioMartProperty("transcript", transProp);
-        annotationSource.addBioMartProperty("symbol", nameProp);
-        annotationSource.addBioMartProperty("identifier", idenProp);
+        annotationSource.addExternalProperty("gene", geneProp);
+        annotationSource.addExternalProperty("transcript", transProp);
+        annotationSource.addExternalProperty("symbol", nameProp);
+        annotationSource.addExternalProperty("identifier", idenProp);
 
         BioEntityType type1 = new BioEntityType(null, "ensgene", 1, geneProp, nameProp);
         BioEntityType type2 = new BioEntityType(null, "enstranscript", 0, transProp, idenProp);
