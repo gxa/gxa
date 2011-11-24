@@ -32,7 +32,6 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
 import javax.annotation.Nonnull;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
@@ -155,13 +154,8 @@ public class AtlasExperiment {
         return (Integer) exptSolrDocument.getFieldValue("numSamples");
     }
 
-    @RestOut(name = "archiveUrl")
-    public String getArchiveUrl() {
-        return "/data/" + this.getAccession() + ".zip";
-    }
-
     private static String dateToString(Date date) {
-        return date == null ? null : new SimpleDateFormat("dd-MM-yyyy").format(date);
+        return date == null ? null : Experiment.DATE_FORMAT.get().format(date);
     }
 
     @RestOut(name = "loaddate")

@@ -45,6 +45,12 @@ import static uk.ac.ebi.gxa.utils.DigestUtil.*;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Experiment {
+    public static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = new ThreadLocal<SimpleDateFormat>() {
+        @Override
+        protected SimpleDateFormat initialValue() {
+            return new SimpleDateFormat("dd-MM-yyyy");
+        }
+    };
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "experimentSeq")
     @SequenceGenerator(name = "experimentSeq", sequenceName = "A2_EXPERIMENT_SEQ", allocationSize = 1)
@@ -357,7 +363,7 @@ public class Experiment {
         update(digest, articleAbstract);
         update(digest, performer);
         update(digest, lab);
-        update(digest, new SimpleDateFormat("yyyyMMdd").format(loadDate.getTime()));
+        update(digest, DATE_FORMAT.get().format(loadDate.getTime()));
         update(digest, pmid);
         for (Asset asset : assets) {
             update(digest, asset.getDescription());
