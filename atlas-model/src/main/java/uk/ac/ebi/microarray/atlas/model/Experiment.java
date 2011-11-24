@@ -356,14 +356,15 @@ public class Experiment {
         return result;
     }
 
-    public String getSha1() {
+    public String getDigest() {
         final MessageDigest digest = getDigestInstance();
         update(digest, accession);
         update(digest, description);
         update(digest, articleAbstract);
         update(digest, performer);
         update(digest, lab);
-        update(digest, DATE_FORMAT.get().format(loadDate.getTime()));
+        if (loadDate != null)
+            update(digest, DATE_FORMAT.get().format(loadDate.getTime()));
         update(digest, pmid);
         for (Asset asset : assets) {
             update(digest, asset.getDescription());
@@ -379,9 +380,9 @@ public class Experiment {
             for (AssayProperty property : assay.getProperties()) {
                 update(digest, property.getName());
                 update(digest, property.getValue());
-                for (OntologyTerm term : property.getTerms()) {
-                    update(digest, term.getAccession());
-                }
+//                for (OntologyTerm term : property.getTerms()) {
+//                    update(digest, term.getAccession());
+//                }
             }
         }
         for (Sample sample : samples) {
@@ -391,9 +392,9 @@ public class Experiment {
             for (SampleProperty property : sample.getProperties()) {
                 update(digest, property.getName());
                 update(digest, property.getValue());
-                for (OntologyTerm term : property.getTerms()) {
-                    update(digest, term.getAccession());
-                }
+//                for (OntologyTerm term : property.getTerms()) {
+//                    update(digest, term.getAccession());
+//                }
             }
         }
         update(digest, Boolean.toString(isprivate));

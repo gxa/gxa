@@ -22,11 +22,12 @@
 
 package uk.ac.ebi.gxa.utils;
 
+import org.apache.commons.codec.binary.Hex;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +43,8 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  */
 public class DigestUtil {
     private static final byte[] SEPARATOR = {(byte) 0xA3, (byte) 141};
-    private static final String SHA_1 = "SHA-1";
+    private static final String ALGORITHM = "MD5";
+    private static final Charset CHARSET = Charset.forName("UTF-8");
 
     public static byte[] digest(File... files) throws IOException {
         return digest(asList(files));
@@ -69,7 +71,7 @@ public class DigestUtil {
 
     public static MessageDigest getDigestInstance() {
         try {
-            return MessageDigest.getInstance(SHA_1);
+            return MessageDigest.getInstance(ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
             throw createUnexpected("Cannot get a digester", e);
         }
@@ -95,7 +97,7 @@ public class DigestUtil {
 
     public static void update(MessageDigest digest, String s) {
         if (s != null)
-            digest.update(s.getBytes(Charset.forName("UTF-8")));
+            digest.update(s.getBytes(CHARSET));
         putSeparator(digest);
     }
 
@@ -105,15 +107,11 @@ public class DigestUtil {
 
     /**
      * Converts byte array into a hex string
-     * <p/>
-     * Courtesy <a href="http://stackoverflow.com/users/77222/ayman">Ayman</a>, from
-     * <a href="http://stackoverflow.com/questions/332079/in-java-how-do-i-convert-a-byte-array-to-a-string-of-hex-digits-while-keeping-l/943963#943963">the StackOverflow answer</a>.
      *
      * @param bytes bytes to format
      * @return formatted hex string (lowercase)
      */
     public static String toHex(byte[] bytes) {
-        BigInteger bi = new BigInteger(1, bytes);
-        return String.format("%0" + (bytes.length << 1) + "x", bi);
+        return new String(Hex.encodeHex(bytes));
     }
 }

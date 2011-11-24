@@ -121,6 +121,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         addSampleInformation(solrInputDoc, experiment);
         addAssetInformation(solrInputDoc, experiment);
 
+        solrInputDoc.addField("digest", experiment.getDigest());
+
         getLog().info("Finalising changes for {}", experiment);
         getSolrServer().add(solrInputDoc);
     }

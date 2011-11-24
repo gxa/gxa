@@ -168,8 +168,8 @@ public class AtlasExperiment {
     }
 
     @RestOut
-    public String getSha1() {
-        return experiment.getSha1();
+    public String getDigest() {
+        return (String) exptSolrDocument.getFieldValue("digest");
     }
 }
 
