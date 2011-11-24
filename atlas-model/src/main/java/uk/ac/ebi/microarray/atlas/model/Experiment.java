@@ -388,7 +388,6 @@ public class Experiment {
             update(digest, sample.getAccession());
             update(digest, sample.getChannel());
             update(digest, sample.getOrganism().getName());
-            update(digest, sample.getOrganism().getName());
             for (SampleProperty property : sample.getProperties()) {
                 update(digest, property.getName());
                 update(digest, property.getValue());
