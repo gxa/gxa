@@ -43,7 +43,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  */
 public class DigestUtil {
     private static final byte[] SEPARATOR = {(byte) 0xA3, (byte) 141};
-    private static final String ALGORITHM = "MD5";
+    private static final String ALGORITHM = "SHA1";
     private static final Charset CHARSET = Charset.forName("UTF-8");
 
     public static byte[] digest(File... files) throws IOException {
