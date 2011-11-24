@@ -161,7 +161,7 @@ public class AtlasExperiment {
     }
 
     private static String dateToString(Date date) {
-        return date == null ? null : (new SimpleDateFormat("dd-MM-yyyy").format(date));
+        return date == null ? null : new SimpleDateFormat("dd-MM-yyyy").format(date);
     }
 
     @RestOut(name = "loaddate")
@@ -171,6 +171,11 @@ public class AtlasExperiment {
 
     public Experiment getExperiment() {
         return experiment;
+    }
+
+    @RestOut
+    public String getSha1() {
+        return experiment.getSha1();
     }
 }
 

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,30 +49,30 @@ public class DigestUtil {
     }
 
     public static byte[] digest(List<File> files) throws IOException {
-        try {
-            MessageDigest digest = getDigestInstance();
-            sort(files, new Comparator<File>() {
-                @Override
-                public int compare(File o1, File o2) {
-                    try {
-                        return o1.getCanonicalPath().compareTo(o2.getCanonicalPath());
-                    } catch (IOException e) {
-                        throw createUnexpected("Cannot get canonical path", e);
-                    }
+        MessageDigest digest = getDigestInstance();
+        sort(files, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                try {
+                    return o1.getCanonicalPath().compareTo(o2.getCanonicalPath());
+                } catch (IOException e) {
+                    throw createUnexpected("Cannot get canonical path", e);
                 }
-            });
-            for (File f : files) {
-                update(digest, f);
-                putSeparator(digest);
             }
-            return digest.digest();
+        });
+        for (File f : files) {
+            update(digest, f);
+            putSeparator(digest);
+        }
+        return digest.digest();
+    }
+
+    public static MessageDigest getDigestInstance() {
+        try {
+            return MessageDigest.getInstance(SHA_1);
         } catch (NoSuchAlgorithmException e) {
             throw createUnexpected("Cannot get a digester", e);
         }
-    }
-
-    public static MessageDigest getDigestInstance() throws NoSuchAlgorithmException {
-        return MessageDigest.getInstance(SHA_1);
     }
 
     public static void update(MessageDigest complete, File f) throws IOException {
@@ -93,11 +94,26 @@ public class DigestUtil {
     }
 
     public static void update(MessageDigest digest, String s) {
-        digest.update(s.getBytes(Charset.forName("UTF-8")));
+        if (s != null)
+            digest.update(s.getBytes(Charset.forName("UTF-8")));
         putSeparator(digest);
     }
 
     private static void putSeparator(MessageDigest digest) {
         digest.update(SEPARATOR);
+    }
+
+    /**
+     * Converts byte array into a hex string
+     * <p/>
+     * Courtesy <a href="http://stackoverflow.com/users/77222/ayman">Ayman</a>, from
+     * <a href="http://stackoverflow.com/questions/332079/in-java-how-do-i-convert-a-byte-array-to-a-string-of-hex-digits-while-keeping-l/943963#943963">the StackOverflow answer</a>.
+     *
+     * @param bytes bytes to format
+     * @return formatted hex string (lowercase)
+     */
+    public static String toHex(byte[] bytes) {
+        BigInteger bi = new BigInteger(1, bytes);
+        return String.format("%0" + (bytes.length << 1) + "x", bi);
     }
 }

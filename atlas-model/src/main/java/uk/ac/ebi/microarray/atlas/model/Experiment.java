@@ -31,6 +31,8 @@ import uk.ac.ebi.gxa.Temporary;
 
 import javax.annotation.Nullable;
 import javax.persistence.*;
+import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.filter;
@@ -38,6 +40,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newTreeSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
+import static uk.ac.ebi.gxa.utils.DigestUtil.*;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
@@ -345,5 +348,50 @@ public class Experiment {
             result.add(sample.getOrganism());
         }
         return result;
+    }
+
+    public String getSha1() {
+        final MessageDigest digest = getDigestInstance();
+        update(digest, accession);
+        update(digest, description);
+        update(digest, articleAbstract);
+        update(digest, performer);
+        update(digest, lab);
+        update(digest, new SimpleDateFormat("yyyyMMdd").format(loadDate.getTime()));
+        update(digest, pmid);
+        for (Asset asset : assets) {
+            update(digest, asset.getDescription());
+            update(digest, asset.getFileName());
+            update(digest, asset.getName());
+        }
+        for (Assay assay : assays) {
+            update(digest, assay.getAccession());
+            update(digest, assay.getArrayDesign().getName());
+            for (Sample sample : assay.getSamples()) {
+                update(digest, sample.getAccession());
+            }
+            for (AssayProperty property : assay.getProperties()) {
+                update(digest, property.getName());
+                update(digest, property.getValue());
+                for (OntologyTerm term : property.getTerms()) {
+                    update(digest, term.getAccession());
+                }
+            }
+        }
+        for (Sample sample : samples) {
+            update(digest, sample.getAccession());
+            update(digest, sample.getChannel());
+            update(digest, sample.getOrganism().getName());
+            update(digest, sample.getOrganism().getName());
+            for (SampleProperty property : sample.getProperties()) {
+                update(digest, property.getName());
+                update(digest, property.getValue());
+                for (OntologyTerm term : property.getTerms()) {
+                    update(digest, term.getAccession());
+                }
+            }
+        }
+        update(digest, Boolean.toString(isprivate));
+        return toHex(digest.digest());
     }
 }
