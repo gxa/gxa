@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -8,15 +9,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
+import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 
 import static com.google.common.collect.Sets.difference;
@@ -32,6 +36,8 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected static final String SOFTWARE_VERSION_PROPNAME = "software.version";
     protected static final String TYPES_PROPNAME = "types";
     protected static final String URL_PROPNAME = "url";
+    private static final String EXTPROPERTY_PROPNAME = "biomartProperty";
+    private static final String ARRAYDESIGN_PROPNAME = "arrayDesign";
 
     @Autowired
     protected AnnotationSourceDAO annSrcDAO;
@@ -63,7 +69,21 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    public abstract T editOrCreateAnnotationSource(String id, String text) throws AnnotationLoaderException;
+    public T editOrCreateAnnotationSource(String id, String text) throws AnnotationLoaderException {
+        Reader input = new StringReader(text);
+        Properties properties = new Properties();
+        try {
+            properties.load(input);
+            //Fetch organism and software
+            T annSrc = initAnnotationSource(id, properties);
+            updateAnnotationSource(properties, annSrc);
+            return annSrc;
+        } catch (IOException e) {
+            throw new AnnotationLoaderException("Cannot read annotation properties", e);
+        } finally {
+            closeQuietly(input);
+        }
+    }
 
     protected abstract Class<T> getClazz();
 
@@ -124,5 +144,114 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         return property;
     }
 
-    protected abstract void generateString(T annSrc, Writer out) throws ConfigurationException;
+    protected void writeExternalProperties(T annSrc, PropertiesConfiguration properties) {
+        Multimap<String, String> bePropToBmProp = HashMultimap.create();
+        for (ExternalBioEntityProperty externalBioEntityProperty : annSrc.getExternalBioEntityProperties()) {
+            bePropToBmProp.put(externalBioEntityProperty.getBioEntityProperty().getName(), externalBioEntityProperty.getName());
+        }
+
+        addCommaSeparatedProperties(EXTPROPERTY_PROPNAME, properties, bePropToBmProp);
+
+    }
+
+    protected void writeExternalArrayDesign(T annSrc, PropertiesConfiguration properties) {
+        Multimap<String, String> bePropToBmProp = HashMultimap.create();
+
+        for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
+            bePropToBmProp.put(externalArrayDesign.getArrayDesign().getAccession(), externalArrayDesign.getName());
+        }
+
+        addCommaSeparatedProperties(ARRAYDESIGN_PROPNAME, properties, bePropToBmProp);
+    }
+
+    protected void updateExternalArrayDesigns(Properties properties, T annotationSource) {
+        Set<ExternalArrayDesign> externalArrayDesigns = new HashSet<ExternalArrayDesign>();
+        for (String propName : properties.stringPropertyNames()) {
+
+            if (propName.startsWith(ARRAYDESIGN_PROPNAME)) {
+                ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propName.substring(ARRAYDESIGN_PROPNAME.length() + 1));
+                externalArrayDesigns.add(new ExternalArrayDesign(properties.getProperty(propName).trim(), arrayDesign, annotationSource));
+            }
+        }
+
+        Set<ExternalArrayDesign> removedProperties = new HashSet<ExternalArrayDesign>(difference(annotationSource.getExternalArrayDesigns(), externalArrayDesigns));
+        Set<ExternalArrayDesign> addedProperties = new HashSet<ExternalArrayDesign>(difference(externalArrayDesigns, annotationSource.getExternalArrayDesigns()));
+
+        for (ExternalArrayDesign removedProperty : removedProperties) {
+            annotationSource.removeExternalArrayDesign(removedProperty);
+        }
+
+        for (ExternalArrayDesign addedProperty : addedProperties) {
+            annotationSource.addExternalArrayDesign(addedProperty);
+        }
+    }
+
+    protected void updateExternalProperties(Properties properties, T annotationSource) {
+        Set<ExternalBioEntityProperty> externalBioEntityProperties = new HashSet<ExternalBioEntityProperty>();
+        for (String propName : properties.stringPropertyNames()) {
+
+            if (propName.startsWith(EXTPROPERTY_PROPNAME)) {
+                BioEntityProperty beProperty = propertyDAO.findOrCreate(propName.substring(EXTPROPERTY_PROPNAME.length() + 1));
+                StringTokenizer tokenizer = new StringTokenizer(properties.getProperty(propName), ",");
+                while (tokenizer.hasMoreElements()) {
+                    externalBioEntityProperties.add(new ExternalBioEntityProperty(tokenizer.nextToken().trim(), beProperty, annotationSource));
+                }
+            }
+        }
+
+        Set<ExternalBioEntityProperty> removedPropertyExternals = new HashSet<ExternalBioEntityProperty>(difference(annotationSource.getExternalBioEntityProperties(), externalBioEntityProperties));
+        Set<ExternalBioEntityProperty> addedPropertyExternals = new HashSet<ExternalBioEntityProperty>(difference(externalBioEntityProperties, annotationSource.getExternalBioEntityProperties()));
+
+        for (ExternalBioEntityProperty removedPropertyExternal : removedPropertyExternals) {
+            annotationSource.removeExternalProperty(removedPropertyExternal);
+        }
+
+        for (ExternalBioEntityProperty addedPropertyExternal : addedPropertyExternals) {
+            annotationSource.addExternalProperty(addedPropertyExternal);
+        }
+    }
+
+    protected void updateAnnotationSource(Properties properties, T annotationSource) throws AnnotationLoaderException {
+        updateTypes(properties, annotationSource);
+
+        annotationSource.setUrl(getProperty(URL_PROPNAME, properties));
+        
+        updateExtraProperties(properties, annotationSource);
+
+        updateExternalProperties(properties, annotationSource);
+
+        updateExternalArrayDesigns(properties, annotationSource);
+    }
+
+    protected abstract void updateExtraProperties(Properties properties, T annotationSource) throws AnnotationLoaderException;
+
+    protected void generateString(T annSrc, Writer out) throws ConfigurationException {
+        PropertiesConfiguration properties = new PropertiesConfiguration();
+
+        properties.addProperty(SOFTWARE_NAME_PROPNAME, annSrc.getSoftware().getName());
+        properties.addProperty(SOFTWARE_VERSION_PROPNAME, annSrc.getSoftware().getVersion());
+        properties.addProperty(URL_PROPNAME, annSrc.getUrl());
+
+        writeExtraProperties(annSrc, properties);
+
+        //Write bioentity types
+        StringBuffer types = new StringBuffer();
+        int count = 1;
+        for (BioEntityType type : annSrc.getTypes()) {
+            types.append(type.getName());
+            if (count++ < annSrc.getTypes().size()) {
+                types.append(",");
+            }
+        }
+        properties.addProperty(TYPES_PROPNAME, types.toString());
+
+        writeExternalProperties(annSrc, properties);
+
+        writeExternalArrayDesign(annSrc, properties);
+        properties.save(out);
+    }
+
+    protected abstract void writeExtraProperties(T annSrc, PropertiesConfiguration properties);
+
+    protected abstract T initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException;
 }

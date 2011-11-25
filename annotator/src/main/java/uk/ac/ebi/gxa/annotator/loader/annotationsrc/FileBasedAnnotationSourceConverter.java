@@ -1,18 +1,10 @@
 package uk.ac.ebi.gxa.annotator.loader.annotationsrc;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
 import java.util.Properties;
-
-import static com.google.common.io.Closeables.closeQuietly;
 
 /**
  * User: nsklyar
@@ -20,77 +12,37 @@ import static com.google.common.io.Closeables.closeQuietly;
  */
 public class FileBasedAnnotationSourceConverter extends AnnotationSourceConverter<GeneSigAnnotationSource> {
 
-    private static final String BIOENTITYPROPERTY_PROPNAME = "property";
-
-    @Override
-    public GeneSigAnnotationSource editOrCreateAnnotationSource(String id, String text) throws AnnotationLoaderException {
-        Reader input = new StringReader(text);
-        Properties properties = new Properties();
-        try {
-            properties.load(input);
-            //Fetch organism and software
-            Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
-
-            GeneSigAnnotationSource annSrc = fetchAnnSrc(id);
-            //Check if for given organism and software annotation source exists
-            if (annSrc == null || !annSrc.getSoftware().equals(software)) {
-                final GeneSigAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, getClazz());
-                if (annotationSource != null) {
-                    throw new AnnotationLoaderException("Annotation source for software " +
-                            software.getName() + " " + software.getVersion() + " already exists.");
-                } else {
-                    if (annSrc == null) {
-                        annSrc = new GeneSigAnnotationSource(software);
-                    }
-                }
-            }
-            updateAnnotationSource(properties, annSrc);
-            return annSrc;
-        } catch (IOException e) {
-            throw new AnnotationLoaderException("Cannot read annotation properties", e);
-        } finally {
-            closeQuietly(input);
-        }
-    }
-
     @Override
     protected Class<GeneSigAnnotationSource> getClazz() {
         return GeneSigAnnotationSource.class;
     }
 
-    @Override
-    protected void generateString(GeneSigAnnotationSource annSrc, Writer out) throws ConfigurationException {
-        PropertiesConfiguration properties = new PropertiesConfiguration();
-        properties.addProperty(SOFTWARE_NAME_PROPNAME, annSrc.getSoftware().getName());
-        properties.addProperty(SOFTWARE_VERSION_PROPNAME, annSrc.getSoftware().getVersion());
-        properties.addProperty(URL_PROPNAME, annSrc.getUrl());
+    protected GeneSigAnnotationSource initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException {
+        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
-        //ToDo: update property
-
-        //Write bioentity types
-        StringBuffer types = new StringBuffer();
-        int count = 1;
-        for (BioEntityType type : annSrc.getTypes()) {
-            types.append(type.getName());
-            if (count++ < annSrc.getTypes().size()) {
-                types.append(",");
+        GeneSigAnnotationSource annSrc = fetchAnnSrc(id);
+        //Check if for given organism and software annotation source exists
+        if (annSrc == null || !annSrc.getSoftware().equals(software)) {
+            final GeneSigAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, getClazz());
+            if (annotationSource != null) {
+                throw new AnnotationLoaderException("Annotation source for software " +
+                        software.getName() + " " + software.getVersion() + " already exists.");
+            } else {
+                if (annSrc == null) {
+                    annSrc = new GeneSigAnnotationSource(software);
+                }
             }
         }
-        properties.addProperty(TYPES_PROPNAME, types.toString());
-
-        properties.save(out);
+        return annSrc;
     }
 
-    private void updateAnnotationSource(Properties properties, GeneSigAnnotationSource annotationSource) throws AnnotationLoaderException {
-        updateTypes(properties, annotationSource);
-
-        annotationSource.setUrl(getProperty(URL_PROPNAME, properties));
-        for (String propName : properties.stringPropertyNames()) {
-
-            //ToDO: use copy of properties like in BiomartAnnSrc
-
-        }
-
+    @Override
+    protected void updateExtraProperties(Properties properties, GeneSigAnnotationSource annotationSource) throws AnnotationLoaderException {
     }
+
+    @Override
+    protected void writeExtraProperties(GeneSigAnnotationSource annSrc, PropertiesConfiguration properties) {
+    }
+
 
 }
