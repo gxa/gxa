@@ -23,7 +23,8 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="atlasStatistics" type="uk.ac.ebi.microarray.atlas.model.AtlasStatistics" scope="application"/>
-<jsp:useBean id="experiments" type="java.util.Collection<uk.ac.ebi.gxa.web.controller.ExperimentIndexLine>" scope="request"/>
+<jsp:useBean id="experiments" type="java.util.Collection<uk.ac.ebi.gxa.web.controller.ExperimentIndexLine>"
+             scope="request"/>
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
 
@@ -36,10 +37,10 @@
     <meta name="Keywords"
           content="ArrayExpress, Atlas, Microarray, Condition, Tissue Specific, Expression, Transcriptomics, Genomics, cDNA Arrays"/>
 
-    <wro4j:all name="bundle-jquery" />
-    <wro4j:all name="bundle-common-libs" />
-    <wro4j:all name="bundle-gxa" />
-    <wro4j:all name="bundle-gxa-grid-support" />
+    <wro4j:all name="bundle-jquery"/>
+    <wro4j:all name="bundle-common-libs"/>
+    <wro4j:all name="bundle-gxa"/>
+    <wro4j:all name="bundle-gxa-grid-support"/>
     <wro4j:all name="bundle-gxa-page-experiment-index"/>
 
     <style type="text/css">
@@ -64,7 +65,8 @@
 
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
                            defaultsort="2" defaultorder="descending"
-                           requestURIcontext="false" id="experiment" class="atlas-grid noborder hoverable sortable experiment-index"
+                           requestURIcontext="false" id="experiment"
+                           class="atlas-grid noborder hoverable sortable experiment-index"
                            size="${total}" partialList="true" pagesize="${count}">
                 <display:column sortable="true" sortName="accession" title="Experiment" class="nowrap">
                     <a href="${pageContext.request.contextPath}/experiment/${experiment.accession}">${experiment.accession}</a>
@@ -79,15 +81,27 @@
                            class="external">${experiment.pubmedId}</a>
                     </c:if>
                 </display:column>
+                <display:column property="numAssays" sortable="true" sortName="numAssays"
+                                title="Assays" class="number">
+                    <a href="${pageContext.request.contextPath}/experimentDesign/${experiment.accession}">${experiment.accession}</a>
+                </display:column>
                 <display:column property="numSamples" sortable="true" sortName="numSamples"
                                 title="Samples" class="number"/>
                 <%-- Postponed until implemented
                 <display:column property="studyType" sortable="true" sortName="studyType"
                                 title="Type"/>
                                 --%>
+                <display:column title="Species" class="nowrap">
+                    <c:if test="${f:length(experiment.organisms) == 0}">
+                        <span class="note">none</span>
+                    </c:if>
+                    <c:forEach var="organism" items="${experiment.organisms}">
+                        <c:out value="${organism.name}"/><br/>
+                    </c:forEach>
+                </display:column>
                 <display:column title="Experiment Factors" class="nowrap">
                     <c:if test="${f:length(experiment.experimentFactors) == 0}">
-                        in curation
+                        <span class="note">in curation</span>
                     </c:if>
                     <c:forEach var="factor" items="${experiment.experimentFactors}">
                         <c:out value="${factor.displayName}"/><br/>

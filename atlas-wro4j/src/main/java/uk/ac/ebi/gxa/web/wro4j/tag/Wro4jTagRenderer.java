@@ -53,6 +53,7 @@ public class Wro4jTagRenderer {
     }
 
     public void render(Writer writer, String name, String contextPath) throws IOException, Wro4jTagException {
+        contextPath = contextPath.equals("") ? "/" + contextPath : contextPath;
         for (Resource resource : collectResources(groupResolver.getGroup(name))) {
             writer.write(render(contextPath, resource));
             writer.write("\n");
