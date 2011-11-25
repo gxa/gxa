@@ -333,34 +333,15 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     private EfoIndex loadEfoMapping(ObjectPool<EfvAttribute> attributePool, ObjectPool<ExperimentInfo> experimentPool) {
-        EfoIndex efoIndex = new EfoIndex();
+        EfoIndex efoIndex = new EfoIndex(attributePool, experimentPool);
         getLog().info("Fetching ontology mappings...");
-
-        final Set<String> missingEFOs = new HashSet<String>();
-        int completeEfos = 0;
 
         List<OntologyMapping> mappings = getAtlasDAO().getOntologyMappingsByOntology("EFO");
         for (OntologyMapping mapping : mappings) {
-            EfvAttribute attribute = attributePool.intern(new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue()));
-
-            ExperimentInfo exp = new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId());
-            ExperimentInfo internedExp = experimentPool.intern(exp);
-
-            if (internedExp != null) {
-                efoIndex.addMapping(mapping.getOntologyTerm(), attribute, internedExp);
-                getLog().debug("Adding '{}': {} in {} ({})",
-                        new Object[]{mapping.getOntologyTerm(), attribute, exp, internedExp});
-                completeEfos++;
-            } else {
-                getLog().error(
-                        "BitIndex build: Incomplete load for efo term: '{}' because experiment {} could not be found in Experiment Index",
-                        mapping.getOntologyTerm(), exp);
-                missingEFOs.add(mapping.getOntologyTerm());
-            }
+            efoIndex.addMapping(mapping.getOntologyTerm(),
+                    new EfvAttribute(mapping.getProperty(), mapping.getPropertyValue()),
+                    new ExperimentInfo(mapping.getExperimentAccession(), mapping.getExperimentId()));
         }
-        getLog().info("Loaded {} ontology mappings (Load incomplete for {} due to missing experiments)",
-                completeEfos, missingEFOs.size());
-        getLog().info("The following {} EFOs have not been mapped: {}", missingEFOs.size(), missingEFOs);
         return efoIndex;
     }
 
