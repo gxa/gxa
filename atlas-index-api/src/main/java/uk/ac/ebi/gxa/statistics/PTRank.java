@@ -16,8 +16,9 @@ import static java.lang.Math.round;
  */
 @Immutable
 public final class PTRank extends PT implements Serializable {
-    private static final long serialVersionUID = 201106071204L;  // TODO !!!!
+
     public static final float PRECISION = 1e-3F;
+    private static final long serialVersionUID = -1561898890077805058L;
     // pValue rounded off to 3 decimal places - c.f. PRECISION
     private final float pValue;
     // For the definition of tStat rank see #getTStatRank()
