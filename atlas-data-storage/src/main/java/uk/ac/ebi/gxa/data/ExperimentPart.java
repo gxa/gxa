@@ -46,6 +46,18 @@ public class ExperimentPart {
         return ewd.getUniqueEFVs(arrayDesign);
     }
 
+    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getPValues(arrayDesign);
+    }
+
+    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getTStatistics(arrayDesign);
+    }
+
+    public String[] getDesignElementAccessions() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getDesignElementAccessions(arrayDesign);
+    }
+
     public Collection<Long> getGeneIds() throws AtlasDataException {
         return Longs.asList(ewd.getGenes(arrayDesign));
     }
@@ -115,13 +127,5 @@ public class ExperimentPart {
 
     public ArrayDesign getArrayDesign() {
         return arrayDesign;
-    }
-
-    public String getDataPathForR() {
-        return ewd.getDataPathForR(arrayDesign);
-    }
-
-    public String getStatisticsPathForR() {
-        return ewd.getStatisticsPathForR(arrayDesign);
     }
 }

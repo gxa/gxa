@@ -23,6 +23,7 @@
 package ae3.dao;
 
 import ae3.model.AtlasGene;
+import com.google.common.base.Functions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -317,6 +318,22 @@ public class GeneSolrDAO {
             }
         }
         return genes;
+    }
+
+    /**
+     *
+     * @param geneIds
+     * @return Map geneId -> AtlasGene for all gene ids from geneIds that were found in Solr
+     */
+    public Map<Long, AtlasGene> getGenesByIds(List<Long> geneIds) {
+        Iterator<AtlasGene> genesIter = getGenesByIdentifiers(Lists.transform(geneIds, Functions.toStringFunction())).iterator();
+        Map<Long, AtlasGene> geneIdToGene = new HashMap<Long, AtlasGene>();
+
+        while (genesIter.hasNext()) {
+            AtlasGene gene = genesIter.next();
+            geneIdToGene.put(new Long(gene.getGeneId()), gene);
+        }
+        return geneIdToGene;
     }
 
 }

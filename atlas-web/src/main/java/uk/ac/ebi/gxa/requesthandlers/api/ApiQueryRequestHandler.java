@@ -23,33 +23,29 @@
 package uk.ac.ebi.gxa.requesthandlers.api;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import ae3.service.AtlasStatisticsQueryService;
-import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
-import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
@@ -63,16 +59,20 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
     private ExperimentSolrDAO experimentSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private ExperimentDAO experimentDAO;
     private AtlasDataDAO atlasDataDAO;
     private IndexBuilder indexBuilder;
-    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     volatile boolean disableQueries = false;
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
+    }
+
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
@@ -94,10 +94,6 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     public void setIndexBuilder(IndexBuilder builder) {
         this.indexBuilder = builder;
         builder.registerIndexBuildEventHandler(this);
-    }
-
-    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
-        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
@@ -163,23 +159,24 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                     if (!experimentInfoOnly) {
                                         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                         try {
+                                            final List<Long> geneIds = geneSolrDAO.findGeneIds(query.getGeneIdentifiers());
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                             BestDesignElementsResult geneResults =
-                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            ewd,
+                                                    ewd.findBestGenesForExperiment(
                                                             null,
-                                                            query.getGeneIdentifiers(),
-                                                            Collections.<String>emptyList(),
-                                                            Collections.<String>emptyList(),
+                                                            geneIds,
+                                                            Collections.<Pair<String, String>>emptySet(),
                                                             QueryExpression.ANY.asUpDownCondition(),
                                                             0,
                                                             10
                                                     );
 
-                                            genes = geneResults.getGenes();
+                                            genes = geneSolrDAO.getGenesByIds(geneResults.getGeneIds()).values();
                                             expData = new ExperimentalData(ewd);
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);
+                                        } catch (StatisticsNotFoundException e) {
+                                            log.warn("StatisticsNotFoundException thrown", e);
                                         } finally {
                                             closeQuietly(ewd);
                                         }

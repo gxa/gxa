@@ -23,9 +23,8 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
-import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
-import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -42,11 +41,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
@@ -80,8 +78,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasProperties atlasProperties;
 
-    private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
-
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
         @Override
         public String apply(@Nullable String input) {
@@ -95,16 +91,15 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     @Autowired
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
+                                    GeneSolrDAO geneSolrDAO,
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     PropertyDAO propertyDAO,
-                                    AtlasProperties atlasProperties,
-                                    AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
-        super(solrDAO, atlasDAO);
+                                    AtlasProperties atlasProperties) {
+        super(solrDAO, geneSolrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
-        this.experimentAnalyticsService = experimentAnalyticsService;
     }
 
     /**
@@ -284,7 +279,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param limit     a size of result set to take
      * @param model     a model for the view to render
      * @return the view path
-     * @throws AtlasDataException if data could not be read
+     * @throws AtlasDataException or StatisticsNotFoundException if data could not be read
      */
     @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
     public String getExperimentTable(
@@ -297,33 +292,44 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws ResourceNotFoundException, RecordNotFoundException {
+    ) throws ResourceNotFoundException, RecordNotFoundException, AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = null;
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
-            final BestDesignElementsResult res =
-                    experimentAnalyticsService.findBestGenesForExperiment(
-                            ewd,
-                            adAcc,
-                            isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
-                            isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                            isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                            updown,
-                            offset,
-                            limit
-                    );
 
+            BestDesignElementsResult res;
+            final List<Long> geneIds = !isNullOrEmpty(gid)
+                    ? findGeneIds(Arrays.asList(gid.trim()))
+                    : Collections.<Long>emptyList();
+
+            if (!isNullOrEmpty(gid) && geneIds.isEmpty()) {
+                res = ExperimentWithData.EMPTY_DESIGN_ELEMENT_RESULT;
+            } else {
+                res = ewd.findBestGenesForExperiment(
+                        adAcc,
+                        geneIds,
+                        !isNullOrEmpty(ef) && !isNullOrEmpty(efv) ?
+                                // We don't currently allow search for best design elements by either just an ef
+                                // or just an efv - both need to be specified
+                               Collections.singleton(Pair.create(ef, efv)) : Collections.<Pair<String, String>>emptySet() ,
+                        updown,
+                        offset,
+                        limit
+                );
+            }
+
+            final Map<Long, AtlasGene> geneIdToGene = getGenesByIds(res.getGeneIds());
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
             model.addAttribute("totalSize", res.getTotalSize());
             model.addAttribute("items", Iterables.transform(res,
                     new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
                         public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                            return new ExperimentTableRow(item);
+                            return new ExperimentTableRow(item, geneIdToGene.get(item.getGeneId()));
                         }
                     })
             );
-            model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
+            model.addAttribute("geneToolTips", getGeneTooltips(geneIdToGene.values()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
             closeQuietly(ewd);
@@ -423,9 +429,9 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         private final String pValue;
         private final String tValue;
 
-        public ExperimentTableRow(BestDesignElementsResult.Item item) {
-            geneName = item.getGene().getGeneName();
-            geneIdentifier = item.getGene().getGeneIdentifier();
+        public ExperimentTableRow(BestDesignElementsResult.Item item, AtlasGene gene) {
+            geneName = gene != null ? gene.getGeneName() : "";
+            geneIdentifier = gene != null ? gene.getGeneIdentifier() : "";
             deAccession = item.getDeAccession();
             deIndex = item.getDeIndex();
             factor = item.getEf();

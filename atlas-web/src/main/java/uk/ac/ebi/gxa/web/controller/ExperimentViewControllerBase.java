@@ -1,7 +1,9 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
@@ -9,8 +11,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Olga Melnichuk
@@ -20,11 +21,13 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewControllerBase.class);
 
-    protected final ExperimentSolrDAO experimentSolrDAO;
+    private final ExperimentSolrDAO experimentSolrDAO;
+    private final GeneSolrDAO geneSolrDAO;
     protected final AtlasDAO atlasDAO;
 
-    public ExperimentViewControllerBase(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {
+    public ExperimentViewControllerBase(ExperimentSolrDAO experimentSolrDAO, GeneSolrDAO geneSolrDAO, AtlasDAO atlasDAO) {
         this.experimentSolrDAO = experimentSolrDAO;
+        this.geneSolrDAO = geneSolrDAO;
         this.atlasDAO = atlasDAO;
     }
 
@@ -45,6 +48,14 @@ class ExperimentViewControllerBase extends AtlasViewController {
             throw new ResourceNotFoundException("There are no records for experiment " + accession);
         }
         return exp;
+    }
+
+    protected List<Long> findGeneIds(Collection<String> geneQuery) {
+        return geneSolrDAO.findGeneIds(geneQuery);
+    }
+
+    public Map<Long, AtlasGene> getGenesByIds(List<Long> geneIds) {
+        return geneSolrDAO.getGenesByIds(geneIds);
     }
 
     public static class ExperimentPage {
