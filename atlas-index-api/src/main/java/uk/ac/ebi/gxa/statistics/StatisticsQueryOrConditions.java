@@ -4,12 +4,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * This class represents an OR collection of conditions of type: ConditionType.
+ * This class represents an OR collection of conditions of type: T.
  */
-public class StatisticsQueryOrConditions<ConditionType> {
+public class StatisticsQueryOrConditions<T> {
      // LinkedHashSet used to maintain ordering of processing of experiments in multi-Attribute, multi-Experiment bit index queries to
      // retrieve sorted lists of experiments to be plotted on the gene page.
-    private Set<ConditionType> orConditions = new LinkedHashSet<ConditionType>();
+    private Set<T> orConditions = new LinkedHashSet<T>();
 
     // Set of bioentity ids of interest to which this query is restricted
     private Set<Integer> bioEntityIdRestrictionSet = null;
@@ -25,11 +25,11 @@ public class StatisticsQueryOrConditions<ConditionType> {
         this.minExperiments = minExperiments;
     }
 
-    public void orCondition(ConditionType condition) {
+    public void orCondition(T condition) {
         this.orConditions.add(condition);
     }
 
-    public Set<ConditionType> getConditions() {
+    public Set<T> getConditions() {
         return orConditions;
     }
 
