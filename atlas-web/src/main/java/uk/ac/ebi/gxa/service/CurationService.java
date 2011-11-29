@@ -62,10 +62,10 @@ public class CurationService {
                 }
             };
 
-    private static final Function<Experiment, ApiExperiment> EXPERIMENT =
-            new Function<Experiment, ApiExperiment>() {
-                public ApiExperiment apply(@Nonnull Experiment e) {
-                    return new ApiExperiment(e);
+    private static final Function<Experiment, ApiShallowExperiment> EXPERIMENT =
+            new Function<Experiment, ApiShallowExperiment>() {
+                public ApiShallowExperiment apply(@Nonnull Experiment e) {
+                    return new ApiShallowExperiment(e);
                 }
             };
 
@@ -130,7 +130,7 @@ public class CurationService {
      * @param propertyValue
      * @return List of ApiExperiment's containing propertyName-propertyValue
      */
-    public Collection<ApiExperiment> getExperimentsByPropertyValue(final String propertyName, final String propertyValue) {
+    public Collection<ApiShallowExperiment> getExperimentsByPropertyValue(final String propertyName, final String propertyValue) {
         HashSet<Experiment> experiments = new LinkedHashSet<Experiment>();
         experiments.addAll(experimentDAO.getExperimentsByAssayPropertyValue(propertyName, propertyValue));
         experiments.addAll(experimentDAO.getExperimentsBySamplePropertyValue(propertyName, propertyValue));
@@ -142,7 +142,7 @@ public class CurationService {
      * @param ontologyTerm
      * @return List of ApiExperiment's containing a property value mapped to  ontologyTerm
      */
-    public Collection<ApiExperiment> getExperimentsByOntologyTerm(final String ontologyTerm) {
+    public Collection<ApiShallowExperiment> getExperimentsByOntologyTerm(final String ontologyTerm) {
         HashSet<Experiment> experiments = new LinkedHashSet<Experiment>();
         experiments.addAll(experimentDAO.getExperimentsByAssayPropertyOntologyTerm(ontologyTerm));
         experiments.addAll(experimentDAO.getExperimentsBySamplePropertyOntologyTerm(ontologyTerm));

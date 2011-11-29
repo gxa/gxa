@@ -100,7 +100,7 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/properties/{propertyName}/{propertyValue}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ApiExperiment> getExperimentsByAssayPropertyValue(@PathVariable("v") final ApiVersionType version,
+    public Collection<ApiShallowExperiment> getExperimentsByPropertyValue(@PathVariable("v") final ApiVersionType version,
                                                                         @PathVariable("propertyName") final String propertyName,
                                                                         @PathVariable("propertyValue") final String propertyValue,
                                                                         HttpServletResponse response) throws ResourceNotFoundException {
@@ -110,7 +110,7 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/ontologyterms/{ontologyTerm}",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ApiExperiment> getExperimentsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
+    public Collection<ApiShallowExperiment> getExperimentsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
                                                                   @PathVariable("ontologyTerm") final String ontologyTerm,
                                                                   HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getExperimentsByOntologyTerm(ontologyTerm);
