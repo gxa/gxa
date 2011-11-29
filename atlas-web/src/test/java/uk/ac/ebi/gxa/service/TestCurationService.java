@@ -97,54 +97,13 @@ public class TestCurationService extends AtlasDAOTestCase {
     @Test
     public void testGetExperimentsByAssayPropertyOntologyTerm() throws Exception {
         assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
-                curationService.getExperimentsByAssayPropertyOntologyTerm(EFO_0000827).size() > 0);
+                curationService.getExperimentsByOntologyTerm(EFO_0000827).size() > 0);
     }
-
-    @Test
-    public void testGetExperimentsBySamplePropertyOntologyTerm() throws Exception {
-        assertTrue("Some samples should contain property values mapped to ontology term: " + EFO_0000827,
-                curationService.getExperimentsBySamplePropertyOntologyTerm(EFO_0000827).size() > 0);
-    }
-
-    @Test
-    public void testGetAssayPropertiesByProperty() throws Exception {
-        final Collection<ApiProperty> properties = curationService.getAssayPropertiesByProperty(PROP3);
-        assertTrue("Some assays should contain property: " + PROP3, properties.size() > 0);
-        for (ApiProperty property : properties)
-            property.getTerms();
-    }
-
-    @Test
-    public void testGetSamplePropertiesByProperty() throws Exception {
-        final Collection<ApiProperty> properties = curationService.getSamplePropertiesByProperty(PROP3);
-        assertTrue("Some samples should contain property: " + PROP3, properties.size() > 0);
-        for (ApiProperty property : properties)
-            property.getTerms();
-    }
-
 
     @Test
     public void testGetExperimentsByAssayPropertyValue() throws Exception {
         assertTrue("Some assays should contain property value: " + PROP3 + ":" + VALUE004,
-                curationService.getExperimentsByAssayPropertyValue(PROP3, VALUE004).size() > 0);
-    }
-
-    @Test
-    public void testGetExperimentsBySamplePropertyValue() throws Exception {
-        assertTrue("Some samples should contain property value: " + PROP3 + ":" + VALUE004,
-                curationService.getExperimentsBySamplePropertyValue(PROP3, VALUE004).size() > 0);
-    }
-
-    @Test
-    public void testGetExperimentsByAssay() throws Exception {
-        assertTrue("Some experiments should contain assay: " + ASSAY_ACC,
-                curationService.getExperimentsByAssay(ASSAY_ACC).size() > 0);
-    }
-
-    @Test
-    public void testGetExperimentsBySample() throws Exception {
-        assertTrue("Some experiments should contain sample: " + SAMPLE_ACC,
-                curationService.getExperimentsBySample(SAMPLE_ACC).size() > 0);
+                curationService.getExperimentsByPropertyValue(PROP3, VALUE004).size() > 0);
     }
 
     @Test
@@ -289,8 +248,8 @@ public class TestCurationService extends AtlasDAOTestCase {
         assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
                 propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
 
-        curationService.removePropertyFromAssays(CELL_TYPE, null);
-        curationService.removePropertyFromSamples(PROP3, null);
+        curationService.removePropertyFromAssays(CELL_TYPE);
+        curationService.removePropertyFromSamples(PROP3);
 
         assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
                 propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
@@ -300,28 +259,6 @@ public class TestCurationService extends AtlasDAOTestCase {
         Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
         assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
         assertTrue("Property: " + PROP3 + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(PROP3));
-    }
-
-    @Test
-    public void testRemovePropertyValueFromAssaysSamples() throws Exception {
-        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
-                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
-        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
-                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
-
-        curationService.removePropertyFromAssays(CELL_TYPE, VALUE007);
-        curationService.removePropertyFromSamples(PROP3, VALUE004);
-
-        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
-                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
-        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
-                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
-
-        Collection<ApiPropertyValue> propertyValues = curationService.getPropertyValues(CELL_TYPE);
-        assertTrue("Property value: " + VALUE007 + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE007));
-
-        propertyValues = curationService.getPropertyValues(PROP3);
-        assertTrue("Property value: " + VALUE004 + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE004));
     }
 
     @Test

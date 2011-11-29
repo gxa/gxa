@@ -69,19 +69,6 @@ public class CurationService {
                 }
             };
 
-    private static final Function<AssayProperty, ApiProperty> ASSAYPROPERTY_APIPROPERTY =
-            new Function<AssayProperty, ApiProperty>() {
-                public ApiProperty apply(@Nonnull AssayProperty e) {
-                    return new ApiProperty(e);
-                }
-            };
-    private static final Function<SampleProperty, ApiProperty> SAMPLEPROPERTY_APIPROPERTY =
-            new Function<SampleProperty, ApiProperty>() {
-                public ApiProperty apply(@Nonnull SampleProperty e) {
-                    return new ApiProperty(e);
-                }
-            };
-
     private static final Function<AssayProperty, PropertyValue> ASSAY_PROPERTY =
             new Function<AssayProperty, PropertyValue>() {
                 @Override
@@ -140,76 +127,26 @@ public class CurationService {
 
     /**
      * @param propertyName
-     * @return List of ApiAssay's containing propertyName-propertyValue
-     */
-    public Collection<ApiProperty> getAssayPropertiesByProperty(final String propertyName) {
-        return transform(assayDAO.getAssayPropertiesByProperty(propertyName), ASSAYPROPERTY_APIPROPERTY);
-
-    }
-
-    /**
-     * @param propertyName
-     * @return List of ApiSample's containing propertyName-propertyValue
-     */
-    public Collection<ApiProperty> getSamplePropertiesByProperty(final String propertyName) {
-        return transform(sampleDAO.getSamplePropertiesByProperty(propertyName), SAMPLEPROPERTY_APIPROPERTY);
-
-    }
-
-    /**
-     * @param propertyName
      * @param propertyValue
-     * @return List of ApiAssay's containing propertyName-propertyValue
+     * @return List of ApiExperiment's containing propertyName-propertyValue
      */
-    public Collection<ApiExperiment> getExperimentsByAssayPropertyValue(final String propertyName, final String propertyValue) {
-        return transform(experimentDAO.getExperimentsByAssayPropertyValue(propertyName, propertyValue), EXPERIMENT);
-
-    }
-
-    /**
-     * @param propertyName
-     * @param propertyValue
-     * @return List of ApiSample's containing propertyName-propertyValue
-     */
-    public Collection<ApiExperiment> getExperimentsBySamplePropertyValue(final String propertyName, final String propertyValue) {
-        return transform(experimentDAO.getExperimentsBySamplePropertyValue(propertyName, propertyValue), EXPERIMENT);
+    public Collection<ApiExperiment> getExperimentsByPropertyValue(final String propertyName, final String propertyValue) {
+        HashSet<Experiment> experiments = new LinkedHashSet<Experiment>();
+        experiments.addAll(experimentDAO.getExperimentsByAssayPropertyValue(propertyName, propertyValue));
+        experiments.addAll(experimentDAO.getExperimentsBySamplePropertyValue(propertyName, propertyValue));
+        return transform(experiments, EXPERIMENT);
 
     }
 
     /**
      * @param ontologyTerm
-     * @return List of ApiAssay's containing a property value mapped to  ontologyTerm
+     * @return List of ApiExperiment's containing a property value mapped to  ontologyTerm
      */
-    public Collection<ApiExperiment> getExperimentsByAssayPropertyOntologyTerm(final String ontologyTerm) {
-        return transform(experimentDAO.getExperimentsByAssayPropertyOntologyTerm(ontologyTerm), EXPERIMENT);
-
-    }
-
-    /**
-     * @param ontologyTerm
-     * @return List of ApiSample's containing  a property value mapped to  ontologyTerm
-     */
-    public Collection<ApiExperiment> getExperimentsBySamplePropertyOntologyTerm(final String ontologyTerm) {
-        return transform(experimentDAO.getExperimentsBySamplePropertyOntologyTerm(ontologyTerm), EXPERIMENT);
-
-    }
-
-    /**
-     * @param assayAccession
-     * @return List of ApiExperiments's containing assay assayAccession
-     */
-    public Collection<ApiExperiment> getExperimentsByAssay(final String assayAccession) {
-        return transform(experimentDAO.getExperimentsByAssay(assayAccession), EXPERIMENT);
-
-    }
-
-    /**
-     * @param sampleAccession
-     * @return List of ApiExperiments's containing sample sampleAccession
-     */
-    public Collection<ApiExperiment> getExperimentsBySample(final String sampleAccession) {
-        return transform(experimentDAO.getExperimentsBySample(sampleAccession), EXPERIMENT);
-
+    public Collection<ApiExperiment> getExperimentsByOntologyTerm(final String ontologyTerm) {
+        HashSet<Experiment> experiments = new LinkedHashSet<Experiment>();
+        experiments.addAll(experimentDAO.getExperimentsByAssayPropertyOntologyTerm(ontologyTerm));
+        experiments.addAll(experimentDAO.getExperimentsBySamplePropertyOntologyTerm(ontologyTerm));
+        return transform(experiments, EXPERIMENT);
     }
 
     /**
@@ -233,38 +170,55 @@ public class CurationService {
     }
 
     /**
-     * Remove all AssayProperties from assays which have property values for property: propertyName; if propertyValue is not null,
-     * remove only those AssayProperties for propertyName that match propertyValue.
+     * Remove all AssayProperties from assays which have property values for property: propertyName
      *
      * @param propertyName
-     * @param propertyValue
      */
     @Transactional
     public void removePropertyFromAssays(
-            @Nonnull final String propertyName, @Nullable final String propertyValue) {
+            @Nonnull final String propertyName) {
         for (Assay assay : assayDAO.getAssaysByProperty(propertyName)) {
-            for (PropertyValue propValue : Lists.newArrayList(transform(assay.getProperties(propertyName, propertyValue), ASSAY_PROPERTY)))
+            for (PropertyValue propValue : Lists.newArrayList(transform(assay.getProperties(propertyName, null), ASSAY_PROPERTY)))
                 assay.deleteProperty(propValue);
             assayDAO.save(assay);
         }
     }
 
     /**
-     * Remove all SampleProperties from assays which have property values for property: propertyName; if propertyValue is not null,
-     * remove only those SampleProperties for propertyName that match propertyValue.
+     * Remove all SampleProperties from assays which have property values for property: propertyName
      *
      * @param propertyName
-     * @param propertyValue
      */
     @Transactional
     public void removePropertyFromSamples(
-            @Nonnull final String propertyName, @Nullable final String propertyValue) {
+            @Nonnull final String propertyName) {
         for (Sample sample : sampleDAO.getSamplesByProperty(propertyName)) {
-            for (PropertyValue propValue : Lists.newArrayList(transform(sample.getProperties(propertyName, propertyValue), SAMPLE_PROPERTY)))
+            for (PropertyValue propValue : Lists.newArrayList(transform(sample.getProperties(propertyName, null), SAMPLE_PROPERTY)))
                 sample.deleteProperty(propValue);
             sampleDAO.save(sample);
         }
     }
+
+    /**
+     * Replaces oldValue of property: propertyName with newValue in all assays/samples in which propertyName-oldValue exists.
+     * In cases when a given assay/sample contains both oldValue and newValue, the retained newValue gets mapped to the superset of OntologyTerms
+     * assigned to oldValue and newValue.
+     *
+     * @param propertyName
+     * @param oldValue
+     * @param newValue
+     * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
+     */
+    @Transactional
+    public void replacePropertyValueInExperiments(
+            final String propertyName,
+            final String oldValue,
+            final String newValue)
+            throws ResourceNotFoundException {
+        replacePropertyValueInAssays(propertyName, oldValue, newValue);
+        replacePropertyValueInSamples(propertyName, oldValue, newValue);
+    }
+
 
     /**
      * Replaces oldValue of property: propertyName with newValue in all assays in which propertyName-oldValue exists.
@@ -277,7 +231,7 @@ public class CurationService {
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
     @Transactional
-    public void replacePropertyValueInAssays(
+    protected void replacePropertyValueInAssays(
             final String propertyName,
             final String oldValue,
             final String newValue)
@@ -315,7 +269,7 @@ public class CurationService {
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
     @Transactional
-    public void replacePropertyValueInSamples(
+    protected void replacePropertyValueInSamples(
             final String propertyName,
             final String oldValue,
             final String newValue)
