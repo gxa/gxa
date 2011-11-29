@@ -54,8 +54,7 @@ public class AtlasExperimentQueryParser {
      */
     public AtlasExperimentQuery parse(Map<String, String[]> parameters) {
         AtlasExperimentQuery.Builder qb = new AtlasExperimentQuery.Builder();
-
-        int rows = atlasProperties.getQueryDefaultPageSize();
+        qb.setRows(atlasProperties.getQueryDefaultPageSize());
 
         for (Map.Entry<String, String[]> e : parameters.entrySet()) {
             final String name = e.getKey();
@@ -81,14 +80,12 @@ public class AtlasExperimentQueryParser {
                 } else if (name.equalsIgnoreCase("geneIs")) {
                     qb.withGeneIdentifiers(optionalParseList(v));
                 } else if (name.equalsIgnoreCase("rows")) {
-                    rows = parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize());
+                    qb.setRows(parseNumber(v, atlasProperties.getQueryDefaultPageSize(), 1, atlasProperties.getAPIQueryMaximumPageSize()));
                 } else if (name.equalsIgnoreCase("start")) {
                     qb.setStart(parseNumber(v, 0, 0, Integer.MAX_VALUE));
                 }
             }
         }
-
-        qb.setRows(rows);
         return qb.toQuery();
     }
 }
