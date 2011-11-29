@@ -40,15 +40,6 @@ public class ApiShallowExperiment {
     private Collection<String> assayAccessions;
     private Collection<String> sampleAccessions;
 
-    public ApiShallowExperiment() {
-    }
-
-    public ApiShallowExperiment(final String accession, final Collection<ApiAssay> assays, final Collection<ApiSample> samples) {
-        this.accession = accession;
-        populateAssayAccessions(assays);
-        populateSampleAccessions(samples);
-    }
-
     public ApiShallowExperiment(final Experiment experiment) {
         this.accession = experiment.getAccession();
         populateAssayAccessions(Collections2.transform(experiment.getAssays(),

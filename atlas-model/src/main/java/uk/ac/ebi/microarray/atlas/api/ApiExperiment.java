@@ -14,8 +14,7 @@ import java.util.List;
 /**
  * @author Misha Kapushesky
  */
-public class ApiExperiment {
-    private String accession;
+public class ApiExperiment extends ApiShallowExperiment {
     private String description;
     private String articleAbstract;
     private String performer;
@@ -27,26 +26,9 @@ public class ApiExperiment {
     private Collection<ApiSample> samples;
     private Boolean isPrivate;
 
-    public ApiExperiment() {
-    }
-
-    public ApiExperiment(final String accession, final String description, final String performer, final String lab,
-                         final Date loadDate, final String pmid, final Collection<ApiAsset> assets,
-                         final Collection<ApiAssay> assays, final Collection<ApiSample> samples, final Boolean isPrivate) {
-        this.accession = accession;
-        this.description = description;
-        this.performer = performer;
-        this.lab = lab;
-        this.loadDate = loadDate;
-        this.pmid = pmid;
-        this.assets = assets;
-        this.assays = assays;
-        this.samples = samples;
-        this.isPrivate = isPrivate;
-    }
-
     public ApiExperiment(final Experiment experiment) {
-        this.accession = experiment.getAccession();
+        super(experiment);
+
         this.description = experiment.getDescription();
         this.articleAbstract = experiment.getAbstract();
         this.performer = experiment.getPerformer();
@@ -64,14 +46,6 @@ public class ApiExperiment {
                 TransformerUtil.instanceTransformer(Sample.class, ApiSample.class));
 
         this.isPrivate = experiment.isPrivate();
-    }
-
-    public String getAccession() {
-        return accession;
-    }
-
-    public void setAccession(String accession) {
-        this.accession = accession;
     }
 
     public String getDescription() {
