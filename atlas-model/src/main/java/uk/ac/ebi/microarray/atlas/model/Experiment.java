@@ -380,9 +380,9 @@ public class Experiment {
             for (AssayProperty property : assay.getProperties()) {
                 update(digest, property.getName());
                 update(digest, property.getValue());
-//                for (OntologyTerm term : property.getTerms()) {
-//                    update(digest, term.getAccession());
-//                }
+                for (OntologyTerm term : property.getTerms()) {
+                    update(digest, term.getAccession());
+                }
             }
         }
         for (Sample sample : samples) {
@@ -392,9 +392,9 @@ public class Experiment {
             for (SampleProperty property : sample.getProperties()) {
                 update(digest, property.getName());
                 update(digest, property.getValue());
-//                for (OntologyTerm term : property.getTerms()) {
-//                    update(digest, term.getAccession());
-//                }
+                for (OntologyTerm term : property.getTerms()) {
+                    update(digest, term.getAccession());
+                }
             }
         }
         update(digest, Boolean.toString(isprivate));

@@ -65,7 +65,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         try {
-            final List<Experiment> experiments = experimentDAO.getAll();
+            final List<Experiment> experiments = experimentDAO.getExperimentsPreparedForIndexing();
 
             final int total = experiments.size();
             int num = 0;
