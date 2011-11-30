@@ -62,7 +62,13 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
         return NAME_COL;
     }
 
-
+    /**
+     * Same as {@link #getAll} but ensures ontology mapping preloading
+     * <p/>
+     * DO NOT use it anywhere but index builder: it's useless for anything but full index.
+     *
+     * @return list of all experiments
+     */
     public List<Experiment> getExperimentsPreparedForIndexing() {
         preloadDetails();
         return getAll();
