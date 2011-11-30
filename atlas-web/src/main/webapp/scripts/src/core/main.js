@@ -60,8 +60,9 @@ var atlas = (function(A, $) {
      * @param newContextPath - a new context path to set
      */
     A.applicationContextPath = function(newContextPath) {
-        if (arguments.length > 0) {
-            contextPath = normalizePath(newContextPath);
+        if (newContextPath) {
+            var np = normalizePath(newContextPath);
+            contextPath = np ? "/" + np : np;
         }
         return contextPath;
     };
@@ -75,11 +76,11 @@ var atlas = (function(A, $) {
         if (uri.length > 4 && uri.substring(0, 4) === "http") {
             return uri;
         }
-        var np = normalizePath(uri);
-        if (np.length >= contextPath.length && np.substring(0, contextPath.length) === contextPath) {
-            return "/" + np;
+
+        if (uri.length >= contextPath.length && uri.substring(0, contextPath.length) === contextPath) {
+            return uri;
         }
-        return "/" + contextPath + "/" + np;
+        return contextPath + "/" + normalizePath(uri);
     };
 
     /**
