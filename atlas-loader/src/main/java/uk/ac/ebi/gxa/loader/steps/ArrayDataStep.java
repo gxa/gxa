@@ -25,8 +25,9 @@ package uk.ac.ebi.gxa.loader.steps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.ArrayDesignAttribute;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
@@ -155,8 +156,8 @@ public class ArrayDataStep {
             for (ArrayDataNode node : dataNodes) {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
 
-                final Collection<HybridizationNode> hybridizationNodes = SDRFUtils.findUpstreamNodes(node, HybridizationNode.class);
-                final Collection<AssayNode> assayNodes = SDRFUtils.findUpstreamNodes(node, AssayNode.class);
+                final Collection<HybridizationNode> hybridizationNodes = GraphUtils.findUpstreamNodes(node, HybridizationNode.class);
+                final Collection<AssayNode> assayNodes = GraphUtils.findUpstreamNodes(node, AssayNode.class);
                 if (hybridizationNodes.size() + assayNodes.size() != 1) {
                     throw new AtlasLoaderException("ArrayDataNode " + node.getNodeName() + " corresponds to " + (hybridizationNodes.size() + assayNodes.size()) + " assays");
                 }
@@ -167,12 +168,12 @@ public class ArrayDataStep {
                     throw new AtlasLoaderException("Cannot fetch an assay for node " + assayNode.getNodeName());
                 }
 
-                final Collection<ScanNode> scanNodes = SDRFUtils.findUpstreamNodes(node, ScanNode.class);
+                final Collection<ScanNode> scanNodes = GraphUtils.findUpstreamNodes(node, ScanNode.class);
                 if (scanNodes.size() > 1) {
                     throw new AtlasLoaderException("ArrayDataNode " + node.getNodeName() + " corresponds to " + scanNodes.size() + " scans");
                 }
                 final ScanNode scanNode = scanNodes.size() == 1 ? scanNodes.iterator().next() : null;
-                final List<ArrayDesignNode> arrayDesigns = assayNode.arrayDesigns;
+                final List<ArrayDesignAttribute> arrayDesigns = assayNode.arrayDesigns;
                 if (arrayDesigns.size() != 1) {
                     throw new AtlasLoaderException("Assay node " + assayNode.getNodeName() + " has " + arrayDesigns.size() + " array designs");
                 }

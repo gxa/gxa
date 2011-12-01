@@ -318,12 +318,12 @@ public class AtlasMAGETABLoader {
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
         Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
         if (scanNodes.size() == 0) {
-            log.info("No comment scan nodes found - investigation {} is not HTS", investigation.accession);
+            log.info("No comment scan nodes found - investigation {} is not HTS", investigation.getAccession());
             return false;
         }
         for (ScanNode scanNode : scanNodes) {
             if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                log.info("No comment[ENA_RUN] found - investigation {} is not HTS", investigation.accession);
+                log.info("No comment[ENA_RUN] found - investigation {} is not HTS", investigation.getAccession());
                 return false;
             }
         }

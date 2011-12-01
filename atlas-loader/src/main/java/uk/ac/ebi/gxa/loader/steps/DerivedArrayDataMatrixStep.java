@@ -25,11 +25,11 @@ package uk.ac.ebi.gxa.loader.steps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.DerivedArrayDataMatrixNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
@@ -116,9 +116,9 @@ public class DerivedArrayDataMatrixStep {
                         }
 
                         // collect all the possible 'assay' forming nodes
-                        Collection<HybridizationNode> hybTypeNodes = SDRFUtils.findUpstreamNodes(
+                        Collection<HybridizationNode> hybTypeNodes = GraphUtils.findUpstreamNodes(
                                 refNode, HybridizationNode.class);
-                        Collection<AssayNode> assayTypeNodes = SDRFUtils.findUpstreamNodes(
+                        Collection<AssayNode> assayTypeNodes = GraphUtils.findUpstreamNodes(
                                 refNode, AssayNode.class);
 
                         // lump the two together
@@ -138,7 +138,7 @@ public class DerivedArrayDataMatrixStep {
                             // generate error item and throw exception
                             throw new AtlasLoaderException(
                                     "Unable to update resolve expression values to assays for " +
-                                            investigation.accession + " - data matrix file references scans, " +
+                                            investigation.getAccession() + " - data matrix file references scans, " +
                                             "and in this experiment scans do not map one to one with assays.  " +
                                             "This is not supported, as it would result in " +
                                             (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
