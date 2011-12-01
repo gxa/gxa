@@ -223,9 +223,20 @@ public class AssayAndHybridizationStep {
                 factorValueName = "(empty)";
             }
 
+            // try and lookup factor type for factor name: factorValueAttribute.type
+            String efType = null;
+            List<String> efNames = investigation.IDF.experimentalFactorName;
+            for (int i = 0; i < efNames.size(); i++) {
+                if (efNames.get(i).equals(factorValueAttribute.type)) {
+                    if (investigation.IDF.experimentalFactorType.size() > i) {
+                        efType = investigation.IDF.experimentalFactorType.get(i);
+                    }
+                }
+            }
+
             // does this assay already contain this property/property value pair?
             boolean existing = false;
-            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(factorValueAttribute.type))) {
+            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(efType))) {
                 existing = true;
                 if (!ap.getValue().equals(factorValueName)) {
                     throw new AtlasLoaderException(
@@ -235,17 +246,6 @@ public class AssayAndHybridizationStep {
                                     "which cannot currently be loaded into the atlas. Or, this could be a result " +
                                     "of inconsistent annotations"
                     );
-                }
-            }
-
-            // try and lookup type
-            String efType = null;
-            List<String> efNames = investigation.IDF.experimentalFactorName;
-            for (int i = 0; i < efNames.size(); i++) {
-                if (efNames.get(i).equals(factorValueAttribute.type)) {
-                    if (investigation.IDF.experimentalFactorType.size() > i) {
-                        efType = investigation.IDF.experimentalFactorType.get(i);
-                    }
                 }
             }
 

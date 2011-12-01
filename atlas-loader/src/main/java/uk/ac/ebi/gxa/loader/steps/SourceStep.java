@@ -30,6 +30,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
@@ -82,8 +83,7 @@ public class SourceStep {
 
             // does this sample already contain this property/property value pair?
             boolean existing = false;
-            for (SampleProperty sp : sample.getProperties()) {
-                if (sp.getName().equals(characteristicsAttribute.type)) {
+            for (SampleProperty sp : sample.getProperties(Property.getSanitizedPropertyAccession(characteristicsAttribute.type))) {
                     existing = true;
                     if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
                         // generate error item and throw exception
@@ -94,7 +94,6 @@ public class SourceStep {
                                         characteristicsAttribute + ") will be ignored"
                         );
                     }
-                }
             }
 
             if (!existing) {
