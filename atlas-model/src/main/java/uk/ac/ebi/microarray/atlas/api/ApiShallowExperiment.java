@@ -14,9 +14,9 @@ import java.util.Collection;
 import static com.google.common.collect.Collections2.transform;
 
 /**
+ * A minimal version of ApiExperiment
+ *
  * @author Robert Petryszak
- *         <p/>
- *         A minimal version of ApiExperiment
  */
 public class ApiShallowExperiment {
 
@@ -41,6 +41,7 @@ public class ApiShallowExperiment {
     private Collection<String> sampleAccessions;
 
     public ApiShallowExperiment(final Experiment experiment) {
+
         this.accession = experiment.getAccession();
         populateAssayAccessions(Collections2.transform(experiment.getAssays(),
                 TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class)));

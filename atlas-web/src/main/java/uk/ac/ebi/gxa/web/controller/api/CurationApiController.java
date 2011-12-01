@@ -60,7 +60,7 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
-    public void replacePropertyValueInAssays(
+    public void replacePropertyValueInExperiments(
             @PathVariable("v") final ApiVersionType version,
             @PathVariable("propertyName") final String propertyName,
             @PathVariable("oldPropertyValue") final String oldPropertyValue,
