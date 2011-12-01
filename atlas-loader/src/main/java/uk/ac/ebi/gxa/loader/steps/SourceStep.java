@@ -84,16 +84,16 @@ public class SourceStep {
             // does this sample already contain this property/property value pair?
             boolean existing = false;
             for (SampleProperty sp : sample.getProperties(Property.getSanitizedPropertyAccession(characteristicsAttribute.type))) {
-                    existing = true;
-                    if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
-                        // generate error item and throw exception
-                        throw new AtlasLoaderException(
-                                "Inconsistent characteristic values for sample " + sample.getAccession() +
-                                        ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
-                                        characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
-                                        characteristicsAttribute + ") will be ignored"
-                        );
-                    }
+                existing = true;
+                if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
+                    // generate error item and throw exception
+                    throw new AtlasLoaderException(
+                            "Inconsistent characteristic values for sample " + sample.getAccession() +
+                                    ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
+                                    characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
+                                    characteristicsAttribute + ") will be ignored"
+                    );
+                }
             }
 
             if (!existing) {
