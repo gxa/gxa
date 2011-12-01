@@ -1,8 +1,8 @@
 Investigation Title	Human cerebellum, frontal cortex [BA4, BA9] and caudate nucleus HD tissue experiment
 Experimental Design	unknown_design_type
 Experimental Design Term Source REF
-Experimental Factor Name
-Experimental Factor Type
+Experimental Factor Name 	Ecotype
+Experimental Factor Type	Ecotype
 Experimental Factor Term Source REF
 Person Last Name	Hodges
 Person First Name	Lesley Jones Angela
