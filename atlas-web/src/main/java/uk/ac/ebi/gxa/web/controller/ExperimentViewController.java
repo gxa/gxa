@@ -42,6 +42,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -74,6 +75,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasDataDAO atlasDataDAO;
 
+    private final GeneSolrDAO geneSolrDAO;
+
     private final PropertyDAO propertyDAO;
 
     private final AtlasProperties atlasProperties;
@@ -96,10 +99,19 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                                     AtlasDataDAO atlasDataDAO,
                                     PropertyDAO propertyDAO,
                                     AtlasProperties atlasProperties) {
-        super(solrDAO, geneSolrDAO, atlasDAO);
+        super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
+        this.geneSolrDAO = geneSolrDAO;
+    }
+
+    protected List<Long> findGeneIds(Collection<String> geneQuery) {
+        return geneSolrDAO.findGeneIds(geneQuery);
+    }
+
+    public Map<Long, AtlasGene> getGenesByIds(List<Long> geneIds) {
+        return geneSolrDAO.getGenesByIds(geneIds);
     }
 
     /**
@@ -303,21 +315,23 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                     ? findGeneIds(Arrays.asList(gid.trim()))
                     : Collections.<Long>emptyList();
 
-            if (!isNullOrEmpty(gid) && geneIds.isEmpty()) {
-                res = ExperimentWithData.EMPTY_DESIGN_ELEMENT_RESULT;
-            } else {
-                res = ewd.findBestGenesForExperiment(
-                        adAcc,
-                        geneIds,
-                        !isNullOrEmpty(ef) && !isNullOrEmpty(efv) ?
-                                // We don't currently allow search for best design elements by either just an ef
-                                // or just an efv - both need to be specified
-                               Collections.singleton(Pair.create(ef, efv)) : Collections.<Pair<String, String>>emptySet() ,
-                        updown,
-                        offset,
-                        limit
-                );
+            ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
+            if (!isNullOrEmpty(adAcc)) {
+                criteria.hasArrayDesignAccession(adAcc);
+            } else if (!geneIds.isEmpty()) {
+                criteria.containsAtLeastOneGene(geneIds);
             }
+
+            res = criteria.retrieveFrom(ewd).findBestGenesForExperiment(
+                    geneIds,
+                    !isNullOrEmpty(ef) && !isNullOrEmpty(efv) ?
+                            // We don't currently allow search for best design elements by either just an ef
+                            // or just an efv - both need to be specified
+                            Collections.singleton(Pair.create(ef, efv)) : Collections.<Pair<String, String>>emptySet(),
+                    updown,
+                    offset,
+                    limit
+            );
 
             final Map<Long, AtlasGene> geneIdToGene = getGenesByIds(res.getGeneIds());
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
@@ -430,8 +444,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         private final String tValue;
 
         public ExperimentTableRow(BestDesignElementsResult.Item item, AtlasGene gene) {
-            geneName = gene != null ? gene.getGeneName() : "";
-            geneIdentifier = gene != null ? gene.getGeneIdentifier() : "";
+
+            if (gene == null) {
+                throw LogUtil.createUnexpected("No gene was found for design element: " + item.getDeAccession());
+            }
+            geneName = gene.getGeneName();
+            geneIdentifier = gene.getGeneIdentifier();
             deAccession = item.getDeAccession();
             deIndex = item.getDeIndex();
             factor = item.getEf();

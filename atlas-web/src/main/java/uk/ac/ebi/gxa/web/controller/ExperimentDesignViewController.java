@@ -21,7 +21,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
 
     @Autowired
     public ExperimentDesignViewController(ExperimentSolrDAO experimentSolrDAO, GeneSolrDAO geneSolrDAO, AtlasDAO atlasDAO) {
-        super(experimentSolrDAO, geneSolrDAO, atlasDAO);
+        super(experimentSolrDAO, atlasDAO);
     }
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)

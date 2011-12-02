@@ -160,10 +160,14 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                         try {
                                             final List<Long> geneIds = geneSolrDAO.findGeneIds(query.getGeneIdentifiers());
+
+                                            ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
+                                            if (!geneIds.isEmpty()) {
+                                                criteria.containsAtLeastOneGene(geneIds);
+                                            }
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                             BestDesignElementsResult geneResults =
-                                                    ewd.findBestGenesForExperiment(
-                                                            null,
+                                                    criteria.retrieveFrom(ewd).findBestGenesForExperiment(
                                                             geneIds,
                                                             Collections.<Pair<String, String>>emptySet(),
                                                             QueryExpression.ANY.asUpDownCondition(),

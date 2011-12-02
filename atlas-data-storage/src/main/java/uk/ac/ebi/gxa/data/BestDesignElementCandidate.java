@@ -33,10 +33,10 @@ import static java.lang.Math.abs;
  *         This class is used as an element in Collections sorted by accurate (as stored in ncdfs) pval/tstat, specifically in the experiment page's best design elements table
  */
 public final class BestDesignElementCandidate implements Comparable<BestDesignElementCandidate>{
-    Float pValue;
-    Float tStat;
-    Integer deIndex;
-    Integer uEFVIndex;
+    private Float pValue;
+    private Float tStat;
+    private Integer deIndex;
+    private Integer uEFVIndex;
 
     public BestDesignElementCandidate(Float pValue, Float tStat, Integer deIndex, Integer uEFVIndex) {
         this.pValue = pValue;
