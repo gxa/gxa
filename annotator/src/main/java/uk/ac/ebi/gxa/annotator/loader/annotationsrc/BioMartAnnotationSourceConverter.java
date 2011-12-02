@@ -55,7 +55,7 @@ public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<
         Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
-        BioMartAnnotationSource annSrc = fetchAnnSrc(id);
+        BioMartAnnotationSource annSrc = fetchAnnSrcById(id);
         //Check if for given organism and software annotation source exists
         if (annSrc == null || (!annSrc.getSoftware().equals(software) || !annSrc.getOrganism().equals(organism))) {
             final BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
@@ -65,6 +65,9 @@ public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<
             } else {
                 if (annSrc == null) {
                     annSrc = new BioMartAnnotationSource(software, organism);
+                } else {
+                    annSrc.setOrganism(organism);
+                    annSrc.setSoftware(software);
                 }
             }
         }

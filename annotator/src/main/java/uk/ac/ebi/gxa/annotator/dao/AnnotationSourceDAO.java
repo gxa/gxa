@@ -73,6 +73,13 @@ public class AnnotationSourceDAO {
         return template.find("from " + type.getSimpleName());
     }
 
+    public <T extends AnnotationSource> boolean isAnnSrcExistForSoftwareAndOrganism(Software software, Organism organism, Class<T> type) {
+        String queryString = "from " + type.getSimpleName() + " where software = ? and organism = ?";
+        @SuppressWarnings("unchecked")
+        final List<T> results = template.find(queryString, software, organism);
+        return !results.isEmpty();
+    }
+
     public <T extends AnnotationSource> T findAnnotationSource(Software software, Organism organism, Class<T> type) {
         String queryString = "from " + type.getSimpleName() + " where software = ? and organism = ?";
         @SuppressWarnings("unchecked")
@@ -80,12 +87,20 @@ public class AnnotationSourceDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
-    public <T extends AnnotationSource> T findAnnotationSource(Software software,  Class<T> type) {
+    public <T extends AnnotationSource> T findAnnotationSource(Software software, Class<T> type) {
         String queryString = "from " + type.getSimpleName() + " where software = ?";
         @SuppressWarnings("unchecked")
         final List<T> results = template.find(queryString, software);
         return results.isEmpty() ? null : results.get(0);
     }
+
+    public <T extends AnnotationSource> boolean isAnnSrcExistForSoftware(Software software, Class<T> type) {
+        String queryString = "from " + type.getSimpleName() + " where software = ?";
+        @SuppressWarnings("unchecked")
+        final List<T> results = template.find(queryString, software);
+        return !results.isEmpty();
+    }
+
 
     public void remove(AnnotationSource annSrc) {
 

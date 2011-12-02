@@ -36,7 +36,7 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected static final String SOFTWARE_VERSION_PROPNAME = "software.version";
     protected static final String TYPES_PROPNAME = "types";
     protected static final String URL_PROPNAME = "url";
-    private static final String EXTPROPERTY_PROPNAME = "biomartProperty";
+    private static final String EXTPROPERTY_PROPNAME = "property";
     private static final String ARRAYDESIGN_PROPNAME = "arrayDesign";
 
     @Autowired
@@ -53,7 +53,7 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected ArrayDesignService arrayDesignService;
 
     public String convertToString(String id) {
-        final T annSrc = fetchAnnSrc(id);
+        final T annSrc = fetchAnnSrcById(id);
         if (annSrc == null) {
             return "";
         }
@@ -87,9 +87,9 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected abstract Class<T> getClazz();
 
-    protected T fetchAnnSrc(String id) {
+    protected T fetchAnnSrcById(String id) {
         T annSrc = null;
-        if (!StringUtils.EMPTY.equals(id)) {
+        if (!StringUtils.isEmpty(id)) {
             try {
                 final long idL = Long.parseLong(id.trim());
                 annSrc = annSrcDAO.getById(idL, getClazz());
@@ -254,4 +254,28 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected abstract void writeExtraProperties(T annSrc, PropertiesConfiguration properties);
 
     protected abstract T initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException;
+
+    public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
+        this.annSrcDAO = annSrcDAO;
+    }
+
+    public void setOrganismDAO(OrganismDAO organismDAO) {
+        this.organismDAO = organismDAO;
+    }
+
+    public void setSoftwareDAO(SoftwareDAO softwareDAO) {
+        this.softwareDAO = softwareDAO;
+    }
+
+    public void setTypeDAO(BioEntityTypeDAO typeDAO) {
+        this.typeDAO = typeDAO;
+    }
+
+    public void setPropertyDAO(BioEntityPropertyDAO propertyDAO) {
+        this.propertyDAO = propertyDAO;
+    }
+
+    public void setArrayDesignService(ArrayDesignService arrayDesignService) {
+        this.arrayDesignService = arrayDesignService;
+    }
 }

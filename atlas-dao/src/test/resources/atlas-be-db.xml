@@ -553,6 +553,11 @@
             BIOENTITYTYPEID="200"
             />
 
+    <A2_ANNSRC_BIOENTITYTYPE
+            annotationsrcid="1001"
+            BIOENTITYTYPEID="200"
+            />
+
     <A2_EXTERNAL_BEPROPERTY
             EXTBEPROPERTYID="1000"
             annotationsrcid="1000"
@@ -579,6 +584,13 @@
             BIOENTITYPROPERTYID="200"
             NAME="ensembl_transcript_id"
             />
+
+    <A2_EXTERNAL_BEPROPERTY
+             EXTBEPROPERTYID="3001"
+             annotationsrcid="1001"
+             BIOENTITYPROPERTYID="400"
+             NAME="genesigdbid"
+             />
 
     <A2_EXTERNAL_ARRAYDESIGN
             EXTARRAYDESIGNID="1000"

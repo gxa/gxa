@@ -4,13 +4,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
-import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 
 import java.util.Collection;
 
@@ -23,24 +20,19 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
-    @Autowired
-    private OrganismDAO organismDAO;
+
     @Autowired
     private SoftwareDAO softwareDAO;
-    @Autowired
-    private BioEntityTypeDAO typeDAO;
-    @Autowired
-    private BioEntityPropertyDAO propertyDAO;
 
     @Autowired
-    private ArrayDesignService arrayDesignService;
-
+    private ConverterFactory annotationSourceConverterFactory;
     private AnnotationSourceManager manager;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         manager = new AnnotationSourceManager();
+        manager.setAnnotationSourceConverterFactory(annotationSourceConverterFactory);
         manager.setAnnSrcDAO(annSrcDAO);
         manager.setSoftwareDAO(softwareDAO);
     }
@@ -52,11 +44,14 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetAnnSrcString() throws Exception {
-
+        final String annSrcString = manager.getAnnSrcString("1000", AnnotationSourceClass.BIOMART);
+        assertEquals(BioMartAnnotationSourceConverterTest.ANN_SRC_DB, annSrcString.trim());
     }
 
     @Test
     public void testSaveAnnSrc() throws Exception {
-
+        manager.saveAnnSrc(null, AnnotationSourceClass.FILE, FileBasedAnnotationSourceConverterTest.ANN_SRC);
+        final Collection<? extends AnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(AnnotationSourceClass.FILE.getClazz());
+        assertEquals(2, sources.size());
     }
 }

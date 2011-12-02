@@ -36,8 +36,8 @@ import javax.persistence.*;
 @Table(name = "A2_EXTERNAL_ARRAYDESIGN")
 public class ExternalArrayDesign {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bmPropSeq")
-    @SequenceGenerator(name = "bmPropSeq", sequenceName = "A2_EXTERNAL_ARRAYDESIGN_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "extADSeq")
+    @SequenceGenerator(name = "extADSeq", sequenceName = "A2_EXTERNAL_ARRAYDESIGN_SEQ", allocationSize = 1)
     @Column(name = "EXTARRAYDESIGNID")
     private Long extArraydesignId;
     private String name;

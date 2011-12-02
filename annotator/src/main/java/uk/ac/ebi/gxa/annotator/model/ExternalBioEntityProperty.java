@@ -52,8 +52,8 @@ public class ExternalBioEntityProperty {
     ExternalBioEntityProperty() {
     }
 
-    public ExternalBioEntityProperty(String biomartPropertyName, BioEntityProperty bioEntityProperty, AnnotationSource annSrc) {
-        this.name = biomartPropertyName;
+    public ExternalBioEntityProperty(String propertyName, BioEntityProperty bioEntityProperty, AnnotationSource annSrc) {
+        this.name = propertyName;
         this.bioEntityProperty = bioEntityProperty;
         this.annotationSrc = annSrc;
     }

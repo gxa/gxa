@@ -142,6 +142,10 @@ public abstract class AnnotationSource implements Serializable {
         return software;
     }
 
+    public void setSoftware(Software software) {
+        this.software = software;
+    }
+
     public void setLoadDate(Date loadDate) {
         this.loadDate = copyOf(loadDate);
     }

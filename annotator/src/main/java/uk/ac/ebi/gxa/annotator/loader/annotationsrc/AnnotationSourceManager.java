@@ -67,13 +67,7 @@ public class AnnotationSourceManager {
         return result;
     }
 
-    private <T extends AnnotationSource> void removeAnnSrcs(final Collection<T> annSrcs) {
-        for (T annSrc : annSrcs) {
-            annSrcDAO.remove(annSrc);
-        }
-    }
-
-    public String getAnnSrcString(String id, AnnotationSourceClass type) {
+        public String getAnnSrcString(String id, AnnotationSourceClass type) {
         final AnnotationSourceConverter converter = annotationSourceConverterFactory.getConverter(type.getClazz());
         return converter.convertToString(id);
     }
@@ -89,11 +83,21 @@ public class AnnotationSourceManager {
         }
     }
 
+    private <T extends AnnotationSource> void removeAnnSrcs(final Collection<T> annSrcs) {
+        for (T annSrc : annSrcs) {
+            annSrcDAO.remove(annSrc);
+        }
+    }
+
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
     }
 
     public void setSoftwareDAO(SoftwareDAO softwareDAO) {
         this.softwareDAO = softwareDAO;
+    }
+
+    public void setAnnotationSourceConverterFactory(ConverterFactory annotationSourceConverterFactory) {
+        this.annotationSourceConverterFactory = annotationSourceConverterFactory;
     }
 }

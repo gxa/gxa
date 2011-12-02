@@ -54,9 +54,6 @@
         <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
-    <bean name="annotationSourceLoader"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader"/>
-
     <bean name="annotationSourceManager"
           class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationSourceManager"/>
 

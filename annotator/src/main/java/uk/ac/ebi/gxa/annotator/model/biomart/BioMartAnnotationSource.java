@@ -129,6 +129,9 @@ public class BioMartAnnotationSource extends AnnotationSource {
         this.mySqlDbUrl = mySqlDbUrl;
     }
 
+    public void setOrganism(Organism organism) {
+        this.organism = organism;
+    }
 
     /////////////////////////
     //  Helper methods
