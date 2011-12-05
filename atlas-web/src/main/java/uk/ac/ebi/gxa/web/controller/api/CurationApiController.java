@@ -24,7 +24,7 @@ public class CurationApiController extends AtlasViewController {
     @Autowired
     private CurationService curationService;
 
-    @RequestMapping(value = "/properties",
+    @RequestMapping(value = "/properties.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiPropertyName> getPropertyNames(
@@ -35,7 +35,7 @@ public class CurationApiController extends AtlasViewController {
     }
 
 
-    @RequestMapping(value = "/properties/{propertyName}",
+    @RequestMapping(value = "/properties/{propertyName}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiPropertyValue> getPropertyValues(
@@ -57,7 +57,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.removePropertyValue(propertyName, propertyValue);
     }
 
-    @RequestMapping(value = "/experiments",
+    @RequestMapping(value = "/experiments.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getAllExperiments(@PathVariable("v") final ApiVersionType version,
@@ -78,7 +78,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.replacePropertyValueInExperiments(propertyName, oldPropertyValue, newPropertyValue);
     }
 
-    @RequestMapping(value = "/experiments/{experimentAccession}",
+    @RequestMapping(value = "/experiments/{experimentAccession}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiExperiment getExperiment(@PathVariable("v") final ApiVersionType version,
@@ -105,7 +105,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.removePropertyFromSamples(propertyName);
     }
 
-    @RequestMapping(value = "/experiments/properties/{propertyName}/{propertyValue}",
+    @RequestMapping(value = "/experiments/properties/{propertyName}/{propertyValue}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getExperimentsByPropertyValue(@PathVariable("v") final ApiVersionType version,
@@ -115,7 +115,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperimentsByPropertyValue(propertyName, propertyValue);
     }
 
-    @RequestMapping(value = "/experiments/ontologyterms/{ontologyTerm}",
+    @RequestMapping(value = "/experiments/ontologyterms/{ontologyTerm}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getExperimentsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
@@ -124,7 +124,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperimentsByOntologyTerm(ontologyTerm);
     }
 
-    @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}",
+    @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiAssay getAssay(@PathVariable("v") final ApiVersionType version,
@@ -134,7 +134,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getAssay(experimentAccession, assayAccession);
     }
 
-    @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}",
+    @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiSample getSample(@PathVariable("v") final ApiVersionType version,
@@ -144,7 +144,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getSample(experimentAccession, sampleAccession);
     }
 
-    @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
+    @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiProperty> getAssayProperties(
@@ -177,7 +177,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
     }
 
-    @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
+    @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiProperty> getSampleProperties(
@@ -210,7 +210,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
     }
 
-    @RequestMapping(value = "/ontologies/{ontologyName}",
+    @RequestMapping(value = "/ontologies/{ontologyName}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiOntology getOntology(@PathVariable("v") final ApiVersionType version,
@@ -228,7 +228,7 @@ public class CurationApiController extends AtlasViewController {
         curationService.putOntology(apiOntology);
     }
 
-    @RequestMapping(value = "/ontologyterms/{ontologyTerm}",
+    @RequestMapping(value = "/ontologyterms/{ontologyTerm}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiOntologyTerm getOntologyTerm(@PathVariable("v") final ApiVersionType version,
