@@ -95,6 +95,12 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testGetAllExperiments() throws Exception {
+        assertTrue("Some experiments should have been returned",
+                curationService.getAllExperiments().size() > 0);
+    }
+
+    @Test
     public void testGetExperimentsByAssayPropertyOntologyTerm() throws Exception {
         assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
                 curationService.getExperimentsByOntologyTerm(EFO_0000827).size() > 0);

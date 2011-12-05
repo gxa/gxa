@@ -339,6 +339,12 @@ public class CurationService {
     }
 
     /**
+     * @return all ApiShallowExperiment's in Atlas
+     */
+    public List<ApiShallowExperiment> getAllExperiments() {
+        return Lists.newArrayList(transform(experimentDAO.getAll(), EXPERIMENT));
+    }
+    /**
      * @param experimentAccession
      * @param assayAccession
      * @return Collection of ApiAssayProperty for assay: assayAccession in experiment: experimentAccession

@@ -57,6 +57,14 @@ public class CurationApiController extends AtlasViewController {
         curationService.removePropertyValue(propertyName, propertyValue);
     }
 
+    @RequestMapping(value = "/experiments",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiShallowExperiment> getAllExperiments(@PathVariable("v") final ApiVersionType version,
+                                                           HttpServletResponse response) {
+        return curationService.getAllExperiments();
+    }
+
     @RequestMapping(value = "/experiments/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
@@ -101,9 +109,9 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getExperimentsByPropertyValue(@PathVariable("v") final ApiVersionType version,
-                                                                        @PathVariable("propertyName") final String propertyName,
-                                                                        @PathVariable("propertyValue") final String propertyValue,
-                                                                        HttpServletResponse response) throws ResourceNotFoundException {
+                                                                          @PathVariable("propertyName") final String propertyName,
+                                                                          @PathVariable("propertyValue") final String propertyValue,
+                                                                          HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getExperimentsByPropertyValue(propertyName, propertyValue);
     }
 
@@ -111,8 +119,8 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getExperimentsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
-                                                                  @PathVariable("ontologyTerm") final String ontologyTerm,
-                                                                  HttpServletResponse response) throws ResourceNotFoundException {
+                                                                         @PathVariable("ontologyTerm") final String ontologyTerm,
+                                                                         HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getExperimentsByOntologyTerm(ontologyTerm);
     }
 

@@ -9,122 +9,63 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Misha Kapushesky
  */
-public class ApiExperiment extends ApiShallowExperiment {
-    private String description;
-    private String articleAbstract;
-    private String performer;
-    private String lab;
-    private Date loadDate;
-    private String pmid;
-    private Collection<ApiAsset> assets;
-    private Collection<ApiAssay> assays;
-    private Collection<ApiSample> samples;
-    private Boolean isPrivate;
+public class ApiExperiment {
+    protected Experiment experiment;
 
     public ApiExperiment(final Experiment experiment) {
-        super(experiment);
+        this.experiment = experiment;
+    }
 
-        this.description = experiment.getDescription();
-        this.articleAbstract = experiment.getAbstract();
-        this.performer = experiment.getPerformer();
-        this.lab = experiment.getLab();
-        this.loadDate = experiment.getLoadDate();
-        this.pmid = experiment.getPubmedId();
-
-        this.assets = Collections2.transform(experiment.getAssets(),
-                TransformerUtil.instanceTransformer(Asset.class, ApiAsset.class));
-
-        this.assays = Collections2.transform(experiment.getAssays(),
-                TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
-
-        this.samples = Collections2.transform(experiment.getSamples(),
-                TransformerUtil.instanceTransformer(Sample.class, ApiSample.class));
-
-        this.isPrivate = experiment.isPrivate();
+    public String getAccession() {
+        return experiment.getAccession();
     }
 
     public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+        return experiment.getDescription();
     }
 
     public String getArticleAbstract() {
-        return articleAbstract;
-    }
-
-    public void setArticleAbstract(String articleAbstract) {
-        this.articleAbstract = articleAbstract;
+        return experiment.getAbstract();
     }
 
     public String getPerformer() {
-        return performer;
-    }
-
-    public void setPerformer(String performer) {
-        this.performer = performer;
+        return experiment.getPerformer();
     }
 
     public String getLab() {
-        return lab;
-    }
-
-    public void setLab(String lab) {
-        this.lab = lab;
+        return experiment.getLab();
     }
 
     public Date getLoadDate() {
-        return loadDate;
-    }
-
-    public void setLoadDate(Date loadDate) {
-        this.loadDate = loadDate;
+        return experiment.getLoadDate();
     }
 
     public String getPubmedId() {
-        return pmid;
-    }
-
-    public void setPubmedId(String pmid) {
-        this.pmid = pmid;
+        return experiment.getPubmedId();
     }
 
     public Collection<ApiAsset> getAssets() {
-        return assets;
-    }
-
-    public void setAssets(List<ApiAsset> assets) {
-        this.assets = assets;
+        return Collections2.transform(experiment.getAssets(),
+                TransformerUtil.instanceTransformer(Asset.class, ApiAsset.class));
     }
 
     public Collection<ApiAssay> getAssays() {
-        return assays;
+        return Collections2.transform(experiment.getAssays(),
+                TransformerUtil.instanceTransformer(Assay.class, ApiAssay.class));
     }
 
-    public void setAssays(List<ApiAssay> assays) {
-        this.assays = assays;
-    }
 
     public Collection<ApiSample> getSamples() {
-        return samples;
-    }
-
-    public void setSamples(List<ApiSample> samples) {
-        this.samples = samples;
+        return Collections2.transform(experiment.getSamples(),
+                TransformerUtil.instanceTransformer(Sample.class, ApiSample.class));
     }
 
     public boolean isPrivate() {
-        return isPrivate;
+        return experiment.isPrivate();
     }
 
-    public void setPrivate(boolean isPrivate) {
-        this.isPrivate = isPrivate;
-    }
 }
