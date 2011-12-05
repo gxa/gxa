@@ -38,6 +38,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -123,7 +124,45 @@ public class BioMartParser<T extends BioEntityData> {
         } finally {
             closeQuietly(csvReader);
         }
+    }
 
+    public void parseBioMartPropertyValues(Collection<BioEntityProperty> properties, URL url, boolean skipFirstLine) throws AtlasAnnotationException {
+        CSVReader csvReader = null;
+        try {
+            csvReader = new CSVReader(getReader(url), '\t', '"');
+
+            String[] line;
+            int lineCount = 0;
+
+            while ((line = csvReader.readNext()) != null) {
+                if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
+                    log.debug("Cannot get properties line: {}", Arrays.toString(line));
+                    throw new AtlasAnnotationException("Cannot get properties from URL " + url);
+                }
+
+                if (skipFirstLine && lineCount++==0) {
+                    continue;   
+                }
+
+                int propertyCount = 0;
+                for (BioEntityProperty property : properties) {
+                    BEPropertyValue propertyValue = new BEPropertyValue(property, line[bioEntityTypes.size() + propertyCount++].trim());
+                    int typeCount = 0;
+                    for (BioEntityType type : bioEntityTypes) {
+                        builder.addPropertyValue(line[typeCount++].trim(), type, propertyValue);
+                    }
+
+                    if (lineCount % 2000 == 0) {
+                        log.info("Parsed " + lineCount + " properties values");
+                    }
+                }
+
+            }
+        } catch (IOException e) {
+            throw new AtlasAnnotationException("Cannot get properties form  URL " + url, e);
+        } finally {
+            closeQuietly(csvReader);
+        }
     }
 
     public void parseDesignElementMappings(URL url) throws AtlasAnnotationException {

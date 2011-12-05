@@ -36,6 +36,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -104,6 +105,39 @@ public class BioMartParserTest {
             if (type.equals(new BioEntityType(null, "ensgene", 1))) {
                 assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(go, "extracellular region"))));
                 assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(go, "hormone activity"))));
+            } else {
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "extracellular region"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "hormone activity"))));
+            }
+        }
+    }
+
+    @Test
+    public void testParseBioMartPropertyValuesMultiple() throws Exception {
+        List<BioEntityType> bioEntityTypes = initTypes();
+        BioMartParser<BioEntityAnnotationData> parser = getBioMartParser();
+
+        BioEntityProperty go = new BioEntityProperty(null, "go");
+        BioEntityProperty testProp = new BioEntityProperty(null, "testProp");
+
+        final List<BioEntityProperty> properties = Arrays.asList(go, testProp);
+
+        parser.parseBioMartPropertyValues(properties, BioMartParserTest.class.getResource("multiple_properties.txt"), true);
+
+        BioEntityAnnotationData data = parser.getData();
+
+
+        assertEquals(5, data.getPropertyValues().size());
+
+        for (BioEntityType type : bioEntityTypes) {
+            Collection<Pair<String, BEPropertyValue>> propertyValues = data.getPropertyValuesForBioEntityType(type);
+            assertEquals(5, propertyValues.size());
+            if (type.equals(new BioEntityType(null, "ensgene", 1))) {
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(go, "extracellular region"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(go, "hormone activity"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(testProp, "pv1"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000039669", new BEPropertyValue(testProp, "pv2"))));
+                assertTrue(propertyValues.contains(Pair.create("ENSBTAG00000025314", new BEPropertyValue(testProp, "pv3"))));
             } else {
                 assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "extracellular region"))));
                 assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "hormone activity"))));

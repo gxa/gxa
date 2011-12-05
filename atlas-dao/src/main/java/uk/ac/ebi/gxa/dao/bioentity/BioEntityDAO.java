@@ -143,7 +143,6 @@ public class BioEntityDAO {
         return type;
     }
 
-
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
@@ -231,6 +230,46 @@ public class BioEntityDAO {
 
         writeBatchInChunks(query, beProperties, statementSetter);
     }
+
+    /**
+     * Writes Bioentity -> bioentityProperty relations, with a check if bioentity with a given identifier exists.
+     * @param beProperties - a Collection of Pair, which contains values:
+     *                     [0] - BioEntity identifier
+     *                     [1] - BEPropertyValue
+     * @param beType
+     * @param software
+     */
+    public void writeBioEntityToPropertyValuesChecked(final Collection<Pair<String, BEPropertyValue>> beProperties, final BioEntityType beType,
+                                               final Software software) {
+
+        String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
+                "  select \n" +
+                "  (select be.bioentityid from a2_bioentity be where be.identifier = ? and be.bioentitytypeid = ?),\n" +
+                "  (select pv.bepropertyvalueid from a2_bioentitypropertyvalue pv " +
+                "where pv.VALUE = ? " +
+                "  and pv.bioentitypropertyid = ?),\n" +
+                "  ? \n" +
+                "FROM  DUAL \n" +
+                "where (SELECT COUNT(BE.BIOENTITYID) FROM A2_BIOENTITY BE WHERE BE.IDENTIFIER = ? AND BE.BIOENTITYTYPEID = ?)!=0";
+
+        ListStatementSetter<Pair<String, BEPropertyValue>> statementSetter = new ListStatementSetter<Pair<String, BEPropertyValue>>() {
+            long softwareId = software.getSoftwareid();
+
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, list.get(i).getFirst());
+                ps.setLong(2, beType.getId());
+                ps.setString(3, list.get(i).getSecond().getValue());
+                ps.setLong(4, list.get(i).getSecond().getProperty().getBioEntitypropertyId());
+                ps.setLong(5, softwareId);
+                ps.setString(6, list.get(i).getFirst());
+                ps.setLong(7, beType.getId());
+            }
+
+        };
+
+        writeBatchInChunks(query, beProperties, statementSetter);
+    }
+
 
     public void writeDesignElements(final Collection<DesignElement> designElements, final ArrayDesign arrayDesign) {
         String query = "MERGE INTO a2_designelement de\n" +
