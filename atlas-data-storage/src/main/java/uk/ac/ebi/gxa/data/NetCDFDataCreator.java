@@ -242,7 +242,7 @@ public class NetCDFDataCreator {
                 new Dimension[]{designElementDimension, designElementLenDimension}
         );
         netCdf.addVariable(
-                "GN", DataType.DOUBLE,
+                "GN", DataType.LONG,
                 new Dimension[]{designElementDimension}
         );
 
