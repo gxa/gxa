@@ -316,7 +316,7 @@ public class AtlasMAGETABLoader {
 
     public static boolean isHTS(MAGETABInvestigation investigation) {
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         if (scanNodes.size() == 0) {
             log.info("No comment scan nodes found - investigation {} is not HTS", investigation.getAccession());
             return false;
