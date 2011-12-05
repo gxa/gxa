@@ -208,6 +208,16 @@ public class HTSArrayDataStep {
                         return "A-ENST-4";
                     } else if ("drosophila melanogaster".equalsIgnoreCase(characteristic.getNodeName())) {
                         return "A-ENST-5";
+                    } else if ("danio rerio".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-6";
+                    } else if ("rattus norvegicus".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-7";
+                    } else if ("ciona savignyi".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-8";
+                    } else if ("equus caballus".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-9";
+                    } else if ("sus scrofa".equalsIgnoreCase(characteristic.getNodeName())) {
+                        return "A-ENST-10";
                     }
                 }
 
