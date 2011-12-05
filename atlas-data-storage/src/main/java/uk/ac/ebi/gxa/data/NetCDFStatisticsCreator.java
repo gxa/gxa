@@ -225,7 +225,7 @@ public class NetCDFStatisticsCreator {
                 throw new AtlasDataException("Cannot create folder for the output file" + statisticsFile);
             }
 
-            final File tempStatisticsFile = File.createTempFile(statisticsFile.getName(), ".tmp");
+            final File tempStatisticsFile = File.createTempFile(statisticsFile.getName(), ".tmp", statisticsFile.getParentFile());
             log.info("Writing NetCDF file to " + tempStatisticsFile);
             statisticsNetCdf = NetcdfFileWriteable.createNew(tempStatisticsFile.getAbsolutePath(), true);
             try {
