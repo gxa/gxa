@@ -301,7 +301,7 @@ public class NetCDFDataCreator {
                 "ADaccession",
                 arrayDesign.getAccession());
 
-        netCdf.create();
+        NetCDFHacks.safeCreate(netCdf);
     }
 
     private void write(NetcdfFileWriteable netCdf) throws IOException, InvalidRangeException {
