@@ -23,11 +23,9 @@
 package uk.ac.ebi.gxa.data;
 
 import ucar.ma2.DataType;
-import ucar.nc2.Attribute;
 import ucar.nc2.Group;
 import ucar.nc2.NetcdfFileWriteable;
 import ucar.nc2.Variable;
-import ucar.nc2.iosp.netcdf3.N3iosp;
 
 import java.io.IOException;
 import java.util.List;
@@ -63,20 +61,10 @@ class NetCDFHacks {
             return;
         for (Variable v : variables) {
             if (v.getDataType() == DataType.DOUBLE) {
-                fixDouble(v);
+                NetCDFMissingVal.attachMissingValue(v, Double.NaN);
             } else if (v.getDataType() == DataType.FLOAT) {
-                fixFloat(v);
+                NetCDFMissingVal.attachMissingValue(v, Float.NaN);
             }
         }
-    }
-
-    private static void fixFloat(Variable v) {
-        v.addAttribute(new Attribute(N3iosp.FillValue, Float.NaN));
-        v.addAttribute(new Attribute("missing_value", Float.NaN));
-    }
-
-    private static void fixDouble(Variable v) {
-        v.addAttribute(new Attribute(N3iosp.FillValue, Double.NaN));
-        v.addAttribute(new Attribute("missing_value", Double.NaN));
     }
 }
