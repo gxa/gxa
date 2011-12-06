@@ -28,8 +28,10 @@ import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import ae3.service.AtlasStatisticsQueryService;
+import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.AtlasExperimentQuery;
 import ae3.service.experiment.AtlasExperimentQueryParser;
+import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
 import org.springframework.beans.factory.DisposableBean;
@@ -64,6 +66,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasDataDAO atlasDataDAO;
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
 
     volatile boolean disableQueries = false;
 
@@ -98,6 +101,10 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
+        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
     private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter> {
@@ -167,7 +174,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             }
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                             BestDesignElementsResult geneResults =
-                                                    criteria.retrieveFrom(ewd).findBestGenesForExperiment(
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            criteria.retrieveFrom(ewd),
                                                             geneIds,
                                                             Collections.<Pair<String, String>>emptySet(),
                                                             QueryExpression.ANY.asUpDownCondition(),
@@ -175,7 +183,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                             10
                                                     );
 
-                                            genes = geneSolrDAO.getGenesByIds(geneResults.getGeneIds()).values();
+                                            genes = geneResults.getGenes();
                                             expData = new ExperimentalData(ewd);
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);

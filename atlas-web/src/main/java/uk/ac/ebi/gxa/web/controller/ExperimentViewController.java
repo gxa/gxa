@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.web.controller;
 import ae3.dao.ExperimentSolrDAO;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
+import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
+import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -81,6 +83,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasProperties atlasProperties;
 
+    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
+
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
         @Override
         public String apply(@Nullable String input) {
@@ -98,20 +102,18 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     PropertyDAO propertyDAO,
+                                    AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService,
                                     AtlasProperties atlasProperties) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
         this.geneSolrDAO = geneSolrDAO;
+        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
     protected List<Long> findGeneIds(Collection<String> geneQuery) {
         return geneSolrDAO.findGeneIds(geneQuery);
-    }
-
-    public Map<Long, AtlasGene> getGenesByIds(List<Long> geneIds) {
-        return geneSolrDAO.getGenesByIds(geneIds);
     }
 
     /**
@@ -322,7 +324,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 criteria.containsAtLeastOneGene(geneIds);
             }
 
-            res = criteria.retrieveFrom(ewd).findBestGenesForExperiment(
+            res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                    criteria.retrieveFrom(ewd),
                     geneIds,
                     !isNullOrEmpty(ef) && !isNullOrEmpty(efv) ?
                             // We don't currently allow search for best design elements by either just an ef
@@ -333,17 +336,16 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                     limit
             );
 
-            final Map<Long, AtlasGene> geneIdToGene = getGenesByIds(res.getGeneIds());
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
             model.addAttribute("totalSize", res.getTotalSize());
             model.addAttribute("items", Iterables.transform(res,
                     new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
                         public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                            return new ExperimentTableRow(item, geneIdToGene.get(item.getGeneId()));
+                            return new ExperimentTableRow(item, item.getGene());
                         }
                     })
             );
-            model.addAttribute("geneToolTips", getGeneTooltips(geneIdToGene.values()));
+            model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
             return UNSUPPORTED_HTML_VIEW;
         } finally {
             closeQuietly(ewd);

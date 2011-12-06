@@ -241,6 +241,11 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
 
+
+    <bean name="atlasExperimentAnalyticsViewService" class="ae3.service.experiment.AtlasExperimentAnalyticsViewService">
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
+    </bean>
+
     <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasBitIndexQueryService">
         <!-- needs it for cache updates -->
         <property name="efo" ref="efo"/>
@@ -358,6 +363,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="experimentDAO" ref="experimentDAO"/>
     </bean>
 

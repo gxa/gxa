@@ -27,12 +27,12 @@ import static java.lang.Float.isNaN;
 import static java.lang.Math.abs;
 
 /**
+ * This class is used as an element in Collections sorted by accurate (as stored in ncdfs) pval/tstat, specifically in
+ * the experiment page's best design elements table
+ *
  * @author Robert Petryszak
- *         Date: 11/24/11
- *         <p/>
- *         This class is used as an element in Collections sorted by accurate (as stored in ncdfs) pval/tstat, specifically in the experiment page's best design elements table
  */
-public final class BestDesignElementCandidate implements Comparable<BestDesignElementCandidate>{
+public final class BestDesignElementCandidate implements Comparable<BestDesignElementCandidate> {
     private Float pValue;
     private Float tStat;
     private Integer deIndex;
