@@ -1,5 +1,8 @@
 package uk.ac.ebi.gxa.statistics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
@@ -14,6 +17,7 @@ import static java.util.Collections.emptySet;
  * Note that Attributes are grouped per experiment. This facilitates scoring of efo queries against bit index.
  */
 public class EfoIndex implements Serializable {
+    private static final Logger log = LoggerFactory.getLogger(EfoIndex.class);
     private static final long serialVersionUID = 201110201502L;
 
     // efoTerm -> experiment -> attributes
@@ -22,7 +26,20 @@ public class EfoIndex implements Serializable {
     // attribute -> experiment -> efoTerm
     private Map<EfvAttribute, Map<ExperimentInfo, Set<String>>> efvToEfoIndex = newHashMap();
 
+    private transient ObjectPool<EfvAttribute> attributePool;
+    private transient ObjectPool<ExperimentInfo> experimentPool;
+
+    public EfoIndex(ObjectPool<EfvAttribute> attributePool, ObjectPool<ExperimentInfo> experimentPool) {
+        this.attributePool = attributePool;
+        this.experimentPool = experimentPool;
+    }
+
     public void addMapping(String efoTerm, EfvAttribute attribute, ExperimentInfo experiment) {
+        log.debug("Adding '{}': {} in {})", new Object[]{efoTerm, attribute, experiment});
+
+        attribute = attributePool.intern(attribute);
+        experiment = experimentPool.intern(experiment);
+
         Map<ExperimentInfo, Set<EfvAttribute>> expToAttrs = efoIndex.get(efoTerm);
         if (expToAttrs == null) {
             efoIndex.put(efoTerm, expToAttrs = newHashMap());
