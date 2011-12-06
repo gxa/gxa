@@ -1,4 +1,6 @@
-package uk.ac.ebi.gxa.data;
+package ae3.service.experiment;
+
+import ae3.model.AtlasGene;
 
 import java.util.*;
 
@@ -10,7 +12,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     private String adAccession;
     private long total = 0;
-    private final List<Long> geneIds = new ArrayList<Long>();
+    private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
     private final List<Integer> deIndices = new ArrayList<Integer>();
     private final List<String> deAccessions = new ArrayList<String>();
     private final List<Double> pvalues = new ArrayList<Double>();
@@ -29,8 +31,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         this.adAccession = adAccession;
     }
 
-    void add(Long geneId, int deIndex, String deAccession, double pval, double tstat, String ef, String efv) {
-        geneIds.add(geneId);
+    void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, String ef, String efv) {
+        genes.add(gene);
         deIndices.add(deIndex);
         deAccessions.add(deAccession);
         pvalues.add(pval);
@@ -44,7 +46,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     }
 
     public Item get(int i) {
-        return new Item(geneIds.get(i),
+        return new Item(genes.get(i),
                 deIndices.get(i),
                 deAccessions.get(i),
                 pvalues.get(i).floatValue(),
@@ -58,7 +60,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     }
 
     public int getPageSize() {
-        return geneIds.size();
+        return genes.size();
     }
 
     public Iterator<Item> iterator() {
@@ -79,12 +81,12 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         };
     }
 
-    public List<Long> getGeneIds() {
-        return Collections.unmodifiableList(geneIds);
+    public Collection<AtlasGene> getGenes() {
+        return Collections.unmodifiableCollection(genes);
     }
 
     public static class Item {
-        private final Long geneId;
+        private final AtlasGene gene;
         private final int deIndex;
         private final String deAccession;
         private final float pValue;
@@ -92,8 +94,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         private final String ef;
         private final String efv;
 
-        Item(Long geneId, int deIndex, String deAccession, float pValue, float tValue, String ef, String efv) {
-            this.geneId = geneId;
+        Item(AtlasGene gene, int deIndex, String deAccession, float pValue, float tValue, String ef, String efv) {
+            this.gene = gene;
             this.deIndex = deIndex;
             this.deAccession = deAccession;
             this.pValue = pValue;
@@ -102,8 +104,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
             this.efv = efv;
         }
 
-        public Long getGeneId() {
-            return geneId;
+        public AtlasGene getGene() {
+            return gene;
         }
 
         public String getDeAccession() {
@@ -131,4 +133,3 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         }
     }
 }
-
