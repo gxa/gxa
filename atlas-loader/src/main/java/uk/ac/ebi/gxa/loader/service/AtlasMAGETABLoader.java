@@ -250,7 +250,7 @@ public class AtlasMAGETABLoader {
                     listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                             " and " + shallowArrayDesign);
 
-                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(dao.getArrayDesign(shallowArrayDesign.getAccession()));
                 dataCreator.setAssayDataMap(cache.getAssayDataMap());
 
                 dataCreator.createNetCdf();
