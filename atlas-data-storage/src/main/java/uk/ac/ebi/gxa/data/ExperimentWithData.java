@@ -26,7 +26,6 @@ import com.google.common.primitives.Floats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.CollectionUtil;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
@@ -35,14 +34,12 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class ExperimentWithData implements Closeable {
     private final Logger log = LoggerFactory.getLogger(getClass());
-
 
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
@@ -223,13 +220,13 @@ public class ExperimentWithData implements Closeable {
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
             final KeyValuePair uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
             if (efName == null ||
-                    (uniqueEFV.key.equals(efName) && uniqueEFV.value.equals(efvName))) {
+                (uniqueEFV.key.equals(efName) && uniqueEFV.value.equals(efvName))) {
                 list.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
                         deIndex,
-                        uniqueEFV.key,
-                        uniqueEFV.value,
+                    uniqueEFV.key,
+                    uniqueEFV.value,
                         t[efIndex],
                         p[efIndex]
                 ));
@@ -371,8 +368,8 @@ public class ExperimentWithData implements Closeable {
         return geneIdToDEIndexes;
     }
 
-    /**
-     * @param geneIds     ids of genes to plot
+     /**
+     * @param geneIds  ids of genes to plot
      * @param arrayDesign an array design to get expression analyses data
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
