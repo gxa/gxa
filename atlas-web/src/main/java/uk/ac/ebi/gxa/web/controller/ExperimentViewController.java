@@ -341,7 +341,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("items", Iterables.transform(res,
                     new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
                         public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                            return new ExperimentTableRow(item, item.getGene());
+                            return new ExperimentTableRow(item);
                         }
                     })
             );
@@ -445,13 +445,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         private final String pValue;
         private final String tValue;
 
-        public ExperimentTableRow(BestDesignElementsResult.Item item, AtlasGene gene) {
+        public ExperimentTableRow(BestDesignElementsResult.Item item) {
 
-            if (gene == null) {
+            if (item.getGene() == null) {
                 throw LogUtil.createUnexpected("No gene was found for design element: " + item.getDeAccession());
             }
-            geneName = gene.getGeneName();
-            geneIdentifier = gene.getGeneIdentifier();
+            geneName = item.getGene().getGeneName();
+            geneIdentifier = item.getGene().getGeneIdentifier();
             deAccession = item.getDeAccession();
             deIndex = item.getDeIndex();
             factor = item.getEf();
