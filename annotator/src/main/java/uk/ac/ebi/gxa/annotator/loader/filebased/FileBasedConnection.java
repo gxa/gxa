@@ -4,6 +4,8 @@ import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Set;
 
@@ -24,5 +26,9 @@ public class FileBasedConnection extends AnnotationSourceConnection<GeneSigAnnot
     @Override
     public Collection<String> validateAttributeNames(Set<String> properties) throws BioMartAccessException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public URL getURL(String location) throws IOException {
+        return new URL(location);
     }
 }

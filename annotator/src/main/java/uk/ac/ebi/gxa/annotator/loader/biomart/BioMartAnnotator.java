@@ -118,7 +118,7 @@ public class BioMartAnnotator {
 
             beDataWriter.writeBioEntities(data, listener);
             beDataWriter.writePropertyValues(data.getPropertyValues(), listener);
-            beDataWriter.writeBioEntityToPropertyValues(data, annSrc, listener);
+            beDataWriter.writeBioEntityToPropertyValues(data, annSrc, false, listener);
 
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 

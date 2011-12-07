@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.annotator.process;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
@@ -18,6 +19,7 @@ import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -34,17 +36,17 @@ import static java.lang.System.currentTimeMillis;
  * User: nsklyar
  * Date: 02/12/2011
  */
-public class Annotator {
-        final private Logger log = LoggerFactory.getLogger(this.getClass());
-    private AnnotationLoaderListener listener;
+public abstract class Annotator<T extends AnnotationSource> {
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
+    protected AnnotationLoaderListener listener;
 
     private Organism organism;
 
-    private AnnotationSourceDAO annSrcDAO;
+    protected AnnotationSourceDAO annSrcDAO;
 
-    private BioEntityPropertyDAO propertyDAO;
+    protected BioEntityPropertyDAO propertyDAO;
 
-    private final AtlasBioEntityDataWriter beDataWriter;
+    protected final AtlasBioEntityDataWriter beDataWriter;
 
     public Annotator(AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
         this.annSrcDAO = annSrcDAO;
@@ -56,7 +58,7 @@ public class Annotator {
 
         BioMartAnnotationSource annSrc = null;
         try {
-            annSrc = fetchAnnotationSource(annotationSrcId);
+            annSrc = fetchAnnotationSource(annotationSrcId, getClazz());
 
             organism = annSrc.getOrganism();
             reportProgress("Reading Ensembl annotations for organism " + organism.getName());
@@ -96,7 +98,7 @@ public class Annotator {
 
             beDataWriter.writeBioEntities(data, listener);
             beDataWriter.writePropertyValues(data.getPropertyValues(), listener);
-            beDataWriter.writeBioEntityToPropertyValues(data, annSrc, listener);
+            beDataWriter.writeBioEntityToPropertyValues(data, annSrc, false, listener);
 
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 
@@ -159,14 +161,29 @@ public class Annotator {
         }
     }
 
-    private BioMartAnnotationSource fetchAnnotationSource(String annotationSrcId) throws AtlasAnnotationException {
-        AnnotationSource annotationSource = annSrcDAO.getById(Long.parseLong(annotationSrcId), BioMartAnnotationSource.class);
+    protected T fetchAnnotationSource(String annotationSrcId) throws AtlasAnnotationException {
+        T annotationSource = annSrcDAO.getById(Long.parseLong(annotationSrcId), getClazz());
         if (annotationSource == null) {
             throw new AtlasAnnotationException("No annotation source with id " + annotationSrcId);
         }
 
-        return (BioMartAnnotationSource) annotationSource;
+        return annotationSource;
     }
+
+    protected T fetchAnnSrcById(String id) {
+        T annSrc = null;
+        if (!StringUtils.isEmpty(id)) {
+            try {
+                final long idL = Long.parseLong(id.trim());
+                annSrc = annSrcDAO.getById(idL, getClazz());
+            } catch (NumberFormatException e) {
+                throw LogUtil.createUnexpected("Cannot fetch Annotation Source. Wrong ID ", e);
+            }
+        }
+        return annSrc;
+    }
+
+    protected abstract Class<T> getClazz();
 
     private <T extends BioEntityData> void readBioEntities(URL beURL, BioMartParser<T> parser) throws AtlasAnnotationException {
         if (beURL != null) {
@@ -220,7 +237,7 @@ public class Annotator {
         private final Set<ExternalBioEntityProperty> externalBioEntityProperties;
 
 
-        BETypeMartAttributesHandler(BioMartAnnotationSource annSrc) throws AtlasAnnotationException {
+        BETypeMartAttributesHandler(AnnotationSource annSrc) throws AtlasAnnotationException {
             this.externalBioEntityProperties = Collections.unmodifiableSet(annSrc.getExternalBioEntityProperties());
             bioEntityTypeColumns = new ArrayList<BioEntityTypeColumns>(annSrc.getTypes().size());
             for (BioEntityType type : annSrc.getTypes()) {
@@ -247,7 +264,7 @@ public class Annotator {
          * @return
          */
         public List<String> getMartBEIdentifiersAndNames() {
-            List<String> answer =  new ArrayList<String>(bioEntityTypeColumns.size()*2);
+            List<String> answer = new ArrayList<String>(bioEntityTypeColumns.size() * 2);
             for (BioEntityTypeColumns bioEntityTypeColumn : bioEntityTypeColumns) {
                 answer.add(bioEntityTypeColumn.getIdentifierColunm());
                 answer.add(bioEntityTypeColumn.getNameColumn());
@@ -273,6 +290,16 @@ public class Annotator {
             })));
         }
 
+        public Collection<BioEntityProperty> getBioEntityProperties() {
+            return Collections.unmodifiableSet(new  HashSet<BioEntityProperty>(Collections2.transform(externalBioEntityProperties,
+                    new Function<ExternalBioEntityProperty, BioEntityProperty>() {
+                        @Override
+                        public BioEntityProperty apply(@Nonnull ExternalBioEntityProperty externalBioEntityProperty) {
+                            return externalBioEntityProperty.getBioEntityProperty();
+                        }
+                    })));
+        }
+
         private Set<String> getBioMartPropertyNamesForProperty(@Nonnull final BioEntityProperty beProperty) {
             return new HashSet<String>(Collections2.transform(
                     Collections2.filter(externalBioEntityProperties,
@@ -282,11 +309,11 @@ public class Annotator {
                                 }
                             }),
                     new Function<ExternalBioEntityProperty, String>() {
-                @Override
-                public String apply(@Nonnull ExternalBioEntityProperty externalBioEntityProperty) {
-                    return externalBioEntityProperty.getName();
-                }
-            }));
+                        @Override
+                        public String apply(@Nonnull ExternalBioEntityProperty externalBioEntityProperty) {
+                            return externalBioEntityProperty.getName();
+                        }
+                    }));
         }
 
         private static class BioEntityTypeColumns {

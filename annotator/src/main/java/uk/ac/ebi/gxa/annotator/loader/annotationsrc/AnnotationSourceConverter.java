@@ -94,7 +94,7 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
                 final long idL = Long.parseLong(id.trim());
                 annSrc = annSrcDAO.getById(idL, getClazz());
             } catch (NumberFormatException e) {
-                throw LogUtil.createUnexpected("Cannot save Annotation Source. Wrong ID ", e);
+                throw LogUtil.createUnexpected("Cannot fetch Annotation Source. Wrong ID ", e);
             }
         }
         return annSrc;

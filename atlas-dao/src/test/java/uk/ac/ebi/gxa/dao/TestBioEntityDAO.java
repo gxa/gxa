@@ -77,9 +77,4 @@ public class TestBioEntityDAO extends AtlasDAOTestCase {
             }
         }
     }
-
-    @Test
-    public void testWriteBioEntityToPropertyValuesChecked() throws Exception {
-
-    }
 }

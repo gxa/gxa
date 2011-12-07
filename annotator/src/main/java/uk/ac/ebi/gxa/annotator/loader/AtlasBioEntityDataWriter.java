@@ -81,7 +81,10 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data, final AnnotationSource annSrc, AnnotationLoaderListener listener) {
+    public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data,
+                                               final AnnotationSource annSrc,
+                                               boolean checkBioEntities,
+                                               AnnotationLoaderListener listener) {
         if (annSrc.isApplied()) {
             for (Organism organism : data.getOrganisms()) {
                 deleteBioEntityToPropertyValues(organism, annSrc.getSoftware(), listener);
@@ -90,7 +93,11 @@ public class AtlasBioEntityDataWriter {
         for (BioEntityType type : data.getBioEntityTypes()) {
             Collection<Pair<String, BEPropertyValue>> propValues = data.getPropertyValuesForBioEntityType(type);
             reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data), listener);
-            bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, annSrc.getSoftware());
+            if (checkBioEntities) {
+                bioEntityDAO.writeBioEntityToPropertyValuesChecked(propValues, type, annSrc.getSoftware());
+            } else {
+                bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, annSrc.getSoftware());
+            }
         }
 
         annSrc.setApplied(true);
