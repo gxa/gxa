@@ -241,6 +241,13 @@ public class NetCDFDataCreator {
                 "DEacc", DataType.CHAR,
                 new Dimension[]{designElementDimension, designElementLenDimension}
         );
+        // !!!KLUDGE!!! Here be dragons
+        //
+        // Actually, "GN" is a long array—and it is read as a long array
+        // It is potentially a big problem, since long has 64 bits for the value, and double has only
+        // 52+1 bit for the mantissa.
+        // What saves us is an assumption that gene ID actually fits an int (I know that sounds insane)
+        // so actually we do not lose precision here.
         netCdf.addVariable(
                 "GN", DataType.DOUBLE,
                 new Dimension[]{designElementDimension}
