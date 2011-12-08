@@ -60,7 +60,7 @@ public class AssayAndHybridizationStep {
     }
 
     public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
                 writeScanNode(scanNode, cache, investigation, dao);
@@ -68,11 +68,11 @@ public class AssayAndHybridizationStep {
         }
 
         if (!isHTS(investigation)) {
-            for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
+            for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
                 writeHybridizationNode(hybridizationNode, cache, investigation, dao);
             }
 
-            for (AssayNode assayNode : investigation.SDRF.lookupNodes(AssayNode.class)) {
+            for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
                 writeHybridizationNode(assayNode, cache, investigation, dao);
             }
         }

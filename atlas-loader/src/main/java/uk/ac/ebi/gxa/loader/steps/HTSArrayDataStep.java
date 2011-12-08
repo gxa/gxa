@@ -100,7 +100,7 @@ public class HTSArrayDataStep {
     }
 
     private static ScanNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
-        Collection<? extends SDRFNode> nodes = sdrf.lookupNodes(MAGETABUtils.digestHeader("scanname"));
+        Collection<? extends SDRFNode> nodes = sdrf.getNodes(MAGETABUtils.digestHeader("scanname"));
         for (SDRFNode node : nodes) {
             ScanNode scanNode = (ScanNode) node;
             Map<String, String> comments = scanNode.comments;

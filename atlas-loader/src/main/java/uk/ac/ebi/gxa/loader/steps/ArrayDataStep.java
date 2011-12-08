@@ -146,7 +146,7 @@ public class ArrayDataStep {
             // set this variable to true to try local files firstly
             boolean useLocalCopy = true;
             final Collection<ArrayDataNode> dataNodes =
-                investigation.SDRF.lookupNodes(ArrayDataNode.class);
+                investigation.SDRF.getNodes(ArrayDataNode.class);
             if (dataNodes.isEmpty()) {
                 log.warn("No data nodes for raw data are defined in " + sdrfURL);
                 return false;

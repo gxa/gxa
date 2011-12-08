@@ -49,7 +49,7 @@ public class SourceStep {
     }
 
     public void readSamples(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
-        for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {
+        for (SourceNode node : investigation.SDRF.getNodes(SourceNode.class)) {
             log.debug("Writing sample from source node '" + node.getNodeName() + "'");
             Sample sample = cache.fetchOrCreateSample(node.getNodeName());
             // write the characteristic values as properties

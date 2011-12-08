@@ -54,7 +54,6 @@ public class ParsingStep {
     }
 
     public MAGETABInvestigation parse(URL idfFileLocation) throws AtlasLoaderException {
-        MAGETABInvestigation investigation;
         MAGETABParser parser = new MAGETABParser();
         parser.setStripEscaping(true);
 
@@ -89,7 +88,7 @@ public class ParsingStep {
         });
 
         try {
-            investigation = parser.parse(idfFileLocation);
+            MAGETABInvestigation investigation = parser.parse(idfFileLocation);
             log.info("Parsing finished");
             return investigation;
         } catch (ParseException e) {
@@ -99,7 +98,7 @@ public class ParsingStep {
         }
     }
 
-    public String getParseErrors(Collection<ErrorItem> errorItems) {
+    private String getParseErrors(Collection<ErrorItem> errorItems) {
         return on(',').join(transform(errorItems, new Function<ErrorItem, String>() {
             @Override
             public String apply(@Nonnull ErrorItem errorItem) {

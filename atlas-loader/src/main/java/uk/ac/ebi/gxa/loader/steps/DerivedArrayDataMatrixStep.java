@@ -56,7 +56,7 @@ public class DerivedArrayDataMatrixStep {
     }
 
     public void readProcessedData(MAGETABInvestigation investigation, AtlasLoadCache cache) throws AtlasLoaderException {
-        for (DerivedArrayDataMatrixNode node : investigation.SDRF.lookupNodes(DerivedArrayDataMatrixNode.class)) {
+        for (DerivedArrayDataMatrixNode node : investigation.SDRF.getNodes(DerivedArrayDataMatrixNode.class)) {
             log.info("Writing expression values from data file referenced by " +
                     "derived array data matrix node '" + node.getNodeName() + "'");
 
