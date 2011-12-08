@@ -1,6 +1,5 @@
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -27,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +85,7 @@ public class HTSArrayDataStep {
                     log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                     if (assay.getArrayDesign() == null) {
-                        assay.setArrayDesign(dao.getArrayDesignShallow(findArrayDesignName(refNode)));
+                        assay.setArrayDesign(dao.getArrayDesignShallow(findArrayDesignAcc(refNode)));
                     }
                 } else {
                     // generate error item and throw exception
@@ -196,24 +196,37 @@ public class HTSArrayDataStep {
         return outFilePath;
     }
 
-    //ToDo: this is only temp solution! Array design will not be user for RNA-seq experiments
-    private static String findArrayDesignName(SDRFNode node) {
+    private static Map<String, String> organismToArrayDesign = new HashMap<String, String>(20);
+
+    static {
+        organismToArrayDesign.put("Homo sapiens", "A-ENST-3");
+        organismToArrayDesign.put("Mus musculus", "A-ENST-4");
+        organismToArrayDesign.put("drosophila melanogaster", "A-ENST-5");
+        organismToArrayDesign.put("danio rerio", "A-ENST-6");
+        organismToArrayDesign.put("rattus norvegicus", "A-ENST-7");
+        organismToArrayDesign.put("ciona savignyi", "A-ENST-8");
+        organismToArrayDesign.put("equus caballus", "A-ENST-9");
+        organismToArrayDesign.put("sus scrofa", "A-ENST-10");
+        organismToArrayDesign.put("gallus gallus", "A-ENST-11");
+        organismToArrayDesign.put("saccharomyces cerevisiae", "A-ENST-12");
+    }
+
+    //ToDo: this is only temp solution! Array design will not be used for RNA-seq experiments
+    private static String findArrayDesignAcc(SDRFNode node) throws AtlasLoaderException {
         Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+
         for (SourceNode sourceNode : nodeCollection) {
             for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
                 if ("Organism".equals(characteristic.type)) {
-                    if ("Homo sapiens".equalsIgnoreCase(characteristic.getNodeName())) {
-                        return "A-ENST-3";
-                    } else if ("Mus musculus".equalsIgnoreCase(characteristic.getNodeName())) {
-                        return "A-ENST-4";
-                    } else if ("drosophila melanogaster".equalsIgnoreCase(characteristic.getNodeName())) {
-                        return "A-ENST-5";
+                    String  arrayDesignAcc = organismToArrayDesign.get(characteristic.getNodeName());
+                    if (arrayDesignAcc == null) {
+                        throw new AtlasLoaderException("Cannot find virtual array design for organism " + characteristic.getNodeName());
                     }
+                    return arrayDesignAcc;
                 }
-
             }
         }
-        return StringUtils.EMPTY;
+        throw new AtlasLoaderException("No organism is specified in " + node.getNodeName());
     }
 
     private static class RRunner implements ComputeTask<Void> {
