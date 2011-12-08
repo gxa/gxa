@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementDataBuilder;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
+import uk.ac.ebi.gxa.annotator.process.AnnotationParser;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -52,13 +53,13 @@ public class BioMartParserTest {
     @Test
     public void testParseBioMartPropertyValues() throws Exception {
         List<BioEntityType> bioEntityTypes = initTypes();
-        BioMartParser<BioEntityAnnotationData> parser = getBioMartParser();
+        AnnotationParser<BioEntityAnnotationData> parser = getBioMartParser();
 
         Organism organism = new Organism(null, "test_org");
         parser.parseBioEntities(BioMartParserTest.class.getResource("bioentities.txt"), organism);
 
         BioEntityProperty go = new BioEntityProperty(null, "go");
-        parser.parseBioMartPropertyValues(go, BioMartParserTest.class.getResource("properties.txt"));
+        parser.parsePropertyValues(go, BioMartParserTest.class.getResource("properties.txt"));
 
         BioEntityAnnotationData data = parser.getData();
         for (BioEntityType type : bioEntityTypes) {
@@ -115,14 +116,14 @@ public class BioMartParserTest {
     @Test
     public void testParseBioMartPropertyValuesMultiple() throws Exception {
         List<BioEntityType> bioEntityTypes = initTypes();
-        BioMartParser<BioEntityAnnotationData> parser = getBioMartParser();
+        AnnotationParser<BioEntityAnnotationData> parser = getBioMartParser();
 
         BioEntityProperty go = new BioEntityProperty(null, "go");
         BioEntityProperty testProp = new BioEntityProperty(null, "testProp");
 
         final List<BioEntityProperty> properties = Arrays.asList(go, testProp);
 
-        parser.parseBioMartPropertyValues(properties, BioMartParserTest.class.getResource("multiple_properties.txt"), true);
+        parser.parsePropertyValues(properties, BioMartParserTest.class.getResource("multiple_properties.txt"), true);
 
         BioEntityAnnotationData data = parser.getData();
 
@@ -160,19 +161,19 @@ public class BioMartParserTest {
     @Test(expected = AtlasAnnotationException.class)
     public void testParseBioMartIncorrectPropertyValues1() throws Exception {
         BioEntityProperty property = new BioEntityProperty(null, "go");
-        getBioMartParser().parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect1.txt"));
+        getBioMartParser().parsePropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect1.txt"));
     }
 
     @Test(expected = AtlasAnnotationException.class)
     public void testParseBioMartIncorrectPropertyValues2() throws Exception {
         BioEntityProperty property = new BioEntityProperty(null, "go");
-        getBioMartParser().parseBioMartPropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect2.txt"));
+        getBioMartParser().parsePropertyValues(property, BioMartParserTest.class.getResource("properties_incorrect2.txt"));
     }
 
     @Test
     public void testParseDesignElementMappings() throws Exception {
         List<BioEntityType> bioEntityTypes = initTypes();
-        BioMartParser<DesignElementMappingData> parser = getBioMartParserForDesignElements();
+        AnnotationParser<DesignElementMappingData> parser = getBioMartParserForDesignElements();
 
         parser.parseDesignElementMappings(BioMartParserTest.class.getResource("designelements.txt"));
         DesignElementMappingData data = parser.getData();
@@ -194,7 +195,7 @@ public class BioMartParserTest {
 
     @Test
     public void testParseDesignElementMappings1() throws Exception {
-        BioMartParser<DesignElementMappingData> parser = getBioMartParserForDesignElements();
+        AnnotationParser<DesignElementMappingData> parser = getBioMartParserForDesignElements();
 
         Organism organism = new Organism(null, "test_org");
         parser.parseBioEntities(BioMartParserTest.class.getResource("bioentities.txt"), organism);
@@ -221,16 +222,16 @@ public class BioMartParserTest {
         return types;
     }
 
-    private BioMartParser<BioEntityAnnotationData> getBioMartParser() {
+    private AnnotationParser<BioEntityAnnotationData> getBioMartParser() {
         List<BioEntityType> bioEntityTypes = initTypes();
         BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
-        return BioMartParser.initParser(bioEntityTypes, builder);
+        return AnnotationParser.initParser(bioEntityTypes, builder);
     }
 
-    private BioMartParser<DesignElementMappingData> getBioMartParserForDesignElements() {
+    private AnnotationParser<DesignElementMappingData> getBioMartParserForDesignElements() {
         List<BioEntityType> bioEntityTypes = initTypes();
         DesignElementDataBuilder builder = new DesignElementDataBuilder();
-        return BioMartParser.initParser(bioEntityTypes, builder);
+        return AnnotationParser.initParser(bioEntityTypes, builder);
     }
 
 

@@ -34,17 +34,17 @@ import java.util.concurrent.ExecutorService;
  */
 public class DefaultAnnotationLoader implements AnnotationLoader {
 
-    private AnnotatorFactory annotatorFactory;
+    private AnnotationProcessor annotationProcessor;
     private ExecutorService executor;
 
-    public DefaultAnnotationLoader(AnnotatorFactory annotatorFactory, ExecutorService executor) {
-        this.annotatorFactory = annotatorFactory;
+    public DefaultAnnotationLoader(AnnotationProcessor annotationProcessor, ExecutorService executor) {
+        this.annotationProcessor = annotationProcessor;
         this.executor = executor;
     }
 
     @Override
     public void annotate(final AnnotationCommand annotationCommand, final AnnotationLoaderListener listener) {
-        annotationCommand.setAnnotatorFactory(annotatorFactory);
+        annotationCommand.setAnnotatorFactory(annotationProcessor);
 
         executor.submit(new Runnable() {
             public void run() {

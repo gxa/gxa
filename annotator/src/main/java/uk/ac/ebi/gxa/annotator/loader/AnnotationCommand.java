@@ -30,10 +30,10 @@ import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
  */
 public abstract class AnnotationCommand {
 
-    protected AnnotatorFactory factory;
+    protected AnnotationProcessor annotationProcessor;
 
-    public void setAnnotatorFactory(AnnotatorFactory factory) {
-        this.factory = factory;
+    public void setAnnotatorFactory(AnnotationProcessor annotationProcessor) {
+        this.annotationProcessor = annotationProcessor;
     }
 
     public abstract void execute(AnnotationLoaderListener listener);

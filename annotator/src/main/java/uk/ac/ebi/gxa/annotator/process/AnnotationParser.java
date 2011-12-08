@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader.biomart;
+package uk.ac.ebi.gxa.annotator.process;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.slf4j.Logger;
@@ -47,21 +47,23 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 26/08/2011
  */
-public class BioMartParser<T extends BioEntityData> {
+public class AnnotationParser<T extends BioEntityData> {
 
     final private List<BioEntityType> bioEntityTypes;
     private BioEntityDataBuilder<T> builder;
+//    private char separator = '';
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
+    private char separator = '\t';
 
-    public static <T extends BioEntityData> BioMartParser<T> initParser(List<BioEntityType> types, BioEntityDataBuilder<T> builder) {
-        BioMartParser<T> parser = new BioMartParser<T>(types);
+    public static <T extends BioEntityData> AnnotationParser<T> initParser(List<BioEntityType> types, BioEntityDataBuilder<T> builder) {
+        AnnotationParser<T> parser = new AnnotationParser<T>(types);
         parser.setBuilder(builder);
         parser.createNewBioEntityData();
         return parser;
     }
 
-    private BioMartParser(List<BioEntityType> bioEntityTypes) {
+    private AnnotationParser(List<BioEntityType> bioEntityTypes) {
         this.bioEntityTypes = bioEntityTypes;
     }
 
@@ -72,7 +74,7 @@ public class BioMartParser<T extends BioEntityData> {
     public void parseBioEntities(URL url, Organism organism) throws AtlasAnnotationException {
         CSVReader csvReader = null;
         try {
-            csvReader = new CSVReader(getReader(url), '\t', '"');
+            csvReader = new CSVReader(getReader(url), separator, '"');
             String[] line;
 
             while ((line = csvReader.readNext()) != null) {
@@ -94,10 +96,10 @@ public class BioMartParser<T extends BioEntityData> {
         }
     }
 
-    public void parseBioMartPropertyValues(BioEntityProperty property, URL url) throws AtlasAnnotationException {
+    public void parsePropertyValues(BioEntityProperty property, URL url) throws AtlasAnnotationException {
         CSVReader csvReader = null;
         try {
-            csvReader = new CSVReader(getReader(url), '\t', '"');
+            csvReader = new CSVReader(getReader(url), separator, '"');
 
             String[] line;
             int lineCount = 0;
@@ -126,10 +128,10 @@ public class BioMartParser<T extends BioEntityData> {
         }
     }
 
-    public void parseBioMartPropertyValues(Collection<BioEntityProperty> properties, URL url, boolean skipFirstLine) throws AtlasAnnotationException {
+    public void parsePropertyValues(Collection<BioEntityProperty> properties, URL url, boolean skipFirstLine) throws AtlasAnnotationException {
         CSVReader csvReader = null;
         try {
-            csvReader = new CSVReader(getReader(url), '\t', '"');
+            csvReader = new CSVReader(getReader(url), separator, '"');
 
             String[] line;
             int lineCount = 0;
@@ -168,7 +170,7 @@ public class BioMartParser<T extends BioEntityData> {
     public void parseDesignElementMappings(URL url) throws AtlasAnnotationException {
         CSVReader csvReader = null;
         try {
-            csvReader = new CSVReader(getReader(url), '\t', '"');
+            csvReader = new CSVReader(getReader(url), separator, '"');
 
             String[] line;
             int lineCount = 0;
@@ -199,6 +201,10 @@ public class BioMartParser<T extends BioEntityData> {
 
     void setBuilder(BioEntityDataBuilder<T> builder) {
         this.builder = builder;
+    }
+
+    public void setSeparator(char separator) {
+        this.separator = separator;
     }
 
     public T getData() throws AtlasAnnotationException {

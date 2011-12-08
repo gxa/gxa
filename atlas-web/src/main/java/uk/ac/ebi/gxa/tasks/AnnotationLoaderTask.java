@@ -20,7 +20,7 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
     protected AnnotationLoaderTask(TaskManager taskMan, long taskId,
                                    TaskSpec taskSpec, TaskRunMode runMode,
                                    TaskUser user, boolean runningAutoDependencies) {
-        
+
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(AnnotationLoaderTask.this, TaskTagType.ANNOTATIONS, getTaskSpec().getAccession());
     }

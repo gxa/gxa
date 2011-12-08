@@ -49,4 +49,7 @@ public class GeneSigAnnotationSource extends AnnotationSource {
         return result;
     }
 
+    public char getSeparator() {
+        return ',';
+    }
 }

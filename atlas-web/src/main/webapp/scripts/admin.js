@@ -46,6 +46,7 @@ var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
 var selectedOrganisms = {};
+var selectedAnnSrcTypes = {};
 var selectAll = false;
 var selectAllOrg = false;
 var $time = {};
@@ -710,7 +711,7 @@ function updateAnnSrcs() {
         });
 
         $('#orgList input.updateMapping').click(function () {
-            startSelectedTasks('mappingupdate', 'RESTART', 'update annotations for organism ');
+            startSelectedTasks('mappingupdate', 'RESTART', 'update mappings for organism ');
         });
 
         $('#orgList input.newannsrc').click(function () {

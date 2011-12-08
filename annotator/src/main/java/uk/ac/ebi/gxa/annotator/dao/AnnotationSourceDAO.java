@@ -54,6 +54,10 @@ public class AnnotationSourceDAO {
         return template.get(type, id);
     }
 
+    public AnnotationSource getById(long id) {
+        return template.get(AnnotationSource.class, id);
+    }
+
     public void save(AnnotationSource annSrc) {
         annSrc.setLoadDate(new Date());
         //ToDo: Find better solution.This method call is needed to initialize "name" field, if it was not called before name=null.

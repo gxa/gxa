@@ -15,17 +15,17 @@ import java.util.Set;
  */
 public class FileBasedConnection extends AnnotationSourceConnection<GeneSigAnnotationSource> {
     public FileBasedConnection(String url) {
-        //To change body of created methods use File | Settings | File Templates.
+
     }
 
     @Override
     public String getOnlineMartVersion() throws BioMartAccessException {
-        return "5";
+        return "4";
     }
 
     @Override
     public Collection<String> validateAttributeNames(Set<String> properties) throws BioMartAccessException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;  
     }
 
     public URL getURL(String location) throws IOException {

@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.annotator.loader.biomart;
+package uk.ac.ebi.gxa.annotator.process;
 
 import org.junit.Test;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
@@ -7,6 +7,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.util.Collection;
 import java.util.List;
 
 import static junit.framework.Assert.*;
@@ -15,14 +16,14 @@ import static junit.framework.Assert.*;
  * User: nsklyar
  * Date: 12/10/2011
  */
-public class BioMartAnnotatorTest {
+public class BETypeExternalAttributesHandlerTest {
 
     @Test
     public void testGetMartBEIdentifiersAndNames() throws Exception {
-        BioMartAnnotator.BETypeMartAttributesHandler handler =
-                new BioMartAnnotator.BETypeMartAttributesHandler(getAnnotationSource());
+        Annotator.BETypeExternalAttributesHandler handler =
+                new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
 
-        List<String> identifiersAndNames = handler.getMartBEIdentifiersAndNames();
+        List<String> identifiersAndNames = handler.getExternalBEIdentifiersAndNames();
         assertEquals(4, identifiersAndNames.size());
         String first = identifiersAndNames.get(0);
         if (first.equals("gene"))
@@ -35,9 +36,9 @@ public class BioMartAnnotatorTest {
 
     @Test
     public void testGetMartBEIdentifiers() throws Exception {
-        BioMartAnnotator.BETypeMartAttributesHandler handler =
-                new BioMartAnnotator.BETypeMartAttributesHandler(getAnnotationSource());
-        List<String> martBEIdentifiers = handler.getMartBEIdentifiers();
+        Annotator.BETypeExternalAttributesHandler handler =
+                new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
+        List<String> martBEIdentifiers = handler.getExternalBEIdentifiers();
         assertEquals(2, martBEIdentifiers.size());
         assertTrue(martBEIdentifiers.contains("gene"));
         assertTrue(martBEIdentifiers.contains("transcript"));
@@ -45,13 +46,13 @@ public class BioMartAnnotatorTest {
 
     @Test
     public void testCheckOrder() throws Exception {
-        BioMartAnnotator.BETypeMartAttributesHandler handler =
-                new BioMartAnnotator.BETypeMartAttributesHandler(getAnnotationSource());
+        Annotator.BETypeExternalAttributesHandler handler =
+                new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
         List<BioEntityType> types = handler.getTypes();
         assertEquals(2, types.size());
 
-        List<String> martBEIdentifiers = handler.getMartBEIdentifiers();
-        List<String> martBEIdentifiersAndNames = handler.getMartBEIdentifiersAndNames();
+        List<String> martBEIdentifiers = handler.getExternalBEIdentifiers();
+        List<String> martBEIdentifiersAndNames = handler.getExternalBEIdentifiersAndNames();
         if (types.get(0).getIdentifierProperty().getName().equals("ensgene")) {
             assertEquals("gene", martBEIdentifiers.get(0));
             assertEquals("gene", martBEIdentifiersAndNames.get(0));
@@ -63,6 +64,14 @@ public class BioMartAnnotatorTest {
         } else {
             fail();
         }
+    }
+
+    @Test
+    public void testGetBioEntityProperties() throws Exception{
+         Annotator.BETypeExternalAttributesHandler handler =
+                new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
+        final Collection<BioEntityProperty> bioEntityProperties = handler.getBioEntityProperties();
+        assertEquals(1, bioEntityProperties.size());
     }
 
     private BioMartAnnotationSource getAnnotationSource() {
@@ -78,11 +87,13 @@ public class BioMartAnnotatorTest {
         BioEntityProperty transProp = new BioEntityProperty(null, "enstranscript");
         BioEntityProperty nameProp = new BioEntityProperty(null, "name");
         BioEntityProperty idenProp = new BioEntityProperty(null, "identifier");
+        BioEntityProperty goProp = new BioEntityProperty(null, "go");
 
         annotationSource.addExternalProperty("gene", geneProp);
         annotationSource.addExternalProperty("transcript", transProp);
         annotationSource.addExternalProperty("symbol", nameProp);
         annotationSource.addExternalProperty("identifier", idenProp);
+        annotationSource.addExternalProperty("go_id", goProp);
 
         BioEntityType type1 = new BioEntityType(null, "ensgene", 1, geneProp, nameProp);
         BioEntityType type2 = new BioEntityType(null, "enstranscript", 0, transProp, idenProp);

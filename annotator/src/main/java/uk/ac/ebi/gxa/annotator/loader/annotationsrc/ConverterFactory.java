@@ -24,6 +24,6 @@ class ConverterFactory {
         } else if (AnnotationSourceClass.FILE.getClazz().equals(clazz)) {
             return fileBasedAnnotationSourceConverter;
         } else
-        throw new IllegalArgumentException("There is converter for class " + clazz);
+        throw new IllegalArgumentException("There is no converter for class " + clazz);
     }
 }

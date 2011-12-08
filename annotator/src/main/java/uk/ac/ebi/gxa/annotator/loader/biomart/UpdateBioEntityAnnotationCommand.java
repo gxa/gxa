@@ -30,7 +30,7 @@ import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
  * Date: 28/07/2011
  */
 public class UpdateBioEntityAnnotationCommand extends AnnotationCommand {
-    private String annSrcId;
+    private final String annSrcId;
 
     public UpdateBioEntityAnnotationCommand(String annSrcId) {
         this.annSrcId = annSrcId;
@@ -38,8 +38,6 @@ public class UpdateBioEntityAnnotationCommand extends AnnotationCommand {
 
     @Override
     public void execute(AnnotationLoaderListener listener) {
-        BioMartAnnotator bioMartAnnotator = factory.getEnsemblAnnotator();
-        bioMartAnnotator.setListener(listener);
-        bioMartAnnotator.updateAnnotations(annSrcId);
+        annotationProcessor.updateAnnotations(annSrcId, listener);
     }
 }

@@ -37,7 +37,7 @@
         </property>
     </bean>
 
-    <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
+    <bean id="annotationProcessor" class="uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor">
         <constructor-arg index="0" ref="beDataWriter"/>
         <constructor-arg index="1" ref="annSrcDAO"/>
         <constructor-arg index="2" ref="bioEntityPropertyDAO"/>
