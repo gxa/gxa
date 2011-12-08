@@ -243,10 +243,16 @@ public class NetCDFDataCreator {
         );
         // !!!KLUDGE!!! Here be dragons
         //
-        // Actually, "GN" is a long array—and it is read as a long array
+        // Actually, "GN" is a long array&mdash;and it is read as a long array
+        //
+        // This is done this way since NetCDF v3 has no <code>LONG</code> type, so a long time ago we've
+        // chosen a type which fits (and no, I will not run <code>git blame</code> to find out who did that).
+        //
         // It is potentially a big problem, since long has 64 bits for the value, and double has only
         // 52+1 bit for the mantissa.
-        // What saves us is an assumption that gene ID actually fits an int (I know that sounds insane)
+        //
+        // What saves us here is an assumption that gene ID actually fits an int (I know that sounds insane,
+        // but bitindex, {@link uk.ac.ebi.gxa.statistics.StatisticsStorage} uses exactly this assumption)
         // so actually we do not lose precision here.
         netCdf.addVariable(
                 "GN", DataType.DOUBLE,
