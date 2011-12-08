@@ -23,7 +23,6 @@
 package ae3.dao;
 
 import ae3.model.AtlasGene;
-import com.google.common.base.Functions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.solr.client.solrj.SolrQuery;

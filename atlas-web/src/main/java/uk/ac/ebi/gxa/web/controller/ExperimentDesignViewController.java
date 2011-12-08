@@ -20,7 +20,7 @@ import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 public class ExperimentDesignViewController extends ExperimentViewControllerBase {
 
     @Autowired
-    public ExperimentDesignViewController(ExperimentSolrDAO experimentSolrDAO, GeneSolrDAO geneSolrDAO, AtlasDAO atlasDAO) {
+    public ExperimentDesignViewController(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {
         super(experimentSolrDAO, atlasDAO);
     }
 
