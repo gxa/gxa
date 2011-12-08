@@ -65,7 +65,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(indexAll, progressUpdater);
 
         try {
-            final List<Experiment> experiments = experimentDAO.getAll();
+            final List<Experiment> experiments = experimentDAO.getExperimentsPreparedForIndexing();
 
             final int total = experiments.size();
             int num = 0;
@@ -120,6 +120,8 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         addAssayInformation(solrInputDoc, experiment);
         addSampleInformation(solrInputDoc, experiment);
         addAssetInformation(solrInputDoc, experiment);
+
+        solrInputDoc.addField("digest", experiment.getDigest());
 
         getLog().info("Finalising changes for {}", experiment);
         getSolrServer().add(solrInputDoc);
