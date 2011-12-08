@@ -234,7 +234,10 @@ public class AssayAndHybridizationStep {
                 }
             }
 
-            // does this assay already contain this property/property value pair?
+            // If assay already contains values for efType then:
+            // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
+            // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
+            // with such experiments)
             boolean existing = false;
             for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(efType))) {
                 existing = true;
