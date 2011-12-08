@@ -201,14 +201,14 @@ public class HTSArrayDataStep {
     static {
         organismToArrayDesign.put("Homo sapiens", "A-ENST-3");
         organismToArrayDesign.put("Mus musculus", "A-ENST-4");
-        organismToArrayDesign.put("drosophila melanogaster", "A-ENST-5");
-        organismToArrayDesign.put("danio rerio", "A-ENST-6");
-        organismToArrayDesign.put("rattus norvegicus", "A-ENST-7");
-        organismToArrayDesign.put("ciona savignyi", "A-ENST-8");
-        organismToArrayDesign.put("equus caballus", "A-ENST-9");
-        organismToArrayDesign.put("sus scrofa", "A-ENST-10");
-        organismToArrayDesign.put("gallus gallus", "A-ENST-11");
-        organismToArrayDesign.put("saccharomyces cerevisiae", "A-ENST-12");
+        organismToArrayDesign.put("Drosophila melanogaster", "A-ENST-5");
+        organismToArrayDesign.put("Danio rerio", "A-ENST-6");
+        organismToArrayDesign.put("Rattus norvegicus", "A-ENST-7");
+        organismToArrayDesign.put("Ciona savignyi", "A-ENST-8");
+        organismToArrayDesign.put("Equus caballus", "A-ENST-9");
+        organismToArrayDesign.put("Sus scrofa", "A-ENST-10");
+        organismToArrayDesign.put("Gallus gallus", "A-ENST-11");
+        organismToArrayDesign.put("Saccharomyces cerevisiae", "A-ENST-12");
     }
 
     //ToDo: this is only temp solution! Array design will not be used for RNA-seq experiments
