@@ -223,9 +223,23 @@ public class AssayAndHybridizationStep {
                 factorValueName = "(empty)";
             }
 
-            // does this assay already contain this property/property value pair?
+            // try and lookup factor type for factor name: factorValueAttribute.type
+            String efType = null;
+            List<String> efNames = investigation.IDF.experimentalFactorName;
+            for (int i = 0; i < efNames.size(); i++) {
+                if (efNames.get(i).equals(factorValueAttribute.type)) {
+                    if (investigation.IDF.experimentalFactorType.size() > i) {
+                        efType = investigation.IDF.experimentalFactorType.get(i);
+                    }
+                }
+            }
+
+            // If assay already contains values for efType then:
+            // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
+            // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
+            // with such experiments)
             boolean existing = false;
-            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(factorValueAttribute.type))) {
+            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(efType))) {
                 existing = true;
                 if (!ap.getValue().equals(factorValueName)) {
                     throw new AtlasLoaderException(
@@ -235,17 +249,6 @@ public class AssayAndHybridizationStep {
                                     "which cannot currently be loaded into the atlas. Or, this could be a result " +
                                     "of inconsistent annotations"
                     );
-                }
-            }
-
-            // try and lookup type
-            String efType = null;
-            List<String> efNames = investigation.IDF.experimentalFactorName;
-            for (int i = 0; i < efNames.size(); i++) {
-                if (efNames.get(i).equals(factorValueAttribute.type)) {
-                    if (investigation.IDF.experimentalFactorType.size() > i) {
-                        efType = investigation.IDF.experimentalFactorType.get(i);
-                    }
                 }
             }
 
