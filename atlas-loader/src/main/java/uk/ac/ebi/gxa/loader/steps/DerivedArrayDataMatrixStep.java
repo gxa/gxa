@@ -109,7 +109,7 @@ public class DerivedArrayDataMatrixStep {
                     if (refNodeName.equals("scanname")) {
                         // this requires mapping the assay upstream of this node to the scan
                         // no need to block, since if we are reading data, we've parsed the scans already
-                        SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+                        SDRFNode refNode = investigation.SDRF.getNode(refName, refNodeName);
                         if (refNode == null) {
                             // generate error item and throw exception
                             throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");
@@ -147,7 +147,7 @@ public class DerivedArrayDataMatrixStep {
                         }
                     } else if (refNodeName.equals("assayname") || refNodeName.equals("hybridizationname")) {
                         // just check it is possible to recover the SDRF node referenced in the data file
-                        SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+                        SDRFNode refNode = investigation.SDRF.getNode(refName, refNodeName);
                         if (refNode == null) {
                             // generate error item and throw exception
                             throw new AtlasLoaderException("Could not find " + refName + " [" + refNodeName + "] in SDRF");

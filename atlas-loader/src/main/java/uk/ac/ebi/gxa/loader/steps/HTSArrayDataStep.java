@@ -71,7 +71,7 @@ public class HTSArrayDataStep {
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
-//                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+//                SDRFNode refNode = investigation.SDRF.getNode(refName, refNodeName);
                 ScanNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
