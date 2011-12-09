@@ -39,7 +39,7 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
     private Integer uEFVIndex;
 
     public BestDesignElementCandidate(Float pValue, Float tStat, Integer deIndex, Integer uEFVIndex) {
-        this.pValue = pValue;
+        this.pValue = pValue > 1.0 ? Float.NaN : pValue;
         this.tStat = tStat;
         this.deIndex = deIndex;
         this.uEFVIndex = uEFVIndex;
@@ -94,17 +94,21 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
             return tStatDiff;
         }
 
-        if (isNaN(getPValue()) || getPValue() > 1) // NA pVal for this experiment
-            return 1; // the other BestDesignElementCandidate comes first
-
-        if (isNaN(o.getPValue()) || o.getPValue() > 1) // NA pVal for the compared experiment
-            return -1; // this BestDesignElementCandidate comes first
-
-        if (compare(getPValue(), o.getPValue()) == 0)
-            // if pvals are the same, return the this PT first
-            // (arbitrary which we return - it's just that one of them has to come first)
+        if (isNaN(getPValue())) {
+            return isNaN(o.getPValue()) ? 0 : 1;
+        } else if (isNaN(o.getPValue()))
             return -1;
 
         return compare(getPValue(), o.getPValue()); // lower pVals come first
+    }
+
+    @Override
+    public String toString() {
+        return "BestDesignElementCandidate{" +
+                "pValue=" + pValue +
+                ", tStat=" + tStat +
+                ", deIndex=" + deIndex +
+                ", uEFVIndex=" + uEFVIndex +
+                '}';
     }
 }
