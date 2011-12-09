@@ -70,8 +70,6 @@ public class BestDesignElementCandidateTest {
                     isNaN(b.getPValue()) ? 0 : 1,
                     a.compareTo(b));
         } else {
-            System.out.println("a = " + a);
-            System.out.println("b = " + b);
             if (a.getPValue() < b.getPValue())
                 assertTrue("P values ordering", a.compareTo(b) < 0);
             if (a.getPValue() > b.getPValue())
