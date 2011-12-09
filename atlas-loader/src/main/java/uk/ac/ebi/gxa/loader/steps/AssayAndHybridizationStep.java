@@ -234,6 +234,13 @@ public class AssayAndHybridizationStep {
                 }
             }
 
+            if (efType == null) {
+                // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
+                log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
+                        "', using type from SDRF");
+                efType = factorValueAttribute.type;
+            }
+
             // If assay already contains values for efType then:
             // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
             // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
@@ -253,18 +260,7 @@ public class AssayAndHybridizationStep {
             }
 
             if (!existing) {
-                final String type;
-                if (efType == null) {
-                    // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
-                    log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
-                            "', using type from SDRF");
-                    type = factorValueAttribute.type;
-                } else {
-                    type = efType;
-                }
-
-                assay.addProperty(dao.getOrCreatePropertyValue(type, factorValueName));
-
+                assay.addProperty(dao.getOrCreatePropertyValue(efType, factorValueName));
                 // todo - factor values can have ontology entries, set these values
             }
         }
