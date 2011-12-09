@@ -22,6 +22,8 @@ public class BestDesignElementCandidateTest {
         for (BestDesignElementCandidate a : toIterable(deCandidates())) {
             for (BestDesignElementCandidate b : toIterable(deCandidates())) {
                 try {
+                    assertEquals("Equality must be reflexive,", 1, a.compareTo(a));
+                    assertEquals("Equality must be reflexive,", 1, b.compareTo(b));
                     if (a.equals(b)) {
                         assertEquals("equals-hashCode contract broken,", a.hashCode(), b.hashCode());
                     }
