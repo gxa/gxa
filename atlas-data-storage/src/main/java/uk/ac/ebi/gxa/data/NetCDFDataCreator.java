@@ -538,7 +538,7 @@ public class NetCDFDataCreator {
                 throw new AtlasDataException("Cannot create folder for the output file" + dataFile);
             }
 
-            final File tempDataFile = File.createTempFile(dataFile.getName(), ".tmp");
+            final File tempDataFile = File.createTempFile(dataFile.getName(), ".tmp", dataFile.getParentFile());
             log.info("Writing NetCDF file to " + tempDataFile);
             final NetcdfFileWriteable netCdf = NetcdfFileWriteable.createNew(tempDataFile.getAbsolutePath(), true);
             try {
