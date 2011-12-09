@@ -46,8 +46,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -588,7 +591,7 @@ public class AtlasStructuredQueryService {
         return q;
     }
 
-    private Set<Integer> getGenesByGeneConditionsAndSpecies(Collection<GeneQueryCondition> geneConditions, Collection<String> species) {
+    public Set<Integer> getGenesByGeneConditionsAndSpecies(Collection<GeneQueryCondition> geneConditions, Collection<String> species) {
         Set<Integer> geneIds = new HashSet<Integer>();
         SolrQueryBuilder solrq = new SolrQueryBuilder();
         appendGeneQuery(geneConditions, solrq);
@@ -813,7 +816,7 @@ public class AtlasStructuredQueryService {
      * @param qstate state
      * @return iterable conditions resulted from this append
      */
-    private Collection<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
+    public Collection<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
         final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
         // TODO SolrQueryBuilder solrq = qstate.getSolrq();
 
@@ -840,7 +843,8 @@ public class AtlasStructuredQueryService {
                             // TODO solrq.appendExpScores(efefvId, c.getExpression());
 
                             notifyCache(efefvId + c.getExpression());
-                            qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
+                            if (qstate != null)
+                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                         }
                         // TODO solrq.append(")");
                         for (EfvTree.EfEfv<Boolean> allEfv : allEfvs.getNameSortedList())
@@ -850,7 +854,8 @@ public class AtlasStructuredQueryService {
                                 // TODO solrq.appendExpFields(efefvId, c.getExpression(), 1);
                                 // TODO solrq.append(")");
                                 notifyCache(efefvId + c.getExpression());
-                                qstate.addEfv(allEfv.getEf(), allEfv.getEfv(), 1, QueryExpression.UP_DOWN);
+                                if (qstate != null)
+                                    qstate.addEfv(allEfv.getEf(), allEfv.getEfv(), 1, QueryExpression.UP_DOWN);
                             }
                         // TODO solrq.append(")");
                         conds.add(new ExpFactorResultCondition(c,
@@ -902,11 +907,13 @@ public class AtlasStructuredQueryService {
 
                             if (Constants.EFO_FACTOR_NAME.equals(ef) || Constants.EFO_WITH_CHILDREN_PREAMBLE.equals(ef)) {
                                 if (!excludeEfos) {
-                                    qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
+                                    if (qstate != null)
+                                        qstate.addEfo(condEfv.getEfv(), c.getMinExperiments(), c.getExpression(), maxEfoDescendantGeneration);
                                     orAttributes.add(new EfoAttribute(condEfv.getEfv()));
                                 }
                             } else {
-                                qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
+                                if (qstate != null)
+                                    qstate.addEfv(condEfv.getEf(), condEfv.getEfv(), c.getMinExperiments(), c.getExpression());
                                 orAttributes.add(new EfvAttribute(condEfv.getEf(), condEfv.getEfv()));
                             }
                         }
@@ -1886,5 +1893,92 @@ public class AtlasStructuredQueryService {
     public void destroy() {
         if (indexBuilder != null)
             indexBuilder.unregisterIndexBuildEventHandler(indexBuilderEventHandler);
+    }
+
+    /**
+     * @param expAcc      Experiment accession
+     * @param statsAttrs  collection of Pairs of statistics type - Attribute that are scoring in experiment: expAcc
+     * @param id2GeneInfo Map geneId -> gene information to be included in the output String
+     * @return One line of data containing gene-experiment-expression information to be included in zip file being downloaded
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public String getDataFromExperiment(final String expAcc,
+                                        final Collection<Pair<StatisticsType, EfAttribute>> statsAttrs,
+                                        final Map<Long, String> id2GeneInfo) {
+        StringBuilder sb = new StringBuilder();
+
+        ExperimentWithData ewd = null;
+        try {
+            Experiment experiment = experimentDAO.getByName(expAcc);
+            ewd = atlasDataDAO.createExperimentWithData(experiment);
+            Set<Long> geneIds = id2GeneInfo.keySet();
+            for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
+                Map<Long, List<Integer>> geneIdToDEIndexes = ewd.getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
+
+                for (Pair<StatisticsType, EfAttribute> statTypeAttr : statsAttrs) {
+                    StatisticsType statType = statTypeAttr.getKey();
+                    EfAttribute attr = statTypeAttr.getValue();
+
+                    if (!(attr instanceof EfvAttribute)) {
+                        continue;
+                    }
+
+                    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                            ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes,
+                                    attr.getEf(), ((EfvAttribute) attr).getEfv(), UpDownCondition.CONDITION_ANY);
+
+                    for (Map.Entry<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdToEfToEfvToEA : geneIdsToEfToEfvToEA.entrySet()) {
+
+                        for (Map.Entry<String, Map<String, ExpressionAnalysis>> efToEfvToEA : geneIdToEfToEfvToEA.getValue().entrySet()) {
+                            String ef = efToEfvToEA.getKey();
+
+                            for (Map.Entry<String, ExpressionAnalysis> efvToEA : efToEfvToEA.getValue().entrySet()) {
+                                String efv = efvToEA.getKey();
+                                ExpressionAnalysis ea = efvToEA.getValue();
+
+                                if (statTypesMatch(statType, ea.getUpDownExpression())) {
+                                    sb.append(id2GeneInfo.get(geneIdToEfToEfvToEA.getKey()));
+                                    sb.append(ef).append("\t");
+                                    sb.append(efv).append("\t");
+                                    sb.append(experiment.getAccession()).append("\t");
+                                    sb.append(arrayDesign.getAccession()).append("\t");
+                                    sb.append(ea.getUpDownExpression()).append("\t");
+                                    sb.append(ea.getPValAdjusted()).append("\n");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return sb.toString();
+        } catch (RecordNotFoundException nfe) {
+            throw LogUtil.createUnexpected("Experiment not found: " + expAcc);
+        } catch (StatisticsNotFoundException nfe) {
+            throw LogUtil.createUnexpected("StatisticsNotFoundException: ", nfe);
+        } catch (AtlasDataException ade) {
+            throw LogUtil.createUnexpected("Exception in ncdf access layer occurred", ade);
+        } finally {
+            closeQuietly(ewd);
+        }
+    }
+
+    /**
+     * Statistics types handling in Atlas is a mess - note ticket #3032 to sort this out and, amongst other things,
+     * remove a need for this method
+     *
+     * @param statType
+     * @param upDownExpression
+     * @return
+     */
+    private boolean statTypesMatch(StatisticsType statType, UpDownExpression upDownExpression) {
+        if (statType == StatisticsType.UP && upDownExpression.isUp())
+            return true;
+        if (statType == StatisticsType.DOWN && upDownExpression.isDown())
+            return true;
+        if (statType == StatisticsType.UP_DOWN && upDownExpression.isUpOrDown())
+            return true;
+        if (statType == StatisticsType.NON_D_E && upDownExpression.isNonDe())
+            return true;
+        return false;
     }
 }

@@ -1,5 +1,6 @@
 package ae3.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multiset;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -53,6 +54,15 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache);
 
     /**
+     * @param statsQuery
+     * @return A map containing
+     *         - scoring experiments as keys
+     *         - Collections of scoring statistics type-attribute pairs in experiment key as values
+     */
+    public ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
+            final StatisticsQueryCondition statsQuery);
+
+    /**
      * @param orAttributes
      * @param statType
      * @param minExperiments
@@ -62,6 +72,15 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final List<Attribute> orAttributes,
             final StatisticsType statType,
             int minExperiments);
+
+
+    /**
+     * @param statsQuery
+     * @param geneIds
+     * @return A subset of geneIds that is scoring according to the statsQuery result
+     */
+    public Set<Integer> restrictGenesByStatsQuery(final StatisticsQueryCondition statsQuery,
+                                                  final Set<Integer> geneIds);
 
     /**
      * @param statsQuery
@@ -80,7 +99,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             List<Integer> sortedBioEntitiesChunk);
 
     /**
-     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
@@ -170,12 +188,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public void getAttributeToExperimentMappings(
             final Attribute attribute,
             Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs);
-
-    /**
-     * @param statType
-     * @return Collection of unique experiments with expressions for statType
-     */
-    public Collection<ExperimentInfo> getScoringExperiments(StatisticsType statType);
 
     /**
      * @param attribute

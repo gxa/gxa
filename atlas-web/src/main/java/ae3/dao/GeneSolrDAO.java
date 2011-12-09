@@ -49,6 +49,8 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 public class GeneSolrDAO {
     private static final Logger log = LoggerFactory.getLogger(GeneSolrDAO.class);
 
+    private static final int MAX_LUCENE_CLAUSES_COUNT = 1024;
+
     private AtlasProperties atlasProperties;
 
     private SolrServer geneSolr;
@@ -197,6 +199,55 @@ public class GeneSolrDAO {
      */
     public Iterable<AtlasGene> getGenesByIdentifiers(Collection<String> ids) {
         return getGenesByAnyIdentifiers(ids, Collections.<String>emptyList());
+    }
+
+    /**
+     * Returns AtlasGenes corresponding to the specified gene identifiers,
+     * i.e. matching one of the terms in the "gene_ids" field in Solr schema.
+     *
+     * @param geneIds Collection of ids
+     * @return List<AtlasGene>
+     */
+    public List<AtlasGene> getGenesByIds(Collection<Integer> geneIds) {
+        List<AtlasGene> genes = new ArrayList<AtlasGene>();
+        try {
+            for (SolrQuery query : getSolrQueriesForgenes(geneIds)) {
+                query.setRows(Integer.MAX_VALUE);
+                QueryResponse queryResponse = geneSolr.query(query);
+                SolrDocumentList documentList = queryResponse.getResults();
+                for (SolrDocument d : documentList) {
+                    AtlasGene g = new AtlasGene(d);
+                    genes.add(g);
+                }
+            }
+            return genes;
+        } catch (SolrServerException e) {
+            throw LogUtil.createUnexpected("Error querying list of genes");
+        }
+    }
+
+    /**
+     * @param ids
+     * @return A collection of SolrQuery's - since Lucene can support only max. MAX_LUCENE_CLAUSES_COUNT
+     *         in any given query, we need to split ids into chunks that Lucene can manage.
+     */
+    private List<SolrQuery> getSolrQueriesForgenes(Collection<Integer> ids) {
+        List<SolrQuery> solrQueries = new ArrayList<SolrQuery>();
+
+        StringBuilder sb = new StringBuilder();
+        int cnt = 1;
+        for (Integer id : ids) {
+            if (cnt % MAX_LUCENE_CLAUSES_COUNT == 0) {
+                solrQueries.add(new SolrQuery(sb.toString()));
+                sb = new StringBuilder();
+            }
+            sb.append(" id:").append(id);
+            cnt++;
+        }
+        if (!Strings.isNullOrEmpty(sb.toString())) {
+            solrQueries.add(new SolrQuery(sb.toString()));
+        }
+        return solrQueries;
     }
 
     /**

@@ -1,6 +1,7 @@
 package ae3.service;
 
 import ae3.model.AtlasGene;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multiset;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -8,6 +9,7 @@ import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;
 import java.util.*;
@@ -141,10 +143,10 @@ public class AtlasStatisticsQueryServiceTest {
         assertTrue(experimentCounts.entrySet().size() > 0);
 
         statsQuery.setBioEntityIdRestrictionSet(Collections.singleton(bioEntityId));
-        Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
-        experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
+        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExpsAttrs);
         assertEquals(0, experimentCounts.size());
-        assertTrue(scoringExps.size() > 0);
+        assertTrue(scoringExpsAttrs.asMap().keySet().size() > 0);
     }
 
     @Test

@@ -22,21 +22,33 @@
 
 package ae3.service;
 
+import ae3.dao.GeneSolrDAO;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -45,7 +57,9 @@ import static java.util.Collections.synchronizedMap;
  * @author iemam
  */
 public class AtlasDownloadService {
-    private AtlasStructuredQueryService atlasQueryService;
+    private AtlasStructuredQueryService atlasStructuredQueryService;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private GeneSolrDAO geneSolrDAO;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private AtomicInteger countDownloads = new AtomicInteger(0);
@@ -58,8 +72,20 @@ public class AtlasDownloadService {
         this.downloadThreadPool = downloadThreadPool;
     }
 
-    public void setAtlasQueryService(AtlasStructuredQueryService atlasQueryService) {
-        this.atlasQueryService = atlasQueryService;
+    public void setAtlasStructuredQueryService(AtlasStructuredQueryService atlasStructuredQueryService) {
+        this.atlasStructuredQueryService = atlasStructuredQueryService;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
+    }
+
+    public void setCountDownloads(AtomicInteger countDownloads) {
+        this.countDownloads = countDownloads;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -103,9 +129,9 @@ public class AtlasDownloadService {
                     return -1;
                 }
             }
-
-            final Download download = new Download(countDownloads.incrementAndGet(), query, atlasQueryService,
-                    atlasProperties.getDataRelease());
+            final Download download = new Download(countDownloads.incrementAndGet(),
+                    atlasStructuredQueryService, atlasStatisticsQueryService, geneSolrDAO,
+                    query, atlasProperties.getDataRelease());
 
             downloadList.put(download.getId(), download);
             downloads.put(session.getId(), downloadList);

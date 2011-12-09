@@ -1,5 +1,6 @@
 package ae3.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
@@ -106,6 +107,18 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     * @param statsQuery
+     * @return A map containing
+     *  - scoring experiments as keys
+     *  - Collections of scoring statistics type-attribute pairs in experiment key as values
+     */
+    public ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
+            final StatisticsQueryCondition statsQuery) {
+        return StatisticsQueryUtils.getScoringExpsAttrs(statsQuery, statisticsStorage);
+    }
+
+
+    /**
      * @param attribute
      * @param bioEntityId
      * @param statType
@@ -207,6 +220,20 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             return sortedByCount.subList(min, max);
         }
         return sortedByCount.subList(min, totalResults);
+    }
+
+    /**
+     * @param statsQuery
+     * @param geneIds
+     * @return A subset of geneIds that is scoring according to the statsQuery result
+     */
+    public Set<Integer> restrictGenesByStatsQuery(final StatisticsQueryCondition statsQuery,
+                                                  final Set<Integer> geneIds) {
+        Multiset<Integer> experimentCounts = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
+        if (!geneIds.isEmpty()) {
+            experimentCounts = StatisticsQueryUtils.intersect(experimentCounts, geneIds);
+        }
+        return experimentCounts.elementSet();
     }
 
     /**
@@ -411,8 +438,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             }
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIds, statType);
             statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(efvAttr), statType, 1));
-            Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
-            StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
+            ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+            StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExpsAttrs);
+            Set<ExperimentInfo> scoringExps = scoringExpsAttrs.asMap().keySet();
             if (scoringExps.size() > 0) { // at least one bioEntityId in bioEntityIds had an experiment count > 0 for attr
                 if (attrCounts != null)
                     attrCounts.add(efvAttr, scoringExps.size());
@@ -468,9 +496,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             final StatisticsType statType) {
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
         statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute), statType, 1));
-        Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
-        StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
-        return scoringExps;
+        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExpsAttrs);
+        return scoringExpsAttrs.asMap().keySet();
     }
 
     /**
@@ -481,14 +509,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             final Attribute attribute,
             Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs) {
         attribute.getAttributeToExperimentMappings(statisticsStorage, allExpsToAttrs);
-    }
-
-    /**
-     * @param statType
-     * @return Collection of unique experiments with expressions for statType
-     */
-    public Collection<ExperimentInfo> getScoringExperiments(StatisticsType statType) {
-        return statisticsStorage.getScoringExperiments(statType);
     }
 
     /**

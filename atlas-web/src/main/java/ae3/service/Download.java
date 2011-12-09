@@ -22,23 +22,22 @@
 
 package ae3.service;
 
-import ae3.model.ListResultRow;
-import ae3.model.ListResultRowExperiment;
+import ae3.dao.GeneSolrDAO;
+import ae3.model.AtlasGene;
 import ae3.service.structuredquery.AtlasStructuredQuery;
-import ae3.service.structuredquery.AtlasStructuredQueryResult;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
-import ae3.service.structuredquery.ViewType;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
+import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import javax.annotation.Nonnull;
+import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -50,22 +49,29 @@ import java.util.zip.ZipOutputStream;
 public class Download implements Runnable {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
+    private AtlasStructuredQueryService atlasStructuredQueryService;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private GeneSolrDAO geneSolrDAO;
+
     private int id;
     private final AtlasStructuredQuery query;
-    private final AtlasStructuredQueryService queryService;
 
     private File outputFile;
 
     private long totalResults = 0;
     private long resultsRetrieved = 0;
-    private static final int FRAME_SIZE = 50;
     private String dataVersion;
-    private static final String NA = "N/A"; // Display String for Float.NaN pValue
 
-    public Download(int id, AtlasStructuredQuery query, AtlasStructuredQueryService queryService, String dataVersion) throws IOException {
+    public Download(int id,
+                    AtlasStructuredQueryService atlasStructuredQueryService,
+                    AtlasStatisticsQueryService atlasStatisticsQueryService,
+                    GeneSolrDAO geneSolrDAO,
+                    AtlasStructuredQuery query, String dataVersion) throws IOException {
         this.query = query;
-        this.queryService = queryService;
         this.id = id;
+        this.atlasStructuredQueryService = atlasStructuredQueryService;
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+        this.geneSolrDAO = geneSolrDAO;
 
         this.outputFile = File.createTempFile("listdl", ".zip");
         this.outputFile.deleteOnExit();
@@ -85,38 +91,19 @@ public class Download implements Runnable {
     }
 
     public void run() {
-        if (query != null) {
-            ZipOutputStream zout = null;
-            try {
-                zout = new ZipOutputStream(new FileOutputStream(getOutputFile()));
+        if (query == null || query.isNone())
+            return;
 
-                boolean first = true;
-
-                query.setExpsPerGene(Integer.MAX_VALUE);
-                query.setViewType(ViewType.LIST);
-                while (first || getTotalResults() > getResultsRetrieved()) {
-                    query.setStart((int) getResultsRetrieved());
-                    int rowsPerPage = first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved());
-                    query.setRowsPerPage(rowsPerPage);
-                    AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(query);
-                    if (first) {
-                        setTotalResults(atlasResult.getTotal());
-
-                        log.info("Downloading query {}, expect total {} results", query.toString(), getTotalResults());
-                        zout.putNextEntry(new ZipEntry("listdl.tab"));
-                        outputHeader(zout);
-                        first = false;
-                    }
-
-                    outputResults(atlasResult, zout);
-                    incrementResultsRetrieved(rowsPerPage);
-                }
-                zout.closeEntry();
-            } catch (IOException e) {
-                log.error("Error executing download for query {}, error {}", query, e.getMessage());
-            } finally {
-                Closeables.closeQuietly(zout);
-            }
+        ZipOutputStream zout = null;
+        try {
+            zout = new ZipOutputStream(new FileOutputStream(getOutputFile()));
+            zout.putNextEntry(new ZipEntry("listdl.tab"));
+            getData(query, zout);
+            zout.closeEntry();
+        } catch (IOException e) {
+            log.error("Error executing download for query {}, error {}", query, e.getMessage());
+        } finally {
+            Closeables.closeQuietly(zout);
         }
     }
 
@@ -145,52 +132,20 @@ public class Download implements Runnable {
         StringBuilder strBuf = new StringBuilder();
 
         strBuf.append("# Atlas data version: ").append(dataVersion).append("\n");
-        strBuf.append("# Query: ").append(query.toString()).append("\n");
+        strBuf.append("# Query: ").append(query).append("\n");
+        strBuf.append("# Note that to download non-differential expression data the 'non-d.e. in' option needs to be selected on Atlas search page\n");
         strBuf.append("# Timestamp: ").append(formatter.format(today)).append("\n");
 
         strBuf.append("Gene name").append("\t").append("Gene identifier").append("\t").append("Organism").append("\t");
         strBuf.append("Experimental factor").append("\t").append("Factor value").append("\t");
-        strBuf.append("Experiment accession").append("\t").append("Expression").append("\t").append("P-value").append("\n");
+        strBuf.append("Experiment accession").append("\t").append("Array Design accession").append("\t");
+        strBuf.append("Expression").append("\t").append("P-value").append("\n");
 
         out.write(strBuf.toString().getBytes("UTF-8"));
     }
 
-
-    private void outputResults(AtlasStructuredQueryResult result, OutputStream out) throws IOException {
-        StringBuilder strBuf = new StringBuilder();
-        for (ListResultRow row : result.getListResults()) {
-            String geneName = row.getGene_name();
-            String geneIdentifier = row.getGene().getGeneIdentifier();
-            String geneSpecies = row.getGene_species();
-            String ef = row.getEf();
-            String efv = row.getFv();
-
-            for (ListResultRowExperiment expRow : row.getExp_list()) {
-                strBuf.append(geneName);
-                strBuf.append("\t");
-                strBuf.append(geneIdentifier);
-                strBuf.append("\t");
-                strBuf.append(geneSpecies);
-                strBuf.append("\t");
-                strBuf.append(ef);
-                strBuf.append("\t");
-                strBuf.append(efv);
-                strBuf.append("\t");
-                strBuf.append(expRow.getExperimentAccession());
-                strBuf.append("\t");
-                strBuf.append(expRow.getUpdn().toString());
-                strBuf.append("\t");
-                strBuf.append(Float.isNaN(expRow.getPvalue()) ? NA : expRow.getPvalue());
-                strBuf.append("\n");
-            }
-
-            out.write(strBuf.toString().getBytes("UTF-8"));
-            strBuf.setLength(0);
-        }
-    }
-
-    private void incrementResultsRetrieved(long size) {
-        resultsRetrieved += size;
+    private void incrementResultsRetrieved() {
+        resultsRetrieved++;
     }
 
     public long getTotalResults() {
@@ -221,5 +176,65 @@ public class Download implements Runnable {
         } finally {
             super.finalize();
         }
+    }
+
+    public void getData(@Nonnull AtlasStructuredQuery query, @Nonnull OutputStream zout) throws IOException {
+        outputHeader(zout);
+
+        long start = System.currentTimeMillis();
+        // Get gene ids by Gene Conditions and Species - will be empty if user is querying by factor conditions only
+        Set<Integer> geneIds = atlasStructuredQueryService.getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
+        log.debug("Called getGenesByGeneConditionsAndSpecies() - size: {}", geneIds.size());
+
+        // Populate statsQuery with factor conditions
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition();
+        atlasStructuredQueryService.appendEfvsQuery(query, null, statsQuery);
+        if (statsQuery.getStatisticsType() == null) {
+            statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
+        }
+
+        // Restrict geneIds by stats query for factor conditions
+        geneIds = atlasStatisticsQueryService.restrictGenesByStatsQuery(statsQuery, geneIds);
+        log.debug("Restrict geneIds by stats query for factor conditions - size: {}", geneIds.size());
+
+        // Now retrieve experiment-statistic-attribute data for stats query for geneIds and factor conditions
+        statsQuery.setBioEntityIdRestrictionSet(geneIds);
+        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs =
+                atlasStatisticsQueryService.getScoringExpsAttrs(statsQuery);
+        log.debug("Overall bit index query time: {} of # experiments: {}", (System.currentTimeMillis() - start), scoringExpsAttrs.asMap().size());
+
+        log.info("Getting genes out of Solr for query: '{}' ...", query.toString());
+        // Retrieve genes from Solr
+        start = System.currentTimeMillis();
+        Map<Long, String> id2GeneInfo = new HashMap<Long, String>();
+        Iterable<AtlasGene> genes = geneSolrDAO.getGenesByIds(geneIds);
+        for (AtlasGene gene : genes) {
+            id2GeneInfo.put((long) gene.getGeneId(), getGeneInfo(gene));
+        }
+        log.info("Solr gene retrieval time: {} ms", (System.currentTimeMillis() - start));
+
+        // Now traverse the experiments
+        start = System.currentTimeMillis();
+        Map<ExperimentInfo, Collection<Pair<StatisticsType, EfAttribute>>> expToAttrs = scoringExpsAttrs.asMap();
+        // Note that the download progress bar will be reporting how many experiments in expToAttrs the download got through
+        setTotalResults(expToAttrs.entrySet().size());
+        log.info("Downloading data for query '{}' - now collecting data from {} experiments...", query.toString(), getTotalResults());
+        for (Map.Entry<ExperimentInfo, Collection<Pair<StatisticsType, EfAttribute>>> expAttr : expToAttrs.entrySet()) {
+            zout.write(atlasStructuredQueryService.getDataFromExperiment(expAttr.getKey().getAccession(), expAttr.getValue(), id2GeneInfo).getBytes("UTF-8"));
+            incrementResultsRetrieved();
+        }
+        log.info("Collected data from {} experiments in: {} ms ", getTotalResults(), (System.currentTimeMillis() - start));
+    }
+
+    /**
+     * @param gene
+     * @return Information for gene that will be included in the Download output
+     */
+    private String getGeneInfo(AtlasGene gene) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(gene.getGeneName()).append("\t");
+        sb.append(gene.getGeneIdentifier()).append("\t");
+        sb.append(gene.getGeneSpecies()).append("\t");
+        return sb.toString();
     }
 }
