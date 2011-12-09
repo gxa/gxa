@@ -13,7 +13,7 @@ import java.util.*;
 
 
 /**
- * This class us used to populate the best genes table on the experiment page
+ * This class is used to populate the best genes table on the experiment page
  *
  * @author Robert Petryszak
  */

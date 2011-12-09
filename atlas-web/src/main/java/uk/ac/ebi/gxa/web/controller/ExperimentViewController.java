@@ -447,9 +447,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         public ExperimentTableRow(BestDesignElementsResult.Item item) {
 
-            if (item.getGene() == null) {
-                throw LogUtil.createUnexpected("No gene was found for design element: " + item.getDeAccession());
-            }
             geneName = item.getGene().getGeneName();
             geneIdentifier = item.getGene().getGeneIdentifier();
             deAccession = item.getDeAccession();

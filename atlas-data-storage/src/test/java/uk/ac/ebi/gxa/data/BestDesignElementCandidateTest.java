@@ -76,7 +76,7 @@ public class BestDesignElementCandidateTest {
                 assertTrue("P values ordering", a.compareTo(b) < 0);
             if (a.getPValue() > b.getPValue())
                 assertTrue("P values ordering", a.compareTo(b) > 0);
-            if (a.getPValue().equals(b.getPValue()))
+            if (compare(a.getPValue(), b.getPValue()) == 0)
                 assertTrue("P values ordering", a.compareTo(b) == 0);
         }
     }

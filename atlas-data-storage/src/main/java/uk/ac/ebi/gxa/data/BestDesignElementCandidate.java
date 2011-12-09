@@ -33,23 +33,23 @@ import static java.lang.Math.abs;
  * @author Robert Petryszak
  */
 public final class BestDesignElementCandidate implements Comparable<BestDesignElementCandidate> {
-    private Float pValue;
-    private Float tStat;
-    private Integer deIndex;
-    private Integer uEFVIndex;
+    private float pValue;
+    private float tStat;
+    private int deIndex;
+    private int uEFVIndex;
 
-    public BestDesignElementCandidate(Float pValue, Float tStat, Integer deIndex, Integer uEFVIndex) {
+    public BestDesignElementCandidate(float pValue, float tStat, int deIndex, int uEFVIndex) {
         this.pValue = pValue > 1.0 ? Float.NaN : pValue;
         this.tStat = tStat;
         this.deIndex = deIndex;
         this.uEFVIndex = uEFVIndex;
     }
 
-    public Float getPValue() {
+    public float getPValue() {
         return pValue;
     }
 
-    public Float getTStat() {
+    public float getTStat() {
         return tStat;
     }
 
@@ -81,7 +81,8 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
      * 1. If absolute tStat ranks differ, return the higher tStat first
      * 2. If absolute tStat ranks are the same:
      * a. if pVals are different, return the lower pVal first
-     * b. if pVals are the same, return this BestDesignElementCandidate first
+     * b. if pVals are the same, return 0
+     * 3. NaN pVal always comes last unless both compared pvals are NaN - in that case they are deemed equal
      *
      * @param o the object to be compared.
      * @return a negative integer, zero, or a positive integer as this object
