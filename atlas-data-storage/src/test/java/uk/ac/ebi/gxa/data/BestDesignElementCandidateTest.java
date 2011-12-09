@@ -84,7 +84,7 @@ public class BestDesignElementCandidateTest {
         for (BestDesignElementCandidate a : toIterable(deCandidates())) {
             for (BestDesignElementCandidate b : toIterable(deCandidates())) {
                 try {
-                    if (compare(abs(a.getTStat()), abs(b.getTStat())) == 0)
+                    if (abs(a.getTStat()) == abs(b.getTStat()))
                         continue;
                     if (isNaN(a.getTStat()) && isNaN(b.getTStat()))
                         continue;
