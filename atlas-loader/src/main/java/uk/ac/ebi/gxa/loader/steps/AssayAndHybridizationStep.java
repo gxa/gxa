@@ -26,12 +26,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
@@ -60,7 +60,7 @@ public class AssayAndHybridizationStep {
     }
 
     public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
                 writeScanNode(scanNode, cache, investigation, dao);
@@ -68,11 +68,11 @@ public class AssayAndHybridizationStep {
         }
 
         if (!isHTS(investigation)) {
-            for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
+            for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
                 writeHybridizationNode(hybridizationNode, cache, investigation, dao);
             }
 
-            for (AssayNode assayNode : investigation.SDRF.lookupNodes(AssayNode.class)) {
+            for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
                 writeHybridizationNode(assayNode, cache, investigation, dao);
             }
         }
@@ -104,7 +104,7 @@ public class AssayAndHybridizationStep {
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
-                SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+                GraphUtils.findUpstreamNodes(node, SourceNode.class);
 
         for (SourceNode source : upstreamSources) {
             // retrieve the samples with the matching accession
@@ -132,7 +132,7 @@ public class AssayAndHybridizationStep {
         }
 
         // add array design accession
-        Collection<AssayNode> assayNodes = SDRFUtils.findUpstreamNodes(node, AssayNode.class);
+        Collection<AssayNode> assayNodes = GraphUtils.findUpstreamNodes(node, AssayNode.class);
 
         AssayNode assayNode;
         // now check we have 1:1 mappings so that we can resolve our scans
@@ -144,7 +144,7 @@ public class AssayAndHybridizationStep {
             // many to one scan-to-assay, we can't load this generate error item and throw exception
             throw new AtlasLoaderException(
                     "Unable to update resolve expression values to assays for " +
-                            investigation.accession + " - data matrix file references scans, " +
+                            investigation.getAccession() + " - data matrix file references scans, " +
                             "and in this experiment scans do not map one to one with assays.  " +
                             "This is not supported, as it would result in " +
                             (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
@@ -161,7 +161,7 @@ public class AssayAndHybridizationStep {
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
-                SDRFUtils.findUpstreamNodes(assayNode, SourceNode.class);
+                GraphUtils.findUpstreamNodes(assayNode, SourceNode.class);
 
         for (SourceNode source : upstreamSources) {
             // retrieve the samples with the matching accession

@@ -4,12 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
@@ -71,7 +71,7 @@ public class HTSArrayDataStep {
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
-//                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+//                SDRFNode refNode = investigation.SDRF.getNode(refName, refNodeName);
                 ScanNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
@@ -100,7 +100,7 @@ public class HTSArrayDataStep {
     }
 
     private static ScanNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
-        Collection<? extends SDRFNode> nodes = sdrf.lookupNodes(MAGETABUtils.digestHeader("scanname"));
+        Collection<? extends SDRFNode> nodes = sdrf.getNodes(MAGETABUtils.digestHeader("scanname"));
         for (SDRFNode node : nodes) {
             ScanNode scanNode = (ScanNode) node;
             Map<String, String> comments = scanNode.comments;
@@ -213,7 +213,7 @@ public class HTSArrayDataStep {
 
     //ToDo: this is only temp solution! Array design will not be used for RNA-seq experiments
     private static String findArrayDesignAcc(SDRFNode node) throws AtlasLoaderException {
-        Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+        Collection<SourceNode> nodeCollection = GraphUtils.findUpstreamNodes(node, SourceNode.class);
 
         for (SourceNode sourceNode : nodeCollection) {
             for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
