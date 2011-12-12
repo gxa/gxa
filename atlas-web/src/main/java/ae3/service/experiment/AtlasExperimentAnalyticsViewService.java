@@ -90,7 +90,8 @@ public class AtlasExperimentAnalyticsViewService {
             for (int j = 0; j < uEFVs.size(); j++) {
                 if (!efvQualifies(factorValuesSpecified, uEFVs.get(j), factorValues))
                     continue;
-                if (statisticsQualify(upDownCondition, pvals.get(i, j), tstat.get(i, j))) {
+                final UpDownExpression expression = UpDownExpression.valueOf(pvals.get(i, j), tstat.get(i, j));
+                if (upDownCondition.apply(expression)) {
                     BestDesignElementCandidate current = new BestDesignElementCandidate(pvals.get(i, j), tstat.get(i, j), i, j);
                     if (bestSoFar == null || current.compareTo(bestSoFar) < 0)
                         bestSoFar = current;
@@ -139,15 +140,6 @@ public class AtlasExperimentAnalyticsViewService {
         return !factorValuesSpecified ||
                 factorValues.contains(Pair.create(efv.key, efv.value)) ||
                 factorValues.contains(Pair.create(efv.key, null)); // allow search by factor only
-    }
-
-    private boolean statisticsQualify(
-            final UpDownCondition upDownCondition, float pValue, float tStatistic) {
-        if (upDownCondition != UpDownCondition.CONDITION_ANY && !upDownCondition.apply(UpDownExpression.valueOf(pValue, tStatistic)))
-            return false;
-        if (!BestDesignElementCandidate.isPvalValid(pValue) || !BestDesignElementCandidate.isTStatValid(tStatistic)) // Ignore NA pvals/tstats (that currently come back from ncdfs as 1.0E30)
-            return false;
-        return true;
     }
 
     private boolean designElementQualifies(

@@ -26,7 +26,7 @@ import net.java.quickcheck.Generator;
 import net.java.quickcheck.generator.PrimitiveGenerators;
 
 import static java.util.Arrays.asList;
-import static net.java.quickcheck.generator.CombinedGenerators.ensureValues;
+import static net.java.quickcheck.generator.CombinedGenerators.*;
 import static net.java.quickcheck.generator.PrimitiveGenerators.doubles;
 
 /**
@@ -35,7 +35,7 @@ import static net.java.quickcheck.generator.PrimitiveGenerators.doubles;
 public class BestDesignElementCandidateGenerators {
 
     public static Generator<Double> validPValues() {
-        return ensureValues(asList(0.0, 1.0, 0.5));
+        return doubles(0.0, 1.0);
     }
 
     public static Generator<Double> validTStats() {
@@ -45,11 +45,13 @@ public class BestDesignElementCandidateGenerators {
     }
 
     public static Generator<Double> invalidPValues() {
-        return ensureValues(asList(Double.NaN, -1.0, 2.0));
+        return ensureValues(asList(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN),
+                oneOf(excludeValues(doubles(-Float.MAX_VALUE, -0.0), asList(+0.0, -0.0)))
+                        .add(excludeValues(doubles(1.0, Float.MAX_VALUE), asList(1.0))));
     }
 
     public static Generator<Double> invalidTStats() {
-        return ensureValues(asList(Double.NaN));
+        return ensureValues(Double.NaN);
     }
 
     public static Generator<BestDesignElementCandidate> deCandidates() {

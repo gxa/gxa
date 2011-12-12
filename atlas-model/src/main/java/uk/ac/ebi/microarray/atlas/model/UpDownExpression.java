@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import static java.lang.Float.isNaN;
+
 /**
  * This is the list of gene expression levels based on P and T statistic that could be read from the netCDF files.
  *
@@ -32,6 +34,14 @@ public enum UpDownExpression {
     DOWN,
     NONDE,
     NA;
+
+    public static boolean isPvalValid(float pVal) {
+        return pVal >= 0 && pVal <= 1 && !isNaN(pVal);
+    }
+
+    public static boolean isTStatValid(float tStat) {
+        return !isNaN(tStat);
+    }
 
     public boolean isUpOrDown() {
         return isUp() || isDown();
@@ -74,7 +84,7 @@ public enum UpDownExpression {
     }
 
     public static UpDownExpression valueOf(float p, float t) {
-        if (Float.isNaN(p) || Float.isNaN(t)) {
+        if (!isPvalValid(p) || !isTStatValid(t)) {
             return NA;
         }
 
