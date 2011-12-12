@@ -60,7 +60,8 @@ public class UpDownConditionTest {
 
     @Test
     public void testAnyCondition() {
-        checkCondition(true, CONDITION_ANY, UP, DOWN, NONDE, NA);
+        checkCondition(true, CONDITION_ANY, UP, DOWN, NONDE);
+        checkCondition(false, CONDITION_ANY, NA);
     }
 
     private static void checkCondition(boolean expected, Predicate<UpDownExpression> cond, UpDownExpression... expressions) {
