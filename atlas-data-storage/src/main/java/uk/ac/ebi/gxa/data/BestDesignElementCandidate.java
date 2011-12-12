@@ -86,14 +86,17 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
     }
 
     /**
-     * Defines natural order by descending absolute value of T first, then ascending by P
+     * Defines natural order descending by absolute value of T first, then ascending by P
+     * <p/>
+     * Note that there is one case when <code>compareTo(BestDesignElementCandidate)</code>
+     * is NOT compatible with {@link #equals(Object)}: it happens is P values are equals, and T values are opposite.
      *
      * @param o the DE candidate to be compared.
      * @return a negative integer, zero, or a positive integer as this object
      *         is less than, equal to, or greater than the specified candidate.
      */
     public int compareTo(BestDesignElementCandidate o) {
-        int result = -compare(abs(getTStat()), abs(o.getTStat())); // higher absolute value of tStatRank comes first
+        int result = -compare(abs(getTStat()), abs(o.getTStat()));
         return result != 0 ? result : compare(getPValue(), o.getPValue());
     }
 
