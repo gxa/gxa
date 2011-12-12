@@ -3,15 +3,17 @@ package uk.ac.ebi.gxa.data;
 import net.java.quickcheck.Generator;
 import net.java.quickcheck.generator.PrimitiveGenerators;
 import org.junit.Test;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.exceptions.UnexpectedException;
+
+
+import java.util.Iterator;
 
 import static java.lang.Math.abs;
 import static net.java.quickcheck.generator.iterable.Iterables.toIterable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.deCandidates;
-import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.pValues;
+import static org.junit.Assert.fail;
+import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.*;
 
 /**
  * @author Robert Petryszak
@@ -39,38 +41,41 @@ public class BestDesignElementCandidateTest {
     }
 
     @Test
-    public void testOrderingSemanticsWithSameT() {
-        Generator<Double> pg = pValues();
-        Generator<Integer> someInt = PrimitiveGenerators.integers();
-
-        for (BestDesignElementCandidate a : toIterable(deCandidates())) {
-            float pVal = pg.next().floatValue();
-            float tStat = a.getTStat();
+    public void testInvalidPValTstats() {
+        Iterator<BestDesignElementCandidate> iter = toIterable(invalidDECandidates()).iterator();
+        while (iter.hasNext()) {
             try {
-                BestDesignElementCandidate b = new BestDesignElementCandidate(pVal, tStat, someInt.next(), someInt.next());
-                checkSameAbsTProperties(a, b);
+                BestDesignElementCandidate de = iter.next();
+                fail("Both pVal:  " + de.getPValue() + "; tstat: " + de.getTStat() + " were invalid - an UnexpectedException should have been thrown");
             } catch (UnexpectedException ue) {
-                if (BestDesignElementCandidate.isPvalValid(pVal) && BestDesignElementCandidate.isTStatValid(tStat))
-                    throw LogUtil.createUnexpected("At least one of pVal:  " + pVal + "; tstat: " + tStat + " should be invalid");
+                // test succeeds
             }
         }
     }
 
     @Test
-    public void testOrderingSemanticsWithNegatedT() {
-        Generator<Double> pg = pValues();
+    public void testOrderingSemanticsWithSameT() {
+        Generator<Double> pg = validPValues();
         Generator<Integer> someInt = PrimitiveGenerators.integers();
 
         for (BestDesignElementCandidate a : toIterable(deCandidates())) {
-            float pVal = pg.next().floatValue();
-            float tStat = a.getTStat();
-            try {
-                BestDesignElementCandidate b = new BestDesignElementCandidate(pVal, -tStat, someInt.next(), someInt.next());
-                checkSameAbsTProperties(a, b);
-            } catch (UnexpectedException ue) {
-                if (BestDesignElementCandidate.isPvalValid(pVal) && BestDesignElementCandidate.isTStatValid(tStat))
-                    throw LogUtil.createUnexpected("At least one of pVal:  " + pVal + "; tstat: " + tStat + " should be invalid");
-            }
+            BestDesignElementCandidate b = new BestDesignElementCandidate(pg.next().floatValue(),
+                    a.getTStat(), someInt.next(), someInt.next());
+
+            checkSameAbsTProperties(a, b);
+        }
+    }
+
+    @Test
+    public void testOrderingSemanticsWithNegatedT() {
+        Generator<Double> pg = validPValues();
+        Generator<Integer> someInt = PrimitiveGenerators.integers();
+
+        for (BestDesignElementCandidate a : toIterable(deCandidates())) {
+            BestDesignElementCandidate b = new BestDesignElementCandidate(pg.next().floatValue(),
+                    -a.getTStat(), someInt.next(), someInt.next());
+
+            checkSameAbsTProperties(a, b);
         }
     }
 

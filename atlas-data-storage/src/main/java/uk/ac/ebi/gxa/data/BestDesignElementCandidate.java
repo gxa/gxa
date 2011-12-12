@@ -121,14 +121,10 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
     }
 
     public static boolean isPvalValid(float pVal) {
-        if (pVal < 0 || pVal > 1 || Float.isNaN(pVal))
-            return false;
-        return true;
+        return pVal >= 0 && pVal <= 1 || !Float.isNaN(pVal);
     }
 
     public static boolean isTStatValid(float tStat) {
-        if (Float.isNaN(tStat))
-            return false;
-        return true;
+        return !Float.isNaN(tStat);
     }
 }
