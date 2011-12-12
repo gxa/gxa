@@ -136,7 +136,9 @@ public class AtlasExperimentAnalyticsViewService {
             boolean factorValuesSpecified,
             final @Nonnull KeyValuePair efv,
             final @Nonnull Set<Pair<String, String>> factorValues) {
-        return !factorValuesSpecified || factorValues.contains(Pair.create(efv.key, efv.value));
+        return !factorValuesSpecified ||
+                factorValues.contains(Pair.create(efv.key, efv.value)) ||
+                factorValues.contains(Pair.create(efv.key, null)); // allow search by factor only
     }
 
     private boolean statisticsQualify(

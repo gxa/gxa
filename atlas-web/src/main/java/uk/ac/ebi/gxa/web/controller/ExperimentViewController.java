@@ -327,9 +327,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
                     geneIds,
-                    !isNullOrEmpty(ef) && !isNullOrEmpty(efv) ?
-                            // We don't currently allow search for best design elements by either just an ef
-                            // or just an efv - both need to be specified
+                    !isNullOrEmpty(ef) || !isNullOrEmpty(efv) ?
+                            // At least one of ef, efv needs to be specified
                             Collections.singleton(Pair.create(ef, efv)) : Collections.<Pair<String, String>>emptySet(),
                     updown,
                     offset,
