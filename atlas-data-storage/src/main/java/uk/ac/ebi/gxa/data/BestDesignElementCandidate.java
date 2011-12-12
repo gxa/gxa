@@ -86,23 +86,15 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
     }
 
     /**
-     * 1. If absolute tStat ranks differ, return the higher tStat first
-     * 2. If absolute tStat ranks are the same:
-     * a. if pVals are different, return the lower pVal first
-     * b. if pVals are the same, return 0
+     * Defines natural order by descending absolute value of T first, then ascending by P
      *
-     * @param o the object to be compared.
+     * @param o the DE candidate to be compared.
      * @return a negative integer, zero, or a positive integer as this object
-     *         is less than, equal to, or greater than the specified object.
-     * @throws ClassCastException if the specified object's type prevents it from being compared to this object.
+     *         is less than, equal to, or greater than the specified candidate.
      */
     public int compareTo(BestDesignElementCandidate o) {
-        int tStatDiff = compare(abs(o.getTStat()), abs(getTStat())); // higher absolute value of tStatRank comes first
-        if (tStatDiff != 0) {
-            return tStatDiff;
-        }
-
-        return compare(getPValue(), o.getPValue()); // lower pVals come first
+        int result = -compare(abs(getTStat()), abs(o.getTStat())); // higher absolute value of tStatRank comes first
+        return result != 0 ? result : compare(getPValue(), o.getPValue());
     }
 
     @Override
