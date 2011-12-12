@@ -320,9 +320,9 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
             if (!isNullOrEmpty(adAcc)) {
-                criteria = criteria.hasArrayDesignAccession(adAcc);
+                criteria.hasArrayDesignAccession(adAcc);
             } else if (!geneIds.isEmpty()) {
-                criteria = criteria.containsAtLeastOneGene(geneIds);
+                criteria.containsAtLeastOneGene(geneIds);
             }
 
             // We still don't allow search for best design elements by either just an ef
