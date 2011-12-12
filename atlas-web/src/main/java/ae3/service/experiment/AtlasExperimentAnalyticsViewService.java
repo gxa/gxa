@@ -109,21 +109,18 @@ public class AtlasExperimentAnalyticsViewService {
         startTime1 = System.currentTimeMillis();
 
         // Assemble BestDesignElementsResult from candidates between to and from bounds
-        for (BestDesignElementCandidate candidate : candidates) {
-            if (deCount >= from && deCount <= to) {
-                final int deIndex = candidate.getDEIndex();
-                final int uEfvIndex = candidate.getUEFVIndex();
-                final KeyValuePair efv = uEFVs.get(uEfvIndex);
-                result.add(
-                        geneSolrDAO.getGeneById(allGeneIds.get(deIndex)).getGene(),
-                        deIndex,
-                        designElementAccessions[deIndex],
-                        pvals.get(deIndex, uEfvIndex),
-                        tstat.get(deIndex, uEfvIndex),
-                        efv.key,
-                        efv.value);
-            }
-            deCount++;
+        for (BestDesignElementCandidate candidate : candidates.subList(from, to)) {
+            final int deIndex = candidate.getDEIndex();
+            final int uEfvIndex = candidate.getUEFVIndex();
+            final KeyValuePair efv = uEFVs.get(uEfvIndex);
+            result.add(
+                    geneSolrDAO.getGeneById(allGeneIds.get(deIndex)).getGene(),
+                    deIndex,
+                    designElementAccessions[deIndex],
+                    pvals.get(deIndex, uEfvIndex),
+                    tstat.get(deIndex, uEfvIndex),
+                    efv.key,
+                    efv.value);
         }
         log.debug("Assembled BestDesignElementsResult in:  " + (System.currentTimeMillis() - startTime1) + " ms");
 
