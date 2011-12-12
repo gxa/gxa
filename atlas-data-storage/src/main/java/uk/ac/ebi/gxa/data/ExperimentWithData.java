@@ -271,7 +271,7 @@ public class ExperimentWithData implements Closeable {
      *         the actual expression values can be easily retrieved later
      * @throws AtlasDataException in case of I/O errors
      */
-    private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             @Nullable final String efVal,
@@ -347,7 +347,7 @@ public class ExperimentWithData implements Closeable {
      * @return Map: geneId -> List of design element indexes for ArrayDesign
      * @throws AtlasDataException
      */
-    private Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(ArrayDesign ad, final Collection<Long> geneIds) throws AtlasDataException {
+    public Map<Long, List<Integer>> getGeneIdToDesignElementIndexes(ArrayDesign ad, final Collection<Long> geneIds) throws AtlasDataException {
         // Note that in a given NetCDF proxy more than one geneIndex (==designElementIndex) may correspond to one geneId
         // (i.e. proxy.getGenes() may contain duplicates, whilst proxy.getDesignElements() will not; and
         // proxy.getGenes().size() == proxy.getDesignElements().size())
