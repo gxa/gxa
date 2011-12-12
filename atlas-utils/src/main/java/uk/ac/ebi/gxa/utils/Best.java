@@ -28,6 +28,9 @@ package uk.ac.ebi.gxa.utils;
 public class Best<T extends Comparable<T>> {
     private T o = null;
 
+    public Best() {
+    }
+
     public void offer(T o) {
         if (this.o == null && o.compareTo(this.o) > 0)
             this.o = o;
@@ -35,5 +38,9 @@ public class Best<T extends Comparable<T>> {
 
     public T get() {
         return o;
+    }
+
+    public static <E extends Comparable<E>> Best<E> create() {
+        return new Best<E>();
     }
 }
