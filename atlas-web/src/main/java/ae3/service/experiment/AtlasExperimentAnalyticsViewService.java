@@ -110,10 +110,10 @@ public class AtlasExperimentAnalyticsViewService {
 
         // Assemble BestDesignElementsResult from candidates between to and from bounds
         for (BestDesignElementCandidate candidate : candidates) {
-            final int deIndex = candidate.getDEIndex();
-            final int uEfvIndex = candidate.getUEFVIndex();
-            final KeyValuePair efv = uEFVs.get(uEfvIndex);
             if (deCount >= from && deCount <= to) {
+                final int deIndex = candidate.getDEIndex();
+                final int uEfvIndex = candidate.getUEFVIndex();
+                final KeyValuePair efv = uEFVs.get(uEfvIndex);
                 result.add(
                         geneSolrDAO.getGeneById(allGeneIds.get(deIndex)).getGene(),
                         deIndex,
