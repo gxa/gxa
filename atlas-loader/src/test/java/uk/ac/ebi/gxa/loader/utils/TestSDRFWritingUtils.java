@@ -43,14 +43,15 @@ public class TestSDRFWritingUtils extends TestCase {
     public void testWriteAssayProperties() throws AtlasLoaderException {
         // create investigation
         MAGETABInvestigation investigation = new MAGETABInvestigation();
-        investigation.accession = "TEST-INVESTIGATION";
+        investigation.IDF.experimentalFactorType.add("Type");
+        investigation.IDF.experimentalFactorName.add("Type");
 
         Assay assay = new Assay("TEST-ASSAY");
 
         AssayNode assayNode = new AssayNode();
         FactorValueAttribute fva = new FactorValueAttribute();
         fva.type = "Type";
-        fva.setNodeName("specific factor value");
+        fva.setAttributeValue("specific factor value");
         assayNode.factorValues.add(fva);
 
         final LoaderDAO dao = MockFactory.createLoaderDAO();
@@ -69,14 +70,13 @@ public class TestSDRFWritingUtils extends TestCase {
     public void testWriteSampleProperties() throws AtlasLoaderException {
         // create investigation
         MAGETABInvestigation investigation = new MAGETABInvestigation();
-        investigation.accession = "TEST-INVESTIGATION";
 
         Sample sample = new Sample("TEST-SAMPLE");
 
         SourceNode sourceNode = new SourceNode();
         CharacteristicsAttribute fva = new CharacteristicsAttribute();
         fva.type = "Type";
-        fva.setNodeName("specific factor value");
+        fva.setAttributeValue("specific factor value");
         sourceNode.characteristics.add(fva);
 
         new SourceStep().readSampleProperties(sample, sourceNode, MockFactory.createLoaderDAO());
@@ -95,14 +95,13 @@ public class TestSDRFWritingUtils extends TestCase {
     public void testWriteHybridizationProperties() throws AtlasLoaderException {
         // create investigation
         MAGETABInvestigation investigation = new MAGETABInvestigation();
-        investigation.accession = "TEST-INVESTIGATION";
 
         Assay assay = new Assay("TEST-SAMPLE");
 
         HybridizationNode hybridizationNode = new HybridizationNode();
         FactorValueAttribute fva = new FactorValueAttribute();
         fva.type = "Type";
-        fva.setNodeName("specific factor value");
+        fva.setAttributeValue("specific factor value");
         hybridizationNode.factorValues.add(fva);
 
         AssayAndHybridizationStep.writeAssayProperties(investigation, assay, hybridizationNode, MockFactory.createLoaderDAO());

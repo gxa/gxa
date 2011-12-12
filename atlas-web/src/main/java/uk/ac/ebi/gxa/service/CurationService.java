@@ -193,7 +193,7 @@ public class CurationService {
     public void removePropertyFromSamples(
             @Nonnull final String propertyName) {
         for (Sample sample : sampleDAO.getSamplesByProperty(propertyName)) {
-            for (PropertyValue propValue : Lists.newArrayList(transform(sample.getProperties(propertyName, null), SAMPLE_PROPERTY)))
+            for (PropertyValue propValue : Lists.newArrayList(transform(sample.getProperties(propertyName), SAMPLE_PROPERTY)))
                 sample.deleteProperty(propValue);
             sampleDAO.save(sample);
         }

@@ -91,4 +91,28 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     public String getNameColumn() {
         return NAME_COL;
     }
+
+    /**
+     * Same as {@link #getAll} but ensures ontology mapping preloading
+     * <p/>
+     * DO NOT use it anywhere but index builder: it's useless for anything but full index.
+     *
+     * @return list of all experiments
+     */
+    public List<Experiment> getExperimentsPreparedForIndexing() {
+        preloadDetails();
+        return getAll();
+    }
+
+    /**
+     * An awful hack preloading experiment details in order to make indexing fast. Only needed for indexing.
+     * <p/>
+     * DO NOT use it anywhere else: it's useless for anything but full index.
+     */
+    private void preloadDetails() {
+        final List<?> sp = template.find("select sp from SampleProperty sp left join fetch sp.terms");
+        log.debug("{} sample properties", sp.size());
+        final List<?> ap = template.find("select ap from AssayProperty ap left join fetch ap.terms");
+        log.debug("{} assay properties", ap.size());
+    }
 }

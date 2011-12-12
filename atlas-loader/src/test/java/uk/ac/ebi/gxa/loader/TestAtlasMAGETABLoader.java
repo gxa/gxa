@@ -28,8 +28,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
-import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
@@ -76,11 +74,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testParseAndCheckExperiments() throws AtlasLoaderException {
         log.debug("Running parse and check experiment test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
@@ -93,12 +86,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testAll() throws Exception {
         log.debug("Running parse and check experiment test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
-
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
@@ -130,12 +117,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
         log.debug("Running parse and check samples and assays test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
-
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));

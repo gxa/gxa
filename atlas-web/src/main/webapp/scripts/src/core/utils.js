@@ -262,9 +262,11 @@
      * context path to its "href" attribute value.
      */
     $.fn.atlasRelativeHref = function() {
-        var url = $(this).attr("atlas-uri");
-        if (url) {
-            $(this).attr("href", A.fullPathFor(url));
-        }
+        $(this).each(function() {
+            var url = $(this).attr("atlas-uri");
+            if (url) {
+                $(this).attr("href", A.fullPathFor(url));
+            }
+        });
     }
 })(atlas || {}, jQuery);
