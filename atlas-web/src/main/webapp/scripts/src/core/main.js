@@ -23,10 +23,47 @@
 var atlas = (function(A, $) {
     var contextPath = "";
 
+    var logger = (function(console) {
+        function _dump(obj, depth, indent) {
+            var m = [];
+
+            if (obj === Object(obj) && depth >= 0) {
+                var isArray = $.isArray(obj);
+                m.push(isArray ? "[" : "{");
+                for (var p in obj) {
+                    if (obj.hasOwnProperty(p)) {
+                        m.push(indent + p + ": " + _dump(obj[p], depth - 1, indent + "    "));
+                    }
+                }
+                m.push(indent + (isArray ? "]" : "}"));
+            } else {
+                return "" + obj;
+            }
+            return m.join("\n");
+        }
+
+        function _logError(e, depth) {
+            console.log("Error:\n" + _dump(e, depth || 3, ""));
+        }
+
+        function _logDebug(obj, depth) {
+            if (A.debug) {
+                console.log("Debug:\n" + _dump(obj, depth || 3, ""));
+            }
+        }
+
+        return {
+            logError: console ? _logError : function() {
+            },
+            logDebug: console ? _logDebug : function() {
+            }
+        }
+    })(window.console || null);
+
     function normalizePath(path) {
         var normalizedPath = [];
         var arr = path.split("/");
-        for(var i=0, len = arr.length; i<len; i++) {
+        for (var i = 0, len = arr.length; i < len; i++) {
             var str = $.trim(arr[i]);
             if (str.length > 0) {
                 normalizedPath.push(str);
@@ -35,23 +72,6 @@ var atlas = (function(A, $) {
         return normalizedPath.join("/");
     }
 
-    function _dump(obj, depth, indent) {
-        var m = [];
-
-        if (obj === Object(obj) && depth >= 0) {
-            var isArray = $.isArray(obj);
-            m.push(isArray ? "[" : "{");
-            for (var p in obj) {
-                if (obj.hasOwnProperty(p)) {
-                    m.push(indent + p + ": " + _dump(obj[p], depth - 1, indent + "    "));
-                }
-            }
-            m.push(indent + (isArray ? "]" : "}"));
-        } else {
-            return "" + obj;
-        }
-        return m.join("\n");
-    }
 
     /** public **/
 
@@ -60,8 +80,9 @@ var atlas = (function(A, $) {
      * @param newContextPath - a new context path to set
      */
     A.applicationContextPath = function(newContextPath) {
-        if (arguments.length > 0) {
-            contextPath = normalizePath(newContextPath);
+        if (newContextPath) {
+            var np = normalizePath(newContextPath);
+            contextPath = np ? "/" + np : np;
         }
         return contextPath;
     };
@@ -75,11 +96,11 @@ var atlas = (function(A, $) {
         if (uri.length > 4 && uri.substring(0, 4) === "http") {
             return uri;
         }
-        var np = normalizePath(uri);
-        if (np.length >= contextPath.length && np.substring(0, contextPath.length) === contextPath) {
-            return "/" + np;
+
+        if (uri.length >= contextPath.length && uri.substring(0, contextPath.length) === contextPath) {
+            return uri;
         }
-        return "/" + contextPath + "/" + np;
+        return contextPath + "/" + normalizePath(uri);
     };
 
     /**
@@ -88,9 +109,7 @@ var atlas = (function(A, $) {
      * @param depth - a depth to dump error object (optional)
      */
     A.logError = function(e, depth) {
-        if (console) {
-            console.log("Error:\n" + _dump(e, depth || 3, ""));
-        }
+        logger.logError(e, depth);
     };
 
     /**
@@ -99,9 +118,7 @@ var atlas = (function(A, $) {
      * @param depth - a depth to dump error object (optional)
      */
     A.logDebug = function(obj, depth) {
-        if (console && A.debug) {
-            console.log("Debug:\n" + _dump(obj, depth || 3, ""));
-        }
+        logger.logDebug(obj, depth);
     };
 
     return A;
@@ -109,5 +126,5 @@ var atlas = (function(A, $) {
 
 /** after initialization stuff **/
 (function(A) {
-   A.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
+    A.applicationContextPath(window.ATLAS_APPLICATION_CONTEXTPATH || "");
 })(atlas);
