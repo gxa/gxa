@@ -81,7 +81,7 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
         if (o == null || getClass() != o.getClass()) return false;
 
         BestDesignElementCandidate pt = (BestDesignElementCandidate) o;
-        return compare(pt.getPValue(), getPValue()) == 0 && compare(getTStat(), pt.getTStat()) == 0;
+        return compare(getPValue(), pt.getPValue()) == 0 && compare(getTStat(), pt.getTStat()) == 0;
     }
 
     /**
