@@ -46,8 +46,8 @@ public class BestDesignElementCandidateGenerators {
 
     public static Generator<Double> invalidPValues() {
         return ensureValues(asList(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN),
-                oneOf(excludeValues(doubles(-Float.MAX_VALUE, -0.0), asList(+0.0, -0.0)))
-                        .add(excludeValues(doubles(1.0, Float.MAX_VALUE), asList(1.0))));
+                oneOf(excludeValues(doubles(-Float.MAX_VALUE, -0.0), +0.0, -0.0))
+                        .add(excludeValues(doubles(1.0, Float.MAX_VALUE), 1.0)));
     }
 
     public static Generator<Double> invalidTStats() {
