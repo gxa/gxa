@@ -42,11 +42,24 @@ public class BestDesignElementCandidateTest {
 
     @Test
     public void testInvalidPValTstats() {
-        Iterator<BestDesignElementCandidate> iter = toIterable(invalidDECandidates()).iterator();
+        Iterator<BestDesignElementCandidate> iter = toIterable(dECandidatesWithInvalidPVals()).iterator();
         while (iter.hasNext()) {
             try {
                 BestDesignElementCandidate de = iter.next();
-                fail("Both pVal:  " + de.getPValue() + "; tstat: " + de.getTStat() + " were invalid - an UnexpectedException should have been thrown");
+                fail("pVal:  " + de.getPValue() + " was invalid - an UnexpectedException should have been thrown");
+            } catch (UnexpectedException ue) {
+                // test succeeds
+            }
+        }
+    }
+
+    @Test
+    public void testInvalidPValTstats1() {
+        Iterator<BestDesignElementCandidate> iter = toIterable(dECandidatesWithInvalidTStats()).iterator();
+        while (iter.hasNext()) {
+            try {
+                BestDesignElementCandidate de = iter.next();
+                fail("tstat: " + de.getTStat() + " was invalid - an UnexpectedException should have been thrown");
             } catch (UnexpectedException ue) {
                 // test succeeds
             }

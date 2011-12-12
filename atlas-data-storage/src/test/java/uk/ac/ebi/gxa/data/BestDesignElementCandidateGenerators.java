@@ -47,8 +47,25 @@ public class BestDesignElementCandidateGenerators {
         };
     }
 
-    public static Generator<BestDesignElementCandidate> invalidDECandidates() {
+    public static Generator<BestDesignElementCandidate> dECandidatesWithInvalidPVals() {
         final Generator<Double> p = invalidPValues();
+        final Generator<Double> t = validTStats();
+        final Generator<Integer> de = PrimitiveGenerators.integers();
+        final Generator<Integer> uefv = PrimitiveGenerators.integers();
+
+        return new Generator<BestDesignElementCandidate>() {
+            @Override
+            public BestDesignElementCandidate next() {
+                return new BestDesignElementCandidate(
+                        p.next().floatValue(),
+                        t.next().floatValue(),
+                        de.next(), uefv.next());
+            }
+        };
+    }
+
+    public static Generator<BestDesignElementCandidate> dECandidatesWithInvalidTStats() {
+        final Generator<Double> p = validPValues();
         final Generator<Double> t = invalidTStats();
         final Generator<Integer> de = PrimitiveGenerators.integers();
         final Generator<Integer> uefv = PrimitiveGenerators.integers();

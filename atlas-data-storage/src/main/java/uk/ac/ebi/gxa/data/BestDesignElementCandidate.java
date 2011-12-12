@@ -89,7 +89,6 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
      * 2. If absolute tStat ranks are the same:
      * a. if pVals are different, return the lower pVal first
      * b. if pVals are the same, return 0
-     * 3. NaN pVal always comes last unless both compared pvals are NaN - in that case they are deemed equal
      *
      * @param o the object to be compared.
      * @return a negative integer, zero, or a positive integer as this object
@@ -101,11 +100,6 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
         if (tStatDiff != 0) {
             return tStatDiff;
         }
-
-        if (isNaN(getPValue())) {
-            return isNaN(o.getPValue()) ? 0 : 1;
-        } else if (isNaN(o.getPValue()))
-            return -1;
 
         return compare(getPValue(), o.getPValue()); // lower pVals come first
     }
@@ -121,10 +115,10 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
     }
 
     public static boolean isPvalValid(float pVal) {
-        return pVal >= 0 && pVal <= 1 || !Float.isNaN(pVal);
+        return pVal >= 0 && pVal <= 1 && !isNaN(pVal);
     }
 
     public static boolean isTStatValid(float tStat) {
-        return !Float.isNaN(tStat);
+        return !isNaN(tStat);
     }
 }
