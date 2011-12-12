@@ -14,9 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static uk.ac.ebi.gxa.data.BestDesignElementCandidate.isPvalValid;
-import static uk.ac.ebi.gxa.data.BestDesignElementCandidate.isTStatValid;
-
 
 /**
  * This class is used to populate the best genes table on the experiment page
@@ -93,7 +90,8 @@ public class AtlasExperimentAnalyticsViewService {
             for (int j = 0; j < uEFVs.size(); j++) {
                 if (!efvQualifies(factorValuesSpecified, uEFVs.get(j), factorValues))
                     continue;
-                if (statisticsQualify(upDownCondition, pvals.get(i, j), tstat.get(i, j))) {
+                final UpDownExpression expression = UpDownExpression.valueOf(pvals.get(i, j), tstat.get(i, j));
+                if (upDownCondition.apply(expression)) {
                     BestDesignElementCandidate current = new BestDesignElementCandidate(pvals.get(i, j), tstat.get(i, j), i, j);
                     if (bestSoFar == null || current.compareTo(bestSoFar) < 0)
                         bestSoFar = current;
@@ -140,12 +138,6 @@ public class AtlasExperimentAnalyticsViewService {
             final @Nonnull KeyValuePair efv,
             final @Nonnull Set<Pair<String, String>> factorValues) {
         return !factorValuesSpecified || factorValues.contains(Pair.create(efv.key, efv.value));
-    }
-
-    private boolean statisticsQualify(final UpDownCondition upDownCondition, float pValue, float tStatistic) {
-        return upDownCondition.apply(UpDownExpression.valueOf(pValue, tStatistic)) &&
-                isPvalValid(pValue) &&
-                isTStatValid(tStatistic);
     }
 
     private boolean designElementQualifies(

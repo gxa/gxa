@@ -25,8 +25,9 @@ package uk.ac.ebi.gxa.data;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import static java.lang.Float.compare;
-import static java.lang.Float.isNaN;
 import static java.lang.Math.abs;
+import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isPvalValid;
+import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isTStatValid;
 
 /**
  * This class is used as an element in Collections sorted by accurate (as stored in ncdfs) pval/tstat, specifically in
@@ -112,13 +113,5 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
                 ", deIndex=" + deIndex +
                 ", uEFVIndex=" + uEFVIndex +
                 '}';
-    }
-
-    public static boolean isPvalValid(float pVal) {
-        return pVal >= 0 && pVal <= 1 && !isNaN(pVal);
-    }
-
-    public static boolean isTStatValid(float tStat) {
-        return !isNaN(tStat);
     }
 }
