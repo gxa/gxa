@@ -66,10 +66,10 @@ public class AtlasExperimentAnalyticsViewService {
 
         List<BestDesignElementCandidate> candidates = newArrayList();
         for (int deidx : selectedDesignElements(geneIds, expPart.getGeneIds())) {
-            BestDesignElementCandidate bestSoFar =
+            BestDesignElementCandidate de =
                     getCandidateForDesignElement(deidx, uEFVs, pvals, tstat, upDownPredicate, fvPredicate);
-            if (bestSoFar != null)
-                candidates.add(bestSoFar);
+            if (de != null)
+                candidates.add(de);
         }
         sort(candidates);
 
