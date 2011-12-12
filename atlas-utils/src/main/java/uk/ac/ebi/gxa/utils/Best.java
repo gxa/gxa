@@ -32,7 +32,7 @@ public class Best<T extends Comparable<T>> {
     }
 
     public void offer(T o) {
-        if (this.o == null && o.compareTo(this.o) > 0)
+        if (this.o == null || o.compareTo(this.o) > 0)
             this.o = o;
     }
 
