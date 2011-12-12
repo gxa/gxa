@@ -14,6 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static uk.ac.ebi.gxa.data.BestDesignElementCandidate.isPvalValid;
+import static uk.ac.ebi.gxa.data.BestDesignElementCandidate.isTStatValid;
+
 
 /**
  * This class is used to populate the best genes table on the experiment page
@@ -139,13 +142,10 @@ public class AtlasExperimentAnalyticsViewService {
         return !factorValuesSpecified || factorValues.contains(Pair.create(efv.key, efv.value));
     }
 
-    private boolean statisticsQualify(
-            final UpDownCondition upDownCondition, float pValue, float tStatistic) {
-        if (upDownCondition != UpDownCondition.CONDITION_ANY && !upDownCondition.apply(UpDownExpression.valueOf(pValue, tStatistic)))
-            return false;
-        if (!BestDesignElementCandidate.isPvalValid(pValue) || !BestDesignElementCandidate.isTStatValid(tStatistic)) // Ignore NA pvals/tstats (that currently come back from ncdfs as 1.0E30)
-            return false;
-        return true;
+    private boolean statisticsQualify(final UpDownCondition upDownCondition, float pValue, float tStatistic) {
+        return upDownCondition.apply(UpDownExpression.valueOf(pValue, tStatistic)) &&
+                isPvalValid(pValue) &&
+                isTStatValid(tStatistic);
     }
 
     private boolean designElementQualifies(
