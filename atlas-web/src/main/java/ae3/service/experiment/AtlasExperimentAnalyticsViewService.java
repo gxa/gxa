@@ -108,7 +108,6 @@ public class AtlasExperimentAnalyticsViewService {
         log.debug("Sorted DE candidates in:  " + (System.currentTimeMillis() - startTime1) + " ms");
         startTime1 = System.currentTimeMillis();
 
-        // Assemble BestDesignElementsResult from candidates between to and from bounds
         for (BestDesignElementCandidate candidate : candidates.subList(from, to)) {
             final int deIndex = candidate.getDEIndex();
             final int uEfvIndex = candidate.getUEFVIndex();
