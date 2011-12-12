@@ -2,6 +2,8 @@ package uk.ac.ebi.gxa.data;
 
 import net.java.quickcheck.Generator;
 import net.java.quickcheck.generator.PrimitiveGenerators;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.exceptions.UnexpectedException;
 
 import static java.util.Arrays.asList;
 import static net.java.quickcheck.generator.CombinedGenerators.ensureValues;
@@ -31,10 +33,21 @@ public class BestDesignElementCandidateGenerators {
         return new Generator<BestDesignElementCandidate>() {
             @Override
             public BestDesignElementCandidate next() {
-                return new BestDesignElementCandidate(
-                        p.next().floatValue(),
-                        t.next().floatValue(),
-                        de.next(), uefv.next());
+                BestDesignElementCandidate bestDesignElementCandidate = null;
+                while (bestDesignElementCandidate == null) {
+                    float pVal = p.next().floatValue();
+                    float tStat = t.next().floatValue();
+                    try {
+                        bestDesignElementCandidate = new BestDesignElementCandidate(
+                                pVal,
+                                tStat,
+                                de.next(), uefv.next());
+                    } catch (UnexpectedException ue) {
+                        if (BestDesignElementCandidate.isPvalValid(pVal) && BestDesignElementCandidate.isTStatValid(tStat))
+                            throw LogUtil.createUnexpected("At least one of pVal:  " + pVal + "; tstat: " + tStat + " should be invalid");
+                    }
+                }
+                return bestDesignElementCandidate;
             }
         };
     }

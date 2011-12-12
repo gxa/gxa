@@ -140,7 +140,7 @@ public class AtlasExperimentAnalyticsViewService {
             final UpDownCondition upDownCondition, float pValue, float tStatistic) {
         if (upDownCondition != UpDownCondition.CONDITION_ANY && !upDownCondition.apply(UpDownExpression.valueOf(pValue, tStatistic)))
             return false;
-        if (pValue > 1) // Ignore NA pvals/tstats (that currently come back from ncdfs as 1.0E30)
+        if (!BestDesignElementCandidate.isPvalValid(pValue) || !BestDesignElementCandidate.isTStatValid(tStatistic)) // Ignore NA pvals/tstats (that currently come back from ncdfs as 1.0E30)
             return false;
         return true;
     }

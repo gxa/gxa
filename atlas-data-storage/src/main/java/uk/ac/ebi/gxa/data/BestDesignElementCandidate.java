@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.data;
 
+import uk.ac.ebi.gxa.exceptions.LogUtil;
+
 import static java.lang.Float.compare;
 import static java.lang.Float.isNaN;
 import static java.lang.Math.abs;
@@ -39,7 +41,12 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
     private int uEFVIndex;
 
     public BestDesignElementCandidate(float pValue, float tStat, int deIndex, int uEFVIndex) {
-        this.pValue = pValue > 1.0 ? Float.NaN : pValue;
+        if (!isPvalValid(pValue))
+            throw LogUtil.createUnexpected("Invalid pValue: " + pValue);
+        if (!isTStatValid(tStat))
+            throw LogUtil.createUnexpected("Invalid tStatistic: " + tStat);
+
+        this.pValue = pValue;
         this.tStat = tStat;
         this.deIndex = deIndex;
         this.uEFVIndex = uEFVIndex;
@@ -111,5 +118,17 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
                 ", deIndex=" + deIndex +
                 ", uEFVIndex=" + uEFVIndex +
                 '}';
+    }
+
+    public static boolean isPvalValid(float pVal) {
+        if (pVal < 0 || pVal > 1 || Float.isNaN(pVal))
+            return false;
+        return true;
+    }
+
+    public static boolean isTStatValid(float tStat) {
+        if (Float.isNaN(tStat))
+            return false;
+        return true;
     }
 }
