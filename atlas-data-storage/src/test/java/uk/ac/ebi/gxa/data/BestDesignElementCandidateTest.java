@@ -23,10 +23,12 @@
 package uk.ac.ebi.gxa.data;
 
 import net.java.quickcheck.Generator;
+import net.java.quickcheck.collection.Pair;
 import org.junit.Test;
 import uk.ac.ebi.gxa.exceptions.UnexpectedException;
 
 import static java.lang.Math.abs;
+import static net.java.quickcheck.generator.CombinedGenerators.pairs;
 import static net.java.quickcheck.generator.PrimitiveGenerators.integers;
 import static net.java.quickcheck.generator.iterable.Iterables.toIterable;
 import static org.junit.Assert.*;
@@ -38,21 +40,22 @@ import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.*;
 public class BestDesignElementCandidateTest {
     @Test
     public void testBasicContracts() {
-        for (BestDesignElementCandidate a : toIterable(deCandidates())) {
-            for (BestDesignElementCandidate b : toIterable(deCandidates())) {
-                try {
-                    assertEquals("Equality must be reflexive,", 0, a.compareTo(a));
-                    assertEquals("Equality must be reflexive,", 0, b.compareTo(b));
-                    if (a.equals(b)) {
-                        assertEquals("equals-hashCode contract broken,", a.hashCode(), b.hashCode());
-                    }
-                    assertEquals("equals-compareTo contract broken,", a.equals(b), a.compareTo(b) == 0);
-                    assertEquals("Antisymmetry broken, ", a.compareTo(b), -b.compareTo(a));
-                } catch (AssertionError e) {
-                    System.err.println("a=" + a);
-                    System.err.println("b=" + b);
-                    throw e;
+        for (Pair<BestDesignElementCandidate, BestDesignElementCandidate> p :
+                toIterable(pairs(deCandidates(), deCandidates()))) {
+            final BestDesignElementCandidate a = p.getFirst();
+            final BestDesignElementCandidate b = p.getSecond();
+            try {
+                assertEquals("Equality must be reflexive,", 0, a.compareTo(a));
+                assertEquals("Equality must be reflexive,", 0, b.compareTo(b));
+                if (a.equals(b)) {
+                    assertEquals("equals-hashCode contract broken,", a.hashCode(), b.hashCode());
                 }
+                assertEquals("equals-compareTo contract broken,", a.equals(b), a.compareTo(b) == 0);
+                assertEquals("Antisymmetry broken, ", a.compareTo(b), -b.compareTo(a));
+            } catch (AssertionError e) {
+                System.err.println("a=" + a);
+                System.err.println("b=" + b);
+                throw e;
             }
         }
     }

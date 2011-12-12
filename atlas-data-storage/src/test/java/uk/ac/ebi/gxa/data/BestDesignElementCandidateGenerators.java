@@ -35,12 +35,12 @@ import static net.java.quickcheck.generator.PrimitiveGenerators.doubles;
 public class BestDesignElementCandidateGenerators {
 
     public static Generator<Double> validPValues() {
-        return doubles(0.0, 1.0);
+        return ensureValues(asList(0.0, 0.5, 1.0), doubles(0.0, 1.0));
     }
 
     public static Generator<Double> validTStats() {
         return ensureValues(
-                asList(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY),
+                asList(0.0, 0.5, 1.0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY),
                 doubles(Float.MIN_VALUE, Float.MAX_VALUE));
     }
 
