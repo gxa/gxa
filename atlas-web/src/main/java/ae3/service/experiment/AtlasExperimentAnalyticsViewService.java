@@ -99,13 +99,13 @@ public class AtlasExperimentAnalyticsViewService {
     }
 
     private static FastSet selectedDesignElements(List<Long> geneIds, List<Long> allGeneIds) throws AtlasDataException {
-        FastSet des = new FastSet();
+        FastSet result = new FastSet();
         for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
             if (isMappedDE(allGeneIds, deidx) && (geneIds.isEmpty() || geneIds.contains(allGeneIds.get(deidx)))) {
-                des.add(deidx);
+                result.add(deidx);
             }
         }
-        return des;
+        return result;
     }
 
     private BestDesignElementCandidate getCandidateForDesignElement(int deidx, List<Pair<String, String>> uEFVs, TwoDFloatArray pvals, TwoDFloatArray tstat, Predicate<UpDownExpression> upDownPredicate,
