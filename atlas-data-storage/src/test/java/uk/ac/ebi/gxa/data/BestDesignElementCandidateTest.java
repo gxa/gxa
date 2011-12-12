@@ -1,18 +1,35 @@
+/*
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
+
 package uk.ac.ebi.gxa.data;
 
 import net.java.quickcheck.Generator;
-import net.java.quickcheck.generator.PrimitiveGenerators;
 import org.junit.Test;
 import uk.ac.ebi.gxa.exceptions.UnexpectedException;
 
-
-import java.util.Iterator;
-
 import static java.lang.Math.abs;
+import static net.java.quickcheck.generator.PrimitiveGenerators.integers;
 import static net.java.quickcheck.generator.iterable.Iterables.toIterable;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.*;
 
 /**
@@ -41,35 +58,44 @@ public class BestDesignElementCandidateTest {
     }
 
     @Test
-    public void testInvalidPValTstats() {
-        Iterator<BestDesignElementCandidate> iter = toIterable(dECandidatesWithInvalidPVals()).iterator();
-        while (iter.hasNext()) {
-            try {
-                BestDesignElementCandidate de = iter.next();
-                fail("pVal:  " + de.getPValue() + " was invalid - an UnexpectedException should have been thrown");
-            } catch (UnexpectedException ue) {
-                // test succeeds
+    public void testInvalidPVals() {
+        Generator<Double> pg = invalidPValues();
+        Generator<Double> tg = validTStats();
+        Generator<Integer> someInt = integers();
+
+        for (Double p : toIterable(pg)) {
+            for (Double t : toIterable(tg)) {
+                checkValidityConstraints(someInt, p, t, "pVal:  " + p);
             }
         }
     }
 
     @Test
-    public void testInvalidPValTstats1() {
-        Iterator<BestDesignElementCandidate> iter = toIterable(dECandidatesWithInvalidTStats()).iterator();
-        while (iter.hasNext()) {
-            try {
-                BestDesignElementCandidate de = iter.next();
-                fail("tstat: " + de.getTStat() + " was invalid - an UnexpectedException should have been thrown");
-            } catch (UnexpectedException ue) {
-                // test succeeds
+    public void testInvalidTStats() {
+        Generator<Double> pg = validPValues();
+        Generator<Double> tg = invalidTStats();
+        Generator<Integer> someInt = integers();
+
+        for (Double p : toIterable(pg)) {
+            for (Double t : toIterable(tg)) {
+                checkValidityConstraints(someInt, p, t, "tStat:  " + t);
             }
+        }
+    }
+
+    private void checkValidityConstraints(Generator<Integer> someInt, Double p, Double t, String diagnosis) {
+        try {
+            new BestDesignElementCandidate(p.floatValue(), t.floatValue(), someInt.next(), someInt.next());
+            fail(diagnosis + " was invalid - an UnexpectedException should have been thrown");
+        } catch (UnexpectedException ignored) {
+            // as expected
         }
     }
 
     @Test
     public void testOrderingSemanticsWithSameT() {
         Generator<Double> pg = validPValues();
-        Generator<Integer> someInt = PrimitiveGenerators.integers();
+        Generator<Integer> someInt = integers();
 
         for (BestDesignElementCandidate a : toIterable(deCandidates())) {
             BestDesignElementCandidate b = new BestDesignElementCandidate(pg.next().floatValue(),
@@ -82,7 +108,7 @@ public class BestDesignElementCandidateTest {
     @Test
     public void testOrderingSemanticsWithNegatedT() {
         Generator<Double> pg = validPValues();
-        Generator<Integer> someInt = PrimitiveGenerators.integers();
+        Generator<Integer> someInt = integers();
 
         for (BestDesignElementCandidate a : toIterable(deCandidates())) {
             BestDesignElementCandidate b = new BestDesignElementCandidate(pg.next().floatValue(),
