@@ -23,8 +23,6 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.primitives.Longs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -37,9 +35,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  * @author Olga Melnichuk
  */
 public class ExperimentPart {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
     private final ExperimentWithData ewd;
     private final ArrayDesign arrayDesign;
 
