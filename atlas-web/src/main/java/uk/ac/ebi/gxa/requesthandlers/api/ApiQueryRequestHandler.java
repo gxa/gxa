@@ -34,6 +34,7 @@ import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
@@ -45,6 +46,7 @@ import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -171,6 +173,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                         try {
                                             final List<Long> geneIds = geneSolrDAO.findGeneIds(query.getGeneIdentifiers());
+                                            Predicate<Long> geneIdPredicate = geneIds.isEmpty() ?
+                                                    Predicates.<Long>alwaysTrue() :
+                                                    Predicates.in(geneIds);
 
                                             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
                                             if (!geneIds.isEmpty()) {
@@ -180,8 +185,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             BestDesignElementsResult geneResults =
                                                     atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                                                             criteria.retrieveFrom(ewd),
-                                                            geneIds,
-                                                            QueryExpression.ANY.asUpDownCondition(),
+                                                            geneIdPredicate,
+                                                            UpDownCondition.CONDITION_ANY,
                                                             Predicates.<Pair<String, String>>alwaysTrue(),
                                                             0, 10
                                                     );
@@ -215,7 +220,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 if (atlasResult.getUserErrorMsg() != null) {
                     return new ErrorResult(atlasResult.getUserErrorMsg());
                 }
-                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasDataDAO, atlasProperties, atlasStatisticsQueryService);
+                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
             } else {
                 return new ErrorResult("Empty query specified");
             }

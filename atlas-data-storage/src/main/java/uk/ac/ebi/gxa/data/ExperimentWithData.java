@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.base.Predicate;
 import com.google.common.primitives.Floats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,7 +278,7 @@ public class ExperimentWithData implements Closeable {
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             @Nullable final String efVal,
             @Nullable final String efvVal,
-            final UpDownCondition upDownCondition
+            final Predicate<UpDownExpression> upDownCondition
     ) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = newHashMap();
 
@@ -411,7 +412,7 @@ public class ExperimentWithData implements Closeable {
      *         first proxy in which expression data for that combination exists
      */
     // TODO: remove this method from ExperimentWithData or throw AtlasDataException & StatisticsNotFoundException outside
-    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, UpDownCondition upDownCondition) {
+    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, Predicate<UpDownExpression> upDownCondition) {
         ExpressionAnalysis ea = null;
         try {
             final Collection<ArrayDesign> ads = experiment.getArrayDesigns();

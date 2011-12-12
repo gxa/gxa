@@ -43,7 +43,7 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      *
      * @param expPart         experiment part to retrieve data from
-     * @param geneIds         a list of gene ids of interest
+     * @param geneIdPredicate
      * @param upDownPredicate an up/down expression filter
      * @param fvPredicate
      * @param offset          Start position within the result set
@@ -54,7 +54,7 @@ public class AtlasExperimentAnalyticsViewService {
      */
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull ExperimentPart expPart,
-            final @Nonnull List<Long> geneIds,
+            final @Nonnull Predicate<Long> geneIdPredicate,
             final @Nonnull Predicate<UpDownExpression> upDownPredicate,
             final @Nonnull Predicate<Pair<String, String>> fvPredicate,
             final int offset,
@@ -65,7 +65,7 @@ public class AtlasExperimentAnalyticsViewService {
         final TwoDFloatArray tstat = expPart.getTStatistics();
 
         List<BestDesignElementCandidate> candidates = newArrayList();
-        for (int deidx : selectedDesignElements(geneIds, expPart.getGeneIds())) {
+        for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
             BestDesignElementCandidate de =
                     getCandidateForDesignElement(deidx, uEFVs, pvals, tstat, upDownPredicate, fvPredicate);
             if (de != null)
@@ -98,10 +98,10 @@ public class AtlasExperimentAnalyticsViewService {
         return result;
     }
 
-    private static FastSet selectedDesignElements(List<Long> geneIds, List<Long> allGeneIds) throws AtlasDataException {
+    private static FastSet selectedDesignElements(List<Long> allGeneIds, final Predicate<Long> geneIdPredicate) throws AtlasDataException {
         FastSet result = new FastSet();
         for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
-            if (isMappedDE(allGeneIds, deidx) && (geneIds.isEmpty() || geneIds.contains(allGeneIds.get(deidx)))) {
+            if (isMappedDE(allGeneIds, deidx) && geneIdPredicate.apply(allGeneIds.get(deidx))) {
                 result.add(deidx);
             }
         }

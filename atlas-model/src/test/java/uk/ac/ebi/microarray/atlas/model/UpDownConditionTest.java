@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Predicate;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -62,7 +63,7 @@ public class UpDownConditionTest {
         checkCondition(true, CONDITION_ANY, UP, DOWN, NONDE, NA);
     }
 
-    private static void checkCondition(boolean expected, UpDownCondition cond, UpDownExpression... expressions) {
+    private static void checkCondition(boolean expected, Predicate<UpDownExpression> cond, UpDownExpression... expressions) {
         for (UpDownExpression expr : expressions) {
             assertFalse(xor(expected, cond.apply(expr)));
         }

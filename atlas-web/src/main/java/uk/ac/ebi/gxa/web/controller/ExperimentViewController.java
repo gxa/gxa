@@ -313,10 +313,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-            BestDesignElementsResult res;
-            final List<Long> geneIds = !isNullOrEmpty(gid)
-                    ? findGeneIds(Arrays.asList(gid.trim()))
-                    : Collections.<Long>emptyList();
+            final List<Long> geneIds = isNullOrEmpty(gid) ?
+                    Collections.<Long>emptyList() :
+                    findGeneIds(Arrays.asList(gid.trim()));
+
+            Predicate<Long> geneIdPredicate = geneIds.isEmpty() ?
+                    Predicates.<Long>alwaysTrue() :
+                    Predicates.in(geneIds);
 
             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
             if (!isNullOrEmpty(adAcc)) {
@@ -331,10 +334,9 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                     Predicates.<Pair<String, String>>alwaysTrue() :
                     Predicates.equalTo(Pair.create(ef, efv));
 
-            res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+            BestDesignElementsResult res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
-                    geneIds,
-                    updown,
+                    geneIdPredicate, updown,
                     fvPredicate,
                     offset,
                     limit
@@ -344,8 +346,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             model.addAttribute("totalSize", res.getTotalSize());
             model.addAttribute("items", Iterables.transform(res,
                     new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
-                        public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                            return new ExperimentTableRow(item);
+                        public ExperimentTableRow apply(@Nullable BestDesignElementsResult.Item item) {
+                            return item == null ? null : new ExperimentTableRow(item);
                         }
                     })
             );
