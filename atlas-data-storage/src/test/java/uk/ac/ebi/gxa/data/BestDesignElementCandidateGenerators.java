@@ -35,7 +35,7 @@ import static net.java.quickcheck.generator.PrimitiveGenerators.doubles;
 public class BestDesignElementCandidateGenerators {
 
     public static Generator<Double> validPValues() {
-        return ensureValues(asList(0.0, 1.0, 0.5));
+        return doubles(0.0, 1.0);
     }
 
     public static Generator<Double> validTStats() {
