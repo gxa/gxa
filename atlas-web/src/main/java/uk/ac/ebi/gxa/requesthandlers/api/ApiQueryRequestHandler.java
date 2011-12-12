@@ -34,6 +34,7 @@ import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.data.*;
@@ -47,7 +48,10 @@ import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
@@ -177,10 +181,9 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                     atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                                                             criteria.retrieveFrom(ewd),
                                                             geneIds,
-                                                            Collections.<Pair<String, String>>emptySet(),
                                                             QueryExpression.ANY.asUpDownCondition(),
-                                                            0,
-                                                            10
+                                                            Predicates.<Pair<String, String>>alwaysTrue(),
+                                                            0, 10
                                                     );
 
                                             genes = geneResults.getGenes();

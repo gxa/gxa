@@ -25,8 +25,10 @@ package uk.ac.ebi.gxa.data;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
+
 import java.util.*;
 
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
@@ -46,7 +48,7 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public List<KeyValuePair> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
+    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getUniqueEFVs(arrayDesign);
     }
 
@@ -62,7 +64,7 @@ public class ExperimentPart {
         return ewd.getDesignElementAccessions(arrayDesign);
     }
 
-    public Collection<Long> getGeneIds() throws AtlasDataException {
+    public List<Long> getGeneIds() throws AtlasDataException {
         return Longs.asList(ewd.getGenes(arrayDesign));
     }
 

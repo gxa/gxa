@@ -1,18 +1,22 @@
 package ae3.service.experiment;
 
 import ae3.dao.GeneSolrDAO;
+import com.google.common.base.Predicate;
+import it.uniroma3.mat.extendedset.FastSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.utils.Best;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.Math.min;
+import static java.util.Collections.sort;
+import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.valueOf;
 
 
 /**
@@ -38,111 +42,90 @@ public class AtlasExperimentAnalyticsViewService {
      * - If all parameters are empty the search is done for all data (design elements, ef and efv pairs);
      * - Filling any parameter narrows one of the search dimensions.
      *
+     * @param expPart         experiment part to retrieve data from
      * @param geneIds         a list of gene ids of interest
-     * @param factorValues    a list of Pairs of factor-factor value to find best statistics for
-     *                        Note also that ee don't currently allow search for best design elements by either just an ef
-     *                        or just an efv - both need to be specified
-     * @param upDownCondition an up/down expression filter
+     * @param upDownPredicate an up/down expression filter
+     * @param fvPredicate
      * @param offset          Start position within the result set
      * @param limit           how many design elements to return
-     * @return an instance of {@link ae3.service.experiment.BestDesignElementsResult}
-     * @throws uk.ac.ebi.gxa.data.AtlasDataException,
-     *          StatisticsNotFoundException if data could not be ready from ncdf
+     * @return an instance of {@link BestDesignElementsResult}
+     * @throws AtlasDataException          if data could not be read from NetCDF
+     * @throws StatisticsNotFoundException if there's no P/T stats in the data
      */
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nonnull ExperimentPart expPart,
             final @Nonnull List<Long> geneIds,
-            final @Nonnull Set<Pair<String, String>> factorValues,
-            final @Nonnull UpDownCondition upDownCondition,
+            final @Nonnull Predicate<UpDownExpression> upDownPredicate,
+            final @Nonnull Predicate<Pair<String, String>> fvPredicate,
             final int offset,
             final int limit) throws AtlasDataException, StatisticsNotFoundException {
+
+        final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
+        final TwoDFloatArray pvals = expPart.getPValues();
+        final TwoDFloatArray tstat = expPart.getTStatistics();
+
+        List<BestDesignElementCandidate> candidates = newArrayList();
+        for (int deidx : selectedDesignElements(geneIds, expPart.getGeneIds())) {
+            BestDesignElementCandidate bestSoFar =
+                    getCandidateForDesignElement(deidx, uEFVs, pvals, tstat, upDownPredicate, fvPredicate);
+            if (bestSoFar != null)
+                candidates.add(bestSoFar);
+        }
+        sort(candidates);
+
+        return convert(expPart, expPart.getGeneIds(), candidates, offset, limit);
+    }
+
+    private BestDesignElementsResult convert(ExperimentPart expPart, List<Long> allGeneIds, List<BestDesignElementCandidate> bestDesignElementCandidates, int offset, int limit) throws AtlasDataException, StatisticsNotFoundException {
+        final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
+        final TwoDFloatArray pvals = expPart.getPValues();
+        final TwoDFloatArray tstat = expPart.getTStatistics();
 
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
 
-        long startTime = System.currentTimeMillis();
-
-        // Set bounds of the window through the matching design elements
-        int deCount = 1;
-        int from = Math.max(1, offset);
-        int to = offset + limit - 1;
-
-        // Retrieved data from ncdf
-        long startTime1 = System.currentTimeMillis();
-        List<Long> allGeneIds = new ArrayList<Long>(expPart.getGeneIds());
-        final List<KeyValuePair> uEFVs = expPart.getUniqueEFVs();
-        final TwoDFloatArray pvals = expPart.getPValues();
-        final TwoDFloatArray tstat = expPart.getTStatistics();
-        String[] designElementAccessions = expPart.getDesignElementAccessions();
-        log.debug("Retrieved data from ncdf in:  " + (System.currentTimeMillis() - startTime1) + " ms");
-
-        boolean factorValuesSpecified = !factorValues.isEmpty();
-        boolean genesSpecified = !geneIds.isEmpty();
-
-        // Retrieve qualifying BestDesignElementCandidate's
-        startTime1 = System.currentTimeMillis();
-        List<BestDesignElementCandidate> candidates = new ArrayList<BestDesignElementCandidate>();
-
-        for (int i = 0; i < pvals.getRowCount(); i++) {
-            BestDesignElementCandidate bestSoFar = null;
-            if (!designElementQualifies(genesSpecified, allGeneIds, geneIds, i))
-                continue;
-            for (int j = 0; j < uEFVs.size(); j++) {
-                if (!efvQualifies(factorValuesSpecified, uEFVs.get(j), factorValues))
-                    continue;
-                final UpDownExpression expression = UpDownExpression.valueOf(pvals.get(i, j), tstat.get(i, j));
-                if (upDownCondition.apply(expression)) {
-                    BestDesignElementCandidate current = new BestDesignElementCandidate(pvals.get(i, j), tstat.get(i, j), i, j);
-                    if (bestSoFar == null || current.compareTo(bestSoFar) < 0)
-                        bestSoFar = current;
-                }
-            }
-            if (bestSoFar != null)
-                candidates.add(bestSoFar);
+        final String[] designElementAccessions = expPart.getDesignElementAccessions();
+        for (BestDesignElementCandidate c : sublist(bestDesignElementCandidates, offset, offset + limit - 1)) {
+            result.add(geneSolrDAO.getGeneById(allGeneIds.get(c.getDEIndex())).getGene(),
+                    c.getDEIndex(),
+                    designElementAccessions[c.getDEIndex()],
+                    pvals.get(c.getDEIndex(), c.getUEFVIndex()),
+                    tstat.get(c.getDEIndex(), c.getUEFVIndex()),
+                    uEFVs.get(c.getUEFVIndex()).getKey(),
+                    uEFVs.get(c.getUEFVIndex()).getValue());
         }
-        log.debug("Loaded " + candidates.size() + " candidates in:  " + (System.currentTimeMillis() - startTime1) + " ms");
-
-        // Sort BestDesignElementCandidate's by pVal/tStat
-        startTime1 = System.currentTimeMillis();
-        Collections.sort(candidates);
-        log.debug("Sorted DE candidates in:  " + (System.currentTimeMillis() - startTime1) + " ms");
-        startTime1 = System.currentTimeMillis();
-
-        for (BestDesignElementCandidate candidate : candidates.subList(from, to)) {
-            final int deIndex = candidate.getDEIndex();
-            final int uEfvIndex = candidate.getUEFVIndex();
-            final KeyValuePair efv = uEFVs.get(uEfvIndex);
-            result.add(
-                    geneSolrDAO.getGeneById(allGeneIds.get(deIndex)).getGene(),
-                    deIndex,
-                    designElementAccessions[deIndex],
-                    pvals.get(deIndex, uEfvIndex),
-                    tstat.get(deIndex, uEfvIndex),
-                    efv.key,
-                    efv.value);
-        }
-        log.debug("Assembled BestDesignElementsResult in:  " + (System.currentTimeMillis() - startTime1) + " ms");
-
-        result.setTotalSize(candidates.size());
-
-        log.info("Finished findBestGenesForExperiment in:  " + (System.currentTimeMillis() - startTime) + " ms");
+        result.setTotalSize(bestDesignElementCandidates.size());
         return result;
     }
 
-    private boolean efvQualifies(
-            boolean factorValuesSpecified,
-            final @Nonnull KeyValuePair efv,
-            final @Nonnull Set<Pair<String, String>> factorValues) {
-        return !factorValuesSpecified ||
-                factorValues.contains(Pair.create(efv.key, efv.value)) ||
-                factorValues.contains(Pair.create(efv.key, null)); // allow search by factor only
+    private static FastSet selectedDesignElements(List<Long> geneIds, List<Long> allGeneIds) throws AtlasDataException {
+        FastSet des = new FastSet();
+        for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
+            if (isMappedDE(allGeneIds, deidx) && (geneIds.isEmpty() || geneIds.contains(allGeneIds.get(deidx)))) {
+                des.add(deidx);
+            }
+        }
+        return des;
     }
 
-    private boolean designElementQualifies(
-            boolean genesSpecified,
-            final List<Long> allGeneIds,
-            final List<Long> geneIds,
-            int deIndex) {
-        return allGeneIds.get(deIndex) > 0 && (!genesSpecified || geneIds.contains(allGeneIds.get(deIndex)));
+    private BestDesignElementCandidate getCandidateForDesignElement(int deidx, List<Pair<String, String>> uEFVs, TwoDFloatArray pvals, TwoDFloatArray tstat, Predicate<UpDownExpression> upDownPredicate,
+                                                                    Predicate<Pair<String, String>> fvPredicate) {
+        Best<BestDesignElementCandidate> result = new Best<BestDesignElementCandidate>();
+        for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
+            if (fvPredicate.apply(uEFVs.get(uefidx))) {
+                if (upDownPredicate.apply(valueOf(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx)))) {
+                    result.offer(new BestDesignElementCandidate(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx), deidx, uefidx));
+                }
+            }
+        }
+        return result.get();
+    }
+
+    private static boolean isMappedDE(List<Long> allGeneIds, int deIndex) {
+        return allGeneIds.get(deIndex) > 0;
+    }
+
+    private static <T> List<T> sublist(List<T> data, int from, int to) {
+        return data.subList(min(data.size(), from), min(data.size(), to));
     }
 }

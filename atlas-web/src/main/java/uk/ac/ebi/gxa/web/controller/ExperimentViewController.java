@@ -28,6 +28,8 @@ import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -44,7 +46,6 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.*;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -324,13 +325,17 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 criteria.containsAtLeastOneGene(geneIds);
             }
 
+            // We still don't allow search for best design elements by either just an ef
+            // or just an efv - both need to be specified
+            final Predicate<Pair<String, String>> fvPredicate = isNullOrEmpty(ef) || isNullOrEmpty(efv) ?
+                    Predicates.<Pair<String, String>>alwaysTrue() :
+                    Predicates.equalTo(Pair.create(ef, efv));
+
             res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
                     geneIds,
-                    !isNullOrEmpty(ef) || !isNullOrEmpty(efv) ?
-                            // At least one of ef, efv needs to be specified
-                            Collections.singleton(Pair.create(ef, efv)) : Collections.<Pair<String, String>>emptySet(),
                     updown,
+                    fvPredicate,
                     offset,
                     limit
             );
