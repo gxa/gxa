@@ -60,11 +60,11 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
         return tStat;
     }
 
-    public Integer getDEIndex() {
+    public int getDEIndex() {
         return deIndex;
     }
 
-    public Integer getUEFVIndex() {
+    public int getUEFVIndex() {
         return uEFVIndex;
     }
 

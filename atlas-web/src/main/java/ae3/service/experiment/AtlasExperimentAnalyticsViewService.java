@@ -9,7 +9,10 @@ import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -106,8 +109,8 @@ public class AtlasExperimentAnalyticsViewService {
 
         // Assemble BestDesignElementsResult from candidates between to and from bounds
         for (BestDesignElementCandidate candidate : candidates) {
-            final Integer deIndex = candidate.getDEIndex();
-            final Integer uEfvIndex = candidate.getUEFVIndex();
+            final int deIndex = candidate.getDEIndex();
+            final int uEfvIndex = candidate.getUEFVIndex();
             final KeyValuePair efv = uEFVs.get(uEfvIndex);
             if (deCount >= from && deCount <= to) {
                 result.add(
