@@ -159,10 +159,6 @@ public class Download implements Runnable {
         out.write(strBuf.toString().getBytes("UTF-8"));
     }
 
-    private void incrementResultsRetrieved() {
-        resultsRetrieved.getAndIncrement();
-    }
-
     public int getId() {
         return id;
     }
@@ -224,7 +220,7 @@ public class Download implements Runnable {
         log.info("Downloading data for query '{}' - now collecting data from {} experiments...", query.toString(), totalResults);
         for (Map.Entry<ExperimentInfo, Collection<Pair<StatisticsType, EfAttribute>>> expAttr : expToAttrs.entrySet()) {
             zout.write(atlasStructuredQueryService.getDataFromExperiment(expAttr.getKey().getAccession(), expAttr.getValue(), id2GeneInfo).getBytes("UTF-8"));
-            incrementResultsRetrieved();
+            resultsRetrieved.getAndIncrement();
         }
         log.info("Collected data from {} experiments in: {} ms ", totalResults, (System.currentTimeMillis() - start));
     }
