@@ -1,6 +1,6 @@
 package ae3.service;
 
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
@@ -59,7 +59,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      *         - scoring experiments as keys
      *         - Collections of scoring statistics type-attribute pairs in experiment key as values
      */
-    public ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
+    public Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
             final StatisticsQueryCondition statsQuery);
 
     /**

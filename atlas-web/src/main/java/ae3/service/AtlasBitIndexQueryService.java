@@ -1,9 +1,6 @@
 package ae3.service;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,7 +109,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      *  - scoring experiments as keys
      *  - Collections of scoring statistics type-attribute pairs in experiment key as values
      */
-    public ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
+    public Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
             final StatisticsQueryCondition statsQuery) {
         return StatisticsQueryUtils.getScoringExpsAttrs(statsQuery, statisticsStorage);
     }
