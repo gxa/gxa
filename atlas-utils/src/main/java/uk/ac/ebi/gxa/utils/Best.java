@@ -40,6 +40,10 @@ public class Best<T extends Comparable<T>> {
         return o;
     }
 
+    public boolean isFound() {
+        return o != null;
+    }
+
     public static <E extends Comparable<E>> Best<E> create() {
         return new Best<E>();
     }

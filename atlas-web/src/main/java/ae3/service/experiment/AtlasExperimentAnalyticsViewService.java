@@ -68,12 +68,14 @@ public class AtlasExperimentAnalyticsViewService {
         for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
             Best<BestDesignElementCandidate> result = Best.create();
             for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
-                if (fvPredicate.apply(uEFVs.get(uefidx)) &&
-                        upDownPredicate.apply(valueOf(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx)))) {
-                    result.offer(new BestDesignElementCandidate(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx), deidx, uefidx));
+                float p = pvals.get(deidx, uefidx);
+                float t = tstat.get(deidx, uefidx);
+
+                if (fvPredicate.apply(uEFVs.get(uefidx)) && upDownPredicate.apply(valueOf(p, t))) {
+                    result.offer(new BestDesignElementCandidate(p, t, deidx, uefidx));
                 }
             }
-            if (result.get() != null)
+            if (result.isFound())
                 candidates.add(result.get());
         }
         sort(candidates);
