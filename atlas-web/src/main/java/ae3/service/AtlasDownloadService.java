@@ -62,7 +62,7 @@ public class AtlasDownloadService {
     private GeneSolrDAO geneSolrDAO;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private AtomicInteger countDownloads = new AtomicInteger(0);
+    private AtomicInteger countDownloads = new AtomicInteger();
 
     private Map<String, Map<Integer, Download>> downloads = synchronizedMap(new HashMap<String, Map<Integer, Download>>());
     private ExecutorService downloadThreadPool;
@@ -82,10 +82,6 @@ public class AtlasDownloadService {
 
     public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
         this.geneSolrDAO = geneSolrDAO;
-    }
-
-    public void setCountDownloads(AtomicInteger countDownloads) {
-        this.countDownloads = countDownloads;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
