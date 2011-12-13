@@ -66,10 +66,15 @@ public class AtlasExperimentAnalyticsViewService {
 
         List<BestDesignElementCandidate> candidates = newArrayList();
         for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
-            BestDesignElementCandidate de =
-                    getCandidateForDesignElement(deidx, uEFVs, pvals, tstat, upDownPredicate, fvPredicate);
-            if (de != null)
-                candidates.add(de);
+            Best<BestDesignElementCandidate> result = Best.create();
+            for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
+                if (fvPredicate.apply(uEFVs.get(uefidx)) &&
+                        upDownPredicate.apply(valueOf(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx)))) {
+                    result.offer(new BestDesignElementCandidate(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx), deidx, uefidx));
+                }
+            }
+            if (result.get() != null)
+                candidates.add(result.get());
         }
         sort(candidates);
 
@@ -106,18 +111,6 @@ public class AtlasExperimentAnalyticsViewService {
             }
         }
         return result;
-    }
-
-    private BestDesignElementCandidate getCandidateForDesignElement(int deidx, List<Pair<String, String>> uEFVs, TwoDFloatArray pvals, TwoDFloatArray tstat, Predicate<UpDownExpression> upDownPredicate,
-                                                                    Predicate<Pair<String, String>> fvPredicate) {
-        Best<BestDesignElementCandidate> result = Best.create();
-        for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
-            if (fvPredicate.apply(uEFVs.get(uefidx)) &&
-                    upDownPredicate.apply(valueOf(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx)))) {
-                result.offer(new BestDesignElementCandidate(pvals.get(deidx, uefidx), tstat.get(deidx, uefidx), deidx, uefidx));
-            }
-        }
-        return result.get();
     }
 
     private static boolean isMappedDE(List<Long> allGeneIds, int deIndex) {
