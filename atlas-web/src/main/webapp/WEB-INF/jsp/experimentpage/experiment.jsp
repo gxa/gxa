@@ -283,7 +283,7 @@
     <b>\${name}:</b> \${value}<br/>
 </script>
 
-        <div id="topPagination" class="pagination_ie alignRight"></div>
+        <div id="topPagination" class="pagination_ie alignRight">The best expression for each gene in the experiment</div>
 
         <div class="hrClear">
             <form id="expressionListFilterForm" action="javascript:alert('error');">
@@ -291,12 +291,12 @@
                     <tr class="header">
                         <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
                         <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
+                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Best Design Element</th>
                         <c:if test="${exp.typeString=='RNA_SEQ'}">
                             <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Genome View</th>
                         </c:if>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
+                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Best Experimental Factor</th>
+                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Best Factor Value</th>
                         <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
 
                         <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">T-Statistic</th>
