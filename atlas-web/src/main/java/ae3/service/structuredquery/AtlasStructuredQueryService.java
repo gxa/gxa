@@ -1971,14 +1971,9 @@ public class AtlasStructuredQueryService {
      * @return
      */
     private boolean statTypesMatch(StatisticsType statType, UpDownExpression upDownExpression) {
-        if (statType == StatisticsType.UP && upDownExpression.isUp())
-            return true;
-        if (statType == StatisticsType.DOWN && upDownExpression.isDown())
-            return true;
-        if (statType == StatisticsType.UP_DOWN && upDownExpression.isUpOrDown())
-            return true;
-        if (statType == StatisticsType.NON_D_E && upDownExpression.isNonDe())
-            return true;
-        return false;
+        return statType == StatisticsType.UP && upDownExpression.isUp() ||
+                statType == StatisticsType.DOWN && upDownExpression.isDown() ||
+                statType == StatisticsType.UP_DOWN && upDownExpression.isUpOrDown() ||
+                statType == StatisticsType.NON_D_E && upDownExpression.isNonDe();
     }
 }
