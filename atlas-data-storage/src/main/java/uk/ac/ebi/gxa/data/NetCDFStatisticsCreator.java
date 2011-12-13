@@ -189,7 +189,7 @@ public class NetCDFStatisticsCreator {
                 "ADaccession",
                 arrayDesign.getAccession());
 
-        statisticsNetCdf.create();
+        NetCDFHacks.safeCreate(statisticsNetCdf);
     }
 
     /**
