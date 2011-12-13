@@ -2,6 +2,7 @@ package ae3.service;
 
 import ae3.model.AtlasGene;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -143,7 +144,7 @@ public class AtlasStatisticsQueryServiceTest {
         assertTrue(experimentCounts.entrySet().size() > 0);
 
         statsQuery.setBioEntityIdRestrictionSet(Collections.singleton(bioEntityId));
-        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
         experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExpsAttrs);
         assertEquals(0, experimentCounts.size());
         assertTrue(scoringExpsAttrs.asMap().keySet().size() > 0);
