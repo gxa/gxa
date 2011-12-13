@@ -25,6 +25,7 @@ package ae3.dao;
 import ae3.model.AtlasGene;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -48,8 +49,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  */
 public class GeneSolrDAO {
     private static final Logger log = LoggerFactory.getLogger(GeneSolrDAO.class);
-
-    private static final int MAX_LUCENE_CLAUSES_COUNT = 1024;
 
     private AtlasProperties atlasProperties;
 
@@ -211,7 +210,7 @@ public class GeneSolrDAO {
     public List<AtlasGene> getGenesByIds(Collection<Integer> geneIds) {
         List<AtlasGene> genes = new ArrayList<AtlasGene>();
         try {
-            for (SolrQuery query : getSolrQueriesForgenes(geneIds)) {
+            for (SolrQuery query : getSolrQueriesForGenes(geneIds)) {
                 query.setRows(Integer.MAX_VALUE);
                 QueryResponse queryResponse = geneSolr.query(query);
                 SolrDocumentList documentList = queryResponse.getResults();
@@ -227,17 +226,18 @@ public class GeneSolrDAO {
     }
 
     /**
-     * @param ids
-     * @return A collection of SolrQuery's - since Lucene can support only max. MAX_LUCENE_CLAUSES_COUNT
-     *         in any given query, we need to split ids into chunks that Lucene can manage.
+     * @param geneIds - a collection of gene Ids to find genes by
+     * @return A collection of SolrQuery's - since Lucene has limitation on a maximum
+     *         number of boolean clauses in a query, we need to split Ids into chunks that Lucene can manage.
      */
-    private List<SolrQuery> getSolrQueriesForgenes(Collection<Integer> ids) {
+    private List<SolrQuery> getSolrQueriesForGenes(Collection<Integer> geneIds) {
         List<SolrQuery> solrQueries = new ArrayList<SolrQuery>();
 
+        final int maxQueryCount = BooleanQuery.getMaxClauseCount();
         StringBuilder sb = new StringBuilder();
         int cnt = 1;
-        for (Integer id : ids) {
-            if (cnt % MAX_LUCENE_CLAUSES_COUNT == 0) {
+        for (Integer id : geneIds) {
+            if (cnt % maxQueryCount == 0) {
                 solrQueries.add(new SolrQuery(sb.toString()));
                 sb = new StringBuilder();
             }
