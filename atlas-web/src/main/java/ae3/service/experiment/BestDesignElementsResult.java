@@ -1,6 +1,7 @@
 package ae3.service.experiment;
 
 import ae3.model.AtlasGene;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.*;
 
@@ -17,8 +18,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     private final List<String> deAccessions = new ArrayList<String>();
     private final List<Double> pvalues = new ArrayList<Double>();
     private final List<Double> tvalues = new ArrayList<Double>();
-    private final List<String> efs = new ArrayList<String>();
-    private final List<String> efvs = new ArrayList<String>();
+    private final List<Pair<String, String>> efvs = new ArrayList<Pair<String, String>>();
 
     BestDesignElementsResult() {
     }
@@ -31,13 +31,12 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         this.adAccession = adAccession;
     }
 
-    void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, String ef, String efv) {
+    void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, Pair<String, String> efv) {
         genes.add(gene);
         deIndices.add(deIndex);
         deAccessions.add(deAccession);
         pvalues.add(pval);
         tvalues.add(tstat);
-        efs.add(ef);
         efvs.add(efv);
     }
 
@@ -51,8 +50,8 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
                 deAccessions.get(i),
                 pvalues.get(i).floatValue(),
                 tvalues.get(i).floatValue(),
-                efs.get(i),
-                efvs.get(i));
+                efvs.get(i).getFirst(),
+                efvs.get(i).getSecond());
     }
 
     public long getTotalSize() {

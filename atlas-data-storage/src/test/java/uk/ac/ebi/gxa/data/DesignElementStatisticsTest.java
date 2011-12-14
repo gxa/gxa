@@ -37,13 +37,13 @@ import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.*;
 /**
  * @author Robert Petryszak
  */
-public class BestDesignElementCandidateTest {
+public class DesignElementStatisticsTest {
     @Test
     public void testBasicContracts() {
-        for (Pair<BestDesignElementCandidate, BestDesignElementCandidate> p :
+        for (Pair<DesignElementStatistics, DesignElementStatistics> p :
                 toIterable(pairs(deCandidates(), deCandidates()))) {
-            final BestDesignElementCandidate a = p.getFirst();
-            final BestDesignElementCandidate b = p.getSecond();
+            final DesignElementStatistics a = p.getFirst();
+            final DesignElementStatistics b = p.getSecond();
             try {
                 assertEquals("Equality must be reflexive,", 0, a.compareTo(a));
                 assertEquals("Equality must be reflexive,", 0, b.compareTo(b));
@@ -88,7 +88,7 @@ public class BestDesignElementCandidateTest {
 
     private void checkValidityConstraints(Generator<Integer> someInt, Double p, Double t, String diagnosis) {
         try {
-            new BestDesignElementCandidate(p.floatValue(), t.floatValue(), someInt.next(), someInt.next());
+            new DesignElementStatistics(p.floatValue(), t.floatValue(), someInt.next(), someInt.next());
             fail(diagnosis + " was invalid - an UnexpectedException should have been thrown");
         } catch (UnexpectedException ignored) {
             // as expected
@@ -100,8 +100,8 @@ public class BestDesignElementCandidateTest {
         Generator<Double> pg = validPValues();
         Generator<Integer> someInt = integers();
 
-        for (BestDesignElementCandidate a : toIterable(deCandidates())) {
-            BestDesignElementCandidate b = new BestDesignElementCandidate(pg.next().floatValue(),
+        for (DesignElementStatistics a : toIterable(deCandidates())) {
+            DesignElementStatistics b = new DesignElementStatistics(pg.next().floatValue(),
                     a.getTStat(), someInt.next(), someInt.next());
 
             checkSameAbsTProperties(a, b);
@@ -113,15 +113,15 @@ public class BestDesignElementCandidateTest {
         Generator<Double> pg = validPValues();
         Generator<Integer> someInt = integers();
 
-        for (BestDesignElementCandidate a : toIterable(deCandidates())) {
-            BestDesignElementCandidate b = new BestDesignElementCandidate(pg.next().floatValue(),
+        for (DesignElementStatistics a : toIterable(deCandidates())) {
+            DesignElementStatistics b = new DesignElementStatistics(pg.next().floatValue(),
                     -a.getTStat(), someInt.next(), someInt.next());
 
             checkSameAbsTProperties(a, b);
         }
     }
 
-    private void checkSameAbsTProperties(BestDesignElementCandidate a, BestDesignElementCandidate b) {
+    private void checkSameAbsTProperties(DesignElementStatistics a, DesignElementStatistics b) {
         if (a.getPValue() < b.getPValue())
             assertTrue("P values ordering", a.compareTo(b) < 0);
         if (a.getPValue() > b.getPValue())
@@ -132,8 +132,8 @@ public class BestDesignElementCandidateTest {
 
     @Test
     public void testTOrderingSemantics() {
-        for (BestDesignElementCandidate a : toIterable(deCandidates())) {
-            for (BestDesignElementCandidate b : toIterable(deCandidates())) {
+        for (DesignElementStatistics a : toIterable(deCandidates())) {
+            for (DesignElementStatistics b : toIterable(deCandidates())) {
                 try {
                     if (abs(a.getTStat()) == abs(b.getTStat()))
                         continue;

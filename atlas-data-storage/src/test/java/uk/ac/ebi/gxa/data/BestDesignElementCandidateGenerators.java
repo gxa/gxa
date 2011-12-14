@@ -54,16 +54,16 @@ public class BestDesignElementCandidateGenerators {
         return ensureValues(Double.NaN);
     }
 
-    public static Generator<BestDesignElementCandidate> deCandidates() {
+    public static Generator<DesignElementStatistics> deCandidates() {
         final Generator<Double> p = validPValues();
         final Generator<Double> t = validTStats();
         final Generator<Integer> de = PrimitiveGenerators.integers();
         final Generator<Integer> uefv = PrimitiveGenerators.integers();
 
-        return new Generator<BestDesignElementCandidate>() {
+        return new Generator<DesignElementStatistics>() {
             @Override
-            public BestDesignElementCandidate next() {
-                return new BestDesignElementCandidate(
+            public DesignElementStatistics next() {
+                return new DesignElementStatistics(
                         p.next().floatValue(),
                         t.next().floatValue(),
                         de.next(), uefv.next());

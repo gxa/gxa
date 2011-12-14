@@ -38,13 +38,13 @@ import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isTStatValid;
  * @author Robert Petryszak
  */
 @Immutable
-public final class BestDesignElementCandidate implements Comparable<BestDesignElementCandidate> {
+public final class DesignElementStatistics implements Comparable<DesignElementStatistics> {
     private final float pValue;
     private final float tStat;
     private final int deIndex;
     private final int uEFVIndex;
 
-    public BestDesignElementCandidate(float pValue, float tStat, int deIndex, int uEFVIndex) {
+    public DesignElementStatistics(float pValue, float tStat, int deIndex, int uEFVIndex) {
         if (!isPvalValid(pValue))
             throw LogUtil.createUnexpected("Invalid pValue: " + pValue);
         if (!isTStatValid(tStat))
@@ -84,28 +84,28 @@ public final class BestDesignElementCandidate implements Comparable<BestDesignEl
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        BestDesignElementCandidate pt = (BestDesignElementCandidate) o;
+        DesignElementStatistics pt = (DesignElementStatistics) o;
         return compare(getPValue(), pt.getPValue()) == 0 && compare(getTStat(), pt.getTStat()) == 0;
     }
 
     /**
      * Defines natural order descending by absolute value of T first, then ascending by P
      * <p/>
-     * Note that there is one case when <code>compareTo(BestDesignElementCandidate)</code>
+     * Note that there is one case when <code>compareTo(DesignElementStatistics)</code>
      * is NOT compatible with {@link #equals(Object)}: it happens is P values are equals, and T values are opposite.
      *
      * @param o the DE candidate to be compared.
      * @return a negative integer, zero, or a positive integer as this object
      *         is less than, equal to, or greater than the specified candidate.
      */
-    public int compareTo(BestDesignElementCandidate o) {
+    public int compareTo(DesignElementStatistics o) {
         int result = -compare(abs(getTStat()), abs(o.getTStat()));
         return result != 0 ? result : compare(getPValue(), o.getPValue());
     }
 
     @Override
     public String toString() {
-        return "BestDesignElementCandidate{" +
+        return "DesignElementStatistics{" +
                 "pValue=" + pValue +
                 ", tStat=" + tStat +
                 ", deIndex=" + deIndex +

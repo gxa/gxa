@@ -59,45 +59,43 @@ public class AtlasExperimentAnalyticsViewService {
         final TwoDFloatArray pvals = expPart.getPValues();
         final TwoDFloatArray tstat = expPart.getTStatistics();
 
-        List<BestDesignElementCandidate> candidates = newArrayList();
+        List<DesignElementStatistics> stats = newArrayList();
         for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
-            Best<BestDesignElementCandidate> result = Best.create();
+            Best<DesignElementStatistics> result = Best.create();
             for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
                 float p = pvals.get(deidx, uefidx);
                 float t = tstat.get(deidx, uefidx);
 
                 if (fvPredicate.apply(uEFVs.get(uefidx)) && upDownPredicate.apply(valueOf(p, t))) {
-                    result.offer(new BestDesignElementCandidate(p, t, deidx, uefidx));
+                    result.offer(new DesignElementStatistics(p, t, deidx, uefidx));
                 }
             }
             if (result.isFound())
-                candidates.add(result.get());
+                stats.add(result.get());
         }
-        sort(candidates);
+        sort(stats);
 
-        return convert(expPart, expPart.getGeneIds(), candidates, offset, limit);
+        return convert(expPart, stats, offset, limit);
     }
 
-    private BestDesignElementsResult convert(ExperimentPart expPart, List<Long> allGeneIds,
-                                             List<BestDesignElementCandidate> bestDesignElementCandidates,
+    private BestDesignElementsResult convert(ExperimentPart expPart, List<DesignElementStatistics> stats,
                                              int offset, int limit)
             throws AtlasDataException, StatisticsNotFoundException {
         final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
+        final List<Long> allGeneIds = expPart.getGeneIds();
+        final String[] designElementAccessions = expPart.getDesignElementAccessions();
 
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
-
-        final String[] designElementAccessions = expPart.getDesignElementAccessions();
-        for (BestDesignElementCandidate c : sublist(bestDesignElementCandidates, offset, offset + limit - 1)) {
-            result.add(geneSolrDAO.getGeneById(allGeneIds.get(c.getDEIndex())).getGene(),
-                    c.getDEIndex(),
-                    designElementAccessions[c.getDEIndex()],
-                    c.getPValue(),
-                    c.getTStat(),
-                    uEFVs.get(c.getUEFVIndex()).getKey(),
-                    uEFVs.get(c.getUEFVIndex()).getValue());
+        result.setTotalSize(stats.size());
+        for (DesignElementStatistics de : sublist(stats, offset, offset + limit - 1)) {
+            result.add(geneSolrDAO.getGeneById(allGeneIds.get(de.getDEIndex())).getGene(),
+                    de.getDEIndex(),
+                    designElementAccessions[de.getDEIndex()],
+                    de.getPValue(),
+                    de.getTStat(),
+                    uEFVs.get(de.getUEFVIndex()));
         }
-        result.setTotalSize(bestDesignElementCandidates.size());
         return result;
     }
 
