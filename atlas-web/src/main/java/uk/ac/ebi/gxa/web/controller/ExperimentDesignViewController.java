@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,8 +20,8 @@ import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 public class ExperimentDesignViewController extends ExperimentViewControllerBase {
 
     @Autowired
-    public ExperimentDesignViewController(ExperimentSolrDAO solrDAO, AtlasDAO atlasDAO) {
-        super(solrDAO, atlasDAO);
+    public ExperimentDesignViewController(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {
+        super(experimentSolrDAO, atlasDAO);
     }
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)

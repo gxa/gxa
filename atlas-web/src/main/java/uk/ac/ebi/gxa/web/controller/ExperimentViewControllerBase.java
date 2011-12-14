@@ -20,7 +20,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewControllerBase.class);
 
-    protected final ExperimentSolrDAO experimentSolrDAO;
+    private final ExperimentSolrDAO experimentSolrDAO;
     protected final AtlasDAO atlasDAO;
 
     public ExperimentViewControllerBase(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {

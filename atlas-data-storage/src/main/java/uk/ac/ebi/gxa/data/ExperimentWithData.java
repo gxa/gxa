@@ -22,10 +22,12 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.base.Predicate;
 import com.google.common.primitives.Floats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.CollectionUtil;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
@@ -151,7 +153,7 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getGenes();
     }
 
-    public List<KeyValuePair> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+    public List<Pair<String, String>> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueEFVs();
     }
 
@@ -218,15 +220,15 @@ public class ExperimentWithData implements Closeable {
 
         final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
-            final KeyValuePair uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
+            final Pair<String, String> uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
             if (efName == null ||
-                (uniqueEFV.key.equals(efName) && uniqueEFV.value.equals(efvName))) {
+                (uniqueEFV.getKey().equals(efName) && uniqueEFV.getValue().equals(efvName))) {
                 list.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
                         deIndex,
-                    uniqueEFV.key,
-                    uniqueEFV.value,
+                        uniqueEFV.getKey(),
+                        uniqueEFV.getValue(),
                         t[efIndex],
                         p[efIndex]
                 ));
@@ -276,7 +278,7 @@ public class ExperimentWithData implements Closeable {
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             @Nullable final String efVal,
             @Nullable final String efvVal,
-            final UpDownCondition upDownCondition
+            final Predicate<UpDownExpression> upDownCondition
     ) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = newHashMap();
 
@@ -410,7 +412,7 @@ public class ExperimentWithData implements Closeable {
      *         first proxy in which expression data for that combination exists
      */
     // TODO: remove this method from ExperimentWithData or throw AtlasDataException & StatisticsNotFoundException outside
-    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, UpDownCondition upDownCondition) {
+    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, Predicate<UpDownExpression> upDownCondition) {
         ExpressionAnalysis ea = null;
         try {
             final Collection<ArrayDesign> ads = experiment.getArrayDesigns();

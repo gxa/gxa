@@ -27,6 +27,7 @@ import ucar.ma2.ArrayChar;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -175,9 +176,9 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         }
     }
 
-    private List<KeyValuePair> uniqueValues;
+    private List<Pair<String, String>> uniqueValues;
 
-    public List<KeyValuePair> getUniqueEFVs() throws AtlasDataException {
+    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException {
         try {
             if (uniqueValues == null) {
                 Variable uVALVar = netCDF.findVariable("uVAL");
@@ -190,7 +191,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
                 if (uVALVar == null) {
                     uniqueValues = Collections.emptyList();
                 } else {
-                    uniqueValues = new LinkedList<KeyValuePair>();
+                    uniqueValues = new LinkedList<Pair<String, String>>();
 
                     ArrayChar uVal = (ArrayChar) uVALVar.read();
                     for (Object text : (Object[]) uVal.make1DStringArray().get1DJavaArray(String.class)) {
@@ -200,7 +201,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
                         }
 
                         if (!"".equals(data[1])) {
-                            uniqueValues.add(new KeyValuePair(data[0], data[1]));
+                            uniqueValues.add(Pair.create(data[0], data[1]));
                         }
                     }
                 }

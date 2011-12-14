@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Collections.sort;
 
@@ -127,10 +129,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
-                    final List<KeyValuePair> uEFVs = experimentWithData.getUniqueEFVs(ad);
+                    final List<Pair<String, String>> uEFVs = experimentWithData.getUniqueEFVs(ad);
 
                     // TODO to switch on inclusion of sc-scv stats in bit index, remove getFactors & !contains filter below
-                    final Set<String> factorNames = new HashSet<String>(Arrays.asList(experimentWithData.getFactors(ad)));
+                    final Set<String> factorNames = newHashSet(Arrays.asList(experimentWithData.getFactors(ad)));
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
                     if (uEFVs.size() == 0) {
@@ -146,14 +148,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                     final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
                     for (int j = 0; j < uEFVs.size(); j++) {
-                        final KeyValuePair efv = uEFVs.get(j);
+                        final Pair<String, String> efv = uEFVs.get(j);
 
-                        if (!factorNames.contains(efv.key) || // TODO: remove this to process all uEFVs
-                                isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
+                        if (!factorNames.contains(efv.getKey()) || // TODO: remove this to process all uEFVs
+                                isNullOrEmpty(efv.getValue()) || "(empty)".equals(efv.getValue()))
                             continue;
 
-                        final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.key, efv.value));
-                        final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.key));
+                        final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.getKey(), efv.getValue()));
+                        final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.getKey()));
 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();

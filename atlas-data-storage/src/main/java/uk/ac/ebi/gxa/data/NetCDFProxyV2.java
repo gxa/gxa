@@ -29,11 +29,13 @@ import ucar.ma2.ArrayChar;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * An object that proxies an Atlas NetCDF file and provides convenience methods for accessing the data from within. This
@@ -190,10 +192,10 @@ final class NetCDFProxyV2 extends NetCDFProxy {
         }
     }
 
-    private List<KeyValuePair> uniqueEFVs;
+    private List<Pair<String, String>> uniqueEFVs;
 
     @Override
-    public List<KeyValuePair> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
+    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
             throw new StatisticsNotFoundException("Statistics file does not exist");
         }
@@ -205,9 +207,9 @@ final class NetCDFProxyV2 extends NetCDFProxy {
                 throw new AtlasDataException("Inconsistent names/values data in " + this);
             }
 
-            uniqueEFVs = new ArrayList<KeyValuePair>(names.length);
+            uniqueEFVs = newArrayList();
             for (int i = 0; i < names.length; ++i) {
-                uniqueEFVs.add(new KeyValuePair(names[i], values[i]));
+                uniqueEFVs.add(Pair.create(names[i], values[i]));
             }
         }
         return uniqueEFVs;
