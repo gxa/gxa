@@ -318,5 +318,4 @@ public class GeneSolrDAO {
         }
         return genes;
     }
-
 }
