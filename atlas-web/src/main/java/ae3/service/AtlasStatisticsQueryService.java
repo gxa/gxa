@@ -69,7 +69,7 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
-            final List<Attribute> orAttributes,
+            final Collection<Attribute> orAttributes,
             final StatisticsType statType,
             int minExperiments);
 

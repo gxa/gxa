@@ -26,7 +26,9 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
+import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Collections2;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +49,14 @@ import java.util.zip.ZipOutputStream;
  * @author iemam
  */
 public class Download implements Runnable {
+
+    private static final Function<String, Attribute> ATTRIBUTE_FUNC =
+            new Function<String, Attribute>() {
+                public Attribute apply(@Nonnull String efoTerm) {
+                    return new EfoAttribute(efoTerm);
+                }
+            };
+
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private AtlasStructuredQueryService atlasStructuredQueryService;
@@ -182,23 +192,9 @@ public class Download implements Runnable {
         outputHeader(zout);
 
         long start = System.currentTimeMillis();
-        // Get gene ids by Gene Conditions and Species - will be empty if user is querying by factor conditions only
-        Set<Integer> geneIds = atlasStructuredQueryService.getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
-        log.debug("Called getGenesByGeneConditionsAndSpecies() - size: {}", geneIds.size());
-
-        // Populate statsQuery with factor conditions
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition();
-        atlasStructuredQueryService.appendEfvsQuery(query, null, statsQuery);
-        if (statsQuery.getStatisticsType() == null) {
-            statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
-        }
-
-        // Restrict geneIds by stats query for factor conditions
-        geneIds = atlasStatisticsQueryService.restrictGenesByStatsQuery(statsQuery, geneIds);
-        log.debug("Restrict geneIds by stats query for factor conditions - size: {}", geneIds.size());
-
-        // Now retrieve experiment-statistic-attribute data for stats query for geneIds and factor conditions
-        statsQuery.setBioEntityIdRestrictionSet(geneIds);
+        // Construct a bit index query from all genes, species and factors conditions
+        StatisticsQueryCondition statsQuery = constructStatsQuery(query);
+        // Now retrieve experiment-statistic-attribute data for statsQuery
         ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs =
                 atlasStatisticsQueryService.getScoringExpsAttrs(statsQuery);
         log.debug("Overall bit index query time: {} of # experiments: {}", (System.currentTimeMillis() - start), scoringExpsAttrs.asMap().size());
@@ -207,7 +203,7 @@ public class Download implements Runnable {
         // Retrieve genes from Solr
         start = System.currentTimeMillis();
         Map<Long, String> id2GeneInfo = new HashMap<Long, String>();
-        Iterable<AtlasGene> genes = geneSolrDAO.getGenesByIds(geneIds);
+        Iterable<AtlasGene> genes = geneSolrDAO.getGenesByIds(statsQuery.getBioEntityIdRestrictionSet());
         for (AtlasGene gene : genes) {
             id2GeneInfo.put((long) gene.getGeneId(), getGeneInfo(gene));
         }
@@ -224,6 +220,40 @@ public class Download implements Runnable {
             incrementResultsRetrieved();
         }
         log.info("Collected data from {} experiments in: {} ms ", getTotalResults(), (System.currentTimeMillis() - start));
+    }
+
+    /**
+     * @param query
+     * @return StatisticsQueryCondition containing all genes, species and factors conditions in query
+     */
+    private StatisticsQueryCondition constructStatsQuery(AtlasStructuredQuery query) {
+
+        // Get gene ids by Gene Conditions and Species - will be empty if user is querying by factor conditions only
+        Set<Integer> geneIds = atlasStructuredQueryService.getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
+        log.debug("Called getGenesByGeneConditionsAndSpecies() - size: {}", geneIds.size());
+
+        // Populate statsQuery with factor conditions
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition();
+        atlasStructuredQueryService.appendEfvsQuery(query, null, statsQuery);
+        if (statsQuery.getStatisticsType() == null) {
+            statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
+        }
+
+        // Restrict geneIds by stats query for factor conditions
+        geneIds = atlasStatisticsQueryService.restrictGenesByStatsQuery(statsQuery, geneIds);
+        log.debug("Restrict geneIds by stats query for factor conditions - size: {}", geneIds.size());
+
+
+        // If this is a gene conditions (plus optional species) only query, populate it with all efo terms that are scoring for geneIds
+        if (statsQuery.getConditions().isEmpty()) {
+            Set<String> scoringEfos = atlasStatisticsQueryService.getScoringEfosForBioEntities(new HashSet<Integer>(geneIds), statsQuery.getStatisticsType());
+            statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections2.transform(scoringEfos, ATTRIBUTE_FUNC), statsQuery.getStatisticsType(), 1));
+        }
+
+        // Finally, restrict query by geneIds
+        statsQuery.setBioEntityIdRestrictionSet(geneIds);
+
+        return statsQuery;
     }
 
     /**
