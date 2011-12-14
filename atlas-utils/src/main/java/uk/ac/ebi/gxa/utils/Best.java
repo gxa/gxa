@@ -26,22 +26,22 @@ package uk.ac.ebi.gxa.utils;
  * @author alf
  */
 public class Best<T extends Comparable<T>> {
-    private T o = null;
+    private T x = null;
 
     public Best() {
     }
 
     public void offer(T o) {
-        if (this.o == null || o.compareTo(this.o) > 0)
-            this.o = o;
+        if (this.x == null || o.compareTo(this.x) > 0)
+            this.x = o;
     }
 
     public T get() {
-        return o;
+        return x;
     }
 
     public boolean isFound() {
-        return o != null;
+        return x != null;
     }
 
     public static <E extends Comparable<E>> Best<E> create() {
