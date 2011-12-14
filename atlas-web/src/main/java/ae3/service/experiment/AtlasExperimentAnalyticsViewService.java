@@ -88,7 +88,7 @@ public class AtlasExperimentAnalyticsViewService {
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
         result.setTotalSize(stats.size());
-        for (DesignElementStatistics de : boundSafeSublist(stats, offset, offset + limit - 1)) {
+        for (DesignElementStatistics de : boundSafeSublist(stats, offset, offset + limit)) {
             result.add(geneSolrDAO.getGeneById(allGeneIds.get(de.getDEIndex())).getGene(),
                     de.getDEIndex(),
                     designElementAccessions[de.getDEIndex()],
