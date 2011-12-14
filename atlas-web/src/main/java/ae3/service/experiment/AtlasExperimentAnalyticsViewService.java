@@ -78,7 +78,10 @@ public class AtlasExperimentAnalyticsViewService {
         return convert(expPart, expPart.getGeneIds(), candidates, offset, limit);
     }
 
-    private BestDesignElementsResult convert(ExperimentPart expPart, List<Long> allGeneIds, List<BestDesignElementCandidate> bestDesignElementCandidates, int offset, int limit) throws AtlasDataException, StatisticsNotFoundException {
+    private BestDesignElementsResult convert(ExperimentPart expPart, List<Long> allGeneIds,
+                                             List<BestDesignElementCandidate> bestDesignElementCandidates,
+                                             int offset, int limit)
+            throws AtlasDataException, StatisticsNotFoundException {
         final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
 
         final BestDesignElementsResult result = new BestDesignElementsResult();
@@ -101,15 +104,12 @@ public class AtlasExperimentAnalyticsViewService {
     private static FastSet selectedDesignElements(List<Long> allGeneIds, final Predicate<Long> geneIdPredicate) {
         FastSet result = new FastSet();
         for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
-            if (isMappedDE(allGeneIds, deidx) && geneIdPredicate.apply(allGeneIds.get(deidx))) {
+            final Long geneId = allGeneIds.get(deidx);
+            if (geneId > 0 && geneIdPredicate.apply(geneId)) {
                 result.add(deidx);
             }
         }
         return result;
-    }
-
-    private static boolean isMappedDE(List<Long> allGeneIds, int deIndex) {
-        return allGeneIds.get(deIndex) > 0;
     }
 
     private static <T> List<T> sublist(List<T> data, int from, int to) {
