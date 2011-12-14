@@ -36,7 +36,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -137,25 +136,6 @@ public class BioMartParserTest {
         }
     }
 
-    @Test
-    public void testParseGeneSigPropertyValues() throws Exception {
-        List<BioEntityType> types = new ArrayList<BioEntityType>();
-        types.add(new BioEntityType(null, "enstranscript", 1));
-        BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
-        AnnotationParser<BioEntityAnnotationData> parser = AnnotationParser.initParser(types, builder);
-        
-        BioEntityProperty go = new BioEntityProperty(null, "go");
-
-        final List<BioEntityProperty> properties = Arrays.asList(go);
-        parser.setSeparator(',');
-        parser.parsePropertyValues(properties, new URL("http://compbio.dfci.harvard.edu/genesigdb/download/GeneSigDBv4.0_STANDARDIZED_GENELIST.csv"), true);
-
-        BioEntityAnnotationData data = parser.getData();
-
-        System.out.println("data.getPropertyValues().size() = " + data.getPropertyValues().size());
-
-
-    }
 
     @Test(expected = AtlasAnnotationException.class)
     public void testParseBioMartIncorrectBioEntitites1() throws Exception {
