@@ -38,9 +38,9 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      *
      * @param expPart         experiment part to retrieve data from
-     * @param geneIdPredicate
+     * @param geneIdPredicate a gene (id) filter
      * @param upDownPredicate an up/down expression filter
-     * @param fvPredicate
+     * @param fvPredicate     an experiment factor filter
      * @param offset          Start position within the result set
      * @param limit           how many design elements to return
      * @return an instance of {@link BestDesignElementsResult}
