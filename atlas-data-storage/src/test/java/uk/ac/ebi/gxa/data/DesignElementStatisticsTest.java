@@ -32,7 +32,7 @@ import static net.java.quickcheck.generator.CombinedGenerators.pairs;
 import static net.java.quickcheck.generator.PrimitiveGenerators.integers;
 import static net.java.quickcheck.generator.iterable.Iterables.toIterable;
 import static org.junit.Assert.*;
-import static uk.ac.ebi.gxa.data.BestDesignElementCandidateGenerators.*;
+import static uk.ac.ebi.gxa.data.StatisticsGenerators.*;
 
 /**
  * @author Robert Petryszak

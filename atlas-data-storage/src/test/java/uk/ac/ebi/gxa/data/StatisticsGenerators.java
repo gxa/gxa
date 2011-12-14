@@ -32,7 +32,7 @@ import static net.java.quickcheck.generator.PrimitiveGenerators.doubles;
 /**
  * @author alf
  */
-public class BestDesignElementCandidateGenerators {
+public class StatisticsGenerators {
 
     public static Generator<Double> validPValues() {
         return ensureValues(asList(0.0, 0.5, 1.0), doubles(0.0, 1.0));
