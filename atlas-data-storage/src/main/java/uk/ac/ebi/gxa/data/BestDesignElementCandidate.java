@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.data;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
+import javax.annotation.concurrent.Immutable;
+
 import static java.lang.Float.compare;
 import static java.lang.Math.abs;
 import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isPvalValid;
@@ -35,11 +37,12 @@ import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isTStatValid;
  *
  * @author Robert Petryszak
  */
+@Immutable
 public final class BestDesignElementCandidate implements Comparable<BestDesignElementCandidate> {
-    private float pValue;
-    private float tStat;
-    private int deIndex;
-    private int uEFVIndex;
+    private final float pValue;
+    private final float tStat;
+    private final int deIndex;
+    private final int uEFVIndex;
 
     public BestDesignElementCandidate(float pValue, float tStat, int deIndex, int uEFVIndex) {
         if (!isPvalValid(pValue))
