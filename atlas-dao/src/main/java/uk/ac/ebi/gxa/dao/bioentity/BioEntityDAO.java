@@ -233,6 +233,7 @@ public class BioEntityDAO {
 
     /**
      * Writes Bioentity -> bioentityProperty relations, with a check if bioentity with a given identifier exists.
+     *
      * @param beProperties - a Collection of Pair, which contains values:
      *                     [0] - BioEntity identifier
      *                     [1] - BEPropertyValue
@@ -240,7 +241,7 @@ public class BioEntityDAO {
      * @param software
      */
     public void writeBioEntityToPropertyValuesChecked(final Collection<Pair<String, BEPropertyValue>> beProperties, final BioEntityType beType,
-                                               final Software software) {
+                                                      final Software software) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
                 "  select \n" +
@@ -330,7 +331,7 @@ public class BioEntityDAO {
                 "WHERE DEBE.SOFTWAREID= ? \n" +
                 "and debe.DESIGNELEMENTID IN (SELECT DE.DESIGNELEMENTID FROM A2_DESIGNELEMENT DE WHERE DE.ARRAYDESIGNID=?)";
 
-       return template.update(query, software.getSoftwareid(), arrayDesign.getArrayDesignID());
+        return template.update(query, software.getSoftwareid(), arrayDesign.getArrayDesignID());
     }
 
     public int deleteBioEntityToPropertyValues(final Organism organism, final Software software) {
@@ -339,6 +340,13 @@ public class BioEntityDAO {
                 " and bepv.bioentityid in (select bioentityid from A2_BIOENTITY where organismid=?)";
 
         return template.update(query, software.getSoftwareid(), organism.getId());
+    }
+
+    public int deleteBioEntityToPropertyValues(final Software software) {
+        String query = "DELETE FROM A2_BIOENTITYBEPV BEPV\n" +
+                " WHERE BEPV.SOFTWAREID = ?\n";
+
+        return template.update(query, software.getSoftwareid());
     }
 
     private <T> int writeBatchInChunks(String query,
@@ -451,9 +459,10 @@ public class BioEntityDAO {
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntityType type = findOrCreateBioEntityType(resultSet.getString(6));
             Organism organism = new Organism(resultSet.getLong(5), intern(resultSet.getString(4)));
-            BioEntity gene = new BioEntity(resultSet.getString(2), resultSet.getString(3), type, organism);
+            BioEntity gene = new BioEntity(resultSet.getString(2), type, organism);
 
             gene.setId(resultSet.getLong(1));
+            gene.setName(resultSet.getString(3));
 
             return gene;
         }

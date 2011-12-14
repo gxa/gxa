@@ -50,26 +50,46 @@ public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<
         }
     }
 
+//    @Override
+//    protected BioMartAnnotationSource initAnnotationSource1(String id, Properties properties) throws AnnotationLoaderException {
+//        Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
+//        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
+//
+//        BioMartAnnotationSource annSrc = fetchAnnSrcById(id);
+//        //Check if for given organism and software annotation source exists
+//        if (annSrc == null || (!annSrc.getSoftware().equals(software) || !annSrc.getOrganism().equals(organism))) {
+//            final BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
+//            if (annotationSource != null) {
+//                throw new AnnotationLoaderException("Annotation source for organism " + organism.getName() + " and for software " +
+//                        software.getName() + " " + software.getVersion() + " already exists.");
+//            } else {
+//                if (annSrc == null) {
+//                    annSrc = new BioMartAnnotationSource(software, organism);
+//                } else {
+//                    annSrc.setOrganism(organism);
+//                    annSrc.setSoftware(software);
+//                }
+//            }
+//        }
+//        return annSrc;
+//    }
+
     @Override
     protected BioMartAnnotationSource initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException {
         Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
         BioMartAnnotationSource annSrc = fetchAnnSrcById(id);
-        //Check if for given organism and software annotation source exists
-        if (annSrc == null || (!annSrc.getSoftware().equals(software) || !annSrc.getOrganism().equals(organism))) {
-            final BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
-            if (annotationSource != null) {
-                throw new AnnotationLoaderException("Annotation source for organism " + organism.getName() + " and for software " +
-                        software.getName() + " " + software.getVersion() + " already exists.");
-            } else {
-                if (annSrc == null) {
-                    annSrc = new BioMartAnnotationSource(software, organism);
-                } else {
-                    annSrc.setOrganism(organism);
-                    annSrc.setSoftware(software);
-                }
-            }
+        if (annSrc == null) {
+            return new BioMartAnnotationSource(software, organism);
+        }
+
+        if (!annSrc.getSoftware().equals(software)) {
+             throw new AnnotationLoaderException("Software should not be changed when editing Annotation Source!");
+        }
+
+        if (!annSrc.getOrganism().equals(organism)) {
+            throw new AnnotationLoaderException("Organism should not be changed when editing Annotation Source!");
         }
         return annSrc;
     }

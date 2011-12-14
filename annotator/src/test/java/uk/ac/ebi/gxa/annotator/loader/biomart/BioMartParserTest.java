@@ -36,6 +36,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,38 +63,28 @@ public class BioMartParserTest {
         parser.parsePropertyValues(go, BioMartParserTest.class.getResource("properties.txt"));
 
         BioEntityAnnotationData data = parser.getData();
-        for (BioEntityType type : bioEntityTypes) {
-            Collection<BioEntity> bioEntitiesOfType = data.getBioEntitiesOfType(type);
-            assertEquals(3, bioEntitiesOfType.size());
-            for (BioEntity bioEntity : bioEntitiesOfType) {
-                boolean passed = false;
-                if (bioEntity.getIdentifier().equals("ENSBTAT00000057520")) {
-                    assertEquals("Q6V947_BOVIN", bioEntity.getName());
-                    passed = true;
-                }
-                if (bioEntity.getIdentifier().equals("ENSBTAG00000039669")) {
-                    assertEquals("Q6V947_BOVIN", bioEntity.getName());
-                    passed = true;
-                }
-                if (bioEntity.getIdentifier().equals("ENSBTAG00000035493")) {
-                    assertEquals("ENSBTAG00000035493", bioEntity.getName());
-                    passed = true;
-                }
-                if (bioEntity.getIdentifier().equals("ENSBTAT00000049990")) {
-                    assertEquals("ENSBTAT00000049990", bioEntity.getName());
-                    passed = true;
-                }
-                if (bioEntity.getIdentifier().equals("ENSBTAT00000015116")) {
-                    assertEquals("Q2WGK0_BOVIN", bioEntity.getName());
-                    passed = true;
-                }
-                if (bioEntity.getIdentifier().equals("ENSBTAG00000025314")) {
-                    assertEquals("Q2WGK0_BOVIN", bioEntity.getName());
-                    passed = true;
-                }
-                assertTrue(passed);
+        ArrayList<BioEntity> transcripts = new ArrayList<BioEntity>(data.getBioEntitiesOfType(bioEntityTypes.get(0)));
+        ArrayList<BioEntity> genes = new ArrayList<BioEntity>(data.getBioEntitiesOfType(bioEntityTypes.get(1)));
+
+        assertEquals(3, transcripts.size());
+        assertEquals(2, genes.size());
+
+        boolean passed = false;
+        for (BioEntity transcript : transcripts) {
+            if (transcript.getIdentifier().equals("ENSBTAT00000057520")) {
+                assertEquals("ENSBTAG00000039669", genes.get(0).getIdentifier());
+                passed = true;
+            }
+            if (transcript.getIdentifier().equals("ENSBTAT00000049990")) {
+                assertEquals("ENSBTAG00000039669", genes.get(0).getIdentifier());
+                passed = true;
+            }
+            if (transcript.getIdentifier().equals("ENSBTAT00000015116")) {
+                assertEquals("ENSBTAG00000025314", genes.get(1).getIdentifier());
+                passed = true;
             }
         }
+        assertTrue(passed);
 
         assertEquals(2, data.getPropertyValues().size());
         for (BEPropertyValue value : data.getPropertyValues()) {
@@ -144,6 +135,26 @@ public class BioMartParserTest {
                 assertTrue(propertyValues.contains(Pair.create("ENSBTAT00000015116", new BEPropertyValue(go, "hormone activity"))));
             }
         }
+    }
+
+    @Test
+    public void testParseGeneSigPropertyValues() throws Exception {
+        List<BioEntityType> types = new ArrayList<BioEntityType>();
+        types.add(new BioEntityType(null, "enstranscript", 1));
+        BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
+        AnnotationParser<BioEntityAnnotationData> parser = AnnotationParser.initParser(types, builder);
+        
+        BioEntityProperty go = new BioEntityProperty(null, "go");
+
+        final List<BioEntityProperty> properties = Arrays.asList(go);
+        parser.setSeparator(',');
+        parser.parsePropertyValues(properties, new URL("http://compbio.dfci.harvard.edu/genesigdb/download/GeneSigDBv4.0_STANDARDIZED_GENELIST.csv"), true);
+
+        BioEntityAnnotationData data = parser.getData();
+
+        System.out.println("data.getPropertyValues().size() = " + data.getPropertyValues().size());
+
+
     }
 
     @Test(expected = AtlasAnnotationException.class)

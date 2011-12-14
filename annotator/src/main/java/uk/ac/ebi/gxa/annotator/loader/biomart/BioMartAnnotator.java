@@ -78,7 +78,7 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
             BioMartConnection martConnection = annSrc.createConnection();
 
             //Read BioEntities
-            readBioEntities(martConnection.getAttributesURL(attributesHandler.getExternalBEIdentifiersAndNames()), parser);
+            readBioEntities(martConnection.getAttributesURL(attributesHandler.getExternalBEIdentifiers()), parser);
 
             //read synonyms
             fetchSynonyms(annSrc, builder);
@@ -128,7 +128,7 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
 
             BioMartConnection martConnection = annSrc.createConnection();
             if (!annSrc.isApplied()) {
-                readBioEntities(martConnection.getAttributesURL(attributesHandler.getExternalBEIdentifiersAndNames()), parser);
+                readBioEntities(martConnection.getAttributesURL(attributesHandler.getExternalBEIdentifiers()), parser);
                 beDataWriter.writeBioEntities(parser.getData(), listener);
             }
 

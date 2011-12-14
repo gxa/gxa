@@ -50,8 +50,8 @@ public class BioEntityData {
         this.bioEntityTypes = bioEntityTypes;
     }
 
-    BioEntity addBioEntity(String identifier, String name, BioEntityType type, Organism organism) {
-        BioEntity bioEntity = new BioEntity(identifier, name, type, organism);
+    BioEntity addBioEntity(String identifier, BioEntityType type, Organism organism) {
+        BioEntity bioEntity = new BioEntity(identifier, type, organism);
         typeToBioEntities.put(type, bioEntity);
         organisms.add(organism);
         return bioEntity;

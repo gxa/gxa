@@ -79,7 +79,7 @@ public class AnnotationSourceManager {
             final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(id, text);
             annSrcDAO.save(annotationSource);
         } catch (AnnotationLoaderException e) {
-            throw LogUtil.createUnexpected("Cannot save Annotation Source", e);
+            throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }
     }
 

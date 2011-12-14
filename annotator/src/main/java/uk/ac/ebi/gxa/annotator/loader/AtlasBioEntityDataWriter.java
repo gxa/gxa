@@ -86,6 +86,9 @@ public class AtlasBioEntityDataWriter {
                                                boolean checkBioEntities,
                                                AnnotationLoaderListener listener) {
         if (annSrc.isApplied()) {
+            if (data.getOrganisms().isEmpty()) {
+                deleteBioEntityToPropertyValues(annSrc.getSoftware(), listener);
+            }
             for (Organism organism : data.getOrganisms()) {
                 deleteBioEntityToPropertyValues(organism, annSrc.getSoftware(), listener);
             }
@@ -110,6 +113,14 @@ public class AtlasBioEntityDataWriter {
         int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
         reportProgress("Deleted " + count + " annotations.", listener);
     }
+
+    private void deleteBioEntityToPropertyValues(final Software software, AnnotationLoaderListener listener) {
+        reportProgress("Annotations for software " + software.getFullName() +
+                " already loaded and are going to be deleted before reloading ", listener);
+        int count = bioEntityDAO.deleteBioEntityToPropertyValues(software);
+        reportProgress("Deleted " + count + " annotations.", listener);
+    }
+
 
     @Transactional
     public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite, AnnotationLoaderListener listener) {

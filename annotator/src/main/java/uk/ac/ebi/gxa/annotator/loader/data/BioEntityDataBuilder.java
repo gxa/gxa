@@ -54,8 +54,8 @@ public abstract class BioEntityDataBuilder<T extends BioEntityData> {
                 isEqualCollection(data.getTypeToBioEntities().keySet(), data.getBioEntityTypes());
     }
 
-    public BioEntity addBioEntity(String identifier, String name, BioEntityType type, Organism organism) {
-        return data.addBioEntity(identifier, name, type, organism);
+    public BioEntity addBioEntity(String identifier,BioEntityType type, Organism organism) {
+        return data.addBioEntity(identifier, type, organism);
     }
 
     public abstract void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession);

@@ -72,34 +72,15 @@ public abstract class Annotator<T extends AnnotationSource> {
             bioEntityTypeColumns = new ArrayList<BioEntityTypeColumns>(annSrc.getTypes().size());
             for (BioEntityType type : annSrc.getTypes()) {
 
-//                Set<String> idPropertyNames = getExternalPropertyNamesForProperty(type.getIdentifierProperty());
                 if (getExternalPropertyNamesForProperty(type.getIdentifierProperty()).isEmpty()) {
                     throw new AtlasAnnotationException("Annotation source not valid ");
                 }
 
-                Set<String> namePropertyNames = getExternalPropertyNamesForProperty(type.getNameProperty());
-                if (namePropertyNames.isEmpty()) {
-                    throw new AtlasAnnotationException("Annotation source not valid ");
-                }
-
-                BioEntityTypeColumns columns = new BioEntityTypeColumns(type, getFirst(getExternalPropertyNamesForProperty(type.getIdentifierProperty()), null), getFirst(namePropertyNames, null));
+                BioEntityTypeColumns columns = new BioEntityTypeColumns(type,
+                        getFirst(getExternalPropertyNamesForProperty(type.getIdentifierProperty()), null)
+                );
                 bioEntityTypeColumns.add(columns);
             }
-        }
-
-        /**
-         * Returns a List of external attributes corresponding to BioEntityType's identifier and name, keeping an order
-         * of BioEntityTypes
-         *
-         * @return
-         */
-        public List<String> getExternalBEIdentifiersAndNames() {
-            List<String> answer = new ArrayList<String>(bioEntityTypeColumns.size() * 2);
-            for (BioEntityTypeColumns bioEntityTypeColumn : bioEntityTypeColumns) {
-                answer.add(bioEntityTypeColumn.getIdentifierColunm());
-                answer.add(bioEntityTypeColumn.getNameColumn());
-            }
-            return Collections.unmodifiableList(answer);
         }
 
         public List<String> getExternalBEIdentifiers() {
@@ -121,16 +102,15 @@ public abstract class Annotator<T extends AnnotationSource> {
         }
 
         public Collection<BioEntityProperty> getBioEntityProperties() {
-            return Collections.unmodifiableSet(new  HashSet<BioEntityProperty>(Collections2.transform(
+            return Collections.unmodifiableSet(new HashSet<BioEntityProperty>(Collections2.transform(
                     Collections2.filter(externalBioEntityProperties,
                             new Predicate<ExternalBioEntityProperty>() {
                                 @Override
                                 public boolean apply(@Nullable ExternalBioEntityProperty extBEProperty) {
-                                    if (extBEProperty!= null) {
+                                    if (extBEProperty != null) {
                                         for (BioEntityTypeColumns bioEntityTypeColumn : bioEntityTypeColumns) {
-                                            if (extBEProperty.getName().equals(bioEntityTypeColumn.getIdentifierColunm())
-                                            || extBEProperty.getName().equals(bioEntityTypeColumn.getNameColumn())) {
-                                               return false;
+                                            if (extBEProperty.getName().equals(bioEntityTypeColumn.getIdentifierColunm())) {
+                                                return false;
                                             }
                                         }
                                     }
@@ -164,12 +144,10 @@ public abstract class Annotator<T extends AnnotationSource> {
         private static class BioEntityTypeColumns {
             BioEntityType type;
             String identifierColunm;
-            String nameColumn;
 
-            private BioEntityTypeColumns(BioEntityType type, String identifierColunm, String nameColumn) {
+            private BioEntityTypeColumns(BioEntityType type, String identifierColunm) {
                 this.type = type;
                 this.identifierColunm = identifierColunm;
-                this.nameColumn = nameColumn;
             }
 
             public BioEntityType getType() {
@@ -178,10 +156,6 @@ public abstract class Annotator<T extends AnnotationSource> {
 
             public String getIdentifierColunm() {
                 return identifierColunm;
-            }
-
-            public String getNameColumn() {
-                return nameColumn;
             }
         }
     }

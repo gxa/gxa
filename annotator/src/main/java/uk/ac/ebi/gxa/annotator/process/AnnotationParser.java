@@ -85,8 +85,7 @@ public class AnnotationParser<T extends BioEntityData> {
                 int columnCount = 0;
                 for (BioEntityType type : bioEntityTypes) {
                     String beIdentifier = line[columnCount++];
-                    String beName = line[columnCount++];
-                    builder.addBioEntity(beIdentifier, beName, type, organism);
+                    builder.addBioEntity(beIdentifier, type, organism);
                 }
             }
         } catch (IOException e) {
@@ -105,10 +104,7 @@ public class AnnotationParser<T extends BioEntityData> {
             int lineCount = 0;
 
             while ((line = csvReader.readNext()) != null) {
-                if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
-                    log.debug("Cannot get property {} line: {}", property.getName(), Arrays.toString(line));
-                    throw new AtlasAnnotationException("Cannot get property " + property.getName());
-                }
+                validateLine(line, "Cannot get property " + property.getName() + "from " + url);
 
                 BEPropertyValue propertyValue = new BEPropertyValue(property, line[bioEntityTypes.size()]);
                 int count = 0;
@@ -122,7 +118,7 @@ public class AnnotationParser<T extends BioEntityData> {
 
             }
         } catch (IOException e) {
-            throw new AtlasAnnotationException("Cannot get property " + property.getName(), e);
+            throw new AtlasAnnotationException("Cannot get property " + property.getName() + "from " + url, e);
         } finally {
             closeQuietly(csvReader);
         }
@@ -136,15 +132,13 @@ public class AnnotationParser<T extends BioEntityData> {
             String[] line;
             int lineCount = 0;
 
-            while ((line = csvReader.readNext()) != null) {
-                if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
-                    log.debug("Cannot get properties line: {}", Arrays.toString(line));
-                    throw new AtlasAnnotationException("Cannot get properties from URL " + url);
-                }
+            if (skipFirstLine && (line = csvReader.readNext()) != null) {
+                validateLine(line, "Cannot get properties from URL " + url);
+            }
 
-                if (skipFirstLine && lineCount++==0) {
-                    continue;   
-                }
+            while ((line = csvReader.readNext()) != null) {
+
+                validateLine(line, "Cannot get properties from URL " + url);
 
                 int propertyCount = 0;
                 for (BioEntityProperty property : properties) {
@@ -176,10 +170,7 @@ public class AnnotationParser<T extends BioEntityData> {
             int lineCount = 0;
 
             while ((line = csvReader.readNext()) != null) {
-                if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
-                    throw new AtlasAnnotationException("Cannot update design element mappings from " + url);
-                }
-
+                validateLine(line, "Cannot update design element mappings from " + url);
                 String deAcc = line[bioEntityTypes.size()];
                 int count = 0;
                 for (BioEntityType type : bioEntityTypes) {
@@ -196,7 +187,14 @@ public class AnnotationParser<T extends BioEntityData> {
         } finally {
             closeQuietly(csvReader);
         }
+    }
 
+    private void validateLine(String[] line, String exceptionMsg) throws AtlasAnnotationException {
+
+        if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
+            log.debug("{} line: {}", exceptionMsg, Arrays.toString(line));
+            throw new AtlasAnnotationException(exceptionMsg);
+        }
     }
 
     void setBuilder(BioEntityDataBuilder<T> builder) {

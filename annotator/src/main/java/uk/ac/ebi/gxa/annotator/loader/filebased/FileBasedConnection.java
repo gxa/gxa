@@ -14,13 +14,18 @@ import java.util.Set;
  * Date: 26/10/2011
  */
 public class FileBasedConnection extends AnnotationSourceConnection<GeneSigAnnotationSource> {
-    public FileBasedConnection(String url) {
 
+    private static final String DB_NAME = "";
+    //Example:  http://compbio.dfci.harvard.edu/genesigdb/download/GeneSigDBv4.0_STANDARDIZED_GENELIST.csv
+    private final String url;
+
+    public FileBasedConnection(String url) {
+        this.url = url;
     }
 
     @Override
     public String getOnlineMartVersion() throws BioMartAccessException {
-        return "4";
+        return "4.0";
     }
 
     @Override
@@ -29,6 +34,7 @@ public class FileBasedConnection extends AnnotationSourceConnection<GeneSigAnnot
     }
 
     public URL getURL(String location) throws IOException {
+//        return new File(location).toURL();
         return new URL(location);
     }
 }

@@ -19,22 +19,6 @@ import static junit.framework.Assert.*;
 public class BETypeExternalAttributesHandlerTest {
 
     @Test
-    public void testGetMartBEIdentifiersAndNames() throws Exception {
-        Annotator.BETypeExternalAttributesHandler handler =
-                new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
-
-        List<String> identifiersAndNames = handler.getExternalBEIdentifiersAndNames();
-        assertEquals(4, identifiersAndNames.size());
-        String first = identifiersAndNames.get(0);
-        if (first.equals("gene"))
-            assertEquals("symbol", identifiersAndNames.get(1));
-        if (first.equals("transcript"))
-            assertEquals("identifier",identifiersAndNames.get(1));
-        else
-            fail();
-    }
-
-    @Test
     public void testGetMartBEIdentifiers() throws Exception {
         Annotator.BETypeExternalAttributesHandler handler =
                 new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
@@ -52,15 +36,10 @@ public class BETypeExternalAttributesHandlerTest {
         assertEquals(2, types.size());
 
         List<String> martBEIdentifiers = handler.getExternalBEIdentifiers();
-        List<String> martBEIdentifiersAndNames = handler.getExternalBEIdentifiersAndNames();
         if (types.get(0).getIdentifierProperty().getName().equals("ensgene")) {
             assertEquals("gene", martBEIdentifiers.get(0));
-            assertEquals("gene", martBEIdentifiersAndNames.get(0));
-            assertEquals("symbol", martBEIdentifiersAndNames.get(1));
         } else if (types.get(0).getIdentifierProperty().getName().equals("enstranscript")) {
             assertEquals("transcript", martBEIdentifiers.get(0));
-            assertEquals("transcript", martBEIdentifiersAndNames.get(0));
-            assertEquals("identifier", martBEIdentifiersAndNames.get(1));
         } else {
             fail();
         }
@@ -71,7 +50,7 @@ public class BETypeExternalAttributesHandlerTest {
          Annotator.BETypeExternalAttributesHandler handler =
                 new Annotator.BETypeExternalAttributesHandler(getAnnotationSource());
         final Collection<BioEntityProperty> bioEntityProperties = handler.getBioEntityProperties();
-        assertEquals(1, bioEntityProperties.size());
+        assertEquals(3, bioEntityProperties.size());
     }
 
     private BioMartAnnotationSource getAnnotationSource() {
@@ -85,18 +64,18 @@ public class BETypeExternalAttributesHandlerTest {
 
         BioEntityProperty geneProp = new BioEntityProperty(null, "ensgene");
         BioEntityProperty transProp = new BioEntityProperty(null, "enstranscript");
-        BioEntityProperty nameProp = new BioEntityProperty(null, "name");
-        BioEntityProperty idenProp = new BioEntityProperty(null, "identifier");
+        BioEntityProperty geneNameProp = new BioEntityProperty(null, "name");
+        BioEntityProperty transNameProp = new BioEntityProperty(null, "identifier");
         BioEntityProperty goProp = new BioEntityProperty(null, "go");
 
         annotationSource.addExternalProperty("gene", geneProp);
         annotationSource.addExternalProperty("transcript", transProp);
-        annotationSource.addExternalProperty("symbol", nameProp);
-        annotationSource.addExternalProperty("identifier", idenProp);
+        annotationSource.addExternalProperty("symbol", geneNameProp);
+        annotationSource.addExternalProperty("identifier", transNameProp);
         annotationSource.addExternalProperty("go_id", goProp);
 
-        BioEntityType type1 = new BioEntityType(null, "ensgene", 1, geneProp, nameProp);
-        BioEntityType type2 = new BioEntityType(null, "enstranscript", 0, transProp, idenProp);
+        BioEntityType type1 = new BioEntityType(null, "ensgene", 1, geneProp, geneNameProp);
+        BioEntityType type2 = new BioEntityType(null, "enstranscript", 0, transProp, transNameProp);
 
         annotationSource.addBioEntityType(type1);
         annotationSource.addBioEntityType(type2);

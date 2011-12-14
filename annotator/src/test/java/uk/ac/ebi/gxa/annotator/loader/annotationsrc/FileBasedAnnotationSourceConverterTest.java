@@ -79,11 +79,17 @@ public class FileBasedAnnotationSourceConverterTest extends AtlasDAOTestCase {
         assertEquals(1, annotationSource.getExternalBioEntityProperties().size());
     }
 
+    @Test(expected = AnnotationLoaderException.class)
+    @Transactional
+    public void testEditOrCreateAnnotationSourceEditWithException() throws Exception {
+        converter.editOrCreateAnnotationSource("1001", ANN_SRC);
+    }
+
     //ToDo: the test fails in the end because there are some problems with sequences.
 //    @Test
 //    @Transactional
 //    public void testEditOrCreateAnnotationSourceEdit() throws Exception {
-//        GeneSigAnnotationSource annotationSource = converter.editOrCreateAnnotationSource("1001", ANN_SRC);
+//        GeneSigAnnotationSource annotationSource = converter.editOrCreateAnnotationSource("1001", ANN_SRC_EDITED);
 //        assertNotNull(annotationSource);
 //
 //    }
@@ -106,4 +112,11 @@ public class FileBasedAnnotationSourceConverterTest extends AtlasDAOTestCase {
                     "url = file://genesigdb\n" +
                     "types = ensgene\n" +
                     "property.genesigdb = genesigdbid";
+
+    private static final String ANN_SRC_EDITED=
+            "software.name = GeneSigDB\n" +
+                    "software.version = 4\n" +
+                    "url = file://genesigdb\n" +
+                    "types = ensgene\n" +
+                    "property.newprop = newprop";
 }
