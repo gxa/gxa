@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.index.SolrContainerFactory;
 import uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
@@ -38,11 +39,10 @@ import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService;
 import uk.ac.ebi.gxa.index.builder.service.GeneAtlasIndexBuilderService;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.utils.FileUtil;
+import uk.ac.ebi.gxa.utils.ResourceUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -81,7 +81,7 @@ public abstract class AbstractIndexDataTestCase extends AtlasDAOTestCase {
 
         buildSolrIndexes();
 
-        final File classPath = new File(this.getClass().getClassLoader().getResource("").getPath());
+        final File classPath = ResourceUtil.getResourceRoot(getClass());
         atlasDataDAO = new AtlasDataDAO();
         atlasDataDAO.setAtlasDataRepo(new File(classPath, "netcdfs"));
     }

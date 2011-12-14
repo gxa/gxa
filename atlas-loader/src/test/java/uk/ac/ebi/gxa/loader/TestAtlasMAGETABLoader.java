@@ -28,9 +28,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
-import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
-import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
@@ -38,7 +35,10 @@ import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
-import uk.ac.ebi.gxa.loader.steps.*;
+import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
+import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
+import uk.ac.ebi.gxa.loader.steps.ParsingStep;
+import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -62,8 +62,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         super.setUp();
 
         cache = new AtlasLoadCache();
-        parseURL = this.getClass().getClassLoader().getResource(
-                "E-GEOD-3790.idf.txt");
+        parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790.idf.txt");
     }
 
     public void tearDown() throws Exception {
@@ -74,11 +73,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testParseAndCheckExperiments() throws AtlasLoaderException {
         log.debug("Running parse and check experiment test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
@@ -91,12 +85,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testAll() throws Exception {
         log.debug("Running parse and check experiment test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
-
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         final Experiment expt = new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create());
@@ -105,9 +93,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
         new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
-
-        log.debug("JLP =" + System.getProperty("java.library.path"));
-        new HTSArrayDataStep().readHTSData(investigation, getComputeService(), cache, dao);
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
@@ -131,12 +116,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testParseAndCheckSamplesAndAssays() throws AtlasLoaderException {
         log.debug("Running parse and check samples and assays test...");
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
-
-        MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
-
 
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));

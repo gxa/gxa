@@ -5,7 +5,7 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <bean id="hibernateClasses" class="org.springframework.beans.factory.config.ListFactoryBean">
         <property name="sourceList">
@@ -25,7 +25,6 @@
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.Software</value>
                 <value>uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType</value>
-
             </list>
         </property>
     </bean>
@@ -62,10 +61,9 @@
     </bean>
 
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO">
-        <constructor-arg index="0" ref="softwareDAO"/>
-        <constructor-arg index="1" ref="atlasJdbcTemplate"/>
-        <constructor-arg index="2" ref="bioEntityPropertyDAO"/>
-        <constructor-arg index="3" ref="bioEntityTypeDAO"/>
+        <constructor-arg ref="softwareDAO"/>
+        <constructor-arg ref="atlasJdbcTemplate"/>
+        <constructor-arg ref="bioEntityTypeDAO"/>
     </bean>
 
     <bean name="bioEntityPropertyDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO">
@@ -73,9 +71,8 @@
     </bean>
 
     <bean name="bioEntityTypeDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO">
-
-        <constructor-arg index="0" ref="sessionFactory"/>
-        <constructor-arg index="1" ref="bioEntityPropertyDAO"/>
+        <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="bioEntityPropertyDAO"/>
     </bean>
 
 

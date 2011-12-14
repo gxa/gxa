@@ -26,21 +26,24 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.util.Collection;
 import java.util.List;
+
+import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 
 /**
  * Experiment loading step that stores assay and hybridization nodes information
@@ -57,28 +60,27 @@ public class AssayAndHybridizationStep {
     }
 
     public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
-        boolean isRNASeq = false;
-
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
                 writeScanNode(scanNode, cache, investigation, dao);
-                isRNASeq = true;
             }
         }
 
-        if (!isRNASeq) {
-            for (HybridizationNode hybridizationNode : investigation.SDRF.lookupNodes(HybridizationNode.class)) {
+        if (!isHTS(investigation)) {
+            for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
                 writeHybridizationNode(hybridizationNode, cache, investigation, dao);
             }
 
-            for (AssayNode assayNode : investigation.SDRF.lookupNodes(AssayNode.class)) {
+            for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
                 writeHybridizationNode(assayNode, cache, investigation, dao);
             }
         }
     }
 
     private void writeHybridizationNode(HybridizationNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+        assert !isHTS(investigation);
+
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
 
         // create/retrieve the new assay
@@ -88,43 +90,21 @@ public class AssayAndHybridizationStep {
             log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
         } else {
-            // create a new sample and add it to the cache
+            // create a new assay and add it to the cache
             assay = new Assay(node.getNodeName());
             cache.addAssay(assay);
             log.debug("Created new assay (" + assay.getAccession() + "), " +
                     "count now = " + cache.fetchAllAssays().size());
         }
 
-        // add array design accession
-        if (node.arrayDesigns.size() > 1) {
-            throw new AtlasLoaderException(node.arrayDesigns.size() == 0 ?
-                    "Assay does not reference an Array Design - this cannot be loaded to the Atlas" :
-                    "Assay references more than one array design, this is disallowed");
-        }
-
-        final String arrayDesignAccession = node.arrayDesigns.size() == 1 ?
-                node.arrayDesigns.get(0).getNodeName()
-                : StringUtils.EMPTY;
-
-        // only one, so set the accession
-        if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
-            if (ad == null) {
-                throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
-            }
-            assay.setArrayDesign(ad);
-        } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
-            throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
-        } else {
-            // already set, and equal, so ignore
-        }
+        populateArrayDesign(node, assay, dao);
 
         // now record any properties
         writeAssayProperties(investigation, assay, node, dao);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
-                SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+                GraphUtils.findUpstreamNodes(node, SourceNode.class);
 
         for (SourceNode source : upstreamSources) {
             // retrieve the samples with the matching accession
@@ -152,7 +132,7 @@ public class AssayAndHybridizationStep {
         }
 
         // add array design accession
-        Collection<AssayNode> assayNodes = SDRFUtils.findUpstreamNodes(node, AssayNode.class);
+        Collection<AssayNode> assayNodes = GraphUtils.findUpstreamNodes(node, AssayNode.class);
 
         AssayNode assayNode;
         // now check we have 1:1 mappings so that we can resolve our scans
@@ -164,7 +144,7 @@ public class AssayAndHybridizationStep {
             // many to one scan-to-assay, we can't load this generate error item and throw exception
             throw new AtlasLoaderException(
                     "Unable to update resolve expression values to assays for " +
-                            investigation.accession + " - data matrix file references scans, " +
+                            investigation.getAccession() + " - data matrix file references scans, " +
                             "and in this experiment scans do not map one to one with assays.  " +
                             "This is not supported, as it would result in " +
                             (assayNodes.size() == 0 ? "zero" : "multiple") + " expression " +
@@ -172,6 +152,24 @@ public class AssayAndHybridizationStep {
             );
         }
 
+        if (!isHTS(investigation)) {
+            populateArrayDesign(assayNode, assay, dao);
+        }
+
+        // now record any properties
+        writeAssayProperties(investigation, assay, assayNode, dao);
+
+        // finally, assays must be linked to their upstream samples
+        Collection<SourceNode> upstreamSources =
+                GraphUtils.findUpstreamNodes(assayNode, SourceNode.class);
+
+        for (SourceNode source : upstreamSources) {
+            // retrieve the samples with the matching accession
+            cache.linkAssayToSample(assay, source.getNodeName());
+        }
+    }
+
+    private void populateArrayDesign(HybridizationNode assayNode, Assay assay, LoaderDAO dao) throws AtlasLoaderException {
         // add array design accession
         if (assayNode.arrayDesigns.size() > 1) {
             throw new AtlasLoaderException(assayNode.arrayDesigns.size() == 0 ?
@@ -179,9 +177,6 @@ public class AssayAndHybridizationStep {
                     "Assay references more than one array design, this is disallowed");
         }
 
-        //Case of HTS, no array design available, create one.
-        //ToDo: add more checks if the experiment is really HTS
-        //ToDo: get organism from Characteristics[Organism]
         final String arrayDesignAccession = assayNode.arrayDesigns.size() == 1 ?
                 assayNode.arrayDesigns.get(0).getNodeName()
                 : StringUtils.EMPTY;
@@ -197,18 +192,6 @@ public class AssayAndHybridizationStep {
             throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
         } else {
             // already set, and equal, so ignore
-        }
-
-        // now record any properties
-        writeAssayProperties(investigation, assay, assayNode, dao);
-
-        // finally, assays must be linked to their upstream samples
-        Collection<SourceNode> upstreamSources =
-                SDRFUtils.findUpstreamNodes(assayNode, SourceNode.class);
-
-        for (SourceNode source : upstreamSources) {
-            // retrieve the samples with the matching accession
-            cache.linkAssayToSample(assay, source.getNodeName());
         }
     }
 
@@ -240,9 +223,30 @@ public class AssayAndHybridizationStep {
                 factorValueName = "(empty)";
             }
 
-            // does this assay already contain this property/property value pair?
+            // try and lookup factor type for factor name: factorValueAttribute.type
+            String efType = null;
+            List<String> efNames = investigation.IDF.experimentalFactorName;
+            for (int i = 0; i < efNames.size(); i++) {
+                if (efNames.get(i).equals(factorValueAttribute.type)) {
+                    if (investigation.IDF.experimentalFactorType.size() > i) {
+                        efType = investigation.IDF.experimentalFactorType.get(i);
+                    }
+                }
+            }
+
+            if (efType == null) {
+                // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
+                log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
+                        "', using type from SDRF");
+                efType = factorValueAttribute.type;
+            }
+
+            // If assay already contains values for efType then:
+            // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
+            // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
+            // with such experiments)
             boolean existing = false;
-            for (AssayProperty ap : assay.getProperties(factorValueAttribute.type)) {
+            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(efType))) {
                 existing = true;
                 if (!ap.getValue().equals(factorValueName)) {
                     throw new AtlasLoaderException(
@@ -255,30 +259,8 @@ public class AssayAndHybridizationStep {
                 }
             }
 
-            // try and lookup type
-            String efType = null;
-            List<String> efNames = investigation.IDF.experimentalFactorName;
-            for (int i = 0; i < efNames.size(); i++) {
-                if (efNames.get(i).equals(factorValueAttribute.type)) {
-                    if (investigation.IDF.experimentalFactorType.size() > i) {
-                        efType = investigation.IDF.experimentalFactorType.get(i);
-                    }
-                }
-            }
-
             if (!existing) {
-                final String type;
-                if (efType == null) {
-                    // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
-                    log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
-                            "', using type from SDRF");
-                    type = factorValueAttribute.type;
-                } else {
-                    type = efType;
-                }
-
-                assay.addProperty(dao.getOrCreatePropertyValue(type, factorValueName));
-
+                assay.addProperty(dao.getOrCreatePropertyValue(efType, factorValueName));
                 // todo - factor values can have ontology entries, set these values
             }
         }

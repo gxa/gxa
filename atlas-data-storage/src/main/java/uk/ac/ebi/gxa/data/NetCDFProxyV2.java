@@ -29,11 +29,13 @@ import ucar.ma2.ArrayChar;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 import ucar.nc2.dataset.NetcdfDataset;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * An object that proxies an Atlas NetCDF file and provides convenience methods for accessing the data from within. This
@@ -55,15 +57,15 @@ import java.util.List;
  * <p/>
  * Statistics NetCDFs for Atlas are structured as follows:
  * <pre>
- *    char  propertyNAME(uVAL, propertyNAMElen)
- *    char  propertyVALUE(uVAL, propertyVALUElen)
- *    int   ORDER_ANY(DE, uVAL) ;
- *    int   ORDER_DOWN(DE, uVAL) ;
- *    int   ORDER_NON_D_E(DE, uVAL) ;
- *    int   ORDER_UP(DE, uVAL) ;
- *    int   ORDER_UP_DOWN(DE, uVAL) ;
- *    float PVAL(DE, uVAL) ;
- *    float TSTAT(DE, uVAL) ;
+ *    char  propertyNAME(uEFV, propertyNAMElen)
+ *    char  propertyVALUE(uEFV, propertyVALUElen)
+ *    int   ORDER_ANY(DE, uEFV) ;
+ *    int   ORDER_DOWN(DE, uEFV) ;
+ *    int   ORDER_NON_D_E(DE, uEFV) ;
+ *    int   ORDER_UP(DE, uEFV) ;
+ *    int   ORDER_UP_DOWN(DE, uEFV) ;
+ *    float PVAL(DE, uEFV) ;
+ *    float TSTAT(DE, uEFV) ;
  * </pre>
  *
  * @author Nikolay Pultsin
@@ -190,27 +192,27 @@ final class NetCDFProxyV2 extends NetCDFProxy {
         }
     }
 
-    private List<KeyValuePair> uniqueValues;
+    private List<Pair<String, String>> uniqueEFVs;
 
     @Override
-    public List<KeyValuePair> getUniqueValues() throws AtlasDataException, StatisticsNotFoundException {
+    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
             throw new StatisticsNotFoundException("Statistics file does not exist");
         }
 
-        if (uniqueValues == null) {
+        if (uniqueEFVs == null) {
             final String[] names = getArrayOfStrings(statisticsNetCDF, "propertyNAME");
             final String[] values = getArrayOfStrings(statisticsNetCDF, "propertyVALUE");
             if (names.length != values.length) {
                 throw new AtlasDataException("Inconsistent names/values data in " + this);
             }
 
-            uniqueValues = new ArrayList<KeyValuePair>(names.length);
+            uniqueEFVs = newArrayList();
             for (int i = 0; i < names.length; ++i) {
-                uniqueValues.add(new KeyValuePair(names[i], values[i]));
+                uniqueEFVs.add(Pair.create(names[i], values[i]));
             }
         }
-        return uniqueValues;
+        return uniqueEFVs;
     }
 
     @Override

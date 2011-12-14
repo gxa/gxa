@@ -23,76 +23,59 @@
 package ae3.model;
 
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * @author pashky
  */
 public class ListResultRowExperiment {
-    private UpDownExpression updn;
-    private float pvalue;
-    private Experiment experiment;
+    private final UpDownExpression updn;
+    private final float pvalue;
+    private final Experiment experiment;
+    private final String deAccession;
 
     /**
-     * Constructor
-     *
-     * @param experiment
-     * @param pvalue     p-value
-     * @param updn       up or down
+     * @param experiment  an experiment to show
+     * @param pvalue      p-value statistics to show
+     * @param deAccession design element accession which this pValue is for
+     * @param updn        up or down
      */
     public ListResultRowExperiment(Experiment experiment,
-                                   float pvalue, UpDownExpression updn) {
+                                   float pvalue,
+                                   String deAccession,
+                                   UpDownExpression updn) {
         this.experiment = experiment;
         this.pvalue = pvalue;
         this.updn = updn;
+        this.deAccession = deAccession;
     }
 
-    /**
-     * Returns p-value
-     *
-     * @return p-value
-     */
     @RestOut(name = "pvalue")
     public float getPvalue() {
         return pvalue;
     }
 
-    /**
-     * Returns experiment id
-     *
-     * @return experiment id
-     */
     public long getExperimentId() {
         return experiment.getId();
     }
 
-    /**
-     * Return experiment accession
-     *
-     * @return experiment accession
-     */
     @RestOut(name = "accession")
     public String getExperimentAccession() {
         return experiment.getAccession();
     }
 
-    /**
-     * Returns experiment description
-     *
-     * @return experiment description
-     */
     public String getExperimentDescription() {
         return experiment.getDescription();
     }
 
-    /**
-     * Returns up or down
-     *
-     * @return UP or DOWN
-     */
-    @RestOut(name="expression")
+    @RestOut(name = "expression")
     public UpDownExpression getUpdn() {
         return updn;
+    }
+
+    @RestOut(name = "deAccession")
+    public String getDeAccession() {
+        return deAccession;
     }
 }

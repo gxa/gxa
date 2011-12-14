@@ -26,7 +26,6 @@ TABLE_NAMES_SCHEMA="ArrayDesign \
              GeneGPV \
              GeneProperty \
              GenePropertyValue \
-             GeneSigAnnotationSrc \
              Ontology \
              OntologyTerm \
              Organism \

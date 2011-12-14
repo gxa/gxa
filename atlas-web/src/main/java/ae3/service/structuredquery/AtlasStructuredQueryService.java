@@ -43,7 +43,8 @@ import org.apache.solr.core.CoreContainer;
 import org.apache.solr.core.SolrCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
@@ -72,7 +73,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  *
  * @author pashky
  */
-public class AtlasStructuredQueryService implements IndexBuilderEventHandler, DisposableBean {
+public class AtlasStructuredQueryService {
 
     // This variable acts as a place holder for a heatmap column index that has not been set yet
     private static final int POS_NOT_SET = -1;
@@ -104,6 +105,17 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     private final Set<String> cacheFill = new HashSet<String>();
     private SortedSet<String> allSpecies = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+    private final IndexBuilderEventHandler indexBuilderEventHandler =
+            new IndexBuilderEventHandler() {
+                @Override
+                public void onIndexBuildFinish() {
+                    allSpecies.clear();
+                }
+
+                @Override
+                public void onIndexBuildStart() {
+                }
+            };
 
     /**
      * Hack: prevents OOMs by clearing Lucene field cache by closing the searcher which closes the IndexReader
@@ -167,7 +179,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
         this.indexBuilder = indexBuilder;
-        indexBuilder.registerIndexBuildEventHandler(this);
+        indexBuilder.registerIndexBuildEventHandler(indexBuilderEventHandler);
     }
 
     public Efo getEfo() {
@@ -609,6 +621,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
      * @param query parsed query
      * @return matching results
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) {
 
         // Flag to indicate if pvals/tstats should be retrieved from bit index and used for heatmap row ordering - for more
@@ -1426,7 +1439,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                         if (query.getViewType() == ViewType.LIST) {
                             // In list view we display gene-ef-efv rows, hence if a given ef-efv counter doesn't qualify
                             // remove it from the rows to be displayed for the current gene
-                                attrToCounter.remove(attr);
+                            attrToCounter.remove(attr);
                         }
                     }
 
@@ -1662,7 +1675,9 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                     if (designElementAccession == null) {
                         designElementAccession = ea.getDesignElementAccession();
                     }
-
+                    assert pup >= 0 && pup <= 1;
+                    assert pdn >= 0 && pdn <= 1;
+                    assert ea.getPValAdjusted() >= 0 && ea.getPValAdjusted() <= 1;
                     if (ea.isUp()) {
                         pup = Math.min(pup, ea.getPValAdjusted());
                     } else if (ea.isDown()) {
@@ -1671,6 +1686,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
 
                     ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                             ea.getPValAdjusted(),
+                            ea.getDesignElementAccession(),
                             UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
 
                     experimentsForRow.add(experiment);
@@ -1707,6 +1723,7 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
                                 // This is just a placeholder as pValues for nonDE expressions are currently (not available here
                                 // and therefore) not displayed in experiment pop-ups off the list view
                                 ea.getPValAdjusted(),
+                                ea.getDesignElementAccession(),
                                 UpDownExpression.NONDE);
                         experimentsForRow.add(experiment);
                     }
@@ -1720,6 +1737,8 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
         if (experimentsForRow.size() > 1) {
             Collections.sort(experimentsForRow, new Comparator<ListResultRowExperiment>() {
                 public int compare(ListResultRowExperiment o1, ListResultRowExperiment o2) {
+                    assert o1.getPvalue() >= 0 && o1.getPvalue() <= 1;
+                    assert o2.getPvalue() >= 0 && o2.getPvalue() <= 1;
                     return Float.valueOf(o1.getPvalue()).compareTo(o2.getPvalue());
                 }
             });
@@ -1862,23 +1881,10 @@ public class AtlasStructuredQueryService implements IndexBuilderEventHandler, Di
     }
 
     /**
-     * Index rebuild notification handler
-     */
-    public void onIndexBuildFinish() {
-        allSpecies.clear();
-    }
-
-    public void onIndexBuildStart() {
-
-    }
-
-    /**
      * Destructor called by Spring
-     *
-     * @throws Exception
      */
-    public void destroy() throws Exception {
+    public void destroy() {
         if (indexBuilder != null)
-            indexBuilder.unregisterIndexBuildEventHandler(this);
+            indexBuilder.unregisterIndexBuildEventHandler(indexBuilderEventHandler);
     }
 }

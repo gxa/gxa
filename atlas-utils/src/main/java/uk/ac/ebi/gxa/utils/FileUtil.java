@@ -27,6 +27,8 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
+
 /**
  * File utility functions
  *
@@ -75,8 +77,13 @@ public class FileUtil {
         return new File(getTempDirectory(), name);
     }
 
-    public static String getTempDirectory() {
-        return System.getProperty("java.io.tmpdir");
+    public static File getTempDirectory() {
+        File result = new File(System.getProperty("java.io.tmpdir"));
+        if (!result.canWrite())
+            throw createUnexpected(result + " is not writable");
+        if (!result.isDirectory())
+            throw createUnexpected(result + " is not a directory");
+        return result;
     }
 
     public static byte[] getMD5(File file) throws IOException, NoSuchAlgorithmException {

@@ -88,6 +88,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
     }
 
     public int compareTo(ExpressionAnalysis o) {
+        assert o.pValAdjusted >= 0 && o.pValAdjusted <= 1;
+        assert pValAdjusted >= 0 && pValAdjusted <= 1;
         return Float.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
     }
 

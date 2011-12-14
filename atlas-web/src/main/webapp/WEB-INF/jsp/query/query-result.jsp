@@ -140,6 +140,8 @@
                 var td  = $(this).parents("td:first");
                 return $('.gtooltip', td).html();
             },
+            extraClass: "tooltip",
+            id: "tooltip-over-results",
             showURL: false
         });
 
@@ -540,7 +542,8 @@
                                 <div class="outer">
                                     <a title="Show expression profile"
                                        href="experiment/${exp.experimentAccession}/${row.gene.geneIdentifier}/${row.ef}">
-                                        <div id="${exp.experimentId}_${exp.experimentAccession}_${exp.updn}"
+                                        <div eacc="${exp.experimentAccession}"
+                                             deacc="${exp.deAccession}"
                                              class="thumb thumb${r.index}">
                                             <img alt="Waiting..."
                                                  src="${pageContext.request.contextPath}/images/indicator.gif"

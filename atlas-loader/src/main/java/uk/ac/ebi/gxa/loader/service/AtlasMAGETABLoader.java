@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.loader.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
@@ -64,7 +65,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.*;
  * @author Tony Burdett
  */
 public class AtlasMAGETABLoader {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(AtlasMAGETABLoader.class);
 
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
@@ -145,8 +146,10 @@ public class AtlasMAGETABLoader {
 
                 //load RNA-seq experiment
                 //ToDo: add condition based on "getUserData"
-                logProgress(listener, 7, HTSArrayDataStep.displayName());
-                new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                if (isHTS(investigation)) {
+                    logProgress(listener, 7, HTSArrayDataStep.displayName());
+                    new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
@@ -168,7 +171,7 @@ public class AtlasMAGETABLoader {
     }
 
     private void logProgress(AtlasLoaderServiceListener listener, int index, String displayName) {
-        final String progress = "Step " + ++index + " of 7: " + displayName;
+        final String progress = "Step " + ++index + " of 8: " + displayName;
         listener.setProgress(progress);
         log.info(progress);
     }
@@ -247,7 +250,7 @@ public class AtlasMAGETABLoader {
                     listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                             " and " + shallowArrayDesign);
 
-                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(dao.getArrayDesign(shallowArrayDesign.getAccession()));
                 dataCreator.setAssayDataMap(cache.getAssayDataMap());
 
                 dataCreator.createNetCdf();
@@ -309,5 +312,21 @@ public class AtlasMAGETABLoader {
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public static boolean isHTS(MAGETABInvestigation investigation) {
+        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
+        Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
+        if (scanNodes.size() == 0) {
+            log.info("No comment scan nodes found - investigation {} is not HTS", investigation.getAccession());
+            return false;
+        }
+        for (ScanNode scanNode : scanNodes) {
+            if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
+                log.info("No comment[ENA_RUN] found - investigation {} is not HTS", investigation.getAccession());
+                return false;
+            }
+        }
+        return true;
     }
 }

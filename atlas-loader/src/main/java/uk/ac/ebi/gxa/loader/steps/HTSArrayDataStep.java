@@ -1,16 +1,15 @@
 package uk.ac.ebi.gxa.loader.steps;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.SDRF;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SDRFNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
-import uk.ac.ebi.arrayexpress2.magetab.utils.SDRFUtils;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.compute.RUtil;
@@ -27,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,20 +41,6 @@ public class HTSArrayDataStep {
 
     public void readHTSData(MAGETABInvestigation investigation, AtlasComputeService computeService, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         log.info("Starting HTS data load");
-
-        // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
-        //ToDo: add this check in the Loader
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
-        if (scanNodes.size() == 0) {
-            log.info("Exit HTSArrayDataStep. No comment scan nodes found.");
-            return;
-        }
-        for (ScanNode scanNode : scanNodes) {
-            if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                log.info("Exit HTSArrayDataStep. No comment[ENA_RUN] found.");
-                return;
-            }
-        }
 
         // sdrf location
         URL sdrfURL = investigation.SDRF.getLocation();
@@ -85,7 +71,7 @@ public class HTSArrayDataStep {
             if (refNodeName.equals("scanname")) {
                 // this requires mapping the assay upstream of this node to the scan
                 // no need to block, since if we are reading data, we've parsed the scans already
-//                SDRFNode refNode = investigation.SDRF.lookupNode(refName, refNodeName);
+//                SDRFNode refNode = investigation.SDRF.getNode(refName, refNodeName);
                 ScanNode refNode = lookupScanNodeWithComment(investigation.SDRF, "ENA_RUN", refName);
                 if (refNode == null) {
                     // generate error item and throw exception
@@ -99,7 +85,7 @@ public class HTSArrayDataStep {
                     log.trace("Updating assay {} with expression values, must be stored first...", assay);
                     cache.setAssayDataMatrixRef(assay, buffer.getStorage(), refIndex);
                     if (assay.getArrayDesign() == null) {
-                        assay.setArrayDesign(dao.getArrayDesignShallow(findArrayDesignName(refNode)));
+                        assay.setArrayDesign(dao.getArrayDesignShallow(findArrayDesignAcc(refNode)));
                     }
                 } else {
                     // generate error item and throw exception
@@ -114,7 +100,7 @@ public class HTSArrayDataStep {
     }
 
     private static ScanNode lookupScanNodeWithComment(SDRF sdrf, String commentType, String commentName) {
-        Collection<? extends SDRFNode> nodes = sdrf.lookupNodes(MAGETABUtils.digestHeader("scanname"));
+        Collection<? extends SDRFNode> nodes = sdrf.getNodes(MAGETABUtils.digestHeader("scanname"));
         for (SDRFNode node : nodes) {
             ScanNode scanNode = (ScanNode) node;
             Map<String, String> comments = scanNode.comments;
@@ -175,15 +161,13 @@ public class HTSArrayDataStep {
             }
         }
 
-//        File outFilePath = new File(createTempDir(), "out.txt");
-        File outFilePath = new File(FileUtil.getTempDirectory(), "out.txt");
-
-        log.debug("Output file " + outFilePath);
-
-        if (!outFilePath.setWritable(true, false)) {
-            log.error("File " + outFilePath + " cannot be set to writable!");
-            throw new AtlasLoaderException("Cannot write into file " + outFilePath + " which is need to keep temp data from R pipeline.");
+        File tempDir = FileUtil.getTempDirectory();
+        if (!tempDir.setWritable(true, false)) {
+            log.error("Directory {} cannot be set to writable by all!", tempDir);
+            throw new AtlasLoaderException("Cannot set to writable by all directory " + tempDir + " which is needed to keep temp data from R pipeline.");
         }
+        File outFilePath = new File(tempDir, "out.txt");
+        log.debug("Output file " + outFilePath);
 
         final String inFile = inFilePath.getAbsolutePath();
         final String outFile = outFilePath.getAbsolutePath();
@@ -212,24 +196,37 @@ public class HTSArrayDataStep {
         return outFilePath;
     }
 
-    //ToDo: this is only temp solution! Array design will not be user for RNA-seq experiments
-    private static String findArrayDesignName(SDRFNode node) {
-        Collection<SourceNode> nodeCollection = SDRFUtils.findUpstreamNodes(node, SourceNode.class);
+    private static Map<String, String> organismToArrayDesign = new HashMap<String, String>(20);
+
+    static {
+        organismToArrayDesign.put("Homo sapiens", "A-ENST-3");
+        organismToArrayDesign.put("Mus musculus", "A-ENST-4");
+        organismToArrayDesign.put("Drosophila melanogaster", "A-ENST-5");
+        organismToArrayDesign.put("Danio rerio", "A-ENST-6");
+        organismToArrayDesign.put("Rattus norvegicus", "A-ENST-7");
+        organismToArrayDesign.put("Ciona savignyi", "A-ENST-8");
+        organismToArrayDesign.put("Equus caballus", "A-ENST-9");
+        organismToArrayDesign.put("Sus scrofa", "A-ENST-10");
+        organismToArrayDesign.put("Gallus gallus", "A-ENST-11");
+        organismToArrayDesign.put("Saccharomyces cerevisiae", "A-ENST-12");
+    }
+
+    //ToDo: this is only temp solution! Array design will not be used for RNA-seq experiments
+    private static String findArrayDesignAcc(SDRFNode node) throws AtlasLoaderException {
+        Collection<SourceNode> nodeCollection = GraphUtils.findUpstreamNodes(node, SourceNode.class);
+
         for (SourceNode sourceNode : nodeCollection) {
             for (CharacteristicsAttribute characteristic : sourceNode.characteristics) {
                 if ("Organism".equals(characteristic.type)) {
-                    if ("Homo sapiens".equalsIgnoreCase(characteristic.getNodeName())) {
-                        return "A-ENST-3";
-                    } else if ("Mus musculus".equalsIgnoreCase(characteristic.getNodeName())) {
-                        return "A-ENST-4";
-                    } else if ("drosophila melanogaster".equalsIgnoreCase(characteristic.getNodeName())) {
-                        return "A-ENST-5";
+                    String  arrayDesignAcc = organismToArrayDesign.get(characteristic.getNodeName());
+                    if (arrayDesignAcc == null) {
+                        throw new AtlasLoaderException("Cannot find virtual array design for organism " + characteristic.getNodeName());
                     }
+                    return arrayDesignAcc;
                 }
-
             }
         }
-        return StringUtils.EMPTY;
+        throw new AtlasLoaderException("No organism is specified in " + node.getNodeName());
     }
 
     private static class RRunner implements ComputeTask<Void> {

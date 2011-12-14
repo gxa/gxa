@@ -1,18 +1,18 @@
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Predicates;
 import junit.framework.TestCase;
+import uk.ac.ebi.gxa.utils.ResourceUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.ExperimentPartCriteria.experimentPart;
 
 /**
  * This class tests functionality of AtlasDataDAO
@@ -47,7 +47,7 @@ public class TestAtlasDataDAO extends TestCase {
         experiment.setAssays(Collections.singletonList(assay));
 
         atlasDataDAO = new AtlasDataDAO();
-        atlasDataDAO.setAtlasDataRepo(new File(getClass().getClassLoader().getResource("").getPath()));
+        atlasDataDAO.setAtlasDataRepo(ResourceUtil.getResourceRoot(getClass()));
 
         geneIds = new HashSet<Long>();
         geneIds.add(geneId);
@@ -68,8 +68,9 @@ public class TestAtlasDataDAO extends TestCase {
     public void testGetExpressionAnalyticsByGeneID() throws AtlasDataException, StatisticsNotFoundException {
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         try {
+            ExperimentPart expPart = experimentPart().containsGenes(geneIds).retrieveFrom(ewd);
             Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                    ewd.getExpressionAnalysesForGeneIds(geneIds, Predicates.<ArrayDesign>alwaysTrue());
+                    expPart.getExpressionAnalysesForGeneIds(geneIds);
 
             // check the returned data
             assertNotNull(geneIdsToEfToEfvToEA.get(geneId));

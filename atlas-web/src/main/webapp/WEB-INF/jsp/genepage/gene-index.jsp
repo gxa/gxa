@@ -22,7 +22,7 @@
 <%@include file="../includes/global-inc.jsp" %>
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
-<jsp:useBean id="genes" type="java.util.Collection" scope="request"/>
+<jsp:useBean id="genes" type="java.util.Collection<uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity>" scope="request"/>
 <jsp:useBean id="nextQuery" type="java.lang.String" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -51,14 +51,15 @@
         $(document).ready(function() {
 
             $("#moreResults").each(function() {
-                var link = $(this);
+                $(this).click(function(e) {
+                    var link = $(this),
+                            url = link.attr("href");
 
-                link.click(function() {
-                    $.ajax({
-                        url:link.attr("href"),
-                        cache:false,
-                        dataType:"json",
-                        success: function(data) {
+                    link.hide();
+
+                    atlas.ajaxLoader({
+                        url: url,
+                        onSuccess: function(data) {
                             var html = $("<div/>");
                             var sample = $("#geneList a").get(0);
                             for (var i = 0; i < data.genes.length; i++) {
@@ -77,23 +78,19 @@
                                 html.append(" ");
                             }
 
-                            /* chrome 9.0.597.102 has some problems of showing thousands of children in one div;
-                             * so we wrap new gene lists in <div/> */
                             link.before(html);
 
                             if (data.nextQuery) {
-                                var href = link.attr("href");
-                                var j = href.indexOf("?");
-                                link.attr("href", href.substring(0, (j < 0 ? href.length : j)) + data.nextQuery);
-                            } else {
-                                link.remove();
+                                var j = url.indexOf("?"),
+                                        newUrl = url.substring(0, (j < 0 ? url.length : j)) + data.nextQuery;
+                                link.attr("href", newUrl);
+                                link.show();
                             }
                         }
-                    });
+                    }).load({}, link.parent());
                     return false;
                 });
             });
-
         });
     </script>
 </head>
@@ -105,7 +102,7 @@
 
         <jsp:include page="../includes/atlas-header.jsp"/>
 
-        <c:set var="url"><c:url value="/gene/index.htm"/></c:set>
+        <c:set var="url">${contextPath}/gene/index.htm</c:set>
         <div class="alphabet-index">
             <c:forTokens items="123 a b c d e f g h i j k l m n o p q r s t u v w x y z" delims=" " var="letter">
                <c:set var="prefix" value="${letter == '123' ? '0' : letter}"/>
@@ -117,7 +114,7 @@
         <div id="geneList" class="gene-list">
             <div>
                 <c:forEach var="gene" items="${genes}" varStatus="status">
-                    <a id="${gene.identifier}" href='<c:url value="/gene/${gene.identifier}"/>'
+                    <a id="${gene.identifier}" href="${contextPath}/gene/${gene.identifier}"
                        title="Gene Expression Atlas Data For ${gene.name}">
                         <nobr>${gene.name}</nobr>
                     </a>
@@ -125,7 +122,7 @@
             </div>
 
             <c:if test="${! empty nextQuery}">
-                <a id="moreResults" href='<c:url value="/gene/index.html${nextQuery}"/>'>
+                <a id="moreResults" href="${contextPath}/gene/index.html${nextQuery}">
                     <nobr>more&gt;&gt;</nobr>
                 </a>
             </c:if>

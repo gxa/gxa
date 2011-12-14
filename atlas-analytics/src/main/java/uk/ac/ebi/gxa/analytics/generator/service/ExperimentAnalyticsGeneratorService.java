@@ -176,7 +176,7 @@ public class ExperimentAnalyticsGeneratorService {
         if (arrayDesigns.isEmpty()) {
             throw new AnalyticsGeneratorException("No array designs present for " + experiment);
         }
-        final List<String> analysedEFSCs = new ArrayList<String>();
+        final List<String> analysedEFs = new ArrayList<String>();
         int count = 0;
         try {
             ewd.updateDataToNewestVersion();
@@ -206,15 +206,15 @@ public class ExperimentAnalyticsGeneratorService {
                             log.debug("Completed compute task for " + statisticsPathForR);
 
                             if (r instanceof RChar) {
-                                String[] efScs = ((RChar) r).getNames();
+                                String[] efs = ((RChar) r).getNames();
                                 String[] analysedOK = ((RChar) r).getValue();
 
-                                if (efScs != null)
-                                    for (int i = 0; i < efScs.length; i++) {
-                                        log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{statisticsPathForR, efScs[i], analysedOK[i]});
+                                if (efs != null)
+                                    for (int i = 0; i < efs.length; i++) {
+                                        log.info("Performed analytics computation for netcdf {}: {} was {}", new Object[]{statisticsPathForR, efs[i], analysedOK[i]});
 
                                         if ("OK".equals(analysedOK[i]))
-                                            analysedEFSCs.add(efScs[i]);
+                                            analysedEFs.add(efs[i]);
                                     }
 
                                 for (String rc : analysedOK) {
@@ -241,7 +241,7 @@ public class ExperimentAnalyticsGeneratorService {
                     atlasComputeService.computeTask(computeAnalytics);
                     log.debug("Compute task " + count + "/" + arrayDesigns.size() + " for " + experimentAccession + " has completed.");
 
-                    if (analysedEFSCs.size() == 0) {
+                    if (analysedEFs.size() == 0) {
                         listener.buildWarning("No analytics were computed for this experiment!");
                     }
                 } catch (AtlasDataException e) {

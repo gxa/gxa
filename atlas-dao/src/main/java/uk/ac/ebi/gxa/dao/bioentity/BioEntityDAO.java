@@ -56,16 +56,14 @@ public class BioEntityDAO {
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private SoftwareDAO softwareDAO;
-    private BioEntityPropertyDAO propertyDAO;
     private BioEntityTypeDAO typeDAO;
     protected JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
 
-    public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template, BioEntityPropertyDAO propertyDAO, BioEntityTypeDAO typeDAO) {
+    public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template, BioEntityTypeDAO typeDAO) {
         this.template = template;
         this.softwareDAO = softwareDAO;
-        this.propertyDAO = propertyDAO;
         this.typeDAO = typeDAO;
     }
 
@@ -85,17 +83,18 @@ public class BioEntityDAO {
     }
 
     public List<BioEntity> getGenes(String prefix, int offset, int limit) {
+        final String pattern = "^" + (prefix.matches("\\d+") ? "\\d" : prefix);
         return template.query("SELECT " + GeneMapper.FIELDS_CLEAN + "\n" +
                 " FROM ( " +
-                "   SELECT ROW_NUMBER() OVER(ORDER BY be.identifier) LINENUM, " + GeneMapper.FIELDS + "\n" +
+                "   SELECT ROW_NUMBER() OVER(ORDER BY be.name) LINENUM, " + GeneMapper.FIELDS + "\n" +
                 "     FROM a2_bioentity be \n" +
                 "     JOIN a2_organism o ON o.organismid = be.organismid \n" +
                 "     JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid \n" +
                 "    WHERE bet.id_for_index = 1 \n" +
-                "      AND LOWER(be.identifier) LIKE ? \n" +
-                "    ORDER BY be.identifier \n" +
+                "      AND REGEXP_LIKE(be.name, ?, 'i') \n" +
+                "    ORDER BY be.name \n" +
                 ") WHERE LINENUM BETWEEN ? AND ?",
-                new Object[]{prefix.toLowerCase() + "%", offset, offset + limit - 1},
+                new Object[]{pattern, offset, offset + limit - 1},
                 new GeneMapper());
     }
 

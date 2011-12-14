@@ -23,9 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.*;
@@ -69,7 +67,6 @@ public class NetCDFDataCreator {
     // maps of properties
     private LinkedHashMap<String, List<String>> efvMap;
     private LinkedHashMap<String, List<String>> scvMap;
-    private final Multimap<String, String> propertyToUnsortedUniqueValues = LinkedHashMultimap.create(); // sc/ef -> unsorted scvs/efvs
 
     private final List<String> warnings = new ArrayList<String>();
 
@@ -175,14 +172,6 @@ public class NetCDFDataCreator {
         efvMap = extractAssayProperties(assays);
         scvMap = extractSampleProperties(samplesList);
 
-        // Merge efvMap and scvMap into propertyToUnsortedUniqueValues that will store all scv/efv properties
-        for (Map.Entry<String, List<String>> efToEfvs : efvMap.entrySet()) {
-            propertyToUnsortedUniqueValues.putAll(efToEfvs.getKey(), efToEfvs.getValue());
-        }
-        for (Map.Entry<String, List<String>> scToScvs : scvMap.entrySet()) {
-            propertyToUnsortedUniqueValues.putAll(scToScvs.getKey(), scToScvs.getValue());
-        }
-
         // find maximum lengths for ef/efv/sc/scv strings
         maxEfLength = 0;
         maxEfvLength = 0;
@@ -252,6 +241,19 @@ public class NetCDFDataCreator {
                 "DEacc", DataType.CHAR,
                 new Dimension[]{designElementDimension, designElementLenDimension}
         );
+        // !!!KLUDGE!!! Here be dragons
+        //
+        // Actually, "GN" is a long array&mdash;and it is read as a long array
+        //
+        // This is done this way since NetCDF v3 has no <code>LONG</code> type, so a long time ago we've
+        // chosen a type which fits (and no, I will not run <code>git blame</code> to find out who did that).
+        //
+        // It is potentially a big problem, since long has 64 bits for the value, and double has only
+        // 52+1 bit for the mantissa.
+        //
+        // What saves us here is an assumption that gene ID actually fits an int (I know that sounds insane,
+        // but bitindex, {@link uk.ac.ebi.gxa.statistics.StatisticsStorage} uses exactly this assumption)
+        // so actually we do not lose precision here.
         netCdf.addVariable(
                 "GN", DataType.DOUBLE,
                 new Dimension[]{designElementDimension}
@@ -272,27 +274,25 @@ public class NetCDFDataCreator {
         final Dimension sampleLenDimension = netCdf.addDimension("BSlen", maxSampleLength);
         netCdf.addVariable("BSacc", DataType.CHAR, new Dimension[]{sampleDimension, sampleLenDimension});
 
-        if (!scvMap.isEmpty() || !efvMap.isEmpty()) {
-            if (!scvMap.isEmpty()) {
-                Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
-                Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
+        if (!scvMap.isEmpty()) {
+            Dimension scDimension = netCdf.addDimension("SC", scvMap.keySet().size());
+            Dimension sclenDimension = netCdf.addDimension("SClen", maxScLength);
 
-                netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
+            netCdf.addVariable("SC", DataType.CHAR, new Dimension[]{scDimension, sclenDimension});
 
-                Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
-                netCdf.addVariable("SCV", DataType.CHAR,
-                        new Dimension[]{scDimension, sampleDimension, scvlenDimension});
-            }
+            Dimension scvlenDimension = netCdf.addDimension("SCVlen", maxScvLength);
+            netCdf.addVariable("SCV", DataType.CHAR,
+                    new Dimension[]{scDimension, sampleDimension, scvlenDimension});
+        }
 
-            if (!efvMap.isEmpty()) {
-                Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
-                Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
+        if (!efvMap.isEmpty()) {
+            Dimension efDimension = netCdf.addDimension("EF", efvMap.keySet().size());
+            Dimension eflenDimension = netCdf.addDimension("EFlen", maxEfLength);
 
-                netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
+            netCdf.addVariable("EF", DataType.CHAR, new Dimension[]{efDimension, eflenDimension});
 
-                Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
-                netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
-            }
+            Dimension efvlenDimension = netCdf.addDimension("EFVlen", maxEfLength + maxEfvLength + 2);
+            netCdf.addVariable("EFV", DataType.CHAR, new Dimension[]{efDimension, assayDimension, efvlenDimension});
         }
 
         netCdf.addVariable(
@@ -314,7 +314,7 @@ public class NetCDFDataCreator {
                 "ADaccession",
                 arrayDesign.getAccession());
 
-        netCdf.create();
+        NetCDFHacks.safeCreate(netCdf);
     }
 
     private void write(NetcdfFileWriteable netCdf) throws IOException, InvalidRangeException {
@@ -551,7 +551,7 @@ public class NetCDFDataCreator {
                 throw new AtlasDataException("Cannot create folder for the output file" + dataFile);
             }
 
-            final File tempDataFile = File.createTempFile(dataFile.getName(), ".tmp");
+            final File tempDataFile = File.createTempFile(dataFile.getName(), ".tmp", dataFile.getParentFile());
             log.info("Writing NetCDF file to " + tempDataFile);
             final NetcdfFileWriteable netCdf = NetcdfFileWriteable.createNew(tempDataFile.getAbsolutePath(), true);
             try {

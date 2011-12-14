@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web.controller;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.base.Strings;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -52,11 +53,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
@@ -131,22 +135,28 @@ public class GeneViewController extends AtlasViewController {
      */
     @RequestMapping(value = "/geneIndex", method = RequestMethod.GET)
     public String getGeneIndex(
-            @RequestParam(value = "offset", required = false) Integer offset,
-            @RequestParam(value = "prefix", required = false) String prefix,
+            @RequestParam(value = "offset", defaultValue = "1") Integer offset,
+            @RequestParam(value = "prefix", defaultValue = "a") String prefix,
             Model model
     ) {
-        prefix = prefix == null ? "a" : prefix;
-        offset = offset == null ? 1 : offset;
-
-        int pageSize = 100;
+        int pageSize = 300;
 
         Collection<BioEntity> bioEntities = bioEntityDAO.getGenes(prefix, offset, pageSize);
 
         model.addAttribute("genes", bioEntities);
         model.addAttribute("nextQuery", (bioEntities.size() < pageSize) ? "" :
-                "?prefix=" + prefix + "&offset=" + (offset + pageSize));
+                "?prefix=" + encode(prefix)
+                        + "&offset=" + Integer.toString(offset + pageSize));
 
         return "genepage/gene-index";
+    }
+
+    private static String encode(String prefix) {
+        try {
+            return URLEncoder.encode(prefix, "UTF8");
+        } catch (UnsupportedEncodingException e) {
+            throw createUnexpected("UTF8 is not supported", e);
+        }
     }
 
     @RequestMapping(value = "/anatomogram", method = RequestMethod.GET)
@@ -202,7 +212,9 @@ public class GeneViewController extends AtlasViewController {
         Attribute attr =
                 efoId.length() > 0 ?
                         new EfoAttribute(efoId) :
-                        new EfvAttribute(ef, efv);
+                        Strings.isNullOrEmpty(efv) ?
+                                new EfAttribute(ef) :
+                                new EfvAttribute(ef, efv);
 
         List<GenePageExperiment> exps = getRankedGeneExperiments(gene, attr, fromRow, toRow);
 

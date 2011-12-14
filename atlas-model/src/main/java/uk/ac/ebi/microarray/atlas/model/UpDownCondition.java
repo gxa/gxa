@@ -22,21 +22,23 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Predicate;
+
 import java.util.EnumSet;
 
-import static java.util.EnumSet.allOf;
+import static java.util.EnumSet.complementOf;
 import static java.util.EnumSet.of;
 import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.*;
 
 /**
  * @author Olga Melnichuk
  */
-public enum UpDownCondition {
+public enum UpDownCondition implements Predicate<UpDownExpression> {
     CONDITION_UP("up", of(UP)),
     CONDITION_DOWN("down", of(DOWN)),
     CONDITION_NONDE("non-d.e", of(NONDE)),
     CONDITION_UP_OR_DOWN("up/down", of(UP, DOWN)),
-    CONDITION_ANY("any", allOf(UpDownExpression.class));
+    CONDITION_ANY("any", complementOf(of(NA)));
 
     private final String name;
     private final EnumSet<UpDownExpression> matching;

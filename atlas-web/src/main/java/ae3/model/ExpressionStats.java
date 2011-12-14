@@ -25,9 +25,9 @@ package ae3.model;
 
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.KeyValuePair;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.utils.EfvTree;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
@@ -50,8 +50,8 @@ public class ExpressionStats {
 
         int valueIndex = 0;
         try {
-            for (KeyValuePair uval : experiment.getUniqueValues(arrayDesign)) {
-                efvTree.put(uval.key, uval.value, valueIndex);
+            for (Pair<String, String> uefv : experiment.getUniqueEFVs(arrayDesign)) {
+                efvTree.put(uefv.getKey(), uefv.getValue(), valueIndex);
                 ++valueIndex;
             }
         } catch (StatisticsNotFoundException e) {
@@ -142,6 +142,8 @@ public class ExpressionStats {
          * @return 1, 0 or -1
          */
         public int compareTo(Stat o) {
+            assert o.getPvalue() >= 0 && o.getPvalue() <= 1;
+            assert getPvalue() >= 0 && getPvalue() <= 1;
             return Float.valueOf(getPvalue()).compareTo(o.getPvalue());
         }
 

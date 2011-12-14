@@ -225,7 +225,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                                 "netcdf", e.isNetcdfComplete(),
                                 "index", e.isIndexComplete(),
                                 "private", e.isPrivate(),
-                                "curated", e.isCurated(),
                                 "loadDate", e.getLoadDate() != null ? IN_DATE_FORMAT.format(e.getLoadDate()) : "unknown"
                         );
                     }

@@ -23,11 +23,11 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.primitives.Floats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.CollectionUtil;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
@@ -58,20 +58,6 @@ public class ExperimentWithData implements Closeable {
 
     public Experiment getExperiment() {
         return experiment;
-    }
-
-    /**
-     * @param criteria the criteria to choose arrayDesign
-     * @return first arrayDesign used in experiment, that matches criteria;
-     *         or null if no arrayDesign has been found
-     */
-    public ArrayDesign findArrayDesign(Predicate<ArrayDesign> criteria) {
-        for (ArrayDesign ad : experiment.getArrayDesigns()) {
-            if (criteria.apply(ad)) {
-                return ad;
-            }
-        }
-        return null;
     }
 
     DataProxy getProxy(ArrayDesign arrayDesign) throws AtlasDataException {
@@ -167,21 +153,8 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getGenes();
     }
 
-    public List<KeyValuePair> getUniqueFactorValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        List<KeyValuePair> uniqueEFVs = new ArrayList<KeyValuePair>();
-        List<String> factors = Arrays.asList(getFactors(arrayDesign));
-
-        for (KeyValuePair propVal : getUniqueValues(arrayDesign)) {
-            if (factors.contains(propVal.key)) {
-                // Since getUniqueValues() returns both ef-efvs/sc-scvs, filter out scs that aren't also efs
-                uniqueEFVs.add(propVal);
-            }
-        }
-        return uniqueEFVs;
-    }
-
-    public List<KeyValuePair> getUniqueValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        return getProxy(arrayDesign).getUniqueValues();
+    public List<Pair<String, String>> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+        return getProxy(arrayDesign).getUniqueEFVs();
     }
 
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
@@ -245,29 +218,28 @@ public class ExperimentWithData implements Closeable {
         final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
         final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
 
-        final List<KeyValuePair> uniqueValues = getUniqueValues(arrayDesign);
-
-        final List<ExpressionAnalysis> result = new ArrayList<ExpressionAnalysis>();
+        final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
-            final KeyValuePair uniqueValue = uniqueValues.get(efIndex);
+            final Pair<String, String> uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
             if (efName == null ||
-                    (uniqueValue.key.equals(efName) && uniqueValue.value.equals(efvName))) {
-                result.add(new ExpressionAnalysis(
+                (uniqueEFV.getKey().equals(efName) && uniqueEFV.getValue().equals(efvName))) {
+                list.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
                         deIndex,
-                        uniqueValue.key,
-                        uniqueValue.value,
+                        uniqueEFV.getKey(),
+                        uniqueEFV.getValue(),
                         t[efIndex],
                         p[efIndex]
                 ));
             }
         }
-        return result;
+        return list;
     }
 
     /**
-     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueValues,
+     * /**
+     * For each gene in the keySet() of geneIdsToDEIndexes, and each efv in uniqueEFVs,
      * find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
@@ -287,7 +259,7 @@ public class ExperimentWithData implements Closeable {
 
     /**
      * For each gene in the keySet() of geneIdsToDEIndexes,  and for either efVal-efvVal or (if both arguments are not null)
-     * for each efv in uniqueValues, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
+     * for each efv in uniqueEFVs, find the design element with a minPvalue and store it as an ExpressionAnalysis object in
      * geneIdsToEfToEfvToEA - if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
      *
@@ -306,7 +278,7 @@ public class ExperimentWithData implements Closeable {
             final Map<Long, List<Integer>> geneIdsToDEIndexes,
             @Nullable final String efVal,
             @Nullable final String efvVal,
-            final UpDownCondition upDownCondition
+            final Predicate<UpDownExpression> upDownCondition
     ) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, Map<String, Map<String, ExpressionAnalysis>>> result = newHashMap();
 
@@ -398,20 +370,15 @@ public class ExperimentWithData implements Closeable {
         return geneIdToDEIndexes;
     }
 
-    /**
+     /**
      * @param geneIds  ids of genes to plot
-     * @param criteria other criteria to choose NetCDF to plot
+     * @param arrayDesign an array design to get expression analyses data
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
      * @throws AtlasDataException in case of I/O errors
      */
-    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, @Nonnull Predicate<ArrayDesign> criteria) throws AtlasDataException, StatisticsNotFoundException {
-        final ArrayDesign arrayDesign = findArrayDesign(Predicates.<ArrayDesign>and(new DataPredicates(this).containsGenes(geneIds), criteria));
-        if (arrayDesign == null) {
-            return null;
-        }
-
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
     }
@@ -445,7 +412,7 @@ public class ExperimentWithData implements Closeable {
      *         first proxy in which expression data for that combination exists
      */
     // TODO: remove this method from ExperimentWithData or throw AtlasDataException & StatisticsNotFoundException outside
-    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, UpDownCondition upDownCondition) {
+    public ExpressionAnalysis getBestEAForGeneEfEfvInExperiment(Long geneId, String ef, String efv, Predicate<UpDownExpression> upDownCondition) {
         ExpressionAnalysis ea = null;
         try {
             final Collection<ArrayDesign> ads = experiment.getArrayDesigns();

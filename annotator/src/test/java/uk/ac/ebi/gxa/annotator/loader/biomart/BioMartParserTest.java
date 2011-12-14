@@ -68,23 +68,6 @@ public class BioMartParserTest {
         assertEquals(3, transcripts.size());
         assertEquals(2, genes.size());
 
-        boolean passed = false;
-        for (BioEntity transcript : transcripts) {
-            if (transcript.getIdentifier().equals("ENSBTAT00000057520")) {
-                assertEquals("ENSBTAG00000039669", genes.get(0).getIdentifier());
-                passed = true;
-            }
-            if (transcript.getIdentifier().equals("ENSBTAT00000049990")) {
-                assertEquals("ENSBTAG00000039669", genes.get(0).getIdentifier());
-                passed = true;
-            }
-            if (transcript.getIdentifier().equals("ENSBTAT00000015116")) {
-                assertEquals("ENSBTAG00000025314", genes.get(1).getIdentifier());
-                passed = true;
-            }
-        }
-        assertTrue(passed);
-
         assertEquals(2, data.getPropertyValues().size());
         for (BEPropertyValue value : data.getPropertyValues()) {
             assertTrue(value.getValue().equals("extracellular region") || value.getValue().equals("hormone activity"));

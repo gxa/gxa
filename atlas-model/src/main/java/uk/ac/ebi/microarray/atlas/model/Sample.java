@@ -155,6 +155,10 @@ public class Sample {
         return properties;
     }
 
+    public Collection<SampleProperty> getProperties(final String type) {
+        return filter(properties, new PropertyNamePredicate(type));
+    }
+
     public String getPropertySummary(final String propName) {
         return on(",").join(transform(
                 filter(properties,
@@ -255,6 +259,19 @@ public class Sample {
             result.add(sp.getDefinition());
         }
         return result;
+    }
+
+    private static class PropertyNamePredicate implements Predicate<SampleProperty> {
+        private final String type;
+
+        public PropertyNamePredicate(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public boolean apply(@Nonnull SampleProperty input) {
+            return input.getName().equals(type);
+        }
     }
 }
 
