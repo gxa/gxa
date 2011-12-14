@@ -3,8 +3,6 @@ package ae3.service.experiment;
 import ae3.dao.GeneSolrDAO;
 import com.google.common.base.Predicate;
 import it.uniroma3.mat.extendedset.FastSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.Best;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -25,9 +23,6 @@ import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.valueOf;
  * @author Robert Petryszak
  */
 public class AtlasExperimentAnalyticsViewService {
-
-    private static final Logger log = LoggerFactory.getLogger(AtlasExperimentAnalyticsViewService.class);
-
     private GeneSolrDAO geneSolrDAO;
 
     public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
@@ -103,7 +98,7 @@ public class AtlasExperimentAnalyticsViewService {
         return result;
     }
 
-    private static FastSet selectedDesignElements(List<Long> allGeneIds, final Predicate<Long> geneIdPredicate) throws AtlasDataException {
+    private static FastSet selectedDesignElements(List<Long> allGeneIds, final Predicate<Long> geneIdPredicate) {
         FastSet result = new FastSet();
         for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
             if (isMappedDE(allGeneIds, deidx) && geneIdPredicate.apply(allGeneIds.get(deidx))) {
