@@ -85,7 +85,7 @@ public class StatisticsQueryUtils {
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
-            ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
+            Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
 
         // gatherScoringExpsOnly -> experiment counts should be calculated for statisticsQuery
         // !gatherScoringExpsOnly -> scoring experiments should be collected (into scoringExps) only
@@ -217,9 +217,9 @@ public class StatisticsQueryUtils {
      *         - scoring experiments as keys
      *         - Collections of scoring statistics type-attribute pairs in experiment key as values
      */
-    public static ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(StatisticsQueryCondition statsQuery,
+    public static Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(StatisticsQueryCondition statsQuery,
                                                                                                            StatisticsStorage statisticsStorage) {
-        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
         long start = System.currentTimeMillis();
         StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExpsAttrs);
         long dur = System.currentTimeMillis() - start;
@@ -325,7 +325,7 @@ public class StatisticsQueryUtils {
     private static Multiset<Integer> getScoresForOrConditions(
             final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
             StatisticsStorage statisticsStorage,
-            ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
+            Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
 
         Multiset<Integer> scores = HashMultiset.create();
         for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {

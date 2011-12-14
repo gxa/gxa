@@ -29,6 +29,7 @@ import ae3.service.structuredquery.AtlasStructuredQueryService;
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -59,17 +61,17 @@ public class Download implements Runnable {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private AtlasStructuredQueryService atlasStructuredQueryService;
-    private AtlasStatisticsQueryService atlasStatisticsQueryService;
-    private GeneSolrDAO geneSolrDAO;
+    private final AtlasStructuredQueryService atlasStructuredQueryService;
+    private final AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private final GeneSolrDAO geneSolrDAO;
 
-    private int id;
+    private final int id;
     private final AtlasStructuredQuery query;
 
     private File outputFile;
 
-    private long totalResults = 0;
-    private long resultsRetrieved = 0;
+    private final AtomicInteger totalResults = new AtomicInteger();
+    private final AtomicInteger resultsRetrieved = new AtomicInteger();
     private String dataVersion;
 
     public Download(int id,
@@ -94,10 +96,15 @@ public class Download implements Runnable {
 
     @RestOut(name = "progress")
     public double getProgress() {
-        if (0 == getTotalResults()) return 0;
-        if (getResultsRetrieved() == getTotalResults()) return 100;
+        long total = totalResults.get();
+        if (0 == total)
+            return 0;
 
-        return Math.floor(100.0 * getResultsRetrieved() / getTotalResults());
+        long retrieved = resultsRetrieved.get();
+        if (retrieved == total)
+            return 100;
+
+        return Math.floor(100.0 * retrieved / total);
     }
 
     public void run() {
@@ -108,7 +115,7 @@ public class Download implements Runnable {
         try {
             zout = new ZipOutputStream(new FileOutputStream(getOutputFile()));
             zout.putNextEntry(new ZipEntry("listdl.tab"));
-            getData(query, zout);
+            writeData(query, zout);
             zout.closeEntry();
         } catch (IOException e) {
             log.error("Error executing download for query {}, error {}", query, e.getMessage());
@@ -136,42 +143,29 @@ public class Download implements Runnable {
         return getQuery().hashCode();
     }
 
-    private void outputHeader(OutputStream out) throws IOException {
+    private void writeHeader(OutputStream out) throws IOException {
         Date today = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss");
-        StringBuilder strBuf = new StringBuilder();
-
-        strBuf.append("# Atlas data version: ").append(dataVersion).append("\n");
-        strBuf.append("# Query: ").append(query).append("\n");
-        strBuf.append("# Note that to download non-differential expression data the 'non-d.e. in' option needs to be selected on Atlas search page\n");
-        strBuf.append("# Timestamp: ").append(formatter.format(today)).append("\n");
-
-        strBuf.append("Gene name").append("\t").append("Gene identifier").append("\t").append("Organism").append("\t");
-        strBuf.append("Experimental factor").append("\t").append("Factor value").append("\t");
-        strBuf.append("Experiment accession").append("\t").append("Array Design accession").append("\t");
-        strBuf.append("Expression").append("\t").append("P-value").append("\n");
+        StringBuilder strBuf = new StringBuilder()
+                .append("# Atlas data version: ").append(dataVersion).append("\n")
+                .append("# Query: ").append(query).append("\n")
+                .append("# Note that to download non-differential expression data the 'non-d.e. in' option needs to be selected on Atlas search page\n")
+                .append("# Timestamp: ").append(formatter.format(today)).append("\n")
+                .append("Gene name").append("\t")
+                .append("Gene identifier").append("\t")
+                .append("Organism").append("\t")
+                .append("Experimental factor").append("\t")
+                .append("Factor value").append("\t")
+                .append("Experiment accession").append("\t")
+                .append("Array Design accession").append("\t")
+                .append("Expression").append("\t")
+                .append("P-value").append("\n");
 
         out.write(strBuf.toString().getBytes("UTF-8"));
     }
 
-    private void incrementResultsRetrieved() {
-        resultsRetrieved++;
-    }
-
-    public long getTotalResults() {
-        return totalResults;
-    }
-
-    public void setTotalResults(long total) {
-        this.totalResults = total;
-    }
-
     public int getId() {
         return id;
-    }
-
-    public long getResultsRetrieved() {
-        return resultsRetrieved;
     }
 
     public File getOutputFile() {
@@ -188,14 +182,14 @@ public class Download implements Runnable {
         }
     }
 
-    public void getData(@Nonnull AtlasStructuredQuery query, @Nonnull OutputStream zout) throws IOException {
-        outputHeader(zout);
+    private void writeData(@Nonnull AtlasStructuredQuery query, @Nonnull OutputStream zout) throws IOException {
+        writeHeader(zout);
 
         long start = System.currentTimeMillis();
         // Construct a bit index query from all genes, species and factors conditions
         StatisticsQueryCondition statsQuery = constructStatsQuery(query);
         // Now retrieve experiment-statistic-attribute data for statsQuery
-        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs =
+        Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs =
                 atlasStatisticsQueryService.getScoringExpsAttrs(statsQuery);
         log.debug("Overall bit index query time: {} of # experiments: {}", (System.currentTimeMillis() - start), scoringExpsAttrs.asMap().size());
 
@@ -213,13 +207,13 @@ public class Download implements Runnable {
         start = System.currentTimeMillis();
         Map<ExperimentInfo, Collection<Pair<StatisticsType, EfAttribute>>> expToAttrs = scoringExpsAttrs.asMap();
         // Note that the download progress bar will be reporting how many experiments in expToAttrs the download got through
-        setTotalResults(expToAttrs.entrySet().size());
-        log.info("Downloading data for query '{}' - now collecting data from {} experiments...", query.toString(), getTotalResults());
+        totalResults.set(expToAttrs.entrySet().size());
+        log.info("Downloading data for query '{}' - now collecting data from {} experiments...", query.toString(), totalResults);
         for (Map.Entry<ExperimentInfo, Collection<Pair<StatisticsType, EfAttribute>>> expAttr : expToAttrs.entrySet()) {
             zout.write(atlasStructuredQueryService.getDataFromExperiment(expAttr.getKey().getAccession(), expAttr.getValue(), id2GeneInfo).getBytes("UTF-8"));
-            incrementResultsRetrieved();
+            resultsRetrieved.getAndIncrement();
         }
-        log.info("Collected data from {} experiments in: {} ms ", getTotalResults(), (System.currentTimeMillis() - start));
+        log.info("Collected data from {} experiments in: {} ms ", totalResults, (System.currentTimeMillis() - start));
     }
 
     /**
@@ -261,10 +255,10 @@ public class Download implements Runnable {
      * @return Information for gene that will be included in the Download output
      */
     private String getGeneInfo(AtlasGene gene) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(gene.getGeneName()).append("\t");
-        sb.append(gene.getGeneIdentifier()).append("\t");
-        sb.append(gene.getGeneSpecies()).append("\t");
-        return sb.toString();
+        return new StringBuilder()
+                .append(gene.getGeneName()).append("\t")
+                .append(gene.getGeneIdentifier()).append("\t")
+                .append(gene.getGeneSpecies()).append("\t")
+                .toString();
     }
 }
