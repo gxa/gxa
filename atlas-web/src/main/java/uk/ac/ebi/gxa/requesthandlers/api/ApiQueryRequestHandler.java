@@ -178,9 +178,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                     Predicates.in(geneIds);
 
                                             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
-                                            if (!geneIds.isEmpty()) {
-                                                criteria.containsAtLeastOneGene(geneIds);
-                                            }
+                                            criteria.containsAtLeastOneGene(geneIdPredicate);
+
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                             BestDesignElementsResult geneResults =
                                                     atlasExperimentAnalyticsViewService.findBestGenesForExperiment(

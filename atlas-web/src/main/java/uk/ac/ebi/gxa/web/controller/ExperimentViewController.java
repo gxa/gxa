@@ -62,6 +62,8 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
@@ -313,19 +315,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-            final List<Long> geneIds = isNullOrEmpty(gid) ?
-                    Collections.<Long>emptyList() :
-                    findGeneIds(Arrays.asList(gid.trim()));
-
-            Predicate<Long> geneIdPredicate = geneIds.isEmpty() ?
-                    Predicates.<Long>alwaysTrue() :
-                    Predicates.in(geneIds);
+            final Predicate<Long> geneIdPredicate = genePredicate(gid);
 
             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
             if (!isNullOrEmpty(adAcc)) {
                 criteria.hasArrayDesignAccession(adAcc);
-            } else if (!geneIds.isEmpty()) {
-                criteria.containsAtLeastOneGene(geneIds);
+            } else {
+                criteria.containsAtLeastOneGene(geneIdPredicate);
             }
 
             // We still don't allow search for best design elements by either just an ef
@@ -356,6 +352,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         } finally {
             closeQuietly(ewd);
         }
+    }
+
+    private Predicate<Long> genePredicate(String gid) {
+        if (isNullOrEmpty(gid))
+            return alwaysTrue();
+
+        return in(findGeneIds(Arrays.asList(gid.trim())));
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
