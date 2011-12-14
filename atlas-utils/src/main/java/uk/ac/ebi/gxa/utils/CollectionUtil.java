@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 import static com.google.common.collect.Lists.transform;
+import static java.lang.Math.min;
 
 /**
  * The missing collections handling utility functions. All are static and mostly unrelated to each other.
@@ -98,5 +99,9 @@ public class CollectionUtil {
                 return iterator;
             }
         };
+    }
+
+    public static <T> List<T> boundSafeSublist(List<T> data, int from, int to) {
+        return data.subList(min(data.size(), from), min(data.size(), to));
     }
 }

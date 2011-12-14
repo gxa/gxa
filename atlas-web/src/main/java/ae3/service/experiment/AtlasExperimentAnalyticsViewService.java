@@ -12,8 +12,8 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.lang.Math.min;
 import static java.util.Collections.sort;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.boundSafeSublist;
 import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.valueOf;
 
 
@@ -88,7 +88,7 @@ public class AtlasExperimentAnalyticsViewService {
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
         result.setTotalSize(stats.size());
-        for (DesignElementStatistics de : sublist(stats, offset, offset + limit - 1)) {
+        for (DesignElementStatistics de : boundSafeSublist(stats, offset, offset + limit - 1)) {
             result.add(geneSolrDAO.getGeneById(allGeneIds.get(de.getDEIndex())).getGene(),
                     de.getDEIndex(),
                     designElementAccessions[de.getDEIndex()],
@@ -108,9 +108,5 @@ public class AtlasExperimentAnalyticsViewService {
             }
         }
         return result;
-    }
-
-    private static <T> List<T> sublist(List<T> data, int from, int to) {
-        return data.subList(min(data.size(), from), min(data.size(), to));
     }
 }
