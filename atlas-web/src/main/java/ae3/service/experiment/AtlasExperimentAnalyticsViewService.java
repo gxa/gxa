@@ -85,8 +85,6 @@ public class AtlasExperimentAnalyticsViewService {
 
     private BestDesignElementsResult convert(ExperimentPart expPart, List<Long> allGeneIds, List<BestDesignElementCandidate> bestDesignElementCandidates, int offset, int limit) throws AtlasDataException, StatisticsNotFoundException {
         final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
-        final TwoDFloatArray pvals = expPart.getPValues();
-        final TwoDFloatArray tstat = expPart.getTStatistics();
 
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
@@ -96,8 +94,8 @@ public class AtlasExperimentAnalyticsViewService {
             result.add(geneSolrDAO.getGeneById(allGeneIds.get(c.getDEIndex())).getGene(),
                     c.getDEIndex(),
                     designElementAccessions[c.getDEIndex()],
-                    pvals.get(c.getDEIndex(), c.getUEFVIndex()),
-                    tstat.get(c.getDEIndex(), c.getUEFVIndex()),
+                    c.getPValue(),
+                    c.getTStat(),
                     uEFVs.get(c.getUEFVIndex()).getKey(),
                     uEFVs.get(c.getUEFVIndex()).getValue());
         }
