@@ -1,0 +1,1 @@
+alter table a2_experiment drop column curated;
