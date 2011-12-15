@@ -9,6 +9,7 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -48,12 +49,14 @@ public class AtlasExperimentAnalyticsViewService {
      * @throws StatisticsNotFoundException if there's no P/T stats in the data
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            final @Nonnull ExperimentPart expPart,
+            final @Nullable ExperimentPart expPart,
             final @Nonnull Predicate<Long> geneIdPredicate,
             final @Nonnull Predicate<UpDownExpression> upDownPredicate,
             final @Nonnull Predicate<Pair<String, String>> fvPredicate,
             final int offset,
             final int limit) throws AtlasDataException, StatisticsNotFoundException {
+        if (expPart == null)
+            return new BestDesignElementsResult();
 
         final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
         final TwoDFloatArray pvals = expPart.getPValues();
