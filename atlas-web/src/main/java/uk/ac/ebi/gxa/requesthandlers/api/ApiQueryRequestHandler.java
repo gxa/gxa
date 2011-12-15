@@ -52,7 +52,6 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Collections2.transform;
@@ -164,33 +163,33 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     transform(experiments.getAtlasExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
-
                                     Collection<AtlasGene> genes = Collections.emptyList();
-
                                     ExperimentalData expData = null;
 
                                     if (!experimentInfoOnly) {
                                         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                         try {
-                                            final List<Long> geneIds = geneSolrDAO.findGeneIds(query.getGeneIdentifiers());
-                                            Predicate<Long> geneIdPredicate = geneIds.isEmpty() ?
+                                            Collection<String> geneIdentifiers = query.getGeneIdentifiers();
+                                            Predicate<Long> geneIdPredicate = geneIdentifiers.isEmpty() ?
                                                     Predicates.<Long>alwaysTrue() :
-                                                    Predicates.in(geneIds);
+                                                    Predicates.in(geneSolrDAO.findGeneIds(geneIdentifiers));
 
                                             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
                                             criteria.containsAtLeastOneGene(geneIdPredicate);
 
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                            BestDesignElementsResult geneResults =
-                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            criteria.retrieveFrom(ewd),
-                                                            geneIdPredicate,
-                                                            UpDownCondition.CONDITION_ANY,
-                                                            Predicates.<Pair<String, String>>alwaysTrue(),
-                                                            0, 10
-                                                    );
-
-                                            genes = geneResults.getGenes();
+                                            ExperimentPart expPart = criteria.retrieveFrom(ewd);
+                                            if (expPart != null) {
+                                                BestDesignElementsResult geneResults =
+                                                        atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                                expPart,
+                                                                geneIdPredicate,
+                                                                UpDownCondition.CONDITION_ANY,
+                                                                Predicates.<Pair<String, String>>alwaysTrue(),
+                                                                0, 10
+                                                        );
+                                                genes = geneResults.getGenes();
+                                            }
                                             expData = new ExperimentalData(ewd);
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);
@@ -205,24 +204,23 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
                             })
             );
-            //Heatmap page
         } else {
+            //Heatmap page
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
-
-            if (!atlasQuery.isNone()) {
-                atlasQuery.setFullHeatmap(true);
-                atlasQuery.setViewType(ViewType.HEATMAP);
-                atlasQuery.setExpandColumns(queryService.getAllFactors());
-
-                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                if (atlasResult.getUserErrorMsg() != null) {
-                    return new ErrorResult(atlasResult.getUserErrorMsg());
-                }
-                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
-            } else {
+            if (atlasQuery.isNone()) {
                 return new ErrorResult("Empty query specified");
             }
+
+            atlasQuery.setFullHeatmap(true);
+            atlasQuery.setViewType(ViewType.HEATMAP);
+            atlasQuery.setExpandColumns(queryService.getAllFactors());
+
+            AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+            if (atlasResult.getUserErrorMsg() != null) {
+                return new ErrorResult(atlasResult.getUserErrorMsg());
+            }
+            return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
         }
     }
 
