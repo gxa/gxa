@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -40,7 +41,7 @@ public class CreateExperimentStep {
     }
 
     public Experiment readExperiment(MAGETABInvestigation investigation, Multimap<String, String> userData) throws AtlasLoaderException {
-        if (investigation.accession == null) {
+        if (investigation.getAccession() == null) {
             throw new AtlasLoaderException(
                     "There is no accession number defined - " +
                             "cannot load to the Atlas without an accession, " +
@@ -48,7 +49,7 @@ public class CreateExperimentStep {
             );
         }
 
-        Experiment experiment = new Experiment(investigation.accession);
+        Experiment experiment = new Experiment(investigation.getAccession());
 
         if (userData.containsKey("private"))
             experiment.setPrivate(Boolean.parseBoolean(userData.get("private").iterator().next()));
@@ -58,16 +59,16 @@ public class CreateExperimentStep {
         experiment.setLab(investigation.IDF.personAffiliation.size() > 0 ? investigation.IDF.personAffiliation.get(0) : "");
 
         String performer = "";
-        if (investigation.IDF.personFirstName.size() > 0) {
+        if (investigation.IDF.personFirstName.size() > 0 && !Strings.isNullOrEmpty(investigation.IDF.personFirstName.get(0))) {
             performer += investigation.IDF.personFirstName.get(0);
         }
-        if (investigation.IDF.personMidInitials.size() > 0) {
+        if (investigation.IDF.personMidInitials.size() > 0 && !Strings.isNullOrEmpty(investigation.IDF.personMidInitials.get(0))) {
             if (performer.length() > 0) {
                 performer += ' ';
             }
             performer += investigation.IDF.personMidInitials.get(0);
         }
-        if (investigation.IDF.personLastName.size() > 0) {
+        if (investigation.IDF.personLastName.size() > 0 && !Strings.isNullOrEmpty(investigation.IDF.personLastName.get(0))) {
             if (performer.length() > 0) {
                 performer += ' ';
             }

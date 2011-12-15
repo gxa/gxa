@@ -250,7 +250,7 @@ public class AtlasMAGETABLoader {
                     listener.setProgress("Writing NetCDF for " + experiment.getAccession() +
                             " and " + shallowArrayDesign);
 
-                final NetCDFDataCreator dataCreator = ewd.getDataCreator(shallowArrayDesign);
+                final NetCDFDataCreator dataCreator = ewd.getDataCreator(dao.getArrayDesign(shallowArrayDesign.getAccession()));
                 dataCreator.setAssayDataMap(cache.getAssayDataMap());
 
                 dataCreator.createNetCdf();
@@ -316,14 +316,14 @@ public class AtlasMAGETABLoader {
 
     public static boolean isHTS(MAGETABInvestigation investigation) {
         // check that data is from RNASeq (comments: "Comment [ENA_RUN]"    "Comment [FASTQ_URI]" must be present)
-        Collection<ScanNode> scanNodes = investigation.SDRF.lookupNodes(ScanNode.class);
+        Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         if (scanNodes.size() == 0) {
-            log.info("No comment scan nodes found - investigation {} is not HTS", investigation.accession);
+            log.info("No comment scan nodes found - investigation {} is not HTS", investigation.getAccession());
             return false;
         }
         for (ScanNode scanNode : scanNodes) {
             if (!(scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                log.info("No comment[ENA_RUN] found - investigation {} is not HTS", investigation.accession);
+                log.info("No comment[ENA_RUN] found - investigation {} is not HTS", investigation.getAccession());
                 return false;
             }
         }
