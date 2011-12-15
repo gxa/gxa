@@ -178,18 +178,15 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                             criteria.containsAtLeastOneGene(geneIdPredicate);
 
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
-                                            ExperimentPart expPart = criteria.retrieveFrom(ewd);
-                                            if (expPart != null) {
-                                                BestDesignElementsResult geneResults =
-                                                        atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                                expPart,
-                                                                geneIdPredicate,
-                                                                UpDownCondition.CONDITION_ANY,
-                                                                Predicates.<Pair<String, String>>alwaysTrue(),
-                                                                0, 10
-                                                        );
-                                                genes = geneResults.getGenes();
-                                            }
+                                            BestDesignElementsResult geneResults =
+                                                    atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                                                            criteria.retrieveFrom(ewd),
+                                                            geneIdPredicate,
+                                                            UpDownCondition.CONDITION_ANY,
+                                                            Predicates.<Pair<String, String>>alwaysTrue(),
+                                                            0, 10
+                                                    );
+                                            genes = geneResults.getGenes();
                                             expData = new ExperimentalData(ewd);
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);
