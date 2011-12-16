@@ -284,7 +284,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <!-- interface download executor -->
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
           destroy-method="shutdown">
-        <property name="atlasQueryService" ref="atlasQueryService"/>
+        <property name="atlasStructuredQueryService" ref="atlasQueryService"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="downloadThreadPool" ref="threadPool"/>
     </bean>

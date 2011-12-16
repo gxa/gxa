@@ -25,6 +25,7 @@ package ae3.dao;
 import ae3.model.AtlasGene;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -197,6 +198,56 @@ public class GeneSolrDAO {
      */
     public Iterable<AtlasGene> getGenesByIdentifiers(Collection<String> ids) {
         return getGenesByAnyIdentifiers(ids, Collections.<String>emptyList());
+    }
+
+    /**
+     * Returns AtlasGenes corresponding to the specified gene identifiers,
+     * i.e. matching one of the terms in the "gene_ids" field in Solr schema.
+     *
+     * @param geneIds Collection of ids
+     * @return List<AtlasGene>
+     */
+    public List<AtlasGene> getGenesByIds(Collection<Integer> geneIds) {
+        List<AtlasGene> genes = new ArrayList<AtlasGene>();
+        try {
+            for (SolrQuery query : getSolrQueriesForGenes(geneIds)) {
+                query.setRows(Integer.MAX_VALUE);
+                QueryResponse queryResponse = geneSolr.query(query);
+                SolrDocumentList documentList = queryResponse.getResults();
+                for (SolrDocument d : documentList) {
+                    AtlasGene g = new AtlasGene(d);
+                    genes.add(g);
+                }
+            }
+            return genes;
+        } catch (SolrServerException e) {
+            throw LogUtil.createUnexpected("Error querying list of genes");
+        }
+    }
+
+    /**
+     * @param geneIds - a collection of gene Ids to find genes by
+     * @return A collection of SolrQuery's - since Lucene has limitation on a maximum
+     *         number of boolean clauses in a query, we need to split Ids into chunks that Lucene can manage.
+     */
+    private List<SolrQuery> getSolrQueriesForGenes(Collection<Integer> geneIds) {
+        List<SolrQuery> solrQueries = new ArrayList<SolrQuery>();
+
+        final int maxQueryCount = BooleanQuery.getMaxClauseCount();
+        StringBuilder sb = new StringBuilder();
+        int cnt = 1;
+        for (Integer id : geneIds) {
+            if (cnt % maxQueryCount == 0) {
+                solrQueries.add(new SolrQuery(sb.toString()));
+                sb = new StringBuilder();
+            }
+            sb.append(" id:").append(id);
+            cnt++;
+        }
+        if (!Strings.isNullOrEmpty(sb.toString())) {
+            solrQueries.add(new SolrQuery(sb.toString()));
+        }
+        return solrQueries;
     }
 
     /**
