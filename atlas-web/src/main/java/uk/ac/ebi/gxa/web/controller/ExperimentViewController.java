@@ -29,7 +29,6 @@ import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -351,7 +350,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private static Predicate<Pair<String, String>> createFactorCriteria(final String ef, String efv) {
         if (isNullOrEmpty(ef)) {
-            return Predicates.alwaysTrue();
+            return alwaysTrue();
         } else if (isNullOrEmpty(efv)) {
             return firstEqualTo(ef);
         } else {
