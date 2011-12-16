@@ -1701,15 +1701,15 @@
             atlas.newWaiter2("#squery");
 
             var data = {
-                format: "json",
-                eacc: expAcc,
-                gid: gene ,
-                ad: ad ,
-                ef: ef ,
-                efv: efv ,
-                updown: updn ,
-                offset: (offset + 1),
-                limit: limit
+                "format": "json",
+                "eacc": expAcc,
+                "gid": gene,
+                "ad": ad ,
+                "ef": ef ,
+                "efv": efv ,
+                "updown": updn ,
+                "offset": offset ,
+                "limit": limit
             };
 
             //TODO this is already done in ajaxLoader

@@ -314,7 +314,7 @@
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <optgroup label="${f:escapeXml(EF.displayName)}">
                                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                                            <option value='${EF.name}||${EFV}'>${f:escapeXml(EFV)}</option>
+                                            <option value='${EF.name}||${f:escapeXml(EFV)}'>${f:escapeXml(EFV)}</option>
                                         </c:forEach>
                                     </optgroup>
                                 </c:forEach>

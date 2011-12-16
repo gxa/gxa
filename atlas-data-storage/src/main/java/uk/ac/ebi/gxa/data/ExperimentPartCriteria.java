@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.data;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.slf4j.Logger;
@@ -33,12 +32,10 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Collection;
 
-import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Iterables.filter;
 
 /**
  * @author Olga Melnichuk
@@ -78,10 +75,7 @@ public class ExperimentPartCriteria {
         return addCriteria(ExperimentPartPredicates.containsGenes(geneIds));
     }
 
-    public ExperimentPartCriteria containsAtLeastOneGene(Collection<Long> geneIds) {
-        if (geneIds == null || geneIds.isEmpty()) {
-            throw new IllegalArgumentException("'geneIds' argument can not be null or empty");
-        }
+    public ExperimentPartCriteria containsAtLeastOneGene(@Nonnull Predicate<Long> geneIds) {
         return addCriteria(ExperimentPartPredicates.containsAtLeastOneGene(geneIds));
     }
 
@@ -124,16 +118,18 @@ public class ExperimentPartCriteria {
             };
         }
 
-        static Predicate<ExperimentPart> containsAtLeastOneGene(Collection<Long> geneIds) {
-            return or(
-                    transform(geneIds,
-                            new Function<Long, Predicate<ExperimentPart>>() {
-                                @Override
-                                public Predicate<ExperimentPart> apply(@Nullable Long geneId) {
-                                    return containsGenes(Arrays.asList(geneId));
-                                }
-                            })
-            );
+        static Predicate<ExperimentPart> containsAtLeastOneGene(final Predicate<Long> genes) {
+            return new Predicate<ExperimentPart>() {
+                @Override
+                public boolean apply(@Nullable ExperimentPart expPart) {
+                    try {
+                        return expPart != null && filter(expPart.getGeneIds(), genes).iterator().hasNext();
+                    } catch (AtlasDataException e) {
+                        log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
+                        return false;
+                    }
+                }
+            };
         }
 
         static Predicate<ExperimentPart> containsDeAccessions(final Collection<String> deAccessions) {
