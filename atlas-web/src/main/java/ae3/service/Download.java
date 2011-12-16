@@ -51,13 +51,6 @@ import java.util.zip.ZipOutputStream;
  */
 public class Download implements Runnable {
 
-    private static final Function<EfvAttribute, Attribute> ATTRIBUTE_FUNC =
-            new Function<EfvAttribute, Attribute>() {
-                public Attribute apply(@Nonnull EfvAttribute efvAttribute) {
-                    return efvAttribute;
-                }
-            };
-
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private final AtlasStructuredQueryService atlasStructuredQueryService;
@@ -245,7 +238,7 @@ public class Download implements Runnable {
             long start = System.currentTimeMillis();
             Collection<EfvAttribute> scoringEfvs = atlasStatisticsQueryService.getUnsortedScoringAttributesForBioEntities(geneIds, statsQuery.getStatisticsType(), null);
             log.info("Collected scoring efvs in: {} ms ", (System.currentTimeMillis() - start));
-            statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections2.transform(scoringEfvs, ATTRIBUTE_FUNC), statsQuery.getStatisticsType(), 1));
+            statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(scoringEfvs, statsQuery.getStatisticsType(), 1));
         }
 
         // Finally, restrict query by geneIds

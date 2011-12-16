@@ -161,7 +161,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
-            final Collection<Attribute> orAttributes,
+            final Collection<? extends Attribute> orAttributes,
             final StatisticsType statType,
             int minExperiments) {
         List<Attribute> efoPlusChildren = includeEfoChildren(orAttributes);
@@ -172,7 +172,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @param orAttributes
      * @return Collection containing all (afv and efo) attributes in orAttributes, plus the children of all efo's in orAttributes
      */
-    private List<Attribute> includeEfoChildren(Collection<Attribute> orAttributes) {
+    private List<Attribute> includeEfoChildren(Collection<? extends Attribute> orAttributes) {
         // LinkedHashSet for maintaining order of entry - order of processing attributes may be important
         // in multi-Attribute queries for sorted lists of experiments for the gene page
         Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
