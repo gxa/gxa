@@ -98,13 +98,24 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final Set<Integer> bioEntityIdRestrictionSet,
             List<Integer> sortedBioEntitiesChunk);
 
+ /**
+     * @param bioEntityIds
+     * @param statType
+     * @param autoFactors  set of factors of interest; if null, all factors are included
+     * @return Set of efv's with non-zero statType experiment counts for bioEntityIds
+     */
+    public  Multiset<EfvAttribute> getUnsortedScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds,
+            StatisticsType statType,
+            @Nullable Collection<String> autoFactors);
+
     /**
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
-     * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
+     * @return Sorted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
      */
-    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(
+    public List<Multiset.Entry<EfvAttribute>> getSortedScoringAttributesForBioEntities(
             Set<Integer> bioEntityIds,
             StatisticsType statType,
             Collection<String> autoFactors);

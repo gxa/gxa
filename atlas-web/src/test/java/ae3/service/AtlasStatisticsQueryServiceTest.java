@@ -186,7 +186,7 @@ public class AtlasStatisticsQueryServiceTest {
     @Test
     public void test_getScoringAttributesForGenes() {
 
-        List<Multiset.Entry<EfvAttribute>> scoringAttrCounts = atlasStatisticsQueryService.getScoringAttributesForBioEntities(
+        List<Multiset.Entry<EfvAttribute>> scoringAttrCounts = atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(
                 Collections.singleton(bioEntityId),
                 StatisticsType.UP_DOWN,
                 Collections.singleton(hematopoieticStemCellEfv.getEf()));

@@ -1175,7 +1175,7 @@ public class AtlasStructuredQueryService {
             boolean isFullHeatMap
     ) {
         List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
-                atlasStatisticsQueryService.getScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
+                atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
 
         Multiset<EfAttribute> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {

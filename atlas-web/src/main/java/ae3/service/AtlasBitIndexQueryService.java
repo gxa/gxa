@@ -455,6 +455,21 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param bioEntityIds
      * @param statType
+     * @param autoFactors  set of factors of interest; if null, all factors are included
+     * @return Unsorted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
+     */
+    public Multiset<EfvAttribute> getUnsortedScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds,
+            StatisticsType statType,
+            @Nullable Collection<String> autoFactors) {
+        Multiset<EfvAttribute> attrCounts = create();
+        collectScoringAttributes(bioEntityIds, statType, autoFactors, attrCounts, null);
+        return attrCounts;
+    }
+
+    /**
+     * @param bioEntityIds
+     * @param statType
      * @return Set of efo's with non-zero statType experiment counts for bioEntityIds
      */
     public Set<String> getScoringEfosForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType) {
@@ -466,15 +481,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param bioEntityIds
      * @param statType
-     * @param autoFactors  set of factors of interest
-     * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
+     * @param autoFactors  set of factors of interest; if null, all factors are included
+     * @return Sorted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
      */
-    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors) {
+    public List<Multiset.Entry<EfvAttribute>> getSortedScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds, StatisticsType statType, @Nullable Collection<String> autoFactors) {
         long timeStart = System.currentTimeMillis();
 
-        Multiset<EfvAttribute> attrCounts = create();
-        collectScoringAttributes(bioEntityIds, statType, autoFactors, attrCounts, null);
-
+        Multiset<EfvAttribute> attrCounts =  getUnsortedScoringAttributesForBioEntities(bioEntityIds, statType, autoFactors);
         List<Multiset.Entry<EfvAttribute>> sortedAttrCounts = getEntriesBetweenMinMaxFromListSortedByCount(attrCounts, 0, attrCounts.entrySet().size());
 
         log.debug("Retrieved " + sortedAttrCounts.size() + " sorted scoring attributes for statType: " + statType + " and bioentity ids: (" + bioEntityIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");

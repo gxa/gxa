@@ -27,7 +27,6 @@ import ae3.model.AtlasGene;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import com.google.common.base.Function;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Closeables;
@@ -52,10 +51,10 @@ import java.util.zip.ZipOutputStream;
  */
 public class Download implements Runnable {
 
-    private static final Function<String, Attribute> ATTRIBUTE_FUNC =
-            new Function<String, Attribute>() {
-                public Attribute apply(@Nonnull String efoTerm) {
-                    return new EfoAttribute(efoTerm);
+    private static final Function<EfvAttribute, Attribute> ATTRIBUTE_FUNC =
+            new Function<EfvAttribute, Attribute>() {
+                public Attribute apply(@Nonnull EfvAttribute efvAttribute) {
+                    return efvAttribute;
                 }
             };
 
@@ -191,7 +190,7 @@ public class Download implements Runnable {
         // Now retrieve experiment-statistic-attribute data for statsQuery
         Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs =
                 atlasStatisticsQueryService.getScoringExpsAttrs(statsQuery);
-        log.debug("Overall bit index query time: {} of # experiments: {}", (System.currentTimeMillis() - start), scoringExpsAttrs.asMap().size());
+        log.info("Overall bit index query time: {} of # experiments: {}", (System.currentTimeMillis() - start), scoringExpsAttrs.asMap().size());
 
         log.info("Getting genes out of Solr for query: '{}' ...", query.toString());
         // Retrieve genes from Solr
@@ -222,6 +221,9 @@ public class Download implements Runnable {
      */
     private StatisticsQueryCondition constructStatsQuery(AtlasStructuredQuery query) {
 
+        // Include all data in the download
+        query.setFullHeatmap(true);
+
         // Get gene ids by Gene Conditions and Species - will be empty if user is querying by factor conditions only
         Set<Integer> geneIds = atlasStructuredQueryService.getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
         log.debug("Called getGenesByGeneConditionsAndSpecies() - size: {}", geneIds.size());
@@ -240,8 +242,10 @@ public class Download implements Runnable {
 
         // If this is a gene conditions (plus optional species) only query, populate it with all efo terms that are scoring for geneIds
         if (statsQuery.getConditions().isEmpty()) {
-            Set<String> scoringEfos = atlasStatisticsQueryService.getScoringEfosForBioEntities(new HashSet<Integer>(geneIds), statsQuery.getStatisticsType());
-            statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections2.transform(scoringEfos, ATTRIBUTE_FUNC), statsQuery.getStatisticsType(), 1));
+            long start = System.currentTimeMillis();
+            Collection<EfvAttribute> scoringEfvs = atlasStatisticsQueryService.getUnsortedScoringAttributesForBioEntities(geneIds, statsQuery.getStatisticsType(), null);
+            log.info("Collected scoring efvs in: {} ms ", (System.currentTimeMillis() - start));
+            statsQuery.and(atlasStatisticsQueryService.getStatisticsOrQuery(Collections2.transform(scoringEfvs, ATTRIBUTE_FUNC), statsQuery.getStatisticsType(), 1));
         }
 
         // Finally, restrict query by geneIds
