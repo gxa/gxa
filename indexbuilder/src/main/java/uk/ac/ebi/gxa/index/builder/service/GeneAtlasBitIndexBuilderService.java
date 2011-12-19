@@ -133,7 +133,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final ExecutorService summarizer = Executors.newFixedThreadPool(10);
 
         for (final Experiment exp : task.getExperiments()) {
-            getLog().info("Processing exp: {}, # assays: ()", exp, exp.getAssays().size());
+            getLog().info("Processing exp: {}, # assays: {}", exp, exp.getAssays().size());
             final ExperimentWithData experimentWithData = atlasDataDAO.createExperimentWithData(exp);
             try {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
