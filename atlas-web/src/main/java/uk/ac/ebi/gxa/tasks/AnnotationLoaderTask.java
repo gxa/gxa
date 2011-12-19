@@ -56,10 +56,12 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
     }
 
     public static final TaskFactory FACTORY = new TaskFactory() {
+        @Override
         public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
             return new AnnotationLoaderTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 
+        @Override
         public boolean isFor(TaskSpec taskSpec) {
 
             return

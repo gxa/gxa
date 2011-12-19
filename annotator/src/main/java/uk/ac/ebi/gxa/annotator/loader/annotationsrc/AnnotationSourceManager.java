@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
+import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -47,7 +47,7 @@ public class AnnotationSourceManager {
         for (AnnotationSource annSrc : currentAnnSrcs) {
             try {
                 AnnotationSourceConnection connection = annSrc.createConnection();
-                String newVersion = connection.getOnlineMartVersion();
+                String newVersion = connection.getOnlineSoftwareVersion();
 
                 if (annSrc.getSoftware().getVersion().equals(newVersion)) {
                     result.add(annSrc);
@@ -59,7 +59,7 @@ public class AnnotationSourceManager {
                     oldSources.add(annSrc);
                     result.add(newAnnSrc);
                 }
-            } catch (BioMartAccessException e) {
+            } catch (AnnotationSourceAccessException e) {
                 throw LogUtil.createUnexpected("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }

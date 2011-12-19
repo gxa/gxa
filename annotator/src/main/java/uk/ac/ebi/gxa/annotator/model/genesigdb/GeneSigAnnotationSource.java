@@ -1,6 +1,6 @@
 package uk.ac.ebi.gxa.annotator.model.genesigdb;
 
-import uk.ac.ebi.gxa.annotator.loader.filebased.FileBasedConnection;
+import uk.ac.ebi.gxa.annotator.loader.filebased.GeneSigConnection;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -14,7 +14,6 @@ import java.util.HashSet;
  * Date: 19/10/2011
  */
 @Entity
-//@Table(name = "A2_GENESIGANNOTATIONSRC")
 @DiscriminatorValue("genesigdb")
 public class GeneSigAnnotationSource extends AnnotationSource {
 
@@ -30,22 +29,22 @@ public class GeneSigAnnotationSource extends AnnotationSource {
         return software.getFullName();
     }
 
-    @Override
     public GeneSigAnnotationSource createCopyForNewSoftware(Software newSoftware) {
         GeneSigAnnotationSource result = new GeneSigAnnotationSource(newSoftware);
-        result.setUrl(this.url);
-
+        updateProperties(result);
         return result;
     }
 
     @Override
-    public FileBasedConnection createConnection() {
-        return new FileBasedConnection(this.getUrl());
+    public GeneSigConnection createConnection() {
+        return new GeneSigConnection(this.getUrl());
     }
 
     @Override
     public Collection<String> findInvalidProperties() {
         Collection<String> result = new HashSet<String>();
+        final GeneSigConnection connection = createConnection();
+//        connection.validateAttributeNames(getExternalPropertyNames());
         return result;
     }
 

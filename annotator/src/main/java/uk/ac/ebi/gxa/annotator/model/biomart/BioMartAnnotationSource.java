@@ -22,11 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.model.biomart;
 
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
+import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
-import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -43,30 +41,30 @@ import java.util.HashSet;
 @Entity
 @DiscriminatorValue("biomart")
 @SecondaryTable(name = "A2_BIOMART_ANNSRC",
-pkJoinColumns = @PrimaryKeyJoinColumn(name = "annotationsrcid"))
+        pkJoinColumns = @PrimaryKeyJoinColumn(name = "annotationsrcid"))
 public class BioMartAnnotationSource extends AnnotationSource {
 
-    @JoinColumn(table= "A2_BIOMART_ANNSRC")
+    @JoinColumn(table = "A2_BIOMART_ANNSRC")
     @ManyToOne()
-    protected Organism organism;
+    private Organism organism;
 
     /**
      * e.g. "hsapiens_gene_ensembl", "spombe_eg_gene"
      */
-    @Column(table= "A2_BIOMART_ANNSRC", name = "biomartorganismname")
+    @Column(table = "A2_BIOMART_ANNSRC", name = "biomartorganismname")
     private String datasetName;
 
     /**
      * Value of property "database" in BioMart registry, version number is removed.
      * e.g. "metazoa", "fungal"
      */
-    @Column(table= "A2_BIOMART_ANNSRC", name = "databaseName")
+    @Column(table = "A2_BIOMART_ANNSRC", name = "databaseName")
     private String databaseName;
 
-    @Column(table= "A2_BIOMART_ANNSRC")
+    @Column(table = "A2_BIOMART_ANNSRC")
     private String mySqlDbName;
 
-    @Column(table= "A2_BIOMART_ANNSRC")
+    @Column(table = "A2_BIOMART_ANNSRC")
     private String mySqlDbUrl;
 
     BioMartAnnotationSource() {
@@ -91,7 +89,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public BioEntityType getBioEntityType(final String name) {
         for (BioEntityType type : types) {
-            if (type.getName().equals(name))
+            if (type.getName().equals(BioEntityType.ENSGENE))
                 return type;
         }
         return null;
@@ -129,30 +127,16 @@ public class BioMartAnnotationSource extends AnnotationSource {
         this.mySqlDbUrl = mySqlDbUrl;
     }
 
-    public void setOrganism(Organism organism) {
-        this.organism = organism;
-    }
-
     /////////////////////////
     //  Helper methods
     ////////////////////////
     public BioMartAnnotationSource createCopyForNewSoftware(Software newSoftware) {
         BioMartAnnotationSource result = new BioMartAnnotationSource(newSoftware, this.organism);
+        updateProperties(result);
         result.setDatasetName(this.datasetName);
-        result.setUrl(this.url);
-        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
-            result.addExternalProperty(externalBioEntityProperty.getName(), externalBioEntityProperty.getBioEntityProperty());
-        }
-        for (ExternalArrayDesign externalArrayDesign : externalArrayDesigns) {
-            result.addExternalArrayDesign(new ExternalArrayDesign(externalArrayDesign.getName(), externalArrayDesign.getArrayDesign(), result));
-        }
-        for (BioEntityType type : types) {
-            result.addBioEntityType(type);
-        }
         result.setDatabaseName(this.databaseName);
         result.setMySqlDbName(this.mySqlDbName);
         result.setMySqlDbUrl(this.mySqlDbUrl);
-
         return result;
     }
 
@@ -181,7 +165,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
             if (!connection.isValidDataSetName()) {
                 missingProperties.add(this.getDatasetName());
             }
-        } catch (BioMartAccessException e) {
+        } catch (AnnotationSourceAccessException e) {
             throw LogUtil.createUnexpected("Problem when fetching version for " + this.getSoftware().getName(), e);
         }
         return missingProperties;

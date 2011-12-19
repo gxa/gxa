@@ -196,7 +196,7 @@ public class HTSArrayDataStep {
         return outFilePath;
     }
 
-    private static Map<String, String> organismToArrayDesign = new HashMap<String, String>(20);
+    private final static Map<String, String> organismToArrayDesign = new HashMap<String, String>(20);
 
     static {
         organismToArrayDesign.put("Homo sapiens", "A-ENST-3");

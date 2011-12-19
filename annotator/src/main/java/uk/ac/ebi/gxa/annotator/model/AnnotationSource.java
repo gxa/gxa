@@ -94,7 +94,7 @@ public abstract class AnnotationSource implements Serializable {
     @Fetch(FetchMode.SUBSELECT)
     protected Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
 
-    private String name ;
+    private String name;
 
     protected AnnotationSource() {
     }
@@ -142,22 +142,8 @@ public abstract class AnnotationSource implements Serializable {
         return software;
     }
 
-    public void setSoftware(Software software) {
-        this.software = software;
-    }
-
     public void setLoadDate(Date loadDate) {
         this.loadDate = copyOf(loadDate);
-    }
-
-    @Override
-    public String toString() {
-        return "AnnotationSource{" +
-                "annotationSrcId=" + annotationSrcId +
-                ", software=" + software +
-                ", types=" + types +
-                ", loadDate=" + loadDate +
-                '}';
     }
 
     public boolean isApplied() {
@@ -167,12 +153,6 @@ public abstract class AnnotationSource implements Serializable {
     public void setApplied(boolean applied) {
         isApplied = applied;
     }
-
-    public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
-
-    public abstract AnnotationSourceConnection createConnection();
-
-    public abstract Collection<String> findInvalidProperties();
 
     public Set<ExternalBioEntityProperty> getExternalBioEntityProperties() {
         return Collections.unmodifiableSet(externalBioEntityProperties);
@@ -220,4 +200,39 @@ public abstract class AnnotationSource implements Serializable {
         }
         return answer;
     }
+
+     /////////////////////////
+    //  Helper methods
+    ////////////////////////
+    public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
+
+    protected AnnotationSource updateProperties( AnnotationSource result){
+        result.setUrl(this.url);
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            result.addExternalProperty(externalBioEntityProperty.getName(), externalBioEntityProperty.getBioEntityProperty());
+        }
+        for (ExternalArrayDesign externalArrayDesign : externalArrayDesigns) {
+            result.addExternalArrayDesign(new ExternalArrayDesign(externalArrayDesign.getName(), externalArrayDesign.getArrayDesign(), result));
+        }
+        for (BioEntityType type : types) {
+            result.addBioEntityType(type);
+        }
+
+        return result;
+    }
+
+    public abstract AnnotationSourceConnection createConnection();
+
+    public abstract Collection<String> findInvalidProperties();
+
+    @Override
+    public String toString() {
+        return "AnnotationSource{" +
+                "annotationSrcId=" + annotationSrcId +
+                ", software=" + software +
+                ", types=" + types +
+                ", loadDate=" + loadDate +
+                '}';
+    }
+
 }

@@ -19,8 +19,6 @@ import java.util.*;
  */
 public class AnnotationSourceController {
 
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
     private AnnotationSourceManager annotationSourceManager;
 
@@ -32,11 +30,8 @@ public class AnnotationSourceController {
         for (AnnotationSourceClass sourceClass : AnnotationSourceClass.values()) {
             final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = annotationSourceManager.getCurrentAnnotationSourcesOfType(sourceClass.getClazz());
             for (AnnotationSource annSrc : currentAnnotationSourcesOfType) {
-                ValidationReport validationReport = new ValidationReport();
-                validationReport.setMissingProperties(annSrc.findInvalidProperties());
-
+                ValidationReport validationReport = new ValidationReport(annSrc.findInvalidProperties());
                 AnnotationSourceView view = new AnnotationSourceView(annSrc, validationReport);
-
                 viewSources.add(view);
             }
         }
@@ -107,10 +102,10 @@ public class AnnotationSourceController {
     }
 
     private static class ValidationReport {
-        private String organismName;
         private Collection<String> missingProperties;
 
-        public ValidationReport() {
+        ValidationReport(Collection<String> missingProperties) {
+            this.missingProperties = missingProperties;
         }
 
         public String getSummary() {
@@ -118,9 +113,7 @@ public class AnnotationSourceController {
                 return "Valid";
             }
             StringBuilder sb = new StringBuilder();
-            if (!StringUtils.isEmpty(organismName)) {
-                sb.append("Dataset name is not valid: " + organismName + "\n ");
-            }
+
             if (!missingProperties.isEmpty()) {
                 sb.append("Invalid properties: ");
                 sb.append(missingProperties);
@@ -128,13 +121,8 @@ public class AnnotationSourceController {
             return sb.toString();
         }
 
-        public void setMissingProperties(Collection<String> missingProperties) {
-            this.missingProperties = missingProperties;
-        }
-
-
         public boolean isValid() {
-            return StringUtils.isEmpty(organismName) && CollectionUtils.isEmpty(missingProperties);
+            return CollectionUtils.isEmpty(missingProperties);
         }
     }
 }

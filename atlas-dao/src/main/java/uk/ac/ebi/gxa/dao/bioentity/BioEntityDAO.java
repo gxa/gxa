@@ -51,13 +51,13 @@ import static com.google.common.collect.Iterables.partition;
  */
 public class BioEntityDAO {
 
-    public static final int MAX_QUERY_PARAMS = 15;
-    public static final int SUB_BATCH_SIZE = 70;
+    private static final int MAX_QUERY_PARAMS = 15;
+    private static final int SUB_BATCH_SIZE = 70;
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private SoftwareDAO softwareDAO;
     private BioEntityTypeDAO typeDAO;
-    protected JdbcTemplate template;
+    private JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
 
@@ -133,7 +133,7 @@ public class BioEntityDAO {
         return beToDe;
     }
 
-    public BioEntityType findOrCreateBioEntityType(final String name) {
+    BioEntityType findOrCreateBioEntityType(final String name) {
         if (beTypeCache.containsKey(name)) {
             return beTypeCache.get(name);
         }
@@ -469,7 +469,7 @@ public class BioEntityDAO {
 
 
     private abstract static class ListStatementSetter<T> implements BatchPreparedStatementSetter {
-        protected List<T> list;
+        List<T> list;
 
         public int getBatchSize() {
             return list.size();

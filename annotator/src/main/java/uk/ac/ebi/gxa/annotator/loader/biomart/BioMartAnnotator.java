@@ -54,9 +54,9 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected AnnotationSourceDAO annSrcDAO;
+    private AnnotationSourceDAO annSrcDAO;
 
-    protected BioEntityPropertyDAO propertyDAO;
+    private BioEntityPropertyDAO propertyDAO;
 
     public BioMartAnnotator(BioMartAnnotationSource annSrc, AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
         super(annSrc, beDataWriter);
@@ -64,7 +64,7 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
         this.propertyDAO = propertyDAO;
     }
 
-
+    @Override
     public void updateAnnotations() {
 
         try {
@@ -110,13 +110,14 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
 
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 
-        } catch (BioMartAccessException e) {
+        } catch (AnnotationSourceAccessException e) {
             reportError(new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
         } catch (AtlasAnnotationException e) {
             reportError(e);
         }
     }
 
+    @Override
     public void updateMappings() {
         try {
             reportProgress("Reading Ensembl design element mappings for organism " + annSrc.getOrganism().getName());
@@ -158,7 +159,7 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
             }
 
             reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
-        } catch (BioMartAccessException e) {
+        } catch (AnnotationSourceAccessException e) {
             reportError(new AtlasAnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e));
         } catch (AtlasAnnotationException e) {
             e.printStackTrace();
@@ -173,7 +174,7 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
         }
     }
 
-    private void fetchSynonyms(BioMartAnnotationSource annSrc, BioEntityAnnotationDataBuilder builder) throws BioMartAccessException {
+    private void fetchSynonyms(BioMartAnnotationSource annSrc, BioEntityAnnotationDataBuilder builder) throws AnnotationSourceAccessException {
         reportProgress("Reading synonyms for " + annSrc.getOrganism().getName());
         BioMartDbDAO bioMartDbDAO = new BioMartDbDAO(annSrc.getMySqlDbUrl());
 

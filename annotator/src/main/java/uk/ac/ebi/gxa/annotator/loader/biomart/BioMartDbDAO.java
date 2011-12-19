@@ -39,11 +39,11 @@ import java.util.Collection;
 class BioMartDbDAO {
     private String url;
 
-    public BioMartDbDAO(String url) {
+    BioMartDbDAO(String url) {
         this.url = url;
     }
 
-    public Collection<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws BioMartAccessException {
+    public Collection<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws AnnotationSourceAccessException {
         final String dbName = findSynonymsDBName(dbNameTemplate, version);
         final JdbcTemplate template = createTemplate(dbName);
         return template.query(
@@ -62,7 +62,7 @@ class BioMartDbDAO {
     }
 
 
-    String findSynonymsDBName(String dbNameTemplate, String version) throws BioMartAccessException {
+    String findSynonymsDBName(String dbNameTemplate, String version) throws AnnotationSourceAccessException {
         final JdbcTemplate template = createTemplate("");
         try {
             // here it is important that only a single line is returned.
@@ -71,7 +71,7 @@ class BioMartDbDAO {
                     new SingleColumnRowMapper<String>(String.class),
                     dbNameTemplate + "_core_" + version + "%");
         } catch (DataAccessException e) {
-            throw new BioMartAccessException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
+            throw new AnnotationSourceAccessException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
         }
     }
 

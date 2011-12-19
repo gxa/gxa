@@ -30,7 +30,7 @@ public abstract class Annotator<T extends AnnotationSource> {
     protected T annSrc;
     protected final AtlasBioEntityDataWriter beDataWriter;
 
-    public Annotator(T annSrc, AtlasBioEntityDataWriter beDataWriter) {
+    protected Annotator(T annSrc, AtlasBioEntityDataWriter beDataWriter) {
         this.annSrc = annSrc;
         this.beDataWriter = beDataWriter;
     }

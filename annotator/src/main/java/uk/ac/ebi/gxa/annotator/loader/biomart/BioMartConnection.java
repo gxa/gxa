@@ -83,7 +83,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     }
 
 
-    void connect() throws BioMartAccessException {
+    void connect() throws AnnotationSourceAccessException {
         if (!connected) {
             fetchInfoFromRegistry();
             connected = true;
@@ -91,7 +91,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     }
 
     @Override
-    public String getOnlineMartVersion() throws BioMartAccessException {
+    public String getOnlineSoftwareVersion() throws AnnotationSourceAccessException {
         connect();
         URL url = null;
         BufferedReader bufferedReader = null;
@@ -111,7 +111,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
                 }
             }
         } catch (IOException e) {
-            throw new BioMartAccessException("Problem when reading registry " + url, e);
+            throw new AnnotationSourceAccessException("Problem when reading registry " + url, e);
         } finally {
             log.info("Finished reading from " + url + ", closing");
             closeQuietly(bufferedReader);
@@ -120,7 +120,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     }
 
     @Override
-    public Collection<String> validateAttributeNames(Set<String> properties) throws BioMartAccessException {
+    public Collection<String> validateAttributeNames(Set<String> properties) throws AnnotationSourceAccessException {
         connect();
         List<String> missingAttrs = new ArrayList<String>();
 
@@ -147,7 +147,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
             }
 
         } catch (IOException e) {
-            throw new BioMartAccessException("Cannot read attribures from " + location, e);
+            throw new AnnotationSourceAccessException("Cannot read attribures from " + location, e);
         } finally {
             log.info("Finished reading from " + url + ", closing");
             closeQuietly(csvReader);
@@ -156,7 +156,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
         return missingAttrs;
     }
 
-    public boolean isValidDataSetName() throws BioMartAccessException {
+    public boolean isValidDataSetName() throws AnnotationSourceAccessException {
         connect();
         String location = martUrl + DATASETLIST_QUERY + bioMartName;
         URL url = getMartURL(location);
@@ -176,7 +176,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
             }
 
         } catch (IOException e) {
-            throw new BioMartAccessException("Cannot read data from " + location, e);
+            throw new AnnotationSourceAccessException("Cannot read data from " + location, e);
         } finally {
             closeQuietly(csvReader);
         }
@@ -187,9 +187,9 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
     /**
      * @param location
      * @return URL to biomart data
-     * @throws BioMartAccessException if URL cannot be open or data contain an error
+     * @throws AnnotationSourceAccessException if URL cannot be open or data contain an error
      */
-    private URL getMartURL(String location) throws BioMartAccessException {
+    private URL getMartURL(String location) throws AnnotationSourceAccessException {
 
         URL url = null;
         BufferedReader bufferedReader = null;
@@ -201,11 +201,11 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
             String line = bufferedReader.readLine();
 
             if (line == null || line.contains("Exception") || line.contains("ERROR")) {
-                throw new BioMartAccessException("Data from " + location + " contain error " + line);
+                throw new AnnotationSourceAccessException("Data from " + location + " contain error " + line);
             }
 
         } catch (IOException e) {
-            throw new BioMartAccessException("Cannot load data from " + location, e);
+            throw new AnnotationSourceAccessException("Cannot load data from " + location, e);
         } finally {
             log.info("Finished reading from " + location + ", closing");
             closeQuietly(bufferedReader);
@@ -213,7 +213,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
         return url;
     }
 
-    public URL getAttributesURL(Collection<String> attributes) throws BioMartAccessException {
+    public URL getAttributesURL(Collection<String> attributes) throws AnnotationSourceAccessException {
         connect();
         return getMartURL(getAttributesURLLocation(attributes));
     }
@@ -246,7 +246,7 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
                         replace(ATTRIBUTES_PH, attributes);
     }
 
-    private void fetchInfoFromRegistry() throws BioMartAccessException {
+    private void fetchInfoFromRegistry() throws AnnotationSourceAccessException {
 
         URL url = null;
         BufferedReader bufferedReader = null;
@@ -267,14 +267,14 @@ public class BioMartConnection extends AnnotationSourceConnection<BioMartAnnotat
                 }
             }
         } catch (IOException e) {
-            throw new BioMartAccessException("Problem when reading registry " + url, e);
+            throw new AnnotationSourceAccessException("Problem when reading registry " + url, e);
         } finally {
             log.info("Finished reading from " + url + ", closing");
             closeQuietly(bufferedReader);
         }
 
         if (StringUtils.isEmpty(bioMartName) || StringUtils.isEmpty(serverVirtualSchema)) {
-            throw new BioMartAccessException("Problem when reading registry. Check annotation source configuration. " + url);
+            throw new AnnotationSourceAccessException("Problem when reading registry. Check annotation source configuration. " + url);
         }
     }
 

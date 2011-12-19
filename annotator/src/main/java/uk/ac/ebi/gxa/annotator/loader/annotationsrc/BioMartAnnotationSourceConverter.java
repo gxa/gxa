@@ -20,8 +20,6 @@ import static com.google.common.io.Closeables.closeQuietly;
  */
 public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMartAnnotationSource> {
 
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
-
     private static final String ORGANISM_PROPNAME = "organism";
     private static final String MYSQLDBNAME_PROPNAME = "mySqlDbName";
     private static final String MYSQLDBURL_PROPNAME = "mySqlDbUrl";
@@ -33,6 +31,7 @@ public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<
         return BioMartAnnotationSource.class;
     }
 
+    @Override
     public BioMartAnnotationSource editOrCreateAnnotationSource(String id, String text) throws AnnotationLoaderException {
 
         Reader input = new StringReader(text);
@@ -49,30 +48,6 @@ public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<
             closeQuietly(input);
         }
     }
-
-//    @Override
-//    protected BioMartAnnotationSource initAnnotationSource1(String id, Properties properties) throws AnnotationLoaderException {
-//        Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
-//        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
-//
-//        BioMartAnnotationSource annSrc = fetchAnnSrcById(id);
-//        //Check if for given organism and software annotation source exists
-//        if (annSrc == null || (!annSrc.getSoftware().equals(software) || !annSrc.getOrganism().equals(organism))) {
-//            final BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
-//            if (annotationSource != null) {
-//                throw new AnnotationLoaderException("Annotation source for organism " + organism.getName() + " and for software " +
-//                        software.getName() + " " + software.getVersion() + " already exists.");
-//            } else {
-//                if (annSrc == null) {
-//                    annSrc = new BioMartAnnotationSource(software, organism);
-//                } else {
-//                    annSrc.setOrganism(organism);
-//                    annSrc.setSoftware(software);
-//                }
-//            }
-//        }
-//        return annSrc;
-//    }
 
     @Override
     protected BioMartAnnotationSource initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException {

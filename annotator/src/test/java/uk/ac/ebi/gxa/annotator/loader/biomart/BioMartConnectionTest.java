@@ -42,7 +42,7 @@ public class BioMartConnectionTest extends TestCase {
     @Test
     public void testGetDataSetVersion() throws Exception {
         bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
-        String version = bmService.getOnlineMartVersion();
+        String version = bmService.getOnlineSoftwareVersion();
         boolean correctVersion = true;
         try {
             Integer.parseInt(version);

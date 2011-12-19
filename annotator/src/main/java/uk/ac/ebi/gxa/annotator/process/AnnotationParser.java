@@ -124,7 +124,7 @@ public class AnnotationParser<T extends BioEntityData> {
         }
     }
 
-    public void parsePropertyValues(Collection<BioEntityProperty> properties, URL url, boolean skipFirstLine) throws AtlasAnnotationException {
+    public void parsePropertyValues(Collection<BioEntityProperty> properties, URL url, boolean isFirstLineHeader) throws AtlasAnnotationException {
         CSVReader csvReader = null;
         try {
             csvReader = new CSVReader(getReader(url), separator, '"');
@@ -132,7 +132,8 @@ public class AnnotationParser<T extends BioEntityData> {
             String[] line;
             int lineCount = 0;
 
-            if (skipFirstLine && (line = csvReader.readNext()) != null) {
+            if (isFirstLineHeader && (line = csvReader.readNext()) != null) {
+                //ToDo: match column names and property names
                 validateLine(line, "Cannot get properties from URL " + url);
             }
 

@@ -2,12 +2,14 @@ package uk.ac.ebi.gxa.annotator.process;
 
 import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
+import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
-import uk.ac.ebi.gxa.annotator.loader.filebased.FileBasedConnection;
+import uk.ac.ebi.gxa.annotator.loader.filebased.GeneSigConnection;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 /**
  * User: nsklyar
@@ -19,8 +21,8 @@ public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
         super(annSrc, beDataWriter);
     }
 
+    @Override
     public void updateAnnotations() {
-
         try {
             //Create a list with biomart attribute names for bioentity types of  annotation source
             BETypeExternalAttributesHandler attributesHandler = new BETypeExternalAttributesHandler(annSrc);
@@ -28,12 +30,12 @@ public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
             AnnotationParser<BioEntityAnnotationData> parser = AnnotationParser.initParser(attributesHandler.getTypes(), builder);
             parser.setSeparator(annSrc.getSeparator());
 
-            FileBasedConnection martConnection = annSrc.createConnection();
+            GeneSigConnection martConnection = annSrc.createConnection();
 
             reportProgress("Reading properties from Annotation Source " + annSrc.getName());
             //read properties
             parser.parsePropertyValues(attributesHandler.getBioEntityProperties(),
-                    martConnection.getURL(annSrc.getUrl()), true);
+                    martConnection.getURL(), true);
 
             final BioEntityAnnotationData data = parser.getData();
 
@@ -43,10 +45,10 @@ public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
             reportSuccess("Update annotations from Annotation Source " + annSrc.getName() + " completed");
         } catch (AtlasAnnotationException e) {
             reportError(e);
-        } catch (IOException e) {
+        } catch (AnnotationSourceAccessException e) {
             reportError(new AtlasAnnotationException("Cannot read annotations from URL " + annSrc.getUrl() +
                     " for AnnSrc " + annSrc.getName(), e));
-        }
+        } 
     }
 
     @Override
