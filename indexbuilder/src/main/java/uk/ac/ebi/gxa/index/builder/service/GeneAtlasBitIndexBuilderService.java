@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
+import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,6 +98,15 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     /**
+     * @param numOfGenes
+     * @return Set with storage compression appropriate to the number of genes being processed. It was found that e.g. E-GEOD-8052
+     *         (404 samples, but 54.5k genes) was just by itself consuming the full heap size - when FastSet was being used.
+     */
+    private Set<Integer> getSetForBioEntities(int numOfGenes) {
+        return numOfGenes > 40000 ? new ConciseSet() : new FastSet();
+    }
+
+    /**
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas data
      *
      * @param progressUpdater
@@ -123,7 +133,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final ExecutorService summarizer = Executors.newFixedThreadPool(10);
 
         for (final Experiment exp : task.getExperiments()) {
-            getLog().debug("Processing {}", exp);
+            getLog().debug("Processing exp: {}, # assays: ()", exp, exp.getAssays().size());
             final ExperimentWithData experimentWithData = atlasDataDAO.createExperimentWithData(exp);
             try {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
@@ -157,9 +167,9 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.getKey(), efv.getValue()));
                         final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.getKey()));
 
-                        final Set<Integer> upBioEntityIds = new FastSet();
-                        final Set<Integer> dnBioEntityIds = new FastSet();
-                        final Set<Integer> noBioEntityIds = new FastSet();
+                        final Set<Integer> upBioEntityIds = getSetForBioEntities(rowCount);
+                        final Set<Integer> dnBioEntityIds = getSetForBioEntities(rowCount);
+                        final Set<Integer> noBioEntityIds = getSetForBioEntities(rowCount);
 
                         // Initialise if necessary pval/tstat storage for ef
                         MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttribute);
