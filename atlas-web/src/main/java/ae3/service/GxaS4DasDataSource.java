@@ -82,8 +82,6 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     private static final String ANATOMOGRAM_LEGEND =
             "Number of published studies where the gene over/under-expressed compared to the gene's overall mean expression level in the study.";
-    private static final String ANATOMOGRAM_ALT_IMAGE =
-            "Atlas anatomogram";
     private static final String PROVENANCE_NOTE =
             "Data source: GXA ";
     private static final String PROVENANCE_NOTE_CONT =
@@ -269,7 +267,6 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             // way they are interpreted by s4
             Map<URL, String> links = new LinkedHashMap<URL, String>();
             links.put(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), ANATOMOGRAM_LEGEND);
-            links.put(new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=organism_part"), ANATOMOGRAM_ALT_IMAGE);
             return new DasFeature(
                     "Anatomogram" //String featureId,
                     , atlasGene.getGeneIdentifier()//String featureLabel,
