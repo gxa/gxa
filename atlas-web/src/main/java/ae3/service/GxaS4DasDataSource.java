@@ -81,7 +81,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     }
 
     private static final String ANATOMOGRAM_LEGEND =
-            "Number of published studies where the gene over/under-expressed compared to the gene's overall mean expression level in the study.";
+            "Number of published studies where the gene is over/under-expressed compared to the gene's overall mean expression level in the study.";
     private static final String PROVENANCE_NOTE =
             "Data source: GXA ";
     private static final String PROVENANCE_NOTE_CONT =
