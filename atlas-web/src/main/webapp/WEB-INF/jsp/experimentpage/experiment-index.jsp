@@ -88,7 +88,7 @@
                 <display:column property="numSamples" sortable="true" sortName="numSamples"
                                 title="Samples" class="number"/>
                 <%-- Postponed until implemented
-                <display:column propertyAnnotated="studyType" sortable="true" sortName="studyType"
+                <display:column property="studyType" sortable="true" sortName="studyType"
                                 title="Type"/>
                                 --%>
                 <display:column title="Species" class="nowrap">

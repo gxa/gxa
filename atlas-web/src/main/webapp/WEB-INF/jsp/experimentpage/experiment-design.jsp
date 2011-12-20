@@ -110,7 +110,7 @@
                                     <%--
                                         the line below checks that the value is of the type we need
                                         and makes sure usage search works fine in case we want to rename or drop
-                                        the propertyAnnotated
+                                        the property
                                      --%>
                                     <jsp:useBean id="value" type="uk.ac.ebi.microarray.atlas.model.PropertyValue"/>
                                     <c:out value="${value.displayValue}"/>
