@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Predicates.in;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
@@ -134,19 +135,10 @@ public class ExperimentPartCriteriaTest {
         ExperimentWithData ewd = createExperimentWithData();
 
         ExperimentPart expPart = experimentPart()
-                .containsAtLeastOneGene(asList(4L, 2L))
+                .containsAtLeastOneGene(in(asList(4L, 2L)))
                 .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
-
-        try {
-            experimentPart()
-                    .containsAtLeastOneGene(Collections.<Long>emptyList())
-                    .retrieveFrom(ewd);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // ok
-        }
     }
 
     @Test

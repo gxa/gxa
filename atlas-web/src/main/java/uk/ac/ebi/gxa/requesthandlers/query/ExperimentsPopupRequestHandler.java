@@ -273,6 +273,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                             jsEfs.add(jsEf);
                     }
                     jsExp.put("efs", jsEfs);
+                    if (jsEfs.size() == 1)
+                       jsExp.put("the_only_ef", "/" + jsEfs.get(0).get("ef"));
                     jsExps.add(jsExp);
                 }
             }

@@ -29,7 +29,6 @@ import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -62,11 +61,13 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Predicates.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
+import static uk.ac.ebi.gxa.utils.Pair.create;
 
 /**
  * @author Olga Melnichuk
@@ -313,31 +314,20 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-            final List<Long> geneIds = isNullOrEmpty(gid) ?
-                    Collections.<Long>emptyList() :
-                    findGeneIds(Arrays.asList(gid.trim()));
-
-            Predicate<Long> geneIdPredicate = geneIds.isEmpty() ?
-                    Predicates.<Long>alwaysTrue() :
-                    Predicates.in(geneIds);
+            final Predicate<Long> geneIdPredicate = genePredicate(gid);
 
             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
             if (!isNullOrEmpty(adAcc)) {
                 criteria.hasArrayDesignAccession(adAcc);
-            } else if (!geneIds.isEmpty()) {
-                criteria.containsAtLeastOneGene(geneIds);
+            } else {
+                criteria.containsAtLeastOneGene(geneIdPredicate);
             }
 
-            // We still don't allow search for best design elements by either just an ef
-            // or just an efv - both need to be specified
-            final Predicate<Pair<String, String>> fvPredicate = isNullOrEmpty(ef) || isNullOrEmpty(efv) ?
-                    Predicates.<Pair<String, String>>alwaysTrue() :
-                    Predicates.equalTo(Pair.create(ef, efv));
 
             BestDesignElementsResult res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
                     geneIdPredicate, updown,
-                    fvPredicate,
+                    createFactorCriteria(ef, efv),
                     offset,
                     limit
             );
@@ -356,6 +346,23 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         } finally {
             closeQuietly(ewd);
         }
+    }
+
+    private static Predicate<Pair<String, String>> createFactorCriteria(final String ef, String efv) {
+        if (isNullOrEmpty(ef)) {
+            return alwaysTrue();
+        } else if (isNullOrEmpty(efv)) {
+            return firstEqualTo(ef);
+        } else {
+            return equalTo(create(ef, efv));
+        }
+    }
+
+    private Predicate<Long> genePredicate(String gid) {
+        if (isNullOrEmpty(gid))
+            return alwaysTrue();
+
+        return in(findGeneIds(Arrays.asList(gid.trim())));
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
@@ -508,5 +515,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         public String getTValue() {
             return tValue;
         }
+    }
+
+    private static Predicate<Pair<String, String>> firstEqualTo(final String s) {
+        return new Predicate<Pair<String, String>>() {
+            @Override
+            public boolean apply(@Nullable Pair<String, String> input) {
+                return input != null && s.equals(input.getFirst());
+            }
+        };
     }
 }
