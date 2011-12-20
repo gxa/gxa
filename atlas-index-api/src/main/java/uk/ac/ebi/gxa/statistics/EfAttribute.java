@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
 
 /**
  * Serializable representation of an experiment factor for the purpose of ConciseSet storage.

@@ -6,6 +6,9 @@ import javax.annotation.Nonnull;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static uk.ac.ebi.gxa.utils.EscapeUtil.encode;
+
 /**
  * Serializable representation of ef-efv for the purpose of ConciseSet storage.
  * This class also represents ef-efvs at bit index query time.
