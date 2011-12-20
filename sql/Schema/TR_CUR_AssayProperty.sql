@@ -50,7 +50,7 @@ begin
   and e.Accession = :old.Experiment;
   
   if ((mPropertyValueID_new is null) and (:new.value is not null)) then
-    raise_application_error(-20010,'propertyAnnotated value not found');
+    raise_application_error(-20010,'property value not found');
   end if;  
   
   if(mPropertyValueID_new is not null) then

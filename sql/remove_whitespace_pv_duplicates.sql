@@ -1,5 +1,5 @@
--- This script serves to remove propertyAnnotated value white space duplicates - i.e. propertyAnnotated values that differ only by a white space.
--- We achieve this by replacing all double spaces with a single one and then removing this created propertyAnnotated value duplicates.
+-- This script serves to remove property value white space duplicates - i.e. property values that differ only by a white space.
+-- We achieve this by replacing all double spaces with a single one and then removing this created property value duplicates.
 -- Note that before duplicates can be removed from A2_*propertyvalue table, in '%PV' tables that have FK constraints pointing to A2_*propertyvalue
 -- the corresponding propertyvalueid's need to be re-pointed to the retained canonical entry in A2_*propertyvalue (c.f. step 5 below).
 --
@@ -25,7 +25,7 @@
 create table temp1 as 
 select genepropertyid, REGEXP_REPLACE(value,'( ){2,}', ' ') as canonical_value, count(*) as count
 from A2_genepropertyvalue group by genepropertyid, REGEXP_REPLACE(value,'( ){2,}', ' ') having count(*) > 1;
--- 2. Find propertyids and propertyAnnotated
+-- 2. Find propertyids and property
 create table temp2 as
 select t1.genepropertyid, gpv.genepropertyvalueid, t1.canonical_value
 from A2_genepropertyvalue gpv
@@ -63,7 +63,7 @@ drop table temp4_canon;
 create table temp1 as 
 select bioentitypropertyid, REGEXP_REPLACE(value,'( ){2,}', ' ') as canonical_value, count(*) as count
 from A2_bioentitypropertyvalue group by bioentitypropertyid, REGEXP_REPLACE(value,'( ){2,}', ' ') having count(*) > 1;
--- 2. Find propertyids and propertyAnnotated
+-- 2. Find propertyids and property
 create table temp2 as
 select t1.bioentitypropertyid, gpv.bepropertyvalueid, t1.canonical_value
 from A2_bioentitypropertyvalue gpv
@@ -101,7 +101,7 @@ drop table temp4_canon;
 create table temp1 as 
 select propertyid, REGEXP_REPLACE(name,'( ){2,}', ' ') as canonical_value, count(*) as count
 from A2_propertyvalue group by propertyid, REGEXP_REPLACE(name,'( ){2,}', ' ') having count(*) > 1;
--- 2. Find propertyids and propertyAnnotated
+-- 2. Find propertyids and property
 create table temp2 as
 select t1.propertyid, gpv.propertyvalueid, t1.canonical_value
 from A2_propertyvalue gpv

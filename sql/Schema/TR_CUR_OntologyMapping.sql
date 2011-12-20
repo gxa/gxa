@@ -81,7 +81,7 @@ begin
    END;
    end if;
    
-   --if(not exists(propertyAnnotated) raise error)
+   --if(not exists(property) raise error)
    --http://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:3069487275935
    for x in (select count(*) cnt 
              from dual 
@@ -94,7 +94,7 @@ begin
     if( x.cnt = 1) then
       null;
     else
-      RAISE_APPLICATION_ERROR(-20010,'propertyAnnotated not exists');
+      RAISE_APPLICATION_ERROR(-20010,'property not exists');        
     end if;
    end loop; 
    
@@ -118,7 +118,7 @@ begin
    if( x.cnt = 1) then
       null;
    else
-      RAISE_APPLICATION_ERROR(-20010,'propertyAnnotated is not associated with either assay of sample');
+      RAISE_APPLICATION_ERROR(-20010,'property is not associated with either assay of sample');
    end if;
    end loop;
     

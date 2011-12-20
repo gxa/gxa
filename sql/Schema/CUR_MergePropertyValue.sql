@@ -1,5 +1,5 @@
 /*******************************************************************************
-reassigning all propertyAnnotated association to new propertyAnnotated, and delete old one
+reassigning all property association to new property, and delete old one
 *******************************************************************************/
 create or replace PROCEDURE CUR_MergePropertyValue(
    mPropertyValueID_old int

@@ -25,7 +25,7 @@ create or replace view CUR_AssayProperty as
 select
 e.Accession Experiment 
 ,a.Accession 
-,p.Name propertyAnnotated
+,p.Name property
 ,pv.Name value
 from a2_Assay a
 join a2_AssayPV apv on apv.AssayID = a.AssayID
@@ -41,7 +41,7 @@ select
   join a2_AssaySample asa on asa.AssayID = a.AssayID
   where asa.SampleID = s.SampleID) Experiment
 ,s.Accession 
-,p.Name propertyAnnotated
+,p.Name property
 ,pv.Name value
 from a2_Sample s
 join a2_SamplePV apv on apv.SampleID = s.SampleID
