@@ -7,6 +7,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.*;
 
@@ -70,14 +71,14 @@ public class StatisticsQueryUtils {
      *
      * @param statisticsQuery   query to be peformed on statisticsStorage
      * @param statisticsStorage core data for Statistics qeries
-     * @param scoringExps       an out parameter.
+     * @param scoringExpsAttrs  an out parameter.
      *                          <p/>
      *                          - If null, experiment counts result of statisticsQuery should be returned. if
      *                          - If non-null, it serves as a flag that an optimised statisticsQuery should be performed to just collect
      *                          Experiments for which non-zero counts exist for Statistics query. A typical call scenario in this case is
      *                          just one efv per statisticsQuery, in which we can both:
      *                          1. check if the efv Attribute itself is a scoring one
-     *                          2. map this Attribute and Experimeants in scoringExps to efo terms - via the reverse mapping efv-experiment-> efo term
+     *                          2. map this Attribute and Experiments in scoringExpsAttrs to efo terms - via the reverse mapping efv-experiment-> efo term
      *                          in EfoIndex (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
      * @return Multiset of aggregated experiment counts, where the set of scores genes is intersected across statisticsQuery.getConditions(),
      *         and union-ed across attributes within each condition in statisticsQuery.getConditions().
@@ -85,11 +86,11 @@ public class StatisticsQueryUtils {
     public static Multiset<Integer> scoreQuery(
             StatisticsQueryCondition statisticsQuery,
             final StatisticsStorage statisticsStorage,
-            Set<ExperimentInfo> scoringExps) {
+            Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
 
         // gatherScoringExpsOnly -> experiment counts should be calculated for statisticsQuery
         // !gatherScoringExpsOnly -> scoring experiments should be collected (into scoringExps) only
-        boolean gatherScoringExpsOnly = scoringExps != null;
+        boolean gatherScoringExpsOnly = scoringExpsAttrs != null;
         Set<StatisticsQueryOrConditions<StatisticsQueryCondition>> andStatisticsQueryConditions = statisticsQuery.getConditions();
 
         Multiset<Integer> results = null;
@@ -123,7 +124,7 @@ public class StatisticsQueryUtils {
                                         statsForExperiment.addAll(intersect(expsToStats.get(exp), bioEntityIdRestrictionSet));
                                     } else if (containsAtLeastOne(expsToStats.get(exp), bioEntityIdRestrictionSet)) {
                                         // exp contains at least one non-zero score for at least one gene index in bioEntityIdRestrictionSet -> add it to scoringExps
-                                        scoringExps.add(exp);
+                                        scoringExpsAttrs.put(exp, Pair.create(statisticsQuery.getStatisticsType(), attr));
                                     }
                                 } else {
                                     log.debug("Failed to retrieve stats for stat: " + statisticsQuery.getStatisticsType() + " exp: " + exp.getAccession() + " and attr: " + attr);
@@ -143,7 +144,7 @@ public class StatisticsQueryUtils {
                 // Pass gene restriction set down to orConditions
                 orConditions.setGeneRestrictionSet(statisticsQuery.getBioEntityIdRestrictionSet());
                 // process OR conditions
-                Multiset<Integer> condGenes = getScoresForOrConditions(orConditions, statisticsStorage, scoringExps);
+                Multiset<Integer> condGenes = getScoresForOrConditions(orConditions, statisticsStorage, scoringExpsAttrs);
 
                 if (results == null)
                     results = condGenes;
@@ -188,22 +189,46 @@ public class StatisticsQueryUtils {
     /**
      * @param statsQuery        StatisticsQueryCondition
      * @param statisticsStorage
-     * @param scoringExps       Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
-     *                          to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
+     * @param scoringExpsAttrs  A map containing
+     *                          - scoring experiments as keys
+     *                          - Collections of scoring statistics type-attribute pairs in experiment key as values.
+     *                          The keys of this map are used in retrieving efos to be displayed in heatmap when no query
+     *                          efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes()).
+     *                          scoringExpsAttrs as a whole is also used in AtlasDownloadService.
      * @return experiment counts corresponding for statsQuery
      */
     public static Multiset<Integer> getExperimentCounts(
             StatisticsQueryCondition statsQuery,
             StatisticsStorage statisticsStorage,
-            Set<ExperimentInfo> scoringExps) {
+            ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
         long start = System.currentTimeMillis();
-        Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
+        Multiset<Integer> counts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExpsAttrs);
         long dur = System.currentTimeMillis() - start;
         int numOfGenesWithCounts = counts.elementSet().size();
         if (numOfGenesWithCounts > 0) {
             log.debug("StatisticsQuery: " + statsQuery.prettyPrint() + " ==> result set size: " + numOfGenesWithCounts + " (duration: " + dur + " ms)");
         }
         return counts;
+    }
+
+    /**
+     * @param statsQuery
+     * @param statisticsStorage
+     * @return A map containing
+     *         - scoring experiments as keys
+     *         - Collections of scoring statistics type-attribute pairs in experiment key as values
+     */
+    public static Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(StatisticsQueryCondition statsQuery,
+                                                                                                           StatisticsStorage statisticsStorage) {
+        Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        long start = System.currentTimeMillis();
+        StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExpsAttrs);
+        long dur = System.currentTimeMillis() - start;
+        int numOfExpsFactors = scoringExpsAttrs.asMap().size();
+        if (numOfExpsFactors > 0) {
+            log.debug("StatisticsQuery: " + statsQuery.prettyPrint() + " ==> result set size: " + numOfExpsFactors + " (duration: " + dur + " ms)");
+        }
+        return scoringExpsAttrs;
     }
 
     /**
@@ -294,19 +319,19 @@ public class StatisticsQueryUtils {
     /**
      * @param orConditions      StatisticsQueryOrConditions<StatisticsQueryCondition>
      * @param statisticsStorage
-     * @param scoringExps       Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
+     * @param scoringExpsAttrs  Set of experiments that have at least one non-zero score for statisticsQuery. This is used retrieving efos
      *                          to be displayed in heatmap when no query efvs exist (c.f. atlasStatisticsQueryService.getScoringAttributesForGenes())
      * @return Multiset<Integer> containing experiment counts corresponding to all attributes in each StatisticsQueryCondition in orConditions
      */
     private static Multiset<Integer> getScoresForOrConditions(
             final StatisticsQueryOrConditions<StatisticsQueryCondition> orConditions,
             StatisticsStorage statisticsStorage,
-            Set<ExperimentInfo> scoringExps) {
+            Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs) {
 
         Multiset<Integer> scores = HashMultiset.create();
         for (StatisticsQueryCondition orCondition : orConditions.getConditions()) {
             orCondition.setBioEntityIdRestrictionSet(orConditions.getBioEntityIdRestrictionSet());
-            scores.addAll(scoreQuery(orCondition, statisticsStorage, scoringExps));
+            scores.addAll(scoreQuery(orCondition, statisticsStorage, scoringExpsAttrs));
         }
 
         // Now apply orConditions' min experiments restriction to scores

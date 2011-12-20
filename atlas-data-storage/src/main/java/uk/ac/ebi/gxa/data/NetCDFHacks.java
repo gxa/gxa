@@ -35,7 +35,7 @@ import java.util.List;
  */
 class NetCDFHacks {
     public static void safeCreate(NetcdfFileWriteable ncdf) throws IOException {
-        updateAttributes(ncdf);
+//        updateAttributes(ncdf);
         ncdf.create();
     }
 

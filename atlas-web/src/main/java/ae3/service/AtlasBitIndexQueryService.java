@@ -1,8 +1,6 @@
 package ae3.service;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +104,18 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     * @param statsQuery
+     * @return A map containing
+     *  - scoring experiments as keys
+     *  - Collections of scoring statistics type-attribute pairs in experiment key as values
+     */
+    public Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
+            final StatisticsQueryCondition statsQuery) {
+        return StatisticsQueryUtils.getScoringExpsAttrs(statsQuery, statisticsStorage);
+    }
+
+
+    /**
      * @param attribute
      * @param bioEntityId
      * @param statType
@@ -151,7 +161,7 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
-            final List<Attribute> orAttributes,
+            final Collection<? extends Attribute> orAttributes,
             final StatisticsType statType,
             int minExperiments) {
         List<Attribute> efoPlusChildren = includeEfoChildren(orAttributes);
@@ -160,9 +170,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
 
     /**
      * @param orAttributes
-     * @return List containing all (afv and efo) attributes in orAttributes, plus the children of all efo's in orAttributes
+     * @return Collection containing all (afv and efo) attributes in orAttributes, plus the children of all efo's in orAttributes
      */
-    private List<Attribute> includeEfoChildren(List<Attribute> orAttributes) {
+    private List<Attribute> includeEfoChildren(Collection<? extends Attribute> orAttributes) {
         // LinkedHashSet for maintaining order of entry - order of processing attributes may be important
         // in multi-Attribute queries for sorted lists of experiments for the gene page
         Set<Attribute> attrsPlusChildren = new LinkedHashSet<Attribute>();
@@ -207,6 +217,20 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             return sortedByCount.subList(min, max);
         }
         return sortedByCount.subList(min, totalResults);
+    }
+
+    /**
+     * @param statsQuery
+     * @param geneIds
+     * @return A subset of geneIds that is scoring according to the statsQuery result
+     */
+    public Set<Integer> restrictGenesByStatsQuery(final StatisticsQueryCondition statsQuery,
+                                                  final Set<Integer> geneIds) {
+        Multiset<Integer> experimentCounts = StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, null);
+        if (!geneIds.isEmpty()) {
+            experimentCounts = StatisticsQueryUtils.intersect(experimentCounts, geneIds);
+        }
+        return experimentCounts.elementSet();
     }
 
     /**
@@ -411,8 +435,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             }
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(bioEntityIds, statType);
             statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(efvAttr), statType, 1));
-            Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
-            StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
+            ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+            StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExpsAttrs);
+            Set<ExperimentInfo> scoringExps = scoringExpsAttrs.asMap().keySet();
             if (scoringExps.size() > 0) { // at least one bioEntityId in bioEntityIds had an experiment count > 0 for attr
                 if (attrCounts != null)
                     attrCounts.add(efvAttr, scoringExps.size());
@@ -430,6 +455,21 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param bioEntityIds
      * @param statType
+     * @param autoFactors  set of factors of interest; if null, all factors are included
+     * @return Unsorted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
+     */
+    public Multiset<EfvAttribute> getUnsortedScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds,
+            StatisticsType statType,
+            @Nullable Collection<String> autoFactors) {
+        Multiset<EfvAttribute> attrCounts = create();
+        collectScoringAttributes(bioEntityIds, statType, autoFactors, attrCounts, null);
+        return attrCounts;
+    }
+
+    /**
+     * @param bioEntityIds
+     * @param statType
      * @return Set of efo's with non-zero statType experiment counts for bioEntityIds
      */
     public Set<String> getScoringEfosForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType) {
@@ -441,15 +481,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     /**
      * @param bioEntityIds
      * @param statType
-     * @param autoFactors  set of factors of interest
-     * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
+     * @param autoFactors  set of factors of interest; if null, all factors are included
+     * @return Sorted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efv (note: not efo) attribute
      */
-    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(Set<Integer> bioEntityIds, StatisticsType statType, Collection<String> autoFactors) {
+    public List<Multiset.Entry<EfvAttribute>> getSortedScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds, StatisticsType statType, @Nullable Collection<String> autoFactors) {
         long timeStart = System.currentTimeMillis();
 
-        Multiset<EfvAttribute> attrCounts = create();
-        collectScoringAttributes(bioEntityIds, statType, autoFactors, attrCounts, null);
-
+        Multiset<EfvAttribute> attrCounts =  getUnsortedScoringAttributesForBioEntities(bioEntityIds, statType, autoFactors);
         List<Multiset.Entry<EfvAttribute>> sortedAttrCounts = getEntriesBetweenMinMaxFromListSortedByCount(attrCounts, 0, attrCounts.entrySet().size());
 
         log.debug("Retrieved " + sortedAttrCounts.size() + " sorted scoring attributes for statType: " + statType + " and bioentity ids: (" + bioEntityIds + ") in " + (System.currentTimeMillis() - timeStart) + "ms");
@@ -468,9 +507,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             final StatisticsType statType) {
         StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
         statsQuery.and(getStatisticsOrQuery(Collections.<Attribute>singletonList(attribute), statType, 1));
-        Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
-        StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExps);
-        return scoringExps;
+        ArrayListMultimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        StatisticsQueryUtils.getExperimentCounts(statsQuery, statisticsStorage, scoringExpsAttrs);
+        return scoringExpsAttrs.asMap().keySet();
     }
 
     /**
@@ -481,14 +520,6 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             final Attribute attribute,
             Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs) {
         attribute.getAttributeToExperimentMappings(statisticsStorage, allExpsToAttrs);
-    }
-
-    /**
-     * @param statType
-     * @return Collection of unique experiments with expressions for statType
-     */
-    public Collection<ExperimentInfo> getScoringExperiments(StatisticsType statType) {
-        return statisticsStorage.getScoringExperiments(statType);
     }
 
     /**
