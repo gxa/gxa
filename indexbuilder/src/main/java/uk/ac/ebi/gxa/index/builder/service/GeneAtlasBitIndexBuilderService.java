@@ -188,7 +188,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             // Exclude NA p/t vals from bit index
                             if (upDown.isNA()) continue;
 
-                            PTRank pt = PTRank.of(p, t);
+                            final PTRank pt = PTRank.of(p, t);
                             car++;
                             if (upDown.isNonDe()) {
                                 noBioEntityIds.add(bioEntityId);
