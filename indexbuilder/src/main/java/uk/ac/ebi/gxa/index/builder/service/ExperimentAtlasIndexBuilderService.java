@@ -86,7 +86,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         super.processCommand(cmd, progressUpdater);
         String accession = cmd.getAccession();
 
-        getLog().info("Updating index for experiment " + accession);
+        getLog().debug("Updating index for experiment " + accession);
 
         try {
             progressUpdater.update("0/1");
@@ -108,7 +108,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         // Create a new solr document
         SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-        getLog().info("Updating index - adding experiment {}", experiment.getAccession());
+        getLog().debug("Updating index - adding experiment {}", experiment.getAccession());
 
         solrInputDoc.addField("id", experiment.getId());
         solrInputDoc.addField("accession", experiment.getAccession());
@@ -123,8 +123,9 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
 
         solrInputDoc.addField("digest", experiment.getDigest());
 
-        getLog().info("Finalising changes for {}", experiment);
+        getLog().debug("Finalising changes for {}", experiment);
         getSolrServer().add(solrInputDoc);
+        getLog().info("Processed experiment: {}", experiment.getAccession());
     }
 
     private void addAssayInformation(SolrInputDocument solrInputDoc, Experiment experiment) {
