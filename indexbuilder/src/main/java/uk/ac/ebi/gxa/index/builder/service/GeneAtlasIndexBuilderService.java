@@ -146,7 +146,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         log(sblog, start, "adding genes to Solr index...");
                         getSolrServer().add(solrDocs);
                         log(sblog, start, "... batch complete.");
-                        getLog().info("Gene chunk done:\n" + sblog);
+                        getLog().debug("Gene chunk done:\n" + sblog);
 
                         return true;
                     } catch (RuntimeException e) {
