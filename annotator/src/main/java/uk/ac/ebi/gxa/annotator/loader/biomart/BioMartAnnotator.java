@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
+import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
 import uk.ac.ebi.gxa.annotator.loader.data.*;
@@ -111,8 +111,8 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
             reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
 
         } catch (AnnotationSourceAccessException e) {
-            reportError(new AtlasAnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
-        } catch (AtlasAnnotationException e) {
+            reportError(new AnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
+        } catch (AnnotationException e) {
             reportError(e);
         }
     }
@@ -160,14 +160,14 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
 
             reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
         } catch (AnnotationSourceAccessException e) {
-            reportError(new AtlasAnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e));
-        } catch (AtlasAnnotationException e) {
+            reportError(new AnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e));
+        } catch (AnnotationException e) {
             e.printStackTrace();
             reportError(e);
         }
     }
 
-    private <T extends BioEntityData> void readBioEntities(URL beURL, AnnotationParser<T> parser) throws AtlasAnnotationException {
+    private <T extends BioEntityData> void readBioEntities(URL beURL, AnnotationParser<T> parser) throws AnnotationException {
         if (beURL != null) {
             reportProgress("Reading bioentities for " + annSrc.getOrganism().getName());
             parser.parseBioEntities(beURL, annSrc.getOrganism());

@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.annotator.process;
 import au.com.bytecode.opencsv.CSVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
+import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityDataBuilder;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -34,6 +34,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
@@ -71,7 +72,7 @@ public class AnnotationParser<T extends BioEntityData> {
         builder.createNewData(bioEntityTypes);
     }
 
-    public void parseBioEntities(URL url, Organism organism) throws AtlasAnnotationException {
+    public void parseBioEntities(URL url, Organism organism) throws AnnotationException {
         CSVReader csvReader = null;
         try {
             csvReader = new CSVReader(getReader(url), separator, '"');
@@ -79,7 +80,7 @@ public class AnnotationParser<T extends BioEntityData> {
 
             while ((line = csvReader.readNext()) != null) {
                 if (line.length < bioEntityTypes.size() || line[0].contains("Exception")) {
-                    throw new AtlasAnnotationException("Cannot update Bioentities for Organism.Problem when connecting to biomart: " + organism.getName());
+                    throw new AnnotationException("Cannot update Bioentities for Organism.Problem when connecting to biomart: " + organism.getName());
                 }
 
                 int columnCount = 0;
@@ -89,13 +90,13 @@ public class AnnotationParser<T extends BioEntityData> {
                 }
             }
         } catch (IOException e) {
-            throw new AtlasAnnotationException("Cannot update Bioentities for Organism.Problem when connecting to biomart: " + organism.getName(), e);
+            throw new AnnotationException("Cannot update Bioentities for Organism.Problem when connecting to biomart: " + organism.getName(), e);
         } finally {
             closeQuietly(csvReader);
         }
     }
 
-    public void parsePropertyValues(BioEntityProperty property, URL url) throws AtlasAnnotationException {
+    public void parsePropertyValues(BioEntityProperty property, URL url) throws AnnotationException {
         CSVReader csvReader = null;
         try {
             csvReader = new CSVReader(getReader(url), separator, '"');
@@ -118,28 +119,28 @@ public class AnnotationParser<T extends BioEntityData> {
 
             }
         } catch (IOException e) {
-            throw new AtlasAnnotationException("Cannot get property " + property.getName() + "from " + url, e);
+            throw new AnnotationException("Cannot get property " + property.getName() + "from " + url, e);
         } finally {
             closeQuietly(csvReader);
         }
     }
 
-    public void parsePropertyValues(Collection<BioEntityProperty> properties, URL url, boolean isFirstLineHeader) throws AtlasAnnotationException {
+    public void parsePropertyValues(Collection<BioEntityProperty> properties, InputStream input, boolean isFirstLineHeader) throws AnnotationException {
         CSVReader csvReader = null;
         try {
-            csvReader = new CSVReader(getReader(url), separator, '"');
+            csvReader = new CSVReader(new InputStreamReader(input), separator, '"');
 
             String[] line;
             int lineCount = 0;
 
             if (isFirstLineHeader && (line = csvReader.readNext()) != null) {
                 //ToDo: match column names and property names
-                validateLine(line, "Cannot get properties from URL " + url);
+                validateLine(line, "Annotation data are not valid");
             }
 
             while ((line = csvReader.readNext()) != null) {
 
-                validateLine(line, "Cannot get properties from URL " + url);
+                validateLine(line, "Annotation data are not valid");
 
                 int propertyCount = 0;
                 for (BioEntityProperty property : properties) {
@@ -156,13 +157,13 @@ public class AnnotationParser<T extends BioEntityData> {
 
             }
         } catch (IOException e) {
-            throw new AtlasAnnotationException("Cannot get properties form  URL " + url, e);
+            throw new AnnotationException("Cannot get access annotation data", e);
         } finally {
             closeQuietly(csvReader);
         }
     }
 
-    public void parseDesignElementMappings(URL url) throws AtlasAnnotationException {
+    public void parseDesignElementMappings(URL url) throws AnnotationException {
         CSVReader csvReader = null;
         try {
             csvReader = new CSVReader(getReader(url), separator, '"');
@@ -184,17 +185,17 @@ public class AnnotationParser<T extends BioEntityData> {
 
             }
         } catch (IOException e) {
-            throw new AtlasAnnotationException("Cannot update design element mappings", e);
+            throw new AnnotationException("Cannot update design element mappings", e);
         } finally {
             closeQuietly(csvReader);
         }
     }
 
-    private void validateLine(String[] line, String exceptionMsg) throws AtlasAnnotationException {
+    private void validateLine(String[] line, String exceptionMsg) throws AnnotationException {
 
         if (line.length < bioEntityTypes.size() + 1 || line[0].contains("Exception")) {
             log.debug("{} line: {}", exceptionMsg, Arrays.toString(line));
-            throw new AtlasAnnotationException(exceptionMsg);
+            throw new AnnotationException(exceptionMsg);
         }
     }
 
@@ -206,7 +207,7 @@ public class AnnotationParser<T extends BioEntityData> {
         this.separator = separator;
     }
 
-    public T getData() throws AtlasAnnotationException {
+    public T getData() throws AnnotationException {
         return builder.getBioEntityData();
     }
 

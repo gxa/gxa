@@ -26,12 +26,12 @@ package uk.ac.ebi.gxa.annotator;
  * User: nsklyar
  * Date: 02/08/2011
  */
-public class AtlasAnnotationException extends Exception {
-    public AtlasAnnotationException(String s) {
+public class AnnotationException extends Exception {
+    public AnnotationException(String s) {
         super(s);
     }
 
-    public AtlasAnnotationException(String s, Throwable throwable) {
+    public AnnotationException(String s, Throwable throwable) {
         super(s, throwable);
     }
 }

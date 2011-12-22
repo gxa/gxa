@@ -1,15 +1,17 @@
 package uk.ac.ebi.gxa.annotator.process;
 
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
+import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
 import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
 import uk.ac.ebi.gxa.annotator.loader.filebased.GeneSigConnection;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.utils.FileUtil;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 /**
  * User: nsklyar
@@ -30,12 +32,13 @@ public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
             AnnotationParser<BioEntityAnnotationData> parser = AnnotationParser.initParser(attributesHandler.getTypes(), builder);
             parser.setSeparator(annSrc.getSeparator());
 
-            GeneSigConnection martConnection = annSrc.createConnection();
-
             reportProgress("Reading properties from Annotation Source " + annSrc.getName());
-            //read properties
+            File contentAsFile = FileUtil.tempFile("genesig.tmp");
+            URLContentLoader.getContentAsFile(annSrc.getUrl(), contentAsFile);
+
+            reportProgress("Parsing properties from Annotation Source " + annSrc.getName());
             parser.parsePropertyValues(attributesHandler.getBioEntityProperties(),
-                    martConnection.getURL(), true);
+                    new FileInputStream(contentAsFile), true);
 
             final BioEntityAnnotationData data = parser.getData();
 
@@ -43,12 +46,14 @@ public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
             beDataWriter.writeBioEntityToPropertyValues(data, annSrc, true, listener);
 
             reportSuccess("Update annotations from Annotation Source " + annSrc.getName() + " completed");
-        } catch (AtlasAnnotationException e) {
+            contentAsFile.delete();
+        } catch (AnnotationException e) {
             reportError(e);
-        } catch (AnnotationSourceAccessException e) {
-            reportError(new AtlasAnnotationException("Cannot read annotations from URL " + annSrc.getUrl() +
+
+        } catch (FileNotFoundException e) {
+            reportError(new AnnotationException("Cannot read annotations from URL " + annSrc.getUrl() +
                     " for AnnSrc " + annSrc.getName(), e));
-        } 
+        }
     }
 
     @Override

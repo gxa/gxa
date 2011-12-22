@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.loader.data;
 
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
+import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
@@ -42,11 +42,11 @@ public abstract class BioEntityDataBuilder<T extends BioEntityData> {
 
     public abstract void createNewData(List<BioEntityType> types);
 
-    public T getBioEntityData() throws AtlasAnnotationException {
+    public T getBioEntityData() throws AnnotationException {
         if (isValidData())
             return data;
         else
-            throw new AtlasAnnotationException("Annotation/Mapping data is not valid");
+            throw new AnnotationException("Annotation/Mapping data is not valid");
     }
 
     boolean isValidData() {

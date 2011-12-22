@@ -5,7 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.AtlasAnnotationException;
+import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
@@ -15,6 +15,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 import static com.google.common.collect.Iterables.getFirst;
@@ -67,13 +69,13 @@ public abstract class Annotator<T extends AnnotationSource> {
         private final Set<ExternalBioEntityProperty> externalBioEntityProperties;
 
 
-        public BETypeExternalAttributesHandler(AnnotationSource annSrc) throws AtlasAnnotationException {
+        public BETypeExternalAttributesHandler(AnnotationSource annSrc) throws AnnotationException {
             this.externalBioEntityProperties = Collections.unmodifiableSet(annSrc.getExternalBioEntityProperties());
             bioEntityTypeColumns = new ArrayList<BioEntityTypeColumns>(annSrc.getTypes().size());
             for (BioEntityType type : annSrc.getTypes()) {
 
                 if (getExternalPropertyNamesForProperty(type.getIdentifierProperty()).isEmpty()) {
-                    throw new AtlasAnnotationException("Annotation source not valid ");
+                    throw new AnnotationException("Annotation source not valid ");
                 }
 
                 BioEntityTypeColumns columns = new BioEntityTypeColumns(type,
