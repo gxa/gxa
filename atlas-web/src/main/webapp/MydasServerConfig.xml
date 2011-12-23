@@ -110,7 +110,7 @@
                     doc_href="http://www.ebi.ac.uk/gxa"
                     mapmaster="${atlas.dasbase}/s4">
 
-            <maintainer email="ostolop@ebi.ac.uk" />
+            <maintainer email="rpetry@ebi.ac.uk" />
 
             <version uri="s4" created="2010-08-13">
                 <class>ae3.service.GxaS4DasDataSource</class>
@@ -126,7 +126,7 @@
                 <capability type="das1:features" query_uri="${atlas.dasbase}/s4/features?segment=ENSG00000162552" />
             </version>
 
-            <stylesheet>TEST.style</stylesheet>
+            <stylesheet>das.css</stylesheet>
             <dna-command-enabled>true</dna-command-enabled>
             <use-feature-id-for-feature-label>true</use-feature-id-for-feature-label>
             <include-types-with-zero-count>true</include-types-with-zero-count>
