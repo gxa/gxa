@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.helper;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
@@ -50,6 +51,11 @@ public class PlotterRequestHandler extends AbstractRestRequestHandler {
 
     public Object process(HttpServletRequest request) throws ServletException {
         RequestWrapper req = new RequestWrapper(request);
+
+        // Prevent polluting our logs with ServletExceptions for invalid (deprecated) queries
+        // still often issued to this handler by web crawlers
+        if (!Strings.isNullOrEmpty(req.getStr("eid")))
+            return null;
 
         try {
             final Experiment eacc = experimentDAO.getByName(req.getStr("eacc"));
