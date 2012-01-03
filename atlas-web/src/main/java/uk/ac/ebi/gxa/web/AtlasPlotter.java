@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web;
 import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -149,6 +150,8 @@ public class AtlasPlotter {
 
         // lookup gene names, again using SOLR index
         for (String geneIdStr : geneIdKey.split(",")) {
+            if (Strings.isNullOrEmpty(geneIdStr))
+                continue;
             GeneSolrDAO.AtlasGeneResult gene = geneSolrDAO.getGeneById(Long.parseLong(geneIdStr));
             if (gene.isFound()) {
                 AtlasGene atlasGene = gene.getGene();

@@ -22,6 +22,7 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -114,7 +115,10 @@ public class AtlasStructuredQueryParser {
         for (String id : findPrefixParamsSuffixes(httpRequest, PARAM_FACTOR)) {
             ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
             try {
-                condition.setExpression(QueryExpression.parseFuzzyString(httpRequest.getParameter(PARAM_EXPRESSION + id)));
+                if (!Strings.isNullOrEmpty(httpRequest.getParameter(PARAM_EXPRESSION + id)))
+                    condition.setExpression(QueryExpression.parseFuzzyString(httpRequest.getParameter(PARAM_EXPRESSION + id)));
+                else
+                    condition.setExpression(QueryExpression.UP_DOWN);
                 condition.setMinExperiments(EscapeUtil.parseNumber(httpRequest.getParameter(PARAM_MINEXPERIMENTS + id), 1, 1, Integer.MAX_VALUE));
 
                 String factor = httpRequest.getParameter(PARAM_FACTOR + id);
