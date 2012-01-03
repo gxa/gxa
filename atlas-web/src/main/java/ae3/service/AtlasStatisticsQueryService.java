@@ -6,6 +6,7 @@ import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;

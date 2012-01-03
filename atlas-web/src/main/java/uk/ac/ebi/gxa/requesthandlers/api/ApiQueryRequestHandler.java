@@ -38,6 +38,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;

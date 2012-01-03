@@ -1,9 +1,6 @@
 package uk.ac.ebi.gxa.statistics;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multiset;
+import com.google.common.collect.*;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;

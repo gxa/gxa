@@ -36,6 +36,8 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
+import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;

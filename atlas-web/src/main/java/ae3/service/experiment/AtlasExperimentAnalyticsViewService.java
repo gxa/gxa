@@ -3,6 +3,7 @@ package ae3.service.experiment;
 import ae3.dao.GeneSolrDAO;
 import com.google.common.base.Predicate;
 import it.uniroma3.mat.extendedset.FastSet;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.Best;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;

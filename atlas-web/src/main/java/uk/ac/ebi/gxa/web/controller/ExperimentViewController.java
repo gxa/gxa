@@ -44,12 +44,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

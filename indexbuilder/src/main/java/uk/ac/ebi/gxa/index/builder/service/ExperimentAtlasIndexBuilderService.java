@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

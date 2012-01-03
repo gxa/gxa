@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;

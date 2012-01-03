@@ -57,10 +57,12 @@ import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.*;
 

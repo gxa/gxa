@@ -28,12 +28,14 @@ import ucar.ma2.ArrayChar;
 import ucar.nc2.NetcdfFile;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.gxa.utils.ResourceUtil;
+import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertArrayEquals;
 import static uk.ac.ebi.gxa.utils.FileUtil.getMD5;
 import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 

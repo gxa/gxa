@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
+import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
