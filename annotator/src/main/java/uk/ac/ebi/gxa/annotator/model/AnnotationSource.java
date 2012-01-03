@@ -31,7 +31,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.*;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -48,32 +47,26 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
         name = "annsrctype",
         discriminatorType = DiscriminatorType.STRING
 )
-public abstract class AnnotationSource implements Serializable {
+public abstract class AnnotationSource {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
     @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ", allocationSize = 1)
-    protected Long annotationSrcId;
-
-    /**
-     * Location of biomart martservice, e.g.:
-     * "http://www.ensembl.org/biomart/martservice?"
-     * "http://plants.ensembl.org/biomart/martservice?"
-     */
+    private Long annotationSrcId = null;
 
     @Column(name = "url")
-    protected String url;
+    private String url;
 
     @ManyToOne()
-    protected Software software;
+    private Software software;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
-    protected Set<BioEntityType> types = new HashSet<BioEntityType>();
+    private Set<BioEntityType> types = new HashSet<BioEntityType>();
 
     @Temporal(TemporalType.DATE)
-    protected Date loadDate;
+    private Date loadDate;
 
     @org.hibernate.annotations.Type(type = "true_false")
     private boolean isApplied = false;
@@ -84,7 +77,7 @@ public abstract class AnnotationSource implements Serializable {
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    protected Set<ExternalBioEntityProperty> externalBioEntityProperties = new HashSet<ExternalBioEntityProperty>();
+    private Set<ExternalBioEntityProperty> externalBioEntityProperties = new HashSet<ExternalBioEntityProperty>();
     @OneToMany(targetEntity = ExternalArrayDesign.class
             , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}
@@ -92,7 +85,7 @@ public abstract class AnnotationSource implements Serializable {
             , orphanRemoval = true
     )
     @Fetch(FetchMode.SUBSELECT)
-    protected Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
+    private Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
 
     private String name;
 
@@ -117,6 +110,13 @@ public abstract class AnnotationSource implements Serializable {
 
     protected abstract String createName();
 
+    /**
+     * Location of biomart martservice, e.g.:
+     * "http://www.ensembl.org/biomart/martservice?"
+     * "http://plants.ensembl.org/biomart/martservice?"
+     * or location of other annotations
+     * @return location
+     */
     public String getUrl() {
         return url;
     }

@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -120,8 +120,8 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testGetByIdWithoutType() {
         AnnotationSource annotationSource = annSrcDAO.getById(1000);
         Assert.assertNotNull(annotationSource);
-        final AnnotationSourceClass byClass = AnnotationSourceClass.getByClass(annotationSource.getClass());
-        assertEquals(BioMartAnnotationSource.class, byClass.getClazz());
+        final AnnotationSourceType byType = AnnotationSourceType.getByClass(annotationSource.getClass());
+        assertEquals(BioMartAnnotationSource.class, byType.getClazz());
     }
 
     @Test

@@ -1,13 +1,10 @@
 package uk.ac.ebi.gxa.annotation;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationSourceManager;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
@@ -27,8 +24,8 @@ public class AnnotationSourceController {
 
     public Collection<AnnotationSourceView> getBioMartAnnSrcViews() {
         List<AnnotationSourceView> viewSources = new ArrayList<AnnotationSourceView>();
-        for (AnnotationSourceClass sourceClass : AnnotationSourceClass.values()) {
-            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = annotationSourceManager.getCurrentAnnotationSourcesOfType(sourceClass.getClazz());
+        for (AnnotationSourceType sourceType : AnnotationSourceType.values()) {
+            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = annotationSourceManager.getCurrentAnnotationSourcesOfType(sourceType.getClazz());
             for (AnnotationSource annSrc : currentAnnotationSourcesOfType) {
                 ValidationReport validationReport = new ValidationReport(annSrc.findInvalidProperties());
                 AnnotationSourceView view = new AnnotationSourceView(annSrc, validationReport);
@@ -45,11 +42,11 @@ public class AnnotationSourceController {
     }
 
     public String getAnnSrcString(String id, String type) {
-        return annotationSourceManager.getAnnSrcString(id, AnnotationSourceClass.getByName(type));
+        return annotationSourceManager.getAnnSrcString(id, AnnotationSourceType.getByName(type));
     }
 
     public void saveAnnSrc(String id, String type, String text) {
-        annotationSourceManager.saveAnnSrc(id, AnnotationSourceClass.getByName(type), text);
+        annotationSourceManager.saveAnnSrc(id, AnnotationSourceType.getByName(type), text);
     }
 
     public static class AnnotationSourceView {
@@ -97,7 +94,7 @@ public class AnnotationSourceController {
         }
 
         public String getType() {
-            return AnnotationSourceClass.getByClass(annSrc.getClass()).getName();
+            return AnnotationSourceType.getByClass(annSrc.getClass()).getName();
         }
     }
 

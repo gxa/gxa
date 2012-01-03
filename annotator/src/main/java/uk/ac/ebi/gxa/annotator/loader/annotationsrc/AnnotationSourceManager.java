@@ -7,7 +7,7 @@ import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourceConnection;
 import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceType;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
@@ -32,8 +32,8 @@ public class AnnotationSourceManager {
 
     public Collection<AnnotationSource> getCurrentAnnotationSources() {
         final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
-        for (AnnotationSourceClass sourceClass : AnnotationSourceClass.values()) {
-            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = getCurrentAnnotationSourcesOfType(sourceClass.getClazz());
+        for (AnnotationSourceType sourceType : AnnotationSourceType.values()) {
+            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = getCurrentAnnotationSourcesOfType(sourceType.getClazz());
             result.addAll(currentAnnotationSourcesOfType);
         }
         return result;
@@ -67,14 +67,14 @@ public class AnnotationSourceManager {
         return result;
     }
 
-        public String getAnnSrcString(String id, AnnotationSourceClass type) {
-        final AnnotationSourceConverter converter = annotationSourceConverterFactory.getConverter(type.getClazz());
+        public String getAnnSrcString(String id, AnnotationSourceType type) {
+        final AnnotationSourceConverter converter = type.createConverter(annotationSourceConverterFactory);
         return converter.convertToString(id);
     }
 
     @Transactional
-    public void saveAnnSrc(String id, AnnotationSourceClass type, String text) {
-        final AnnotationSourceConverter converter = annotationSourceConverterFactory.getConverter(type.getClazz());
+    public void saveAnnSrc(String id, AnnotationSourceType type, String text) {
+        final AnnotationSourceConverter converter = type.createConverter(annotationSourceConverterFactory);
         try {
             final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(id, text);
             annSrcDAO.save(annotationSource);

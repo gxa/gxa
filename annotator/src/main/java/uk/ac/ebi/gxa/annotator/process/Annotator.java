@@ -37,6 +37,10 @@ public abstract class Annotator<T extends AnnotationSource> {
         this.beDataWriter = beDataWriter;
     }
 
+    protected Annotator(AtlasBioEntityDataWriter beDataWriter) {
+        this.beDataWriter = beDataWriter;
+    }
+
     public abstract void updateAnnotations();
 
     public abstract void updateMappings();

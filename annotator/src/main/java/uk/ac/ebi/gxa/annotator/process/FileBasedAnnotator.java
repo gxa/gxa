@@ -2,10 +2,8 @@ package uk.ac.ebi.gxa.annotator.process;
 
 import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
-import uk.ac.ebi.gxa.annotator.loader.biomart.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
-import uk.ac.ebi.gxa.annotator.loader.filebased.GeneSigConnection;
 import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.utils.FileUtil;
 

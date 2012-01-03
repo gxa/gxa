@@ -46,26 +46,26 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     @JoinColumn(table = "A2_BIOMART_ANNSRC")
     @ManyToOne()
-    private Organism organism;
+    private Organism organism = null;
 
     /**
      * e.g. "hsapiens_gene_ensembl", "spombe_eg_gene"
      */
     @Column(table = "A2_BIOMART_ANNSRC", name = "biomartorganismname")
-    private String datasetName;
+    private String datasetName = null;
 
     /**
      * Value of property "database" in BioMart registry, version number is removed.
      * e.g. "metazoa", "fungal"
      */
     @Column(table = "A2_BIOMART_ANNSRC", name = "databaseName")
-    private String databaseName;
+    private String databaseName = null;
 
     @Column(table = "A2_BIOMART_ANNSRC")
-    private String mySqlDbName;
+    private String mySqlDbName = null;
 
     @Column(table = "A2_BIOMART_ANNSRC")
-    private String mySqlDbUrl;
+    private String mySqlDbUrl = null;
 
     BioMartAnnotationSource() {
     }
@@ -73,7 +73,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
     @Override
     protected String createName() {
         StringBuilder sb = new StringBuilder();
-        sb.append(organism.getName()).append(" / ").append(software.getFullName());
+        sb.append(organism.getName()).append(" / ").append(getSoftware().getFullName());
         return sb.toString();
     }
 
@@ -88,7 +88,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
     }
 
     public BioEntityType getBioEntityType(final String name) {
-        for (BioEntityType type : types) {
+        for (BioEntityType type : getTypes()) {
             if (type.getName().equals(BioEntityType.ENSGENE))
                 return type;
         }
@@ -144,9 +144,9 @@ public class BioMartAnnotationSource extends AnnotationSource {
     public String toString() {
         return "BioMartAnnotationSource{" + '\'' +
                 super.toString() + '\'' +
-                "url='" + url + '\'' +
+                "url='" + getUrl() + '\'' +
                 ", datasetName='" + datasetName + '\'' +
-                ", externalBioEntityProperties=" + externalBioEntityProperties +
+                ", externalBioEntityProperties=" + getExternalBioEntityProperties() +
                 "} ";
     }
 

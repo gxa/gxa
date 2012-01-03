@@ -23,16 +23,13 @@
 package uk.ac.ebi.gxa.annotator.loader;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotator;
 import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.process.Annotator;
-import uk.ac.ebi.gxa.annotator.process.FileBasedAnnotator;
-import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
+import uk.ac.ebi.gxa.annotator.process.AnnotatorFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 /**
@@ -41,14 +38,13 @@ import uk.ac.ebi.gxa.exceptions.LogUtil;
  */
 public class AnnotationProcessor {
 
-    private AtlasBioEntityDataWriter beDataWriter;
+    @Autowired
     private AnnotationSourceDAO annSrcDAO;
-    private BioEntityPropertyDAO propertyDAO;
 
-    public AnnotationProcessor(AtlasBioEntityDataWriter beDataWriter, AnnotationSourceDAO annotationSourceDAO, BioEntityPropertyDAO propertyDAO) {
-        this.beDataWriter = beDataWriter;
-        this.annSrcDAO = annotationSourceDAO;
-        this.propertyDAO = propertyDAO;
+    @Autowired
+    private AnnotatorFactory annotatorFactory;
+
+    public AnnotationProcessor() {
     }
 
     public void updateAnnotations(String annSrcId, AnnotationLoaderListener listener) {
@@ -78,12 +74,7 @@ public class AnnotationProcessor {
 
     private Annotator getAnnotator(String id) {
         final AnnotationSource annotationSource = fetchAnnSrcById(id);
-        final AnnotationSourceClass annSrcClass = AnnotationSourceClass.getByClass(annotationSource.getClass());
-        if (annSrcClass.equals(AnnotationSourceClass.BIOMART)) {
-            return new BioMartAnnotator((BioMartAnnotationSource) annotationSource, annSrcDAO, propertyDAO, beDataWriter);
-        } else if (AnnotationSourceClass.FILE.equals(annSrcClass)) {
-            return new FileBasedAnnotator((GeneSigAnnotationSource) annotationSource, beDataWriter);
-        } else
-            throw new IllegalArgumentException("There is no annotator for class " + annSrcClass);
+        final AnnotationSourceType annSrcType = AnnotationSourceType.getByClass(annotationSource.getClass());
+        return annSrcType.createAnnotator(annotatorFactory, annotationSource);
     }
 }

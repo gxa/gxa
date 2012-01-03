@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSourceClass;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSourceType;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 
@@ -44,14 +44,14 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetAnnSrcString() throws Exception {
-        final String annSrcString = manager.getAnnSrcString("1000", AnnotationSourceClass.BIOMART);
+        final String annSrcString = manager.getAnnSrcString("1000", AnnotationSourceType.BIOMART);
         assertEquals(BioMartAnnotationSourceConverterTest.ANN_SRC_DB, annSrcString.trim());
     }
 
     @Test
     public void testSaveAnnSrc() throws Exception {
-        manager.saveAnnSrc(null, AnnotationSourceClass.FILE, FileBasedAnnotationSourceConverterTest.ANN_SRC);
-        final Collection<? extends AnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(AnnotationSourceClass.FILE.getClazz());
+        manager.saveAnnSrc(null, AnnotationSourceType.FILE, FileBasedAnnotationSourceConverterTest.ANN_SRC);
+        final Collection<? extends AnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(AnnotationSourceType.FILE.getClazz());
         assertEquals(2, sources.size());
     }
 }

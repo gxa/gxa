@@ -26,7 +26,7 @@ public class GeneSigAnnotationSource extends AnnotationSource {
 
     @Override
     protected String createName() {
-        return software.getFullName();
+        return getSoftware().getFullName();
     }
 
     public GeneSigAnnotationSource createCopyForNewSoftware(Software newSoftware) {
