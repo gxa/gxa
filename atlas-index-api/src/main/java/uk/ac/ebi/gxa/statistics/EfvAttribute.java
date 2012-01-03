@@ -43,7 +43,7 @@ public class EfvAttribute extends EfAttribute implements Serializable {
     }
 
     private static String encodePair(@Nonnull final String ef, @Nonnull final String efv) {
-        return !Strings.isNullOrEmpty(ef) && !Strings.isNullOrEmpty(ef) ? ef + EF_EFV_SEP + efv : null;
+        return !Strings.isNullOrEmpty(ef) && !Strings.isNullOrEmpty(efv) ? ef + EF_EFV_SEP + efv : null;
     }
 
     /**

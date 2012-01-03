@@ -26,7 +26,7 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.10</version>
+        <version>2.0.10.1</version>
     </parent>
     <dependencies>
         <!-- batik for anatomogramms -->
@@ -56,7 +56,7 @@
     </dependencies>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-utils</artifactId>
-    <version>2.0.10</version>
+    <version>2.0.10.1</version>
     <name>Gene Expression Atlas Java Utility Classes</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 </project>
