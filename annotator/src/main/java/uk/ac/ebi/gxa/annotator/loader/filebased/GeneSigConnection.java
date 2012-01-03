@@ -68,7 +68,6 @@ public class GeneSigConnection extends AnnotationSourceConnection<GeneSigAnnotat
     }
 
     public URL getURL() throws AnnotationSourceAccessException {
-//        return new File(location).toURL();
         try {
             return new URI(urlLocation).toURL();
         } catch (MalformedURLException e) {
