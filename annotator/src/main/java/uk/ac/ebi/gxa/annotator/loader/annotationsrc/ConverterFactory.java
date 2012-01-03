@@ -17,16 +17,6 @@ public class ConverterFactory {
     @Autowired
     private FileBasedAnnotationSourceConverter fileBasedAnnotationSourceConverter;
 
-
-    public <T extends AnnotationSource> AnnotationSourceConverter getConverter(Class<T> clazz) {
-        if (clazz.equals(AnnotationSourceType.BIOMART.getClazz())) {
-            return bioMartAnnotationSourceConverter;
-        } else if (AnnotationSourceType.FILE.getClazz().equals(clazz)) {
-            return fileBasedAnnotationSourceConverter;
-        } else
-        throw new IllegalArgumentException("There is no converter for class " + clazz);
-    }
-
     public BioMartAnnotationSourceConverter getBioMartAnnotationSourceConverter() {
         return bioMartAnnotationSourceConverter;
     }
