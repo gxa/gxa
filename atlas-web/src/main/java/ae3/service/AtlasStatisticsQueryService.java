@@ -1,11 +1,11 @@
 package ae3.service;
 
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
-import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
@@ -53,15 +53,33 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             Map<StatisticsType, HashMap<String, Multiset<Integer>>> scoresCache);
 
     /**
+     * @param statsQuery
+     * @return A map containing
+     *         - scoring experiments as keys
+     *         - Collections of scoring statistics type-attribute pairs in experiment key as values
+     */
+    public Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> getScoringExpsAttrs(
+            final StatisticsQueryCondition statsQuery);
+
+    /**
      * @param orAttributes
      * @param statType
      * @param minExperiments
      * @return StatisticsQueryOrConditions, including children of all efo's in orAttributes
      */
     public StatisticsQueryOrConditions<StatisticsQueryCondition> getStatisticsOrQuery(
-            final List<Attribute> orAttributes,
+            final Collection<? extends Attribute> orAttributes,
             final StatisticsType statType,
             int minExperiments);
+
+
+    /**
+     * @param statsQuery
+     * @param geneIds
+     * @return A subset of geneIds that is scoring according to the statsQuery result
+     */
+    public Set<Integer> restrictGenesByStatsQuery(final StatisticsQueryCondition statsQuery,
+                                                  final Set<Integer> geneIds);
 
     /**
      * @param statsQuery
@@ -79,14 +97,24 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
             final Set<Integer> bioEntityIdRestrictionSet,
             List<Integer> sortedBioEntitiesChunk);
 
+ /**
+     * @param bioEntityIds
+     * @param statType
+     * @param autoFactors  set of factors of interest; if null, all factors are included
+     * @return Set of efv's with non-zero statType experiment counts for bioEntityIds
+     */
+    public  Multiset<EfvAttribute> getUnsortedScoringAttributesForBioEntities(
+            Set<Integer> bioEntityIds,
+            StatisticsType statType,
+            @Nullable Collection<String> autoFactors);
+
     /**
-     *
      * @param bioEntityIds
      * @param statType
      * @param autoFactors  set of factors of interest
-     * @return Serted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
+     * @return Sorted set of non-zero experiment counts (for at least one of bioEntityIds and statType) per efo/efv attribute
      */
-    public List<Multiset.Entry<EfvAttribute>> getScoringAttributesForBioEntities(
+    public List<Multiset.Entry<EfvAttribute>> getSortedScoringAttributesForBioEntities(
             Set<Integer> bioEntityIds,
             StatisticsType statType,
             Collection<String> autoFactors);
@@ -170,12 +198,6 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
     public void getAttributeToExperimentMappings(
             final Attribute attribute,
             Map<ExperimentInfo, Set<EfAttribute>> allExpsToAttrs);
-
-    /**
-     * @param statType
-     * @return Collection of unique experiments with expressions for statType
-     */
-    public Collection<ExperimentInfo> getScoringExperiments(StatisticsType statType);
 
     /**
      * @param attribute

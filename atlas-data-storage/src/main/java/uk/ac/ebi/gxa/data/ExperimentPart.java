@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.primitives.Longs;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
@@ -42,11 +43,23 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public List<KeyValuePair> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
+    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getUniqueEFVs(arrayDesign);
     }
 
-    public Collection<Long> getGeneIds() throws AtlasDataException {
+    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getPValues(arrayDesign);
+    }
+
+    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getTStatistics(arrayDesign);
+    }
+
+    public String[] getDesignElementAccessions() throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getDesignElementAccessions(arrayDesign);
+    }
+
+    public List<Long> getGeneIds() throws AtlasDataException {
         return Longs.asList(ewd.getGenes(arrayDesign));
     }
 
@@ -115,13 +128,5 @@ public class ExperimentPart {
 
     public ArrayDesign getArrayDesign() {
         return arrayDesign;
-    }
-
-    public String getDataPathForR() {
-        return ewd.getDataPathForR(arrayDesign);
-    }
-
-    public String getStatisticsPathForR() {
-        return ewd.getStatisticsPathForR(arrayDesign);
     }
 }

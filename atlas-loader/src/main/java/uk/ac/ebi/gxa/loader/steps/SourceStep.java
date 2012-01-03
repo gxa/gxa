@@ -30,6 +30,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
@@ -49,7 +50,7 @@ public class SourceStep {
     }
 
     public void readSamples(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
-        for (SourceNode node : investigation.SDRF.lookupNodes(SourceNode.class)) {
+        for (SourceNode node : investigation.SDRF.getNodes(SourceNode.class)) {
             log.debug("Writing sample from source node '" + node.getNodeName() + "'");
             Sample sample = cache.fetchOrCreateSample(node.getNodeName());
             // write the characteristic values as properties
@@ -61,7 +62,6 @@ public class SourceStep {
      * Write out the properties associated with a {@link uk.ac.ebi.microarray.atlas.model.Sample} in the SDRF graph.  These properties are obtained by
      * looking at the "characteristic" column in the SDRF graph, extracting the type and linking this type (the
      * property) to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode} provided (the property value).
-     *
      *
      * @param sample     the sample you want to attach properties to
      * @param sourceNode the sourceNode being read
@@ -80,21 +80,11 @@ public class SourceStep {
                                 "this is a special reserved character used as a delimiter in the database");
             }
 
-            // does this sample already contain this property/property value pair?
+            // Does this sample already contain this property/property value pair? If so, don't add it to sample again
             boolean existing = false;
-            for (SampleProperty sp : sample.getProperties()) {
-                if (sp.getName().equals(characteristicsAttribute.type)) {
+            for (SampleProperty sp : sample.getProperties(Property.getSanitizedPropertyAccession(characteristicsAttribute.type))) {
+                if (sp.getValue().equals(characteristicsAttribute.getNodeName()))
                     existing = true;
-                    if (!sp.getValue().equals(characteristicsAttribute.getNodeName())) {
-                        // generate error item and throw exception
-                        throw new AtlasLoaderException(
-                                "Inconsistent characteristic values for sample " + sample.getAccession() +
-                                        ": property " + sp.getName() + " has values " + sp.getValue() + " and " +
-                                        characteristicsAttribute.getNodeName() + " in different rows. Second value (" +
-                                        characteristicsAttribute + ") will be ignored"
-                        );
-                    }
-                }
             }
 
             if (!existing) {

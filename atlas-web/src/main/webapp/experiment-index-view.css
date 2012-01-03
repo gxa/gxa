@@ -37,4 +37,9 @@
     padding: 5px;
 }
 
+.experiment-index td .note {
+    font-style: italic;
+    color: gray;
+}
+
 

@@ -23,10 +23,12 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -42,15 +44,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.web.ui.NameValuePair;
 import uk.ac.ebi.gxa.web.ui.plot.AssayProperties;
 import uk.ac.ebi.gxa.web.ui.plot.ExperimentPlot;
-import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,11 +59,13 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
+import static com.google.common.base.Predicates.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
+import static uk.ac.ebi.gxa.utils.Pair.create;
 
 /**
  * @author Olga Melnichuk
@@ -76,11 +77,13 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private final AtlasDataDAO atlasDataDAO;
 
+    private final GeneSolrDAO geneSolrDAO;
+
     private final PropertyDAO propertyDAO;
 
     private final AtlasProperties atlasProperties;
 
-    private final AtlasExperimentAnalyticsViewService experimentAnalyticsService;
+    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
 
     private final Function<String, String> curatedStringConverter = new Function<String, String>() {
         @Override
@@ -95,16 +98,22 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     @Autowired
     public ExperimentViewController(ExperimentSolrDAO solrDAO,
+                                    GeneSolrDAO geneSolrDAO,
                                     AtlasDAO atlasDAO,
                                     AtlasDataDAO atlasDataDAO,
                                     PropertyDAO propertyDAO,
-                                    AtlasProperties atlasProperties,
-                                    AtlasExperimentAnalyticsViewService experimentAnalyticsService) {
+                                    AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService,
+                                    AtlasProperties atlasProperties) {
         super(solrDAO, atlasDAO);
         this.atlasDataDAO = atlasDataDAO;
         this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
-        this.experimentAnalyticsService = experimentAnalyticsService;
+        this.geneSolrDAO = geneSolrDAO;
+        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
+    }
+
+    protected List<Long> findGeneIds(Collection<String> geneQuery) {
+        return geneSolrDAO.findGeneIds(geneQuery);
     }
 
     /**
@@ -284,11 +293,11 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param limit     a size of result set to take
      * @param model     a model for the view to render
      * @return the view path
-     * @throws AtlasDataException if data could not be read
+     * @throws AtlasDataException or StatisticsNotFoundException if data could not be read
      */
     @RequestMapping(value = "/experimentTable", method = RequestMethod.GET)
     public String getExperimentTable(
-            @RequestParam("eid") String accession,
+            @RequestParam("eacc") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
             @RequestParam(value = "gid", required = false) String gid,
             @RequestParam(value = "ef", required = false) String ef,
@@ -297,29 +306,36 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
-    ) throws ResourceNotFoundException, RecordNotFoundException {
+    ) throws ResourceNotFoundException, RecordNotFoundException, AtlasDataException, StatisticsNotFoundException {
         ExperimentWithData ewd = null;
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
-            final BestDesignElementsResult res =
-                    experimentAnalyticsService.findBestGenesForExperiment(
-                            ewd,
-                            adAcc,
-                            isNullOrEmpty(gid) ? Collections.<String>emptyList() : Arrays.asList(gid.trim()),
-                            isNullOrEmpty(ef) ? Collections.<String>emptyList() : Arrays.asList(ef),
-                            isNullOrEmpty(efv) ? Collections.<String>emptyList() : Arrays.asList(efv),
-                            updown,
-                            offset,
-                            limit
-                    );
+
+            final Predicate<Long> geneIdPredicate = genePredicate(gid);
+
+            ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
+            if (!isNullOrEmpty(adAcc)) {
+                criteria.hasArrayDesignAccession(adAcc);
+            } else {
+                criteria.containsAtLeastOneGene(geneIdPredicate);
+            }
+
+
+            BestDesignElementsResult res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
+                    criteria.retrieveFrom(ewd),
+                    geneIdPredicate, updown,
+                    createFactorCriteria(ef, efv),
+                    offset,
+                    limit
+            );
 
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
             model.addAttribute("totalSize", res.getTotalSize());
             model.addAttribute("items", Iterables.transform(res,
                     new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
-                        public ExperimentTableRow apply(@Nonnull BestDesignElementsResult.Item item) {
-                            return new ExperimentTableRow(item);
+                        public ExperimentTableRow apply(@Nullable BestDesignElementsResult.Item item) {
+                            return item == null ? null : new ExperimentTableRow(item);
                         }
                     })
             );
@@ -328,6 +344,23 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         } finally {
             closeQuietly(ewd);
         }
+    }
+
+    private static Predicate<Pair<String, String>> createFactorCriteria(final String ef, String efv) {
+        if (isNullOrEmpty(ef)) {
+            return alwaysTrue();
+        } else if (isNullOrEmpty(efv)) {
+            return firstEqualTo(ef);
+        } else {
+            return equalTo(create(ef, efv));
+        }
+    }
+
+    private Predicate<Long> genePredicate(String gid) {
+        if (isNullOrEmpty(gid))
+            return alwaysTrue();
+
+        return in(findGeneIds(Arrays.asList(gid.trim())));
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
@@ -424,6 +457,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         private final String tValue;
 
         public ExperimentTableRow(BestDesignElementsResult.Item item) {
+
             geneName = item.getGene().getGeneName();
             geneIdentifier = item.getGene().getGeneIdentifier();
             deAccession = item.getDeAccession();
@@ -479,5 +513,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         public String getTValue() {
             return tValue;
         }
+    }
+
+    private static Predicate<Pair<String, String>> firstEqualTo(final String s) {
+        return new Predicate<Pair<String, String>>() {
+            @Override
+            public boolean apply(@Nullable Pair<String, String> input) {
+                return input != null && s.equals(input.getFirst());
+            }
+        };
     }
 }

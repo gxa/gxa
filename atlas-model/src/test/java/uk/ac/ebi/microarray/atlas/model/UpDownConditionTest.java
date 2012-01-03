@@ -22,9 +22,10 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Predicate;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static uk.ac.ebi.microarray.atlas.model.UpDownCondition.*;
 import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.*;
 
@@ -59,16 +60,13 @@ public class UpDownConditionTest {
 
     @Test
     public void testAnyCondition() {
-        checkCondition(true, CONDITION_ANY, UP, DOWN, NONDE, NA);
+        checkCondition(true, CONDITION_ANY, UP, DOWN, NONDE);
+        checkCondition(false, CONDITION_ANY, NA);
     }
 
-    private static void checkCondition(boolean expected, UpDownCondition cond, UpDownExpression... expressions) {
+    private static void checkCondition(boolean expected, Predicate<UpDownExpression> cond, UpDownExpression... expressions) {
         for (UpDownExpression expr : expressions) {
-            assertFalse(xor(expected, cond.apply(expr)));
+            assertEquals(expected, cond.apply(expr));
         }
-    }
-
-    private static boolean xor(boolean p, boolean q) {
-        return !(p && q) && (p || q);
     }
 }

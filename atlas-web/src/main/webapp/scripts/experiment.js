@@ -1700,15 +1700,29 @@
 
             atlas.newWaiter2("#squery");
 
-            var dataUrl = "experimentTable?format=json&eid=" + expAcc +
-                    (gene ? "&gid=" + gene : "") +
-                    (ad ? "&ad=" + ad : "") +
-                    (ef ? "&ef=" + ef : "") +
-                    (efv ? "&efv=" + efv : "") +
-                    (updn ? "&updown=" + updn : "") +
-                    "&offset=" + (offset + 1) + "&limit=" + limit;
+            var data = {
+                "format": "json",
+                "eacc": expAcc,
+                "gid": gene,
+                "ad": ad ,
+                "ef": ef ,
+                "efv": efv ,
+                "updown": updn ,
+                "offset": offset ,
+                "limit": limit
+            };
 
-            atlas.ajaxCall(dataUrl, "", callback, function() {
+            //TODO this is already done in ajaxLoader
+            for(p in data) {
+                if (data.hasOwnProperty(p)) {
+                    var v = data[p];
+                    if (v === null || v === "" || v === undefined) {
+                        delete data[p];
+                    }
+                }
+            }
+
+            atlas.ajaxCall("experimentTable", data, callback, function() {
                 callback(null);
             });
         }

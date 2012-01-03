@@ -359,11 +359,11 @@ public class DbStorage implements PersistentStorage {
                         "COUNT(CASE s.type WHEN 'analytics' THEN s.status ELSE null END) as incanalytics, " +
                         "COUNT(CASE s.type WHEN 'updateexperiment' THEN s.status ELSE null END) as incnetcdf, " +
                         "COUNT(CASE s.type WHEN 'indexexperiment' THEN s.status ELSE null END) as incindex," +
-                        " e.accession, e.description, e.performer, e.lab, e.loaddate, e.private, e.curated " +
+                        " e.accession, e.description, e.performer, e.lab, e.loaddate, e.private " +
                         "FROM a2_experiment e " +
                         "LEFT JOIN a2_taskman_status s " +
                         "ON e.accession=s.accession and s.type in ('analytics', 'updateexperiment', 'indexexperiment') AND s.status='INCOMPLETE'" +
-                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.private, e.curated " +
+                        "GROUP BY e.accession, e.description, e.performer, e.lab, e.experimentid, e.loaddate, e.private " +
                         "ORDER BY e.loaddate DESC NULLS LAST, e.accession) " +
                         "WHERE 1=1 ");
 

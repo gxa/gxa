@@ -9,6 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 
@@ -50,6 +51,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     @Override
     public void save(Experiment object) {
+        object.setLoadDate(new Date());
         super.save(object);
         template.flush();
     }
@@ -60,5 +62,29 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     @Override
     public String getNameColumn() {
         return NAME_COL;
+    }
+
+    /**
+     * Same as {@link #getAll} but ensures ontology mapping preloading
+     * <p/>
+     * DO NOT use it anywhere but index builder: it's useless for anything but full index.
+     *
+     * @return list of all experiments
+     */
+    public List<Experiment> getExperimentsPreparedForIndexing() {
+        preloadDetails();
+        return getAll();
+    }
+
+    /**
+     * An awful hack preloading experiment details in order to make indexing fast. Only needed for indexing.
+     * <p/>
+     * DO NOT use it anywhere else: it's useless for anything but full index.
+     */
+    private void preloadDetails() {
+        final List<?> sp = template.find("select sp from SampleProperty sp left join fetch sp.terms");
+        log.debug("{} sample properties", sp.size());
+        final List<?> ap = template.find("select ap from AssayProperty ap left join fetch ap.terms");
+        log.debug("{} assay properties", ap.size());
     }
 }

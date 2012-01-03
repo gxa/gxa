@@ -127,7 +127,7 @@ public class AtlasExperimentQueryParserTest {
         assertTrue(query.getAnyFactorValues().isEmpty());
         assertTrue(query.getGeneIdentifiers().isEmpty());
         assertEquals(0, query.getStart());
-        assertEquals(DEFAULT_ROWS, query.getRows());
+        assertEquals(Integer.MAX_VALUE, query.getRows());
     }
 
     @Test

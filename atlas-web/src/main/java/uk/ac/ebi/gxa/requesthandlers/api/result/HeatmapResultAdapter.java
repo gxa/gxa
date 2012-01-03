@@ -33,16 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
-import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
-import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
-import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
@@ -50,7 +45,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
@@ -66,15 +62,13 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
     private final static PTRank NONDE_PTRANK = PTRank.of(1.0f, 0);
     private final AtlasStructuredQueryResult r;
     private final ExperimentDAO experimentDAO;
-    private final AtlasDataDAO atlasDataDAO;
     private final AtlasProperties atlasProperties;
     private final Collection<String> geneIgnoreProp;
     private final AtlasStatisticsQueryService atlasStatisticsQueryService;
 
-    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasDataDAO atlasDataDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public HeatmapResultAdapter(AtlasStructuredQueryResult r, ExperimentDAO experimentDAO, AtlasProperties atlasProperties, AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.r = r;
         this.experimentDAO = experimentDAO;
-        this.atlasDataDAO = atlasDataDAO;
         this.atlasProperties = atlasProperties;
         this.geneIgnoreProp = new HashSet<String>(atlasProperties.getGeneApiIgnoreFields());
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
@@ -245,33 +239,6 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
     private static UpDownExpression toExpression(PTRank ptRank) {
         return UpDownExpression.valueOf(ptRank.getPValue(), ptRank.getTStatRank());
-    }
-
-    /**
-     * @param ewd
-     * @param e
-     * @param geneId
-     * @param roundedPVal
-     * @return accurate pValue in ncdf corresponding to roundedPVal-bestEf-bestEfv-geneId in bit index
-     */
-    private float getPValueFromNcdf(ExperimentWithData ewd, ExperimentResult e, long geneId, float roundedPVal) {
-        UpDownExpression expression = toExpression(e.getPValTStatRank());
-        EfAttribute attr = e.getHighestRankAttribute();
-        if (attr instanceof EfvAttribute) {
-            final String efv = ((EfvAttribute) attr).getEfv();
-            if (expression.isUp()) {
-                final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
-                        efv, UpDownCondition.CONDITION_UP);
-                return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
-            }
-            if (expression.isDown()) {
-                final ExpressionAnalysis expressionAnalysis = ewd.getBestEAForGeneEfEfvInExperiment(geneId, attr.getEf(),
-                        efv, UpDownCondition.CONDITION_DOWN);
-                return expressionAnalysis == null ? roundedPVal : expressionAnalysis.getPValAdjusted();
-            }
-        }
-        // gave up
-        return roundedPVal;
     }
 
     private static List<ExperimentResult> toNonDEResults(Collection<ExperimentInfo> experimentInfos) {

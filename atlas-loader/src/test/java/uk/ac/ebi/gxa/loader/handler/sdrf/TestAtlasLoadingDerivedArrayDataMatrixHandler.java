@@ -27,9 +27,7 @@ import junit.framework.TestCase;
 import org.mged.magetab.error.ErrorCode;
 import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.arrayexpress2.magetab.exception.ErrorItemListener;
-import uk.ac.ebi.arrayexpress2.magetab.handler.HandlerPool;
-import uk.ac.ebi.arrayexpress2.magetab.handler.ParserMode;
+import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
@@ -55,15 +53,11 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
 
         parseURL = this.getClass().getClassLoader().getResource(
                 "E-GEOD-3790.idf.txt");
-
-        HandlerPool pool = HandlerPool.getInstance();
-        pool.useDefaultHandlers();
     }
 
     public void testWriteValues() throws AtlasLoaderException {
         // create a parser and invoke it - having replace the handle with the one we're testing, we should get one experiment in our load cache
         MAGETABParser parser = new MAGETABParser();
-        parser.setParsingMode(ParserMode.READ_AND_WRITE);
         parser.addErrorItemListener(new ErrorItemListener() {
 
             public void errorOccurred(ErrorItem item) {

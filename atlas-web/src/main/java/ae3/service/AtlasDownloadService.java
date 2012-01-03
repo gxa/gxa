@@ -22,6 +22,7 @@
 
 package ae3.service;
 
+import ae3.dao.GeneSolrDAO;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryService;
 import org.slf4j.Logger;
@@ -45,10 +46,12 @@ import static java.util.Collections.synchronizedMap;
  * @author iemam
  */
 public class AtlasDownloadService {
-    private AtlasStructuredQueryService atlasQueryService;
+    private AtlasStructuredQueryService atlasStructuredQueryService;
+    private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private GeneSolrDAO geneSolrDAO;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private AtomicInteger countDownloads = new AtomicInteger(0);
+    private AtomicInteger countDownloads = new AtomicInteger();
 
     private Map<String, Map<Integer, Download>> downloads = synchronizedMap(new HashMap<String, Map<Integer, Download>>());
     private ExecutorService downloadThreadPool;
@@ -58,8 +61,16 @@ public class AtlasDownloadService {
         this.downloadThreadPool = downloadThreadPool;
     }
 
-    public void setAtlasQueryService(AtlasStructuredQueryService atlasQueryService) {
-        this.atlasQueryService = atlasQueryService;
+    public void setAtlasStructuredQueryService(AtlasStructuredQueryService atlasStructuredQueryService) {
+        this.atlasStructuredQueryService = atlasStructuredQueryService;
+    }
+
+    public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
+        this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -103,9 +114,9 @@ public class AtlasDownloadService {
                     return -1;
                 }
             }
-
-            final Download download = new Download(countDownloads.incrementAndGet(), query, atlasQueryService,
-                    atlasProperties.getDataRelease());
+            final Download download = new Download(countDownloads.incrementAndGet(),
+                    atlasStructuredQueryService, atlasStatisticsQueryService, geneSolrDAO,
+                    query, atlasProperties.getDataRelease());
 
             downloadList.put(download.getId(), download);
             downloads.put(session.getId(), downloadList);

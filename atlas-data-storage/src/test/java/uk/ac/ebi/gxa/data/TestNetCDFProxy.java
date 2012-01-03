@@ -23,11 +23,12 @@
 package uk.ac.ebi.gxa.data;
 
 import junit.framework.TestCase;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.io.Closeables.close;
 
 public class TestNetCDFProxy extends TestCase {
@@ -94,8 +95,8 @@ public class TestNetCDFProxy extends TestCase {
     }
 
     private void testGetUniqueEVFs(DataProxy netCDF) throws AtlasDataException, StatisticsNotFoundException {
-        final Set<KeyValuePair> uniques = new HashSet<KeyValuePair>();
-        for (KeyValuePair uefv : netCDF.getUniqueEFVs()) {
+        final Set<Pair<String, String>> uniques = newHashSet();
+        for (Pair<String, String> uefv : netCDF.getUniqueEFVs()) {
             if (uniques.contains(uefv)) {
                 fail("Found a duplicate: " + uefv);
             } else {
@@ -113,5 +114,4 @@ public class TestNetCDFProxy extends TestCase {
             System.out.println("}");
         }
     }
-
 }

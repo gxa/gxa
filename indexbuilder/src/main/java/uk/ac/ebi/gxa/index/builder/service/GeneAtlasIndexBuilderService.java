@@ -146,7 +146,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                         log(sblog, start, "adding genes to Solr index...");
                         getSolrServer().add(solrDocs);
                         log(sblog, start, "... batch complete.");
-                        getLog().info("Gene chunk done:\n" + sblog);
+                        getLog().debug("Gene chunk done:\n" + sblog);
 
                         return true;
                     } catch (RuntimeException e) {
@@ -202,6 +202,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
 
         Set<String> propNames = new HashSet<String>();
+        boolean nameSet = false;
         for (BEPropertyValue prop : bioEntity.getProperties()) {
 
             String pv = prop.getValue();
@@ -212,6 +213,7 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
                 solrInputDoc.addField("orthologs", pv);
             } else if (p.toLowerCase().equals("symbol")) {
                 solrInputDoc.addField("name", pv);
+                nameSet = true;
             } else {
                 getLog().trace("Updating index, gene property " + p + " = " + pv);
                 solrInputDoc.addField("property_" + p, pv);
@@ -221,6 +223,10 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         if (!propNames.isEmpty())
             solrInputDoc.setField("properties", propNames);
 
+        //To avoid empty "name" field, use identifier if beproperty, corresponding to "name" is missing
+        if (!nameSet) {
+            solrInputDoc.addField("name", bioEntity.getIdentifier());
+        }
         getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
         return solrInputDoc;

@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.requesthandlers.api;
 
 import ae3.dao.ExperimentSolrDAO;
+import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
@@ -33,17 +34,18 @@ import ae3.service.experiment.AtlasExperimentQueryParser;
 import ae3.service.experiment.BestDesignElementsResult;
 import ae3.service.structuredquery.*;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.data.AtlasDataDAO;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.requesthandlers.api.result.*;
 import uk.ac.ebi.gxa.requesthandlers.base.AbstractRestRequestHandler;
 import uk.ac.ebi.gxa.requesthandlers.base.result.ErrorResult;
+import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -63,16 +65,21 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
     private AtlasStructuredQueryService queryService;
     private AtlasProperties atlasProperties;
     private ExperimentSolrDAO experimentSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
     private ExperimentDAO experimentDAO;
     private AtlasDataDAO atlasDataDAO;
     private IndexBuilder indexBuilder;
-    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
+    private AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService;
 
     volatile boolean disableQueries = false;
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
         this.experimentDAO = experimentDAO;
+    }
+
+    public void setGeneSolrDAO(GeneSolrDAO geneSolrDAO) {
+        this.geneSolrDAO = geneSolrDAO;
     }
 
     public void setQueryService(AtlasStructuredQueryService queryService) {
@@ -96,12 +103,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
         builder.registerIndexBuildEventHandler(this);
     }
 
-    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
-        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
-    }
-
     public void setAtlasStatisticsQueryService(AtlasStatisticsQueryService atlasStatisticsQueryService) {
         this.atlasStatisticsQueryService = atlasStatisticsQueryService;
+    }
+
+    public void setAtlasExperimentAnalyticsViewService(AtlasExperimentAnalyticsViewService atlasExperimentAnalyticsViewService) {
+        this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
     private static class ExperimentResults implements ApiQueryResults<ExperimentResultAdapter> {
@@ -155,31 +162,35 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                     transform(experiments.getAtlasExperiments(),
                             new Function<AtlasExperiment, ExperimentResultAdapter>() {
                                 public ExperimentResultAdapter apply(@Nonnull AtlasExperiment experiment) {
-
                                     Collection<AtlasGene> genes = Collections.emptyList();
-
                                     ExperimentalData expData = null;
 
                                     if (!experimentInfoOnly) {
                                         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment.getExperiment());
                                         try {
+                                            Collection<String> geneIdentifiers = query.getGeneIdentifiers();
+                                            Predicate<Long> geneIdPredicate = geneIdentifiers.isEmpty() ?
+                                                    Predicates.<Long>alwaysTrue() :
+                                                    Predicates.in(geneSolrDAO.findGeneIds(geneIdentifiers));
+
+                                            ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
+                                            criteria.containsAtLeastOneGene(geneIdPredicate);
+
                                             //TODO: trac #2954 Ambiguous behaviour of getting top 10 genes in the experiment API call
                                             BestDesignElementsResult geneResults =
                                                     atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
-                                                            ewd,
-                                                            null,
-                                                            query.getGeneIdentifiers(),
-                                                            Collections.<String>emptyList(),
-                                                            Collections.<String>emptyList(),
-                                                            QueryExpression.ANY.asUpDownCondition(),
-                                                            0,
-                                                            10
+                                                            criteria.retrieveFrom(ewd),
+                                                            geneIdPredicate,
+                                                            UpDownCondition.CONDITION_ANY,
+                                                            Predicates.<Pair<String, String>>alwaysTrue(),
+                                                            0, 10
                                                     );
-
                                             genes = geneResults.getGenes();
                                             expData = new ExperimentalData(ewd);
                                         } catch (AtlasDataException e) {
                                             log.warn("AtlasDataException thrown", e);
+                                        } catch (StatisticsNotFoundException e) {
+                                            log.warn("StatisticsNotFoundException thrown", e);
                                         } finally {
                                             closeQuietly(ewd);
                                         }
@@ -189,24 +200,23 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                 }
                             })
             );
-            //Heatmap page
         } else {
+            //Heatmap page
             AtlasStructuredQuery atlasQuery = AtlasStructuredQueryParser.parseRestRequest(
                     request, queryService.getGenePropertyOptions(), queryService.getAllFactors(), atlasProperties);
-
-            if (!atlasQuery.isNone()) {
-                atlasQuery.setFullHeatmap(true);
-                atlasQuery.setViewType(ViewType.HEATMAP);
-                atlasQuery.setExpandColumns(queryService.getAllFactors());
-
-                AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
-                if (atlasResult.getUserErrorMsg() != null) {
-                    return new ErrorResult(atlasResult.getUserErrorMsg());
-                }
-                return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasDataDAO, atlasProperties, atlasStatisticsQueryService);
-            } else {
+            if (atlasQuery.isNone()) {
                 return new ErrorResult("Empty query specified");
             }
+
+            atlasQuery.setFullHeatmap(true);
+            atlasQuery.setViewType(ViewType.HEATMAP);
+            atlasQuery.setExpandColumns(queryService.getAllFactors());
+
+            AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+            if (atlasResult.getUserErrorMsg() != null) {
+                return new ErrorResult(atlasResult.getUserErrorMsg());
+            }
+            return new HeatmapResultAdapter(atlasResult, experimentDAO, atlasProperties, atlasStatisticsQueryService);
         }
     }
 

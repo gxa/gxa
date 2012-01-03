@@ -244,7 +244,6 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean name="atlasExperimentAnalyticsViewService" class="ae3.service.experiment.AtlasExperimentAnalyticsViewService">
         <property name="geneSolrDAO" ref="geneSolrDAO"/>
-        <property name="computeService" ref="atlasComputeService"/>
     </bean>
 
     <bean name="atlasStatisticsQueryService" class="ae3.service.AtlasBitIndexQueryService">
@@ -257,7 +256,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <bean name="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
-            destroy-method="destroy">
+          destroy-method="destroy">
         <property name="solrServerAtlas" ref="solrServerAtlas"/>
         <property name="solrServerProp" ref="solrServerProp"/>
         <property name="efoService" ref="atlasEfoService"/>
@@ -285,7 +284,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <!-- interface download executor -->
     <bean name="atlasDownloadService" class="ae3.service.AtlasDownloadService"
           destroy-method="shutdown">
-        <property name="atlasQueryService" ref="atlasQueryService"/>
+        <property name="atlasStructuredQueryService" ref="atlasQueryService"/>
+        <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="downloadThreadPool" ref="threadPool"/>
     </bean>
@@ -358,12 +359,13 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <bean name="apiQueryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.api.ApiQueryRequestHandler">
         <property name="experimentSolrDAO" ref="experimentSolrDAO"/>
+        <property name="geneSolrDAO" ref="geneSolrDAO"/>
         <property name="queryService" ref="atlasQueryService"/>
         <property name="indexBuilder" ref="indexBuilder"/>
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
         <property name="atlasProperties" ref="atlasProperties"/>
-        <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
+        <property name="atlasExperimentAnalyticsViewService" ref="atlasExperimentAnalyticsViewService"/>
         <property name="experimentDAO" ref="experimentDAO"/>
     </bean>
 
