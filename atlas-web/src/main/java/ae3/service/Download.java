@@ -96,7 +96,8 @@ public class Download implements Runnable {
                 query.setViewType(ViewType.LIST);
                 while (first || getTotalResults() > getResultsRetrieved()) {
                     query.setStart((int) getResultsRetrieved());
-                    query.setRowsPerPage(first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved()));
+                    int rowsPerPage = first ? FRAME_SIZE : (int) Math.min(FRAME_SIZE, getTotalResults() - getResultsRetrieved());
+                    query.setRowsPerPage(rowsPerPage);
                     AtlasStructuredQueryResult atlasResult = queryService.doStructuredAtlasQuery(query);
                     if (first) {
                         setTotalResults(atlasResult.getTotal());
@@ -108,7 +109,7 @@ public class Download implements Runnable {
                     }
 
                     outputResults(atlasResult, zout);
-                    incrementResultsRetrieved(atlasResult.getSize());
+                    incrementResultsRetrieved(rowsPerPage);
                 }
                 zout.closeEntry();
             } catch (IOException e) {
