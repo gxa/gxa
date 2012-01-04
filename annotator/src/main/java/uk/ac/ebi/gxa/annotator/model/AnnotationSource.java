@@ -87,7 +87,7 @@ public abstract class AnnotationSource {
     @Fetch(FetchMode.SUBSELECT)
     private Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
 
-    private String name;
+    protected String name;
 
     protected AnnotationSource() {
     }
@@ -102,9 +102,6 @@ public abstract class AnnotationSource {
 
     @Column(name = "name")
     public String getName() {
-        if (StringUtils.isEmpty(name)) {
-            name = createName();
-        }
         return name;
     }
 

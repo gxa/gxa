@@ -17,10 +17,11 @@ public abstract class FileBasedAnnotationSource extends AnnotationSource {
 
     protected FileBasedAnnotationSource(Software software) {
         super(software);
+        this.name = createName();
     }
 
     @Override
-    protected String createName() {
+    protected final String createName() {
         return getSoftware().getFullName();
     }
 

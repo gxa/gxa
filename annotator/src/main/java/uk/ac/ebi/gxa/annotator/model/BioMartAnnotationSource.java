@@ -69,18 +69,19 @@ public class BioMartAnnotationSource extends AnnotationSource {
     BioMartAnnotationSource() {
     }
 
-    @Override
-    protected String createName() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(organism.getName()).append(" / ").append(getSoftware().getFullName());
-        return sb.toString();
-    }
 
     public BioMartAnnotationSource(Software software, Organism organism) {
         super(software);
         this.organism = organism;
+        this.name = createName();
     }
 
+    @Override
+    protected final String createName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(organism.getName()).append(" / ").append(getSoftware().getFullName());
+        return sb.toString();
+    }
 
     public Organism getOrganism() {
         return organism;
