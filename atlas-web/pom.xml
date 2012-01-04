@@ -170,8 +170,8 @@
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
-            <artifactId>atlas-wro4j</artifactId>
-            <version>2.0.11-SNAPSHOT</version>
+            <artifactId>wro4j-tag</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <dependency>

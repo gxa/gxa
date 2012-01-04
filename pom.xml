@@ -285,7 +285,6 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
-        <module>atlas-wro4j</module>
         <module>annotator</module>
     </modules>
 
