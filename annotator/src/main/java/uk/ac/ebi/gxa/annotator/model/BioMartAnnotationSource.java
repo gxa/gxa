@@ -152,7 +152,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     @Override
     public BioMartConnection createConnection() {
-        return new BioMartConnection(this.getUrl(), this.getDatabaseName(), this.getDatasetName());
+        return BioMartConnection.createConnection(this.getUrl(), this.getDatabaseName(), this.getDatasetName());
     }
 
     @Override

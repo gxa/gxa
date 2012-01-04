@@ -73,25 +73,25 @@ public class BioMartConnection implements AnnotationSourceConnection<BioMartAnno
     private String bioMartName;
     private String serverVirtualSchema;
 
-    private boolean connected = false;
-
-    public BioMartConnection(String martUrl, String databaseName, String datasetName) {
+    private BioMartConnection(String martUrl, String databaseName, String datasetName) {
         this.martUrl = martUrl;
         this.datasetName = datasetName;
         this.databaseName = databaseName;
     }
 
-
-    void connect() throws AnnotationSourceAccessException {
-        if (!connected) {
-            fetchInfoFromRegistry();
-            connected = true;
+    public static BioMartConnection createConnection(String martUrl, String databaseName, String datasetName) {
+        BioMartConnection connection = new BioMartConnection(martUrl, databaseName, datasetName);
+        try {
+            connection.fetchInfoFromRegistry();
+            return connection;
+        } catch (AnnotationSourceAccessException e) {
+            throw LogUtil.createUnexpected("Cannot connect to BioMart on " + martUrl + "for " + datasetName + "/" + databaseName, e);
         }
     }
 
+
     @Override
     public String getOnlineSoftwareVersion() throws AnnotationSourceAccessException {
-        connect();
         URL url = null;
         BufferedReader bufferedReader = null;
         String version = null;
@@ -120,7 +120,6 @@ public class BioMartConnection implements AnnotationSourceConnection<BioMartAnno
 
     @Override
     public Collection<String> validateAttributeNames(Set<String> properties) throws AnnotationSourceAccessException {
-        connect();
         List<String> missingAttrs = new ArrayList<String>();
 
         String location = martUrl + ATTRIBUTES_QUERY + datasetName;
@@ -156,7 +155,6 @@ public class BioMartConnection implements AnnotationSourceConnection<BioMartAnno
     }
 
     public boolean isValidDataSetName() throws AnnotationSourceAccessException {
-        connect();
         String location = martUrl + DATASETLIST_QUERY + bioMartName;
         URL url = getMartURL(location);
 
@@ -213,7 +211,6 @@ public class BioMartConnection implements AnnotationSourceConnection<BioMartAnno
     }
 
     public URL getAttributesURL(Collection<String> attributes) throws AnnotationSourceAccessException {
-        connect();
         return getMartURL(getAttributesURLLocation(attributes));
     }
 

@@ -19,7 +19,7 @@ public class BioMartConnectionTest extends TestCase {
 
     @Test
     public void testGetDataSetVersion() throws Exception {
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
         String version = bmService.getOnlineSoftwareVersion();
         boolean correctVersion = true;
         try {
@@ -32,18 +32,18 @@ public class BioMartConnectionTest extends TestCase {
 
     @Test
     public void testValidateOrganismName() throws Exception {
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
         boolean isValid = bmService.isValidDataSetName();
         assertTrue(isValid);
 
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "wrong_name");
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "wrong_name");
         boolean isValid2 = bmService.isValidDataSetName();
         assertFalse(isValid2);
     }
 
     @Test
     public void testValidateAttributeNames() throws Exception {
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
         Set<String> attributes = new HashSet<String>();
         attributes.add("ddd");
         attributes.add("name_1006");
@@ -57,22 +57,21 @@ public class BioMartConnectionTest extends TestCase {
 
     @Test
     public void testFetchInfoFromRegistry() throws Exception {
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
-        bmService.connect();
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene")  ;
         assertNotNull(bmService.getBioMartName());
         assertNotNull(bmService.getServerVirtualSchema());
     }
 
     @Test
     public void testPrepareAttributesString() throws Exception {
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
         final String attStr = bmService.prepareAttributesString(asList("ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"));
         assertEquals("<Attribute name = \"ensembl_gene_id\" /><Attribute name = \"ensembl_transcript_id\" /><Attribute name = \"external_gene_id\" />", attStr);
     }
 
     @Test
     public void testPrepareURLString() throws Exception {
-        bmService = new BioMartConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
         final String attStr = bmService.prepareAttributesString(asList("gene", "transcript"));
         assertEquals("<Attribute name = \"gene\" /><Attribute name = \"transcript\" />", attStr);
         final String urlStr = bmService.prepareURLString(attStr, "ens_plants", "athaliana_eg_gene");
