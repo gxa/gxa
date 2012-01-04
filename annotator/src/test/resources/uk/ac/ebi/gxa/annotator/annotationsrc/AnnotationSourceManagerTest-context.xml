@@ -24,10 +24,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <import resource="annotatorContext.xml"/>
+  <import resource="classpath*:/uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
+  <import resource="classpath*:/uk/ac/ebi/gxa/annotator/testAnnotatorContext.xml"/>
 
-    <bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.web.admin.DefaultAnnotationLoader">
-        <constructor-arg ref="annotationProcessor"/>
-        <constructor-arg ref="threadPool"/>
+    <bean name="annSrcManagerTest" class="uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceManagerTest" >
     </bean>
 </beans>

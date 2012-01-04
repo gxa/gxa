@@ -26,7 +26,7 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.analytics.generator.AnalyticsGenerator;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationLoader;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoader;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.loader.AtlasLoader;

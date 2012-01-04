@@ -29,8 +29,9 @@
         <property name="sourceList">
             <list merge="true">
                 <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
-                <value>uk.ac.ebi.gxa.annotator.model.genesigdb.GeneSigAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty</value>
                 <value>uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign</value>
             </list>
@@ -46,22 +47,22 @@
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService">
+    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService">
         <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
     <bean name="annotationSourceManager"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationSourceManager"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceManager"/>
 
     <bean name="bioMartAnnotationSourceConverter"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceConverter"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartAnnotationSourceConverter"/>
 
     <bean name="fileBasedAnnotationSourceConverter"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.FileBasedAnnotationSourceConverter"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.FileBasedAnnotationSourceConverter"/>
 
     <bean name="annotationSourceConverterFactory"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.ConverterFactory"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.ConverterFactory"/>
 
      <bean name="annotatorFactory"
-          class="uk.ac.ebi.gxa.annotator.process.AnnotatorFactory"/>
+          class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory"/>
 </beans>

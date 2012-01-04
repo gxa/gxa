@@ -2,10 +2,10 @@ package uk.ac.ebi.gxa.tasks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationCommand;
-import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateBioEntityAnnotationCommand;
-import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateMappingCommand;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommand;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.UpdateBioEntityAnnotationCommand;
+import uk.ac.ebi.gxa.annotator.web.admin.UpdateMappingCommand;
 
 /**
  * User: nsklyar
