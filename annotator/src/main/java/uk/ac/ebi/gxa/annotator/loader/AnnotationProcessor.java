@@ -74,7 +74,7 @@ public class AnnotationProcessor {
 
     private Annotator getAnnotator(String id) {
         final AnnotationSource annotationSource = fetchAnnSrcById(id);
-        final AnnotationSourceType annSrcType = AnnotationSourceType.getByClass(annotationSource.getClass());
+        final AnnotationSourceType annSrcType = AnnotationSourceType.annSrcTypeOf(annotationSource);
         return annSrcType.createAnnotator(annotatorFactory, annotationSource);
     }
 }

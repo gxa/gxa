@@ -120,7 +120,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testGetByIdWithoutType() {
         AnnotationSource annotationSource = annSrcDAO.getById(1000);
         Assert.assertNotNull(annotationSource);
-        final AnnotationSourceType byType = AnnotationSourceType.getByClass(annotationSource.getClass());
+        final AnnotationSourceType byType = AnnotationSourceType.annSrcTypeOf(annotationSource);
         assertEquals(BioMartAnnotationSource.class, byType.getClazz());
     }
 

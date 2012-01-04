@@ -60,13 +60,13 @@ public enum AnnotationSourceType {
         throw new IllegalArgumentException("There is no AnnotationSourceType with a name " + name);
     }
 
-    public static <T extends AnnotationSource> AnnotationSourceType getByClass(Class<T> clazz) {
+    public static <T extends AnnotationSource> AnnotationSourceType annSrcTypeOf(T annSrc) {
         for (AnnotationSourceType annotationSourceType : values()) {
-            if (annotationSourceType.getClazz().equals(clazz)) {
+            if (annotationSourceType.getClazz().equals(annSrc.getClass())) {
                 return annotationSourceType;
             }
         }
-        throw new IllegalArgumentException("There is no AnnotationSourceType for class " + clazz);
+        throw new IllegalArgumentException("There is no AnnotationSourceType for class " + annSrc.getClass());
     }
 
     public abstract Annotator createAnnotator(AnnotatorFactory factory, AnnotationSource annSrc);

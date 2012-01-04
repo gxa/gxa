@@ -94,7 +94,7 @@ public class AnnotationSourceController {
         }
 
         public String getType() {
-            return AnnotationSourceType.getByClass(annSrc.getClass()).getName();
+            return AnnotationSourceType.annSrcTypeOf(annSrc).getName();
         }
     }
 
