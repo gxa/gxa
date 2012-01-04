@@ -1,7 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader;
 
 import org.junit.Test;
-import uk.ac.ebi.gxa.annotator.loader.Annotator;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;

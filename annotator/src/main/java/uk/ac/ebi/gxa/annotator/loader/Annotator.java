@@ -6,10 +6,9 @@ import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
-import uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter;
-import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 

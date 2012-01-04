@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.annotator.loader;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import uk.ac.ebi.gxa.annotator.loader.BioMartDbDAO;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.Collection;

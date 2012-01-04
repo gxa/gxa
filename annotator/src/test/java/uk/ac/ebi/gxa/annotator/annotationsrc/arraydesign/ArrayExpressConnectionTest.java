@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayExpressConnection;
 
 /**
  * User: nsklyar
