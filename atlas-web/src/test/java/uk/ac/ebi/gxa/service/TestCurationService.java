@@ -15,6 +15,8 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Robert Petryszak
  */

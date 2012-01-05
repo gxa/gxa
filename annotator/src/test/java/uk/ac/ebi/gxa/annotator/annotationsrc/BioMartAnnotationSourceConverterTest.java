@@ -36,6 +36,9 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * User: nsklyar
  * Date: 22/08/2011

@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.dao;
 
-import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,6 +42,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+
+import static org.junit.Assert.*;
 
 /**
  * User: nsklyar
@@ -86,11 +87,11 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
 
         BioEntityProperty goterm = propertyDAO.findOrCreate("goterm");
-        Assert.assertNotNull(goterm);
+        assertNotNull(goterm);
         annotationSource.addExternalProperty("name_1006", goterm);
 
         annSrcDAO.save(annotationSource);
-        Assert.assertNotNull(annotationSource.getAnnotationSrcId());
+        assertNotNull(annotationSource.getAnnotationSrcId());
     }
 
     @Test
@@ -107,19 +108,19 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         annotationSource.addBioEntityType(type1);
 
         annSrcDAO.save(annotationSource);
-        Assert.assertNotNull(annotationSource.getAnnotationSrcId());
+        assertNotNull(annotationSource.getAnnotationSrcId());
     }
 
     @Test
     public void testGetById() {
-        AnnotationSource annotationSource = annSrcDAO.getById(1000, BioMartAnnotationSource.class);
-        Assert.assertNotNull(annotationSource);
+        BioMartAnnotationSource annotationSource = annSrcDAO.getById(1000, BioMartAnnotationSource.class);
+        assertNotNull(annotationSource);
     }
 
     @Test
     public void testGetByIdWithoutType() {
         AnnotationSource annotationSource = annSrcDAO.getById(1000);
-        Assert.assertNotNull(annotationSource);
+        assertNotNull(annotationSource);
         final AnnotationSourceType byType = AnnotationSourceType.annSrcTypeOf(annotationSource);
         assertEquals(BioMartAnnotationSource.class, byType.getClazz());
     }

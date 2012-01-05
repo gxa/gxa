@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
-import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,6 +32,8 @@ import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 
 import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * User: nsklyar
@@ -68,7 +69,7 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
     @Test
     public void testGetAnnSrcString() throws Exception {
         final String annSrcString = manager.getAnnSrcString("1000", AnnotationSourceType.BIOMART);
-        Assert.assertEquals(BioMartAnnotationSourceConverterTest.ANN_SRC_DB, annSrcString.trim());
+        assertEquals(BioMartAnnotationSourceConverterTest.ANN_SRC_DB, annSrcString.trim());
     }
 
     @Test
