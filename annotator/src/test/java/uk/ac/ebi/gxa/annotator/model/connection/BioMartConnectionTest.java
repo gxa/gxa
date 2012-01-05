@@ -30,12 +30,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
 
 /**
  * User: nsklyar
  * Date: 04/01/2012
  */
-public class BioMartConnectionTest extends TestCase {
+public class BioMartConnectionTest{
 
     private BioMartConnection bmService;
 

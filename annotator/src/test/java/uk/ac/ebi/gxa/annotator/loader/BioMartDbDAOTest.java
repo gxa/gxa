@@ -22,21 +22,22 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
-import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.Collection;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Nataliya Sklyar
  */
-public class BioMartDbDAOTest extends TestCase {
+public class BioMartDbDAOTest {
     private BioMartDbDAO bioMartDbDAO;
 
-    @Override
+    @Before
     protected void setUp() throws Exception {
-        super.setUp();
         bioMartDbDAO = new BioMartDbDAO("ensembldb.ensembl.org:5306");
     }
 

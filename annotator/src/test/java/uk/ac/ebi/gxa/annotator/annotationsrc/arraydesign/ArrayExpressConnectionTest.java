@@ -22,14 +22,15 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
 
-import junit.framework.TestCase;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * User: nsklyar
  * Date: 02/09/2011
  */
-public class ArrayExpressConnectionTest extends TestCase {
+public class ArrayExpressConnectionTest{
 
     @Test
     public void testFetchArrayDesignData() throws Exception {
