@@ -257,7 +257,7 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         writeExtraProperties(annSrc, properties);
 
         //Write bioentity types
-        StringBuffer types = new StringBuffer();
+        StringBuilder types = new StringBuilder();
         int count = 1;
         for (BioEntityType type : annSrc.getTypes()) {
             types.append(type.getName());
