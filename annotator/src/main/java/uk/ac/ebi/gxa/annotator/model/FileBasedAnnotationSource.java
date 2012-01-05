@@ -9,7 +9,6 @@ import javax.persistence.MappedSuperclass;
  * User: nsklyar
  * Date: 04/01/2012
  */
-@Entity
 @MappedSuperclass
 public abstract class FileBasedAnnotationSource extends AnnotationSource {
     protected FileBasedAnnotationSource() {
