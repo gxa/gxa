@@ -91,8 +91,8 @@
                 <configuration>
                     <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
                     <generateHistorical>true</generateHistorical>
-                    <cloverDatabase>${user.home}/.clover/db/${project.artifactId}</cloverDatabase>
-                    <historyDir>${user.home}/.clover/history/${project.artifactId}</historyDir>
+                    <cloverDatabase>${user.home}/.clover/db</cloverDatabase>
+                    <historyDir>${user.home}/.clover/history</historyDir>
                 </configuration>
             </plugin>
             <plugin>
