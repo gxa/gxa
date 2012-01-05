@@ -24,7 +24,7 @@ public enum AnnotationSourceType {
             return factory.createBioMartAnnotator((BioMartAnnotationSource) annSrc);
         }
     },
-    FILE(GeneSigAnnotationSource.class, "GeneSigDB") {
+    GENESIGDB(GeneSigAnnotationSource.class, "GeneSigDB") {
         @Override
         public Annotator createAnnotator(AnnotatorFactory factory, AnnotationSource annSrc) {
             return factory.createFileBasedAnnotator((GeneSigAnnotationSource) annSrc);

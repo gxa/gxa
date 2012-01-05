@@ -1,8 +1,12 @@
+
 package uk.ac.ebi.gxa.annotator.loader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
@@ -14,9 +18,11 @@ import java.io.FileNotFoundException;
  * User: nsklyar
  * Date: 05/12/2011
  */
-public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
+public class FileBasedAnnotator<T extends FileBasedAnnotationSource>  extends Annotator<T>{
 
-    public FileBasedAnnotator(GeneSigAnnotationSource annSrc, AtlasBioEntityDataWriter beDataWriter) {
+    static final private Logger log = LoggerFactory.getLogger(FileBasedAnnotator.class);
+
+    public FileBasedAnnotator(T annSrc, AtlasBioEntityDataWriter beDataWriter) {
         super(annSrc, beDataWriter);
     }
 
@@ -43,7 +49,9 @@ public class FileBasedAnnotator  extends Annotator<GeneSigAnnotationSource>{
             beDataWriter.writeBioEntityToPropertyValues(data, annSrc, true, listener);
 
             reportSuccess("Update annotations from Annotation Source " + annSrc.getName() + " completed");
-            contentAsFile.delete();
+            if (!contentAsFile.delete()){
+                log.error("Couldn't delete temp file " + contentAsFile.getAbsolutePath());
+            }
         } catch (AnnotationException e) {
             reportError(e);
 

@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.annotator.loader;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 /**
@@ -24,7 +24,7 @@ public class AnnotatorFactory {
         return new BioMartAnnotator( annSrc, annSrcDAO, propertyDAO, beDataWriter);
     }
 
-    public FileBasedAnnotator createFileBasedAnnotator(GeneSigAnnotationSource annSrc) {
-        return new FileBasedAnnotator(annSrc, beDataWriter);
+    public <T extends FileBasedAnnotationSource> FileBasedAnnotator<T> createFileBasedAnnotator(T annSrc) {
+        return new FileBasedAnnotator<T>(annSrc, beDataWriter);
     }
 }

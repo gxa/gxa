@@ -22,8 +22,6 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class GeneSigConnection implements AnnotationSourceConnection<GeneSigAnnotationSource> {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private static final String DB_NAME = "GeneSigDB";
-
     //Example:  http://compbio.dfci.harvard.edu/genesigdb/download/GeneSigDBv4.0_STANDARDIZED_GENELIST.csv
     private final String urlLocation;
 

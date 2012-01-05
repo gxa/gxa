@@ -30,6 +30,8 @@ public class URLContentLoader {
 
         method.setFollowRedirects(true);
 
+        FileOutputStream out = null;
+        InputStream in = null;
         try {
             int statusCode = client.executeMethod(method);
 
@@ -39,8 +41,8 @@ public class URLContentLoader {
 
             final long responseContentLength = method.getResponseContentLength();
 
-            InputStream in = method.getResponseBodyAsStream();
-            FileOutputStream out = new FileOutputStream(file);
+            in = method.getResponseBodyAsStream();
+            out = new FileOutputStream(file);
             byte[] buffer = new byte[1024];
             int count;
             int size = 0;
@@ -49,10 +51,9 @@ public class URLContentLoader {
                 size = size + count;
             }
             out.flush();
-            out.close();
 
             if (size < responseContentLength) {
-                log.error("Not all data are loaded actual size {} expected size {}", size,responseContentLength);
+                log.error("Not all data are loaded actual size {} expected size {}", size, responseContentLength);
                 throw new AnnotationException("Failed to download all annotation data from: " + url +
                         " expected size=" + responseContentLength + " actual=" + size + ". Please try again!");
             }
@@ -62,6 +63,16 @@ public class URLContentLoader {
             throw new AnnotationException("Fatal transport error when reading from " + url, e);
         } finally {
             method.releaseConnection();
+            try {
+                out.close();
+            } catch (IOException e) {
+                log.error("Cannot close output stream for file " + file.getAbsolutePath());
+            }
+            try {
+                in.close();
+            } catch (IOException e) {
+                log.error("Cannot close input stream for reading from " + url);
+            }
         }
         return file;
 
