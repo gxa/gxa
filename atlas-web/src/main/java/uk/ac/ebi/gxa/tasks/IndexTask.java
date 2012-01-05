@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
-import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderEvent;
 import uk.ac.ebi.gxa.index.builder.listener.IndexBuilderListener;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -35,11 +34,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import java.util.Arrays;
 
 /**
- * Index builder tasks implementation. Can (re-)index just one experiment or entire index.
- * Statuses for those two types of tasks interact in a kind of a tricky way. If "index"
- * task status is set to INCOMPLETE, it practically means that all experiments are considered
- * as having invalid index. In turn, any INCOMPLETE indexexperiment means that the whole index could do
- * with rebuilding
+ * Index builder tasks implementation. Re-indexes entire index only.
  *
  * @author pashky
  */
@@ -51,13 +46,7 @@ public class IndexTask extends AbstractWorkingTask {
 
     public static final TaskSpec SPEC_INDEXALL = new TaskSpec(TYPE_INDEX, "");
 
-    public static TaskSpec SPEC_INDEXEXPERIMENT(String accession) {
-        return new TaskSpec(TYPE_INDEXEXPERIMENT, accession);
-    }
-
     private IndexBuilderCommand getIndexBuilderCommand() {
-        if (TYPE_INDEXEXPERIMENT.equals(getTaskSpec().getType()))
-            return new UpdateIndexForExperimentCommand(getTaskSpec().getAccession());
         return new IndexAllCommand();
     }
 

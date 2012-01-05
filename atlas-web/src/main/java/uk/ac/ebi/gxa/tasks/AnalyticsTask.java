@@ -64,7 +64,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
                             taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FINISHED, "");
                             taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                            final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(getTaskSpec().getAccession());
+                            final TaskSpec indexTask = IndexTask.SPEC_INDEXALL;
                             taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
                             if (!stop && isRunningAutoDependencies()) {
                                 taskMan.scheduleTask(AnalyticsTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,

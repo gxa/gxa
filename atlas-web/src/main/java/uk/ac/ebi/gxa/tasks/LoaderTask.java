@@ -104,7 +104,7 @@ public class LoaderTask extends AbstractWorkingTask {
                             log.info("Analytics was preserved in NetCDF, no need to recompute");
                         }
 
-                        final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
+                        final TaskSpec indexTask = IndexTask.SPEC_INDEXALL;
                         taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
 
                         if (!stop && isRunningAutoDependencies()) {
@@ -119,8 +119,6 @@ public class LoaderTask extends AbstractWorkingTask {
                     } else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType())) {
                         TaskSpec experimentTask = AnalyticsTask.SPEC_ANALYTICS(accession);
                         taskMan.updateTaskStage(experimentTask, TaskStatus.NONE);
-                        TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
-                        taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
 
                         taskMan.updateTaskStage(IndexTask.SPEC_INDEXALL, TaskStatus.INCOMPLETE);
                         if (!stop && isRunningAutoDependencies()) {

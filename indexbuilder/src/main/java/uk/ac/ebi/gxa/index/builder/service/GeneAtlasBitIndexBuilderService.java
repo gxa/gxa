@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -60,15 +59,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processCommand(UpdateIndexForExperimentCommand cmd,
-                               IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
-        /// Re-build the whole bit index even if one experiment only is being updated
-        indexAll(progressUpdater);
-    }
-
-
-    @Override
     public void finalizeCommand() throws IndexBuilderException {
         ObjectOutputStream oos = null;
         try {
@@ -80,12 +70,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         } finally {
             closeQuietly(oos);
         }
-    }
-
-    @Override
-    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand,
-                                ProgressUpdater progressUpdater) throws IndexBuilderException {
-        finalizeCommand();
     }
 
     private void indexAll(ProgressUpdater progressUpdater) {

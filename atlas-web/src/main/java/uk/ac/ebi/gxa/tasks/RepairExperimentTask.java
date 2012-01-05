@@ -60,7 +60,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
         }
         log.info("Repair experiment - analytics is complete, checking index");
 
-        final TaskSpec indexSpec = IndexTask.SPEC_INDEXEXPERIMENT(accession);
+        final TaskSpec indexSpec = IndexTask.SPEC_INDEXALL;
         final TaskStatus indexState = taskMan.getTaskStatus(indexSpec);
         if(TaskStatus.DONE != indexState) {
             taskMan.scheduleTask(this, indexSpec, TaskRunMode.CONTINUE, getUser(), true,

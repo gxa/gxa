@@ -28,11 +28,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
-import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
-import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
@@ -76,29 +73,6 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
         } catch (IOException e) {
             throw new IndexBuilderException(e);
         } catch (SolrServerException e) {
-            throw new IndexBuilderException(e);
-        }
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        super.processCommand(cmd, progressUpdater);
-        String accession = cmd.getAccession();
-
-        getLog().debug("Updating index for experiment " + accession);
-
-        try {
-            progressUpdater.update("0/1");
-            getSolrServer().deleteByQuery("accession:" + EscapeUtil.escapeSolr(accession));
-            Experiment experiment = getAtlasDAO().getExperimentByAccession(accession);
-            processExperiment(experiment);
-            progressUpdater.update("1/1");
-        } catch (SolrServerException e) {
-            throw new IndexBuilderException(e);
-        } catch (IOException e) {
-            throw new IndexBuilderException(e);
-        } catch (RecordNotFoundException e) {
             throw new IndexBuilderException(e);
         }
     }

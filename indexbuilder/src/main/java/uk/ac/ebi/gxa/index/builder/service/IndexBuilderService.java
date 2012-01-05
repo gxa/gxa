@@ -85,11 +85,6 @@ public abstract class IndexBuilderService {
                 processCommand(cmd, progressUpdater);
                 finalizeCommand();
             }
-
-            public void process(UpdateIndexForExperimentCommand cmd) throws IndexBuilderException {
-                processCommand(cmd, progressUpdater);
-                finalizeCommand(cmd, progressUpdater);
-            }
         });
     }
 
@@ -132,15 +127,7 @@ public abstract class IndexBuilderService {
         deleteAll();
     }
 
-    public void processCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
-    }
-
     public void finalizeCommand() throws IndexBuilderException {
-        commit();
-        optimize();
-    }
-
-    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
         commit();
         optimize();
     }
