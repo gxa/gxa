@@ -27,6 +27,6 @@
     <import resource="classpath*:/uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
     <import resource="classpath*:/uk/ac/ebi/gxa/annotator/testAnnotatorContext.xml"/>
 
-    <bean name="fbConverterTest" class="uk.ac.ebi.gxa.annotator.annotationsrc.FileBasedAnnotationSourceConverterTest">
+    <bean name="fbConverterTest" class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceConverterTest">
     </bean>
 </beans>

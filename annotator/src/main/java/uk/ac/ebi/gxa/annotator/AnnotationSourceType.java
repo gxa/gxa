@@ -54,7 +54,7 @@ public enum AnnotationSourceType {
 
         @Override
         public AnnotationSourceConverter createConverter(ConverterFactory factory) {
-            return factory.getFileBasedAnnotationSourceConverter();
+            return factory.getGeneSigAnnotationSourceConverter();
         }
     };
 

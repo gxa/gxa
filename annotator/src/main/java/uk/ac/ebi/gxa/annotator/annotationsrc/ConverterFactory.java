@@ -35,13 +35,13 @@ public class ConverterFactory {
     private BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter;
 
     @Autowired
-    private FileBasedAnnotationSourceConverter fileBasedAnnotationSourceConverter;
+    private GeneSigAnnotationSourceConverter geneSigAnnotationSourceConverter;
 
     public BioMartAnnotationSourceConverter getBioMartAnnotationSourceConverter() {
         return bioMartAnnotationSourceConverter;
     }
 
-    public FileBasedAnnotationSourceConverter getFileBasedAnnotationSourceConverter() {
-        return fileBasedAnnotationSourceConverter;
+    public GeneSigAnnotationSourceConverter getGeneSigAnnotationSourceConverter() {
+        return geneSigAnnotationSourceConverter;
     }
 }

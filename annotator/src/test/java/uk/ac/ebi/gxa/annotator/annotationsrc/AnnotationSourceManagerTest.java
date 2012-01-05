@@ -73,7 +73,7 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Test
     public void testSaveAnnSrc() throws Exception {
-        manager.saveAnnSrc(null, AnnotationSourceType.GENESIGDB, FileBasedAnnotationSourceConverterTest.ANN_SRC);
+        manager.saveAnnSrc(null, AnnotationSourceType.GENESIGDB, GeneSigAnnotationSourceConverterTest.ANN_SRC);
         final Collection<? extends AnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(AnnotationSourceType.GENESIGDB.getClazz());
         assertEquals(2, sources.size());
     }

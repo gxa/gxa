@@ -40,7 +40,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 14/04/2011
  */
-public class BioMartConnection implements AnnotationSourceConnection<BioMartAnnotationSource> {
+public class BioMartConnection implements AnnotationSourceConnection {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final String MART_NAME_PH = "$MART_NAME";
@@ -102,8 +102,8 @@ public class BioMartConnection implements AnnotationSourceConnection<BioMartAnno
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
 
+            String martDb = MART_DB.replace(MART_NAME_PH, databaseName);
             while ((line = bufferedReader.readLine()) != null) {
-                String martDb = MART_DB.replace(MART_NAME_PH, databaseName);
                 if ((line.indexOf(martDb)) > -1) {
                     version = parseOutValue(martDb, line);
                     break;
@@ -246,8 +246,8 @@ public class BioMartConnection implements AnnotationSourceConnection<BioMartAnno
 
         URL url = null;
         BufferedReader bufferedReader = null;
-        String nameProp = "name=\"";
-        String virtSchProp = "serverVirtualSchema=\"";
+        final String nameProp = "name=\"";
+        final String virtSchProp = "serverVirtualSchema=\"";
         try {
             url = getMartURL(martUrl + REGISTRY_QUERY);
 

@@ -58,7 +58,7 @@
           class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartAnnotationSourceConverter"/>
 
     <bean name="fileBasedAnnotationSourceConverter"
-          class="uk.ac.ebi.gxa.annotator.annotationsrc.FileBasedAnnotationSourceConverter"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceConverter"/>
 
     <bean name="annotationSourceConverterFactory"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.ConverterFactory"/>

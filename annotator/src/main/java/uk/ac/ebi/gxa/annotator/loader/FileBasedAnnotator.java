@@ -29,7 +29,6 @@ import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationDataBuilder;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.utils.FileUtil;
 
 import java.io.File;
@@ -85,6 +84,7 @@ public class FileBasedAnnotator<T extends FileBasedAnnotationSource>  extends An
 
     @Override
     public void updateMappings() {
+        //ToDo: implement this method if we file based annotation source with mappings
         throw new UnsupportedOperationException(this.getClass().getSimpleName() + " doesn't support method updateMappings ");
     }
 

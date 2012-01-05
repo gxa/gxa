@@ -41,7 +41,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
  * Date: 22/08/2011
  */
 @ContextConfiguration
-public class FileBasedAnnotationSourceConverterTest extends AtlasDAOTestCase {
+public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
 
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
@@ -56,12 +56,12 @@ public class FileBasedAnnotationSourceConverterTest extends AtlasDAOTestCase {
     @Autowired
     private ArrayDesignService arrayDesignService;
 
-    private FileBasedAnnotationSourceConverter converter;
+    private GeneSigAnnotationSourceConverter converter;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        converter = new FileBasedAnnotationSourceConverter();
+        converter = new GeneSigAnnotationSourceConverter();
         converter.setAnnSrcDAO(annSrcDAO);
         converter.setOrganismDAO(organismDAO);
         converter.setPropertyDAO(propertyDAO);

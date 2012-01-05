@@ -41,7 +41,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 26/10/2011
  */
-public class GeneSigConnection implements AnnotationSourceConnection<GeneSigAnnotationSource> {
+public class GeneSigConnection implements AnnotationSourceConnection{
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     //Example:  http://compbio.dfci.harvard.edu/genesigdb/download/GeneSigDBv4.0_STANDARDIZED_GENELIST.csv
