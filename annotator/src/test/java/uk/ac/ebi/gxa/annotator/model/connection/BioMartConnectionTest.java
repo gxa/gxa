@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.model.connection;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.util.Collection;

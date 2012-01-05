@@ -37,7 +37,7 @@ public class BioMartDbDAOTest {
     private BioMartDbDAO bioMartDbDAO;
 
     @Before
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         bioMartDbDAO = new BioMartDbDAO("ensembldb.ensembl.org:5306");
     }
 
