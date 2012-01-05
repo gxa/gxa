@@ -24,12 +24,12 @@ package ae3.model;
 
 
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.DesignElementStatistics;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * Lazy expression statistics class
@@ -41,7 +41,7 @@ public class ExpressionStats {
     private final ArrayDesign arrayDesign;
     private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
-    private EfvTree<Stat> lastData;
+    private EfvTree<DesignElementStatistics> lastData;
     private long lastDesignElement = -1;
 
     ExpressionStats(ExperimentWithData experiment, ArrayDesign arrayDesign) throws AtlasDataException {
@@ -64,22 +64,17 @@ public class ExpressionStats {
      *
      * @param designElementId design element id
      * @return efv tree of stats
+     * @throws AtlasDataException whenever it wants to
      */
-    EfvTree<Stat> getExpressionStats(int designElementId) throws AtlasDataException {
+    EfvTree<DesignElementStatistics> getExpressionStats(int designElementId) throws AtlasDataException {
         if (lastData != null && designElementId == lastDesignElement) {
             return lastData;
         }
 
-        final EfvTree<Stat> result = new EfvTree<Stat>();
+        final EfvTree<DesignElementStatistics> result = new EfvTree<DesignElementStatistics>();
         try {
-            final float[] pvals = experiment.getPValuesForDesignElement(arrayDesign, designElementId);
-            final float[] tstats = experiment.getTStatisticsForDesignElement(arrayDesign, designElementId);
             for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                float pvalue = pvals[efefv.getPayload()];
-                float tstat = tstats[efefv.getPayload()];
-                if (tstat > 1e-8 || tstat < -1e-8) {
-                    result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
-                }
+                result.put(efefv.getEf(), efefv.getEfv(), experiment.getStatistics(efefv.getPayload(), designElementId, arrayDesign));
             }
         } catch (StatisticsNotFoundException e) {
             // TODO: throw this exception outside?
@@ -87,74 +82,5 @@ public class ExpressionStats {
         lastDesignElement = designElementId;
         lastData = result;
         return result;
-    }
-
-    /**
-     * Expression statistics for ef/efv pair for one design element
-     */
-    public static class Stat implements Comparable<Stat> {
-        private final float pvalue;
-        private final float tstat;
-
-        /**
-         * Constructor
-         *
-         * @param tstat  t-statistics
-         * @param pvalue p-value
-         */
-        public Stat(float tstat, float pvalue) {
-            this.pvalue = pvalue;
-            this.tstat = tstat;
-        }
-
-        /**
-         * Gets p-value
-         *
-         * @return p-value
-         */
-        public float getPvalue() {
-            return pvalue;
-        }
-
-        /**
-         * Gets t-statistics
-         *
-         * @return t-statistics value
-         */
-        public float getTstat() {
-            return tstat;
-        }
-
-        /**
-         * Returns whether gene is over-expressed or under-expressed
-         *
-         * @return gene expression
-         */
-        public UpDownExpression getExpression() {
-            return UpDownExpression.valueOf(pvalue, tstat);
-        }
-
-        /**
-         * Useful, as {@link uk.ac.ebi.gxa.utils.EfvTree} can return elements sorted by value.
-         * P-value of statistics, in this case.
-         *
-         * @param o other object
-         * @return 1, 0 or -1
-         */
-        public int compareTo(Stat o) {
-            assert o.getPvalue() >= 0 && o.getPvalue() <= 1;
-            assert getPvalue() >= 0 && getPvalue() <= 1;
-            return Float.valueOf(getPvalue()).compareTo(o.getPvalue());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof Stat && compareTo((Stat) obj) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return pvalue != +0.0f ? Float.floatToIntBits(pvalue) : 0;
-        }
     }
 }

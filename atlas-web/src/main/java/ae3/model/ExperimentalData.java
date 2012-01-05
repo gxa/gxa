@@ -27,6 +27,7 @@ import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.DesignElementStatistics;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
@@ -143,15 +144,10 @@ public class ExperimentalData {
      *
      * @param arrayDesign array design, this data apply to
      */
-    private ExpressionStats getExpressionStats(ArrayDesign arrayDesign) {
+    private ExpressionStats getExpressionStats(ArrayDesign arrayDesign) throws AtlasDataException {
         ExpressionStats stats = expressionStats.get(arrayDesign);
         if (stats == null) {
-            try {
-                stats = new ExpressionStats(experimentWithData, arrayDesign);
-            } catch (AtlasDataException e) {
-                return null;
-            }
-            expressionStats.put(arrayDesign, stats);
+            expressionStats.put(arrayDesign, stats = new ExpressionStats(experimentWithData, arrayDesign));
         }
         return stats;
     }
@@ -174,22 +170,20 @@ public class ExperimentalData {
     }
 
     /**
-     * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link ae3.model.ExpressionStats.Stat} structures
+     * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link DesignElementStatistics} structures
      *
      * @param ad            array design
      * @param designElement design element id
      * @return map of statstics
      */
-    public EfvTree<ExpressionStats.Stat> getExpressionStats(ArrayDesign ad, int designElement) {
-        final ExpressionStats stats = getExpressionStats(ad);
-        if (stats == null) {
-            return new EfvTree<ExpressionStats.Stat>();
-        }
-
+    public EfvTree<DesignElementStatistics> getExpressionStats(ArrayDesign ad, int designElement) {
         try {
-            return stats.getExpressionStats(designElement);
+            final ExpressionStats stats = getExpressionStats(ad);
+            return stats == null ?
+                    new EfvTree<DesignElementStatistics>() :
+                    stats.getExpressionStats(designElement);
         } catch (AtlasDataException e) {
-            return new EfvTree<ExpressionStats.Stat>();
+            return new EfvTree<DesignElementStatistics>();
         }
     }
 

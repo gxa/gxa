@@ -56,6 +56,14 @@ public class ExperimentWithData implements Closeable {
         this.experiment = experiment;
     }
 
+    public DesignElementStatistics getStatistics(int efvIndex, int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+        final float[] pvals = getPValuesForDesignElement(arrayDesign, designElementId);
+        final float[] tstats = getTStatisticsForDesignElement(arrayDesign, designElementId);
+        float pvalue = pvals[efvIndex];
+        float tstat = tstats[efvIndex];
+        return new DesignElementStatistics(tstat, pvalue, designElementId, efvIndex);
+    }
+
     public Experiment getExperiment() {
         return experiment;
     }
@@ -153,10 +161,12 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getGenes();
     }
 
+    @Deprecated
     public List<Pair<String, String>> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueEFVs();
     }
 
+    @Deprecated
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getFactors();
     }
@@ -222,7 +232,7 @@ public class ExperimentWithData implements Closeable {
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
             final Pair<String, String> uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
             if (efName == null ||
-                (uniqueEFV.getKey().equals(efName) && uniqueEFV.getValue().equals(efvName))) {
+                    (uniqueEFV.getKey().equals(efName) && uniqueEFV.getValue().equals(efvName))) {
                 list.add(new ExpressionAnalysis(
                         arrayDesign.getAccession(),
                         deAccession,
@@ -370,8 +380,8 @@ public class ExperimentWithData implements Closeable {
         return geneIdToDEIndexes;
     }
 
-     /**
-     * @param geneIds  ids of genes to plot
+    /**
+     * @param geneIds     ids of genes to plot
      * @param arrayDesign an array design to get expression analyses data
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
@@ -383,10 +393,12 @@ public class ExperimentWithData implements Closeable {
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
     }
 
+    @Deprecated
     public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex);
     }
 
+    @Deprecated
     public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex);
     }
@@ -395,10 +407,12 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getAllExpressionData();
     }
 
+    @Deprecated
     public TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getTStatistics();
     }
 
+    @Deprecated
     public TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getPValues();
     }

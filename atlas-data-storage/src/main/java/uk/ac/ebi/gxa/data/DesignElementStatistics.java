@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -111,5 +112,9 @@ public final class DesignElementStatistics implements Comparable<DesignElementSt
                 ", deIndex=" + deIndex +
                 ", uEFVIndex=" + uEFVIndex +
                 '}';
+    }
+
+    public UpDownExpression getUpDownExpression() {
+        return UpDownExpression.valueOf(pValue, tStat);
     }
 }

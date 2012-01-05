@@ -22,9 +22,13 @@
 
 package uk.ac.ebi.gxa.requesthandlers.api.result;
 
-import ae3.model.*;
+import ae3.model.AssayDecorator;
+import ae3.model.AtlasExperiment;
+import ae3.model.AtlasGene;
+import ae3.model.ExperimentalData;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.DesignElementStatistics;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -194,13 +198,19 @@ public class ExperimentResultAdapter {
         }
 
         @RestOut(xmlItemName = "expression")
-        public static class DEExpression extends MappingIterator<EfvTree.EfEfv<ExpressionStats.Stat>, Map> {
-            public DEExpression(Iterator<EfvTree.EfEfv<ExpressionStats.Stat>> fromiter) {
+        public static class DEExpression extends MappingIterator<EfvTree.EfEfv<DesignElementStatistics>, Map> {
+            public DEExpression(Iterator<EfvTree.EfEfv<DesignElementStatistics>> fromiter) {
                 super(fromiter);
             }
 
-            public Map map(EfvTree.EfEfv<ExpressionStats.Stat> statEfEfv) {
-                return makeMap("ef", statEfEfv.getEf(), "efv", statEfEfv.getEfv(), "stat", statEfEfv.getPayload());
+            public Map map(EfvTree.EfEfv<DesignElementStatistics> statEfEfv) {
+                final DesignElementStatistics statistics = statEfEfv.getPayload();
+                return makeMap("ef", statEfEfv.getEf(),
+                        "efv", statEfEfv.getEfv(),
+                        "stat",
+                        makeMap("pvalue", statistics.getPValue(),
+                                "tstat", statistics.getTStat(),
+                                "expression", statistics.getUpDownExpression()));
             }
         }
 
@@ -213,7 +223,7 @@ public class ExperimentResultAdapter {
                     if (designElements != null) {
                         DesignElementStatMap deMap = new DesignElementStatMap();
                         for (final int designElementId : designElements) {
-                            List<EfvTree.EfEfv<ExpressionStats.Stat>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
+                            List<EfvTree.EfEfv<DesignElementStatistics>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
                             if (!efefvList.isEmpty())
                                 deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
                         }
