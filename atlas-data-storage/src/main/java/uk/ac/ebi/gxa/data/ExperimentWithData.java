@@ -57,11 +57,11 @@ public class ExperimentWithData implements Closeable {
     }
 
     public DesignElementStatistics getStatistics(int efvIndex, int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        final float[] pvals = getPValuesForDesignElement(arrayDesign, designElementId);
-        final float[] tstats = getTStatisticsForDesignElement(arrayDesign, designElementId);
+        final float[] pvals = getProxy(arrayDesign).getPValuesForDesignElement(designElementId);
+        final float[] tstats = getProxy(arrayDesign).getTStatisticsForDesignElement(designElementId);
         float pvalue = pvals[efvIndex];
         float tstat = tstats[efvIndex];
-        return new DesignElementStatistics(tstat, pvalue, designElementId, efvIndex);
+        return new DesignElementStatistics(tstat, pvalue, designElementId, efvIndex, getUniqueEFVs(arrayDesign).get(efvIndex));
     }
 
     public Experiment getExperiment() {
@@ -225,8 +225,8 @@ public class ExperimentWithData implements Closeable {
             ArrayDesign arrayDesign, int deIndex,
             @Nullable String efName, @Nullable String efvName) throws AtlasDataException, StatisticsNotFoundException {
         final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
-        final float[] p = getPValuesForDesignElement(arrayDesign, deIndex);
-        final float[] t = getTStatisticsForDesignElement(arrayDesign, deIndex);
+        final float[] p = getProxy(arrayDesign).getPValuesForDesignElement(deIndex);
+        final float[] t = getProxy(arrayDesign).getTStatisticsForDesignElement(deIndex);
 
         final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
         for (int efIndex = 0; efIndex < p.length; efIndex++) {
@@ -391,16 +391,6 @@ public class ExperimentWithData implements Closeable {
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
-    }
-
-    @Deprecated
-    public float[] getPValuesForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
-        return getProxy(arrayDesign).getPValuesForDesignElement(designElementIndex);
-    }
-
-    @Deprecated
-    public float[] getTStatisticsForDesignElement(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
-        return getProxy(arrayDesign).getTStatisticsForDesignElement(designElementIndex);
     }
 
     public TwoDFloatArray getAllExpressionData(ArrayDesign arrayDesign) throws AtlasDataException {

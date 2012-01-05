@@ -43,6 +43,10 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
+    public AllStats getAllStats() throws AtlasDataException, StatisticsNotFoundException {
+        return new AllStats(this);
+    }
+
     public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getUniqueEFVs(arrayDesign);
     }

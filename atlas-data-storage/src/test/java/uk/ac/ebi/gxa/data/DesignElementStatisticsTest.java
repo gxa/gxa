@@ -33,6 +33,7 @@ import static net.java.quickcheck.generator.PrimitiveGenerators.integers;
 import static net.java.quickcheck.generator.iterable.Iterables.toIterable;
 import static org.junit.Assert.*;
 import static uk.ac.ebi.gxa.data.StatisticsGenerators.*;
+import static uk.ac.ebi.gxa.utils.Pair.create;
 
 /**
  * @author Robert Petryszak
@@ -88,7 +89,7 @@ public class DesignElementStatisticsTest {
 
     private void checkValidityConstraints(Generator<Integer> someInt, Double p, Double t, String diagnosis) {
         try {
-            new DesignElementStatistics(p.floatValue(), t.floatValue(), someInt.next(), someInt.next());
+            new DesignElementStatistics(p.floatValue(), t.floatValue(), someInt.next(), someInt.next(), create("",""));
             fail(diagnosis + " was invalid - an UnexpectedException should have been thrown");
         } catch (UnexpectedException ignored) {
             // as expected
@@ -102,7 +103,7 @@ public class DesignElementStatisticsTest {
 
         for (DesignElementStatistics a : toIterable(deCandidates())) {
             DesignElementStatistics b = new DesignElementStatistics(pg.next().floatValue(),
-                    a.getTStat(), someInt.next(), someInt.next());
+                    a.getTStat(), someInt.next(), someInt.next(), create("",""));
 
             checkSameAbsTProperties(a, b);
         }
@@ -115,7 +116,7 @@ public class DesignElementStatisticsTest {
 
         for (DesignElementStatistics a : toIterable(deCandidates())) {
             DesignElementStatistics b = new DesignElementStatistics(pg.next().floatValue(),
-                    -a.getTStat(), someInt.next(), someInt.next());
+                    -a.getTStat(), someInt.next(), someInt.next(), create("",""));
 
             checkSameAbsTProperties(a, b);
         }

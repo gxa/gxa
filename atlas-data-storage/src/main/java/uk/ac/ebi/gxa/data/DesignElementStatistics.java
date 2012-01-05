@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.concurrent.Immutable;
@@ -44,8 +45,9 @@ public final class DesignElementStatistics implements Comparable<DesignElementSt
     private final float tStat;
     private final int deIndex;
     private final int uEFVIndex;
+    private final Pair<String, String> efv;
 
-    public DesignElementStatistics(float pValue, float tStat, int deIndex, int uEFVIndex) {
+    public DesignElementStatistics(float pValue, float tStat, int deIndex, int uEFVIndex, Pair<String, String> efv) {
         if (!isPvalValid(pValue))
             throw LogUtil.createUnexpected("Invalid pValue: " + pValue);
         if (!isTStatValid(tStat))
@@ -55,6 +57,7 @@ public final class DesignElementStatistics implements Comparable<DesignElementSt
         this.tStat = tStat;
         this.deIndex = deIndex;
         this.uEFVIndex = uEFVIndex;
+        this.efv = efv;
     }
 
     public float getPValue() {
@@ -71,6 +74,10 @@ public final class DesignElementStatistics implements Comparable<DesignElementSt
 
     public int getUEFVIndex() {
         return uEFVIndex;
+    }
+
+    public Pair<String, String> getEfv() {
+        return efv;
     }
 
     @Override

@@ -66,7 +66,7 @@ public class StatisticsGenerators {
                 return new DesignElementStatistics(
                         p.next().floatValue(),
                         t.next().floatValue(),
-                        de.next(), uefv.next());
+                        de.next(), uefv.next(), getUniqueEFVs(arrayDesign).get(efvIndex));
             }
         };
     }

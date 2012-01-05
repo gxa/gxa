@@ -15,7 +15,6 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.sort;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.boundSafeSublist;
-import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.valueOf;
 
 
 /**
@@ -58,33 +57,28 @@ public class AtlasExperimentAnalyticsViewService {
         if (expPart == null)
             return new BestDesignElementsResult();
 
-        final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
-        final TwoDFloatArray pvals = expPart.getPValues();
-        final TwoDFloatArray tstat = expPart.getTStatistics();
+        AllStats allStats = expPart.getAllStats();
 
-        List<DesignElementStatistics> stats = newArrayList();
+        List<DesignElementStatistics> result = newArrayList();
         for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
-            Best<DesignElementStatistics> result = Best.create();
-            for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
-                float p = pvals.get(deidx, uefidx);
-                float t = tstat.get(deidx, uefidx);
+            Best<DesignElementStatistics> bestDE = Best.create();
 
-                if (fvPredicate.apply(uEFVs.get(uefidx)) && upDownPredicate.apply(valueOf(p, t))) {
-                    result.offer(new DesignElementStatistics(p, t, deidx, uefidx));
+            for (Stats s : allStats.focusOnDe(deidx)) {
+                if (fvPredicate.apply(s.efv) && upDownPredicate.apply(s.expression())) {
+                    bestDE.offer(s.asDEStats());
                 }
             }
-            if (result.isFound())
-                stats.add(result.get());
+            if (bestDE.isFound())
+                result.add(bestDE.get());
         }
-        sort(stats);
+        sort(result);
 
-        return convert(expPart, stats, offset, limit);
+        return convert(expPart, result, offset, limit);
     }
 
     private BestDesignElementsResult convert(ExperimentPart expPart, List<DesignElementStatistics> stats,
                                              int offset, int limit)
             throws AtlasDataException, StatisticsNotFoundException {
-        final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
         final List<Long> allGeneIds = expPart.getGeneIds();
         final String[] designElementAccessions = expPart.getDesignElementAccessions();
 
@@ -97,7 +91,7 @@ public class AtlasExperimentAnalyticsViewService {
                     designElementAccessions[de.getDEIndex()],
                     de.getPValue(),
                     de.getTStat(),
-                    uEFVs.get(de.getUEFVIndex()));
+                    de.getEfv());
         }
         return result;
     }
@@ -112,4 +106,5 @@ public class AtlasExperimentAnalyticsViewService {
         }
         return result;
     }
+
 }
