@@ -35,6 +35,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static com.google.common.io.Closeables.closeQuietly;
+
 /**
  * User: nsklyar
  * Date: 20/12/2011
@@ -85,16 +87,8 @@ public class URLContentLoader {
             throw new AnnotationException("Fatal transport error when reading from " + url, e);
         } finally {
             method.releaseConnection();
-            try {
-                out.close();
-            } catch (IOException e) {
-                log.error("Cannot close output stream for file " + file.getAbsolutePath());
-            }
-            try {
-                in.close();
-            } catch (IOException e) {
-                log.error("Cannot close input stream for reading from " + url);
-            }
+            closeQuietly(out);
+            closeQuietly(in);
         }
         return file;
 

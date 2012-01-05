@@ -113,7 +113,7 @@ public class AnnotationParser<T extends BioEntityData> {
                 }
 
                 if (lineCount++ % 2000 == 0) {
-                    log.info("Parsed " + lineCount + " properties values");
+                    log.debug("Parsed " + lineCount + " properties values");
                 }
 
             }
@@ -150,7 +150,7 @@ public class AnnotationParser<T extends BioEntityData> {
                     }
 
                     if (lineCount % 2000 == 0) {
-                        log.info("Parsed " + lineCount + " properties values");
+                        log.debug("Parsed " + lineCount + " properties values");
                     }
                 }
 
@@ -179,7 +179,7 @@ public class AnnotationParser<T extends BioEntityData> {
                 }
 
                 if (lineCount++ % 2000 == 0) {
-                    log.info("Parsed " + lineCount + " design element mappings");
+                    log.debug("Parsed " + lineCount + " design element mappings");
                 }
 
             }
