@@ -192,29 +192,6 @@ final class NetCDFProxyV2 extends NetCDFProxy {
         }
     }
 
-    private List<Pair<String, String>> uniqueEFVs;
-
-    @Override
-    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
-        if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
-        }
-
-        if (uniqueEFVs == null) {
-            final String[] names = getArrayOfStrings(statisticsNetCDF, "propertyNAME");
-            final String[] values = getArrayOfStrings(statisticsNetCDF, "propertyVALUE");
-            if (names.length != values.length) {
-                throw new AtlasDataException("Inconsistent names/values data in " + this);
-            }
-
-            uniqueEFVs = newArrayList();
-            for (int i = 0; i < names.length; ++i) {
-                uniqueEFVs.add(Pair.create(names[i], values[i]));
-            }
-        }
-        return uniqueEFVs;
-    }
-
     @Override
     public String[] getCharacteristicValues(String characteristic) throws AtlasDataException {
         Integer scIndex = findScIndex(characteristic);
@@ -254,6 +231,37 @@ final class NetCDFProxyV2 extends NetCDFProxy {
         return readFloatValuesForAllRows(dataNetCDF, "BDC");
     }
 
+    private List<Pair<String, String>> uniqueEFVs;
+
+    @Override
+    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
+        stats();
+
+        if (uniqueEFVs == null) {
+            final String[] names = getArrayOfStrings(statisticsNetCDF, "propertyNAME");
+            final String[] values = getArrayOfStrings(statisticsNetCDF, "propertyVALUE");
+            if (names.length != values.length) {
+                throw new AtlasDataException("Inconsistent names/values data in " + this);
+            }
+
+            uniqueEFVs = newArrayList();
+            for (int i = 0; i < names.length; ++i) {
+                uniqueEFVs.add(Pair.create(names[i], values[i]));
+            }
+        }
+        return uniqueEFVs;
+    }
+
+    @Override
+    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
+        return readFloatValuesForAllRows(stats(), "TSTAT");
+    }
+
+    @Override
+    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
+        return readFloatValuesForAllRows(stats(), "PVAL");
+    }
+
     /**
      * Extracts T-statistic matrix for given design element indices.
      *
@@ -265,27 +273,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
      */
     @Override
     public FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
-        if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
-        }
-        return readFloatValuesForRowIndices(statisticsNetCDF, deIndices, "TSTAT");
-    }
-
-    @Override
-    public float[] getTStatisticsForDesignElement(
-            int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
-        if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
-        }
-        return readFloatValuesForRowIndex(statisticsNetCDF, designElementIndex, "TSTAT");
-    }
-
-    @Override
-    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
-        if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
-        }
-        return readFloatValuesForAllRows(statisticsNetCDF, "TSTAT");
+        return readFloatValuesForRowIndices(stats(), deIndices, "TSTAT");
     }
 
     /**
@@ -299,27 +287,26 @@ final class NetCDFProxyV2 extends NetCDFProxy {
      */
     @Override
     public FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
-        if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
-        }
-        return readFloatValuesForRowIndices(statisticsNetCDF, deIndices, "PVAL");
+        return readFloatValuesForRowIndices(stats(), deIndices, "PVAL");
+    }
+
+    @Override
+    public float[] getTStatisticsForDesignElement(
+            int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
+        return readFloatValuesForRowIndex(stats(), designElementIndex, "TSTAT");
     }
 
     @Override
     public float[] getPValuesForDesignElement(
             int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
-        if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
-        }
-        return readFloatValuesForRowIndex(statisticsNetCDF, designElementIndex, "PVAL");
+        return readFloatValuesForRowIndex(stats(), designElementIndex, "PVAL");
     }
 
-    @Override
-    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
+    private NetcdfFile stats() throws StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
             throw new StatisticsNotFoundException("Statistics file does not exist");
         }
-        return readFloatValuesForAllRows(statisticsNetCDF, "PVAL");
+        return statisticsNetCDF;
     }
 
     /**

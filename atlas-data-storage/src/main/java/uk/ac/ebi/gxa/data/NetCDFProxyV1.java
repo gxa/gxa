@@ -176,6 +176,42 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         }
     }
 
+    public String[] getCharacteristicValues(String characteristic) throws AtlasDataException {
+        Integer scIndex = findScIndex(characteristic);
+        return scIndex == null ? new String[0] : getSlice3D(netCDF, "SCV", scIndex);
+    }
+
+    /**
+     * Gets a single row from the expression data matrix representing all expression data for a single design element.
+     * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
+     * index supplied is the row number.  As the expression value matrix has the same ordering as the design element
+     * array, you can iterate over the design element array to retrieve the index of the row you want to fetch.
+     *
+     * @param designElementIndex the index of the design element which we're interested in fetching data for
+     * @return the double array representing expression values for this design element
+     * @throws AtlasDataException if the NetCDF could not be accessed
+     */
+    public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws AtlasDataException {
+        return readFloatValuesForRowIndex(netCDF, designElementIndex, "BDC");
+    }
+
+    /**
+     * Extracts a matrix of expression values for given design element indices.
+     *
+     * @param deIndices an array of design element indices to get expression values for
+     * @return a float matrix - a list of expressions per design element index
+     * @throws AtlasDataException if the expression data could not be read from the netCDF file,
+     *                            or if the file doesn't contain given deIndices
+     */
+    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException {
+        return readFloatValuesForRowIndices(netCDF, deIndices, "BDC");
+    }
+
+    public TwoDFloatArray getAllExpressionData() throws AtlasDataException {
+        return readFloatValuesForAllRows(netCDF, "BDC");
+    }
+
+
     private List<Pair<String, String>> uniqueValues;
 
     public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException {
@@ -212,41 +248,6 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         }
     }
 
-    public String[] getCharacteristicValues(String characteristic) throws AtlasDataException {
-        Integer scIndex = findScIndex(characteristic);
-        return scIndex == null ? new String[0] : getSlice3D(netCDF, "SCV", scIndex);
-    }
-
-    /**
-     * Gets a single row from the expression data matrix representing all expression data for a single design element.
-     * This is obtained by retrieving all data from the given row in the expression matrix, where the design element
-     * index supplied is the row number.  As the expression value matrix has the same ordering as the design element
-     * array, you can iterate over the design element array to retrieve the index of the row you want to fetch.
-     *
-     * @param designElementIndex the index of the design element which we're interested in fetching data for
-     * @return the double array representing expression values for this design element
-     * @throws AtlasDataException if the NetCDF could not be accessed
-     */
-    public float[] getExpressionDataForDesignElementAtIndex(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "BDC");
-    }
-
-    /**
-     * Extracts a matrix of expression values for given design element indices.
-     *
-     * @param deIndices an array of design element indices to get expression values for
-     * @return a float matrix - a list of expressions per design element index
-     * @throws AtlasDataException if the expression data could not be read from the netCDF file,
-     *                            or if the file doesn't contain given deIndices
-     */
-    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException {
-        return readFloatValuesForRowIndices(netCDF, deIndices, "BDC");
-    }
-
-    public TwoDFloatArray getAllExpressionData() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "BDC");
-    }
-
     /**
      * Extracts T-statistic matrix for given design element indices.
      *
@@ -257,14 +258,6 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      */
     public FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException {
         return readFloatValuesForRowIndices(netCDF, deIndices, "TSTAT");
-    }
-
-    public float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "TSTAT");
-    }
-
-    public TwoDFloatArray getTStatistics() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "TSTAT");
     }
 
     /**
@@ -279,8 +272,16 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         return readFloatValuesForRowIndices(netCDF, deIndices, "PVAL");
     }
 
+    public float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException {
+        return readFloatValuesForRowIndex(netCDF, designElementIndex, "TSTAT");
+    }
+
     public float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException {
         return readFloatValuesForRowIndex(netCDF, designElementIndex, "PVAL");
+    }
+
+    public TwoDFloatArray getTStatistics() throws AtlasDataException {
+        return readFloatValuesForAllRows(netCDF, "TSTAT");
     }
 
     public TwoDFloatArray getPValues() throws AtlasDataException {
