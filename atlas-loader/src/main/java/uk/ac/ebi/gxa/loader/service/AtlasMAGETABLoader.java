@@ -129,18 +129,14 @@ public class AtlasMAGETABLoader {
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
                 new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
-                boolean arrayDataRead = false;
                 //use raw data
                 Collection<String> useRawData = cmd.getUserData().get("useRawData");
                 if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                     logProgress(listener, 5, ArrayDataStep.displayName());
-                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache);
-                }
-
-                logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
-                if (arrayDataRead) {
+                    new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache);
                     log.info("Raw data are used; processed data will not be processed");
                 } else {
+                    logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
                     new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
                 }
 
