@@ -68,7 +68,7 @@ import static uk.ac.ebi.gxa.utils.FileUtil.deleteDirectory;
 public class ArrayDataStep {
     private final static Logger log = LoggerFactory.getLogger(ArrayDataStep.class);
 
-    private static final String USE_PROCCESSED_FILES = "; Please try processed files instead";
+    private static final String USE_PROCCESSED_FILES = "; Please try using processed experimental data instead";
 
     public static String displayName() {
         return "Processing data matrix";
@@ -146,7 +146,7 @@ public class ArrayDataStep {
             // set this variable to true to try local files firstly
             boolean useLocalCopy = true;
             final Collection<ArrayDataNode> dataNodes =
-                    investigation.SDRF.getNodes(ArrayDataNode.class);
+                investigation.SDRF.getNodes(ArrayDataNode.class);
             if (dataNodes.isEmpty())
                 throw new AtlasLoaderException("No data nodes for raw data are defined in " + sdrfURL + USE_PROCCESSED_FILES);
 
@@ -194,10 +194,9 @@ public class ArrayDataStep {
                     adData = new RawData();
                     dataByArrayDesign.put(arrayDesignName, adData);
                 }
-                if (adData.celFiles.get(dataFileName) != null) {
-                    log.error("File '" + dataFileName + "' is used twice");
-                    throw new AtlasLoaderException("Error processing file: '" + dataFileName + "'" + USE_PROCCESSED_FILES);
-                }
+                if (adData.celFiles.get(dataFileName) != null)
+                    throw new AtlasLoaderException("Error processing file: '" + dataFileName + "' - this file is used twice" + USE_PROCCESSED_FILES);
+
                 adData.celFiles.put(dataFileName, scanName);
                 adData.assays.put(dataFileName, assay);
 
@@ -231,7 +230,6 @@ public class ArrayDataStep {
                                 localZipFile = File.createTempFile("atlas-loader", ".zip");
                                 zipFiles.put(zipName, localZipFile);
                                 copyFile(new URL(zipName), localZipFile);
-                                extractZip(localZipFile, adData.dataDir);
                             } catch (IOException e) {
                                 if (localZipFile != null && !localZipFile.delete()) {
                                     log.error("Cannot delete " + localZipFile.getAbsolutePath());
@@ -240,12 +238,18 @@ public class ArrayDataStep {
                                 throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
                             }
                         }
+
+                        try {
+                            extractZip(localZipFile, adData.dataDir);
+                        } catch (IOException e) {
+                            log.warn("IOException is thrown: " + e.getMessage());
+                            throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
+                        }
                     }
                 }
 
                 if (!tempFile.exists()) {
-                    log.error("File '" + dataFileName + "' is not found");
-                    throw new AtlasLoaderException("Error occurred while processing raw data files" + USE_PROCCESSED_FILES);
+                    throw new AtlasLoaderException("Error occurred while processing raw data files: File '" + dataFileName + "' is not found" + USE_PROCCESSED_FILES);
                 }
             }
 
