@@ -149,7 +149,7 @@ public class AnnotationParser<T extends BioEntityData> {
                         builder.addPropertyValue(line[typeCount++].trim(), type, propertyValue);
                     }
 
-                    if (lineCount % 2000 == 0) {
+                    if (lineCount++ % 2000 == 0) {
                         log.debug("Parsed " + lineCount + " properties values");
                     }
                 }
