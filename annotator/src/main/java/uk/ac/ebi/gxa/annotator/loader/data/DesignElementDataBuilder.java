@@ -34,9 +34,6 @@ import java.util.List;
  */
 public class DesignElementDataBuilder extends BioEntityDataBuilder<DesignElementMappingData> {
 
-    public DesignElementDataBuilder() {
-    }
-
     @Override
     protected boolean isValidData() {
         return super.isValidData() &&

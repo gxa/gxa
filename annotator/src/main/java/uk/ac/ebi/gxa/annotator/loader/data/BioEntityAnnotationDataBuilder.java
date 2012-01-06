@@ -34,9 +34,6 @@ import java.util.List;
  */
 public class BioEntityAnnotationDataBuilder extends BioEntityDataBuilder<BioEntityAnnotationData> {
 
-    public BioEntityAnnotationDataBuilder() {
-    }
-
     @Override
     protected boolean isValidData() {
         return super.isValidData() &&
