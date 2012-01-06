@@ -27,7 +27,10 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.index.builder.*;
+import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderCommand;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderCommandVisitor;
+import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 
 import java.io.IOException;
 
@@ -47,7 +50,7 @@ public abstract class IndexBuilderService {
     private AtlasDAO atlasDAO;
     private SolrServer solrServer;
 
-    final public AtlasDAO getAtlasDAO() {
+    final AtlasDAO getAtlasDAO() {
         return atlasDAO;
     }
 
@@ -63,7 +66,7 @@ public abstract class IndexBuilderService {
         this.solrServer = solrServer;
     }
 
-    final protected Logger getLog() {
+    final Logger getLog() {
         return log;
     }
 
@@ -88,7 +91,7 @@ public abstract class IndexBuilderService {
         });
     }
 
-    final protected void deleteAll() throws IndexBuilderException {
+    final void deleteAll() throws IndexBuilderException {
         try {
             getSolrServer().deleteByQuery("*:*");
         } catch (IOException e) {
@@ -99,7 +102,7 @@ public abstract class IndexBuilderService {
 
     }
 
-    final protected void commit() throws IndexBuilderException {
+    final void commit() throws IndexBuilderException {
         try {
             if (getSolrServer() != null)
                 getSolrServer().commit();
@@ -111,7 +114,7 @@ public abstract class IndexBuilderService {
 
     }
 
-    final protected void optimize() throws IndexBuilderException {
+    final void optimize() throws IndexBuilderException {
         try {
             if (getSolrServer() != null)
                 getSolrServer().optimize();
@@ -123,11 +126,11 @@ public abstract class IndexBuilderService {
 
     }
 
-    public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
+    void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         deleteAll();
     }
 
-    public void finalizeCommand() throws IndexBuilderException {
+    void finalizeCommand() throws IndexBuilderException {
         commit();
         optimize();
     }

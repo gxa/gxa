@@ -78,7 +78,7 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     //changed scope to public to make test case
-    public void processExperiment(Experiment experiment) throws SolrServerException, IOException {
+    void processExperiment(Experiment experiment) throws SolrServerException, IOException {
         // Create a new solr document
         SolrInputDocument solrInputDoc = new SolrInputDocument();
 
