@@ -67,20 +67,12 @@ public class BioMartAnnotationSource extends AnnotationSource {
     private String mySqlDbUrl = null;
 
     BioMartAnnotationSource() {
+        /*used by hibernate only*/
     }
-
 
     public BioMartAnnotationSource(Software software, Organism organism) {
-        super(software);
+        super(software, createName(software, organism));
         this.organism = organism;
-        this.name = createName();
-    }
-
-    @Override
-    protected final String createName() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(organism.getName()).append(" / ").append(getSoftware().getFullName());
-        return sb.toString();
     }
 
     public Organism getOrganism() {
@@ -125,6 +117,14 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public void setMySqlDbUrl(String mySqlDbUrl) {
         this.mySqlDbUrl = mySqlDbUrl;
+    }
+
+    private static String createName(Software software, Organism organism) {
+        return new StringBuilder()
+                .append(organism.getName())
+                .append(" / ")
+                .append(software.getFullName())
+                .toString();
     }
 
     /////////////////////////

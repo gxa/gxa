@@ -87,13 +87,15 @@ public abstract class AnnotationSource {
     @Fetch(FetchMode.SUBSELECT)
     private Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
 
-    protected String name;
+    private String name;
 
-    protected AnnotationSource() {
+    AnnotationSource() {
+        /*used by hibernate only*/
     }
 
-    public AnnotationSource(Software software) {
+    public AnnotationSource(Software software, String name) {
         this.software = software;
+        this.name = name;
     }
 
     public Long getAnnotationSrcId() {
@@ -104,8 +106,6 @@ public abstract class AnnotationSource {
     public String getName() {
         return name;
     }
-
-    protected abstract String createName();
 
     /**
      * Location of biomart martservice, e.g.:

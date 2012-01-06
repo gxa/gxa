@@ -41,6 +41,7 @@ import java.util.HashSet;
 public class GeneSigAnnotationSource extends FileBasedAnnotationSource {
 
     GeneSigAnnotationSource() {
+        /*used by hibernate only*/
     }
 
     public GeneSigAnnotationSource(Software software) {

@@ -33,17 +33,13 @@ import javax.persistence.MappedSuperclass;
  */
 @MappedSuperclass
 public abstract class FileBasedAnnotationSource extends AnnotationSource {
-    protected FileBasedAnnotationSource() {
+
+    FileBasedAnnotationSource() {
+        /*used by hibernate only*/
     }
 
-    protected FileBasedAnnotationSource(Software software) {
-        super(software);
-        this.name = createName();
-    }
-
-    @Override
-    protected final String createName() {
-        return getSoftware().getFullName();
+    FileBasedAnnotationSource(Software software) {
+        super(software, software.getFullName());
     }
 
     public abstract char getSeparator();
