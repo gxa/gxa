@@ -43,15 +43,10 @@ public abstract class BioEntityDataBuilder<T extends BioEntityData> {
     public abstract void createNewData(List<BioEntityType> types);
 
     public T getBioEntityData() throws AnnotationException {
-        if (isValidData())
+        if (data.isValid())
             return data;
-        else
-            throw new AnnotationException("Annotation/Mapping data is not valid");
-    }
 
-    boolean isValidData() {
-        return data.getTypeToBioEntities().isEmpty() ||
-                isEqualCollection(data.getTypeToBioEntities().keySet(), data.getBioEntityTypes());
+        throw new AnnotationException("Annotation/Mapping data is not valid");
     }
 
     public BioEntity addBioEntity(String identifier,BioEntityType type, Organism organism) {

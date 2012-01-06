@@ -33,6 +33,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.*;
 
+import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
+
 /**
  * User: nsklyar
  * Date: 25/08/2011
@@ -72,4 +74,10 @@ public class BioEntityAnnotationData extends BioEntityData {
         return Collections.unmodifiableCollection(typeToBEPropValues.get(bioEntityType));
     }
 
+    @Override
+    public boolean isValid() {
+        return super.isValid() &&
+                (typeToBEPropValues.isEmpty() ||
+                        isEqualCollection(typeToBEPropValues.keySet(), getBioEntityTypes()));
+    }
 }

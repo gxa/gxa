@@ -30,6 +30,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.*;
 
+import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
+
 /**
  * User: nsklyar
  * Date: 26/08/2011
@@ -67,5 +69,10 @@ public class BioEntityData {
 
     public Set<Organism> getOrganisms() {
         return organisms;
+    }
+
+    public boolean isValid() {
+        return typeToBioEntities.isEmpty() ||
+                isEqualCollection(typeToBioEntities.keySet(), bioEntityTypes);
     }
 }

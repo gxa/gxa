@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.annotator.loader.data;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,5 +71,12 @@ public class DesignElementMappingData extends BioEntityData {
 
     public Set<DesignElement> getDesignElements() {
         return Collections.unmodifiableSet(designElements);
+    }
+
+    @Override
+    public boolean isValid() {
+        return super.isValid() &&
+                (typeToDesignElementBEMapping.isEmpty() ||
+                        CollectionUtils.isEqualCollection(typeToDesignElementBEMapping.keySet(), getBioEntityTypes()));
     }
 }

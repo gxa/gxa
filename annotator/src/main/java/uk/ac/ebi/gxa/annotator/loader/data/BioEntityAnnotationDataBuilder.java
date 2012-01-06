@@ -35,13 +35,6 @@ import java.util.List;
 public class BioEntityAnnotationDataBuilder extends BioEntityDataBuilder<BioEntityAnnotationData> {
 
     @Override
-    protected boolean isValidData() {
-        return super.isValidData() &&
-                (data.typeToBEPropValues.isEmpty() ||
-                        CollectionUtils.isEqualCollection(data.typeToBEPropValues.keySet(), data.getBioEntityTypes()));
-    }
-
-    @Override
     public void addBEDesignElementMapping(String beIdentifier, BioEntityType type, String deAccession) {
         throw new UnsupportedOperationException(this.getClass().getName() + " doesn't implement method addBEDesignElementMapping");
     }
