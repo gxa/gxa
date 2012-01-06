@@ -45,8 +45,7 @@ interface DataProxy extends Closeable {
 
     String[] getDesignElementAccessions() throws AtlasDataException;
 
-    // TODO: remove 'public' modifier
-    public String[] getAssayAccessions() throws AtlasDataException;
+    String[] getAssayAccessions() throws AtlasDataException;
 
     String[] getFactors() throws AtlasDataException;
 
