@@ -43,12 +43,12 @@ public class LoaderTask extends AbstractWorkingTask {
 
     public static final String TYPE_LOADEXPERIMENT = "loadexperiment";
     public static final String TYPE_LOADARRAYDESIGN = "loadarraydesign";
-    public static final String TYPE_LOADANNOTATIONS = "loadannotations";
-    public static final String TYPE_LOADMAPPING = "loadmapping";
+    private static final String TYPE_LOADANNOTATIONS = "loadannotations";
+    private static final String TYPE_LOADMAPPING = "loadmapping";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
-    public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
-    public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
-    public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
+    private static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
+    private static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
+    private static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -183,7 +183,7 @@ public class LoaderTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    private LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(LoaderTask.this,
                 TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType()) || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())

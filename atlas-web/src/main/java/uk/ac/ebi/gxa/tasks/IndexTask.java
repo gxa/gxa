@@ -91,7 +91,7 @@ public class IndexTask extends AbstractWorkingTask {
         // can't stop this task as there's no stages and no control of index builder when it's running
     }
 
-    public IndexTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    private IndexTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         if (TYPE_INDEXEXPERIMENT.equals(taskSpec.getType()))
             taskMan.addTaskTag(this, TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
