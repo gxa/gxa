@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class RepairExperimentTask extends AbstractWorkingTask {
     private static Logger log = LoggerFactory.getLogger(RepairExperimentTask.class);
 
-    public static final String TYPE = "repairexperiment";
+    private static final String TYPE = "repairexperiment";
 
     public void start() {
         final String accession = getTaskSpec().getAccession();
@@ -60,7 +60,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
         }
         log.info("Repair experiment - analytics is complete, checking index");
 
-        final TaskSpec indexSpec = IndexTask.SPEC_INDEXEXPERIMENT(accession);
+        final TaskSpec indexSpec = IndexTask.SPEC_INDEXALL;
         final TaskStatus indexState = taskMan.getTaskStatus(indexSpec);
         if(TaskStatus.DONE != indexState) {
             taskMan.scheduleTask(this, indexSpec, TaskRunMode.CONTINUE, getUser(), true,
@@ -76,7 +76,7 @@ public class RepairExperimentTask extends AbstractWorkingTask {
     public void stop() {
     }
 
-    public RepairExperimentTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    private RepairExperimentTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
     }
 
