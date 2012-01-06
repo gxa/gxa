@@ -1,8 +1,8 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
-import java.util.List;
-
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+
+import java.util.List;
 
 class BitIndexTask {
     private final List<Experiment> experiments;
@@ -11,7 +11,6 @@ class BitIndexTask {
     private int totalStatCount = 0;
     private int processedCount = 0;
     private long processedSize = 0;
-    private final long start = System.currentTimeMillis();
 
     public BitIndexTask(List<Experiment> experiments) {
         this.experiments = experiments;
