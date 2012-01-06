@@ -33,11 +33,11 @@ public abstract class AbstractWorkingTask implements WorkingTask, QueuedTask {
     private final TaskUser user;
     private final boolean runningAutoDependencies;
 
-    protected final TaskManager taskMan;
-    protected volatile String currentProgress;
+    final TaskManager taskMan;
+    volatile String currentProgress;
     private long startTime;
 
-    protected AbstractWorkingTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    AbstractWorkingTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         this.taskId = taskId;
         this.taskSpec = taskSpec;
         this.runMode = runMode;
@@ -64,7 +64,7 @@ public abstract class AbstractWorkingTask implements WorkingTask, QueuedTask {
         return user;
     }
 
-    public boolean isRunningAutoDependencies() {
+    boolean isRunningAutoDependencies() {
         return runningAutoDependencies;
     }
 
@@ -84,7 +84,7 @@ public abstract class AbstractWorkingTask implements WorkingTask, QueuedTask {
         return this;
     }
 
-    protected boolean nothingToDo() {
+    boolean nothingToDo() {
         if(getRunMode() == TaskRunMode.CONTINUE && TaskStatus.DONE.equals(taskMan.getTaskStatus(getTaskSpec()))) {
             taskMan.writeTaskLog(this, TaskEvent.SKIPPED, "");
             taskMan.notifyTaskFinished(this);
@@ -93,7 +93,7 @@ public abstract class AbstractWorkingTask implements WorkingTask, QueuedTask {
         return false;
     }
 
-    protected void startTimer() {
+    void startTimer() {
         this.startTime = System.currentTimeMillis();
     }
 }

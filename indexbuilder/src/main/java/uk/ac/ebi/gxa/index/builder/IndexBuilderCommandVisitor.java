@@ -33,11 +33,4 @@ public interface IndexBuilderCommandVisitor {
      * @throws IndexBuilderException if error occurs
      */
     void process(IndexAllCommand cmd) throws IndexBuilderException ;
-    
-    /**
-     * Process command
-     * @param cmd command
-     * @throws IndexBuilderException if error occurs
-     */
-    void process(UpdateIndexForExperimentCommand cmd) throws IndexBuilderException ;
 }

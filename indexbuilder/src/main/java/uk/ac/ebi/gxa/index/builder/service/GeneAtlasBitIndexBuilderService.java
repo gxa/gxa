@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -60,15 +59,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processCommand(UpdateIndexForExperimentCommand cmd,
-                               IndexBuilderService.ProgressUpdater progressUpdater) throws IndexBuilderException {
-        /// Re-build the whole bit index even if one experiment only is being updated
-        indexAll(progressUpdater);
-    }
-
-
-    @Override
     public void finalizeCommand() throws IndexBuilderException {
         ObjectOutputStream oos = null;
         try {
@@ -82,29 +72,22 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
     }
 
-    @Override
-    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand,
-                                ProgressUpdater progressUpdater) throws IndexBuilderException {
-        finalizeCommand();
-    }
-
     private void indexAll(ProgressUpdater progressUpdater) {
         indexFile = new File(atlasIndex, getName());
         if (indexFile.exists() && !indexFile.delete()) {
             throw new IndexBuilderException("Cannot delete " + indexFile.getAbsolutePath());
         }
-        statistics = bitIndexExperiments(progressUpdater, 50);
+        statistics = bitIndexExperiments(progressUpdater);
     }
 
     /**
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas data
      *
+     *
      * @param progressUpdater
-     * @param progressLogFreq how often this operation should be logged (i.e. every progressLogFreq ncfds processed)
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas data
      */
-    private StatisticsStorage bitIndexExperiments(final ProgressUpdater progressUpdater,
-                                                  final Integer progressLogFreq) {
+    private StatisticsStorage bitIndexExperiments(final ProgressUpdater progressUpdater) {
         StatisticsStorage statisticsStorage = new StatisticsStorage();
 
         final ObjectPool<ExperimentInfo> experimentPool = new ObjectPool<ExperimentInfo>();
@@ -243,7 +226,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, dnBioEntityIds);
 
-                        if (j > 0 && (j % progressLogFreq == 0 || j == numOfUEFVs)) {
+                        if (j > 0 && (j % 50 == 0 || j == numOfUEFVs)) {
                             getLog().debug("   Processed: " + ((j * 100) / numOfUEFVs) + "% efvs so far");
                         }
                     }
@@ -320,12 +303,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         return i;
     }
 
-    private String internedCopy(ObjectPool<String> stringPool, String s) {
-        // Please keep <code>new String(s)</code> intact - substrings have internal references to the underlying String,
-        // hence memory footprint might be much bigger than expected.
-        return stringPool.intern(new String(s));
-    }
-
     private List<Experiment> experimentsToProcess() {
         final List<Experiment> experiments = getAtlasDAO().getAllExperiments();
         sort(experiments, new Comparator<Experiment>() {
@@ -357,7 +334,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     static class MinPMaxT {
-        private Map<Integer, PTRank> geneToBestPTRank = new HashMap<Integer, PTRank>();
+        private final Map<Integer, PTRank> geneToBestPTRank = new HashMap<Integer, PTRank>();
 
         public void update(int bioEntityId, PTRank pt) {
             final PTRank bestSoFar = geneToBestPTRank.get(bioEntityId);

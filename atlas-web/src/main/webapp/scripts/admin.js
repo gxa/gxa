@@ -76,7 +76,6 @@ var $msg = {
         updateexperiment: 'Update NetCDF',
         makeexperimentprivate: 'Make experiment private',
         makeexperimentpublic: 'Make experiment public',
-        indexexperiment: 'Index experiment',
         repairexperiment: 'Repair experiment',
         orgupdate: 'BioEntity annotations update',
         mappingupdate: 'Design element mapping update'
@@ -366,10 +365,6 @@ function updateBrowseExperiments() {
 
         $('#experimentList input.makepublic').click(function () {
             startSelectedTasks('makeexperimentpublic', 'RESTART', 'makepublic', false);
-        });
-
-        $('#experimentList input.updateindex').click(function () {
-            startSelectedTasks('indexexperiment', 'RESTART', 'update index of', true);
         });
 
         $('#experimentList input.repair').click(function () {

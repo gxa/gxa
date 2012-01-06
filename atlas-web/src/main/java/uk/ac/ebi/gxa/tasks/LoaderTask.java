@@ -43,12 +43,12 @@ public class LoaderTask extends AbstractWorkingTask {
 
     public static final String TYPE_LOADEXPERIMENT = "loadexperiment";
     public static final String TYPE_LOADARRAYDESIGN = "loadarraydesign";
-    public static final String TYPE_LOADANNOTATIONS = "loadannotations";
-    public static final String TYPE_LOADMAPPING = "loadmapping";
+    private static final String TYPE_LOADANNOTATIONS = "loadannotations";
+    private static final String TYPE_LOADMAPPING = "loadmapping";
     public static final String TYPE_UPDATEEXPERIMENT = "updateexperiment";
-    public static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
-    public static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
-    public static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
+    private static final String TYPE_UNLOADEXPERIMENT = "unloadexperiment";
+    private static final String TYPE_PRIVATEEXPERIMENT = "makeexperimentprivate";
+    private static final String TYPE_PUBLICEXPERIMENT = "makeexperimentpublic";
 
     public static TaskSpec SPEC_UPDATEEXPERIMENT(String accession) {
         return new TaskSpec(TYPE_UPDATEEXPERIMENT, accession, HashMultimap.<String, String>create());
@@ -104,7 +104,7 @@ public class LoaderTask extends AbstractWorkingTask {
                             log.info("Analytics was preserved in NetCDF, no need to recompute");
                         }
 
-                        final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
+                        final TaskSpec indexTask = IndexTask.SPEC_INDEXALL;
                         taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
 
                         if (!stop && isRunningAutoDependencies()) {
@@ -119,8 +119,6 @@ public class LoaderTask extends AbstractWorkingTask {
                     } else if (TYPE_UNLOADEXPERIMENT.equals(getTaskSpec().getType())) {
                         TaskSpec experimentTask = AnalyticsTask.SPEC_ANALYTICS(accession);
                         taskMan.updateTaskStage(experimentTask, TaskStatus.NONE);
-                        TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(accession);
-                        taskMan.updateTaskStage(indexTask, TaskStatus.NONE);
 
                         taskMan.updateTaskStage(IndexTask.SPEC_INDEXALL, TaskStatus.INCOMPLETE);
                         if (!stop && isRunningAutoDependencies()) {
@@ -185,7 +183,7 @@ public class LoaderTask extends AbstractWorkingTask {
         stop = true;
     }
 
-    public LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    private LoaderTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(LoaderTask.this,
                 TYPE_UPDATEEXPERIMENT.equals(taskSpec.getType()) || TYPE_UNLOADEXPERIMENT.equals(taskSpec.getType())
