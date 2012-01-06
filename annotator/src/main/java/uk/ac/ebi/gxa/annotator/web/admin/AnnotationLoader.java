@@ -28,5 +28,5 @@ package uk.ac.ebi.gxa.annotator.web.admin;
  */
 public interface AnnotationLoader {
 
-    public void annotate(AnnotationCommand cmd, AnnotationLoaderListener listener);
+    public void load(AnnotationCommand cmd, AnnotationLoaderListener listener);
 }

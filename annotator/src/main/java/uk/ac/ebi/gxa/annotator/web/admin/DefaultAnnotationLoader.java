@@ -43,7 +43,7 @@ public class DefaultAnnotationLoader implements AnnotationLoader {
     }
 
     @Override
-    public void annotate(final AnnotationCommand annotationCommand, final AnnotationLoaderListener listener) {
+    public void load(final AnnotationCommand annotationCommand, final AnnotationLoaderListener listener) {
         annotationCommand.setAnnotationProcessor(annotationProcessor);
 
         executor.submit(new Runnable() {

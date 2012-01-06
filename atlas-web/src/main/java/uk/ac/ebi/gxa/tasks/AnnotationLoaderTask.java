@@ -34,7 +34,7 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
         taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.STARTED, "");
 
-        taskMan.getAnnotationLoader().annotate(getAnnotationCommand(), getListner());
+        taskMan.getAnnotationLoader().load(getAnnotationCommand(), getListner());
     }
 
     private AnnotationCommand getAnnotationCommand() {
