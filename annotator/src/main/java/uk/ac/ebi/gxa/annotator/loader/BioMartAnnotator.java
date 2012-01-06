@@ -63,13 +63,6 @@ public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
         this.propertyDAO = propertyDAO;
     }
 
-    public BioMartAnnotator(AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
-        super(beDataWriter);
-        this.annSrcDAO = annSrcDAO;
-        this.propertyDAO = propertyDAO;
-    }
-
-
     @Override
     public void updateAnnotations() {
 
