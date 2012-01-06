@@ -1,6 +1,8 @@
 package ae3.service;
 
 import ae3.model.AtlasGene;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -8,6 +10,7 @@ import org.junit.Test;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
 
 import java.io.File;
 import java.util.*;
@@ -46,7 +49,7 @@ public class AtlasStatisticsQueryServiceTest {
         bioEntityId = 838592;  // identifier: ENSG00000162924; name: REL)
         hematopoieticStemCellEfo = new EfoAttribute("CL_0000037");
         hematopoieticCellEfo = new EfoAttribute("CL_0000988");
-        hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell");
+        hematopoieticStemCellEfv = new EfvAttribute("groups_369", "hematopoietic stem cell");
         E_MTAB_62 = new ExperimentInfo("E-MTAB-62", 1036809468l);
     }
 
@@ -141,10 +144,10 @@ public class AtlasStatisticsQueryServiceTest {
         assertTrue(experimentCounts.entrySet().size() > 0);
 
         statsQuery.setBioEntityIdRestrictionSet(Collections.singleton(bioEntityId));
-        Set<ExperimentInfo> scoringExps = new HashSet<ExperimentInfo>();
-        experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExps);
+        Multimap<ExperimentInfo, Pair<StatisticsType, EfAttribute>> scoringExpsAttrs = ArrayListMultimap.create();
+        experimentCounts = StatisticsQueryUtils.scoreQuery(statsQuery, statisticsStorage, scoringExpsAttrs);
         assertEquals(0, experimentCounts.size());
-        assertTrue(scoringExps.size() > 0);
+        assertTrue(scoringExpsAttrs.asMap().keySet().size() > 0);
     }
 
     @Test
@@ -183,7 +186,7 @@ public class AtlasStatisticsQueryServiceTest {
     @Test
     public void test_getScoringAttributesForGenes() {
 
-        List<Multiset.Entry<EfvAttribute>> scoringAttrCounts = atlasStatisticsQueryService.getScoringAttributesForBioEntities(
+        List<Multiset.Entry<EfvAttribute>> scoringAttrCounts = atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(
                 Collections.singleton(bioEntityId),
                 StatisticsType.UP_DOWN,
                 Collections.singleton(hematopoieticStemCellEfv.getEf()));

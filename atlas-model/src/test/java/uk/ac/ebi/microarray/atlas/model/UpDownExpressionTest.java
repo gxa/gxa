@@ -37,7 +37,6 @@ public class UpDownExpressionTest {
     public void testUpExpression() {
         assertTrue(isUp(0.05f, 1.0f));
         assertTrue(isUp(0.04f, 1.0f));
-        assertTrue(isUp(-0.04f, 1.0f));
 
         assertFalse(isUp(0.051f, 1.0f));
         assertFalse(isUp(0.05f, 0.0f));
@@ -48,7 +47,6 @@ public class UpDownExpressionTest {
     public void testDownExpression() {
         assertTrue(isDown(0.05f, -1.0f));
         assertTrue(isDown(0.04f, -1.0f));
-        assertTrue(isDown(-0.05f, -1.0f));
 
         assertFalse(isDown(0.05f, 1.0f));
         assertFalse(isDown(0.05f, 0.0f));
@@ -59,27 +57,27 @@ public class UpDownExpressionTest {
     public void testNonDeExpression() {
         assertTrue(isNonDe(0.05f, 0.0f));
         assertTrue(isNonDe(0.04f, 0.0f));
-        assertTrue(isNonDe(-0.04f, 0.0f));
+        assertTrue(isNA(-0.04f, 0.0f));
     }
 
     @Test
     public void testNAExpression() {
         assertTrue(isNA(Float.NaN, 1.0f));
         assertTrue(isNA(1.0f, Float.NaN));
+        assertTrue(isNA(-1.0f, 0.5f));
+        assertTrue(isNA(1.5f, 0.5f));
 
         assertFalse(isNA(1.0f, 0.5f));
+        assertFalse(isNA(0.0f, 0.5f));
     }
 
     @Test
     public void testUpOrDownExpression() {
         assertTrue(isUpOrDown(0.05f, -1.0f));
         assertTrue(isUpOrDown(0.04f, -1.0f));
-        assertTrue(isUpOrDown(-0.05f, -1.0f));
-
 
         assertTrue(isUpOrDown(0.05f, 1.0f));
         assertTrue(isUpOrDown(0.04f, 1.0f));
-        assertTrue(isUpOrDown(-0.045f, 1.0f));
 
         assertFalse(isUpOrDown(Float.NaN, 1.0f));
         assertFalse(isUpOrDown(1.2f, 0.0f));

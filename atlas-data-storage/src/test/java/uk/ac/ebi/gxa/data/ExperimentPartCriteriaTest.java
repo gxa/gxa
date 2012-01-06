@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.data;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Predicates.in;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
@@ -59,11 +61,11 @@ public class ExperimentPartCriteriaTest {
         DE_ACCESSIONS.put(AD2.getAccession(), new String[]{"DE-3", "DE-4"});
     }
 
-    private static final Map<String, List<KeyValuePair>> UNIQUE_EFEFVS = newHashMap();
+    private static final Map<String, List<Pair<String, String>>> UNIQUE_EFEFVS = newHashMap();
 
     static {
-        UNIQUE_EFEFVS.put(AD1.getAccession(), asList(new KeyValuePair("EF1", "EFV11"), new KeyValuePair("EF1", "EFV12")));
-        UNIQUE_EFEFVS.put(AD2.getAccession(), asList(new KeyValuePair("EF2", "EFV21"), new KeyValuePair("EF2", "EFV22")));
+        UNIQUE_EFEFVS.put(AD1.getAccession(), asList(Pair.create("EF1", "EFV11"), Pair.create("EF1", "EFV12")));
+        UNIQUE_EFEFVS.put(AD2.getAccession(), asList(Pair.create("EF2", "EFV21"), Pair.create("EF2", "EFV22")));
     }
 
     @Test
@@ -133,19 +135,10 @@ public class ExperimentPartCriteriaTest {
         ExperimentWithData ewd = createExperimentWithData();
 
         ExperimentPart expPart = experimentPart()
-                .containsAtLeastOneGene(asList(4L, 2L))
+                .containsAtLeastOneGene(in(asList(4L, 2L)))
                 .retrieveFrom(ewd);
         assertNotNull(expPart);
         assertEquals(AD1.getAccession(), expPart.getArrayDesign().getAccession());
-
-        try {
-            experimentPart()
-                    .containsAtLeastOneGene(Collections.<Long>emptyList())
-                    .retrieveFrom(ewd);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // ok
-        }
     }
 
     @Test
@@ -229,9 +222,9 @@ public class ExperimentPartCriteriaTest {
                 .anyTimes();
 
         expect(ewd.getUniqueEFVs(EasyMock.<ArrayDesign>anyObject()))
-                .andAnswer(new IAnswer<List<KeyValuePair>>() {
+                .andAnswer(new IAnswer<List<Pair<String, String>>>() {
                     @Override
-                    public List<KeyValuePair> answer() throws Throwable {
+                    public List<Pair<String, String>> answer() throws Throwable {
                         ArrayDesign ad = (ArrayDesign) getCurrentArguments()[0];
                         return UNIQUE_EFEFVS.get(ad.getAccession());
                     }

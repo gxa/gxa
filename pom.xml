@@ -21,12 +21,13 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.11-SNAPSHOT</version>
+    <version>2.0.12-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -86,10 +87,12 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-clover2-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.0.5</version>
                 <configuration>
                     <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
                     <singleCloverDatabase>true</singleCloverDatabase>
+                    <generateHistorical>true</generateHistorical>
+                    <historyDir>${user.home}/.clover/history/${project.artifactId}</historyDir>
                 </configuration>
             </plugin>
             <plugin>
@@ -186,7 +189,7 @@
                 <role>Project Leader</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>rpetry</id>
@@ -197,7 +200,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>olkin</id>
@@ -208,18 +211,16 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>alf</id>
             <name>Alexey Filippov</name>
-            <organization>EBI</organization>
-            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
             <roles>
-                <role>Developer</role>
+                <role>Developer (in 2010-2011)</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>nsklyar</id>
@@ -230,7 +231,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>geometer</id>
@@ -241,7 +242,7 @@
                 <role>Developer</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>tburdett</id>
@@ -252,7 +253,7 @@
                 <role>Developer (in 2008-2010)</role>
             </roles>
             <timezone>0</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>pashky</id>
@@ -261,7 +262,7 @@
                 <role>Developer (in 2008-2010)</role>
             </roles>
             <timezone>4</timezone>
-            <properties />
+            <properties/>
         </developer>
         <developer>
             <id>azorin</id>
@@ -270,7 +271,7 @@
                 <role>Developer (in 2009-2010)</role>
             </roles>
             <timezone>4</timezone>
-            <properties />
+            <properties/>
         </developer>
     </developers>
 
@@ -286,7 +287,6 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
-                <module>atlas-wro4j</module>
         <module>annotator</module>
     </modules>
 
@@ -396,6 +396,12 @@
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <version>3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java</groupId>
+            <artifactId>quickcheck</artifactId>
+            <version>0.5.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

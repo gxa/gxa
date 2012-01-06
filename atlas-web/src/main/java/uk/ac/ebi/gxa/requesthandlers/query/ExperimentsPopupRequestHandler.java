@@ -198,8 +198,10 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 if (ea != null) {
                     final float p = ea.getPValAdjusted();
                     final float t = ea.getTStatistic();
-                    ptRank = PTRank.of(p, t);
-                    allExperiments.add(new ExperimentResult(expInfo, highestRankAttribute, ptRank)); // Add nonDE expression statistic to allExperiments
+                    if (!UpDownExpression.valueOf(p, t).isNA()) {
+                        ptRank = PTRank.of(p, t);
+                        allExperiments.add(new ExperimentResult(expInfo, highestRankAttribute, ptRank)); // Add nonDE expression statistic to allExperiments
+                    }
                 } else {
                     throw LogUtil.createUnexpected("Failed to retrieve an " + StatisticsType.NON_D_E +
                             " ExpressionAnalysis for gene: '" + gene.getGeneName() + "' + in experiment: " + exp.getAccession() +
@@ -273,6 +275,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                             jsEfs.add(jsEf);
                     }
                     jsExp.put("efs", jsEfs);
+                    if (jsEfs.size() == 1)
+                        jsExp.put("the_only_ef", "/" + jsEfs.get(0).get("ef"));
                     jsExps.add(jsExp);
                 }
             }

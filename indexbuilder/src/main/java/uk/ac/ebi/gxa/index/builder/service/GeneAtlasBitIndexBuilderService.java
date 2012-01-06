@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.statistics.*;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Collections.sort;
 
@@ -121,16 +123,14 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         final ExecutorService summarizer = Executors.newFixedThreadPool(10);
 
         for (final Experiment exp : task.getExperiments()) {
-            getLog().debug("Processing {}", exp);
+            getLog().info("Processing exp: {}, # assays: {}", exp.getAccession(), exp.getAssays().size());
             final ExperimentWithData experimentWithData = atlasDataDAO.createExperimentWithData(exp);
             try {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
-                    final List<KeyValuePair> uEFVs = experimentWithData.getUniqueEFVs(ad);
-
-                    // TODO to switch on inclusion of sc-scv stats in bit index, remove getFactors & !contains filter below
-                    final Set<String> factorNames = new HashSet<String>(Arrays.asList(experimentWithData.getFactors(ad)));
+                    final List<Pair<String, String>> uEFVs = experimentWithData.getUniqueEFVs(ad);
+                    final Set<String> factorNames = newHashSet(Arrays.asList(experimentWithData.getFactors(ad)));
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
                     if (uEFVs.size() == 0) {
@@ -144,16 +144,19 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     final TwoDFloatArray pvals = experimentWithData.getPValues(ad);
                     final int rowCount = tstat.getRowCount();
 
-                    final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
-                    for (int j = 0; j < uEFVs.size(); j++) {
-                        final KeyValuePair efv = uEFVs.get(j);
+                    final int numOfUEFVs = uEFVs.size();
+                    getLog().info("   Processing ad: {}, # de's: {}, # uEFVs: " + numOfUEFVs, ad.getAccession(), rowCount);
 
-                        if (!factorNames.contains(efv.key) || // TODO: remove this to process all uEFVs
-                                isNullOrEmpty(efv.value) || "(empty)".equals(efv.value))
+                    final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
+                    for (int j = 0; j < numOfUEFVs; j++) {
+                        final Pair<String, String> efv = uEFVs.get(j);
+
+                        if (!factorNames.contains(efv.getKey()) || // TODO: remove this to process all uEFVs
+                                isNullOrEmpty(efv.getValue()) || "(empty)".equals(efv.getValue()))
                             continue;
 
-                        final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.key, efv.value));
-                        final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.key));
+                        final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.getKey(), efv.getValue()));
+                        final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.getKey()));
 
                         final Set<Integer> upBioEntityIds = new FastSet();
                         final Set<Integer> dnBioEntityIds = new FastSet();
@@ -182,6 +185,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             float p = pvals.get(i, j);
                             UpDownExpression upDown = UpDownExpression.valueOf(p, t);
 
+                            // Exclude NA p/t vals from bit index
+                            if (upDown.isNA()) continue;
+
+                            final PTRank pt = PTRank.of(p, t);
                             car++;
                             if (upDown.isNonDe()) {
                                 noBioEntityIds.add(bioEntityId);
@@ -189,16 +196,16 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 if (upDown.isUp()) {
                                     upBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up)
-                                    ptUp.update(bioEntityId, p, t);
+                                    ptUp.update(bioEntityId, pt);
                                 } else {
                                     dnBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (down)
-                                    ptDown.update(bioEntityId, p, t);
+                                    ptDown.update(bioEntityId, pt);
                                 }
                                 // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
-                                ptUpDown.update(bioEntityId, p, t);
+                                ptUpDown.update(bioEntityId, pt);
                                 // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
-                                ptUpDownForEf.update(bioEntityId, p, t);
+                                ptUpDownForEf.update(bioEntityId, pt);
                             }
                         }
 
@@ -235,6 +242,10 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         // Add genes for ef-efv attributes across all experiments
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, dnBioEntityIds);
+
+                        if (j > 0 && (j % progressLogFreq == 0 || j == numOfUEFVs)) {
+                            getLog().debug("   Processed: " + ((j * 100) / numOfUEFVs) + "% efvs so far");
+                        }
                     }
 
                     summarizer.submit(new Runnable() {
@@ -346,25 +357,18 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     }
 
     static class MinPMaxT {
-        private Map<Integer, Float> geneToMinP = new HashMap<Integer, Float>();
-        private Map<Integer, Float> geneToMaxT = new HashMap<Integer, Float>();
+        private Map<Integer, PTRank> geneToBestPTRank = new HashMap<Integer, PTRank>();
 
-        public void update(int bioEntityId, float p, float t) {
-            final int absT = Math.abs((int) t);
-
-            final Float maxT = geneToMaxT.get(bioEntityId);
-            // TODO: for some reason, we trim max T stat value, but do not trim the actual value we've stored. Is it okay?
-            if (maxT == null || absT > Math.abs(maxT) || absT == Math.abs(maxT) && p < geneToMinP.get(bioEntityId)) {
-                geneToMinP.put(bioEntityId, p);
-                geneToMaxT.put(bioEntityId, t);
+        public void update(int bioEntityId, PTRank pt) {
+            final PTRank bestSoFar = geneToBestPTRank.get(bioEntityId);
+            if (bestSoFar == null || pt.compareTo(bestSoFar) < 0) {
+                geneToBestPTRank.put(bioEntityId, pt);
             }
         }
 
         public void storeStats(StatisticsBuilder stats, ExperimentInfo expIdx, EfAttribute efAttribute) {
-            for (Map.Entry<Integer, Float> entry : geneToMinP.entrySet()) {
-                stats.addPvalueTstatRank(efAttribute,
-                        PTRank.of(entry.getValue(), geneToMaxT.get(entry.getKey())),
-                        expIdx, entry.getKey());
+            for (Map.Entry<Integer, PTRank> entry : geneToBestPTRank.entrySet()) {
+                stats.addPvalueTstatRank(efAttribute, entry.getValue(), expIdx, entry.getKey());
             }
         }
     }

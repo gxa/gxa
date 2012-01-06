@@ -413,14 +413,14 @@ if(!atlas)
                             '.@id': function(a) {
                                 return 'oneplot_' + a.context.counter++;
                             },
-                            'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
+                            'a.proflink@href': 'experiment/#{experiment.accession}/#{gene.identifier}/#{ef.ef}',
                             '.arraydesign@id': '#{experiment.id}_#{gene.id}_arraydesign'
                         }
                     },
                     '.@class+': function(a) {
                         return (a.pos != a.items.length - 1) ? ' notlast' : '';
                     },
-                    'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.identifier}',
+                    'a.proflink2@href': 'experiment/#{experiment.accession}/#{gene.identifier}#{experiment.the_only_ef}',
                     'a.detailink@href': 'http://www.ebi.ac.uk/arrayexpress/browse.html?keywords=#{experiment.accession}&detailedview=on'
                 }
             }

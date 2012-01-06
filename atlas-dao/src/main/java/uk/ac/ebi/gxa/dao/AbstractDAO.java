@@ -73,6 +73,6 @@ public abstract class AbstractDAO<T> {
         if (objects.size() == 1)
             return objects.get(0);
         else
-            throw new RecordNotFoundException(clazz.getName() + ": " + objects.size() + "objects returned; expected 1)");
+            throw new RecordNotFoundException(clazz.getName() + ": " + objects.size() + " objects returned; expected 1)");
     }
 }

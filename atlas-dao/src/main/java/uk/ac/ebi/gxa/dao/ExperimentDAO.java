@@ -9,6 +9,7 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 
@@ -80,6 +81,7 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
 
     @Override
     public void save(Experiment object) {
+        object.setLoadDate(new Date());
         super.save(object);
         template.flush();
     }

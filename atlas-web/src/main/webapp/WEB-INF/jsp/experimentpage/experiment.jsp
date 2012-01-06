@@ -246,16 +246,33 @@
         <td class="padded">\${deAcc}</td>
         <c:if test="${exp.typeString == 'RNA_SEQ'}">
           <c:choose>
-                <c:when test="${expSpecies[0] == 'homo sapiens'}">
-                    <c:set var="ensembl_organism" value="Homo_sapiens"/>
-            </c:when>
-                <c:when test="${expSpecies[0] == 'mus musculus'}">
-                    <c:set var="ensembl_organism" value="Mus_musculus"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'drosophila melanogaster'}">
-                    <c:set var="ensembl_organism" value="Drosophila_melanogaster"/>
-                </c:when>
-            <c:otherwise>
+              <c:when test="${expSpecies[0] == 'homo sapiens'}">
+                  <c:set var="ensembl_organism" value="Homo_sapiens"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'mus musculus'}">
+                  <c:set var="ensembl_organism" value="Mus_musculus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'drosophila melanogaster'}">
+                  <c:set var="ensembl_organism" value="Drosophila_melanogaster"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'saccharomyces cerevisiae'}">
+                  <c:set var="ensembl_organism" value="Saccharomyces_cerevisiae"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'rattus norvegicus'}">
+                  <c:set var="ensembl_organism" value="Rattus_norvegicus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'gallus gallus'}">
+                  <c:set var="ensembl_organism" value="Gallus_gallus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'equus caballus'}">
+                  <c:set var="ensembl_organism" value="Equus_caballus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'sus scrofa'}">
+                  <c:set var="ensembl_organism" value="Sus_scrofa"/>
+              </c:when>
+
+
+              <c:otherwise>
                     <c:set var="ensembl_organism" value="Homo_sapiens"/>
             </c:otherwise>
           </c:choose>
@@ -314,7 +331,7 @@
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <optgroup label="${f:escapeXml(EF.displayName)}">
                                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                                            <option value='${EF.name}||${EFV}'>${f:escapeXml(EFV)}</option>
+                                            <option value='${EF.name}||${f:escapeXml(EFV)}'>${f:escapeXml(EFV)}</option>
                                         </c:forEach>
                                     </optgroup>
                                 </c:forEach>

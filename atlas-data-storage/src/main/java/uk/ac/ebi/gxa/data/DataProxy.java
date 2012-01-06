@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.data;
 
+import uk.ac.ebi.gxa.utils.Pair;
+
 import java.io.Closeable;
 import java.util.List;
 
@@ -86,7 +88,7 @@ interface DataProxy extends Closeable {
 
     TwoDFloatArray getAllExpressionData() throws AtlasDataException;
 
-    List<KeyValuePair> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
+    List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
 
     FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
 

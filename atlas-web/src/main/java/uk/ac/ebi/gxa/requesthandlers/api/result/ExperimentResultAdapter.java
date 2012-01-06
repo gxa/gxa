@@ -42,7 +42,7 @@ import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 /**
  * Atlas Experiment result adapter for REST serialization
  * <p/>
- * Properties from this class are handled by serializer via reflections and converted to JSOn or XML output
+ * Properties from this class are handled by serializer via reflections and converted to JSON or XML output
  *
  * @author Robert Petryszak
  * @author Tony Burdett
