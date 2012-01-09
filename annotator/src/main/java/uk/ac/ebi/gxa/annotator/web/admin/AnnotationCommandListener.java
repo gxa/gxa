@@ -28,7 +28,7 @@ import java.util.EventListener;
  * User: nsklyar
  * Date: 01/08/2011
  */
-public interface AnnotationLoaderListener extends EventListener {
+public interface AnnotationCommandListener extends EventListener {
     /**
      * Indicates that building or updating of an index completed successfully
      *

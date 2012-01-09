@@ -34,7 +34,7 @@ import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -66,7 +66,7 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writeBioEntities(final BioEntityData data, AnnotationLoaderListener listener) {
+    public void writeBioEntities(final BioEntityData data, AnnotationCommandListener listener) {
         for (BioEntityType type : data.getBioEntityTypes()) {
             reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + getOrganismNames(data).toString(), listener);
             Collection<BioEntity> bioEntities = data.getBioEntitiesOfType(type);
@@ -75,7 +75,7 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, AnnotationLoaderListener listener) {
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, AnnotationCommandListener listener) {
         reportProgress("Writing " + propertyValues.size() + " property values", listener);
         bioEntityDAO.writePropertyValues(propertyValues);
     }
@@ -84,7 +84,7 @@ public class AtlasBioEntityDataWriter {
     public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data,
                                                final AnnotationSource annSrc,
                                                boolean checkBioEntities,
-                                               AnnotationLoaderListener listener) {
+                                               AnnotationCommandListener listener) {
         if (annSrc.isApplied()) {
             if (data.getOrganisms().isEmpty()) {
                 deleteBioEntityToPropertyValues(annSrc.getSoftware(), listener);
@@ -107,14 +107,14 @@ public class AtlasBioEntityDataWriter {
         annSrcDAO.update(annSrc);
     }
 
-    private void deleteBioEntityToPropertyValues(final Organism organism, final Software software, AnnotationLoaderListener listener) {
+    private void deleteBioEntityToPropertyValues(final Organism organism, final Software software, AnnotationCommandListener listener) {
         reportProgress("Annotations for organism " + organism.getName() +
                 " already loaded and are going to be deleted before reloading ", listener);
         int count = bioEntityDAO.deleteBioEntityToPropertyValues(organism, software);
         reportProgress("Deleted " + count + " annotations.", listener);
     }
 
-    private void deleteBioEntityToPropertyValues(final Software software, AnnotationLoaderListener listener) {
+    private void deleteBioEntityToPropertyValues(final Software software, AnnotationCommandListener listener) {
         reportProgress("Annotations for software " + software.getFullName() +
                 " already loaded and are going to be deleted before reloading ", listener);
         int count = bioEntityDAO.deleteBioEntityToPropertyValues(software);
@@ -123,7 +123,7 @@ public class AtlasBioEntityDataWriter {
 
 
     @Transactional
-    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite, AnnotationLoaderListener listener) {
+    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite, AnnotationCommandListener listener) {
         if (deleteBeforeWrite) {
             deleteDesignElementBioEntityMappings(software, arrayDesign, listener);
         }
@@ -140,7 +140,7 @@ public class AtlasBioEntityDataWriter {
         }
     }
 
-    private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign, AnnotationLoaderListener listener) {
+    private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign, AnnotationCommandListener listener) {
         reportProgress("Mappings for array design " + arrayDesign.getAccession() +
                 " already loaded and are going to be deleted before reloading ", listener);
         int count = bioEntityDAO.deleteDesignElementBioEntityMappings(software, arrayDesign);
@@ -156,7 +156,7 @@ public class AtlasBioEntityDataWriter {
         });
     }
 
-    void reportProgress(String report, AnnotationLoaderListener listener) {
+    void reportProgress(String report, AnnotationCommandListener listener) {
         log.info(report);
         if (listener != null)
             listener.buildProgress(report);

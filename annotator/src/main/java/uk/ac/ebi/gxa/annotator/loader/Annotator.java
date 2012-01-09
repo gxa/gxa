@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
-import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
@@ -46,7 +46,7 @@ import static com.google.common.collect.Iterables.getFirst;
  */
 public abstract class Annotator<T extends AnnotationSource> {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
-    protected AnnotationLoaderListener listener;
+    protected AnnotationCommandListener listener;
 
     protected T annSrc;
     protected final AtlasBioEntityDataWriter beDataWriter;
@@ -64,7 +64,7 @@ public abstract class Annotator<T extends AnnotationSource> {
 
     public abstract void updateMappings();
 
-    public void setListener(AnnotationLoaderListener listener) {
+    public void setListener(AnnotationCommandListener listener) {
         this.listener = listener;
     }
 

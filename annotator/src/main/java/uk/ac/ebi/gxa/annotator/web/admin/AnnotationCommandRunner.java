@@ -26,7 +26,7 @@ package uk.ac.ebi.gxa.annotator.web.admin;
  * User: nsklyar
  * Date: 28/07/2011
  */
-public interface AnnotationLoader {
+public interface AnnotationCommandRunner {
 
-    public void load(AnnotationCommand cmd, AnnotationLoaderListener listener);
+    public void run(AnnotationCommand cmd, AnnotationCommandListener listener);
 }

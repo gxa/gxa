@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommand;
-import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
 import uk.ac.ebi.gxa.annotator.web.admin.UpdateBioEntityAnnotationCommand;
 import uk.ac.ebi.gxa.annotator.web.admin.UpdateMappingCommand;
 
@@ -33,7 +33,7 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
         taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.STARTED, "");
 
-        taskMan.getAnnotationLoader().load(getAnnotationCommand(), getListner());
+        taskMan.getAnnotationCommandRunner().run(getAnnotationCommand(), getListner());
     }
 
     private AnnotationCommand getAnnotationCommand() {
@@ -71,8 +71,8 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         }
     };
 
-    private AnnotationLoaderListener getListner() {
-        return new AnnotationLoaderListener() {
+    private AnnotationCommandListener getListner() {
+        return new AnnotationCommandListener() {
             @Override
             public void buildSuccess(String msg) {
                 taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FINISHED, msg);

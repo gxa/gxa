@@ -22,19 +22,22 @@
 
 package uk.ac.ebi.gxa.annotator.web.admin;
 
+import uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor;
+
 /**
  * User: nsklyar
  * Date: 28/07/2011
  */
-public class UpdateMappingCommand extends AnnotationCommand {
-    private String annSrcId;
+public class UpdateMappingCommand implements AnnotationCommand {
+
+    private final String annSrcId;
 
     public UpdateMappingCommand(String annSrcId) {
         this.annSrcId = annSrcId;
     }
 
     @Override
-    public void execute(AnnotationLoaderListener listener) {
-       annotationProcessor.updateMappings(annSrcId, listener);
+    public void execute(AnnotationProcessor annotationProcessor, AnnotationCommandListener listener) {
+        annotationProcessor.updateMappings(annSrcId, listener);
     }
 }

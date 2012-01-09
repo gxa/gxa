@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.web.admin.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 /**
@@ -45,13 +45,13 @@ public class AnnotationProcessor {
     public AnnotationProcessor() {
     }
 
-    public void updateAnnotations(String annSrcId, AnnotationLoaderListener listener) {
+    public void updateAnnotations(String annSrcId, AnnotationCommandListener listener) {
         final Annotator annotator = getAnnotator(annSrcId);
         annotator.setListener(listener);
         annotator.updateAnnotations();
     }
 
-    public void updateMappings(String annSrcId, AnnotationLoaderListener listener) {
+    public void updateMappings(String annSrcId, AnnotationCommandListener listener) {
         final Annotator annotator = getAnnotator(annSrcId);
         annotator.setListener(listener);
         annotator.updateMappings();

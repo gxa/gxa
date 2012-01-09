@@ -32,24 +32,23 @@ import java.util.concurrent.ExecutorService;
  * User: nsklyar
  * Date: 28/07/2011
  */
-public class DefaultAnnotationLoader implements AnnotationLoader {
+public class DefaultAnnotationCommandRunner implements AnnotationCommandRunner {
 
-    private AnnotationProcessor annotationProcessor;
-    private ExecutorService executor;
+    private final AnnotationProcessor annotationProcessor;
+    private final ExecutorService executor;
 
-    public DefaultAnnotationLoader(AnnotationProcessor annotationProcessor, ExecutorService executor) {
+    public DefaultAnnotationCommandRunner(AnnotationProcessor annotationProcessor, ExecutorService executor) {
         this.annotationProcessor = annotationProcessor;
         this.executor = executor;
     }
 
     @Override
-    public void load(final AnnotationCommand annotationCommand, final AnnotationLoaderListener listener) {
-        annotationCommand.setAnnotationProcessor(annotationProcessor);
+    public void run(final AnnotationCommand annotationCommand, final AnnotationCommandListener listener) {
 
         executor.submit(new Runnable() {
             public void run() {
                 try {
-                    annotationCommand.execute(listener);
+                    annotationCommand.execute(annotationProcessor, listener);
                 } catch (Throwable e) {
                     listener.buildError(e);
                     throw LogUtil.createUnexpected("Unexpected exception", e);

@@ -22,11 +22,14 @@
 
 package uk.ac.ebi.gxa.annotator.web.admin;
 
+import uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor;
+
 /**
  * User: nsklyar
  * Date: 28/07/2011
  */
-public class UpdateBioEntityAnnotationCommand extends AnnotationCommand {
+public class UpdateBioEntityAnnotationCommand implements AnnotationCommand {
+
     private final String annSrcId;
 
     public UpdateBioEntityAnnotationCommand(String annSrcId) {
@@ -34,7 +37,7 @@ public class UpdateBioEntityAnnotationCommand extends AnnotationCommand {
     }
 
     @Override
-    public void execute(AnnotationLoaderListener listener) {
+    public void execute(AnnotationProcessor annotationProcessor, AnnotationCommandListener listener) {
         annotationProcessor.updateAnnotations(annSrcId, listener);
     }
 }

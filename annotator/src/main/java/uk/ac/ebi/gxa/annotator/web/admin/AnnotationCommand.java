@@ -28,13 +28,7 @@ import uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor;
  * User: nsklyar
  * Date: 28/07/2011
  */
-public abstract class AnnotationCommand {
+public interface AnnotationCommand {
 
-    protected AnnotationProcessor annotationProcessor;
-
-    public void setAnnotationProcessor(AnnotationProcessor annotationProcessor) {
-        this.annotationProcessor = annotationProcessor;
-    }
-
-    public abstract void execute(AnnotationLoaderListener listener);
+    public void execute(AnnotationProcessor annotationProcessor, AnnotationCommandListener listener);
 }

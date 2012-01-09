@@ -26,7 +26,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <import resource="annotatorContext.xml"/>
 
-    <bean id="annotationLoader" class="uk.ac.ebi.gxa.annotator.web.admin.DefaultAnnotationLoader">
+    <bean id="annotationCommandRunner" class="uk.ac.ebi.gxa.annotator.web.admin.DefaultAnnotationCommandRunner">
         <constructor-arg ref="annotationProcessor"/>
         <constructor-arg ref="threadPool"/>
     </bean>
