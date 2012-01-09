@@ -22,13 +22,13 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * User: nsklyar
@@ -46,33 +46,35 @@ public class AnnotationProcessor {
     }
 
     public void updateAnnotations(String annSrcId, AnnotationCommandListener listener) {
-        final Annotator annotator = getAnnotator(annSrcId);
-        annotator.setListener(listener);
-        annotator.updateAnnotations();
+        createAnnotator(annSrcId, listener).updateAnnotations();
     }
 
     public void updateMappings(String annSrcId, AnnotationCommandListener listener) {
-        final Annotator annotator = getAnnotator(annSrcId);
-        annotator.setListener(listener);
-        annotator.updateMappings();
+        createAnnotator(annSrcId, listener).updateMappings();
     }
 
     private AnnotationSource fetchAnnSrcById(String id) {
         AnnotationSource annSrc = null;
-        if (!StringUtils.isEmpty(id)) {
+        if (!isNullOrEmpty(id)) {
             try {
                 final long idL = Long.parseLong(id.trim());
                 annSrc = annSrcDAO.getById(idL);
             } catch (NumberFormatException e) {
-                throw LogUtil.createUnexpected("Cannot fetch Annotation Source. Wrong ID ", e);
+                /* ignore */
             }
+        }
+
+        if (annSrc == null) {
+            throw new IllegalStateException("Annotation source not found: id = " + id);
         }
         return annSrc;
     }
 
-    private Annotator getAnnotator(String id) {
-        final AnnotationSource annotationSource = fetchAnnSrcById(id);
-        final AnnotationSourceType annSrcType = AnnotationSourceType.annSrcTypeOf(annotationSource);
-        return annSrcType.createAnnotator(annotatorFactory, annotationSource);
+    private Annotator createAnnotator(String id, AnnotationCommandListener listener) {
+        final AnnotationSource annSource = fetchAnnSrcById(id);        
+        Annotator ann = AnnotationSourceType.annSrcTypeOf(annSource)
+                .createAnnotator(annotatorFactory, annSource);
+        ann.setListener(listener);
+        return ann;
     }
 }
