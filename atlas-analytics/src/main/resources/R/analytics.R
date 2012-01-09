@@ -122,7 +122,7 @@ log2.safe <-
     if (!log)
       return(x)
 
-    tmp = log2(x)
+    tmp = log2(x - min(x) + 1e-10)
     tmp[!(is.finite(tmp) | is.na(x))] <- 0
     tmp
 }
