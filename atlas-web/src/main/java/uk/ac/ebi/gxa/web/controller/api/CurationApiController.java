@@ -81,7 +81,7 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/{experimentAccession}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public ApiExperiment getExperiment(@PathVariable("v") final ApiVersionType version,
+    public ApiShallowExperiment getExperiment(@PathVariable("v") final ApiVersionType version,
                                        @PathVariable("experimentAccession") final String experimentAccession,
                                        HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getExperiment(experimentAccession);

@@ -298,16 +298,16 @@ public class CurationService {
 
     /**
      * @param experimentAccession
-     * @return ApiExperiment corresponding to experimentAccession
+     * @return ApiShallowExperiment corresponding to experimentAccession
      * @throws ResourceNotFoundException if experiment not found
      */
-    public ApiExperiment getExperiment(final String experimentAccession)
+    public ApiShallowExperiment getExperiment(final String experimentAccession)
             throws ResourceNotFoundException {
 
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
 
-            return new ApiExperiment(experiment);
+            return new ApiShallowExperiment(experiment);
         } catch (RecordNotFoundException e) {
             throw convert(e);
         }
