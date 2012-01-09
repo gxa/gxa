@@ -132,29 +132,14 @@ isEmptyEFV <- function(value) return (is.null(value) || value == "" || value == 
 
 ### Omnibus one-way ANOVA (with moderated t) F-statistic computation
 fstat.eset <-
-  function(eset, design = NULL, varLabel = NULL,lg = FALSE) {
-    if (is.null(design) && !is.null(varLabel)) {
-      print(paste("Calculating design matrix for", varLabel))
-        design = model.matrix(as.formula(paste("~0+", varLabel)), data = eset)
-    }
-
-    if (lg == TRUE) {
-        exprs(eset)<-log2.safe(exprs(eset))
-    }
+  function(eset, varLabel) {
+    print(paste("Calculating design matrix for", varLabel))
+    design = model.matrix(as.formula(paste("~0+", varLabel)), data = eset)
 
     print("Fitting model...")
-    fit = lmFit(eset,design)
+    fit = lmFit(eset, design)
 
-    # print("Re-fitting model to ANOVA contrasts...")
-    # pairs = design.pairs(colnames(design))
-    # cfit = contrasts.fit(fit,pairs)
-
-    # print("Moderating...")
-    # cfit = eBayes(cfit)
     fit = eBayes(fit)
-
-    # fit$F = cfit$F
-    # fit$F.p.value = cfit$F.p.value
 
     return(fit)
 }
