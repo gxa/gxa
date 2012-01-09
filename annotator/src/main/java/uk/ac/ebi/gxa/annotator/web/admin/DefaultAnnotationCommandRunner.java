@@ -50,7 +50,7 @@ public class DefaultAnnotationCommandRunner implements AnnotationCommandRunner {
                 try {
                     annotationCommand.execute(annotationProcessor, listener);
                 } catch (Throwable e) {
-                    listener.buildError(e);
+                    listener.commandError(e);
                     throw LogUtil.createUnexpected("Unexpected exception", e);
                 }
             }

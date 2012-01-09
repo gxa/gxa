@@ -74,7 +74,7 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
     private AnnotationCommandListener getListner() {
         return new AnnotationCommandListener() {
             @Override
-            public void buildSuccess(String msg) {
+            public void commandSuccess(String msg) {
                 taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FINISHED, msg);
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
@@ -82,12 +82,12 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
             }
 
             @Override
-            public void buildProgress(String progressStatus) {
+            public void commandProgress(String progressStatus) {
                 currentProgress = progressStatus;
             }
 
             @Override
-            public void buildError(Throwable error) {
+            public void commandError(Throwable error) {
                 log.error("Task failed because of:", error);
 
                 taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FAILED, error.getMessage());

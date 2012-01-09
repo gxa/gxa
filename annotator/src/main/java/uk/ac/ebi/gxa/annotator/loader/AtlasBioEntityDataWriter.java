@@ -159,6 +159,6 @@ public class AtlasBioEntityDataWriter {
     void reportProgress(String report, AnnotationCommandListener listener) {
         log.info(report);
         if (listener != null)
-            listener.buildProgress(report);
+            listener.commandProgress(report);
     }
 }

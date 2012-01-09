@@ -30,18 +30,23 @@ import java.util.EventListener;
  */
 public interface AnnotationCommandListener extends EventListener {
     /**
-     * Indicates that building or updating of an index completed successfully
+     * Invoked when the command completed successfully
      *
-     * @param msg
+     * @param msg - a success message
      */
-    void buildSuccess(String msg);
+    void commandSuccess(String msg);
 
     /**
-     * Is called by builder to provide some progress status report
+     * Invoked during the command run to provide the progress status of the command
      *
-     * @param progressStatus a text string representing human-readable status line of current index builder process
+     * @param progressStatus a text string representing human-readable status line of the running command
      */
-    void buildProgress(String progressStatus);
+    void commandProgress(String progressStatus);
 
-    void buildError(Throwable error);
+    /**
+     * Invoked when the command error happen
+     *
+     * @param error - an exception thrown during the command run
+     */
+    void commandError(Throwable error);
 }

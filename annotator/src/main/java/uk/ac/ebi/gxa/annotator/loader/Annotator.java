@@ -71,19 +71,19 @@ public abstract class Annotator<T extends AnnotationSource> {
     protected void reportProgress(String report) {
         log.info(report);
         if (listener != null)
-            listener.buildProgress(report);
+            listener.commandProgress(report);
     }
 
     protected void reportError(Throwable error) {
         log.error("Annotation failed! ", error);
         if (listener != null)
-            listener.buildError(error);
+            listener.commandError(error);
     }
 
     protected void reportSuccess(String message) {
         log.info(message);
         if (listener != null)
-            listener.buildSuccess(message);
+            listener.commandSuccess(message);
     }
 
     protected static class BETypeExternalAttributesHandler {
