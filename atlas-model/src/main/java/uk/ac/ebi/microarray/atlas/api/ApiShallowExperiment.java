@@ -6,7 +6,9 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 
+import javax.persistence.Column;
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * A minimal version of ApiExperiment
@@ -23,6 +25,30 @@ public class ApiShallowExperiment {
 
     public String getAccession() {
         return experiment.getAccession();
+    }
+
+    public String getDescription() {
+        return experiment.getDescription();
+    }
+
+    public String getLab() {
+        return experiment.getLab();
+    }
+
+    public Date getLoadDate() {
+        return experiment.getLoadDate();
+    }
+
+    public String getPubmedId() {
+        return experiment.getPubmedId();
+    }
+
+    public String getPerformer() {
+        return experiment.getPerformer();
+    }
+
+    public boolean isPrivate() {
+        return experiment.isPrivate();
     }
 
 
