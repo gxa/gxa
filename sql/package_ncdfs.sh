@@ -6,7 +6,7 @@ if [ $# -ne 2 ]; then
 	exit;
 fi
 
-BASEDIR=$(dirname $0)
+BASEDIR=`pwd`
 ATLAS_CONNECTION=$1
 ATLAS_NCDF_PATH=$2
 
