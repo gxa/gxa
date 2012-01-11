@@ -1,7 +1,7 @@
 #!/bin/bash
 # Releasing Atlas2 NetCDF files
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
 	echo "Usage: $0 ATLAS_CONNECTION ATLAS_NCDF_PATH ATLAS_EXPORTED_NCDF_PATH"
 	exit;
 fi
