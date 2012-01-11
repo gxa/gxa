@@ -56,8 +56,6 @@ public class AtlasViewController {
         BufferedInputStream in = null;
         try {
             response.setContentType(contentType.getContentType());
-            // TODO 4rpetry remove the following - temporary hack to aid development (prevent cross origin resource sharing issues)
-            response.setHeader("Access-Control-Allow-Origin", "*");
             in = new BufferedInputStream(new FileInputStream(file));
             copy(in, response.getOutputStream());
             response.getOutputStream().flush();
