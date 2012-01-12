@@ -1,0 +1,5 @@
+insert into a2_config_property (name,value) values ('atlas.data.release.lastdate', '${PREV_DATA_RELEASE}');
+insert into a2_config_property (name,value) values ('atlas.data.release', '${DATA_RELEASE}');
+insert into a2_config_property (name,value) values ('atlas.googleanalytics.account', 'UA-338477-2');
+insert into a2_config_property (name,value) values ('atlas.ignore.efs.anycondition', 'time,individual,age');
+insert into a2_config_property (name,value) values ('atlas.admin.password', '${ADMIN_PWD}');
