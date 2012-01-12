@@ -32,27 +32,39 @@ echo "Packaging source DB..."  >> $log
 # Capture return status for package_db.sh
 rc=$?
 
-echo "Finished packaging source DB - log:" >> $log
-cat atlas-data-relcan-package.log >> $log
-
 # If package_db.sh failed, exit with its return code
 if [[ $rc != 0 ]] ; then
+    mailx -s "[gxa/cron] Release DB for: "`date +'%d-%m-%Y'`" failed due to DB packaging error" ${ERROR_NOTIFICATION_EMAILADDRESS} < $log
     exit $rc
 fi
 
+echo "Finished packaging source DB - log:" >> $log
+cat atlas-data-relcan-package.log >> $log
 mv atlas-data-relcan-package.log atlas-data-relcan
 
 echo "Installing into target DB..."  >> $log
-cd atlas-data-relcan
+pushd atlas-data-relcan
 chmod 744 install.sh
 ./install.sh ${TARGET_ATLAS_CONNECTION} ${TARGET_ATLAS_USER}_DATA Data 2>&1 > atlas-data-relcan-install.log
-echo "Finished installing into target DB - errors  (if any):" >> $log
-grep error install.log  | egrep -v '0 Rows not loaded due to data errors' >> $log
-grep ERROR install.log >> $log
-grep -ir error atlas-data-relcan-install.log >> $log
-echo "Installation into target DB log :" >> $log
-grep error atlas-data-relcan-install.log >> $log
 
+# Capture return status for install.sh
+rc=$?
+
+# If install.sh failed, exit with its return code
+if [[ $rc != 0 ]] ; then
+    echo "Failed installing into target DB - errors:" >> $log
+    grep error install.log  | egrep -v '0 Rows not loaded due to data errors' >> $log
+    grep ERROR install.log >> $log
+    grep -ir error atlas-data-relcan-install.log >> $log
+    mailx -s "[gxa/cron] Release DB for: "`date +'%d-%m-%Y'`" failed due to DB install error" ${ERROR_NOTIFICATION_EMAILADDRESS} < $log
+    exit $rc
+fi
+
+echo "Finished installing into target DB - log:" >> $log
+cat atlas-data-relcan-install.log >> $log
+popd
+
+# Instantiate default a2_config_property insert script
 export DATA_RELEASE=${DATA_RELEASE}
 export PREV_DATA_RELEASE=${PREV_DATA_RELEASE}
 export ADMIN_PWD=${ADMIN_PWD}
@@ -65,7 +77,6 @@ rm -rf default_db_config.sql
 echo "Installed the default DB config successfully"  >> $log
 
 echo "Removing local data release directory"  >> $log
-cd ..
 cp -r atlas-data-relcan $RELEASES_HOME
 rm -rf atlas-data-relcan
 echo "Removed local data release directory successfully"  >> $log
