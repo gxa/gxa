@@ -27,7 +27,7 @@ cp flat_array.pc ../
 popd
 
 echo "Packaging source DB..."  >> $log
-./package_db.sh ${SRC_ATLAS_CONNECTION} atlas-data-relcan  2>&1 > atlas-data-relcan-package.log &
+./package_db.sh ${SRC_ATLAS_CONNECTION} atlas-data-relcan  2>&1 > atlas-data-relcan-package.log
 echo "Finished packaging source DB - log:" >> $log
 cat atlas-data-relcan-package.log >> $log
 mv atlas-data-relcan-package.log atlas-data-relcan
@@ -35,7 +35,7 @@ mv atlas-data-relcan-package.log atlas-data-relcan
 echo "Installing into target DB..."  >> $log
 cd atlas-data-relcan
 chmod 744 install.sh
-./install.sh ${TARGET_ATLAS_CONNECTION} ${TARGET_ATLAS_USER}_DATA Data 2>&1 > atlas-data-relcan-install.log &
+./install.sh ${TARGET_ATLAS_CONNECTION} ${TARGET_ATLAS_USER}_DATA Data 2>&1 > atlas-data-relcan-install.log
 echo "Finished installing into target DB - errors  (if any):" >> $log
 grep error install.log  | egrep -v '0 Rows not loaded due to data errors' >> $log
 grep ERROR install.log >> $log
