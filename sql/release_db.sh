@@ -39,7 +39,7 @@ chmod 744 install.sh
 echo "Finished installing into target DB - errors  (if any):" >> $log
 grep error install.log  | egrep -v '0 Rows not loaded due to data errors' >> $log
 grep ERROR install.log >> $log
-grep -ir error atlas-data-relcan-install.log >> >> $log
+grep -ir error atlas-data-relcan-install.log >> $log
 echo "Installation into target DB log :" >> $log
 cat error atlas-data-relcan-install.log >> $log
 
@@ -50,7 +50,7 @@ awk '{while(match($0,"[$]{[^}]*}")) {var=substr($0,RSTART+2,RLENGTH -3);gsub("[$
 
 echo "Installing into target DB the following default DB config:"  >> $log
 cat default_db_config.sql >> $log
- sqlplus -L -S ${TARGET_ATLAS_CONNECTION} @default_db_config.sql
+sqlplus -L -S ${TARGET_ATLAS_CONNECTION} @default_db_config.sql
 rm -rf default_db_config.sql
 echo "Installed the default DB config successfully"  >> $log
 
