@@ -26,7 +26,6 @@ import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.*;
@@ -51,21 +50,6 @@ public class BioMartConnection implements AnnotationSourceConnection {
 
     private static final String MART_DB = "database=\"" + MART_NAME_PH + "_mart_";
 
-    private static final String DATA_SET_PH = "$DATA_SET";
-    private static final String PROP_NAME_PH = "$PROP_NAME";
-    private static final String VIRTUAL_SCHEMA_PH = "$VIRTUAL_SCHEMA";
-    private static final String ATTRIBUTES_PH = "$ATTRIBUTES";
-
-    private static final String PROPERTY_QUERY =
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                    "<!DOCTYPE Query>" +
-                    "<Query  virtualSchemaName = \"" + VIRTUAL_SCHEMA_PH + "\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" >" +
-                    "<Dataset name = \"" + DATA_SET_PH + "\" interface = \"default\" >" +
-                    ATTRIBUTES_PH +
-                    "</Dataset>" +
-                    "</Query>";
-
-    private static final String ATTRIBUTE = "<Attribute name = \"" + PROP_NAME_PH + "\" />";
     private String martUrl;
     private String datasetName;
     private String databaseName;
@@ -220,26 +204,13 @@ public class BioMartConnection implements AnnotationSourceConnection {
     }
 
     private String getAttributesURLLocation(Collection<String> attributes) {
-        String attributesStr= prepareAttributesString(attributes);
+        BioMartQuery query = new BioMartQuery(serverVirtualSchema, datasetName)
+                .addAttributes(attributes);
         try {
-            final String preparedURL = prepareURLString(attributesStr, serverVirtualSchema, datasetName);
-            return martUrl + "query=" + URLEncoder.encode(preparedURL, "UTF-8");
+            return martUrl + "query=" + URLEncoder.encode(query.toString(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw LogUtil.createUnexpected("Failed while trying to encode URL ", e);
         }
-    }
-
-    String prepareAttributesString(Collection<String> attributes) {
-        StringBuilder attributesSB = new StringBuilder();
-        for (String attribute : attributes) {
-            attributesSB.append(ATTRIBUTE.replace(PROP_NAME_PH, attribute));
-        }
-        return attributesSB.toString();
-    }
-
-    String prepareURLString(String attributes, String serverVirtualSchema, String datasetName) {
-        return PROPERTY_QUERY.replace(VIRTUAL_SCHEMA_PH, serverVirtualSchema).replace(DATA_SET_PH, datasetName).
-                        replace(ATTRIBUTES_PH, attributes);
     }
 
     private void fetchInfoFromRegistry() throws AnnotationSourceAccessException {

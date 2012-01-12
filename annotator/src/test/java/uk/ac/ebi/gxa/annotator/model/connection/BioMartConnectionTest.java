@@ -83,22 +83,5 @@ public class BioMartConnectionTest{
         assertNotNull(bmService.getBioMartName());
         assertNotNull(bmService.getServerVirtualSchema());
     }
-
-    @Test
-    public void testPrepareAttributesString() throws Exception {
-        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
-        final String attStr = bmService.prepareAttributesString(asList("ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"));
-        assertEquals("<Attribute name = \"ensembl_gene_id\" /><Attribute name = \"ensembl_transcript_id\" /><Attribute name = \"external_gene_id\" />", attStr);
-    }
-
-    @Test
-    public void testPrepareURLString() throws Exception {
-        bmService = BioMartConnection.createConnection("http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
-        final String attStr = bmService.prepareAttributesString(asList("gene", "transcript"));
-        assertEquals("<Attribute name = \"gene\" /><Attribute name = \"transcript\" />", attStr);
-        final String urlStr = bmService.prepareURLString(attStr, "ens_plants", "athaliana_eg_gene");
-        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE Query><Query  virtualSchemaName = \"ens_plants\" formatter = \"TSV\" header = \"0\" uniqueRows = \"1\" count = \"\" ><Dataset name = \"athaliana_eg_gene\" interface = \"default\" ><Attribute name = \"gene\" /><Attribute name = \"transcript\" /></Dataset></Query>", urlStr);
-    }
-
 }
 
