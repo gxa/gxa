@@ -61,7 +61,7 @@ rm -rf atlas-data-relcan
 echo "Removed local data release directory successfully"  >> $log
 
 # Send error notification email
-err_msg="Release DB status for: "`date +'%d-%m-%Y'`
+err_msg="[gxa/cron] Release DB status for: "`date +'%d-%m-%Y'`
 mailx -s "$err_msg" ${ERROR_NOTIFICATION_EMAILADDRESS} < $log
 
 echo "Done"  >> $log
