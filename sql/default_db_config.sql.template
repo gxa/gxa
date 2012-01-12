@@ -3,3 +3,4 @@ insert into a2_config_property (name,value) values ('atlas.data.release', '${DAT
 insert into a2_config_property (name,value) values ('atlas.googleanalytics.account', 'UA-338477-2');
 insert into a2_config_property (name,value) values ('atlas.ignore.efs.anycondition', 'time,individual,age');
 insert into a2_config_property (name,value) values ('atlas.admin.password', '${ADMIN_PWD}');
+exit;
