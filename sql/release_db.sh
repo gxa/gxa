@@ -41,7 +41,7 @@ grep error install.log  | egrep -v '0 Rows not loaded due to data errors' >> $lo
 grep ERROR install.log >> $log
 grep -ir error atlas-data-relcan-install.log >> $log
 echo "Installation into target DB log :" >> $log
-cat error atlas-data-relcan-install.log >> $log
+grep error atlas-data-relcan-install.log >> $log
 
 export DATA_RELEASE=${DATA_RELEASE}
 export PREV_DATA_RELEASE=${PREV_DATA_RELEASE}
