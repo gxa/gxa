@@ -5,7 +5,7 @@ source install-routines.sh
 
 if [ $# -ne 2 ]; then
 	echo "Usage: $0 ATLAS_CONNECTION ATLAS_RELEASE"
-	exit;
+	exit 1;
 fi
 
 ATLAS_CONNECTION=$1
@@ -13,7 +13,7 @@ ATLAS_RELEASE=$2
 
 if [ -d $ATLAS_RELEASE ]; then
 	echo "$ATLAS_RELEASE already exists! Choose another directory name.";
-	exit;
+	exit 1;
 fi
 
 mkdir $ATLAS_RELEASE

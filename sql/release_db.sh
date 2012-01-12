@@ -28,8 +28,18 @@ popd
 
 echo "Packaging source DB..."  >> $log
 ./package_db.sh ${SRC_ATLAS_CONNECTION} atlas-data-relcan  2>&1 > atlas-data-relcan-package.log
+
+# Capture return status for package_db.sh
+rc=$?
+
 echo "Finished packaging source DB - log:" >> $log
 cat atlas-data-relcan-package.log >> $log
+
+# If package_db.sh failed, exit with its return code
+if [[ $rc != 0 ]] ; then
+    exit $rc
+fi
+
 mv atlas-data-relcan-package.log atlas-data-relcan
 
 echo "Installing into target DB..."  >> $log
