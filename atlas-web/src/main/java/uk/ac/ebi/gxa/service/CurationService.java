@@ -85,6 +85,13 @@ public class CurationService {
                 }
             };
 
+    private static final Function<OntologyTerm, ApiShallowOntologyTerm> ONTOLOGY_TERM =
+            new Function<OntologyTerm, ApiShallowOntologyTerm>() {
+                public ApiShallowOntologyTerm apply(@Nonnull OntologyTerm t) {
+                    return new ApiShallowOntologyTerm(t);
+                }
+            };
+
     /**
      * @return alphabetically sorted collection of all property names
      */
@@ -147,6 +154,13 @@ public class CurationService {
         experiments.addAll(experimentDAO.getExperimentsByAssayPropertyOntologyTerm(ontologyTerm));
         experiments.addAll(experimentDAO.getExperimentsBySamplePropertyOntologyTerm(ontologyTerm));
         return transform(experiments, EXPERIMENT);
+    }
+
+        /**
+     * @return Collection of all Atlas ontology terms
+     */
+    public Collection<ApiShallowOntologyTerm> getOntologyTerms() {
+        return transform(ontologyTermDAO.getAll(), ONTOLOGY_TERM);
     }
 
     /**

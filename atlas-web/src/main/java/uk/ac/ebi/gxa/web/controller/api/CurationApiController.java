@@ -134,6 +134,15 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperimentsByOntologyTerm(ontologyTerm);
     }
 
+    @RequestMapping(value = "/ontologyterms.json",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiShallowOntologyTerm> getOntologyTerms(@PathVariable("v") final ApiVersionType version,
+                                                        HttpServletResponse response) throws ResourceNotFoundException {
+        crossOriginHack(response);
+        return curationService.getOntologyTerms();
+    }
+
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}.json",
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
