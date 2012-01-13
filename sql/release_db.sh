@@ -77,7 +77,8 @@ rm -rf default_db_config.sql
 echo "Installed the default DB config successfully"  >> $log
 
 echo "Removing local data release directory"  >> $log
-mv atlas-data-relcan ${RELEASES_HOME}/
+cp -r atlas-data-relcan ${RELEASES_HOME}
+rm -rf atlas-data-relcan
 
 if [ -e atlas-data-relcan ];then
 echo "Failed to move data release dir to ${RELEASES_HOME}"  >> $log
