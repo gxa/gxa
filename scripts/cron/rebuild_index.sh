@@ -36,7 +36,7 @@ if [ $num_incomplete_analytics != "0" ]; then
     mailx -s "Processing experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT} failed due to incomplete analytics (see message body)" ${ERROR_NOTIFICATION_EMAILADDRESS} < $process_file.log
 else
     num_incomplete_index=`curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?op=searchexp&pendingOnly=INCOMPLETE_INDEX" | cut -d'{' -f2 | cut -d':' -f2 | cut -d',' -f1`
-    if [ ${FORCE_REBUILD} == "force" -o $num_incomplete_index != "0" ]; then
+    if [ [${FORCE_REBUILD} == "force"] -o [$num_incomplete_index != "0"] ]; then
         echo "Number of experiments with incomplete index = $num_incomplete_index - re-building the index..." >> $process_file.log
         curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?op=schedule&runMode=RESTART&type=index&autoDepends=false&accession=&indent" 2>&1 >> $process_file.log
     else
