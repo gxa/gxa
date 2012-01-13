@@ -51,4 +51,4 @@ Former Development Team Members:
 
 Licensed under the Apache License, Version 2.0. 
 
-Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute.
+Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute.
