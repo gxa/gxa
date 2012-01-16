@@ -81,7 +81,7 @@ public class BioMartAnnotationSource extends AnnotationSource {
 
     public BioEntityType getBioEntityType(final String name) {
         for (BioEntityType type : getTypes()) {
-            if (type.getName().equals(BioEntityType.ENSGENE))
+            if (type.getName().equals(name))
                 return type;
         }
         return null;
