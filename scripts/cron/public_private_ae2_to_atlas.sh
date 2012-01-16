@@ -32,7 +32,7 @@ curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://$3:$
 if [ ! -f $all_atlas_experiments_file ]; then
    err_msg="Updating private/public status of experiments on $3:$4/$5 was unsuccessful due failure to retrieve all Atlas experiments"
    echo $err_msg >> $process_file.log
-   mailx -s "$err_msg" $6 < $process_file.log
+   mailx -s "[gxa/cron] $err_msg" $6 < $process_file.log
 fi
 
 # Retrieve all AE2 experiments into $all_ae2_experiments_file (ssv)
@@ -40,7 +40,7 @@ curl -X GET "http://www.ebi.ac.uk/arrayexpress/admin/privacy" > $all_ae2_experim
 if [ ! -f $all_ae2_experiments_file ]; then
    err_msg="Updating private/public status of experiments on $3:$4/$5  was unsuccessful due failure to retrieve all AE2 experiments"
    echo $err_msg >> $process_file.log
-   mailx -s "$err_msg" $6 < $process_file.log
+   mailx -s "[gxa/cron] $err_msg" $6 < $process_file.log
 fi
 
 
@@ -89,7 +89,7 @@ while read line; do
        else
           err_msg="Updating private/public status of experiments on $3:$4/$5 failed due to incorrect format of Atlas API call output"
           echo $err_msg >> $process_file.log
-          mailx -s "$err_msg" $6 < $process_file.log
+          mailx -s "[gxa/cron] $err_msg" $6 < $process_file.log
           exit 1
        fi
    fi

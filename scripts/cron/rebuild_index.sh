@@ -33,7 +33,7 @@ num_incomplete_analytics=`curl -X GET -b $authentication_cookie -H "Accept: appl
 if [ $num_incomplete_analytics != "0" ]; then
     # If the number of experiments with incomplete analytics is not 0, email an error to ERROR_NOTIFICATION_EMAILADDRESS and quit
     curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?op=searchexp&pendingOnly=INCOMPLETE_ANALYTICS&indent" 2>&1 >> $process_file.log
-    mailx -s "Processing experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT} failed due to incomplete analytics (see message body)" ${ERROR_NOTIFICATION_EMAILADDRESS} < $process_file.log
+    mailx -s "[gxa/cron] Processing experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT} failed due to incomplete analytics (see message body)" ${ERROR_NOTIFICATION_EMAILADDRESS} < $process_file.log
 else
     num_incomplete_index=`curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?op=searchexp&pendingOnly=INCOMPLETE_INDEX" | cut -d'{' -f2 | cut -d':' -f2 | cut -d',' -f1`
     if [ [${FORCE_REBUILD} == "force"] -o [$num_incomplete_index != "0"] ]; then
