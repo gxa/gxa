@@ -29,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.utils.EscapeUtil;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
@@ -85,12 +84,6 @@ public class PropertiesIndexBuilderService extends IndexBuilderService {
         getLog().debug("Adding property " + value);
         getSolrServer().add(solrInputDoc);
     }
-
-    @Override
-    public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        processCommand(new IndexAllCommand(), progressUpdater);
-    }
-
 
     public String getName() {
         return "properties";
