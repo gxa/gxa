@@ -17,7 +17,7 @@ for stats_file in $(find $NCDF_DIR -name *_statistics.nc); do
 
         # Now check if experiment has not enough expressions for each ef-efv to make a differential call
         data_file=`echo $stats_file | sed 's|_statistics|_data|'`
-        exp_ad=`echo $stats_file | awk -F"/" '{print $11}' | awk -F"_" '{print $2}'`
+        exp_ad=`echo $stats_file | awk -F"/" '{print $11}' | awk -F"_" '{print "exp: "$1" ad: "$2}'`
 
         # Now check how many DE's are being analysed in an experiment - it looks
         # (c.f. http://comments.gmane.org/gmane.science.biology.informatics.conductor/30292) as if limma's lmFit function
