@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.model.connection;
+package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -45,26 +45,31 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Olga Melnichuk
  */
-public class BioMartQueryTest {
+public class MartQueryTest {
 
     @Test
     public void testQuerySyntax() throws ParserConfigurationException, IOException, SAXException {
         final String virtualSchemaName = "_virtualSchemaName_";
         final String dataSetName = "_dataSetName_";
         final List<String> attrs = asList("attr1", "attr2");
+        final boolean count = true;
 
-        BioMartQuery query = new BioMartQuery(virtualSchemaName, dataSetName)
-                .addAttributes(attrs);
+        MartQuery query = new MartQuery(virtualSchemaName, dataSetName)
+                .addAttributes(attrs)
+                .setCount(count);
+
         validateXml(query.toString(),
                 virtualSchemaName,
                 dataSetName,
-                attrs);
+                attrs,
+                count ? "1" : "0");
     }
 
     private void validateXml(String xmlString,
                              String virtualSchemaName,
                              String dataSetName,
-                             List<String> attrs) throws ParserConfigurationException, IOException, SAXException {
+                             List<String> attrs,
+                             String count) throws ParserConfigurationException, IOException, SAXException {
 
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -81,9 +86,9 @@ public class BioMartQueryTest {
 
         assertEquals(virtualSchemaName, queryElm.getAttribute("virtualSchemaName"));
         assertEquals("TSV", queryElm.getAttribute("formatter"));
-        assertEquals("0", queryElm.getAttribute("header"));
+        assertEquals("1", queryElm.getAttribute("header"));
         assertEquals("1", queryElm.getAttribute("uniqueRows"));
-        assertEquals("", queryElm.getAttribute("count"));
+        assertEquals(count, queryElm.getAttribute("count"));
 
         NodeList nlist = queryElm.getElementsByTagName("Dataset");
         assertEquals(1, nlist.getLength());

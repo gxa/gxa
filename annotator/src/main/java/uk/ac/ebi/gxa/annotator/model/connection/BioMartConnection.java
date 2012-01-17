@@ -26,6 +26,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.annotator.loader.biomart.MartQuery;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.*;
@@ -204,7 +205,7 @@ public class BioMartConnection implements AnnotationSourceConnection {
     }
 
     private String getAttributesURLLocation(Collection<String> attributes) {
-        BioMartQuery query = new BioMartQuery(serverVirtualSchema, datasetName)
+        MartQuery query = new MartQuery(serverVirtualSchema, datasetName)
                 .addAttributes(attributes);
         try {
             return martUrl + "query=" + URLEncoder.encode(query.toString(), "UTF-8");
