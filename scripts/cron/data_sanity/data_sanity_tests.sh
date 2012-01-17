@@ -14,4 +14,4 @@ log="/tmp/data_sanity_tests."`eval date +%Y%m%d`".log"
 
 ./find_no_stats_exps.sh $NCDF_DIR > $log
 
-mailx -s "[gxa/cron] Data Sanity Tests for: "`date +'%d-%m-%Y'` ${NOTIFICATION_EMAILADDRESS} < $log
+mailx -s "[gxa/cron] Atlas Data Sanity Tests for: "`date +'%d-%m-%Y'` ${NOTIFICATION_EMAILADDRESS} < $log
