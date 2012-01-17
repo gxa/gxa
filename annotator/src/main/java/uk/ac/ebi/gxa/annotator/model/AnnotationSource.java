@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceConnection;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -196,6 +196,42 @@ public abstract class AnnotationSource {
             answer.add(externalArrayDesign.getName());
         }
         return answer;
+    }
+
+    /**
+     * @return a map of external identifier property name to bio-entity type;
+     * an order of map entries is fixed, as it can be used as a column set when
+     * querying bioMart service
+     */
+    public Map<String, BioEntityType> getExternalName2TypeMap() {
+        Map<BioEntityProperty, String> map = new HashMap<BioEntityProperty, String>();
+        for (ExternalBioEntityProperty extProp : externalBioEntityProperties) {
+            map.put(extProp.getBioEntityProperty(), extProp.getName());
+        }
+
+        Map<String, BioEntityType> names = new LinkedHashMap<String, BioEntityType>();
+        for (BioEntityType type : types) {
+            BioEntityProperty beProperty = type.getIdentifierProperty();
+            String name = map.get(beProperty);
+            if (name == null) {
+                //TODO put it in the proper annotation source validator
+                throw new IllegalStateException("Annotation is no valid: no external name was found for property " + beProperty);
+            }
+            names.put(name, type);
+        }
+        return names;
+    }
+    
+    public List<BioEntityProperty> getNonIdentifierProperties() {
+        List<BioEntityProperty> properties = new ArrayList<BioEntityProperty>();
+        Map<String, BioEntityType> identifierNames = getExternalName2TypeMap();
+        for (ExternalBioEntityProperty extProp : externalBioEntityProperties) {
+            if (identifierNames.containsKey(extProp.getName())) {
+                continue;
+            }
+            properties.add(extProp.getBioEntityProperty());
+        }
+        return properties;
     }
 
      /////////////////////////
