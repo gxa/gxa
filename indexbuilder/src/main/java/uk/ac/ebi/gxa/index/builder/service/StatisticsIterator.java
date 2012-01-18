@@ -22,12 +22,12 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.base.Predicate;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.data.TwoDFloatArray;
-import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.statistics.PTRank;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -52,10 +52,12 @@ public class StatisticsIterator {
     private final TwoDFloatArray pvals;
 
     private final ArrayDesign ad;
+    private Predicate<Long> bePredicate;
     private final Experiment experiment;
 
-    public StatisticsIterator(ExperimentWithData experimentWithData, ArrayDesign ad) throws AtlasDataException, StatisticsNotFoundException {
+    public StatisticsIterator(ExperimentWithData experimentWithData, ArrayDesign ad, Predicate<Long> bePredicate) throws AtlasDataException, StatisticsNotFoundException {
         this.ad = ad;
+        this.bePredicate = bePredicate;
 
         experiment = experimentWithData.getExperiment();
 
@@ -70,22 +72,21 @@ public class StatisticsIterator {
     }
 
     private static int safelyCastToInt(long l) {
-        int i = (int) l;
-        if ((long) i != l)
-            throw new IndexBuilderException("bioEntityId: " + i + " is too large to be cast to int safely- unable to build bit index");
-        return i;
+        if (l != (int) l)
+            throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
+        return (int) l;
     }
 
     boolean isNA() {
-        return getExpressionClass().isNA();
+        return UpDownExpression.valueOf(getP(), getT()).isNA();
     }
 
     boolean isUp() {
-        return getExpressionClass().isUp();
+        return UpDownExpression.valueOf(getP(), getT()).isUp();
     }
 
     boolean isNonDe() {
-        return getExpressionClass().isNonDe();
+        return UpDownExpression.valueOf(getP(), getT()).isNonDe();
     }
 
     int getEfvCount() {
@@ -101,11 +102,15 @@ public class StatisticsIterator {
     }
 
     private UpDownExpression getExpressionClass() {
-        return UpDownExpression.valueOf(pvals.get(i, j), tstat.get(i, j));
+        return UpDownExpression.valueOf(getP(), getT());
     }
 
-    PTRank getPTRank() {
-        return PTRank.of(pvals.get(i, j), tstat.get(i, j));
+    public float getT() {
+        return tstat.get(i, j);
+    }
+
+    public float getP() {
+        return pvals.get(i, j);
     }
 
     boolean isEmpty() {
@@ -133,10 +138,7 @@ public class StatisticsIterator {
     public boolean nextBioEntity() {
         i++;
         while (i < deCount) {
-            if (bioentities[i] == 0) {
-                // in order to create a bitindex used for unit tests,
-                // use <code>|| (bioentities[i] != 516248 && bioentities[i] != 838592)</code>
-                // so that you would only index the bio entities used in tests
+            if (!bePredicate.apply(bioentities[i])) {
                 i++;
             } else if (isNA()) {
                 // Exclude NA p/t vals from bit index
