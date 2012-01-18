@@ -163,30 +163,40 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final MinPMaxT ptDown = new MinPMaxT();
 
                         while (stats.nextBioEntity()) {
-                            if (stats.isNA())
-                                continue;
-
                             int bioEntityId = stats.getIntegerBioEntityId();
 
-                            final PTRank pt = PTRank.of(stats.getP(), stats.getT());
-                            car++;
-                            if (stats.isNonDe()) {
-                                noBioEntityIds.add(bioEntityId);
-                            } else {
-                                if (stats.isUp()) {
+                            switch (stats.getExpression()) {
+                                case NA:
+                                    continue;
+                                case NONDE:
+                                    noBioEntityIds.add(bioEntityId);
+                                    break;
+                                case UP: {
+                                    final PTRank pt = PTRank.of(stats.getP(), stats.getT());
                                     upBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up)
                                     ptUp.update(bioEntityId, pt);
-                                } else {
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
+                                    ptUpDown.update(bioEntityId, pt);
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
+                                    ptUpDownForEf.update(bioEntityId, pt);
+                                    break;
+                                }
+                                case DOWN: {
+                                    final PTRank pt = PTRank.of(stats.getP(), stats.getT());
                                     dnBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (down)
                                     ptDown.update(bioEntityId, pt);
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
+                                    ptUpDown.update(bioEntityId, pt);
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
+                                    ptUpDownForEf.update(bioEntityId, pt);
+                                    break;
                                 }
-                                // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
-                                ptUpDown.update(bioEntityId, pt);
-                                // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
-                                ptUpDownForEf.update(bioEntityId, pt);
+                                default:
+                                    continue;
                             }
+                            car++;
                         }
 
                         summarizer.submit(new Runnable() {

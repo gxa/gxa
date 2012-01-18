@@ -84,28 +84,12 @@ public class StatisticsIterator {
         return UpDownExpression.valueOf(getP(), getT());
     }
 
-    public boolean isNA() {
-        return getExpression().isNA();
-    }
-
-    public boolean isUp() {
-        return getExpression().isUp();
-    }
-
-    public boolean isNonDe() {
-        return getExpression().isNonDe();
-    }
-
     public int getEfvCount() {
         return efvCount;
     }
 
     public Pair<String, String> getEFV() {
         return uEFVs.get(j);
-    }
-
-    public long getBioEntityId() {
-        return bioentities[i];
     }
 
     public int getIntegerBioEntityId() {
@@ -144,13 +128,13 @@ public class StatisticsIterator {
         return experiment.getAccession() + "/" + ad.getAccession();
     }
 
+    public DesignElementStatistics getDEStats() {
+        return new DesignElementStatistics(getP(), getT(), i, j, getEFV());
+    }
+
     private static int safelyCastToInt(long l) {
         if (l != (int) l)
             throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
         return (int) l;
-    }
-
-    public DesignElementStatistics getDEStats() {
-        return new DesignElementStatistics(getP(), getT(), i, j, getEFV());
     }
 }
