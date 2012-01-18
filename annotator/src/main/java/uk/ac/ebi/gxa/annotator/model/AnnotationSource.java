@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.annotator.model;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceConnection;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -112,6 +111,7 @@ public abstract class AnnotationSource {
      * "http://www.ensembl.org/biomart/martservice?"
      * "http://plants.ensembl.org/biomart/martservice?"
      * or location of other annotations
+     *
      * @return location
      */
     public String getUrl() {
@@ -200,8 +200,8 @@ public abstract class AnnotationSource {
 
     /**
      * @return a map of external identifier property name to bio-entity type;
-     * an order of map entries is fixed, as it can be used as a column set when
-     * querying bioMart service
+     *         an order of map entries is fixed, as it can be used as a column set when
+     *         querying bioMart service
      */
     public Map<String, BioEntityType> getExternalName2TypeMap() {
         Map<BioEntityProperty, String> map = new HashMap<BioEntityProperty, String>();
@@ -221,7 +221,7 @@ public abstract class AnnotationSource {
         }
         return names;
     }
-    
+
     public List<BioEntityProperty> getNonIdentifierProperties() {
         List<BioEntityProperty> properties = new ArrayList<BioEntityProperty>();
         Map<String, BioEntityType> identifierNames = getExternalName2TypeMap();
@@ -234,12 +234,12 @@ public abstract class AnnotationSource {
         return properties;
     }
 
-     /////////////////////////
+    /////////////////////////
     //  Helper methods
     ////////////////////////
     public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
 
-    protected AnnotationSource updateProperties( AnnotationSource result){
+    protected AnnotationSource updateProperties(AnnotationSource result) {
         result.setUrl(this.url);
         for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
             result.addExternalProperty(externalBioEntityProperty.getName(), externalBioEntityProperty.getBioEntityProperty());
