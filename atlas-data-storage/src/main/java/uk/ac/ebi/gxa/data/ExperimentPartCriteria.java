@@ -26,7 +26,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -158,20 +157,16 @@ public class ExperimentPartCriteria {
         static Predicate<ExperimentPart> containsEfEfv(final String ef, final String efv) {
             return new Predicate<ExperimentPart>() {
                 @Override
-                public boolean apply(@Nonnull ExperimentPart expPart) {
+                public boolean apply(@Nullable ExperimentPart expPart) {
                     try {
-                        for (Pair<String, String> efEfv : expPart.getUniqueEFVs()) {
-                            if (efEfv.getKey().equals(ef) &&
-                                    (isNullOrEmpty(efv) || efEfv.getValue().equals(efv))) {
-                                return true;
-                            }
-                        }
+                        return expPart != null && expPart.hasEfEfv(ef, efv);
                     } catch (AtlasDataException e) {
                         log.error("Cannot read unique factor values for " + expPart.toString(), e);
+                        return false;
                     } catch (StatisticsNotFoundException e) {
                         log.error("No statistics were found for " + expPart.toString());
+                        return false;
                     }
-                    return false;
                 }
             };
         }

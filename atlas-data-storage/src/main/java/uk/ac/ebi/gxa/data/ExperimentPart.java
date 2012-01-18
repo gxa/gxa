@@ -30,6 +30,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -48,10 +49,6 @@ public class ExperimentPart {
                                                     Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
         return new StatisticsIterator(ewd, arrayDesign, bePredicate, efvPredicate);
-    }
-
-    List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getUniqueEFVs(arrayDesign);
     }
 
     public String[] getDesignElementAccessions() throws AtlasDataException {
@@ -123,5 +120,15 @@ public class ExperimentPart {
 
     public ArrayDesign getArrayDesign() {
         return arrayDesign;
+    }
+
+    boolean hasEfEfv(String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
+        for (Pair<String, String> efEfv : ewd.getUniqueEFVs(arrayDesign)) {
+            if (efEfv.getKey().equals(ef) &&
+                    (isNullOrEmpty(efv) || efEfv.getValue().equals(efv))) {
+                return true;
+            }
+        }
+        return false;
     }
 }
