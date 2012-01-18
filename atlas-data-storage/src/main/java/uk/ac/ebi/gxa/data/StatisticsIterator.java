@@ -29,6 +29,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -37,6 +38,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @author alf
  */
 public class StatisticsIterator {
+    public static final Predicate<Pair<String, String>> NON_EMPTY_EFV = new Predicate<Pair<String, String>>() {
+        @Override
+        public boolean apply(@Nullable Pair<String, String> input) {
+            return input != null && !isNullOrEmpty(input.getValue()) && !"(empty)".equals(input.getValue());
+        }
+    };
+
     private int i = -1, j = -1;
 
     private final int deCount;
@@ -48,12 +56,17 @@ public class StatisticsIterator {
     private final TwoDFloatArray pvals;
 
     private final ArrayDesign ad;
-    private Predicate<Long> bePredicate;
     private final Experiment experiment;
 
-    public StatisticsIterator(ExperimentWithData experimentWithData, ArrayDesign ad, Predicate<Long> bePredicate) throws AtlasDataException, StatisticsNotFoundException {
+    private final Predicate<Long> bePredicate;
+    private final Predicate<Pair<String, String>> efvPredicate;
+
+    public StatisticsIterator(ExperimentWithData experimentWithData, ArrayDesign ad,
+                              Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
         this.ad = ad;
         this.bePredicate = bePredicate;
+        this.efvPredicate = efvPredicate;
 
         experiment = experimentWithData.getExperiment();
 
@@ -116,26 +129,13 @@ public class StatisticsIterator {
     }
 
     public boolean nextEFV() {
-        j++;
-        while (j < efvCount) {
-            final Pair<String, String> efv = getEFV();
-            if (isNullOrEmpty(efv.getValue())) {
-                j++;
-            } else if ("(empty)".equals(efv.getValue())) {
-                j++;
-            } else
-                break;
+        for (j++; j < efvCount && !efvPredicate.apply(uEFVs.get(j)); j++) {
         }
         return j < efvCount;
     }
 
     public boolean nextBioEntity() {
-        i++;
-        while (i < deCount) {
-            if (!bePredicate.apply(bioentities[i])) {
-                i++;
-            } else
-                break;
+        for (i++; i < deCount && !bePredicate.apply(bioentities[i]); i++) {
         }
         return i < deCount;
     }

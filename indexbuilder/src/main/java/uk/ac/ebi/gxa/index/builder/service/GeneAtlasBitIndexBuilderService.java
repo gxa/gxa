@@ -26,6 +26,7 @@ import static com.google.common.base.Predicates.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
+import static uk.ac.ebi.gxa.data.StatisticsIterator.NON_EMPTY_EFV;
 
 /**
  * Class used to build ConciseSet-based gene expression statistics index
@@ -34,18 +35,16 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     /**
      * Filter for bioentities to index.
      * <p/>
-     * In order to build test index, use {@link #TEST_BIOENTITY_FILTER} instead
+     * In order to build test index, use {@link #TEST_BIOENTITIES} instead
      */
-    private static final Predicate<Long> BIOENTITY_FILTER = not(equalTo(0L));
-
-
+    private static final Predicate<Long> KNOWN_BIOENTITIES = not(equalTo(0L));
     /**
      * Filter for bioentities used in the tests
      * <p/>
-     * For production code, use {@link #BIOENTITY_FILTER} instead
+     * For production code, use {@link #KNOWN_BIOENTITIES} instead
      */
     @SuppressWarnings("unused")
-    private static final Predicate<Long> TEST_BIOENTITY_FILTER = in(asList(516248L, 838592L));
+    private static final Predicate<Long> TEST_BIOENTITIES = in(asList(516248L, 838592L));
 
     private AtlasDataDAO atlasDataDAO;
     private String indexFileName;
@@ -129,7 +128,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
-                    StatisticsIterator stats = new StatisticsIterator(experimentWithData, ad, BIOENTITY_FILTER);
+                    StatisticsIterator stats = new StatisticsIterator(experimentWithData, ad,
+                            KNOWN_BIOENTITIES, NON_EMPTY_EFV);
 
                     if (stats.isEmpty()) {
                         //task.skipEmpty(f);

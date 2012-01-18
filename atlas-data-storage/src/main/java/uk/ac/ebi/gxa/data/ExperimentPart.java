@@ -44,8 +44,10 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public StatisticsIterator getStatisticsIterator(Predicate<Long> bePredicate) throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsIterator(ewd, arrayDesign, bePredicate);
+    public StatisticsIterator getStatisticsIterator(Predicate<Long> bePredicate,
+                                                    Predicate<Pair<String, String>> efvPredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsIterator(ewd, arrayDesign, bePredicate, efvPredicate);
     }
 
     public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
