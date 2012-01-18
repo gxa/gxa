@@ -163,7 +163,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final MinPMaxT ptDown = new MinPMaxT();
 
                         while (stats.nextBioEntity()) {
-                            int bioEntityId = stats.getBioEntityId();
+                            int bioEntityId = stats.getIntegerBioEntityId();
 
                             final PTRank pt = PTRank.of(stats.getP(), stats.getT());
                             car++;

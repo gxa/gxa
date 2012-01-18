@@ -67,12 +67,6 @@ public class StatisticsIterator {
         efvCount = uEFVs.size();
     }
 
-    private static int safelyCastToInt(long l) {
-        if (l != (int) l)
-            throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
-        return (int) l;
-    }
-
     boolean isNA() {
         return UpDownExpression.valueOf(getP(), getT()).isNA();
     }
@@ -93,7 +87,11 @@ public class StatisticsIterator {
         return uEFVs.get(j);
     }
 
-    public int getBioEntityId() {
+    public long getBioEntityId() {
+        return bioentities[i];
+    }
+
+    public int getIntegerBioEntityId() {
         return safelyCastToInt(bioentities[i]);
     }
 
@@ -147,5 +145,11 @@ public class StatisticsIterator {
 
     public String toString() {
         return experiment.getAccession() + "/" + ad.getAccession();
+    }
+
+    private static int safelyCastToInt(long l) {
+        if (l != (int) l)
+            throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
+        return (int) l;
     }
 }
