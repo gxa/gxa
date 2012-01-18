@@ -10,8 +10,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 /**
@@ -37,6 +36,14 @@ public class AnnotationSourceTest {
         assertTrue(properties.contains(new BioEntityProperty(null, "go")));
         assertTrue(properties.contains(new BioEntityProperty(null, "identifier")));
         assertTrue(properties.contains(new BioEntityProperty(null, "name")));
+    }
+
+    @Test
+    public void testBioEntityTypeGetter() {
+        BioMartAnnotationSource annotSource = getAnnotationSource();
+        assertNotNull(annotSource.getBioEntityType("ensgene"));
+        assertNotNull(annotSource.getBioEntityType("enstranscript"));
+        assertNull(annotSource.getBioEntityType("a type"));
     }
 
     private BioMartAnnotationSource getAnnotationSource() {
