@@ -67,16 +67,20 @@ public class StatisticsIterator {
         efvCount = uEFVs.size();
     }
 
-    boolean isNA() {
-        return UpDownExpression.valueOf(getP(), getT()).isNA();
+    public UpDownExpression getExpression() {
+        return UpDownExpression.valueOf(getP(), getT());
+    }
+
+    public boolean isNA() {
+        return getExpression().isNA();
     }
 
     public boolean isUp() {
-        return UpDownExpression.valueOf(getP(), getT()).isUp();
+        return getExpression().isUp();
     }
 
     public boolean isNonDe() {
-        return UpDownExpression.valueOf(getP(), getT()).isNonDe();
+        return getExpression().isNonDe();
     }
 
     public int getEfvCount() {
@@ -93,10 +97,6 @@ public class StatisticsIterator {
 
     public int getIntegerBioEntityId() {
         return safelyCastToInt(bioentities[i]);
-    }
-
-    private UpDownExpression getExpressionClass() {
-        return UpDownExpression.valueOf(getP(), getT());
     }
 
     public float getT() {
@@ -134,9 +134,6 @@ public class StatisticsIterator {
         while (i < deCount) {
             if (!bePredicate.apply(bioentities[i])) {
                 i++;
-            } else if (isNA()) {
-                // Exclude NA p/t vals from bit index
-                i++;
             } else
                 break;
         }
@@ -151,5 +148,9 @@ public class StatisticsIterator {
         if (l != (int) l)
             throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
         return (int) l;
+    }
+
+    public DesignElementStatistics getDEStats() {
+        return new DesignElementStatistics(getP(), getT(), i, j, getEFV());
     }
 }

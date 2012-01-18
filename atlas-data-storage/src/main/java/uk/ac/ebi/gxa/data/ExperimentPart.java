@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.base.Predicate;
 import com.google.common.primitives.Longs;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -43,23 +44,15 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public AllStats getAllStats() throws AtlasDataException, StatisticsNotFoundException {
-        return new AllStats(this);
+    public StatisticsIterator getStatisticsIterator(Predicate<Long> bePredicate) throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsIterator(ewd, arrayDesign, bePredicate);
     }
 
     public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getUniqueEFVs(arrayDesign);
     }
 
-    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getPValues(arrayDesign);
-    }
-
-    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getTStatistics(arrayDesign);
-    }
-
-    public String[] getDesignElementAccessions() throws AtlasDataException, StatisticsNotFoundException {
+    public String[] getDesignElementAccessions() throws AtlasDataException {
         return ewd.getDesignElementAccessions(arrayDesign);
     }
 
@@ -70,10 +63,6 @@ public class ExperimentPart {
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(Collection<Long> geneIds)
             throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getExpressionAnalysesForGeneIds(geneIds, arrayDesign);
-    }
-
-    public String[] getFactorValues(String ef) throws AtlasDataException {
-        return ewd.getFactorValues(arrayDesign, ef);
     }
 
     public List<ExpressionValue> getBestGeneExpressionValues(Long geneId, String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {

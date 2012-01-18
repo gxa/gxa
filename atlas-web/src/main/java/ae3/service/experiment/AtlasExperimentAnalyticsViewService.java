@@ -57,15 +57,15 @@ public class AtlasExperimentAnalyticsViewService {
         if (expPart == null)
             return new BestDesignElementsResult();
 
-        AllStats allStats = expPart.getAllStats();
+        StatisticsIterator stats = expPart.getStatisticsIterator(geneIdPredicate);
 
         List<DesignElementStatistics> result = newArrayList();
-        for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
+        while (stats.nextBioEntity()) {
             Best<DesignElementStatistics> bestDE = Best.create();
 
-            for (Stats s : allStats.focusOnDe(deidx)) {
-                if (fvPredicate.apply(s.efv) && upDownPredicate.apply(s.expression())) {
-                    bestDE.offer(s.asDEStats());
+            while (stats.nextEFV()) {
+                if (fvPredicate.apply(stats.getEFV()) && upDownPredicate.apply(stats.getExpression())) {
+                    bestDE.offer(stats.getDEStats());
                 }
             }
             if (bestDE.isFound())
