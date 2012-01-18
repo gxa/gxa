@@ -50,7 +50,7 @@ public class ExperimentPart {
         return new StatisticsIterator(ewd, arrayDesign, bePredicate, efvPredicate);
     }
 
-    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
+    List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getUniqueEFVs(arrayDesign);
     }
 
