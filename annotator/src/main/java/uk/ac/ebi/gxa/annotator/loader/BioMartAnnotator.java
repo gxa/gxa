@@ -24,25 +24,19 @@ package uk.ac.ebi.gxa.annotator.loader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.annotator.loader.biomart.*;
 import uk.ac.ebi.gxa.annotator.loader.data.*;
+import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceAccessException;
-import uk.ac.ebi.gxa.annotator.model.connection.BioMartConnection;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
-import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
+import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.System.currentTimeMillis;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -50,144 +44,109 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  * nsklyar
  * Date: 11/04/2011
  */
-public class BioMartAnnotator extends Annotator<BioMartAnnotationSource> {
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
+public class BioMartAnnotator extends Annotator {
 
-    private AnnotationSourceDAO annSrcDAO;
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private BioEntityPropertyDAO propertyDAO;
+    private final AnnotationSourceDAO annSrcDAO;
+
+    private final BioEntityPropertyDAO propertyDAO;
+
+    private final BioMartAnnotationSource annSrc;
 
     public BioMartAnnotator(BioMartAnnotationSource annSrc, AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
-        super(annSrc, beDataWriter);
+        super(beDataWriter);
         this.annSrcDAO = annSrcDAO;
         this.propertyDAO = propertyDAO;
+        this.annSrc = annSrc;
     }
 
     @Override
     public void updateAnnotations() {
+        BioMartAnnotationLoader annotLoader = null;
 
         try {
-            reportProgress("Reading Ensembl annotations for organism " + annSrc.getOrganism().getName());
+            String organismName = annSrc.getOrganism().getName();
+            reportProgress("Loading Ensembl annotations for organism " + organismName);
+            annotLoader = new BioMartAnnotationLoader(annSrc);
 
-            //Create a list with biomart attribute names for bioentity types of  annotation source
-            BETypeExternalAttributesHandler attributesHandler = new BETypeExternalAttributesHandler(annSrc);
-            BioEntityAnnotationDataBuilder builder = new BioEntityAnnotationDataBuilder();
-            AnnotationParser<BioEntityAnnotationData> parser = AnnotationParser.initParser(attributesHandler.getTypes(), builder);
+            reportProgress("Loading bio-entities for " + organismName);
+            annotLoader.loadBioEntities();
 
-            BioMartConnection martConnection = annSrc.createConnection();
+            reportProgress("Loading synonyms for " + organismName);
+            annotLoader.loadSynonyms(propertyDAO.findOrCreate("synonym"));
 
-            //Read BioEntities
-            readBioEntities(martConnection.getAttributesURL(attributesHandler.getExternalBEIdentifiers()), parser);
+            for (ExternalBioEntityProperty externalProperty : annSrc.getExternalBioEntityProperties()) {
+                reportProgress("Loading property " + externalProperty.getBioEntityProperty().getName() + " ("
+                        + externalProperty.getName() + ") for " + organismName);
+                log.debug("Parsing property {} ", externalProperty.getBioEntityProperty().getName());
 
-            //read synonyms
-            fetchSynonyms(annSrc, builder);
-
-            //read properties
-            for (ExternalBioEntityProperty entityPropertyExternal : annSrc.getExternalBioEntityProperties()) {
-                //List of Attributes contains for example: {"ensembl_gene_id", "ensembl_transcript_id", "external_gene_id"}
-                List<String> attributes = new ArrayList<String>(attributesHandler.getExternalBEIdentifiers());
-                attributes.add(entityPropertyExternal.getName());
-
-                URL url = martConnection.getAttributesURL(attributes);
-                if (url != null) {
-                    reportProgress("Reading property " + entityPropertyExternal.getBioEntityProperty().getName() + " ("
-                            + entityPropertyExternal.getName() + ") for " + annSrc.getOrganism().getName());
-                    log.debug("Parsing property {} ", entityPropertyExternal.getBioEntityProperty().getName());
-                    long startTime = currentTimeMillis();
-
-                    parser.parsePropertyValues(entityPropertyExternal.getBioEntityProperty(), url);
-
-                    log.debug("Done. {} millseconds).\n", (currentTimeMillis() - startTime));
-                }
+                long startTime = currentTimeMillis();
+                annotLoader.loadPropertyValues(externalProperty);
+                log.debug("Done. {} ms).\n", (currentTimeMillis() - startTime));
             }
 
-            final BioEntityAnnotationData data = parser.getData();
+            writeBioEntities(annotLoader.getBioEntityData());
+            writePropertyValues(annotLoader.getPropertyValuesData(), annSrc, false);
 
-            beDataWriter.writeBioEntities(data, listener);
-            beDataWriter.writePropertyValues(data.getPropertyValues(), listener);
-            beDataWriter.writeBioEntityToPropertyValues(data, annSrc, false, listener);
+            reportSuccess("Update annotations for Organism " + organismName + " completed");
 
-            reportSuccess("Update annotations for Organism " + annSrc.getOrganism().getName() + " completed");
-
-        } catch (AnnotationSourceAccessException e) {
-            reportError(new AnnotationException("Cannot update annotations for Organism " + annSrc.getDatasetName(), e));
-        } catch (AnnotationException e) {
+        } catch (IOException e) {
             reportError(e);
+        } catch (BioMartException e) {
+            reportError(e);
+        } catch (URISyntaxException e) {
+            reportError(e);
+        } catch (InvalidAnnotationDataException e) {
+            reportError(e);
+        } catch (InvalidCSVColumnException e) {
+            reportError(e);
+        } finally {
+            closeQuietly(annotLoader);
         }
     }
 
     @Override
     public void updateMappings() {
+        BioMartAnnotationLoader annotLoader = null;
         try {
-            reportProgress("Reading Ensembl design element mappings for organism " + annSrc.getOrganism().getName());
+            String organismName = annSrc.getOrganism().getName();
+            reportProgress("Loading Ensembl design element mappings for organism " + organismName);
+            annotLoader = new BioMartAnnotationLoader(annSrc);
 
-            //Create a list with biomart attribute names for bioentity types of  annotation source
-            BETypeExternalAttributesHandler attributesHandler = new BETypeExternalAttributesHandler(annSrc);
-            AnnotationParser<DesignElementMappingData> parser = AnnotationParser.initParser(attributesHandler.getTypes(), new DesignElementDataBuilder());
-
-
-            BioMartConnection martConnection = annSrc.createConnection();
             if (!annSrc.isApplied()) {
-                readBioEntities(martConnection.getAttributesURL(attributesHandler.getExternalBEIdentifiers()), parser);
-                beDataWriter.writeBioEntities(parser.getData(), listener);
+                reportProgress("Loading bioentities for " + organismName);
+                annotLoader.loadBioEntities();
+                writeBioEntities(annotLoader.getBioEntityData());
             }
-
 
             for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
-                parser.createNewBioEntityData();
+                reportProgress("Loading design elements for " + externalArrayDesign.getArrayDesign().getAccession() +
+                        " (" + externalArrayDesign.getName() + ") for " + organismName);
 
-                List<String> attributes = new ArrayList<String>(attributesHandler.getExternalBEIdentifiers());
-                attributes.add(externalArrayDesign.getName());
+                long startTime = currentTimeMillis();
+                annotLoader.loadDesignElementMappings(externalArrayDesign);
+                log.debug("Done. {} ms).\n", (currentTimeMillis() - startTime));
 
-
-                URL url = martConnection.getAttributesURL(attributes);
-                if (url != null) {
-                    reportProgress("Reading design elements for " + externalArrayDesign.getArrayDesign().getAccession() +
-                            " (" + externalArrayDesign.getName() + ") for " + annSrc.getOrganism().getName());
-
-                    long startTime = currentTimeMillis();
-
-                    parser.parseDesignElementMappings(url);
-                    log.debug("Done. {} millseconds).\n", (currentTimeMillis() - startTime));
-                }
-
-                beDataWriter.writeDesignElements(parser.getData(),
+                writeDesignElements(annotLoader.getDeMappingsData(),
                         externalArrayDesign.getArrayDesign(),
                         annSrc.getSoftware(),
-                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign()), listener);
+                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign()));
             }
 
-            reportSuccess("Update mappings for Organism " + annSrc.getOrganism().getName() + " completed");
-        } catch (AnnotationSourceAccessException e) {
-            reportError(new AnnotationException("Cannot update mappings for Organism.Problem when connecting to biomart. " + annSrc.getDatasetName(), e));
-        } catch (AnnotationException e) {
-            e.printStackTrace();
+            reportSuccess("Update mappings for Organism " + organismName + " completed");
+        } catch (IOException e) {
             reportError(e);
+        } catch (BioMartException e) {
+            reportError(e);
+        } catch (URISyntaxException e) {
+            reportError(e);
+        } catch (InvalidAnnotationDataException e) {
+            reportError(e);
+        } catch (InvalidCSVColumnException e) {
+            reportError(e);
+        } finally {
+            closeQuietly(annotLoader);
         }
     }
-
-    private <T extends BioEntityData> void readBioEntities(URL beURL, AnnotationParser<T> parser) throws AnnotationException {
-        if (beURL != null) {
-            reportProgress("Reading bioentities for " + annSrc.getOrganism().getName());
-            parser.parseBioEntities(beURL, annSrc.getOrganism());
-        }
-    }
-
-    private void fetchSynonyms(BioMartAnnotationSource annSrc, BioEntityAnnotationDataBuilder builder) throws AnnotationSourceAccessException {
-        reportProgress("Reading synonyms for " + annSrc.getOrganism().getName());
-        BioMartDbDAO bioMartDbDAO = new BioMartDbDAO(annSrc.getMySqlDbUrl());
-
-        BioEntityType ensgene = annSrc.getBioEntityType(BioEntityType.ENSGENE);
-        if (ensgene == null) {
-            throw createUnexpected("Annotation source for " + annSrc.getOrganism().getName() + " is not for genes. Cannot fetch synonyms.");
-        }
-
-        Collection<Pair<String, String>> geneToSynonyms = bioMartDbDAO.getSynonyms(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
-        BioEntityProperty propSynonym = propertyDAO.findOrCreate("synonym");
-        for (Pair<String, String> geneToSynonym : geneToSynonyms) {
-            BEPropertyValue pv = new BEPropertyValue(null, propSynonym, geneToSynonym.getSecond());
-            builder.addPropertyValue(geneToSynonym.getFirst(), ensgene, pv);
-        }
-    }
-
 }

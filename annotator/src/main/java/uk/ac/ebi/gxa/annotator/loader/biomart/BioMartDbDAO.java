@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader;
+package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.dao.DataAccessException;
@@ -44,7 +44,7 @@ class BioMartDbDAO {
         this.url = url;
     }
 
-    public Collection<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws AnnotationSourceAccessException {
+    public Collection<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws BioMartException {
         final String dbName = findSynonymsDBName(dbNameTemplate, version);
         final JdbcTemplate template = createTemplate(dbName);
         return template.query(
@@ -63,7 +63,7 @@ class BioMartDbDAO {
     }
 
 
-    String findSynonymsDBName(String dbNameTemplate, String version) throws AnnotationSourceAccessException {
+    String findSynonymsDBName(String dbNameTemplate, String version) throws BioMartException {
         final JdbcTemplate template = createTemplate("");
         try {
             // here it is important that only a single line is returned.
@@ -72,7 +72,7 @@ class BioMartDbDAO {
                     new SingleColumnRowMapper<String>(String.class),
                     dbNameTemplate + "_core_" + version + "%");
         } catch (DataAccessException e) {
-            throw new AnnotationSourceAccessException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
+            throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
         }
     }
 

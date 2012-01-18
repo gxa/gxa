@@ -46,7 +46,7 @@ public class AnnotatorFactory {
         return new BioMartAnnotator( annSrc, annSrcDAO, propertyDAO, beDataWriter);
     }
 
-    public <T extends FileBasedAnnotationSource> FileBasedAnnotator<T> createFileBasedAnnotator(T annSrc) {
-        return new FileBasedAnnotator<T>(annSrc, beDataWriter);
+    public <T extends FileBasedAnnotationSource> FileBasedAnnotator createFileBasedAnnotator(T annSrc) {
+        return new FileBasedAnnotator(annSrc, beDataWriter);
     }
 }

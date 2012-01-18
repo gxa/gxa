@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +32,8 @@ import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -44,7 +44,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
@@ -68,7 +67,7 @@ public class AtlasBioEntityDataWriter {
     @Transactional
     public void writeBioEntities(final BioEntityData data, AnnotationCommandListener listener) {
         for (BioEntityType type : data.getBioEntityTypes()) {
-            reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + getOrganismNames(data).toString(), listener);
+            reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + data.getOrganism().getName(), listener);
             Collection<BioEntity> bioEntities = data.getBioEntitiesOfType(type);
             bioEntityDAO.writeBioEntities(bioEntities);
         }
@@ -86,16 +85,11 @@ public class AtlasBioEntityDataWriter {
                                                boolean checkBioEntities,
                                                AnnotationCommandListener listener) {
         if (annSrc.isApplied()) {
-            if (data.getOrganisms().isEmpty()) {
-                deleteBioEntityToPropertyValues(annSrc.getSoftware(), listener);
-            }
-            for (Organism organism : data.getOrganisms()) {
-                deleteBioEntityToPropertyValues(organism, annSrc.getSoftware(), listener);
-            }
+            deleteBioEntityToPropertyValues(annSrc, listener);
         }
         for (BioEntityType type : data.getBioEntityTypes()) {
             Collection<Pair<String, BEPropertyValue>> propValues = data.getPropertyValuesForBioEntityType(type);
-            reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + " Organism: " + getOrganismNames(data), listener);
+            reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + "; annSrc = " + annSrc.getName(), listener);
             if (checkBioEntities) {
                 bioEntityDAO.writeBioEntityToPropertyValuesChecked(propValues, type, annSrc.getSoftware());
             } else {
@@ -105,6 +99,14 @@ public class AtlasBioEntityDataWriter {
 
         annSrc.setApplied(true);
         annSrcDAO.update(annSrc);
+    }
+
+    public void deleteBioEntityToPropertyValues(AnnotationSource annSrc, AnnotationCommandListener listener) {
+        if (annSrc instanceof FileBasedAnnotationSource) {
+            deleteBioEntityToPropertyValues(annSrc.getSoftware(), listener);
+        } else if (annSrc instanceof BioMartAnnotationSource) {
+            deleteBioEntityToPropertyValues(((BioMartAnnotationSource) annSrc).getOrganism(), annSrc.getSoftware(), listener);
+        }
     }
 
     private void deleteBioEntityToPropertyValues(final Organism organism, final Software software, AnnotationCommandListener listener) {
@@ -145,15 +147,6 @@ public class AtlasBioEntityDataWriter {
                 " already loaded and are going to be deleted before reloading ", listener);
         int count = bioEntityDAO.deleteDesignElementBioEntityMappings(software, arrayDesign);
         reportProgress("Deleted " + count + " mappings.", listener);
-    }
-
-    private Collection<String> getOrganismNames(final BioEntityData data) {
-        return Collections2.transform(data.getOrganisms(), new Function<Organism, String>() {
-            @Override
-            public String apply(@Nonnull Organism organism) {
-                return organism.getName();
-            }
-        });
     }
 
     void reportProgress(String report, AnnotationCommandListener listener) {

@@ -38,41 +38,54 @@ import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
  */
 public class BioEntityData {
 
-    private final List<BioEntityType> bioEntityTypes;
-
     // Multimap used because of one to many relationship between BioEntityType and BioEntity
     private Multimap<BioEntityType, BioEntity> typeToBioEntities = HashMultimap.create();
-    private Set<Organism> organisms = new HashSet<Organism>();
+    private final Organism organism;
 
-    public Multimap<BioEntityType, BioEntity> getTypeToBioEntities() {
-        return typeToBioEntities;
+    private BioEntityData(Organism organism) {
+        this.organism = organism;
     }
 
-    BioEntityData(List<BioEntityType> bioEntityTypes) {
-        this.bioEntityTypes = bioEntityTypes;
-    }
-
-    BioEntity addBioEntity(String identifier, BioEntityType type, Organism organism) {
-        BioEntity bioEntity = new BioEntity(identifier, type, organism);
-        typeToBioEntities.put(type, bioEntity);
-        organisms.add(organism);
-        return bioEntity;
-    }
-
-    public List<BioEntityType> getBioEntityTypes() {
-        return Collections.unmodifiableList(bioEntityTypes);
+    public Collection<BioEntityType> getBioEntityTypes() {
+        return Collections.unmodifiableCollection(typeToBioEntities.keySet());
     }
 
     public Collection<BioEntity> getBioEntitiesOfType(BioEntityType bioEntityType) {
         return Collections.unmodifiableCollection(typeToBioEntities.get(bioEntityType));
     }
 
-    public Set<Organism> getOrganisms() {
-        return organisms;
+    public Organism getOrganism() {
+        return organism;
     }
 
-    public boolean isValid() {
-        return typeToBioEntities.isEmpty() ||
-                isEqualCollection(typeToBioEntities.keySet(), bioEntityTypes);
+    void addBioEntity(BioEntity bioEntity) {
+        if (organism.equals(bioEntity.getOrganism())) {
+            typeToBioEntities.put(bioEntity.getType(), bioEntity);
+        }
+        throw new IllegalStateException("");
+    }
+
+    boolean isValid(Collection<BioEntityType> types) {
+        return (typeToBioEntities.isEmpty() ||
+                isEqualCollection(typeToBioEntities.keySet(), types));
+    }
+
+    public static class Builder {
+        private final BioEntityData data;
+
+        public Builder(Organism organism) {
+            data = new BioEntityData(organism);
+        }
+
+        public void addBioEntity(BioEntity bioEntity) {
+            data.addBioEntity(bioEntity);
+        }
+
+        public BioEntityData build(Collection<BioEntityType> types) throws InvalidAnnotationDataException {
+            if (data.isValid(types)) {
+                return data;
+            }
+            throw new InvalidAnnotationDataException("BioEntity data is invalid");
+        }
     }
 }

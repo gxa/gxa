@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader;
+package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.junit.Before;
 import org.junit.Test;
