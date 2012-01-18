@@ -20,13 +20,9 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.index.builder.service;
+package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
-import uk.ac.ebi.gxa.data.TwoDFloatArray;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -81,23 +77,23 @@ public class StatisticsIterator {
         return UpDownExpression.valueOf(getP(), getT()).isNA();
     }
 
-    boolean isUp() {
+    public boolean isUp() {
         return UpDownExpression.valueOf(getP(), getT()).isUp();
     }
 
-    boolean isNonDe() {
+    public boolean isNonDe() {
         return UpDownExpression.valueOf(getP(), getT()).isNonDe();
     }
 
-    int getEfvCount() {
+    public int getEfvCount() {
         return efvCount;
     }
 
-    Pair<String, String> getEFV() {
+    public Pair<String, String> getEFV() {
         return uEFVs.get(j);
     }
 
-    int getBioEntityId() {
+    public int getBioEntityId() {
         return safelyCastToInt(bioentities[i]);
     }
 
@@ -113,7 +109,7 @@ public class StatisticsIterator {
         return pvals.get(i, j);
     }
 
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return uEFVs.size() == 0;
     }
 
