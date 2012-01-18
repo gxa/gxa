@@ -26,12 +26,13 @@ import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.loader.biomart.MartQuery;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.*;
 
 import static com.google.common.io.Closeables.closeQuietly;
@@ -195,23 +196,8 @@ public class BioMartConnection implements AnnotationSourceConnection {
         return url;
     }
 
-    public URL getAttributesURL(Collection<String> attributes) throws AnnotationSourceAccessException {
-        return getMartURL(getAttributesURLLocation(attributes));
-    }
-
-
     private String parseOutValue(String nameProp, String line) {
         return line.substring(line.indexOf(nameProp) + nameProp.length(), line.indexOf("\"", line.indexOf(nameProp) + nameProp.length()));
-    }
-
-    private String getAttributesURLLocation(Collection<String> attributes) {
-        MartQuery query = new MartQuery(serverVirtualSchema, datasetName)
-                .addAttributes(attributes);
-        try {
-            return martUrl + "query=" + URLEncoder.encode(query.toString(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw LogUtil.createUnexpected("Failed while trying to encode URL ", e);
-        }
     }
 
     private void fetchInfoFromRegistry() throws AnnotationSourceAccessException {
