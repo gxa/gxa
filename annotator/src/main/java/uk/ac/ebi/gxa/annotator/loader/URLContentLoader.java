@@ -22,10 +22,15 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
@@ -33,7 +38,6 @@ import uk.ac.ebi.gxa.annotator.AnnotationException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
@@ -45,52 +49,42 @@ public class URLContentLoader {
 
     static final private Logger log = LoggerFactory.getLogger(URLContentLoader.class);
 
-    static File getContentAsFile(String url, File file) throws AnnotationException {
+    public static File getContentAsFile(String url, File file) throws AnnotationException {
         //ToDo: check if url is not file
 
-        HttpClient client = new HttpClient();
+        HttpClient client = new DefaultHttpClient();
 
-        GetMethod method = new GetMethod(url);
-
-        method.setFollowRedirects(true);
+        HttpGet httpGet = new HttpGet(url);
+        final HttpParams params = new BasicHttpParams();
+        HttpClientParams.setRedirecting(params, true);
+        httpGet.setParams(params);
 
         FileOutputStream out = null;
-        InputStream in = null;
         try {
-            int statusCode = client.executeMethod(method);
+            HttpResponse response = client.execute(httpGet);
 
-            if (statusCode != HttpStatus.SC_OK) {
-                throw new AnnotationException("Failed to connect to: " + url + " " + method.getStatusLine());
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new AnnotationException("Failed to connect to: " + url + " " + response.getStatusLine());
             }
 
-            final long responseContentLength = method.getResponseContentLength();
-
-            in = method.getResponseBodyAsStream();
+            HttpEntity entity = response.getEntity();
+            final long responseContentLength = entity.getContentLength();
             out = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
-            int count;
-            int size = 0;
-            while ((count = in.read(buffer)) != -1) {
-                out.write(buffer, 0, count);
-                size = size + count;
-            }
-            out.flush();
+            entity.writeTo(out);
+            out.close();
 
-            if (size < responseContentLength) {
-                log.error("Not all data are loaded actual size {} expected size {}", size, responseContentLength);
+            final long actualLength = file.length();
+            if (actualLength < responseContentLength) {
+                log.error("Not all data are loaded actual size {} expected size {}", actualLength, responseContentLength);
                 throw new AnnotationException("Failed to download all annotation data from: " + url +
-                        " expected size=" + responseContentLength + " actual=" + size + ". Please try again!");
+                        " expected size=" + responseContentLength + " actual=" + actualLength + ". Please try again!");
             }
-        } catch (HttpException e) {
-            throw new AnnotationException("Fatal protocol violation, when reading from " + url, e);
         } catch (IOException e) {
             throw new AnnotationException("Fatal transport error when reading from " + url, e);
         } finally {
-            method.releaseConnection();
             closeQuietly(out);
-            closeQuietly(in);
+            client.getConnectionManager().shutdown();
         }
         return file;
-
     }
 }
