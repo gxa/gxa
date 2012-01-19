@@ -26,65 +26,54 @@ import uk.ac.ebi.gxa.utils.Pair;
 
 /**
  * @author Tony Burdett
+ * @deprecated use {@link DesignElementStatistics instead}
  */
+@Deprecated
 public class ExpressionAnalysis implements DesignElementStatistics {
     private final String arrayDesignAccession;
-    private final String designElementAccession;  // we don't care about it
-    // Index of a design element (in netcdf file) in which data to populate this object were found
-    private final int designElementIndex;
+    private final DesignElementStatistics statistics;
 
-    private float tStatistic;
-    private float pValAdjusted;
-    private final Pair<String, String> efv;
-    private final UpDownExpression expression;
-
-    public ExpressionAnalysis(String arrayDesignAccession, String designElementAccession, int designElementIndex, String efName, String efvName, float tStatistic, float pValAdjusted) {
+    public ExpressionAnalysis(String arrayDesignAccession, DesignElementStatistics statistics) {
         this.arrayDesignAccession = arrayDesignAccession;
-        this.designElementAccession = designElementAccession;
-        this.designElementIndex = designElementIndex;
-        if (pValAdjusted > 1) {
-            // As the NA pvals/tstats  currently come back from ncdfs as 1.0E30, we convert them to Float.NaN
-            this.tStatistic = Float.NaN;
-            this.pValAdjusted = Float.NaN;
-        } else {
-            this.tStatistic = tStatistic;
-            this.pValAdjusted = pValAdjusted;
-        }
-        efv = Pair.create(efName, efvName);
-        expression = UpDownExpression.valueOf(this.pValAdjusted, this.tStatistic);
+        this.statistics = statistics;
     }
 
     public String getArrayDesignAccession() {
         return arrayDesignAccession;
     }
 
+    @Override
     public int getDeIndex() {
-        return designElementIndex;
+        return statistics.getDeIndex();
     }
 
     @Override
     public Pair<String, String> getEfv() {
-        return efv;
+        return statistics.getEfv();
     }
 
     @Override
     public long getBioEntityId() {
-        return 0;  //TODO
+        return statistics.getBioEntityId();
     }
 
+    @Override
     public String getDeAccession() {
-        return designElementAccession;
+        return statistics.getDeAccession();
     }
 
+    @Override
     public float getP() {
-        return pValAdjusted;
+        return statistics.getP();
     }
 
+    @Override
     public float getT() {
-        return tStatistic;
+        return statistics.getT();
     }
 
+    @Override
     public UpDownExpression getExpression() {
-        return expression;
+        return statistics.getExpression();
     }
 }

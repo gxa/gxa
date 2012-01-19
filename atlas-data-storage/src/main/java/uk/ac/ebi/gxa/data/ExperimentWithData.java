@@ -37,17 +37,17 @@ import java.io.File;
 import java.util.*;
 
 import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.Float.isNaN;
 import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_GENE;
 
 public class ExperimentWithData implements Closeable {
     private final static Logger log = LoggerFactory.getLogger(ExperimentWithData.class);
-
-    private static final Predicate<Long> ANY_GENE = alwaysTrue();
-    private static final Predicate<Pair<String, String>> ANY_EFV = alwaysTrue();
 
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
@@ -62,8 +62,8 @@ public class ExperimentWithData implements Closeable {
         this.experiment = experiment;
     }
 
-    public StatisticsCursor getStatistics(int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        StatisticsCursor si = new StatisticsCursor(getProxy(arrayDesign), ANY_GENE, ANY_EFV);
+    public StatisticsCursor getStatistics(int designElementId, ArrayDesign arrayDesign, Predicate<Pair<String, String>> efvPredicate) throws AtlasDataException, StatisticsNotFoundException {
+        StatisticsCursor si = new StatisticsCursor(getProxy(arrayDesign), ANY_GENE, efvPredicate);
         si.jump(designElementId, -1);
         return si;
     }
@@ -213,10 +213,6 @@ public class ExperimentWithData implements Closeable {
         return ExpressionStatistics.create(deIndices, getProxy(arrayDesign));
     }
 
-    private List<ExpressionAnalysis> getAllExpressionAnalyses(ArrayDesign arrayDesign, int deIndex) throws AtlasDataException, StatisticsNotFoundException {
-        return getExpressionAnalysesByFactor(arrayDesign, deIndex, null, null);
-    }
-
     /**
      * @param arrayDesign ArrayDesign to search in
      * @param deIndex     index of DE of interest
@@ -231,26 +227,17 @@ public class ExperimentWithData implements Closeable {
             ArrayDesign arrayDesign, int deIndex,
             @Nullable String efName, @Nullable String efvName) throws AtlasDataException, StatisticsNotFoundException {
 
+        final Predicate<Pair<String, String>> efvPredicate;
+        if (efName == null)
+            efvPredicate = alwaysTrue();
+        else
+            efvPredicate = equalTo(Pair.create(efName, efvName));
 
-        final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
-        final float[] p = getProxy(arrayDesign).getPValuesForDesignElement(deIndex);
-        final float[] t = getProxy(arrayDesign).getTStatisticsForDesignElement(deIndex);
+        final StatisticsCursor statistics = getStatistics(deIndex, arrayDesign, efvPredicate);
 
-        final List<ExpressionAnalysis> list = new ArrayList<ExpressionAnalysis>();
-        for (int efIndex = 0; efIndex < p.length; efIndex++) {
-            final Pair<String, String> uniqueEFV = getUniqueEFVs(arrayDesign).get(efIndex);
-            if (efName == null ||
-                    (uniqueEFV.getKey().equals(efName) && uniqueEFV.getValue().equals(efvName))) {
-                list.add(new ExpressionAnalysis(
-                        arrayDesign.getAccession(),
-                        deAccession,
-                        deIndex,
-                        uniqueEFV.getKey(),
-                        uniqueEFV.getValue(),
-                        t[efIndex],
-                        p[efIndex]
-                ));
-            }
+        final List<ExpressionAnalysis> list = newArrayList();
+        while (statistics.nextEFV()) {
+            list.add(new ExpressionAnalysis(arrayDesign.getAccession(), statistics.getSnapshot()));
         }
         return list;
     }
@@ -323,7 +310,7 @@ public class ExperimentWithData implements Closeable {
                             throw createUnexpected("We always expect eas to be either empty or of size == 1");
                     }
                 } else {
-                    eaList.addAll(getAllExpressionAnalyses(arrayDesign, deIndex));
+                    eaList.addAll(getExpressionAnalysesByFactor(arrayDesign, deIndex, null, null));
                 }
 
                 for (ExpressionAnalysis ea : eaList) {
@@ -467,9 +454,9 @@ public class ExperimentWithData implements Closeable {
         return new StatisticsCursor(getProxy(ad), bePredicate, NON_EMPTY_EFV);
     }
 
-    StatisticsCursor getStatistics(ArrayDesign arrayDesign, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+    StatisticsCursor getStatistics(ArrayDesign ad, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsCursor(getProxy(arrayDesign), bePredicate, efvPredicate);
+        return new StatisticsCursor(getProxy(ad), bePredicate, efvPredicate);
     }
 
     public String getDeAccession(ArrayDesign arrayDesign, int designElementId) throws AtlasDataException {

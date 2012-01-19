@@ -28,6 +28,8 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_EFV;
+
 /**
  * Lazy expression statistics class
  *
@@ -64,7 +66,7 @@ public class ExpressionStats {
     private EfvTree<StatisticsSnapshot> retrieveExpressionStats(int designElementId) throws AtlasDataException {
         final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
-            final StatisticsCursor statistics = experiment.getStatistics(designElementId, arrayDesign);
+            final StatisticsCursor statistics = experiment.getStatistics(designElementId, arrayDesign, ANY_EFV);
             while (statistics.nextEFV()) {
                 final Pair<String, String> efv = statistics.getEfv();
                 result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());

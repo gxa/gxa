@@ -22,7 +22,10 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Predicate;
 import uk.ac.ebi.gxa.utils.Pair;
+
+import static com.google.common.base.Predicates.alwaysTrue;
 
 /**
  * Statistics together with DE details
@@ -30,6 +33,9 @@ import uk.ac.ebi.gxa.utils.Pair;
  * @author alf
  */
 public interface DesignElementStatistics extends BaseStatistics {
+    Predicate<Long> ANY_GENE = alwaysTrue();
+    Predicate<Pair<String, String>> ANY_EFV = alwaysTrue();
+
     Pair<String, String> getEfv();
 
     String getDeAccession();
