@@ -476,6 +476,10 @@ public class ExperimentWithData implements Closeable {
         return new StatisticsCursor(getProxy(arrayDesign), bePredicate, efvPredicate);
     }
 
+    public String getDeAccession(ArrayDesign arrayDesign, int designElementId) throws AtlasDataException {
+        return getDesignElementAccessions(arrayDesign)[designElementId];
+    }
+
     private class DataUpdater {
         void update(ArrayDesign arrayDesign) throws AtlasDataException {
             log.info("Reading existing NetCDF for {} / {}", experiment.getAccession(), arrayDesign.getAccession());

@@ -40,6 +40,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.util.*;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 
@@ -161,16 +162,17 @@ public class ExperimentResultAdapter {
 
         @RestOut(name = "genes", xmlItemName = "gene", xmlAttr = "id")
         public Map<String, DesignElementExpMap> getGeneExpressions() {
-            Map<String, DesignElementExpMap> geneMap = new HashMap<String, DesignElementExpMap>();
+            Map<String, DesignElementExpMap> geneMap = newHashMap();
             try {
+                final ExperimentalData experimentalData = experimentResultAdapter.getExperimentalData();
                 for (AtlasGene gene : experimentResultAdapter.genes) {
-                    int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
+                    int[] designElements = experimentalData.getDesignElementIndexes(arrayDesign, gene.getGeneId());
                     if (designElements != null) {
                         DesignElementExpMap deMap = new DesignElementExpMap();
-                        for (final int designElementId : designElements) {
-                            final DesignElementExpressions designElementExpressions = new DesignElementExpressions(arrayDesign, experimentResultAdapter, designElementId);
+                        for (int deIndex : designElements) {
+                            DesignElementExpressions designElementExpressions = new DesignElementExpressions(arrayDesign, experimentResultAdapter, deIndex);
                             if (!designElementExpressions.isEmpty())
-                                deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), designElementExpressions);
+                                deMap.put(experimentalData.getDesignElementAccession(arrayDesign, deIndex), designElementExpressions);
                         }
                         geneMap.put(gene.getGeneIdentifier(), deMap);
                     }

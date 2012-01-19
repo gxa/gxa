@@ -288,7 +288,7 @@ public class ExperimentalData {
         return getExperiment().getExperimentCharacteristics();
     }
 
-    public String getDesignElementAccession(ArrayDesign arrayDesign, int designElementId) throws AtlasDataException {
-        return experimentWithData.getDesignElementAccessions(arrayDesign)[designElementId];
+    public String getDesignElementAccession(ArrayDesign arrayDesign, int deIndex) throws AtlasDataException {
+        return experimentWithData.getDeAccession(arrayDesign, deIndex);
     }
 }
