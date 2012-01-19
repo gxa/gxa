@@ -24,9 +24,11 @@ package uk.ac.ebi.gxa.annotator.loader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.biomart.*;
-import uk.ac.ebi.gxa.annotator.loader.data.*;
+import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotationLoader;
+import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartException;
+import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
 import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
@@ -36,9 +38,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.System.currentTimeMillis;
-import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * nsklyar
@@ -54,21 +54,26 @@ public class BioMartAnnotator extends Annotator {
 
     private final BioMartAnnotationSource annSrc;
 
-    public BioMartAnnotator(BioMartAnnotationSource annSrc, AnnotationSourceDAO annSrcDAO, BioEntityPropertyDAO propertyDAO, AtlasBioEntityDataWriter beDataWriter) {
+    private final HttpClient httpClient;
+
+    public BioMartAnnotator(BioMartAnnotationSource annSrc,
+                            AnnotationSourceDAO annSrcDAO,
+                            BioEntityPropertyDAO propertyDAO,
+                            AtlasBioEntityDataWriter beDataWriter,
+                            HttpClient httpClient) {
         super(beDataWriter);
         this.annSrcDAO = annSrcDAO;
         this.propertyDAO = propertyDAO;
         this.annSrc = annSrc;
+        this.httpClient = httpClient;
     }
 
     @Override
     public void updateAnnotations() {
-        BioMartAnnotationLoader annotLoader = null;
-
         try {
             String organismName = annSrc.getOrganism().getName();
             reportProgress("Loading Ensembl annotations for organism " + organismName);
-            annotLoader = new BioMartAnnotationLoader(annSrc);
+            BioMartAnnotationLoader annotLoader = new BioMartAnnotationLoader(httpClient, annSrc);
 
             reportProgress("Loading bio-entities for " + organismName);
             annotLoader.loadBioEntities();
@@ -101,18 +106,15 @@ public class BioMartAnnotator extends Annotator {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
             reportError(e);
-        } finally {
-            closeQuietly(annotLoader);
         }
     }
 
     @Override
     public void updateMappings() {
-        BioMartAnnotationLoader annotLoader = null;
         try {
             String organismName = annSrc.getOrganism().getName();
             reportProgress("Loading Ensembl design element mappings for organism " + organismName);
-            annotLoader = new BioMartAnnotationLoader(annSrc);
+            BioMartAnnotationLoader annotLoader = new BioMartAnnotationLoader(httpClient, annSrc);
 
             if (!annSrc.isApplied()) {
                 reportProgress("Loading bioentities for " + organismName);
@@ -145,8 +147,6 @@ public class BioMartAnnotator extends Annotator {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
             reportError(e);
-        } finally {
-            closeQuietly(annotLoader);
         }
     }
 }

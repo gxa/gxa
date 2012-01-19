@@ -206,6 +206,16 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="analyticsService" ref="experimentAnalyticsService"/>
     </bean>
 
+    <!-- http client -->
+
+    <bean id="httpClient" class="org.apache.http.impl.client.DefaultHttpClient">
+        <constructor-arg ref="httpClientConnectionManager"/>
+    </bean>
+
+    <bean id="httpClientConnectionManager" class="org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager"
+            destroy-method="shutdown">
+    </bean>
+
     <!-- Web interface component -->
 
     <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">

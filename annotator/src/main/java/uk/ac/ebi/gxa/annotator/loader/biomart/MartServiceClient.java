@@ -33,7 +33,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.xml.sax.SAXException;
@@ -71,11 +70,11 @@ class MartServiceClient implements Closeable {
     private final HttpClient httpClient;
     private MartRegistry.MartUrlLocation martLocation;
 
-    public MartServiceClient(String martUrl, String databaseName, String datasetName) throws URISyntaxException {
-        httpClient = new DefaultHttpClient();
+    public MartServiceClient(HttpClient httpClient, String martUrl, String databaseName, String datasetName) throws URISyntaxException {
         this.martUri = new URI(martUrl);
         this.databaseName = databaseName;
         this.datasetName = datasetName;
+        this.httpClient = httpClient;
     }
 
     public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException {
@@ -186,7 +185,7 @@ class MartServiceClient implements Closeable {
         }
     }
 
-    public static MartServiceClient create(BioMartAnnotationSource annSrc) throws URISyntaxException {
-        return new MartServiceClient(annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
+    public static MartServiceClient create(HttpClient httpClient, BioMartAnnotationSource annSrc) throws URISyntaxException {
+        return new MartServiceClient(httpClient, annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
     }
 }

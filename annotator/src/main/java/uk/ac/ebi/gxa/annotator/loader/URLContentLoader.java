@@ -28,7 +28,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.slf4j.Logger;
@@ -49,19 +48,23 @@ public class URLContentLoader {
 
     static final private Logger log = LoggerFactory.getLogger(URLContentLoader.class);
 
-    public static File getContentAsFile(String url, File file) throws AnnotationException {
+    private final HttpClient httpClient;
+
+    public URLContentLoader(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
+    public File getContentAsFile(String url, File file) throws AnnotationException {
         //ToDo: check if url is not file
 
-        HttpClient client = new DefaultHttpClient();
-
-        HttpGet httpGet = new HttpGet(url);
+       HttpGet httpGet = new HttpGet(url);
         final HttpParams params = new BasicHttpParams();
         HttpClientParams.setRedirecting(params, true);
         httpGet.setParams(params);
 
         FileOutputStream out = null;
         try {
-            HttpResponse response = client.execute(httpGet);
+            HttpResponse response = httpClient.execute(httpGet);
 
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new AnnotationException("Failed to connect to: " + url + " " + response.getStatusLine());
@@ -83,7 +86,6 @@ public class URLContentLoader {
             throw new AnnotationException("Fatal transport error when reading from " + url, e);
         } finally {
             closeQuietly(out);
-            client.getConnectionManager().shutdown();
         }
         return file;
     }

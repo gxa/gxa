@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
+import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
 import uk.ac.ebi.gxa.annotator.loader.genesig.GeneSigAnnotationLoader;
@@ -38,16 +39,19 @@ public class FileBasedAnnotator extends Annotator {
 
     private final FileBasedAnnotationSource annSrc;
 
-    public FileBasedAnnotator(FileBasedAnnotationSource annSrc, AtlasBioEntityDataWriter beDataWriter) {
+    private final HttpClient httpClient;
+
+    public FileBasedAnnotator(FileBasedAnnotationSource annSrc, AtlasBioEntityDataWriter beDataWriter, HttpClient httpClient) {
         super(beDataWriter);
         this.annSrc = annSrc;
+        this.httpClient = httpClient;
     }
 
     @Override
     public void updateAnnotations() {
         try {
             reportProgress("Loading properties from annotation source " + annSrc.getName());
-            GeneSigAnnotationLoader loader = new GeneSigAnnotationLoader(annSrc);
+            GeneSigAnnotationLoader loader = new GeneSigAnnotationLoader(httpClient, annSrc);
             loader.loadPropertyValues();
 
             reportProgress("Writing properties from annotation source " + annSrc.getName());

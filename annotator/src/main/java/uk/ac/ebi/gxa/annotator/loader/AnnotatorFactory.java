@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.annotator.loader;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
@@ -41,12 +42,14 @@ public class AnnotatorFactory {
     private AnnotationSourceDAO annSrcDAO;
     @Autowired
     private BioEntityPropertyDAO propertyDAO;
+    @Autowired
+    private HttpClient httpClient;
 
     public BioMartAnnotator createBioMartAnnotator(BioMartAnnotationSource annSrc) {
-        return new BioMartAnnotator( annSrc, annSrcDAO, propertyDAO, beDataWriter);
+        return new BioMartAnnotator(annSrc, annSrcDAO, propertyDAO, beDataWriter, httpClient);
     }
 
     public <T extends FileBasedAnnotationSource> FileBasedAnnotator createFileBasedAnnotator(T annSrc) {
-        return new FileBasedAnnotator(annSrc, beDataWriter);
+        return new FileBasedAnnotator(annSrc, beDataWriter, httpClient);
     }
 }

@@ -1,16 +1,16 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
+import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
+import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -18,7 +18,7 @@ import java.net.URISyntaxException;
  * @author Olga Melnichuk
  * @version 1/16/12 1:23 PM
  */
-public class BioMartAnnotationLoader implements Closeable {
+public class BioMartAnnotationLoader {
 
     private final MartServiceClient martClient;
 
@@ -30,8 +30,8 @@ public class BioMartAnnotationLoader implements Closeable {
 
     private DesignElementMappingData.Builder deMappingsBuilder;
 
-    public BioMartAnnotationLoader(BioMartAnnotationSource annotSource) throws URISyntaxException {
-        this.martClient = MartServiceClient.create(annotSource);
+    public BioMartAnnotationLoader(HttpClient httpClient, BioMartAnnotationSource annotSource) throws URISyntaxException {
+        this.martClient = MartServiceClient.create(httpClient, annotSource);
         this.annotSource = annotSource;
     }
 
@@ -67,10 +67,5 @@ public class BioMartAnnotationLoader implements Closeable {
 
     public DesignElementMappingData getDeMappingsData() throws InvalidAnnotationDataException {
         return deMappingsBuilder == null ? null : deMappingsBuilder.build(annotSource.getTypes());
-    }
-
-    @Override
-    public void close() throws IOException {
-        martClient.close();
     }
 }
