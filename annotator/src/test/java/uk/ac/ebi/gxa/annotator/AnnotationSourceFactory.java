@@ -40,33 +40,6 @@ import static java.util.Arrays.asList;
 public class AnnotationSourceFactory {
 
     public static BioMartAnnotationSourceBuilder newBioMartAnnotationSource() {
-/*        Software software = new Software("plants", "8");
-        Organism organism = new Organism(null, "arabidopsis thaliana");
-
-        BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
-        annotationSource.setDatabaseName("plant");
-        annotationSource.setDatasetName("athaliana_eg_gene");
-        annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
-
-        BioEntityProperty geneProp = new BioEntityProperty(null, "ensgene");
-        BioEntityProperty transProp = new BioEntityProperty(null, "enstranscript");
-        BioEntityProperty geneNameProp = new BioEntityProperty(null, "name");
-        BioEntityProperty transNameProp = new BioEntityProperty(null, "identifier");
-        BioEntityProperty goProp = new BioEntityProperty(null, "go");
-
-        annotationSource.addExternalProperty("gene", geneProp);
-        annotationSource.addExternalProperty("transcript", transProp);
-        annotationSource.addExternalProperty("symbol", geneNameProp);
-        annotationSource.addExternalProperty("identifier", transNameProp);
-        annotationSource.addExternalProperty("go_id", goProp);
-
-        BioEntityType type1 = new BioEntityType(null, "ensgene", 1, geneProp, geneNameProp);
-        BioEntityType type2 = new BioEntityType(null, "enstranscript", 0, transProp, transNameProp);
-
-        annotationSource.addBioEntityType(type1);
-        annotationSource.addBioEntityType(type2);
-
-        return annotationSource;*/
         return new BioMartAnnotationSourceBuilder();
     }
 
@@ -94,8 +67,8 @@ public class AnnotationSourceFactory {
             List<BioEntityType> beTypes = new ArrayList<BioEntityType>();
             if (!types.isEmpty()) {
                 for (BioEntityType type : types.values()) {
-                    if (extProperties.containsKey(type.getIdentifierProperty().getName())&&
-                    extProperties.containsKey(type.getNameProperty().getName())) {
+                    if (extProperties.containsKey(type.getIdentifierProperty().getName()) &&
+                            extProperties.containsKey(type.getNameProperty().getName())) {
                         beTypes.add(type);
                     } else {
                         throw new IllegalStateException("Bad type config: " + type);
@@ -121,16 +94,40 @@ public class AnnotationSourceFactory {
             return newBioEntityTypes();
         }
 
+        /**
+         * Creates an organism to be added to the annotation source.
+         * Optional: if no organism set, the default one will be created.
+         *
+         * @param orgName an organism name
+         * @return the original annotation builder instance
+         */
         public BioMartAnnotationSourceBuilder organism(@Nonnull String orgName) {
             this.organism = new Organism(null, orgName);
             return this;
         }
 
+        /**
+         * Creates a software object to be added to the annotation source.
+         * Optional: if no software set, the default one will be created.
+         *
+         * @param name    a name of software
+         * @param version a version of software
+         * @return the original annotation builder instance
+         */
         public BioMartAnnotationSourceBuilder software(@Nonnull String name, @Nonnull String version) {
             this.software = new Software(name, version);
             return this;
         }
 
+        /**
+         * Creates BioEntityType object to be added to the annotation source.
+         * Optional: if no types set, the default some will be created.
+         *
+         * @param typeName     a type name
+         * @param idPropName   an Identifier property name
+         * @param namePropName a Name property name
+         * @return the original annotation builder instance
+         */
         public BioMartAnnotationSourceBuilder type(@Nonnull String typeName, @Nonnull String idPropName, @Nonnull String namePropName) {
             if (!types.containsKey(typeName)) {
                 BioEntityProperty idProp = getOrCreateProperty(idPropName);
@@ -140,6 +137,14 @@ public class AnnotationSourceFactory {
             return this;
         }
 
+        /**
+         * Creates ExternalBioEntityProperty object to be added to the annotation source.
+         * Optional: if no properties set, the default some will be created.
+         *
+         * @param name    a property name
+         * @param extName a corresponding external property name
+         * @return the original annotation builder instance
+         */
         public BioMartAnnotationSourceBuilder property(@Nonnull String name, @Nonnull String extName) {
             BioEntityProperty prop = getOrCreateProperty(name);
             ExternalBioEntityProperty extProp = new ExternalBioEntityProperty(extName, prop, null);
@@ -177,14 +182,6 @@ public class AnnotationSourceFactory {
         }
     };
 
-    private static Organism newOrganism(Organism source) {
-        return source == null ? new Organism(null, "arabidopsis thaliana") : source;
-    }
-
-    private static Software newSoftware(Software source) {
-        return source == null ? new Software("plants", "8") : source;
-    }
-
     private static List<ExternalBioEntityProperty> newExternalProperties() {
         return asList(
                 new ExternalBioEntityProperty("ensgene", properties.get("ensgene"), null),
@@ -200,5 +197,13 @@ public class AnnotationSourceFactory {
                 new BioEntityType(null, "ensgene", 1, properties.get("ensgene"), properties.get("name")),
                 new BioEntityType(null, "enstranscript", 0, properties.get("enstranscript"), properties.get("identifier"))
         );
+    }
+
+    private static Organism newOrganism(Organism source) {
+        return source == null ? new Organism(null, "arabidopsis thaliana") : source;
+    }
+
+    private static Software newSoftware(Software source) {
+        return source == null ? new Software("plants", "8") : source;
     }
 }

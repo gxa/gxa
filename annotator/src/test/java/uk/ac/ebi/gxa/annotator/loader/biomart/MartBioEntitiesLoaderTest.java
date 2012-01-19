@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import com.google.common.base.Joiner;
 import org.junit.Test;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
@@ -33,14 +34,14 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.gxa.annotator.AnnotationSourceFactory.newBioMartAnnotationSource;
+import static uk.ac.ebi.gxa.annotator.Tables.convert2map;
+import static uk.ac.ebi.gxa.annotator.Tables.transpose;
 
 /**
  * ID_PROPERTY_1    ID_PROPERTY_2
@@ -52,12 +53,16 @@ import static uk.ac.ebi.gxa.annotator.AnnotationSourceFactory.newBioMartAnnotati
  */
 public class MartBioEntitiesLoaderTest {
 
-    private static Map<String, List<String>> TSV = new HashMap<String, List<String>>() {
+    private static List<String[]> TSV = new ArrayList<String[]>() {
         {
-            put("type1", asList("ENSBTAT00000057520", "ENSBTAT00000049990", "ENSBTAT00000015116"));
-            put("type2", asList("ENSBTAG00000039669", "ENSBTAG00000039669", "ENSBTAG00000025314"));
+            add(new String[]{"type1", "type2"});
+            add(new String[]{"ENSBTAT00000057520", "ENSBTAG00000039669"});
+            add(new String[]{"ENSBTAT00000049990", "ENSBTAG00000039669"});
+            add(new String[]{"ENSBTAT00000015116", "ENSBTAG00000025314"});
         }
     };
+
+    private static Map<String, Collection<String>> TSV_TRANSPOSED = convert2map(transpose(TSV));
 
     @Test
     public void test() throws InvalidAnnotationDataException, BioMartException, IOException, InvalidCSVColumnException {
@@ -70,13 +75,15 @@ public class MartBioEntitiesLoaderTest {
         assertEquals(annotSource.getOrganism(), data.getOrganism());
 
         for (BioEntityType type : annotSource.getTypes()) {
-            Collection<BioEntity> items = data.getBioEntitiesOfType(type);
-            assertEquals(3, items.size());
-            //TODO
+            Collection<BioEntity> actual = data.getBioEntitiesOfType(type);
+            Collection<String> expected = TSV_TRANSPOSED.get(type.getName());
+            for (BioEntity be : actual) {
+                assertTrue(expected.contains(be.getIdentifier()));
+            }
         }
     }
 
-    private BioMartAnnotationSource newAnnotationSource() {
+    private static BioMartAnnotationSource newAnnotationSource() {
         return newBioMartAnnotationSource()
                 .type("type1", "prop1", "prop2")
                 .type("type2", "prop3", "prop4")
@@ -87,21 +94,13 @@ public class MartBioEntitiesLoaderTest {
                 .create();
     }
 
-    private MartServiceClient newMartClient() {
-
+    private static MartServiceClient newMartClient() {
         StringBuilder sb = new StringBuilder();
-        int ncol = TSV.size();
-        for (int i = 0; i < ncol; i++) {
-            if (i > 0) {
-                sb.append("\t");
-            }
-            sb.append("COLUMN_").append(i);
+        for (String[] row : TSV) {
+            sb.append(Joiner.on("\t").join(row)).append("\n");
         }
-        sb.append("\n");
-        //TODO
         final String columns = sb.toString();
-        final int size = TSV.entrySet().iterator().next().getValue().size();
-
+        final int size = TSV.size() - 1;
 
         return new MartServiceClient() {
             @Override
