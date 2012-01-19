@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.annotator.loader.genesig;
 
+import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
@@ -35,7 +36,10 @@ public class GeneSigAnnotationLoader {
 
     private final FileBasedAnnotationSource annotSource;
 
-    public GeneSigAnnotationLoader(FileBasedAnnotationSource annotSource) {
+    private final HttpClient httpClient;
+
+    public GeneSigAnnotationLoader(HttpClient httpClient, FileBasedAnnotationSource annotSource) {
+        this.httpClient  = httpClient;
         this.annotSource = annotSource;
     }
 
@@ -44,7 +48,7 @@ public class GeneSigAnnotationLoader {
 
         File contentAsFile = FileUtil.tempFile("genesig.tmp");
         try {
-            URLContentLoader.getContentAsFile(annotSource.getUrl(), contentAsFile);
+            new URLContentLoader(httpClient).getContentAsFile(annotSource.getUrl(), contentAsFile);
             parse(new FileInputStream(contentAsFile));
         } finally {
             if (!contentAsFile.delete()) {
