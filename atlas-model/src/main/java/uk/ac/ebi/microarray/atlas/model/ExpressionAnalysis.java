@@ -22,14 +22,10 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import java.io.Serializable;
-
 /**
  * @author Tony Burdett
  */
-public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAnalysis> {
-    public static final long serialVersionUID = -6759797835522535043L;
-
+public class ExpressionAnalysis {
     private final String arrayDesignAccession;
     private final String designElementAccession;  // we don't care about it
     // Index of a design element (in netcdf file) in which data to populate this object were found
@@ -87,18 +83,8 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         this.tStatistic = tStatistic;
     }
 
-    public int compareTo(ExpressionAnalysis o) {
-        assert o.pValAdjusted >= 0 && o.pValAdjusted <= 1;
-        assert pValAdjusted >= 0 && pValAdjusted <= 1;
-        return Float.valueOf(o.pValAdjusted).compareTo(pValAdjusted);
-    }
-
     public boolean isUp() {
         return UpDownExpression.isUp(pValAdjusted, tStatistic);
-    }
-
-    public boolean isNo() {
-        return UpDownExpression.isNonDe(pValAdjusted, tStatistic);
     }
 
     public boolean isDown() {
@@ -114,41 +100,10 @@ public class ExpressionAnalysis implements Serializable, Comparable<ExpressionAn
         return "ExpressionAnalysis{" +
                 "efName='" + efName + '\'' +
                 ", efvName='" + efvName + '\'' +
-                //", experimentID=" + experimentID +
                 ", designElementAccession=" + designElementAccession +
                 ", tStatistic=" + tStatistic +
                 ", pValAdjusted=" + pValAdjusted +
                 ", designElementIndex=" + designElementIndex +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ExpressionAnalysis that = (ExpressionAnalysis) o;
-
-        if (!designElementAccession.equals(that.designElementAccession)) return false;
-        if (Float.compare(that.pValAdjusted, pValAdjusted) != 0) return false;
-        if (Float.compare(that.tStatistic, tStatistic) != 0) return false;
-        if (efName != null ? !efName.equals(that.efName) : that.efName != null) return false;
-        if (efvName != null ? !efvName.equals(that.efvName) : that.efvName != null) return false;
-        if (designElementIndex != that.designElementIndex) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = efName != null ? efName.hashCode() : 0;
-        result = 31 * result + (efvName != null ? efvName.hashCode() : 0);
-        //result = 31 * result + (int) (experimentID ^ (experimentID >>> 32));
-        result = 31 * result + designElementAccession.hashCode();
-        result = 31 * result + (tStatistic != +0.0f ? Float.floatToIntBits(tStatistic) : 0);
-        result = 31 * result + (pValAdjusted != +0.0f ? Float.floatToIntBits(pValAdjusted) : 0);
-        result = 31 * result + designElementIndex;
-
-        return result;
     }
 }

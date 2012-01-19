@@ -46,7 +46,7 @@ public class ExperimentPart {
     }
 
     public StatisticsCursor getStatisticsIterator(Predicate<Long> bePredicate,
-                                                    Predicate<Pair<String, String>> efvPredicate)
+                                                  Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getStatistics(arrayDesign, bePredicate, efvPredicate);
     }
