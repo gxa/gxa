@@ -22,51 +22,57 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
+import org.junit.Test;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Olga Melnichuk
  */
 public class MartBioEntitiesLoaderTest {
 
+    @Test
     public void test() throws InvalidAnnotationDataException {
-        BioMartAnnotationSource annotSource = newAnnotationSource();
-
-        BioEntityData.Builder builder = new BioEntityData.Builder(annotSource.getOrganism());
-        new MartBioEntitiesLoader(annotSource, newMartClient()).load(builder);
-
-        BioEntityData data = builder.build(annotSource.getTypes());
-        assertEquals(annotSource.getOrganism(), data.getOrganism());
-
-        for (BioEntityType type : annotSource.getTypes()) {
-            assertEquals(data.getBioEntitiesOfType(), );
-        }
+        //TODO
+         assertTrue(true);
     }
 
     private BioMartAnnotationSource newAnnotationSource() {
-
+        //TODO
+        return null;
     }
     
-    private MartServiceClientImpl newMartClient() {
-        return new MartServiceClientImpl() {
+    private MartServiceClient newMartClient() {
+        return new MartServiceClient() {
             @Override
             public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException {
-                return super.runQuery(attributes);    //To change body of overridden methods use File | Settings | File Templates.
+                //TODO
+                return null;
             }
 
             @Override
             public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException {
-                return
+                //TODO
+                return 0;
             }
-        }
+
+            @Override
+            public InputStream runAttributesQuery() throws BioMartException, IOException {
+                //TODO
+                return null;
+            }
+
+            @Override
+            public InputStream runDatasetListQuery() throws BioMartException, IOException {
+                //TODO
+                return null;
+            }
+        };
     }
 }
