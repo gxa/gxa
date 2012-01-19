@@ -76,6 +76,7 @@ class MartServiceClientImpl implements MartServiceClient {
         this.httpClient = httpClient;
     }
 
+    @Override
     public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException {
         return runQuery(
                 new MartQuery(
@@ -84,6 +85,7 @@ class MartServiceClientImpl implements MartServiceClient {
                         .addAttributes(attributes));
     }
 
+    @Override
     public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException {
         return parseCount(runQuery(
                 new MartQuery(
@@ -93,10 +95,12 @@ class MartServiceClientImpl implements MartServiceClient {
                         .setCount(true)));
     }
 
+    @Override
     public InputStream runAttributesQuery() throws BioMartException, IOException {
         return httpPost(martUri, asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
     }
 
+    @Override
     public InputStream runDatasetListQuery() throws BioMartException, IOException {
         return httpPost(martUri, asList(new BasicNameValuePair("type", "datasets"), new BasicNameValuePair("mart", getMartName())));
     }
