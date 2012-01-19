@@ -61,8 +61,9 @@ public class BioEntityData {
     void addBioEntity(BioEntity bioEntity) {
         if (organism.equals(bioEntity.getOrganism())) {
             typeToBioEntities.put(bioEntity.getType(), bioEntity);
+            return;
         }
-        throw new IllegalStateException("");
+        throw new IllegalStateException("Unknown bioEntity organism: " + bioEntity.getOrganism().getName());
     }
 
     boolean isValid(Collection<BioEntityType> types) {
