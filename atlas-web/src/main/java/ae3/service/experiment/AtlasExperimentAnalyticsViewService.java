@@ -57,11 +57,11 @@ public class AtlasExperimentAnalyticsViewService {
         if (expPart == null)
             return new BestDesignElementsResult();
 
-        StatisticsIterator stats = expPart.getStatisticsIterator(geneIdPredicate, fvPredicate);
+        StatisticsCursor stats = expPart.getStatisticsIterator(geneIdPredicate, fvPredicate);
 
-        List<DesignElementStatistics> result = newArrayList();
+        List<StatisticsSnapshot> result = newArrayList();
         while (stats.nextBioEntity()) {
-            Best<DesignElementStatistics> bestDE = Best.create();
+            Best<StatisticsSnapshot> bestDE = Best.create();
             while (stats.nextEFV()) {
                 if (upDownPredicate.apply(stats.getExpression())) {
                     bestDE.offer(stats.getDEStats());
@@ -72,25 +72,19 @@ public class AtlasExperimentAnalyticsViewService {
         }
         sort(result);
 
-        return convert(expPart, result, offset, limit);
+        return convert(expPart, boundSafeSublist(result, offset, offset + limit), result.size());
     }
 
-    private BestDesignElementsResult convert(ExperimentPart expPart, List<DesignElementStatistics> stats,
-                                             int offset, int limit)
+    private BestDesignElementsResult convert(ExperimentPart expPart, List<StatisticsSnapshot> sublist, int totalSize)
             throws AtlasDataException, StatisticsNotFoundException {
+
         final List<Long> allGeneIds = expPart.getGeneIds();
-        final String[] designElementAccessions = expPart.getDesignElementAccessions();
 
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
-        result.setTotalSize(stats.size());
-        for (DesignElementStatistics de : boundSafeSublist(stats, offset, offset + limit)) {
-            result.add(geneSolrDAO.getGeneById(allGeneIds.get(de.getDEIndex())).getGene(),
-                    de.getDEIndex(),
-                    designElementAccessions[de.getDEIndex()],
-                    de.getPValue(),
-                    de.getTStat(),
-                    de.getEfv());
+        result.setTotalSize(totalSize);
+        for (StatisticsSnapshot de : sublist) {
+            result.add(geneSolrDAO.getGeneById(de.getBioEntityId()).getGene(), de);
         }
         return result;
     }

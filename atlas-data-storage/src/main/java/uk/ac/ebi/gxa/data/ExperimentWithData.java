@@ -56,12 +56,10 @@ public class ExperimentWithData implements Closeable {
         this.experiment = experiment;
     }
 
-    public DesignElementStatistics getStatistics(int efvIndex, int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        final float[] pvals = getProxy(arrayDesign).getPValuesForDesignElement(designElementId);
-        final float[] tstats = getProxy(arrayDesign).getTStatisticsForDesignElement(designElementId);
-        float pvalue = pvals[efvIndex];
-        float tstat = tstats[efvIndex];
-        return new DesignElementStatistics(tstat, pvalue, designElementId, efvIndex, getUniqueEFVs(arrayDesign).get(efvIndex));
+    public StatisticsSnapshot getStatistics(int efvIndex, int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+        StatisticsCursor si = new StatisticsCursor(this, arrayDesign);
+        si.jump(designElementId, efvIndex);
+        return si.getDEStats();
     }
 
     public Experiment getExperiment() {
@@ -148,6 +146,7 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getSamplesToAssays();
     }
 
+    @Deprecated
     public String[] getDesignElementAccessions(ArrayDesign arrayDesign) throws AtlasDataException {
         String[] array = designElementAccessions.get(arrayDesign);
         if (array == null) {
@@ -157,6 +156,7 @@ public class ExperimentWithData implements Closeable {
         return array;
     }
 
+    @Deprecated
     public long[] getGenes(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getGenes();
     }

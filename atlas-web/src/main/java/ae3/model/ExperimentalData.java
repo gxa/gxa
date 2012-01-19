@@ -27,8 +27,8 @@ import com.google.common.collect.Collections2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.DesignElementStatistics;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.data.StatisticsSnapshot;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.web.filter.ResourceWatchdogFilter;
@@ -170,20 +170,20 @@ public class ExperimentalData {
     }
 
     /**
-     * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link DesignElementStatistics} structures
+     * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link uk.ac.ebi.gxa.data.StatisticsSnapshot} structures
      *
      * @param ad            array design
      * @param designElement design element id
      * @return map of statstics
      */
-    public EfvTree<DesignElementStatistics> getExpressionStats(ArrayDesign ad, int designElement) {
+    public EfvTree<StatisticsSnapshot> getExpressionStats(ArrayDesign ad, int designElement) {
         try {
             final ExpressionStats stats = getExpressionStats(ad);
             return stats == null ?
-                    new EfvTree<DesignElementStatistics>() :
+                    new EfvTree<StatisticsSnapshot>() :
                     stats.getExpressionStats(designElement);
         } catch (AtlasDataException e) {
-            return new EfvTree<DesignElementStatistics>();
+            return new EfvTree<StatisticsSnapshot>();
         }
     }
 

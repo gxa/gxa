@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
+import com.google.common.base.Predicates;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -37,7 +37,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * @author alf
  */
-public class StatisticsIterator {
+public class StatisticsCursor implements DesignElementStatistics {
     public static final Predicate<Pair<String, String>> NON_EMPTY_EFV = new Predicate<Pair<String, String>>() {
         @Override
         public boolean apply(@Nullable Pair<String, String> input) {
@@ -54,6 +54,7 @@ public class StatisticsIterator {
     private final long[] bioentities;
     private final TwoDFloatArray tstat;
     private final TwoDFloatArray pvals;
+    private final String[] deAccessions;
 
     private final ArrayDesign ad;
     private final Experiment experiment;
@@ -61,8 +62,8 @@ public class StatisticsIterator {
     private final Predicate<Long> bePredicate;
     private final Predicate<Pair<String, String>> efvPredicate;
 
-    public StatisticsIterator(ExperimentWithData experimentWithData, ArrayDesign ad,
-                              Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+    public StatisticsCursor(ExperimentWithData experimentWithData, ArrayDesign ad,
+                            Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
         this.ad = ad;
         this.bePredicate = bePredicate;
@@ -73,39 +74,60 @@ public class StatisticsIterator {
         uEFVs = experimentWithData.getUniqueEFVs(ad);
         tstat = experimentWithData.getTStatistics(ad);
         pvals = experimentWithData.getPValues(ad);
-
+        deAccessions = experimentWithData.getDesignElementAccessions(ad);
         bioentities = experimentWithData.getGenes(ad);
 
         deCount = tstat.getRowCount();
         efvCount = uEFVs.size();
     }
 
+    StatisticsCursor(ExperimentWithData experimentWithData, ArrayDesign ad)
+            throws AtlasDataException, StatisticsNotFoundException {
+        this(experimentWithData, ad, Predicates.<Long>alwaysTrue(), Predicates.<Pair<String, String>>alwaysTrue());
+    }
+
+    @Override
     public UpDownExpression getExpression() {
         return UpDownExpression.valueOf(getP(), getT());
     }
 
-    public int getEfvCount() {
-        return efvCount;
-    }
-
-    public Pair<String, String> getEFV() {
+    @Override
+    public Pair<String, String> getEfv() {
         return uEFVs.get(j);
     }
 
-    public int getIntegerBioEntityId() {
-        return safelyCastToInt(bioentities[i]);
+    @Override
+    public long getBioEntityId() {
+        return bioentities[i];
     }
 
+    @Override
     public float getT() {
         return tstat.get(i, j);
     }
 
+    @Override
     public float getP() {
         return pvals.get(i, j);
     }
 
     public boolean isEmpty() {
         return uEFVs.size() == 0;
+    }
+
+    @Override
+    @Deprecated
+    public int getDeIndex() {
+        return i;
+    }
+
+    @Override
+    public String getDeAccession() {
+        return deAccessions[i];
+    }
+
+    public int getEfvCount() {
+        return efvCount;
     }
 
     public int getDeCount() {
@@ -128,13 +150,21 @@ public class StatisticsIterator {
         return experiment.getAccession() + "/" + ad.getAccession();
     }
 
-    public DesignElementStatistics getDEStats() {
-        return new DesignElementStatistics(getP(), getT(), i, j, getEFV());
+    public StatisticsSnapshot getDEStats() {
+        return new StatisticsSnapshot(this);
     }
 
-    private static int safelyCastToInt(long l) {
-        if (l != (int) l)
-            throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
-        return (int) l;
+    /**
+     * NEVER USE ME
+     * <p/>
+     * It is only here to support a <em>temporary</em> solution for a legacy code.
+     *
+     * @param de  design element index to jump to
+     * @param efv experiment factor value index to jump to
+     */
+    @Deprecated
+    void jump(int de, int efv) {
+        i = de;
+        j = efv;
     }
 }

@@ -45,10 +45,10 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public StatisticsIterator getStatisticsIterator(Predicate<Long> bePredicate,
+    public StatisticsCursor getStatisticsIterator(Predicate<Long> bePredicate,
                                                     Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsIterator(ewd, arrayDesign, bePredicate, efvPredicate);
+        return new StatisticsCursor(ewd, arrayDesign, bePredicate, efvPredicate);
     }
 
     public String[] getDesignElementAccessions() throws AtlasDataException {

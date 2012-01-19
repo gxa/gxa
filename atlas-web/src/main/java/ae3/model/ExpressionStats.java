@@ -24,9 +24,9 @@ package ae3.model;
 
 
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.DesignElementStatistics;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
+import uk.ac.ebi.gxa.data.StatisticsSnapshot;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -41,7 +41,7 @@ public class ExpressionStats {
     private final ArrayDesign arrayDesign;
     private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
-    private EfvTree<DesignElementStatistics> lastData;
+    private EfvTree<StatisticsSnapshot> lastData;
     private long lastDesignElement = -1;
 
     ExpressionStats(ExperimentWithData experiment, ArrayDesign arrayDesign) throws AtlasDataException {
@@ -66,12 +66,12 @@ public class ExpressionStats {
      * @return efv tree of stats
      * @throws AtlasDataException whenever it wants to
      */
-    EfvTree<DesignElementStatistics> getExpressionStats(int designElementId) throws AtlasDataException {
+    EfvTree<StatisticsSnapshot> getExpressionStats(int designElementId) throws AtlasDataException {
         if (lastData != null && designElementId == lastDesignElement) {
             return lastData;
         }
 
-        final EfvTree<DesignElementStatistics> result = new EfvTree<DesignElementStatistics>();
+        final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
             for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
                 result.put(efefv.getEf(), efefv.getEfv(), experiment.getStatistics(efefv.getPayload(), designElementId, arrayDesign));

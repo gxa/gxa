@@ -1,9 +1,11 @@
 package ae3.service.experiment;
 
 import ae3.model.AtlasGene;
-import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.data.DesignElementStatistics;
 
 import java.util.*;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * @author Olga Melnichuk
@@ -14,11 +16,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
     private String adAccession;
     private long total = 0;
     private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
-    private final List<Integer> deIndices = new ArrayList<Integer>();
-    private final List<String> deAccessions = new ArrayList<String>();
-    private final List<Double> pvalues = new ArrayList<Double>();
-    private final List<Double> tvalues = new ArrayList<Double>();
-    private final List<Pair<String, String>> efvs = new ArrayList<Pair<String, String>>();
+    private List<DesignElementStatistics> stats = newArrayList();
 
     BestDesignElementsResult() {
     }
@@ -31,34 +29,24 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         this.adAccession = adAccession;
     }
 
-    void add(AtlasGene gene, int deIndex, String deAccession, double pval, double tstat, Pair<String, String> efv) {
+    void add(AtlasGene gene, DesignElementStatistics statistics) {
+        this.stats.add(statistics);
         genes.add(gene);
-        deIndices.add(deIndex);
-        deAccessions.add(deAccession);
-        pvalues.add(pval);
-        tvalues.add(tstat);
-        efvs.add(efv);
     }
 
     void setTotalSize(long total) {
         this.total = total;
     }
 
-    public Item get(int i) {
-        return new Item(genes.get(i),
-                deIndices.get(i),
-                deAccessions.get(i),
-                pvalues.get(i).floatValue(),
-                tvalues.get(i).floatValue(),
-                efvs.get(i).getFirst(),
-                efvs.get(i).getSecond());
+    Item get(int i) {
+        return new Item(genes.get(i), stats.get(i));
     }
 
     public long getTotalSize() {
         return total;
     }
 
-    public int getPageSize() {
+    int getPageSize() {
         return genes.size();
     }
 
@@ -86,21 +74,11 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
 
     public static class Item {
         private final AtlasGene gene;
-        private final int deIndex;
-        private final String deAccession;
-        private final float pValue;
-        private final float tValue;
-        private final String ef;
-        private final String efv;
+        private final DesignElementStatistics statistics;
 
-        Item(AtlasGene gene, int deIndex, String deAccession, float pValue, float tValue, String ef, String efv) {
+        public Item(AtlasGene gene, DesignElementStatistics statistics) {
             this.gene = gene;
-            this.deIndex = deIndex;
-            this.deAccession = deAccession;
-            this.pValue = pValue;
-            this.tValue = tValue;
-            this.ef = ef;
-            this.efv = efv;
+            this.statistics = statistics;
         }
 
         public AtlasGene getGene() {
@@ -108,27 +86,28 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         }
 
         public String getDeAccession() {
-            return deAccession;
+            return statistics.getDeAccession();
         }
 
+        @Deprecated
         public int getDeIndex() {
-            return deIndex;
+            return statistics.getDeIndex();
         }
 
         public float getPValue() {
-            return pValue;
+            return statistics.getP();
         }
 
         public float getTValue() {
-            return tValue;
+            return statistics.getT();
         }
 
         public String getEf() {
-            return ef;
+            return statistics.getEfv().getFirst();
         }
 
         public String getEfv() {
-            return efv;
+            return statistics.getEfv().getSecond();
         }
     }
 }

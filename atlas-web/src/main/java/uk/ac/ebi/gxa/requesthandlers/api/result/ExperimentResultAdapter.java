@@ -28,7 +28,7 @@ import ae3.model.AtlasGene;
 import ae3.model.ExperimentalData;
 import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.DesignElementStatistics;
+import uk.ac.ebi.gxa.data.StatisticsSnapshot;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.JsonRestResultRenderer;
 import uk.ac.ebi.gxa.requesthandlers.base.restutil.RestOut;
@@ -198,19 +198,19 @@ public class ExperimentResultAdapter {
         }
 
         @RestOut(xmlItemName = "expression")
-        public static class DEExpression extends MappingIterator<EfvTree.EfEfv<DesignElementStatistics>, Map> {
-            public DEExpression(Iterator<EfvTree.EfEfv<DesignElementStatistics>> fromiter) {
+        public static class DEExpression extends MappingIterator<EfvTree.EfEfv<StatisticsSnapshot>, Map> {
+            public DEExpression(Iterator<EfvTree.EfEfv<StatisticsSnapshot>> fromiter) {
                 super(fromiter);
             }
 
-            public Map map(EfvTree.EfEfv<DesignElementStatistics> statEfEfv) {
-                final DesignElementStatistics statistics = statEfEfv.getPayload();
+            public Map map(EfvTree.EfEfv<StatisticsSnapshot> statEfEfv) {
+                final StatisticsSnapshot statistics = statEfEfv.getPayload();
                 return makeMap("ef", statEfEfv.getEf(),
                         "efv", statEfEfv.getEfv(),
                         "stat",
-                        makeMap("pvalue", statistics.getPValue(),
-                                "tstat", statistics.getTStat(),
-                                "expression", statistics.getUpDownExpression()));
+                        makeMap("pvalue", statistics.getP(),
+                                "tstat", statistics.getT(),
+                                "expression", statistics.getExpression()));
             }
         }
 
@@ -218,14 +218,17 @@ public class ExperimentResultAdapter {
         public Map<String, DesignElementStatMap> getGeneExpressions() {
             Map<String, DesignElementStatMap> geneMap = new HashMap<String, DesignElementStatMap>();
             try {
+                final ExperimentalData experimentalData = experimentResultAdapter.getExperimentalData();
                 for (AtlasGene gene : genes) {
-                    int[] designElements = experimentResultAdapter.getExperimentalData().getDesignElementIndexes(arrayDesign, gene.getGeneId());
+                    int[] designElements = experimentalData.getDesignElementIndexes(arrayDesign, gene.getGeneId());
                     if (designElements != null) {
                         DesignElementStatMap deMap = new DesignElementStatMap();
-                        for (final int designElementId : designElements) {
-                            List<EfvTree.EfEfv<DesignElementStatistics>> efefvList = experimentResultAdapter.getExperimentalData().getExpressionStats(arrayDesign, designElementId).getNameSortedList();
+                        for (final int deIndex : designElements) {
+                            List<EfvTree.EfEfv<StatisticsSnapshot>> efefvList =
+                                    experimentalData.getExpressionStats(arrayDesign, deIndex).getNameSortedList();
                             if (!efefvList.isEmpty())
-                                deMap.put(experimentResultAdapter.getExperimentalData().getDesignElementAccession(arrayDesign, designElementId), new DEExpression(efefvList.iterator()));
+                                deMap.put(experimentalData.getDesignElementAccession(arrayDesign, deIndex),
+                                        new DEExpression(efefvList.iterator()));
                         }
 
                         geneMap.put(gene.getGeneIdentifier(), deMap);

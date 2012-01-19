@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,106 +22,32 @@
 
 package uk.ac.ebi.gxa.data;
 
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
-import javax.annotation.concurrent.Immutable;
-
-import static java.lang.Float.compare;
-import static java.lang.Math.abs;
-import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isPvalValid;
-import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.isTStatValid;
-
 /**
- * This class is used as an element in Collections sorted by accurate (as stored in ncdfs) pval/tstat, specifically in
- * the experiment page's best design elements table
+ * Statistics together with DE details
  *
- * @author Robert Petryszak
+ * @author alf
  */
-@Immutable
-public final class DesignElementStatistics implements Comparable<DesignElementStatistics> {
-    private final float pValue;
-    private final float tStat;
-    private final int deIndex;
-    private final int uEFVIndex;
-    private final Pair<String, String> efv;
+public interface DesignElementStatistics extends BaseStatistics {
+    Pair<String, String> getEfv();
 
-    public DesignElementStatistics(float pValue, float tStat, int deIndex, int uEFVIndex, Pair<String, String> efv) {
-        if (!isPvalValid(pValue))
-            throw LogUtil.createUnexpected("Invalid pValue: " + pValue);
-        if (!isTStatValid(tStat))
-            throw LogUtil.createUnexpected("Invalid tStatistic: " + tStat);
+    String getDeAccession();
 
-        this.pValue = pValue;
-        this.tStat = tStat;
-        this.deIndex = deIndex;
-        this.uEFVIndex = uEFVIndex;
-        this.efv = efv;
-    }
+    UpDownExpression getExpression();
 
-    public float getPValue() {
-        return pValue;
-    }
-
-    public float getTStat() {
-        return tStat;
-    }
-
-    public int getDEIndex() {
-        return deIndex;
-    }
-
-    public int getUEFVIndex() {
-        return uEFVIndex;
-    }
-
-    public Pair<String, String> getEfv() {
-        return efv;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (getPValue() != +0.0f ? Float.floatToIntBits(getPValue()) : 0);
-        result = 31 * result + (getTStat() != +0.0f ? Float.floatToIntBits(getTStat()) : 0);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        DesignElementStatistics pt = (DesignElementStatistics) o;
-        return compare(getPValue(), pt.getPValue()) == 0 && compare(getTStat(), pt.getTStat()) == 0;
-    }
+    long getBioEntityId();
 
     /**
-     * Defines natural order descending by absolute value of T first, then ascending by P
+     * An old method intended to support the legacy code. DO NOT USE.
      * <p/>
-     * Note that there is one case when <code>compareTo(DesignElementStatistics)</code>
-     * is NOT compatible with {@link #equals(Object)}: it happens is P values are equals, and T values are opposite.
+     * If you're adding any functionality relying on this method, you're doing it wrong and putting another nail in
+     * the project's coffin.
      *
-     * @param o the DE candidate to be compared.
-     * @return a negative integer, zero, or a positive integer as this object
-     *         is less than, equal to, or greater than the specified candidate.
+     * @return the index of DE in the original data file
+     * @deprecated use {@link #getDeAccession} instead
      */
-    public int compareTo(DesignElementStatistics o) {
-        int result = -compare(abs(getTStat()), abs(o.getTStat()));
-        return result != 0 ? result : compare(getPValue(), o.getPValue());
-    }
-
-    @Override
-    public String toString() {
-        return "DesignElementStatistics{" +
-                "pValue=" + pValue +
-                ", tStat=" + tStat +
-                ", deIndex=" + deIndex +
-                ", uEFVIndex=" + uEFVIndex +
-                '}';
-    }
-
-    public UpDownExpression getUpDownExpression() {
-        return UpDownExpression.valueOf(pValue, tStat);
-    }
+    @Deprecated
+    int getDeIndex();
 }

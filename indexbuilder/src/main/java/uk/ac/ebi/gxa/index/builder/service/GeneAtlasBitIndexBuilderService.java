@@ -5,6 +5,7 @@ import it.uniroma3.mat.extendedset.FastSet;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.statistics.*;
@@ -26,7 +27,7 @@ import static com.google.common.base.Predicates.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
-import static uk.ac.ebi.gxa.data.StatisticsIterator.NON_EMPTY_EFV;
+import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 
 /**
  * Class used to build ConciseSet-based gene expression statistics index
@@ -128,7 +129,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
-                    StatisticsIterator stats = new StatisticsIterator(experimentWithData, ad,
+                    StatisticsCursor stats = new StatisticsCursor(experimentWithData, ad,
                             KNOWN_BIOENTITIES, NON_EMPTY_EFV);
 
                     if (stats.isEmpty()) {
@@ -142,7 +143,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                             new Object[]{ad.getAccession(), stats.getDeCount(), stats.getEfvCount()});
                     final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
                     while (stats.nextEFV()) {
-                        final Pair<String, String> efv = stats.getEFV();
+                        final Pair<String, String> efv = stats.getEfv();
 
                         final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.getKey(), efv.getValue()));
                         final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.getKey()));
@@ -163,7 +164,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final MinPMaxT ptDown = new MinPMaxT();
 
                         while (stats.nextBioEntity()) {
-                            int bioEntityId = stats.getIntegerBioEntityId();
+                            int bioEntityId = safelyCastToInt(stats.getBioEntityId());
 
                             switch (stats.getExpression()) {
                                 case NA:
@@ -344,5 +345,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 stats.addPvalueTstatRank(efAttribute, entry.getValue(), expIdx, entry.getKey());
             }
         }
+    }
+
+    private static int safelyCastToInt(long l) {
+        if (l != (int) l)
+            throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
+        return (int) l;
     }
 }
