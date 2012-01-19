@@ -41,7 +41,7 @@ public class ExpressionStats {
     private final ArrayDesign arrayDesign;
 
     private EfvTree<StatisticsSnapshot> cachedResult;
-    private long cachedDe = -1;
+    private int cachedDe = -1;
 
     ExpressionStats(ExperimentWithData experiment, ArrayDesign arrayDesign) throws AtlasDataException {
         this.experiment = experiment;
@@ -51,22 +51,22 @@ public class ExpressionStats {
     /**
      * Gets {@link uk.ac.ebi.gxa.utils.EfvTree} of expression statistics structures
      *
-     * @param designElementId design element id
+     * @param deIndex design element index
      * @return efv tree of stats
      * @throws AtlasDataException whenever it wants to
      */
-    EfvTree<StatisticsSnapshot> getExpressionStats(int designElementId) throws AtlasDataException {
-        if (cachedResult == null || designElementId != cachedDe) {
-            cachedDe = designElementId;
-            cachedResult = retrieveExpressionStats(designElementId);
+    EfvTree<StatisticsSnapshot> getExpressionStats(int deIndex) throws AtlasDataException {
+        if (cachedResult == null || deIndex != cachedDe) {
+            cachedDe = deIndex;
+            cachedResult = retrieveExpressionStats(deIndex);
         }
         return cachedResult;
     }
 
-    private EfvTree<StatisticsSnapshot> retrieveExpressionStats(int designElementId) throws AtlasDataException {
+    private EfvTree<StatisticsSnapshot> retrieveExpressionStats(int deIndex) throws AtlasDataException {
         final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
-            final StatisticsCursor statistics = experiment.getStatistics(designElementId, arrayDesign, ANY_EFV);
+            final StatisticsCursor statistics = experiment.getStatistics(deIndex, arrayDesign, ANY_EFV);
             while (statistics.nextEFV()) {
                 final Pair<String, String> efv = statistics.getEfv();
                 result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());

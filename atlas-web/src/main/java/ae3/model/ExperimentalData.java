@@ -172,16 +172,16 @@ public class ExperimentalData {
     /**
      * Get expression statistics map ({@link uk.ac.ebi.gxa.utils.EfvTree}, where payload is {@link uk.ac.ebi.gxa.data.StatisticsSnapshot} structures
      *
-     * @param ad            array design
-     * @param designElement design element id
-     * @return map of statstics
+     * @param ad      array design
+     * @param deIndex design element index
+     * @return map of statistics
      */
-    public EfvTree<StatisticsSnapshot> getExpressionStats(ArrayDesign ad, int designElement) {
+    public EfvTree<StatisticsSnapshot> getExpressionStats(ArrayDesign ad, int deIndex) {
         try {
             final ExpressionStats stats = getExpressionStats(ad);
             return stats == null ?
                     new EfvTree<StatisticsSnapshot>() :
-                    stats.getExpressionStats(designElement);
+                    stats.getExpressionStats(deIndex);
         } catch (AtlasDataException e) {
             return new EfvTree<StatisticsSnapshot>();
         }
