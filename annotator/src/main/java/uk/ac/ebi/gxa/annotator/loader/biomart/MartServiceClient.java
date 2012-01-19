@@ -61,7 +61,7 @@ import static java.util.Arrays.asList;
  *
  * @author Olga Melnichuk
  */
-class MartServiceClient implements Closeable {
+class MartServiceClient {
 
     private final URI martUri;
     private final String databaseName;
@@ -171,11 +171,6 @@ class MartServiceClient implements Closeable {
         } finally {
             closeQuietly(in);
         }
-    }
-
-    @Override
-    public void close() throws IOException {
-        httpClient.getConnectionManager().shutdown();
     }
 
     private URI getRegistryUri() {
