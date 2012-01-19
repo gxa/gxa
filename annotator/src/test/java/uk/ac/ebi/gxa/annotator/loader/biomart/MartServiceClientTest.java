@@ -62,7 +62,7 @@ public class MartServiceClientTest {
 
     private MartServiceClient initClient() throws URISyntaxException {
         HttpClient httpClient = new DefaultHttpClient();
-        return new MartServiceClient(httpClient, "http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
+        return new MartServiceClientImpl(httpClient, "http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");
     }
 
 }
