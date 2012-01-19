@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.data;
+package uk.ac.ebi.microarray.atlas.model;
 
 import java.util.Comparator;
 

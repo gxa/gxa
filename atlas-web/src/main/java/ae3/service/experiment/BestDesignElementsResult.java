@@ -1,7 +1,7 @@
 package ae3.service.experiment;
 
 import ae3.model.AtlasGene;
-import uk.ac.ebi.gxa.data.DesignElementStatistics;
+import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 
 import java.util.*;
 

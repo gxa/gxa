@@ -20,10 +20,9 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.data;
+package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 /**
  * Statistics together with DE details

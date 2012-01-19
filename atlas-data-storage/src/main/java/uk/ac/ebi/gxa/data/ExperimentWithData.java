@@ -39,6 +39,7 @@ import java.util.*;
 import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
+import static java.lang.Float.isNaN;
 import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
@@ -229,6 +230,8 @@ public class ExperimentWithData implements Closeable {
     private List<ExpressionAnalysis> getExpressionAnalysesByFactor(
             ArrayDesign arrayDesign, int deIndex,
             @Nullable String efName, @Nullable String efvName) throws AtlasDataException, StatisticsNotFoundException {
+
+
         final String deAccession = getDesignElementAccessions(arrayDesign)[deIndex];
         final float[] p = getProxy(arrayDesign).getPValuesForDesignElement(deIndex);
         final float[] t = getProxy(arrayDesign).getTStatisticsForDesignElement(deIndex);
@@ -313,7 +316,7 @@ public class ExperimentWithData implements Closeable {
                     if (!eas.isEmpty()) {
                         if (eas.size() == 1) {
                             final ExpressionAnalysis analysis = eas.get(0);
-                            if (upDownCondition.apply(analysis.getUpDownExpression())) {
+                            if (upDownCondition.apply(analysis.getExpression())) {
                                 eaList.add(analysis);
                             }
                         } else
@@ -324,33 +327,26 @@ public class ExperimentWithData implements Closeable {
                 }
 
                 for (ExpressionAnalysis ea : eaList) {
-                    final String ef = ea.getEfName();
-                    final String efv = ea.getEfvName();
+                    final Pair<String, String> efv = ea.getEfv();
 
-                    Map<String, ExpressionAnalysis> resultForFactor = resultForGene.get(ef);
+                    Map<String, ExpressionAnalysis> resultForFactor = resultForGene.get(efv.getFirst());
                     if (resultForFactor == null) {
                         resultForFactor = new HashMap<String, ExpressionAnalysis>();
-                        resultForGene.put(ef, resultForFactor);
+                        resultForGene.put(efv.getFirst(), resultForFactor);
                     }
 
-                    ExpressionAnalysis prevBestPValueEA = resultForFactor.get(efv);
+                    ExpressionAnalysis prevBestPValueEA = resultForFactor.get(efv.getSecond());
                     if ((prevBestPValueEA == null ||
                             // Mo stats were available in the previously seen ExpressionAnalysis
-                            Float.isNaN(prevBestPValueEA.getPValAdjusted()) || Float.isNaN(prevBestPValueEA.getTStatistic()) ||
+                            isNaN(prevBestPValueEA.getP()) || isNaN(prevBestPValueEA.getT()) ||
                             // Stats are available for ea, an it has a better pValue than the previous  ExpressionAnalysis
-                            (!Float.isNaN(ea.getPValAdjusted()) && prevBestPValueEA.getPValAdjusted() > ea.getPValAdjusted()) ||
+                            (!isNaN(ea.getP()) && prevBestPValueEA.getP() > ea.getP()) ||
                             // Stats are available for ea, both pValues are equals, then the better one is the one with the higher absolute tStat
-                            (!Float.isNaN(ea.getPValAdjusted()) && !Float.isNaN(ea.getTStatistic()) &&
-                                    prevBestPValueEA.getPValAdjusted() == ea.getPValAdjusted() &&
-                                    Math.abs(prevBestPValueEA.getTStatistic()) < Math.abs(ea.getTStatistic())))
+                            (!isNaN(ea.getP()) && !isNaN(ea.getT()) &&
+                                    prevBestPValueEA.getP() == ea.getP() &&
+                                    Math.abs(prevBestPValueEA.getT()) < Math.abs(ea.getT())))
                             ) {
-                        if (ea.getPValAdjusted() > 1) {
-                            // As the NA pvals/tstats  currently come back from ncdfs as 1.0E30, we convert them to Float.NaN
-                            ea.setPValAdjusted(Float.NaN);
-                            ea.setTStatistic(Float.NaN);
-
-                        }
-                        resultForFactor.put(efv, ea);
+                        resultForFactor.put(efv.getSecond(), ea);
                     }
                 }
             }

@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.concurrent.Immutable;

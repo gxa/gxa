@@ -76,7 +76,7 @@ public class ExperimentPart {
             return Collections.emptyList();
         }
         ExpressionAnalysis bestEA = eaByEf.get(efv);
-        return getDeExpressionValues(bestEA.getDesignElementIndex(), ef);
+        return getDeExpressionValues(bestEA.getDeIndex(), ef);
     }
 
     public List<ExpressionValue> getDeExpressionValues(String deAccession, String ef) throws AtlasDataException {

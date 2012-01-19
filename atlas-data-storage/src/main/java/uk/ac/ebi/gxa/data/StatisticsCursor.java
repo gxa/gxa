@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
