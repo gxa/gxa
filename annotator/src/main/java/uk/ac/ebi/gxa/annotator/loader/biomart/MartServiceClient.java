@@ -94,6 +94,14 @@ class MartServiceClient implements Closeable {
                         .setCount(true)));
     }
 
+    public InputStream runAttributesQuery() throws BioMartException, IOException {
+        return httpPost(martUri, asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
+    }
+
+    public InputStream runDatasetListQuery() throws BioMartException, IOException {
+        return httpPost(martUri, asList(new BasicNameValuePair("type", "datasets"), new BasicNameValuePair("mart", getMartName())));
+    }
+
     private InputStream runQuery(MartQuery query) throws BioMartException, IOException {
         return httpPost(martUri, asList(new BasicNameValuePair("query", query.toString())));
     }
@@ -132,6 +140,14 @@ class MartServiceClient implements Closeable {
     }
 
     private String getVirtualSchemaName() throws BioMartException, IOException {
+        return getMartLocation().getVirtualSchema();
+    }
+
+    private String getMartName() throws BioMartException, IOException {
+        return getMartLocation().getName();
+    }
+
+    private MartRegistry.MartUrlLocation getMartLocation() throws IOException, BioMartException {
         if (martLocation == null) {
             MartRegistry registry = fetchRegistry();
             martLocation = registry.find(databaseName + "_mart_");
@@ -140,7 +156,7 @@ class MartServiceClient implements Closeable {
                         ", database = " + databaseName + ", dataset = " + datasetName);
             }
         }
-        return martLocation.getVirtualSchema();
+        return martLocation;
     }
 
     private MartRegistry fetchRegistry() throws IOException, BioMartException {
