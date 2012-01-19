@@ -38,6 +38,7 @@ import java.util.*;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class ExperimentWithData implements Closeable {
@@ -56,10 +57,10 @@ public class ExperimentWithData implements Closeable {
         this.experiment = experiment;
     }
 
-    public StatisticsSnapshot getStatistics(int efvIndex, int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+    public StatisticsCursor getStatistics(int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         StatisticsCursor si = new StatisticsCursor(this, arrayDesign);
-        si.jump(designElementId, efvIndex);
-        return si.getDEStats();
+        si.jump(designElementId, -1);
+        return si;
     }
 
     public Experiment getExperiment() {
@@ -162,7 +163,7 @@ public class ExperimentWithData implements Closeable {
     }
 
     @Deprecated
-    public List<Pair<String, String>> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+    List<Pair<String, String>> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueEFVs();
     }
 
@@ -398,12 +399,12 @@ public class ExperimentWithData implements Closeable {
     }
 
     @Deprecated
-    public TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+    TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getTStatistics();
     }
 
     @Deprecated
-    public TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
+    TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getPValues();
     }
 
@@ -469,6 +470,11 @@ public class ExperimentWithData implements Closeable {
         for (DataProxy p : proxies.values())
             closeQuietly(p);
         proxies.clear();
+    }
+
+    public StatisticsCursor indexableStatistics(ArrayDesign ad, Predicate<Long> bePredicate) throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsCursor(this, ad,
+                bePredicate, NON_EMPTY_EFV);
     }
 
     private class DataUpdater {

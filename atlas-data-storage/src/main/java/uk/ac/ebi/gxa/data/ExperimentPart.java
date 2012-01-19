@@ -51,10 +51,6 @@ public class ExperimentPart {
         return new StatisticsCursor(ewd, arrayDesign, bePredicate, efvPredicate);
     }
 
-    public String[] getDesignElementAccessions() throws AtlasDataException {
-        return ewd.getDesignElementAccessions(arrayDesign);
-    }
-
     public List<Long> getGeneIds() throws AtlasDataException {
         return Longs.asList(ewd.getGenes(arrayDesign));
     }
@@ -101,7 +97,7 @@ public class ExperimentPart {
             throw createUnexpected("Inconsistent parallel arrays in " + toString() + ": " + expressions.length + " != " + assayEfvs.length);
         }
         for (int i = 0; i < expressions.length; i++) {
-            res.add(new ExpressionValue(ef, assayEfvs[i], expressions[i]));
+            res.add(new ExpressionValue(assayEfvs[i], expressions[i]));
         }
         return res;
     }

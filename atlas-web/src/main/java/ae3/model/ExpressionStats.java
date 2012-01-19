@@ -23,10 +23,7 @@
 package ae3.model;
 
 
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
-import uk.ac.ebi.gxa.data.StatisticsSnapshot;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -34,29 +31,19 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 /**
  * Lazy expression statistics class
  *
- * @author pashky
+ * @deprecated to be replaced with {@link StatisticsCursor} ASAP
  */
+@Deprecated
 public class ExpressionStats {
     private final ExperimentWithData experiment;
     private final ArrayDesign arrayDesign;
-    private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
-    private EfvTree<StatisticsSnapshot> lastData;
-    private long lastDesignElement = -1;
+    private EfvTree<StatisticsSnapshot> cachedResult;
+    private long cachedDe = -1;
 
     ExpressionStats(ExperimentWithData experiment, ArrayDesign arrayDesign) throws AtlasDataException {
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
-
-        int valueIndex = 0;
-        try {
-            for (Pair<String, String> uefv : experiment.getUniqueEFVs(arrayDesign)) {
-                efvTree.put(uefv.getKey(), uefv.getValue(), valueIndex);
-                ++valueIndex;
-            }
-        } catch (StatisticsNotFoundException e) {
-            // TODO: ignore
-        }
     }
 
     /**
@@ -67,20 +54,24 @@ public class ExpressionStats {
      * @throws AtlasDataException whenever it wants to
      */
     EfvTree<StatisticsSnapshot> getExpressionStats(int designElementId) throws AtlasDataException {
-        if (lastData != null && designElementId == lastDesignElement) {
-            return lastData;
+        if (cachedResult == null || designElementId != cachedDe) {
+            cachedDe = designElementId;
+            cachedResult = retrieveExpressionStats(designElementId);
         }
+        return cachedResult;
+    }
 
+    private EfvTree<StatisticsSnapshot> retrieveExpressionStats(int designElementId) throws AtlasDataException {
         final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
-            for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                result.put(efefv.getEf(), efefv.getEfv(), experiment.getStatistics(efefv.getPayload(), designElementId, arrayDesign));
+            final StatisticsCursor statistics = experiment.getStatistics(designElementId, arrayDesign);
+            while (statistics.nextEFV()) {
+                final Pair<String, String> efv = statistics.getEfv();
+                result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());
             }
         } catch (StatisticsNotFoundException e) {
             // TODO: throw this exception outside?
         }
-        lastDesignElement = designElementId;
-        lastData = result;
         return result;
     }
 }

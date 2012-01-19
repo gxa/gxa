@@ -35,6 +35,14 @@ import java.util.List;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
+ * A cursor used to navigate a NetCDF-stored statistics
+ * <p/>
+ * Hides the parallel structures (DE, uEFV, P, T) from the programmer, hence making it harder to make an error.
+ * <p/>
+ * As a trade-off, it changes its own state as you go (hence the "Cursor"), and thus should not be stored anywhere
+ * despite the <code>implements DesignElementStatistics</code> part.
+ * Use it to read statistics sequentially, or make copies to store and pass further using a {@link #getSnapshot} method.
+ *
  * @author alf
  */
 public class StatisticsCursor implements DesignElementStatistics {
@@ -62,8 +70,8 @@ public class StatisticsCursor implements DesignElementStatistics {
     private final Predicate<Long> bePredicate;
     private final Predicate<Pair<String, String>> efvPredicate;
 
-    public StatisticsCursor(ExperimentWithData experimentWithData, ArrayDesign ad,
-                            Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+    StatisticsCursor(ExperimentWithData experimentWithData, ArrayDesign ad,
+                     Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
         this.ad = ad;
         this.bePredicate = bePredicate;
@@ -150,7 +158,7 @@ public class StatisticsCursor implements DesignElementStatistics {
         return experiment.getAccession() + "/" + ad.getAccession();
     }
 
-    public StatisticsSnapshot getDEStats() {
+    public StatisticsSnapshot getSnapshot() {
         return new StatisticsSnapshot(this);
     }
 

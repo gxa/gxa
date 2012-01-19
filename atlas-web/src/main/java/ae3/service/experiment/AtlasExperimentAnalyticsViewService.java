@@ -64,7 +64,7 @@ public class AtlasExperimentAnalyticsViewService {
             Best<StatisticsSnapshot> bestDE = Best.create();
             while (stats.nextEFV()) {
                 if (upDownPredicate.apply(stats.getExpression())) {
-                    bestDE.offer(stats.getDEStats());
+                    bestDE.offer(stats.getSnapshot());
                 }
             }
             if (bestDE.isFound())

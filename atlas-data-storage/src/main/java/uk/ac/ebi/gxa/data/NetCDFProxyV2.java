@@ -304,7 +304,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
 
     private NetcdfFile stats() throws StatisticsNotFoundException {
         if (statisticsNetCDF == null) {
-            throw new StatisticsNotFoundException("Statistics file does not exist");
+            throw new StatisticsNotFoundException();
         }
         return statisticsNetCDF;
     }

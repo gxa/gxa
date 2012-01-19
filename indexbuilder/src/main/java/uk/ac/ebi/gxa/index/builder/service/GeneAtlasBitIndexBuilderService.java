@@ -27,7 +27,6 @@ import static com.google.common.base.Predicates.*;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
-import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 
 /**
  * Class used to build ConciseSet-based gene expression statistics index
@@ -129,8 +128,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
-                    StatisticsCursor stats = new StatisticsCursor(experimentWithData, ad,
-                            KNOWN_BIOENTITIES, NON_EMPTY_EFV);
+                    StatisticsCursor stats = experimentWithData.indexableStatistics(ad, KNOWN_BIOENTITIES);
 
                     if (stats.isEmpty()) {
                         //task.skipEmpty(f);
