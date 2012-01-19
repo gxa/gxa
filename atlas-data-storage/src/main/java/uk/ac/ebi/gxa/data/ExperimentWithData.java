@@ -36,13 +36,17 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 
+import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 public class ExperimentWithData implements Closeable {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final static Logger log = LoggerFactory.getLogger(ExperimentWithData.class);
+
+    private static final Predicate<Long> ANY_GENE = alwaysTrue();
+    private static final Predicate<Pair<String, String>> ANY_EFV = alwaysTrue();
 
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
@@ -58,7 +62,7 @@ public class ExperimentWithData implements Closeable {
     }
 
     public StatisticsCursor getStatistics(int designElementId, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        StatisticsCursor si = new StatisticsCursor(this, arrayDesign);
+        StatisticsCursor si = new StatisticsCursor(getProxy(arrayDesign), ANY_GENE, ANY_EFV);
         si.jump(designElementId, -1);
         return si;
     }
@@ -398,16 +402,6 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getAllExpressionData();
     }
 
-    @Deprecated
-    TwoDFloatArray getTStatistics(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        return getProxy(arrayDesign).getTStatistics();
-    }
-
-    @Deprecated
-    TwoDFloatArray getPValues(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
-        return getProxy(arrayDesign).getPValues();
-    }
-
     /**
      * @param geneId
      * @param ef
@@ -472,9 +466,14 @@ public class ExperimentWithData implements Closeable {
         proxies.clear();
     }
 
-    public StatisticsCursor indexableStatistics(ArrayDesign ad, Predicate<Long> bePredicate) throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsCursor(this, ad,
-                bePredicate, NON_EMPTY_EFV);
+    public StatisticsCursor indexableStatistics(ArrayDesign ad, Predicate<Long> bePredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsCursor(getProxy(ad), bePredicate, NON_EMPTY_EFV);
+    }
+
+    StatisticsCursor getStatistics(ArrayDesign arrayDesign, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsCursor(getProxy(arrayDesign), bePredicate, efvPredicate);
     }
 
     private class DataUpdater {

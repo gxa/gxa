@@ -23,10 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import uk.ac.ebi.gxa.utils.Pair;
-import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
@@ -64,34 +61,24 @@ public class StatisticsCursor implements DesignElementStatistics {
     private final TwoDFloatArray pvals;
     private final String[] deAccessions;
 
-    private final ArrayDesign ad;
-    private final Experiment experiment;
-
+    private final DataProxy dataProxy;
     private final Predicate<Long> bePredicate;
     private final Predicate<Pair<String, String>> efvPredicate;
 
-    StatisticsCursor(ExperimentWithData experimentWithData, ArrayDesign ad,
-                     Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+    StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        this.ad = ad;
+        this.dataProxy = dataProxy;
         this.bePredicate = bePredicate;
         this.efvPredicate = efvPredicate;
 
-        experiment = experimentWithData.getExperiment();
-
-        uEFVs = experimentWithData.getUniqueEFVs(ad);
-        tstat = experimentWithData.getTStatistics(ad);
-        pvals = experimentWithData.getPValues(ad);
-        deAccessions = experimentWithData.getDesignElementAccessions(ad);
-        bioentities = experimentWithData.getGenes(ad);
+        uEFVs = dataProxy.getUniqueEFVs();
+        tstat = dataProxy.getTStatistics();
+        pvals = dataProxy.getPValues();
+        deAccessions = dataProxy.getDesignElementAccessions();
+        bioentities = dataProxy.getGenes();
 
         deCount = tstat.getRowCount();
         efvCount = uEFVs.size();
-    }
-
-    StatisticsCursor(ExperimentWithData experimentWithData, ArrayDesign ad)
-            throws AtlasDataException, StatisticsNotFoundException {
-        this(experimentWithData, ad, Predicates.<Long>alwaysTrue(), Predicates.<Pair<String, String>>alwaysTrue());
     }
 
     @Override
@@ -155,7 +142,7 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public String toString() {
-        return experiment.getAccession() + "/" + ad.getAccession();
+        return "cursor over" + dataProxy;
     }
 
     public StatisticsSnapshot getSnapshot() {
