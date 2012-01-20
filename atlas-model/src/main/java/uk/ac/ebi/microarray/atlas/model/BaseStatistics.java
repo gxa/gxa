@@ -27,19 +27,17 @@ import java.util.Comparator;
 import static java.lang.Math.abs;
 
 /**
- * An interface defining the approach to statistics in Atlas
+ * An interface defining what's meant by "Statistics" in Atlas
  * <p/>
- * Every experiment is treated individually as follows:
- * <ol>
- * <li>Data is taken as normalized by original submitters/authors.</li>
- * <li>For every experimental variable ("factor") a set of gene-wise linear models is constructed,
- * coefficients are moderated and one-way multiple comparisons with the mean (MCM) contrasts are computed. [1]</li>
- * <li>Post-hoc tests are used to compute and identify contrasts of interest with respective t-statistics and
- * globally adjusted p-values.</li>
- * </ol>
- * Thus for each experiment-condition pair we have, for each gene in the experiment,
- * a direction and a p-value indicating the strength of differential expression
- * in contrast to groups defined by the experimental variable that the condition belongs to.
+ * Basically, we carry P and T values all around, sort basing on those (in different ways),
+ * rank the results basing on those, etc. This entity encapsulates what we know about statistics, so that
+ * if we decide to move from P and T to P and, say, F, we'd know how to find the loose ends.
+ * <p/>
+ * Additionally, it's a temporary tool for making sure there are no loose ends right now.
+ * Whether we actually need this after the refactoring
+ * (see <a href="http://bar.ebi.ac.uk:8080/trac/ticket/3150">ticket:3150</a>) is an open question,
+ * and the easiest way to answer is to finish with the change and see whether it's the next candidate
+ * to be removed.
  *
  * @author alf
  */
