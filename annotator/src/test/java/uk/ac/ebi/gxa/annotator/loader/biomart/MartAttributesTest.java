@@ -22,20 +22,22 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.junit.Test;
+
 import java.util.Collection;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+
 /**
- * @author Olga Melnichuk
+ * User: nsklyar
+ * Date: 20/01/2012
  */
-public interface MartServiceClient {
-
-    public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException;
-
-    public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException;
-
-    public Collection<String> runAttributesQuery() throws BioMartException, IOException;
-
-    public Collection<String> runDatasetListQuery() throws BioMartException, IOException;
+public class MartAttributesTest {
+    @Test
+    public void testParse() throws Exception {
+        final Collection<String> result = MartAttributes.parseAttributes(MartAttributesTest.class.getResource("attributes.txt").openStream());
+        assertEquals(4, result.size());
+        assertTrue(result.contains("ensembl_transcript_id"));
+    }
 }

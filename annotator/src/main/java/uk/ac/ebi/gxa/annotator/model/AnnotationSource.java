@@ -256,8 +256,6 @@ public abstract class AnnotationSource {
 
     public abstract AnnotationSourceConnection createConnection();
 
-    public abstract Collection<String> findInvalidProperties();
-
     @Override
     public String toString() {
         return "AnnotationSource{" +

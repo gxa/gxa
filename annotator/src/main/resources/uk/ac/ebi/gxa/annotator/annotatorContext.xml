@@ -63,6 +63,10 @@
     <bean name="annotationSourceConverterFactory"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.ConverterFactory"/>
 
-     <bean name="annotatorFactory"
+    <bean name="annotatorFactory"
           class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory"/>
+
+    <bean name="annSrcValidatorFactory"
+          class="uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidatorFactory"/>
+
 </beans>

@@ -20,22 +20,25 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader.biomart;
+package uk.ac.ebi.gxa.annotator.loader.genesig;
 
-import java.io.IOException;
-import java.io.InputStream;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
+
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Olga Melnichuk
+ * User: nsklyar
+ * Date: 20/01/2012
  */
-public interface MartServiceClient {
+public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<FileBasedAnnotationSource>{
 
-    public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException;
+    @Override
+    public Collection<String> getInvalidPropertyNames(FileBasedAnnotationSource annotationSource) {
+        Set<String> invalidProperties = new HashSet<String>();
 
-    public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException;
-
-    public Collection<String> runAttributesQuery() throws BioMartException, IOException;
-
-    public Collection<String> runDatasetListQuery() throws BioMartException, IOException;
+        return invalidProperties;
+    }
 }

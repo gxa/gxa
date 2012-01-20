@@ -22,13 +22,12 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import com.google.common.io.CharStreams;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.Test;
 
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.Collection;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertTrue;
@@ -39,17 +38,19 @@ import static org.junit.Assert.assertTrue;
  */
 public class MartServiceClientTest {
     @Test
-    public void testRunQuery() throws Exception {
+    public void testRunAttributesQuery() throws Exception {
         MartServiceClient martServiceClient = initClient();
-        String content = CharStreams.toString(new InputStreamReader(martServiceClient.runAttributesQuery()));
-        assertTrue(content.length() > 0);
+        final Collection<String> result = martServiceClient.runAttributesQuery();
+        assertTrue(result.size() > 0);
+        System.out.println("result = " + result);
     }
 
     @Test
     public void testRunDatasetListQuery() throws Exception {
         MartServiceClient martServiceClient = initClient();
-        String content = CharStreams.toString(new InputStreamReader(martServiceClient.runDatasetListQuery()));
-        assertTrue(content.length() > 0);
+        final Collection<String> result = martServiceClient.runDatasetListQuery();
+        assertTrue(result.size() > 0);
+        System.out.println("result = " + result);
     }
 
     @Test

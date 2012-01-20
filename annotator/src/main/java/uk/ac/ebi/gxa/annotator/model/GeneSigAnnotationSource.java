@@ -59,18 +59,6 @@ public class GeneSigAnnotationSource extends FileBasedAnnotationSource {
         return new GeneSigConnection(this.getUrl());
     }
 
-    @Override
-    public Collection<String> findInvalidProperties() {
-        Collection<String> result = new HashSet<String>();
-        try {
-            final GeneSigConnection connection = createConnection();
-            connection.validateAttributeNames(getExternalPropertyNames());
-            return result;
-        } catch (AnnotationSourceAccessException e) {
-            throw LogUtil.createUnexpected("Problem when fetching version for " + this.getSoftware().getName(), e);
-        }
-    }
-
     public char getSeparator() {
         return ',';
     }

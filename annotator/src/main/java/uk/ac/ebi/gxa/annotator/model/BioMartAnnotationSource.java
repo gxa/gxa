@@ -155,21 +155,4 @@ public class BioMartAnnotationSource extends AnnotationSource {
         return BioMartConnection.createConnection(this.getUrl(), this.getDatabaseName(), this.getDatasetName());
     }
 
-    @Override
-    public Collection<String> findInvalidProperties() {
-        Collection<String> missingProperties = new HashSet<String>();
-        try {
-            final BioMartConnection connection = createConnection();
-            missingProperties.addAll(connection.validateAttributeNames(getExternalPropertyNames()));
-            missingProperties.addAll(connection.validateAttributeNames(getExternalArrayDesignNames()));
-            if (!connection.isValidDataSetName()) {
-                missingProperties.add(this.getDatasetName());
-            }
-        } catch (AnnotationSourceAccessException e) {
-            throw LogUtil.createUnexpected("Problem when fetching version for " + this.getSoftware().getName(), e);
-        }
-        return missingProperties;
-    }
-
-
 }

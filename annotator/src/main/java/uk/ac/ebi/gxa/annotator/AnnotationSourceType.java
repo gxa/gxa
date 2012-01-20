@@ -24,6 +24,8 @@ package uk.ac.ebi.gxa.annotator;
 
 import uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceConverter;
 import uk.ac.ebi.gxa.annotator.annotationsrc.ConverterFactory;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidatorFactory;
 import uk.ac.ebi.gxa.annotator.loader.Annotator;
 import uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
@@ -45,6 +47,11 @@ public enum AnnotationSourceType {
         public Annotator createAnnotator(AnnotatorFactory factory, AnnotationSource annSrc) {
             return factory.createBioMartAnnotator((BioMartAnnotationSource) annSrc);
         }
+
+        @Override
+        public AnnotationSourcePropertiesValidator createPropertiesValidator(AnnotationSourcePropertiesValidatorFactory factory) {
+            return factory.createMartPropertiesValidator();
+        }
     },
     GENESIGDB(GeneSigAnnotationSource.class, "GeneSigDB") {
         @Override
@@ -55,6 +62,11 @@ public enum AnnotationSourceType {
         @Override
         public AnnotationSourceConverter createConverter(ConverterFactory factory) {
             return factory.getGeneSigAnnotationSourceConverter();
+        }
+
+        @Override
+        public AnnotationSourcePropertiesValidator createPropertiesValidator(AnnotationSourcePropertiesValidatorFactory factory) {
+            return factory.createFileBasedPropertiesValidator();
         }
     };
 
@@ -95,4 +107,6 @@ public enum AnnotationSourceType {
     public abstract Annotator createAnnotator(AnnotatorFactory factory, AnnotationSource annSrc);
 
     public abstract AnnotationSourceConverter createConverter(ConverterFactory factory);
+
+    public abstract <T extends AnnotationSource> AnnotationSourcePropertiesValidator<T> createPropertiesValidator(AnnotationSourcePropertiesValidatorFactory factory);
 }

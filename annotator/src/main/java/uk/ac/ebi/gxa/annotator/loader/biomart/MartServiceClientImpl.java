@@ -35,6 +35,8 @@ import org.apache.http.client.utils.URIUtils;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -61,6 +63,8 @@ import static java.util.Arrays.asList;
  * @author Olga Melnichuk
  */
 class MartServiceClientImpl implements MartServiceClient {
+
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final URI martUri;
     private final String databaseName;
@@ -96,16 +100,20 @@ class MartServiceClientImpl implements MartServiceClient {
     }
 
     @Override
-    public InputStream runAttributesQuery() throws BioMartException, IOException {
-        return httpPost(martUri, asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
+    public Collection<String> runAttributesQuery() throws BioMartException, IOException {
+        final InputStream inputStream = httpPost(martUri, asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
+        return MartAttributes.parseAttributes(inputStream);
     }
 
     @Override
-    public InputStream runDatasetListQuery() throws BioMartException, IOException {
-        return httpPost(martUri, asList(new BasicNameValuePair("type", "datasets"), new BasicNameValuePair("mart", getMartName())));
+    public Collection<String> runDatasetListQuery() throws BioMartException, IOException {
+        final InputStream inputStream = httpPost(martUri, asList(new BasicNameValuePair("type", "datasets"), new BasicNameValuePair("mart", getMartName())));
+        return MartAttributes.parseDataSets(inputStream);
     }
 
     private InputStream runQuery(MartQuery query) throws BioMartException, IOException {
+        log.debug(query.toString());
+        log.debug(martUri.toString());
         return httpPost(martUri, asList(new BasicNameValuePair("query", query.toString())));
     }
 
@@ -168,9 +176,9 @@ class MartServiceClientImpl implements MartServiceClient {
             in = httpGet(getRegistryUri());
             return MartRegistry.parse(in);
         } catch (SAXException e) {
-            throw new BioMartException("Failed to parse BioMart registry response", e);
+            throw new BioMartException("Failed to parseAttributes BioMart registry response", e);
         } catch (ParserConfigurationException e) {
-            throw new BioMartException("Failed to parse BioMart registry response", e);
+            throw new BioMartException("Failed to parseAttributes BioMart registry response", e);
         } finally {
             closeQuietly(in);
         }
