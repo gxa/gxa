@@ -42,6 +42,8 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
 
+import static org.junit.Assert.*;
+
 /**
  * User: nsklyar
  * Date: 23/08/2011

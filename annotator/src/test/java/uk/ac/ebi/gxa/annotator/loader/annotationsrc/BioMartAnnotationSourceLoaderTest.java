@@ -41,6 +41,10 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Collection;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * User: nsklyar
  * Date: 22/08/2011
