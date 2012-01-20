@@ -72,10 +72,10 @@ public class BioEntityAnnotationData {
             if (value.length() < PROPERTY_VALUE_DB_FIELD_SIZE) {
                 Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
                 typeToBEPropValues.put(bioEntityType, beProperty);
-
                 propertyValues.add(pv);
+                return;
             }
-            log.warn("Invalid BE property value: {}" + pv.getValue());
+            log.warn("Invalid BE property value: {}", pv.getValue());
         }
     }
 
