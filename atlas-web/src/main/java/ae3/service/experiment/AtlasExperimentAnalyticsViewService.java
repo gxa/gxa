@@ -2,7 +2,6 @@ package ae3.service.experiment;
 
 import ae3.dao.GeneSolrDAO;
 import com.google.common.base.Predicate;
-import it.uniroma3.mat.extendedset.FastSet;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.Best;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -77,9 +76,6 @@ public class AtlasExperimentAnalyticsViewService {
 
     private BestDesignElementsResult convert(ExperimentPart expPart, List<StatisticsSnapshot> sublist, int totalSize)
             throws AtlasDataException, StatisticsNotFoundException {
-
-        final List<Long> allGeneIds = expPart.getGeneIds();
-
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
         result.setTotalSize(totalSize);
@@ -88,16 +84,4 @@ public class AtlasExperimentAnalyticsViewService {
         }
         return result;
     }
-
-    private static FastSet selectedDesignElements(List<Long> allGeneIds, final Predicate<Long> geneIdPredicate) {
-        FastSet result = new FastSet();
-        for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
-            final Long geneId = allGeneIds.get(deidx);
-            if (geneId > 0 && geneIdPredicate.apply(geneId)) {
-                result.add(deidx);
-            }
-        }
-        return result;
-    }
-
 }
