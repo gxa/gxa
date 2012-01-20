@@ -118,11 +118,20 @@ read.atlas.nc <<-
 
 ### Log function that does not return NAs
 log2.safe <-
-  function(x,log = T) {
-    if (!log)
+  function(x) {
+    # Assumption is, expression levels are > 0 unless someone has _already_ applied log.
+    # If the levels are < 1000, we're fine without log: moreover, that may as well mean
+    # all the expression levels were > 1 (why not?), and someone has already applied log.
+    # If the values are more than 1000, then log definitely was not used before, as 2^1000
+    # is just way too much for expression level value.
+    if (min(x, na.rm = TRUE) < 0 || max(x, na.rm = TRUE) < 1000)
       return(x)
 
-    tmp = log2(x - min(x) + 1e-10)
+    print("Taking log2 of the expression matrix")
+
+    # For most values, 1e-10 is far smaller than the precision expected, so we can add it and be (almost) sure
+    # we've got rid of zeros without disturbing the stats.
+    tmp = log2(x + 1e-10)
     tmp[!(is.finite(tmp) | is.na(x))] <- 0
     tmp
 }
@@ -151,10 +160,7 @@ allupdn <-
     require(limma)
 
     exprs = exprs(eset)
-    if (max(exprs,na.rm = TRUE) > 1000 && min(exprs, na.rm = TRUE) >= 0) {
-      print("Taking log2 of the expression matrix")
-      exprs(eset) = log2.safe(exprs)
-    }
+    exprs(eset) = log2.safe(exprs)
 
     allFits = list()
 
