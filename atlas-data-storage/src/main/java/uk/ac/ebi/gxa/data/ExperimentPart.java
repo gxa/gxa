@@ -31,6 +31,7 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.filter;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -49,10 +50,6 @@ public class ExperimentPart {
                                                   Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getStatistics(arrayDesign, bePredicate, efvPredicate);
-    }
-
-    public List<Long> getGeneIds() throws AtlasDataException {
-        return Longs.asList(ewd.getGenes(arrayDesign));
     }
 
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(Collection<Long> geneIds)
@@ -126,5 +123,13 @@ public class ExperimentPart {
             }
         }
         return false;
+    }
+
+    boolean contaisBioEntity(Predicate<Long> be) throws AtlasDataException {
+        return filter(Longs.asList(ewd.getGenes(arrayDesign)), be).iterator().hasNext();
+    }
+
+    boolean containsAllBioEntities(Collection<Long> bes) throws AtlasDataException {
+        return Longs.asList(ewd.getGenes(arrayDesign)).containsAll(bes);
     }
 }

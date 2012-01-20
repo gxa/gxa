@@ -34,7 +34,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Iterables.filter;
 
 /**
  * @author Olga Melnichuk
@@ -106,14 +105,15 @@ public class ExperimentPartCriteria {
         static Predicate<ExperimentPart> containsGenes(final Collection<Long> geneIds) {
             return new Predicate<ExperimentPart>() {
                 @Override
-                public boolean apply(@Nonnull ExperimentPart expPart) {
+                public boolean apply(@Nullable ExperimentPart expPart) {
                     try {
-                        return expPart.getGeneIds().containsAll(geneIds);
+                        return expPart != null && expPart.containsAllBioEntities(geneIds);
                     } catch (AtlasDataException e) {
                         log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
                         return false;
                     }
                 }
+
             };
         }
 
@@ -122,7 +122,7 @@ public class ExperimentPartCriteria {
                 @Override
                 public boolean apply(@Nullable ExperimentPart expPart) {
                     try {
-                        return expPart != null && filter(expPart.getGeneIds(), genes).iterator().hasNext();
+                        return expPart != null && expPart.contaisBioEntity(genes);
                     } catch (AtlasDataException e) {
                         log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
                         return false;
@@ -134,9 +134,9 @@ public class ExperimentPartCriteria {
         static Predicate<ExperimentPart> containsDeAccessions(final Collection<String> deAccessions) {
             return new Predicate<ExperimentPart>() {
                 @Override
-                public boolean apply(@Nonnull ExperimentPart expPart) {
+                public boolean apply(@Nullable ExperimentPart expPart) {
                     try {
-                        return expPart.containsDeAccessions(deAccessions);
+                        return expPart != null && expPart.containsDeAccessions(deAccessions);
                     } catch (AtlasDataException e) {
                         log.error("Failed to retrieve data for pair: " + expPart.toString(), e);
                         return false;
@@ -148,8 +148,8 @@ public class ExperimentPartCriteria {
         static Predicate<ExperimentPart> hasArrayDesignAccession(final String adAccession) {
             return new Predicate<ExperimentPart>() {
                 @Override
-                public boolean apply(@Nonnull ExperimentPart expPart) {
-                    return adAccession.equals(expPart.getArrayDesign().getAccession());
+                public boolean apply(@Nullable ExperimentPart expPart) {
+                    return expPart != null && adAccession.equals(expPart.getArrayDesign().getAccession());
                 }
             };
         }
