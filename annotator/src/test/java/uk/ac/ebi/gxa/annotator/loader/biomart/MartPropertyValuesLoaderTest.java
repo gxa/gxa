@@ -48,6 +48,10 @@ import static uk.ac.ebi.gxa.annotator.Tables.transpose;
 import static uk.ac.ebi.gxa.annotator.loader.biomart.MartServiceClientFactory.newMartClient;
 
 /**
+ * It checks that the data loaded from a .tsv file correctly parsed by the parser.
+ * The content of .tsv file are generated from the predefined values to easy verify
+ * data afterwards.
+ * <p/>
  * ID_PROPERTY_1        ID_PROPERTY_2       PROPERTY
  * ENSBTAT00000015116	ENSBTAG00000025314	extracellular region
  * ENSBTAT00000057520	ENSBTAG00000039669
@@ -80,17 +84,17 @@ public class MartPropertyValuesLoaderTest {
         BioEntityAnnotationData data = builder.build(annotSource.getTypes());
         Collection<BEPropertyValue> propValues = data.getPropertyValues();
         List<String> expectedPropValues = TSV_TRANSPOSED.get("prop");
-        for(BEPropertyValue propValue : propValues) {
+        for (BEPropertyValue propValue : propValues) {
             assertEquals(prop, propValue.getProperty());
             String v = propValue.getValue();
             assertTrue(!isNullOrEmpty(v));
             assertTrue(expectedPropValues.contains(v));
         }
 
-        for(BioEntityType type : annotSource.getTypes()) {
+        for (BioEntityType type : annotSource.getTypes()) {
             List<String> identifiers = TSV_TRANSPOSED.get(type.getName());
             Collection<Pair<String, BEPropertyValue>> values = data.getPropertyValuesForBioEntityType(type);
-            for(Pair<String, BEPropertyValue> v : values) {
+            for (Pair<String, BEPropertyValue> v : values) {
                 assertTrue(identifiers.contains(v.getFirst()));
                 int rowNum = expectedPropValues.indexOf(v.getSecond().getValue());
                 assertEquals(

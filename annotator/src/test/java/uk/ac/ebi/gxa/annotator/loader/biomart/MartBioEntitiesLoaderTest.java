@@ -44,7 +44,11 @@ import static uk.ac.ebi.gxa.annotator.Tables.transpose;
 import static uk.ac.ebi.gxa.annotator.loader.biomart.MartServiceClientFactory.newMartClient;
 
 /**
- * ID_PROPERTY_1    ID_PROPERTY_2
+ * It checks that the data loaded from a .tsv file correctly parsed by the parser.
+ * The content of .tsv file are generated from the predefined values to easy verify
+ * data afterwards.
+ * <p/>
+ * ID_PROPERTY_1       ID_PROPERTY_2
  * ENSBTAT00000057520  ENSBTAG00000039669
  * ENSBTAT00000049990  ENSBTAG00000039669
  * ENSBTAT00000015116  ENSBTAG00000025314
