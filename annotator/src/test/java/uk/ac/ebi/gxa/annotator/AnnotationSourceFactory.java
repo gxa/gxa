@@ -23,7 +23,9 @@
 package uk.ac.ebi.gxa.annotator;
 
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -49,6 +51,7 @@ public class AnnotationSourceFactory {
         private final Map<String, BioEntityType> types = new LinkedHashMap<String, BioEntityType>();
         private final Map<String, BioEntityProperty> properties = new LinkedHashMap<String, BioEntityProperty>();
         private final Map<String, ExternalBioEntityProperty> extProperties = new LinkedHashMap<String, ExternalBioEntityProperty>();
+        private final List<ExternalArrayDesign> arrayDesigns = new ArrayList<ExternalArrayDesign>();
 
         private BioEntityProperty getOrCreateProperty(String name) {
             BioEntityProperty prop = properties.get(name);
@@ -61,6 +64,10 @@ public class AnnotationSourceFactory {
 
         private Collection<ExternalBioEntityProperty> getExternalProperties() {
             return extProperties.isEmpty() ? newExternalProperties() : extProperties.values();
+        }
+
+        private Collection<ExternalArrayDesign> getExternalArrayDesigns() {
+            return arrayDesigns;
         }
 
         private Collection<BioEntityType> getBioEntityTypes() {
@@ -152,20 +159,36 @@ public class AnnotationSourceFactory {
             return this;
         }
 
+        /**
+         * Creates ExternalArrayDesign object to be added to the annotation source.
+         * Optional: if no array design set, it will be considered empty.
+         *
+         * @param adAcc     local array design accession
+         * @param extAdName external array design name
+         * @return the original annotation builder instance
+         */
+        public BioMartAnnotationSourceBuilder arrayDesign(@Nonnull String adAcc, @Nonnull String extAdName) {
+            arrayDesigns.add(new ExternalArrayDesign(extAdName, new ArrayDesign(adAcc), null));
+            return this;
+        }
+
         public BioMartAnnotationSource create() {
             Organism org = newOrganism(organism);
             Software sw = newSoftware(software);
 
             BioMartAnnotationSource annotSource = new BioMartAnnotationSource(sw, org);
-            Collection<ExternalBioEntityProperty> extProps = getExternalProperties();
-            for (ExternalBioEntityProperty extProp : extProps) {
+            for (ExternalBioEntityProperty extProp : getExternalProperties()) {
                 extProp.setAnnotationSrc(annotSource);
                 annotSource.addExternalProperty(extProp);
             }
 
-            Collection<BioEntityType> types = getBioEntityTypes();
-            for (BioEntityType type : types) {
+            for (BioEntityType type : getBioEntityTypes()) {
                 annotSource.addBioEntityType(type);
+            }
+
+            for (ExternalArrayDesign ad : getExternalArrayDesigns()) {
+                ad.setAnnotationSrc(annotSource);
+                annotSource.addExternalArrayDesign(ad);
             }
             return annotSource;
         }
