@@ -24,8 +24,8 @@ public class Tables {
         return out;
     }
 
-    public static Map<String, Collection<String>> convert2map(List<String[]> table) {
-        Map<String, Collection<String>> map = new HashMap<String, Collection<String>>();
+    public static Map<String, List<String>> convert2map(List<String[]> table) {
+        Map<String, List<String>> map = new HashMap<String, List<String>>();
         for (String[] row : table) {
             map.put(row[0], asList(row));
         }

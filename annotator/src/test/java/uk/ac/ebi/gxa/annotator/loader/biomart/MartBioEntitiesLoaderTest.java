@@ -42,6 +42,7 @@ import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.gxa.annotator.AnnotationSourceFactory.newBioMartAnnotationSource;
 import static uk.ac.ebi.gxa.annotator.Tables.convert2map;
 import static uk.ac.ebi.gxa.annotator.Tables.transpose;
+import static uk.ac.ebi.gxa.annotator.loader.biomart.MartServiceClientFactory.newMartClient;
 
 /**
  * ID_PROPERTY_1    ID_PROPERTY_2
@@ -62,14 +63,14 @@ public class MartBioEntitiesLoaderTest {
         }
     };
 
-    private static Map<String, Collection<String>> TSV_TRANSPOSED = convert2map(transpose(TSV));
+    private static Map<String, List<String>> TSV_TRANSPOSED = convert2map(transpose(TSV));
 
     @Test
     public void test() throws InvalidAnnotationDataException, BioMartException, IOException, InvalidCSVColumnException {
         BioMartAnnotationSource annotSource = newAnnotationSource();
 
         BioEntityData.Builder builder = new BioEntityData.Builder(annotSource.getOrganism());
-        new MartBioEntitiesLoader(annotSource, newMartClient()).load(builder);
+        new MartBioEntitiesLoader(annotSource, newMartClient(TSV)).load(builder);
 
         BioEntityData data = builder.build(annotSource.getTypes());
         assertEquals(annotSource.getOrganism(), data.getOrganism());
@@ -92,36 +93,5 @@ public class MartBioEntitiesLoaderTest {
                 .property("prop3", "extProp3")
                 .property("prop4", "extProp4")
                 .create();
-    }
-
-    private static MartServiceClient newMartClient() {
-        StringBuilder sb = new StringBuilder();
-        for (String[] row : TSV) {
-            sb.append(Joiner.on("\t").join(row)).append("\n");
-        }
-        final String columns = sb.toString();
-        final int size = TSV.size() - 1;
-
-        return new MartServiceClient() {
-            @Override
-            public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException {
-                return new ByteArrayInputStream(columns.getBytes("UTF-8"));
-            }
-
-            @Override
-            public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException {
-                return size;
-            }
-
-            @Override
-            public InputStream runAttributesQuery() throws BioMartException, IOException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public InputStream runDatasetListQuery() throws BioMartException, IOException {
-                throw new UnsupportedOperationException();
-            }
-        };
     }
 }
