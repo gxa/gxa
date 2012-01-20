@@ -60,11 +60,6 @@ public class AnnotationSourceManagerTest extends AtlasDAOTestCase {
         manager.setAnnSrcDAO(annSrcDAO);
         manager.setSoftwareDAO(softwareDAO);
     }
-    @Test
-    public void testGetCurrentAnnotationSources() throws Exception {
-        final Collection<AnnotationSource> currentAnnotationSources = manager.getCurrentAnnotationSources();
-        assertEquals(2, currentAnnotationSources.size());
-    }
 
     @Test
     public void testGetAnnSrcString() throws Exception {

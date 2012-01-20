@@ -52,20 +52,10 @@ public class AnnotationSourceManager {
     @Autowired
     protected ConverterFactory annotationSourceConverterFactory;
 
-    public Collection<AnnotationSource> getCurrentAnnotationSources() {
-        final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
-        for (AnnotationSourceType sourceType : AnnotationSourceType.values()) {
-            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = getCurrentAnnotationSourcesOfType(sourceType.getClazz());
-            result.addAll(currentAnnotationSourcesOfType);
-        }
-        return result;
-    }
-
     @Transactional
     public <T extends AnnotationSource> Collection<AnnotationSource> getCurrentAnnotationSourcesOfType(Class<T> type) {
         final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
         final Collection<T> currentAnnSrcs = annSrcDAO.getAnnotationSourcesOfType(type);
-        final Collection<AnnotationSource> oldSources = new HashSet<AnnotationSource>(currentAnnSrcs.size());
         for (AnnotationSource annSrc : currentAnnSrcs) {
             try {
                 AnnotationSourceConnection connection = annSrc.createConnection();
@@ -78,18 +68,17 @@ public class AnnotationSourceManager {
                     Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
                     AnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
                     annSrcDAO.save(newAnnSrc);
-                    oldSources.add(annSrc);
                     result.add(newAnnSrc);
+                    annSrcDAO.remove(annSrc);
                 }
             } catch (AnnotationSourceAccessException e) {
                 throw LogUtil.createUnexpected("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
             }
         }
-        removeAnnSrcs(oldSources);
         return result;
     }
 
-        public String getAnnSrcString(String id, AnnotationSourceType type) {
+    public String getAnnSrcString(String id, AnnotationSourceType type) {
         final AnnotationSourceConverter converter = type.createConverter(annotationSourceConverterFactory);
         return converter.convertToString(id);
     }
@@ -102,12 +91,6 @@ public class AnnotationSourceManager {
             annSrcDAO.save(annotationSource);
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
-        }
-    }
-
-    private <T extends AnnotationSource> void removeAnnSrcs(final Collection<T> annSrcs) {
-        for (T annSrc : annSrcs) {
-            annSrcDAO.remove(annSrc);
         }
     }
 
