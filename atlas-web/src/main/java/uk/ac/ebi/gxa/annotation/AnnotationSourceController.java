@@ -4,6 +4,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceManager;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidatorFactory;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -19,6 +21,9 @@ public class AnnotationSourceController {
     @Autowired
     private AnnotationSourceManager annotationSourceManager;
 
+    @Autowired
+    private AnnotationSourcePropertiesValidatorFactory annSrcValidatorFactory;
+
     public AnnotationSourceController() {
     }
 
@@ -27,7 +32,8 @@ public class AnnotationSourceController {
         for (AnnotationSourceType sourceType : AnnotationSourceType.values()) {
             final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = annotationSourceManager.getCurrentAnnotationSourcesOfType(sourceType.getClazz());
             for (AnnotationSource annSrc : currentAnnotationSourcesOfType) {
-                ValidationReport validationReport = new ValidationReport(annSrc.findInvalidProperties());
+                final AnnotationSourcePropertiesValidator propertiesValidator = sourceType.createPropertiesValidator(annSrcValidatorFactory);
+                ValidationReport validationReport = new ValidationReport(propertiesValidator.getInvalidPropertyNames(annSrc));
                 AnnotationSourceView view = new AnnotationSourceView(annSrc, validationReport);
                 viewSources.add(view);
             }
