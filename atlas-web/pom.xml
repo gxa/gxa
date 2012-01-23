@@ -341,13 +341,11 @@
         <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
-            <version>2.4.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>1.8.0.10</version>
             <scope>test</scope>
         </dependency>
         <!-- 
@@ -374,22 +372,6 @@
             <type>test-jar</type>
             <version>2.0.11-SNAPSHOT</version>
         </dependency>
-
-        <!-- logging dependencies -->
-
-        <dependency> <!-- log4j binding: all logging captured via slf4j sinks to log4j -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency> <!-- log4j itself (note the runtime scope) -->
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-            <scope>runtime</scope>
-        </dependency>
-
 
         <!-- caching - hopefully will not become a permanent fixture -->
         <dependency>
