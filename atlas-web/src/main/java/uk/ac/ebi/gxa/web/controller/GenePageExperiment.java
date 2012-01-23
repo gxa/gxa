@@ -1,13 +1,21 @@
 package uk.ac.ebi.gxa.web.controller;
 
+import com.google.common.base.Function;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.statistics.EfAttribute;
 import uk.ac.ebi.gxa.statistics.ExperimentResult;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
 
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Map;
+
+import static com.google.common.collect.Collections2.transform;
+import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 @JsonSerialize
 public class GenePageExperiment {
@@ -50,7 +58,18 @@ public class GenePageExperiment {
      *
      * @return all factors from the experiment
      */
-    public Set<String> getExperimentFactors() {
-        return experiment.getExperimentFactors();
+    public Collection<Map<String, String>> getExperimentFactors() {
+        return transform(experiment.getFactors(),
+                new Function<Property, Map<String, String>>() {
+                    @Override
+                    public Map<String, String> apply(@Nullable Property input) {
+                        if (input == null)
+                            throw LogUtil.createUnexpected("Null property in an experiment " + experiment);
+
+                        return makeMap(
+                                "name", input.getName(),
+                                "displayName", input.getDisplayName());
+                    }
+                });
     }
 }
