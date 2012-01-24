@@ -227,7 +227,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     }
 
     @Override
-    public TwoDFloatArray getAllExpressionData() throws AtlasDataException {
+    public FloatMatrixProxy getAllExpressionData() throws AtlasDataException {
         return readFloatValuesForAllRows(dataNetCDF, "BDC");
     }
 
@@ -253,53 +253,13 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     }
 
     @Override
-    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
+    public FloatMatrixProxy getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
         return readFloatValuesForAllRows(stats(), "TSTAT");
     }
 
     @Override
-    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
+    public FloatMatrixProxy getPValues() throws AtlasDataException, StatisticsNotFoundException {
         return readFloatValuesForAllRows(stats(), "PVAL");
-    }
-
-    /**
-     * Extracts T-statistic matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract T-statistic for
-     * @return matrix of floats - an array of T-statistic values per each design element index
-     * @throws StatisticsNotFoundException if statisticsNetCDF does not exist
-     * @throws AtlasDataException          if the data could not be read from the dataNetCDF file, or
-     *                                     if array of design element indices contains out of bound indices
-     */
-    @Override
-    public FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
-        return readFloatValuesForRowIndices(stats(), deIndices, "TSTAT");
-    }
-
-    /**
-     * Extracts P-value matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract P-values for
-     * @return matrix of floats - an array of  P-values per each design element index
-     * @throws StatisticsNotFoundException if statisticsNetCDF does not exist
-     * @throws AtlasDataException          if the data could not be read from the statisticsNetCDF file, or
-     *                                     if array of design element indices contains out of bound indices
-     */
-    @Override
-    public FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
-        return readFloatValuesForRowIndices(stats(), deIndices, "PVAL");
-    }
-
-    @Override
-    public float[] getTStatisticsForDesignElement(
-            int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
-        return readFloatValuesForRowIndex(stats(), designElementIndex, "TSTAT");
-    }
-
-    @Override
-    public float[] getPValuesForDesignElement(
-            int designElementIndex) throws AtlasDataException, StatisticsNotFoundException {
-        return readFloatValuesForRowIndex(stats(), designElementIndex, "PVAL");
     }
 
     private NetcdfFile stats() throws StatisticsNotFoundException {

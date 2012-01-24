@@ -85,26 +85,14 @@ interface DataProxy extends Closeable {
      */
     FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
 
-    TwoDFloatArray getAllExpressionData() throws AtlasDataException;
+    FloatMatrixProxy getAllExpressionData() throws AtlasDataException;
 
     @Deprecated
     List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
 
     @Deprecated
-    TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
+    FloatMatrixProxy getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
 
     @Deprecated
-    TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException;
-
-    @Deprecated
-    FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
-
-    @Deprecated
-    FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
-
-    @Deprecated
-    float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
-
-    @Deprecated
-    float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
+    FloatMatrixProxy getPValues() throws AtlasDataException, StatisticsNotFoundException;
 }

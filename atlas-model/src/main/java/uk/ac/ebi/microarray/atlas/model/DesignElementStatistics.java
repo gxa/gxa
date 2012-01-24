@@ -25,6 +25,8 @@ package uk.ac.ebi.microarray.atlas.model;
 import com.google.common.base.Predicate;
 import uk.ac.ebi.gxa.utils.Pair;
 
+import javax.annotation.Nonnull;
+
 import static com.google.common.base.Predicates.alwaysTrue;
 
 /**
@@ -36,10 +38,13 @@ public interface DesignElementStatistics extends BaseStatistics {
     Predicate<Long> ANY_GENE = alwaysTrue();
     Predicate<Pair<String, String>> ANY_EFV = alwaysTrue();
 
+    @Nonnull
     Pair<String, String> getEfv();
 
+    @Nonnull
     String getDeAccession();
 
+    @Nonnull
     UpDownExpression getExpression();
 
     long getBioEntityId();

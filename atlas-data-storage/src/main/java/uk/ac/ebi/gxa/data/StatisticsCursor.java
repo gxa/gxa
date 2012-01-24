@@ -27,10 +27,12 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
  * A cursor used to navigate a NetCDF-stored statistics
@@ -51,26 +53,38 @@ public class StatisticsCursor implements DesignElementStatistics {
         }
     };
 
-    private int i = -1, j = -1;
+    private int dii = -1, efvi = -1;
 
     private final int deCount;
     private final int efvCount;
 
     private final List<Pair<String, String>> uEFVs;
     private final long[] bioentities;
-    private final TwoDFloatArray tstat;
-    private final TwoDFloatArray pvals;
+    private final FloatMatrixProxy tstat;
+    private final FloatMatrixProxy pvals;
     private final String[] deAccessions;
 
     private final DataProxy dataProxy;
     private final Predicate<Long> bePredicate;
     private final Predicate<Pair<String, String>> efvPredicate;
+    private final int[] des;
 
     StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
+        this(dataProxy, bePredicate, efvPredicate, arrayOfIndices(dataProxy.getDesignElementAccessions().length));
+    }
+
+    StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate, int de)
+            throws AtlasDataException, StatisticsNotFoundException {
+        this(dataProxy, bePredicate, efvPredicate, new int[]{de});
+    }
+
+    StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate, int[] des)
             throws AtlasDataException, StatisticsNotFoundException {
         this.dataProxy = dataProxy;
         this.bePredicate = bePredicate;
         this.efvPredicate = efvPredicate;
+        this.des = des;
 
         uEFVs = dataProxy.getUniqueEFVs();
         tstat = dataProxy.getTStatistics();
@@ -82,29 +96,31 @@ public class StatisticsCursor implements DesignElementStatistics {
         efvCount = uEFVs.size();
     }
 
+    @Nonnull
     @Override
     public UpDownExpression getExpression() {
         return UpDownExpression.valueOf(getP(), getT());
     }
 
+    @Nonnull
     @Override
     public Pair<String, String> getEfv() {
-        return uEFVs.get(j);
+        return uEFVs.get(efvi);
     }
 
     @Override
     public long getBioEntityId() {
-        return bioentities[i];
+        return bioentities[de()];
     }
 
     @Override
     public float getT() {
-        return tstat.get(i, j);
+        return tstat.get(de(), efvi);
     }
 
     @Override
     public float getP() {
-        return pvals.get(i, j);
+        return pvals.get(de(), efvi);
     }
 
     public boolean isEmpty() {
@@ -114,12 +130,13 @@ public class StatisticsCursor implements DesignElementStatistics {
     @Override
     @Deprecated
     public int getDeIndex() {
-        return i;
+        return de();
     }
 
+    @Nonnull
     @Override
     public String getDeAccession() {
-        return deAccessions[i];
+        return deAccessions[de()];
     }
 
     public int getEfvCount() {
@@ -131,15 +148,15 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public boolean nextEFV() {
-        for (j++; j < efvCount && !efvPredicate.apply(uEFVs.get(j)); j++) {
+        for (efvi++; efvi < efvCount && !efvPredicate.apply(uEFVs.get(efvi)); efvi++) {
         }
-        return j < efvCount;
+        return efvi < efvCount;
     }
 
     public boolean nextBioEntity() {
-        for (i++; i < deCount && !bePredicate.apply(bioentities[i]); i++) {
+        for (dii++; dii < des.length && !bePredicate.apply(bioentities[de()]); dii++) {
         }
-        return i < deCount;
+        return dii < des.length;
     }
 
     public String toString() {
@@ -150,17 +167,27 @@ public class StatisticsCursor implements DesignElementStatistics {
         return new StatisticsSnapshot(this);
     }
 
-    /**
-     * NEVER USE ME
-     * <p/>
-     * It is only here to support a <em>temporary</em> solution for a legacy code.
-     *
-     * @param de  design element index to jump to
-     * @param efv experiment factor value index to jump to
-     */
-    @Deprecated
-    void jump(int de, int efv) {
-        i = de;
-        j = efv;
+    public float[] getRawExpression() {
+        try {
+            Pair<String, String> efv = getEfv();
+
+            // TODO: filter by EFV
+            dataProxy.getFactors();
+            return dataProxy.getExpressionDataForDesignElementAtIndex(de());
+        } catch (AtlasDataException e) {
+            throw createUnexpected("Failed to read expression data", e);
+        }
+    }
+
+    private int de() {
+        return des[dii];
+    }
+
+    private static int[] arrayOfIndices(int length) {
+        int[] indices = new int[length];
+        for (int i = 0; i < indices.length; i++) {
+            indices[i] = i;
+        }
+        return indices;
     }
 }

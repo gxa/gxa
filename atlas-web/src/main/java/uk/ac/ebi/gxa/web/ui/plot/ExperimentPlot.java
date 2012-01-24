@@ -24,19 +24,20 @@ package uk.ac.ebi.gxa.web.ui.plot;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueOrdering;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Maps.newTreeMap;
 import static com.google.common.primitives.Ints.asList;
 import static java.util.Collections.unmodifiableList;
 
@@ -96,11 +97,12 @@ public class ExperimentPlot {
         expressions = ewd.getExpressionValues(ad, deIndices);
 
         efNames = createEfNames(ewd.getFactors(ad), stringConverter);
-        efvNames = Lists.newArrayList();
-        efEfvAssays = Maps.newHashMap();
+        efvNames = newArrayList();
+        efEfvAssays = newHashMap();
 
         String[][] factorValues = ewd.getFactorValues(ad);
 
+        // for all EFs
         for (int i = 0; i < efNames.size(); i++) {
             String[] efvs = factorValues[i];
 
@@ -110,7 +112,9 @@ public class ExperimentPlot {
              * efEfvAssays.get(i).get(j) approach is fail) or to use an explicit cast or
              * copy Collection into a new ArrayList.
              */
-            Map<String, List<Integer>> efvMap = Maps.newTreeMap(FACTOR_VALUE_COMPARATOR);
+            Map<String, List<Integer>> efvMap = newTreeMap();
+
+            // for all non-empty EFVs
             for (int j = 0; j < efvs.length; j++) {
                 String efv = efvs[j];
                 if (isNullOrEmpty(efv) || "(empty)".equals(efv)) {
@@ -118,8 +122,7 @@ public class ExperimentPlot {
                 }
                 List<Integer> assays = efvMap.get(efv);
                 if (assays == null) {
-                    assays = Lists.newArrayList();
-                    efvMap.put(efv, assays);
+                    efvMap.put(efv, assays = newArrayList());
                 }
                 assays.add(j);
             }
@@ -128,8 +131,7 @@ public class ExperimentPlot {
 
             Map<Integer, List<Integer>> efvAssays = efEfvAssays.get(i);
             if (efvAssays == null) {
-                efvAssays = Maps.newHashMap();
-                efEfvAssays.put(i, efvAssays);
+                efEfvAssays.put(i, efvAssays = newHashMap());
             }
 
             int efvIndex = 0;
@@ -139,7 +141,35 @@ public class ExperimentPlot {
         }
 
         try {
-            prepareBoxAndWhiskerData(ewd.getExpressionStatistics(ad, deIndices));
+            StatisticsCursor statistics = ewd.getStatistics(ad, deIndices);
+            boxAndWhisker = newArrayList();
+
+            // for all (selected) DEs
+            while (statistics.nextBioEntity()) {
+                List<BoxAndWhisker> list = newArrayList();
+                DoubleIndexIterator<String> efEfvIterator = new DoubleIndexIterator<String>(efvNames);
+
+                // for all (selected) EFVs
+                while (statistics.nextEFV()) {
+                    DoubleIndexIterator.Entry<String> efEfv = efEfvIterator.next();
+
+                    // collect all the assays' expressions
+                    Collection<Integer> assayIndices = efEfvAssays.get(efEfv.getI()).get(efEfv.getJ());
+                    List<Float> data = newArrayList();
+                    for (Integer index : assayIndices) {
+                        float v = expressions.get(statistics.getDeIndex(), index);
+                        if (!Float.isNaN(v)) {
+                            data.add(v);
+                        }
+                    }
+
+                    if (!data.isEmpty()) {
+                        list.add(new BoxAndWhisker(statistics));
+                    }
+                }
+
+                boxAndWhisker.add(list);
+            }
         } catch (StatisticsNotFoundException e) {
             log.warn("No statistics found for {}", ewd);
         }
@@ -152,35 +182,6 @@ public class ExperimentPlot {
                 return new EfName(input, stringConverter.apply(input));
             }
         });
-    }
-
-    private void prepareBoxAndWhiskerData(ExpressionStatistics statistics) {
-        boxAndWhisker = Lists.newArrayList();
-        for (int k = 0; k < deIndices.length; k++) {
-            List<BoxAndWhisker> list = Lists.newArrayList();
-            DoubleIndexIterator<String> efEfvIterator = new DoubleIndexIterator<String>(efvNames);
-            while (efEfvIterator.hasNext()) {
-                DoubleIndexIterator.Entry<String> efEfv = efEfvIterator.next();
-                String ef = efNames.get(efEfv.getI()).getName();
-                String efv = efEfv.getEntry();
-
-                UpDownExpression expr = statistics.getUpDownExpression(ef, efv, deIndices[k]);
-                Collection<Integer> assayIndices = efEfvAssays.get(efEfv.getI()).get(efEfv.getJ());
-                List<Float> data = Lists.newArrayList();
-                for (Integer index : assayIndices) {
-                    float v = expressions.get(k, index);
-                    if (!Float.isNaN(v)) {
-                        data.add(v);
-                    }
-                }
-
-                if (!data.isEmpty()) {
-                    list.add(new BoxAndWhisker(data, expr));
-                }
-            }
-
-            boxAndWhisker.add(list);
-        }
     }
 
     private static class EfName {

@@ -207,7 +207,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         return readFloatValuesForRowIndices(netCDF, deIndices, "BDC");
     }
 
-    public TwoDFloatArray getAllExpressionData() throws AtlasDataException {
+    public FloatMatrixProxy getAllExpressionData() throws AtlasDataException {
         return readFloatValuesForAllRows(netCDF, "BDC");
     }
 
@@ -248,43 +248,11 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         }
     }
 
-    /**
-     * Extracts T-statistic matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract T-statistic for
-     * @return matrix of floats - an array of T-statistic values per each design element index
-     * @throws AtlasDataException if the data could not be read from the netCDF file,
-     *                            or if array of design element indices contains out of bound indices
-     */
-    public FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException {
-        return readFloatValuesForRowIndices(netCDF, deIndices, "TSTAT");
-    }
-
-    /**
-     * Extracts P-value matrix for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract P-values for
-     * @return matrix of floats - an array of  P-values per each design element index
-     * @throws AtlasDataException if the data could not be read from the netCDF file, or
-     *                            if array of design element indices contains out of bound indices
-     */
-    public FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException {
-        return readFloatValuesForRowIndices(netCDF, deIndices, "PVAL");
-    }
-
-    public float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "TSTAT");
-    }
-
-    public float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException {
-        return readFloatValuesForRowIndex(netCDF, designElementIndex, "PVAL");
-    }
-
-    public TwoDFloatArray getTStatistics() throws AtlasDataException {
+    public FloatMatrixProxy getTStatistics() throws AtlasDataException {
         return readFloatValuesForAllRows(netCDF, "TSTAT");
     }
 
-    public TwoDFloatArray getPValues() throws AtlasDataException {
+    public FloatMatrixProxy getPValues() throws AtlasDataException {
         return readFloatValuesForAllRows(netCDF, "PVAL");
     }
 

@@ -24,6 +24,8 @@ package uk.ac.ebi.microarray.atlas.model;
 
 import uk.ac.ebi.gxa.utils.Pair;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Tony Burdett
  * @deprecated use {@link DesignElementStatistics instead}
@@ -47,6 +49,7 @@ public class ExpressionAnalysis implements DesignElementStatistics {
         return statistics.getDeIndex();
     }
 
+    @Nonnull
     @Override
     public Pair<String, String> getEfv() {
         return statistics.getEfv();
@@ -57,6 +60,7 @@ public class ExpressionAnalysis implements DesignElementStatistics {
         return statistics.getBioEntityId();
     }
 
+    @Nonnull
     @Override
     public String getDeAccession() {
         return statistics.getDeAccession();
@@ -72,6 +76,7 @@ public class ExpressionAnalysis implements DesignElementStatistics {
         return statistics.getT();
     }
 
+    @Nonnull
     @Override
     public UpDownExpression getExpression() {
         return statistics.getExpression();

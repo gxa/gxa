@@ -26,6 +26,7 @@ import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -39,7 +40,9 @@ public final class StatisticsSnapshot implements DesignElementStatistics, Compar
     private final float t;
     private final int deIndex;
     private final long bioEntityId;
+    @Nonnull
     private final String deAccession;
+    @Nonnull
     private final Pair<String, String> efv;
 
     public StatisticsSnapshot(DesignElementStatistics s) {
@@ -51,11 +54,13 @@ public final class StatisticsSnapshot implements DesignElementStatistics, Compar
         efv = s.getEfv();
     }
 
+    @Nonnull
     @Override
     public UpDownExpression getExpression() {
         return UpDownExpression.valueOf(p, t);
     }
 
+    @Nonnull
     @Override
     public Pair<String, String> getEfv() {
         return efv;
@@ -81,6 +86,7 @@ public final class StatisticsSnapshot implements DesignElementStatistics, Compar
         return deIndex;
     }
 
+    @Nonnull
     @Override
     public String getDeAccession() {
         return deAccession;

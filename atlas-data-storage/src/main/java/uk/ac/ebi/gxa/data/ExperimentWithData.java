@@ -44,6 +44,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static java.lang.Float.isNaN;
 import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_EFV;
 import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_GENE;
 
 public class ExperimentWithData implements Closeable {
@@ -52,20 +53,25 @@ public class ExperimentWithData implements Closeable {
     private final AtlasDataDAO atlasDataDAO;
     private final Experiment experiment;
 
-    private final Map<ArrayDesign, DataProxy> proxies = new HashMap<ArrayDesign, DataProxy>();
+    private final Map<ArrayDesign, DataProxy> proxies = newHashMap();
 
     // cached data
-    private final Map<ArrayDesign, String[]> designElementAccessions = new HashMap<ArrayDesign, String[]>();
+    private final Map<ArrayDesign, String[]> designElementAccessions = newHashMap();
 
     ExperimentWithData(@Nonnull AtlasDataDAO atlasDataDAO, @Nonnull Experiment experiment) {
         this.atlasDataDAO = atlasDataDAO;
         this.experiment = experiment;
     }
 
-    public StatisticsCursor getStatistics(int designElementId, ArrayDesign arrayDesign, Predicate<Pair<String, String>> efvPredicate) throws AtlasDataException, StatisticsNotFoundException {
-        StatisticsCursor si = new StatisticsCursor(getProxy(arrayDesign), ANY_GENE, efvPredicate);
-        si.jump(designElementId, -1);
-        return si;
+    public StatisticsCursor getStatistics(ArrayDesign arrayDesign, int designElementId,
+                                          Predicate<Pair<String, String>> efvPredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsCursor(getProxy(arrayDesign), ANY_GENE, efvPredicate, designElementId);
+    }
+
+    public StatisticsCursor getStatistics(ArrayDesign ad, int[] deIndices)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return new StatisticsCursor(getProxy(ad), ANY_GENE, ANY_EFV, deIndices);
     }
 
     public Experiment getExperiment() {
@@ -96,6 +102,7 @@ public class ExperimentWithData implements Closeable {
      * TODO: check whether arrayDesign is shallow, and load full one if it is.
      *
      * @param arrayDesign array design (with DEs) to update data files for
+     * @throws AtlasDataException sometimes
      */
     public void updateData(ArrayDesign arrayDesign) throws AtlasDataException {
         new DataUpdater().update(arrayDesign);
@@ -202,18 +209,6 @@ public class ExperimentWithData implements Closeable {
     }
 
     /**
-     * Extracts expression statistic values for given design element indices.
-     *
-     * @param deIndices an array of design element indices to extract expression statistic for
-     * @return an instance of {@link ExpressionStatistics}
-     * @throws AtlasDataException if the data could not be read from the netCDF file
-     *                            or if array of design element indices contains out of bound indices
-     */
-    public ExpressionStatistics getExpressionStatistics(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException, StatisticsNotFoundException {
-        return ExpressionStatistics.create(deIndices, getProxy(arrayDesign));
-    }
-
-    /**
      * @param arrayDesign ArrayDesign to search in
      * @param deIndex     index of DE of interest
      * @param efName      name of EF to search for (<code>null</code> for all EFs)
@@ -233,7 +228,7 @@ public class ExperimentWithData implements Closeable {
         else
             efvPredicate = equalTo(Pair.create(efName, efvName));
 
-        final StatisticsCursor statistics = getStatistics(deIndex, arrayDesign, efvPredicate);
+        final StatisticsCursor statistics = getStatistics(arrayDesign, deIndex, efvPredicate);
 
         final List<ExpressionAnalysis> list = newArrayList();
         while (statistics.nextEFV()) {
@@ -249,11 +244,13 @@ public class ExperimentWithData implements Closeable {
      * geneIdsToEfToEfvToEA if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
      *
+     * @param arrayDesign
      * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws AtlasDataException in case of I/O errors
+     * @throws AtlasDataException          in case of I/O errors
+     * @throws StatisticsNotFoundException
      */
     private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
@@ -268,6 +265,7 @@ public class ExperimentWithData implements Closeable {
      * geneIdsToEfToEfvToEA - if the minPvalue found in this proxy is better than the one already in
      * geneIdsToEfToEfvToEA.
      *
+     * @param arrayDesign
      * @param geneIdsToDEIndexes geneId -> list of design element indexes containing data for that gene
      * @param efVal              ef to retrieve ExpressionAnalyses for
      * @param efvVal             efv to retrieve ExpressionAnalyses for; if either efVal or efvVal are null,
@@ -276,7 +274,8 @@ public class ExperimentWithData implements Closeable {
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains proxyId and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws AtlasDataException in case of I/O errors
+     * @throws AtlasDataException          in case of I/O errors
+     * @throws StatisticsNotFoundException
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
@@ -374,14 +373,15 @@ public class ExperimentWithData implements Closeable {
      * @return geneId -> ef -> efv -> ea of best pValue for this geneid-ef-efv combination
      *         Note that ea contains arrayDesign and designElement index from which it came, so that
      *         the actual expression values can be easily retrieved later
-     * @throws AtlasDataException in case of I/O errors
+     * @throws AtlasDataException          in case of I/O errors
+     * @throws StatisticsNotFoundException
      */
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(@Nonnull Collection<Long> geneIds, ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         final Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
         return getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
     }
 
-    public TwoDFloatArray getAllExpressionData(ArrayDesign arrayDesign) throws AtlasDataException {
+    public FloatMatrixProxy getAllExpressionData(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getAllExpressionData();
     }
 
@@ -427,6 +427,7 @@ public class ExperimentWithData implements Closeable {
      * @param ef
      * @return Map: efv -> best ExpressionAnalysis for geneid-ef in this proxy
      * @throws AtlasDataException
+     * @throws StatisticsNotFoundException
      */
     public Map<String, ExpressionAnalysis> getBestEAsPerEfvInProxy(ArrayDesign arrayDesign, Long geneId, String ef) throws AtlasDataException, StatisticsNotFoundException {
         Map<Long, List<Integer>> geneIdToDEIndexes = getGeneIdToDesignElementIndexes(arrayDesign, Collections.singleton(geneId));

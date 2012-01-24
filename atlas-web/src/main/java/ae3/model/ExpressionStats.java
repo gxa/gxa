@@ -66,7 +66,7 @@ public class ExpressionStats {
     private EfvTree<StatisticsSnapshot> retrieveExpressionStats(int deIndex) throws AtlasDataException {
         final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
-            final StatisticsCursor statistics = experiment.getStatistics(deIndex, arrayDesign, ANY_EFV);
+            final StatisticsCursor statistics = experiment.getStatistics(arrayDesign, deIndex, ANY_EFV);
             while (statistics.nextEFV()) {
                 final Pair<String, String> efv = statistics.getEfv();
                 result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());
