@@ -1680,21 +1680,21 @@ public class AtlasStructuredQueryService {
                 // Assemble experiment rows for the ListResultRow corresponding to geneId-ef-efv
                 for (ExpressionAnalysis ea : upDnEAs) {
                     if (designElementAccession == null) {
-                        designElementAccession = ea.getDesignElementAccession();
+                        designElementAccession = ea.getDeAccession();
                     }
                     assert pup >= 0 && pup <= 1;
                     assert pdn >= 0 && pdn <= 1;
-                    assert ea.getPValAdjusted() >= 0 && ea.getPValAdjusted() <= 1;
-                    if (ea.isUp()) {
-                        pup = Math.min(pup, ea.getPValAdjusted());
-                    } else if (ea.isDown()) {
-                        pdn = Math.min(pdn, ea.getPValAdjusted());
+                    assert ea.getP() >= 0 && ea.getP() <= 1;
+                    if (ea.getExpression().isUp()) {
+                        pup = Math.min(pup, ea.getP());
+                    } else if (ea.getExpression().isDown()) {
+                        pdn = Math.min(pdn, ea.getP());
                     }
 
                     ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
-                            ea.getPValAdjusted(),
-                            ea.getDesignElementAccession(),
-                            UpDownExpression.valueOf(ea.getPValAdjusted(), ea.getTStatistic()));
+                            ea.getP(),
+                            ea.getDeAccession(),
+                            UpDownExpression.valueOf(ea.getP(), ea.getT()));
 
                     experimentsForRow.add(experiment);
                 }
@@ -1729,8 +1729,8 @@ public class AtlasStructuredQueryService {
                         ListResultRowExperiment experiment = new ListResultRowExperiment(experimentDAO.getById(exp.getExperimentId()),
                                 // This is just a placeholder as pValues for nonDE expressions are currently (not available here
                                 // and therefore) not displayed in experiment pop-ups off the list view
-                                ea.getPValAdjusted(),
-                                ea.getDesignElementAccession(),
+                                ea.getP(),
+                                ea.getDeAccession(),
                                 UpDownExpression.NONDE);
                         experimentsForRow.add(experiment);
                     }
@@ -1936,14 +1936,14 @@ public class AtlasStructuredQueryService {
                                 String efv = efvToEA.getKey();
                                 ExpressionAnalysis ea = efvToEA.getValue();
 
-                                if (statTypesMatch(statType, ea.getUpDownExpression())) {
+                                if (statTypesMatch(statType, ea.getExpression())) {
                                     sb.append(id2GeneInfo.get(geneIdToEfToEfvToEA.getKey()));
                                     sb.append(ef).append("\t");
                                     sb.append(efv).append("\t");
                                     sb.append(experiment.getAccession()).append("\t");
                                     sb.append(arrayDesign.getAccession()).append("\t");
-                                    sb.append(ea.getUpDownExpression()).append("\t");
-                                    sb.append(ea.getPValAdjusted()).append("\n");
+                                    sb.append(ea.getExpression()).append("\t");
+                                    sb.append(ea.getP()).append("\n");
                                 }
                             }
                         }

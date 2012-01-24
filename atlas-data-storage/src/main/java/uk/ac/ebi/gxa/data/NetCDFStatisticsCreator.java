@@ -48,7 +48,7 @@ public class NetCDFStatisticsCreator {
     private final ArrayDesign arrayDesign;
 
     // maps of properties  ef -> sorted alphabetically list of efvs
-    private Map<String, List<String>> propertyToSortedUniqueEFVs = new LinkedHashMap<String, List<String>>();
+    private final Map<String, List<String>> propertyToSortedUniqueEFVs = new LinkedHashMap<String, List<String>>();
 
     private NetcdfFileWriteable statisticsNetCdf;
 

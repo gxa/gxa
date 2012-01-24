@@ -45,8 +45,7 @@ interface DataProxy extends Closeable {
 
     String[] getDesignElementAccessions() throws AtlasDataException;
 
-    // TODO: remove 'public' modifier
-    public String[] getAssayAccessions() throws AtlasDataException;
+    String[] getAssayAccessions() throws AtlasDataException;
 
     String[] getFactors() throws AtlasDataException;
 
@@ -86,19 +85,14 @@ interface DataProxy extends Closeable {
      */
     FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
 
-    TwoDFloatArray getAllExpressionData() throws AtlasDataException;
+    FloatMatrixProxy getAllExpressionData() throws AtlasDataException;
 
+    @Deprecated
     List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
 
-    FloatMatrixProxy getTStatistics(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
+    @Deprecated
+    FloatMatrixProxy getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
 
-    float[] getTStatisticsForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
-
-    TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
-
-    FloatMatrixProxy getPValues(int[] deIndices) throws AtlasDataException, StatisticsNotFoundException;
-
-    float[] getPValuesForDesignElement(int designElementIndex) throws AtlasDataException, StatisticsNotFoundException;
-
-    TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException;
+    @Deprecated
+    FloatMatrixProxy getPValues() throws AtlasDataException, StatisticsNotFoundException;
 }

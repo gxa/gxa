@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayChar;
-import ucar.ma2.ArrayFloat;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -35,10 +34,10 @@ import java.io.IOException;
 
 /**
  * interface class for read access to NetCDF files
+ * <p/>
  * has different implementations for NetCDF v1 (1 file for data and statistics) and
  * NetCDF v2 (separate files for data and statistics)
  */
-
 abstract class NetCDFProxy implements DataProxy {
     private final static Logger log = LoggerFactory.getLogger(NetCDFProxy.class);
 
@@ -87,6 +86,26 @@ abstract class NetCDFProxy implements DataProxy {
 
             for (int i = 0; i < rowIndices.length; i++) {
                 int[] origin = {rowIndices[i], 0};
+                int[] size = new int[]{1, shape[1]};
+                result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
+            }
+            return new FloatMatrixProxy(variable, result);
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        } catch (InvalidRangeException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    FloatMatrixProxy readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
+        try {
+            Variable variable = netCDF.findVariable(varName);
+            int[] shape = variable.getShape();
+
+            float[][] result = new float[shape[0]][shape[1]];
+
+            for (int i = 0; i < result.length; i++) {
+                int[] origin = {i, 0};
                 int[] size = new int[]{1, shape[1]};
                 result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
             }
@@ -179,15 +198,6 @@ abstract class NetCDFProxy implements DataProxy {
                 result[i] = (String) ef_efvArray[i];
             }
             return result;
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
-        }
-    }
-
-    TwoDFloatArray readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
-        try {
-            final Variable variable = netCDF.findVariable(varName);
-            return new TwoDFloatArray(variable != null ? (ArrayFloat.D2) variable.read() : new ArrayFloat.D2(0, 0));
         } catch (IOException e) {
             throw new AtlasDataException(e);
         }
