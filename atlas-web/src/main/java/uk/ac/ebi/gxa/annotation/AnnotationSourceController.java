@@ -30,7 +30,7 @@ public class AnnotationSourceController {
         for (UpdatedAnnotationSource updatedAnnotationSource : annotationSources) {
             ValidationReport validationReport = null;
 
-            if (updatedAnnotationSource.isWasUpdated()) {
+            if (updatedAnnotationSource.isUpdated()) {
                 Collection<String> invalidPropertyNames = manager.validateProperties(updatedAnnotationSource.getAnnotationSource());
                 validationReport = new ValidationReport(invalidPropertyNames);
             }
