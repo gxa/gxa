@@ -24,7 +24,6 @@ package ae3.service.experiment.rcommand;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
@@ -57,7 +56,7 @@ public class RCommandResultTest {
         computeService.shutdown();
     }
 
-    @Ignore ("postpone with testing R service")
+    @Test
     public void emptyResultSetTest() {
         RCommandResult res = runCommand(new RCommandStatement("returnEmptyDataFrame"));
         assertNotNull(res);
@@ -90,7 +89,7 @@ public class RCommandResultTest {
         assertEquals(0, nonExisted.length);
     }
 
-    @Ignore ("postpone with testing R service")
+    @Test
     public void nonEmptyResultSetTest() {
         RCommandResult res = runCommand(new RCommandStatement("returnNonEmptyDataFrame"));
         assertNotNull(res);
@@ -128,7 +127,7 @@ public class RCommandResultTest {
         }
     }
 
-    @Ignore ("postpone with testing R service")
+    @Test
     public void nullResultSetTest() {
         RCommandResult res = new RCommandResult(null);
         assertTrue(res.isEmpty());
