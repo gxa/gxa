@@ -9,7 +9,7 @@ set wrap off
 set feedback off
 set verify off
 
-SELECT  'OPTIONS(DIRECT=FALSE,ROWS=1000000) LOAD DATA TRUNCATE INTO TABLE ' || upper('A2_&1') ||
+SELECT  'OPTIONS(DIRECT=TRUE,ROWS=1000000) LOAD DATA TRUNCATE INTO TABLE ' || upper('A2_&1') ||
         ' FIELDS TERMINATED BY ''\t''' ||
         ' TRAILING NULLCOLS (' || WM_CONCAT(Column_Name ||
           Decode(Data_Type,

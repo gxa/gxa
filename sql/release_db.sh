@@ -27,7 +27,7 @@ cp flat_array.pc ../
 popd
 
 echo "Packaging source DB..."  >> $log
-./package_db.sh ${SRC_ATLAS_CONNECTION} atlas-data-relcan  2>&1 > atlas-data-relcan-package.log
+./package_db.sh ${SRC_ATLAS_CONNECTION} atlas-data-relcan FALSE 2>&1 > atlas-data-relcan-package.log
 
 # Capture return status for package_db.sh
 rc=$?

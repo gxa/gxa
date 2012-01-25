@@ -3,13 +3,14 @@
 
 source install-routines.sh
 
-if [ $# -ne 2 ]; then
-	echo "Usage: $0 ATLAS_CONNECTION ATLAS_RELEASE"
+if [ $# -lt 2 ]; then
+	echo "Usage: $0 ATLAS_CONNECTION ATLAS_RELEASE (DIRECTPATH_ENABLED [TRUE (default)| FALSE])"
 	exit 1;
 fi
 
 ATLAS_CONNECTION=$1
 ATLAS_RELEASE=$2
+DIRECTPATH_ENABLED=$3
 
 if [ -d $ATLAS_RELEASE ]; then
 	echo "$ATLAS_RELEASE already exists! Choose another directory name.";
@@ -24,7 +25,13 @@ mkdir Data
 for TABLE_NAME in $TABLE_NAMES_SCHEMA $TABLE_NAMES_DATA
 do
   echo "... $TABLE_NAME"
-  sqlplus -S $ATLAS_CONNECTION @../create_ctl_for_table.sql $TABLE_NAME > Data/$TABLE_NAME.ctl
+  ctl=`sqlplus -S $ATLAS_CONNECTION @../create_ctl_for_table.sql $TABLE_NAME`
+  if [ ! -z $DIRECTPATH_ENABLED ]; then
+     echo "$ctl" | sed "s|DIRECT=TRUE|DIRECT=${DIRECTPATH_ENABLED}|g" > Data/$TABLE_NAME.ctl
+  else
+     echo "$ctl"  > Data/$TABLE_NAME.ctl
+  fi
+
   sqlplus -S $ATLAS_CONNECTION @../create_sql_for_table.sql $TABLE_NAME > Data/$TABLE_NAME.sql
   awk -v table=$TABLE_NAME -f ../where_clause.awk ../public_data.sql >> Data/$TABLE_NAME.sql
 
