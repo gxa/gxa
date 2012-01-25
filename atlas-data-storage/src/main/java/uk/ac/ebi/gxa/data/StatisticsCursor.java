@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
@@ -29,6 +30,7 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.BitSet;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -37,7 +39,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 /**
  * A cursor used to navigate a NetCDF-stored statistics
  * <p/>
- * Hides the parallel structures (DE, uEFV, P, T) from the programmer, hence making it harder to make an error.
+ * Hides parallel structures (DE, uEFV, P, T) from the programmer, hence making it harder to make an error.
  * <p/>
  * As a trade-off, it changes its own state as you go (hence the "Cursor"), and thus should not be stored anywhere
  * despite the <code>implements DesignElementStatistics</code> part.
@@ -53,10 +55,16 @@ public class StatisticsCursor implements DesignElementStatistics {
         }
     };
 
-    private int dii = -1, efvi = -1;
-
-    private final int deCount;
-    private final int efvCount;
+    /**
+     * the index of current design element's index. Refers to a position in {@link #des}
+     * <p/>
+     * TODO: replace me with an {@link java.util.Iterator}, please
+     */
+    private int dii = -1;
+    /**
+     * the index of current EFV index. Refers to a position in the original NetCDF and {@see #uEFVs}
+     */
+    private int efvi = -1;
 
     private final List<Pair<String, String>> uEFVs;
     private final long[] bioentities;
@@ -67,7 +75,7 @@ public class StatisticsCursor implements DesignElementStatistics {
     private final DataProxy dataProxy;
     private final Predicate<Long> bePredicate;
     private final Predicate<Pair<String, String>> efvPredicate;
-    private final int[] des;
+    private final int[] des; // consideration: BitSet will do just fine and might even be cleaner
 
     StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
@@ -91,9 +99,6 @@ public class StatisticsCursor implements DesignElementStatistics {
         pvals = dataProxy.getPValues();
         deAccessions = dataProxy.getDesignElementAccessions();
         bioentities = dataProxy.getGenes();
-
-        deCount = tstat.getRowCount();
-        efvCount = uEFVs.size();
     }
 
     @Nonnull
@@ -140,17 +145,17 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public int getEfvCount() {
-        return efvCount;
+        return uEFVs.size();
     }
 
     public int getDeCount() {
-        return deCount;
+        return des.length;
     }
 
     public boolean nextEFV() {
-        for (efvi++; efvi < efvCount && !efvPredicate.apply(uEFVs.get(efvi)); efvi++) {
+        for (efvi++; efvi < uEFVs.size() && !efvPredicate.apply(uEFVs.get(efvi)); efvi++) {
         }
-        return efvi < efvCount;
+        return efvi < uEFVs.size();
     }
 
     public boolean nextBioEntity() {
@@ -169,25 +174,55 @@ public class StatisticsCursor implements DesignElementStatistics {
 
     public float[] getRawExpression() {
         try {
-            Pair<String, String> efv = getEfv();
-
-            // TODO: filter by EFV
-            dataProxy.getFactors();
-            return dataProxy.getExpressionDataForDesignElementAtIndex(de());
+            final float[] expressionData = dataProxy.getExpressionDataForDesignElementAtIndex(de());
+            return copySelected(expressionData, getAssaysForEFV(getEfv()));
         } catch (AtlasDataException e) {
             throw createUnexpected("Failed to read expression data", e);
         }
     }
 
+    private BitSet getAssaysForEFV(Pair<String, String> efv) throws AtlasDataException {
+        final String name = efv.getFirst();
+        final String value = efv.getSecond();
+
+        final String[] factors = dataProxy.getFactors();
+        final String[][] factorValues = dataProxy.getFactorValues();
+
+        BitSet assays = new BitSet(factorValues.length);
+        for (int i = 0; i < factors.length; i++) {
+            if (name.equals(factors[i])) {
+                for (int j = 0; j < factorValues.length; j++) {
+                    assays.set(j, value.equals(factorValues[j][i]));
+                }
+            }
+        }
+        return assays;
+    }
+
+    /**
+     * @return current design element's index in the NetCDF
+     */
     private int de() {
         return des[dii];
     }
 
-    private static int[] arrayOfIndices(int length) {
+    @VisibleForTesting
+    static int[] arrayOfIndices(int length) {
         int[] indices = new int[length];
         for (int i = 0; i < indices.length; i++) {
             indices[i] = i;
         }
         return indices;
+    }
+
+    @VisibleForTesting
+    static float[] copySelected(float[] src, BitSet mask) {
+        float[] result = new float[mask.cardinality()];
+        for (int i = 0, j = 0; i < src.length; i++) {
+            if (mask.get(i)) {
+                result[j++] = src[i];
+            }
+        }
+        return result;
     }
 }

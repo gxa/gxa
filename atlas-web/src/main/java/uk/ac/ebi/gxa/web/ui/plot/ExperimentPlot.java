@@ -27,7 +27,6 @@ import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.*;
-import uk.ac.ebi.gxa.utils.DoubleIndexIterator;
 import uk.ac.ebi.gxa.utils.FactorValueOrdering;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
@@ -143,31 +142,11 @@ public class ExperimentPlot {
         try {
             StatisticsCursor statistics = ewd.getStatistics(ad, deIndices);
             boxAndWhisker = newArrayList();
-
-            // for all (selected) DEs
             while (statistics.nextBioEntity()) {
                 List<BoxAndWhisker> list = newArrayList();
-                DoubleIndexIterator<String> efEfvIterator = new DoubleIndexIterator<String>(efvNames);
-
-                // for all (selected) EFVs
                 while (statistics.nextEFV()) {
-                    DoubleIndexIterator.Entry<String> efEfv = efEfvIterator.next();
-
-                    // collect all the assays' expressions
-                    Collection<Integer> assayIndices = efEfvAssays.get(efEfv.getI()).get(efEfv.getJ());
-                    List<Float> data = newArrayList();
-                    for (Integer index : assayIndices) {
-                        float v = expressions.get(statistics.getDeIndex(), index);
-                        if (!Float.isNaN(v)) {
-                            data.add(v);
-                        }
-                    }
-
-                    if (!data.isEmpty()) {
-                        list.add(new BoxAndWhisker(statistics));
-                    }
+                    list.add(new BoxAndWhisker(statistics));
                 }
-
                 boxAndWhisker.add(list);
             }
         } catch (StatisticsNotFoundException e) {

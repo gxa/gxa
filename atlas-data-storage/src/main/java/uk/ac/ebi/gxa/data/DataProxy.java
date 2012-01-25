@@ -27,6 +27,25 @@ import uk.ac.ebi.gxa.utils.Pair;
 import java.io.Closeable;
 import java.util.List;
 
+/**
+ * Common interface for various NetCDF files
+ * <p/>
+ * This interface encapsulates the differences between v1 and v2 of our NetCDFs,
+ * but is still very NetCDF-oriented: everything is in parallel arrays, and if you
+ * want to use this interface directly (generally do not use it, we're going to provide
+ * proper wrappers hiding parallel structures from developers,
+ * see e.g. already-available {@link StatisticsCursor}.
+ * <p/>
+ * It is highly recommended to build a proper domain-model-based wrapper over the whole
+ * data set. {@link ExperimentPart} and {@link ExperimentWithData} are a good start,
+ * even though they are not finished yed.
+ * <p/>
+ * The litmus test for the wrapper is that structure-describing methods
+ * (like {@link #getSamplesToAssays()}, {@link #getFactorValues()})
+ * should not leave this layer. We'd also prefer to avoid any indices to leave
+ * this layer&mdash;unfortunately, so far we cannot replace DE indexes with DE
+ * accessions (there might be a similar problem with assays, yet to be investigated).
+ */
 interface DataProxy extends Closeable {
     String getVersion();
 
