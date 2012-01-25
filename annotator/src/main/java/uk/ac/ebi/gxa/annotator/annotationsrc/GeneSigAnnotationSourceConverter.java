@@ -32,7 +32,7 @@ import java.util.Properties;
  * User: nsklyar
  * Date: 10/11/2011
  */
-public class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSigAnnotationSource> {
+class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSigAnnotationSource> {
 
     @Override
     protected Class<GeneSigAnnotationSource> getClazz() {

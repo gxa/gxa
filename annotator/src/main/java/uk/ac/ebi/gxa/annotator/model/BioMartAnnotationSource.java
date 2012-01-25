@@ -22,16 +22,11 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceAccessException;
-import uk.ac.ebi.gxa.annotator.model.connection.BioMartConnection;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * User: nsklyar
@@ -148,11 +143,6 @@ public class BioMartAnnotationSource extends AnnotationSource {
                 ", datasetName='" + datasetName + '\'' +
                 ", externalBioEntityProperties=" + getExternalBioEntityProperties() +
                 "} ";
-    }
-
-    @Override
-    public BioMartConnection createConnection() {
-        return BioMartConnection.createConnection(this.getUrl(), this.getDatabaseName(), this.getDatasetName());
     }
 
 }

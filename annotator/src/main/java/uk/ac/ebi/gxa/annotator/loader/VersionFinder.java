@@ -20,28 +20,16 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc;
+package uk.ac.ebi.gxa.annotator.loader;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 
 /**
  * User: nsklyar
- * Date: 10/11/2011
+ * Date: 23/01/2012
  */
-public class ConverterFactory {
+public interface VersionFinder {
 
-    @Autowired
-    private BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter;
-
-    @Autowired
-    private GeneSigAnnotationSourceConverter geneSigAnnotationSourceConverter;
-
-    public BioMartAnnotationSourceConverter getBioMartAnnotationSourceConverter() {
-        return bioMartAnnotationSourceConverter;
-    }
-
-    public GeneSigAnnotationSourceConverter getGeneSigAnnotationSourceConverter() {
-        return geneSigAnnotationSourceConverter;
-    }
+    public String fetchOnLineVersion(AnnotationSource annSrc);
 }

@@ -234,10 +234,18 @@ public abstract class AnnotationSource {
         return properties;
     }
 
+    public Set<BioEntityProperty> getBioEntityPropertiesOfExternalProperties() {
+        Set<BioEntityProperty> answer = newHashSet();
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            answer.add(externalBioEntityProperty.getBioEntityProperty());
+        }
+        return answer;
+    }
+
     /////////////////////////
     //  Helper methods
     ////////////////////////
-    public abstract AnnotationSource createCopyForNewSoftware(Software newSoftware);
+//    public abstract <T extends AnnotationSource> T createCopyForNewSoftware(Software newSoftware);
 
     protected AnnotationSource updateProperties(AnnotationSource result) {
         result.setUrl(this.url);
@@ -253,8 +261,6 @@ public abstract class AnnotationSource {
 
         return result;
     }
-
-    public abstract AnnotationSourceConnection createConnection();
 
     @Override
     public String toString() {

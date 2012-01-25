@@ -25,14 +25,11 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceAccessException;
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceConnection;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -42,50 +39,31 @@ import java.util.HashSet;
  * Date: 26/10/2011
  */
 @Service
-public class AnnotationSourceManager {
+abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     @Autowired
     protected AnnotationSourceDAO annSrcDAO;
+
     @Autowired
     protected SoftwareDAO softwareDAO;
 
-    @Autowired
-    protected ConverterFactory annotationSourceConverterFactory;
-
     @Transactional
-    public <T extends AnnotationSource> Collection<AnnotationSource> getCurrentAnnotationSourcesOfType(Class<T> type) {
-        final Collection<AnnotationSource> result = new HashSet<AnnotationSource>();
-        final Collection<T> currentAnnSrcs = annSrcDAO.getAnnotationSourcesOfType(type);
-        for (AnnotationSource annSrc : currentAnnSrcs) {
-            try {
-                AnnotationSourceConnection connection = annSrc.createConnection();
-                String newVersion = connection.getOnlineSoftwareVersion();
-
-                if (annSrc.getSoftware().getVersion().equals(newVersion)) {
-                    result.add(annSrc);
-                } else {
-                    //check if AnnotationSource exists for new version
-                    Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
-                    AnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
-                    annSrcDAO.save(newAnnSrc);
-                    result.add(newAnnSrc);
-                    annSrcDAO.remove(annSrc);
-                }
-            } catch (AnnotationSourceAccessException e) {
-                throw LogUtil.createUnexpected("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
-            }
+    public Collection<UpdatedAnnotationSource<T>> getCurrentAnnotationSources() {
+        final Collection<UpdatedAnnotationSource<T>> result = new HashSet<UpdatedAnnotationSource<T>>();
+        final Collection<T> currentAnnSrcs = getCurrentAnnSrcs();
+        for (T currentAnnSrc : currentAnnSrcs) {
+            result.add(createUpdatedAnnotationSource(currentAnnSrc));
         }
         return result;
     }
 
-    public String getAnnSrcString(String id, AnnotationSourceType type) {
-        final AnnotationSourceConverter converter = type.createConverter(annotationSourceConverterFactory);
-        return converter.convertToString(id);
+    public String getAnnSrcString(String id) {
+        return getConverter().convertToString(id);
     }
 
     @Transactional
-    public void saveAnnSrc(String id, AnnotationSourceType type, String text) {
-        final AnnotationSourceConverter converter = type.createConverter(annotationSourceConverterFactory);
+    public void saveAnnSrc(String id, String text) {
+        final AnnotationSourceConverter converter = getConverter();
         try {
             final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(id, text);
             annSrcDAO.save(annotationSource);
@@ -94,15 +72,23 @@ public class AnnotationSourceManager {
         }
     }
 
+    public abstract Collection<String> validateProperties(AnnotationSource annSrc);
+
+    public abstract String validateStructure(T annSrc);
+
+    public abstract boolean isForClass(Class<? extends AnnotationSource> annSrcClass);
+
+    protected abstract Collection<T> getCurrentAnnSrcs();
+
+    protected abstract UpdatedAnnotationSource<T> createUpdatedAnnotationSource(T annSrc);
+
+    protected abstract AnnotationSourceConverter getConverter();
+
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
     }
 
     public void setSoftwareDAO(SoftwareDAO softwareDAO) {
         this.softwareDAO = softwareDAO;
-    }
-
-    public void setAnnotationSourceConverterFactory(ConverterFactory annotationSourceConverterFactory) {
-        this.annotationSourceConverterFactory = annotationSourceConverterFactory;
     }
 }

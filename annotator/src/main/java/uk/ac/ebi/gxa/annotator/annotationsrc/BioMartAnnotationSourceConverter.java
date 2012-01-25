@@ -38,7 +38,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 07/11/2011
  */
-public class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMartAnnotationSource> {
+class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMartAnnotationSource> {
 
     private static final String ORGANISM_PROPNAME = "organism";
     private static final String MYSQLDBNAME_PROPNAME = "mySqlDbName";

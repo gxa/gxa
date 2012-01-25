@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.annotator.loader.genesig;
 
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,10 +34,10 @@ import java.util.Set;
  * User: nsklyar
  * Date: 20/01/2012
  */
-public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<FileBasedAnnotationSource>{
+public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource>{
 
     @Override
-    public Collection<String> getInvalidPropertyNames(FileBasedAnnotationSource annotationSource) {
+    public Collection<String> getInvalidPropertyNames(GeneSigAnnotationSource annotationSource) {
         Set<String> invalidProperties = new HashSet<String>();
 
         return invalidProperties;

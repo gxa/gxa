@@ -20,20 +20,32 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.model.connection;
+package uk.ac.ebi.gxa.annotator.annotationsrc;
+
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 
 /**
  * User: nsklyar
- * Date: 05/05/2011
+ * Date: 23/01/2012
  */
-public class AnnotationSourceAccessException extends Exception {
+public class UpdatedAnnotationSource<T extends AnnotationSource>{
 
-    public AnnotationSourceAccessException(String s) {
-        super(s);
+    private T annotationSource;
+
+    private boolean wasUpdated = false;
+
+    public UpdatedAnnotationSource(T annotationSource, boolean wasUpdated) {
+        this.annotationSource = annotationSource;
+        this.wasUpdated = wasUpdated;
     }
 
-    public AnnotationSourceAccessException(String s, Throwable throwable) {
-        super(s, throwable);
+    public T getAnnotationSource() {
+        return annotationSource;
     }
+
+    public boolean isWasUpdated() {
+        return wasUpdated;
+    }
+
 
 }

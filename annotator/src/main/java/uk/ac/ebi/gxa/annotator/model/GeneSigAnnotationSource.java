@@ -48,17 +48,6 @@ public class GeneSigAnnotationSource extends FileBasedAnnotationSource {
         super(software);
     }
 
-    public GeneSigAnnotationSource createCopyForNewSoftware(Software newSoftware) {
-        GeneSigAnnotationSource result = new GeneSigAnnotationSource(newSoftware);
-        updateProperties(result);
-        return result;
-    }
-
-    @Override
-    public GeneSigConnection createConnection() {
-        return new GeneSigConnection(this.getUrl());
-    }
-
     public char getSeparator() {
         return ',';
     }

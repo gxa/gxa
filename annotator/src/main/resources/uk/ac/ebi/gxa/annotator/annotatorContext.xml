@@ -51,22 +51,46 @@
         <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
-    <bean name="annotationSourceManager"
-          class="uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceManager"/>
+    <!-- annotation source managers -->
+    <bean name="martSourceManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.MartAnnotationSourceManager"/>
 
+    <bean name="geneSigSourceManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceManager"/>
+
+    <!-- main Managed is used by Controller -->
+    <bean name="annotationSourceManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager">
+        <constructor-arg>
+            <list>
+                <ref bean="martSourceManager"/>
+                <ref bean="geneSigSourceManager"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!-- Converters -->
     <bean name="bioMartAnnotationSourceConverter"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartAnnotationSourceConverter"/>
 
     <bean name="fileBasedAnnotationSourceConverter"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceConverter"/>
 
-    <bean name="annotationSourceConverterFactory"
-          class="uk.ac.ebi.gxa.annotator.annotationsrc.ConverterFactory"/>
+    <!-- Validators -->
+    <bean name="martValidator"
+          class="uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator">
+        <constructor-arg ref="httpClient"/>
+    </bean>
 
+    <bean name="geneSigValidator"
+          class="uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedPropertiesValidator"/>
+
+    <!-- Version finder -->
+    <bean name="versionFinder"
+          class="uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder"/>
+
+    <!-- Annotator -->
     <bean name="annotatorFactory"
           class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory"/>
-
-    <bean name="annSrcValidatorFactory"
-          class="uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidatorFactory"/>
 
 </beans>

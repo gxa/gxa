@@ -158,7 +158,7 @@ class MartServiceClientImpl implements MartServiceClient {
         return getMartLocation().getName();
     }
 
-    private MartRegistry.MartUrlLocation getMartLocation() throws IOException, BioMartException {
+    MartRegistry.MartUrlLocation getMartLocation() throws IOException, BioMartException {
         if (martLocation == null) {
             MartRegistry registry = fetchRegistry();
             martLocation = registry.find(databaseName + "_mart_");

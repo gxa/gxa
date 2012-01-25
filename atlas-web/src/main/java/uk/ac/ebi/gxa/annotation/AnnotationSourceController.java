@@ -3,9 +3,8 @@ package uk.ac.ebi.gxa.annotation;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
-import uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceManager;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidatorFactory;
+import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
+import uk.ac.ebi.gxa.annotator.annotationsrc.UpdatedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -19,24 +18,24 @@ import java.util.*;
 public class AnnotationSourceController {
 
     @Autowired
-    private AnnotationSourceManager annotationSourceManager;
-
-    @Autowired
-    private AnnotationSourcePropertiesValidatorFactory annSrcValidatorFactory;
+    private TopAnnotationSourceManager manager;
 
     public AnnotationSourceController() {
     }
 
-    public Collection<AnnotationSourceView> getBioMartAnnSrcViews() {
+    public Collection<AnnotationSourceView> getAnnSrcViews() {
         List<AnnotationSourceView> viewSources = new ArrayList<AnnotationSourceView>();
-        for (AnnotationSourceType sourceType : AnnotationSourceType.values()) {
-            final Collection<? extends AnnotationSource> currentAnnotationSourcesOfType = annotationSourceManager.getCurrentAnnotationSourcesOfType(sourceType.getClazz());
-            for (AnnotationSource annSrc : currentAnnotationSourcesOfType) {
-                final AnnotationSourcePropertiesValidator propertiesValidator = sourceType.createPropertiesValidator(annSrcValidatorFactory);
-                ValidationReport validationReport = new ValidationReport(propertiesValidator.getInvalidPropertyNames(annSrc));
-                AnnotationSourceView view = new AnnotationSourceView(annSrc, validationReport);
-                viewSources.add(view);
+
+        Collection<UpdatedAnnotationSource> annotationSources = manager.getAllAnnotationSources();
+        for (UpdatedAnnotationSource updatedAnnotationSource : annotationSources) {
+            ValidationReport validationReport = null;
+
+            if (updatedAnnotationSource.isWasUpdated()) {
+                Collection<String> invalidPropertyNames = manager.validateProperties(updatedAnnotationSource.getAnnotationSource());
+                validationReport = new ValidationReport(invalidPropertyNames);
             }
+            AnnotationSourceView view = new AnnotationSourceView(updatedAnnotationSource.getAnnotationSource(), validationReport);
+            viewSources.add(view);
         }
         Collections.sort(viewSources, new Comparator<AnnotationSourceView>() {
             @Override
@@ -48,11 +47,11 @@ public class AnnotationSourceController {
     }
 
     public String getAnnSrcString(String id, String type) {
-        return annotationSourceManager.getAnnSrcString(id, AnnotationSourceType.getByName(type));
+        return manager.getAnnSrcString(id, type);
     }
 
     public void saveAnnSrc(String id, String type, String text) {
-        annotationSourceManager.saveAnnSrc(id, AnnotationSourceType.getByName(type), text);
+        manager.saveAnnSrc(id, text, type);
     }
 
     public static class AnnotationSourceView {
@@ -92,7 +91,10 @@ public class AnnotationSourceController {
         }
 
         public String getValidationMessage() {
-            return validationReport.getSummary();
+            if (validationReport != null) {
+                return validationReport.getSummary();
+            }
+            return "";
         }
 
         public String getApplied() {
@@ -117,7 +119,7 @@ public class AnnotationSourceController {
             }
             StringBuilder sb = new StringBuilder();
 
-            if (!missingProperties.isEmpty()) {
+            if (!CollectionUtils.isEmpty(missingProperties)) {
                 sb.append("Invalid properties: ");
                 sb.append(missingProperties);
             }
@@ -125,7 +127,7 @@ public class AnnotationSourceController {
         }
 
         public boolean isValid() {
-            return CollectionUtils.isEmpty(missingProperties);
+            return missingProperties != null && missingProperties.isEmpty();
         }
     }
 }

@@ -52,7 +52,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 10/11/2011
  */
-public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
+abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected static final String SOFTWARE_NAME_PROPNAME = "software.name";
     protected static final String SOFTWARE_VERSION_PROPNAME = "software.version";
@@ -105,6 +105,29 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         } finally {
             closeQuietly(input);
         }
+    }
+
+    public String validateStructure(AnnotationSource annSrc) {
+        StringBuilder report = new StringBuilder();
+        final Set<BioEntityProperty> properties = annSrc.getBioEntityPropertiesOfExternalProperties();
+        final Set<BioEntityType> types = annSrc.getTypes();
+        for (BioEntityType type : types) {
+            if (type.getIdentifierProperty() != null && !properties.contains(type.getIdentifierProperty())) {
+                report.append("Annotation source isn't valid, no property corresponds to identifier of type ").
+                        append(type.getName()).
+                        append(" ").
+                        append(type.getIdentifierProperty().getName()).
+                        append("\n");
+            }
+            if (type.getNameProperty() != null && properties.contains(type.getNameProperty())) {
+                report.append("Annotation source isn't valid, no property corresponds to name of type ").
+                        append(type.getName()).
+                        append(" ").
+                        append(type.getNameProperty().getName()).
+                        append("\n");
+            }
+        }
+        return report.toString();
     }
 
     protected abstract Class<T> getClazz();
@@ -237,7 +260,7 @@ public abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         updateTypes(properties, annotationSource);
 
         annotationSource.setUrl(getProperty(URL_PROPNAME, properties));
-        
+
         updateExtraProperties(properties, annotationSource);
 
         updateExternalProperties(properties, annotationSource);
