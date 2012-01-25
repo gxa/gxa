@@ -57,12 +57,9 @@ class MartPropertyValuesLoader {
         List<String> columns = new ArrayList<String>();
         columns.addAll(name2Type.keySet());
         columns.add(property.getName());
-        int expectedRowCount = martClient.runCountQuery(columns);
-        int actualRowCount = parse(martClient.runQuery(columns), property, builder);
-        if (actualRowCount != expectedRowCount) {
-            throw new BioMartException("BioEntityPropertyValues data is not completed: expected_row_count = " +
-                    expectedRowCount + ", actual_row_count = " + actualRowCount);
-        }
+        martClient.runCountQuery(columns);
+        parse(martClient.runQuery(columns), property, builder);
+
     }
 
     private int parse(InputStream in, ExternalBioEntityProperty property, BioEntityAnnotationData.Builder builder)
@@ -74,10 +71,10 @@ class MartPropertyValuesLoader {
             int rc = 0;
             CSVBasedReader.Row row;
             while ((row = reader.readNext()) != null) {
-                rc ++;
+                rc++;
                 int col = 0;
                 BEPropertyValue propertyValue = new BEPropertyValue(property.getBioEntityProperty(), row.getLast());
-                for (BioEntityType type: name2Type.values()) {
+                for (BioEntityType type : name2Type.values()) {
                     builder.addPropertyValue(row.get(col++), type, propertyValue);
                 }
             }

@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 
@@ -43,16 +42,6 @@ public class TopAnnotationSourceManager {
         this.managers = managers;
     }
 
-//    public Collection<UpdatedAnnotationSource> getAllAnnotationSources() {
-//        Collection<UpdatedAnnotationSource> result = new HashSet<UpdatedAnnotationSource>();
-//        for (AnnotationSourceType type : AnnotationSourceType.values()) {
-//            final AnnotationSourceManager<AnnotationSource> manager = type.createAnnotationSourceManager(factory);
-//            result.addAll(manager.getCurrentAnnotationSources());
-//        }
-//
-//        return result;
-//    }
-
     public Collection<UpdatedAnnotationSource> getAllAnnotationSources() {
         Collection<UpdatedAnnotationSource> result = new HashSet<UpdatedAnnotationSource>();
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
@@ -65,13 +54,12 @@ public class TopAnnotationSourceManager {
     public Collection<String> validateProperties(AnnotationSource annSrc) {
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             if (manager.isForClass(annSrc.getClass())) {
-                return validateProperties(annSrc);
+                return manager.validateProperties(annSrc);
             }
         }
         throw new IllegalArgumentException("Cannot validate annotation source of class " + annSrc.getClass().getName());
 
     }
-
 
     public String getAnnSrcString(String id, String typeName) {
         final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);

@@ -22,15 +22,10 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceAccessException;
-import uk.ac.ebi.gxa.annotator.model.connection.GeneSigConnection;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * User: nsklyar

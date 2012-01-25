@@ -56,7 +56,6 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
         return geneSigAnnotationSourceConverter;
     }
 
-
     @Override
     public Collection<String> validateProperties(AnnotationSource annSrc) {
         if (isForClass(annSrc.getClass())) {
@@ -65,12 +64,6 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
         throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                 ". Class casting problem "  + GeneSigAnnotationSource.class);
     }
-
-    @Override
-    public String validateStructure(GeneSigAnnotationSource annSrc) {
-        return geneSigAnnotationSourceConverter.validateStructure(annSrc);
-    }
-
     @Override
     public boolean isForClass(Class<? extends AnnotationSource> annSrcClass) {
         return annSrcClass.equals(GeneSigAnnotationSource.class);

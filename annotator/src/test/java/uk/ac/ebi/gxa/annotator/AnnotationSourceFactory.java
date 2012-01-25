@@ -77,8 +77,6 @@ public class AnnotationSourceFactory {
                     if (extProperties.containsKey(type.getIdentifierProperty().getName()) &&
                             extProperties.containsKey(type.getNameProperty().getName())) {
                         beTypes.add(type);
-                    } else {
-                        throw new IllegalStateException("Bad type config: " + type);
                     }
                 }
                 return types.values();

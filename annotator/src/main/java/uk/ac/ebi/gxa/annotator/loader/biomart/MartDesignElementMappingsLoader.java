@@ -56,12 +56,7 @@ class MartDesignElementMappingsLoader {
         List<String> columns = new ArrayList<String>();
         columns.addAll(name2Type.keySet());
         columns.add(externalArrayDesign.getName());
-        int expectedRowCount = martClient.runCountQuery(columns);
-        int actualRowCount = parse(martClient.runQuery(columns), builder);
-        if (actualRowCount != expectedRowCount) {
-            throw new BioMartException("DesignElement mappings data is not completed: expected_row_count = " +
-                    expectedRowCount + ", actual_row_count = " + actualRowCount);
-        }
+        parse(martClient.runQuery(columns), builder);
     }
 
     private int parse(InputStream in, DesignElementMappingData.Builder builder) throws IOException, InvalidCSVColumnException {

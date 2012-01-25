@@ -74,7 +74,9 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     public abstract Collection<String> validateProperties(AnnotationSource annSrc);
 
-    public abstract String validateStructure(T annSrc);
+    public Collection<String>  validateStructure(T annSrc){
+        return getConverter().validateStructure(annSrc);
+    }
 
     public abstract boolean isForClass(Class<? extends AnnotationSource> annSrcClass);
 

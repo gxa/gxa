@@ -42,7 +42,6 @@ public class MartServiceClientTest {
         MartServiceClient martServiceClient = initClient();
         final Collection<String> result = martServiceClient.runAttributesQuery();
         assertTrue(result.size() > 0);
-        System.out.println("result = " + result);
     }
 
     @Test
@@ -50,7 +49,6 @@ public class MartServiceClientTest {
         MartServiceClient martServiceClient = initClient();
         final Collection<String> result = martServiceClient.runDatasetListQuery();
         assertTrue(result.size() > 0);
-        System.out.println("result = " + result);
     }
 
     @Test

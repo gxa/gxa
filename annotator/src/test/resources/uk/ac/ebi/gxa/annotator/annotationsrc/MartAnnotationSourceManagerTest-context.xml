@@ -27,6 +27,6 @@
     <import resource="classpath*:/uk/ac/ebi/gxa/annotator/annotatorContext.xml"/>
     <import resource="classpath*:/uk/ac/ebi/gxa/annotator/testAnnotatorContext.xml"/>
 
-    <bean name="annSrcManagerTest" class="uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceManagerTest">
+    <bean name="annSrcManagerTest" class="uk.ac.ebi.gxa.annotator.annotationsrc.MartAnnotationSourceManagerTest">
     </bean>
 </beans>

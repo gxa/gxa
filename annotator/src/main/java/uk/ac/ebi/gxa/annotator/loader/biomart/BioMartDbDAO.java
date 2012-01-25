@@ -27,7 +27,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceAccessException;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.sql.ResultSet;

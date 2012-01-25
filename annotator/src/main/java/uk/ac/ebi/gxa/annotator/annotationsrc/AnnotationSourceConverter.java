@@ -107,27 +107,21 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    public String validateStructure(AnnotationSource annSrc) {
-        StringBuilder report = new StringBuilder();
+    //ToDo: maybe move this method to AnnotationSource
+    public Collection<String> validateStructure(AnnotationSource annSrc) {
+        List<String> missingProperties = new ArrayList<String>();
         final Set<BioEntityProperty> properties = annSrc.getBioEntityPropertiesOfExternalProperties();
         final Set<BioEntityType> types = annSrc.getTypes();
         for (BioEntityType type : types) {
             if (type.getIdentifierProperty() != null && !properties.contains(type.getIdentifierProperty())) {
-                report.append("Annotation source isn't valid, no property corresponds to identifier of type ").
-                        append(type.getName()).
-                        append(" ").
-                        append(type.getIdentifierProperty().getName()).
-                        append("\n");
+                missingProperties.add("Bioentity type " + type.getName() + " identifier of type  " + type.getIdentifierProperty().getName());
+
             }
-            if (type.getNameProperty() != null && properties.contains(type.getNameProperty())) {
-                report.append("Annotation source isn't valid, no property corresponds to name of type ").
-                        append(type.getName()).
-                        append(" ").
-                        append(type.getNameProperty().getName()).
-                        append("\n");
+            if (type.getNameProperty() != null && !properties.contains(type.getNameProperty())) {
+                missingProperties.add("Bioentity type " + type.getName() + " identifier of type  " + type.getNameProperty().getName());
             }
         }
-        return report.toString();
+        return missingProperties;
     }
 
     protected abstract Class<T> getClazz();

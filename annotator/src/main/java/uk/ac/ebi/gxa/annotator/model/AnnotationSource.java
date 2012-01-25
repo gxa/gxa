@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.annotator.model;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import uk.ac.ebi.gxa.annotator.model.connection.AnnotationSourceConnection;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;

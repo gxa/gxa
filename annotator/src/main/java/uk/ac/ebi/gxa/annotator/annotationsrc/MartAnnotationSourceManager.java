@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotator.loader.VersionFinder;
 import uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator;
 import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
@@ -42,9 +43,9 @@ import java.util.Collection;
 
     @Autowired
     private MartPropertiesValidator validator;
-    
+
     @Autowired
-    private MartVersionFinder versionFinder;
+    private VersionFinder versionFinder;
 
     @Override
     protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
@@ -80,13 +81,15 @@ import java.util.Collection;
     }
 
     @Override
-    public String validateStructure(BioMartAnnotationSource annSrc) {
-        return bioMartAnnotationSourceConverter.validateStructure(annSrc);
-    }
-
-    @Override
     public boolean isForClass(Class<? extends AnnotationSource> annSrcClass) {
         return annSrcClass.equals(BioMartAnnotationSource.class);
     }
 
+    protected void setVersionFinder(VersionFinder versionFinder) {
+        this.versionFinder = versionFinder;
+    }
+
+    protected void setConverter(BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter) {
+        this.bioMartAnnotationSourceConverter = bioMartAnnotationSourceConverter;
+    }
 }

@@ -35,9 +35,22 @@ import static junit.framework.Assert.assertTrue;
  */
 public class MartAttributesTest {
     @Test
-    public void testParse() throws Exception {
+    public void testParseAttributes() throws Exception {
         final Collection<String> result = MartAttributes.parseAttributes(MartAttributesTest.class.getResource("attributes.txt").openStream());
         assertEquals(4, result.size());
         assertTrue(result.contains("ensembl_transcript_id"));
+        assertTrue(result.contains("ensembl_gene_id"));
+        assertTrue(result.contains("ensembl_peptide_id"));
+        assertTrue(result.contains("description"));
+    }
+
+    @Test
+    public void testParse() throws Exception {
+        final Collection<String> result = MartAttributes.parseDataSets(MartAttributesTest.class.getResource("datasets.txt").openStream());
+        assertEquals(4, result.size());
+        assertTrue(result.contains("oanatinus_gene_ensembl"));
+        assertTrue(result.contains("tguttata_gene_ensembl"));
+        assertTrue(result.contains("cporcellus_gene_ensembl"));
+        assertTrue(result.contains("gaculeatus_gene_ensembl"));
     }
 }

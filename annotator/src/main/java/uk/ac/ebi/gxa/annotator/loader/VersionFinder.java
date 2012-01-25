@@ -29,7 +29,7 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
  * User: nsklyar
  * Date: 23/01/2012
  */
-public interface VersionFinder {
+public interface VersionFinder<T extends AnnotationSource> {
 
-    public String fetchOnLineVersion(AnnotationSource annSrc);
+    public String fetchOnLineVersion(T annSrc);
 }

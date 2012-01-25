@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.loader.util.CSVBasedReader;
 import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
@@ -41,6 +43,9 @@ import static com.google.common.io.Closeables.closeQuietly;
  * @version 1/14/12 7:29 PM
  */
 class MartBioEntitiesLoader {
+
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
+
     private final BioMartAnnotationSource annotSource;
     private final MartServiceClient martClient;
     private final Map<String, BioEntityType> name2Type;
@@ -53,12 +58,9 @@ class MartBioEntitiesLoader {
 
     public void load(BioEntityData.Builder builder) throws BioMartException, IOException, InvalidCSVColumnException {
         Set<String> columns = name2Type.keySet();
-        int expectedRowCount = martClient.runCountQuery(columns);
         int actualRowCount = parse(martClient.runQuery(columns), builder);
-        if (actualRowCount != expectedRowCount) {
-            throw new BioMartException("BioEntities data is not completed: expected_row_count = " + expectedRowCount +
-                    ", actual_row_count = " + actualRowCount);
-        }
+        log.debug("loaded rows from BioMart: " + actualRowCount);
+
     }
 
     private int parse(InputStream in, BioEntityData.Builder dataBuilder) throws IOException, InvalidCSVColumnException {

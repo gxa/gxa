@@ -36,17 +36,17 @@ import java.net.URISyntaxException;
  * User: nsklyar
  * Date: 23/01/2012
  */
-public class MartVersionFinder {
+public class MartVersionFinder implements VersionFinder<BioMartAnnotationSource>{
 
     @Autowired
     private HttpClient httpClient;
-    
+
+    @Override
     public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
 
         try {
             MartServiceClientImpl martClient = MartServiceClientImpl.create(httpClient, annSrc);
-            final MartRegistry.MartUrlLocation martLocation = martClient.getMartLocation();
-            final String database = martLocation.getDatabase();
+            final String database = martClient.getMartLocation().getDatabase();
             return database.substring(database.lastIndexOf("_") + 1);
 
         } catch (URISyntaxException e) {
@@ -57,5 +57,4 @@ public class MartVersionFinder {
             throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + annSrc.getName(), e);
         }
     }
-
 }

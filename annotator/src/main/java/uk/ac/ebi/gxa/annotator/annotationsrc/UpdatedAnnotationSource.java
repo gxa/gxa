@@ -32,19 +32,19 @@ public class UpdatedAnnotationSource<T extends AnnotationSource>{
 
     private T annotationSource;
 
-    private boolean wasUpdated = false;
+    private boolean updated = false;
 
-    public UpdatedAnnotationSource(T annotationSource, boolean wasUpdated) {
+    public UpdatedAnnotationSource(T annotationSource, boolean updated) {
         this.annotationSource = annotationSource;
-        this.wasUpdated = wasUpdated;
+        this.updated = updated;
     }
 
     public T getAnnotationSource() {
         return annotationSource;
     }
 
-    public boolean isWasUpdated() {
-        return wasUpdated;
+    public boolean isUpdated() {
+        return updated;
     }
 
 
