@@ -5970,7 +5970,7 @@ jQuery.extend({
 			data = s.dataFilter( data, type );
 		}
 
-		// The filter can actually parseAttributes the response
+		// The filter can actually parse the response
 		if ( typeof data === "string" ) {
 			// Get the JavaScript object, if JSON is used.
 			if ( type === "json" || !type && ct.indexOf("json") >= 0 ) {
