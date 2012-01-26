@@ -157,13 +157,6 @@ public class AtlasRFactoryBuilder {
         System.setProperty("R_HOME", properties.getProperty("R_HOME"));
     }
 
-    private void setRemoteSystemProperties(Properties properties) throws InstantiationException {
-        if (properties.getProperty("R.remote.host") == null) {
-            throw new InstantiationException("Supplied properties don't contain required property 'R.remote.host'");
-        }
-        System.setProperty("R.remote.host", properties.getProperty("R.remote.host"));
-    }
-
     private void setBiocepSystemProperties(Properties biocepProps) throws InstantiationException {
         // databaseURL should be something like "jdbc:oracle:thin:@www.myhost.com:1521:MYDATABASE"
         if (biocepProps.getProperty("biocep.db.url") == null) {
