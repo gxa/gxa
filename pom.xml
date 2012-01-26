@@ -36,6 +36,7 @@
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
+        <r.libs>${env.R_HOME}/library/rJava/jri</r.libs>
     </properties>
 
     <scm>
@@ -70,16 +71,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.8.1</version>
+                <version>2.7.2</version>
                 <configuration>
                     <argLine>-Xmx2048m</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
+                    <argLine>-Djava.library.path=${r.libs}</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.maven.surefire</groupId>
                         <artifactId>surefire-junit47</artifactId>
-                        <version>2.8.1</version>
+                        <version>2.7.2</version>
                     </dependency>
                 </dependencies>
             </plugin>
