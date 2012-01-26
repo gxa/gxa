@@ -22,12 +22,8 @@
 
 package uk.ac.ebi.gxa.R;
 
-import com.google.common.base.Strings;
-import junit.framework.TestCase;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.fail;
 
@@ -36,7 +32,7 @@ import static org.junit.Assert.fail;
  */
 public class TestAtlasRFactoryBuilder {
 
-    @Test
+    @Ignore
     public void testGetLocalRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
         if (rFactory.validateEnvironment()) {
