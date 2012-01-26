@@ -36,7 +36,7 @@
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
-        <r.libs>${env.R_HOME}/library/rJava/jri</r.libs>
+        <r.libs>${env.R_HOME}/library/rJava/jri:${env.R_HOME}/bin:${env.R_HOME}/lib</r.libs>
     </properties>
 
     <scm>
