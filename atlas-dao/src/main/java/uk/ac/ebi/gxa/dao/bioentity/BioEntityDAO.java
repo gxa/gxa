@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.dao.bioentity;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.sun.xml.internal.bind.v2.model.annotation.AnnotationSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
