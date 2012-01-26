@@ -32,7 +32,7 @@ import static org.junit.Assert.fail;
  */
 public class TestAtlasRFactoryBuilder {
 
-    @Ignore
+    @Test
     public void testGetLocalRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
         if (rFactory.validateEnvironment()) {
@@ -42,7 +42,7 @@ public class TestAtlasRFactoryBuilder {
         fail("Unable to validate local R environment. See logs for details");
     }
 
-    @Test
+    @Ignore
     public void testGetBiocepRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
         if (rFactory.validateEnvironment()) {
