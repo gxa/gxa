@@ -37,54 +37,41 @@ import uk.ac.ebi.rcloud.server.RServices;
  * @author Tony Burdett
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
-    public static final String JAVA_LIBRARY_PATH = "java.library.path";
+
+    private static final String JAVA_LIBRARY_PATH = "java.library.path";
+    private static final String R_HOME = "R_HOME";
+
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    public boolean validateEnvironment() {
+        final String envRHome = System.getenv(R_HOME);
 
-    public boolean validateEnvironment() throws AtlasRServicesException {
-        // check environment, system properties
-        String r_home = null;
-        final String env_rhome = System.getenv("R_HOME");
-        final String prop_rhome = System.getProperty("R_HOME");
-        if (Strings.isNullOrEmpty(env_rhome) && Strings.isNullOrEmpty(prop_rhome)) {
-            log.error("No $R_HOME property set - this is required to start JNI bridge to R");
+        if (Strings.isNullOrEmpty(envRHome)) {
+            log.error("No " + R_HOME + " environment variable found. Can not start JNI bridge to R");
             return false;
         }
-        else {
-            r_home = env_rhome;
-            if (Strings.isNullOrEmpty(r_home)) {
-                r_home = prop_rhome;
-            }
-        }
 
-        // r_home definitely not null or "" now
-        if (Strings.isNullOrEmpty(r_home)) {
-            log.error("$R_HOME is empty");
+        String libPath = System.getProperty(JAVA_LIBRARY_PATH);
+
+        if (!libPath.contains("rJava") || !libPath.contains("jri")) {
+            log.warn("JRI path probably not set. Check your " + JAVA_LIBRARY_PATH + ": " + libPath);
             return false;
-        }
-        else {
-            // append r_home to java.library.path, this should allow discovery of required JNI/rJava lib files
-            // TODO: will not work on Windows due to colon being a separator (on Windows, it should be semicolon)
-            String append = ":" + r_home + "/bin:" + r_home + "/lib";
-            System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + append);
         }
 
         // check R install actually works
         try {
             RServices r = createRServices();
             recycleRServices(r);
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             log.error("Critical R whilst trying to bridge to local R install - " +
                     "check R is installed and required libraries present", e);
             return false;
         }
-
-        // checks passed so return true
         return true;
     }
 
-    public RServices createRServices() throws AtlasRServicesException {
+    public RServices createRServices() {
         // create a R service - DirectJNI gets an R service on the local machine
         return DirectJNI.getInstance().getRServices();
     }
@@ -96,7 +83,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
         try {
             DirectJNI.getInstance()._rEngine.end();
 //            DirectJNI.getInstance()._rEngine.eval("quit('no')");
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             log.error("Error", t);
         }
     }
