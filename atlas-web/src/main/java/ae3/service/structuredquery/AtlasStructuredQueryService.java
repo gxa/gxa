@@ -26,10 +26,13 @@ import ae3.model.AtlasGene;
 import ae3.model.ListResultRow;
 import ae3.model.ListResultRowExperiment;
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -64,6 +67,7 @@ import uk.ac.ebi.gxa.utils.Maker;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 import static com.google.common.base.Joiner.on;
@@ -1155,6 +1159,19 @@ public class AtlasStructuredQueryService {
 
     }
 
+    /**
+     *
+     * @param attributes
+     * @return collection of experimental factors in each element of attributes
+     */
+    private Collection<String> getEfs(final List<Multiset.Entry<EfvAttribute>> attributes) {
+        return Collections2.transform(attributes, new Function<Multiset.Entry<EfvAttribute>, String>() {
+            @Override
+            public String apply(@Nonnull Multiset.Entry<EfvAttribute> efvAttributeEntry) {
+                return efvAttributeEntry.getElement().getEf();
+            }
+        });
+    }
 
     /**
      * Finds all efv attributes for which at least one gene in geneRestrictionSet has experiment counts of statisticType.
@@ -1162,25 +1179,36 @@ public class AtlasStructuredQueryService {
      * C.f. call to this method in processResultGenes().
      *
      * @param bioEntityIdRestrictionSet gene set of interest
-     * @param autoFactors               list of experimental factors to be included in heatmap
+     * @param geneOnlyQuery             true if this is a gene-only query; false otherwise
      * @param qstate                    QueryState
      * @param statisticType             chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
      *                                  this statistic type will be used to find out scoring Attributes for that statistic type)
      */
     private void populateScoringAttributes(
             final Set<Integer> bioEntityIdRestrictionSet,
-            final Collection<String> autoFactors,
+            boolean geneOnlyQuery,
             QueryState qstate,
             StatisticsType statisticType,
             boolean isFullHeatMap
     ) {
         List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
-                atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
+                atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, efvService.getAllFactors());
+
+        Set<String> autoFactors = Sets.newHashSet();
+        if (geneOnlyQuery &&
+                !Sets.intersection(
+                        Sets.newHashSet(atlasProperties.getDasFactors()),
+                        Sets.newHashSet(getEfs(attrCountsSortedDescByExperimentCounts)))
+                        .isEmpty()) {
+            // For gene only queries display DAS factors only unless none of the scoring factors for the query
+            // are in fact DAS factors. In that case display all scoring factors.
+            autoFactors.addAll(atlasProperties.getDasFactors());
+        }
 
         Multiset<EfAttribute> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {
             EfvAttribute attr = attrCount.getElement();
-            if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
+            if ((autoFactors.isEmpty() || autoFactors.contains(attr.getEf())) && !Strings.isNullOrEmpty(attr.getEfv())) {
                 EfAttribute efAttr = new EfAttribute(attr.getEf());
                 // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
                 if (isFullHeatMap || efAttrCounts.count(efAttr) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
@@ -1328,15 +1356,7 @@ public class AtlasStructuredQueryService {
             }
         };
 
-        Collection<String> autoFactors;
-        if ((!query.getConditions().isEmpty() && !query.getConditions().iterator().next().isAnything())
-                || query.isFullHeatmap()) {
-            autoFactors = efvService.getAllFactors();
-        } else {
-            // If the user hasn't specified any conditions or query.isFullHeatmap() is false (the default for heatmap),
-            // choose only 'usual factors of interest' - as shown in GXA DAS source
-            autoFactors = atlasProperties.getDasFactors();
-        }
+        boolean geneConditionOnlyQuery = query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything() || query.isFullHeatmap();
 
         // timing collection variables
         long overallBitStatsProcessingTime = 0;
@@ -1348,7 +1368,7 @@ public class AtlasStructuredQueryService {
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(bioEntityIdRestrictionSet, autoFactors, qstate, statisticsQuery.getStatisticsType(), query.isFullHeatmap());
+            populateScoringAttributes(bioEntityIdRestrictionSet, geneConditionOnlyQuery, qstate, statisticsQuery.getStatisticsType(), query.isFullHeatmap());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             List<EfvTree.EfEfv<ColumnInfo>> scoringEfvs = qstate.getEfvs().getValueSortedList();
