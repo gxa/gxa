@@ -54,7 +54,7 @@ public class AtlasComputeServiceTest {
         svc.shutdown();
     }
 
-    @Ignore
+    @Test
     public void testComputeTask() {
         ComputeTask<RNumeric> task = new ComputeTask<RNumeric>() {
             public RNumeric compute(RServices R) throws RemoteException {
