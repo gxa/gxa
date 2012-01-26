@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.R;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.ac.ebi.rcloud.server.RServices;
 
@@ -57,7 +56,7 @@ public class TestBiocepAtlasRFactory {
         rFactory.releaseResources();
     }
 
-    @Ignore
+    @Test
     public void testMultipleCreateRServices() throws AtlasRServicesException {
         // test 8 iterations
         for (int i = 0; i < 4; i++) {
