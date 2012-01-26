@@ -46,6 +46,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
 
     public boolean validateEnvironment() {
         final String envRHome = System.getenv(R_HOME);
+        log.info(R_HOME + ": " + envRHome);
 
         if (Strings.isNullOrEmpty(envRHome)) {
             log.error("No " + R_HOME + " environment variable found. Can not start JNI bridge to R");
@@ -53,6 +54,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
         }
 
         String libPath = System.getProperty(JAVA_LIBRARY_PATH);
+        log.info(JAVA_LIBRARY_PATH + ": " + libPath);
 
         if (!libPath.contains("rJava") || !libPath.contains("jri")) {
             log.warn("JRI path probably not set. Check your " + JAVA_LIBRARY_PATH + ": " + libPath);
@@ -72,6 +74,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
     }
 
     public RServices createRServices() {
+        log.info("Creating R services..");
         // create a R service - DirectJNI gets an R service on the local machine
         return DirectJNI.getInstance().getRServices();
     }
@@ -80,6 +83,7 @@ public class LocalAtlasRFactory implements AtlasRFactory {
     }
 
     public void releaseResources() {
+        log.info("Releasing resources...");
         try {
             DirectJNI.getInstance()._rEngine.end();
 //            DirectJNI.getInstance()._rEngine.eval("quit('no')");
