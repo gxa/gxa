@@ -32,7 +32,7 @@ import static org.junit.Assert.fail;
  */
 public class TestAtlasRFactoryBuilder {
 
-    @Ignore("TODO: R requires LD_LIBRARY_PATH see: http://www.rforge.net/JRI/")
+    @Test
     public void testGetLocalRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
         if (rFactory.validateEnvironment()) {
