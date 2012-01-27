@@ -34,6 +34,28 @@ import uk.ac.ebi.rcloud.server.RServices;
  * createRServices() will release at most one RService for use at any one time, and repeat requests will block until the
  * previously acquired RService has been released.
  *
+ * Please refer to the http://www.rforge.net/JRI/ on how to configure environment for running local R services.
+ * Q:  I get the following error, what's wrong?
+ *     java.lang.UnsatisfiedLinkError: no jri in java.library.path
+ *
+ * A:  Usually it means that you didn't setup the necessary environment variables properly or the JRI library is not
+ *     where it is expected to be. The recommended way to start JRI programs is to use the run script which is
+ *     generated along with the library. It sets everything up and is tested to work. If you want to write your
+ *     own script or launcher, you must observe at least the following points:
+ *
+ *     + R_HOME must be set correctly
+ *
+ *     + (Windows): The directory containing R.dll must be in your PATH
+ *
+ *     + (Mac): Well, it's a Mac, so it just works ;).
+ *
+ *     + (unix): R must be compiled using --enable-R-shlib and the directory containing libR.so must be in
+ *       LD_LIBRARY_PATH. Also libjvm.so and other dependent Java libraries must be on LD_LIBRARY_PATH.
+ *
+ *     + JRI library must be in the current directory or any directory listed in java.library.path. Alternatively
+ *       you can specify its path with -Djava.library.path= when starting the JVM. When you use the latter,
+ *       make sure you check java.library.path property first such that you won't break your Java.
+ *
  * @author Tony Burdett
  */
 public class LocalAtlasRFactory implements AtlasRFactory {
