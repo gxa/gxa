@@ -36,7 +36,7 @@
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
-        <r.libs>${env.R_HOME}/library/rJava/jri</r.libs>
+        <jri.libs>${env.R_HOME}/library/rJava/jri</jri.libs>
     </properties>
 
     <scm>
@@ -75,7 +75,7 @@
                 <configuration>
                     <argLine>-Xmx2048m</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
-                    <argLine>-Djava.library.path=${r.libs}</argLine>
+                    <argLine>-Djava.library.path=${jri.libs}</argLine>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -100,9 +100,10 @@
                 <configuration>
                     <source>
                         def env = System.getenv()
-                        println ">>> LD_LIBRARY_PATH = " + env['LD_LIBRARY_PATH']
-                        println ">>> R_HOME = " + env['R_HOME']
-                        println ">>> project.R_LIBS = " + project.properties['r.libs']
+                        println ">>> Environment setup required for running local R services:"
+                        println ">>> env[LD_LIBRARY_PATH] = " + env['LD_LIBRARY_PATH']
+                        println ">>> env[R_HOME] = " + env['R_HOME']
+                        println ">>> project[jri.libs] = " + project.properties['jri.libs']
                     </source>
                 </configuration>
             </plugin>
