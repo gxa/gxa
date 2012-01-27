@@ -100,6 +100,7 @@
                 <configuration>
                     <source>
                         def env = System.getenv()
+                        println ">>> LD_LIBRARY_PATH = " + env['LD_LIBRARY_PATH']
                         println ">>> R_HOME = " + env['R_HOME']
                         println ">>> project.R_LIBS = " + project.properties['r.libs']
                     </source>
