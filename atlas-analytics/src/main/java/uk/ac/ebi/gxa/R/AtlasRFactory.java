@@ -39,9 +39,8 @@ public interface AtlasRFactory {
      * always be wrapped and rethrown if this is the case.
      *
      * @return true if the R environment is correctly configured, false otherwise
-     * @throws AtlasRServicesException if the underlying environment throws an exception on initialization
      */
-    boolean validateEnvironment() throws AtlasRServicesException;
+    boolean validateEnvironment();
 
     /**
      * Generates an {@link uk.ac.ebi.rcloud.server.RServices} object that can be used to perform R calculations.

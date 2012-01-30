@@ -32,7 +32,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import ucar.nc2.dataset.NetcdfDataset;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRServicesException;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.AtlasPropertiesListener;
@@ -113,8 +112,6 @@ public class AtlasApplicationListener implements ServletContextListener, HttpSes
             } else {
                 log.info("R environment validated, R services fully available");
             }
-        } catch (AtlasRServicesException e) {
-            log.error("R environment validation failed.  Atlas on-the-fly computations will fail", e);
         } catch (UnsatisfiedLinkError ule) {
             log.error("Atlas configured to use local R which is not present. Atlas on-the-fly computations will fail", ule);
         }

@@ -32,6 +32,9 @@ import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import java.util.Collection;
 import java.util.Map;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests the documents that are created by the class {@link uk.ac.ebi.gxa.index.builder.service.ExperimentAtlasIndexBuilderService}.
  * Whilst most of the lifecycle instantiation is left to the IndexBuilder and the abstract service, the logic for the
