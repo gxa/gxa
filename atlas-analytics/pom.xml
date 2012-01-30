@@ -35,12 +35,12 @@
     <url>http://www.ebi.ac.uk/gxa/</url>
 
     <build>
-        <testResources>
-            <testResource>
+        <resources>
+            <resource>
                 <directory>src/test/resources</directory>
                 <filtering>true</filtering>
-            </testResource>
-        </testResources>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>
