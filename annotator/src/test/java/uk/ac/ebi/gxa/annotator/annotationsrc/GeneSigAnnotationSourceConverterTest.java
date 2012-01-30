@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -85,7 +86,9 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
     @Test(expected = AnnotationLoaderException.class)
     @Transactional
     public void testEditOrCreateAnnotationSourceEditWithException() throws Exception {
-        converter.editOrCreateAnnotationSource("1001", ANN_SRC);
+        final GeneSigAnnotationSource byId = annSrcDAO.getById(1001, GeneSigAnnotationSource.class);
+        assertNotNull(byId);
+        converter.editOrCreateAnnotationSource(byId, ANN_SRC);
     }
 
     //ToDo: the test fails in the end because there are some problems with sequences.
@@ -99,7 +102,9 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
 
     @Test
     public void testConvertToString() throws Exception {
-        String annSrcAsString = converter.convertToString("1001");
+        final GeneSigAnnotationSource byId = annSrcDAO.getById(1001, GeneSigAnnotationSource.class);
+        assertNotNull(byId);
+        String annSrcAsString = converter.convertToString(byId);
         assertEquals(ANN_SRC_DB, annSrcAsString.trim());
     }
 

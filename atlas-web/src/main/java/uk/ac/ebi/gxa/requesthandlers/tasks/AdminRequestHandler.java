@@ -270,6 +270,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                             , "currName", sourceView.getSoftware()
                             , "validation", sourceView.getValidationMessage()
                             , "applied", sourceView.getApplied()
+                            , "appliedMapping", sourceView.areMappingsApplied()
                             , "annSrcType", sourceView.getType()
 
                     ));
@@ -285,6 +286,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
 
         return makeMap("annSrcText", annSrcString, "type", type);
+    }
+
+    private Object processValidateAnnSrc(String annSrcId, String type) {
+        String validationMsg = annSrcController.validate(annSrcId, type);
+
+        return makeMap("validationMsg", validationMsg);
     }
 
     private Date parseDate(String toDateStr) {
@@ -454,6 +461,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if ("searchannSrc".equals(op)) {
             return processSearchAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
+        }
+        else if ("validateannSrc".equals(op)) {
+            return processValidateAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
         }
         else if ("annSrcUpdate".equals(op))
             return processUpdateAnnSrc(req.getStr("annSrcId"), req.getStr("type"), req.getStr("asText"));

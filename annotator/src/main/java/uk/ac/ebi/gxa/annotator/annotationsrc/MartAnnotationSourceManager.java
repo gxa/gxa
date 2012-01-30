@@ -72,6 +72,11 @@ import java.util.Collection;
     }
 
     @Override
+    protected Class<BioMartAnnotationSource> getClazz() {
+        return BioMartAnnotationSource.class;
+    }
+
+    @Override
     public Collection<String> validateProperties(AnnotationSource annSrc) {
         if (isForClass(annSrc.getClass())) {
             return validator.getInvalidPropertyNames((BioMartAnnotationSource) annSrc);

@@ -22,12 +22,14 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
@@ -58,14 +60,14 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     public String getAnnSrcString(String id) {
-        return getConverter().convertToString(id);
+        return getConverter().convertToString(fetchAnnSrcById(id));
     }
 
     @Transactional
     public void saveAnnSrc(String id, String text) {
-        final AnnotationSourceConverter converter = getConverter();
+        final AnnotationSourceConverter<T> converter = getConverter();
         try {
-            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(id, text);
+            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(fetchAnnSrcById(id), text);
             annSrcDAO.save(annotationSource);
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
@@ -74,8 +76,23 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     public abstract Collection<String> validateProperties(AnnotationSource annSrc);
 
-    public Collection<String>  validateStructure(T annSrc){
-        return getConverter().validateStructure(annSrc);
+//    public Collection<String>  validateStructure(T annSrc){
+//        return getConverter().validateStructure(annSrc);
+//    }
+
+    public Collection<String> validateProperties(String annSrcId){
+        return validateProperties(fetchAnnSrcById(annSrcId));
+    }
+
+    public boolean areMappingsApplied(AnnotationSource annSrc) {
+        if (annSrc.getExternalArrayDesigns().isEmpty()) {
+            return false;
+        }
+        boolean result = true;
+        for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
+            result = result & annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign());
+        }
+        return result;
     }
 
     public abstract boolean isForClass(Class<? extends AnnotationSource> annSrcClass);
@@ -84,7 +101,23 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     protected abstract UpdatedAnnotationSource<T> createUpdatedAnnotationSource(T annSrc);
 
-    protected abstract AnnotationSourceConverter getConverter();
+    protected abstract AnnotationSourceConverter<T> getConverter();
+
+    protected T fetchAnnSrcById(String id) {
+        T annSrc = null;
+        if (!StringUtils.isEmpty(id)) {
+            try {
+                final long idL = Long.parseLong(id.trim());
+                annSrc = annSrcDAO.getById(idL, getClazz());
+            } catch (NumberFormatException e) {
+                throw LogUtil.createUnexpected("Cannot fetch Annotation Source. Wrong ID ", e);
+            }
+        }
+        return annSrc;
+    }
+
+    protected abstract Class<T> getClazz();
+
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
@@ -93,4 +126,5 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     public void setSoftwareDAO(SoftwareDAO softwareDAO) {
         this.softwareDAO = softwareDAO;
     }
+
 }

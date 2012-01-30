@@ -103,7 +103,9 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
 
     @Test
     public void testConvertToString() throws Exception {
-        String annSrcAsString = converter.convertToString("1000");
+        final BioMartAnnotationSource byId = annSrcDAO.getById(1000, BioMartAnnotationSource.class);
+        assertNotNull(byId);
+        String annSrcAsString = converter.convertToString(byId);
         assertEquals(ANN_SRC_DB, annSrcAsString.trim());
     }
 

@@ -64,7 +64,7 @@ public class TopAnnotationSourceManager {
     public String getAnnSrcString(String id, String typeName) {
         final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())){
+            if (manager.isForClass(type.getClazz())) {
                 return manager.getAnnSrcString(id);
             }
         }
@@ -75,11 +75,31 @@ public class TopAnnotationSourceManager {
     public void saveAnnSrc(String id, String text, String typeName) {
         final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())){
+            if (manager.isForClass(type.getClazz())) {
                 manager.saveAnnSrc(id, text);
                 return;
             }
         }
         throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
+    }
+
+    public boolean areMappingsApplied(AnnotationSource annSrc) {
+        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+            if (manager.isForClass(annSrc.getClass())) {
+                return manager.areMappingsApplied(annSrc);
+            }
+        }
+        throw new IllegalArgumentException("Annotation source manager is not available for type " + annSrc.getClass());
+    }
+
+    public Collection<String> validateProperties(String annSrcId, String typeName) {
+        final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
+        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+            if (manager.isForClass(type.getClazz())) {
+                return manager.validateProperties(annSrcId);
+            }
+        }
+        throw new IllegalArgumentException("Cannot validate annotation source of class " + type);
+
     }
 }

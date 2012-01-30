@@ -18,7 +18,7 @@ import java.util.*;
 public class AnnotationSourceController {
 
     @Autowired
-    private TopAnnotationSourceManager manager;
+    protected TopAnnotationSourceManager manager;
 
     public AnnotationSourceController() {
     }
@@ -54,7 +54,12 @@ public class AnnotationSourceController {
         manager.saveAnnSrc(id, text, type);
     }
 
-    public static class AnnotationSourceView {
+    public String validate(String annSrcId, String type) {
+        ValidationReport report = new ValidationReport(manager.validateProperties(annSrcId, type));
+        return report.getSummary();
+    }
+
+    public class AnnotationSourceView {
         private AnnotationSource annSrc;
         private ValidationReport validationReport;
 
@@ -103,6 +108,10 @@ public class AnnotationSourceController {
 
         public String getType() {
             return AnnotationSourceType.annSrcTypeOf(annSrc).getName();
+        }
+
+        public String areMappingsApplied() {
+            return manager.areMappingsApplied(annSrc) ? "yes" : "no";
         }
     }
 

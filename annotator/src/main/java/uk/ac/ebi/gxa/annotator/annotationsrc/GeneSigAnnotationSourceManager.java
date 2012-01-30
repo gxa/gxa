@@ -57,6 +57,11 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     }
 
     @Override
+    protected Class<GeneSigAnnotationSource> getClazz() {
+        return GeneSigAnnotationSource.class;
+    }
+
+    @Override
     public Collection<String> validateProperties(AnnotationSource annSrc) {
         if (isForClass(annSrc.getClass())) {
             return validator.getInvalidPropertyNames((GeneSigAnnotationSource) annSrc);

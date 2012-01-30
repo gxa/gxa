@@ -701,6 +701,27 @@ function updateAnnSrcs() {
 
         });
 
+        $('#orgList .validate input').each(function (i, e) {
+            var li = result.annSrcs[i];
+
+            $(e).click(function() {
+                annSrcId = li.id;
+                annSrcType = li.annSrcType;
+                adminCall('validateannSrc', {
+                    annSrcId:annSrcId
+                    , type: annSrcType
+                }, function (result) {
+                   window.confirm('Validation message ' + result.validationMsg);
+
+
+                    renderTpl('validationMessage', result.validationMsg);
+
+                });
+            });
+
+        });
+
+
         $('#orgList input.update').click(function () {
             startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
         });
@@ -901,8 +922,9 @@ function compileTemplates() {
                 '.name': 'annSrc.organismName',
                 '.types': 'annSrc.beTypes',
                 '.currAnnSrc': 'annSrc.currName',
-                '.validation': 'annSrc.validation',
-                '.applied': 'annSrc.applied',
+                '.appliedAnn': 'annSrc.applied',
+                '.appliedMapping': 'annSrc.appliedMapping',
+                '.validationMsg': 'annSrc.validation',
                 '.orgSelector@value': 'annSrc.id',
                 '.orgSelector@id+': 'annSrc.id'
             }

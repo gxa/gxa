@@ -68,6 +68,7 @@ public abstract class AnnotationSource {
 
     @org.hibernate.annotations.Type(type = "true_false")
     private boolean isApplied = false;
+
     @OneToMany(targetEntity = ExternalBioEntityProperty.class
             , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}

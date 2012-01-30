@@ -52,29 +52,10 @@ class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMart
     }
 
     @Override
-    public BioMartAnnotationSource editOrCreateAnnotationSource(String id, String text) throws AnnotationLoaderException {
-
-        Reader input = new StringReader(text);
-        Properties properties = new Properties();
-        try {
-            properties.load(input);
-            //Fetch organism and software
-            BioMartAnnotationSource annSrc = initAnnotationSource(id, properties);
-            updateAnnotationSource(properties, annSrc);
-            return annSrc;
-        } catch (IOException e) {
-            throw new AnnotationLoaderException("Cannot read annotation properties", e);
-        } finally {
-            closeQuietly(input);
-        }
-    }
-
-    @Override
-    protected BioMartAnnotationSource initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException {
+    protected BioMartAnnotationSource initAnnotationSource(BioMartAnnotationSource annSrc, Properties properties) throws AnnotationLoaderException {
         Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
-        BioMartAnnotationSource annSrc = fetchAnnSrcById(id);
         if (annSrc == null) {
             return new BioMartAnnotationSource(software, organism);
         }

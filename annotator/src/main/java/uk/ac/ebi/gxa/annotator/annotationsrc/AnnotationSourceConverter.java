@@ -74,8 +74,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     @Autowired
     protected ArrayDesignService arrayDesignService;
 
-    public String convertToString(String id) {
-        final T annSrc = fetchAnnSrcById(id);
+    public String convertToString(T annSrc) {
         if (annSrc == null) {
             return "";
         }
@@ -91,13 +90,13 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    public T editOrCreateAnnotationSource(String id, String text) throws AnnotationLoaderException {
+    public T editOrCreateAnnotationSource(T annSrc, String text) throws AnnotationLoaderException {
         Reader input = new StringReader(text);
         Properties properties = new Properties();
         try {
             properties.load(input);
             //Fetch organism and software
-            T annSrc = initAnnotationSource(id, properties);
+            initAnnotationSource(annSrc, properties);
             updateAnnotationSource(properties, annSrc);
             return annSrc;
         } catch (IOException e) {
@@ -292,7 +291,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected abstract void writeExtraProperties(T annSrc, PropertiesConfiguration properties);
 
-    protected abstract T initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException;
+    protected abstract T initAnnotationSource(T annSrc, Properties properties) throws AnnotationLoaderException;
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;

@@ -40,10 +40,9 @@ class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSig
     }
     
     @Override
-    protected GeneSigAnnotationSource initAnnotationSource(String id, Properties properties) throws AnnotationLoaderException {
+    protected GeneSigAnnotationSource initAnnotationSource(GeneSigAnnotationSource annSrc, Properties properties) throws AnnotationLoaderException {
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
-        GeneSigAnnotationSource annSrc = fetchAnnSrcById(id);
         if (annSrc == null) {
             return new GeneSigAnnotationSource(software);
         }
