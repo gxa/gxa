@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.web.ui.plot;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.jackson.annotate.JsonProperty;
 import uk.ac.ebi.gxa.data.StatisticsCursor;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
@@ -41,7 +42,8 @@ public class BoxAndWhisker {
     private final float min;
     private final UpDownExpression expression;
 
-    private BoxAndWhisker(float[] data, @Nonnull UpDownExpression upDown) {
+    @VisibleForTesting
+    BoxAndWhisker(float[] data, @Nonnull UpDownExpression upDown) {
         Arrays.sort(data);
         this.median = percentile(data, 0.5);
         this.max = percentile(data, 1.0);
