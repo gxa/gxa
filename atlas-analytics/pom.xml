@@ -33,6 +33,16 @@
     <version>2.0.12-SNAPSHOT</version>
     <name>Gene Expression Atlas Analytics</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+    </build>
+
     <dependencies>
         <!-- atlas dao, for talking to DB -->
         <dependency>
@@ -121,13 +131,11 @@
         <dependency>
             <groupId>org.dbunit</groupId>
             <artifactId>dbunit</artifactId>
-            <version>2.4.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>1.8.0.10</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

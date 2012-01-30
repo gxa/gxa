@@ -22,46 +22,33 @@
 
 package uk.ac.ebi.gxa.R;
 
-import com.google.common.base.Strings;
-import junit.framework.TestCase;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.junit.Assert.fail;
 
 /**
  * @author Tony Burdett
  */
-public class TestAtlasRFactoryBuilder extends TestCase {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+public class TestAtlasRFactoryBuilder {
 
     @Test
     public void testGetLocalRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
-        if (!rFactory.validateEnvironment()) {
-            // this is a valid result if no $R_HOME set
-            if (Strings.isNullOrEmpty(System.getenv("R_HOME"))) {
-                log.info("No R_HOME set, so environment is not valid: result is correct");
-            } else {
-                fail("Unable to validate R remote environment");
-            }
+        if (rFactory.validateEnvironment()) {
+            rFactory.releaseResources();
+            return;
         }
-
-        rFactory.releaseResources();
+        fail("Unable to validate local R environment. See logs for details");
     }
 
     @Test
     public void testGetBiocepRFactory() throws InstantiationException, AtlasRServicesException {
         AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
-        if (!rFactory.validateEnvironment()) {
-            // this is a valid result if no biocep properties set - we're just checking one here
-            if (System.getProperty("pools.dbmode.name") == null) {
-                log.info("No biocep properties set, so environment is not valid: result is correct");
-            } else {
-                fail("Unable to validate R remote environment");
-            }
+        if (rFactory.validateEnvironment()) {
+            rFactory.releaseResources();
+            return;
         }
-
-        rFactory.releaseResources();
+        fail("Unable to validate biocep R environment. See logs for details");
     }
 
 }
