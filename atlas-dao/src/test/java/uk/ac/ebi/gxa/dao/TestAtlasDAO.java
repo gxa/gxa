@@ -32,6 +32,8 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.*;
+
 /**
  * Actual tests for AtlasDAO, extends AtlasDAOTestCase which does all the handy instantiation of a basic, in memory DB.
  *

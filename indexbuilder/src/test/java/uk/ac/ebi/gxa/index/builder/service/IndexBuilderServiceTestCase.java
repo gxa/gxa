@@ -33,6 +33,8 @@ import uk.ac.ebi.gxa.utils.FileUtil;
 import java.io.File;
 import java.util.logging.LogManager;
 
+import static org.junit.Assert.fail;
+
 /**
  * @author Tony Burdett
  */

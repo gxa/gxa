@@ -53,6 +53,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
+import static org.junit.Assert.fail;
+
 /**
  * Test case that creates Solr indices from DB unit test.
  */
