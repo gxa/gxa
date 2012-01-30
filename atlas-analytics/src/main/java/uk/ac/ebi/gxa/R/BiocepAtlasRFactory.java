@@ -60,51 +60,50 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
      * Validates that all the system properties required by biocep are set.
      *
      * @return true if the validation succeed, flase if it failed for a reason OTHER than a missing property
-     * @throws AtlasRServicesException if any required properties are missing.
      */
-    public boolean validateEnvironment() throws AtlasRServicesException {
+    public boolean validateEnvironment() {
         if (System.getProperty("pools.dbmode.host") == null) {
-            log.warn("pools.dbmode.host not set");
+            log.error("pools.dbmode.host not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.port") == null) {
-            log.warn("pools.dbmode.port not set");
+            log.error("pools.dbmode.port not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.name") == null) {
-            log.warn("pools.dbmode.name not set");
+            log.error("pools.dbmode.name not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.user") == null) {
-            log.warn("biocep.dbmode.user not set");
+            log.error("biocep.dbmode.user not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.password") == null) {
-            log.warn("biocep.db.password not set");
+            log.error("biocep.db.password not set");
             return false;
         }
         if (System.getProperty("naming.mode") == null) {
-            log.warn("biocep.naming.mode not set");
+            log.error("biocep.naming.mode not set");
             return false;
         }
         if (System.getProperty("pools.provider.factory") == null) {
-            log.warn("biocep.provider.factory not set");
+            log.error("biocep.provider.factory not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.type") == null) {
-            log.warn("biocep.db.type not set");
+            log.error("biocep.db.type not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.driver") == null) {
-            log.warn("pools.dbmode.driver not set");
+            log.error("pools.dbmode.driver not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.defaultpool") == null) {
-            log.warn("pools.dbmode.defaultpool not set");
+            log.error("pools.dbmode.defaultpool not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.killused") == null) {
-            log.warn("pools.dbmode.killused not set");
+            log.error("pools.dbmode.killused not set");
             return false;
         }
 
@@ -117,8 +116,6 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
                     "check biocep is installed and required database is present", e);
             return false;
         }
-        
-        // otherwise, checks passed so return true
         return true;
     }
 
