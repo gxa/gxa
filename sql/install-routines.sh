@@ -94,6 +94,13 @@ load_data() {
       cat $LDR_CTL.log >> install.log
       rm $LDR_CTL.log
     done
+
+    echo "Creating indexes and constraints..."
+    sqlplus -L -S $ATLAS_CONNECTION @Schema/Indexes.sql
+    if [ "$?" -ne "0" ]; then
+	   echo "can not execute script" Indexes.sql ; exit -1
+    fi
+
     echo "Enabling constraints and rebuilding sequences..."
     echo "call ATLASMGR.EnableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION
     echo "call ATLASMGR.RebuildSequences();" | sqlplus -L -S $ATLAS_CONNECTION
