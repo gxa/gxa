@@ -111,7 +111,8 @@ public class AnnotationSourceController {
         }
 
         public String areMappingsApplied() {
-            return manager.areMappingsApplied(annSrc) ? "yes" : "no";
+            return "";
+//            return manager.areMappingsApplied(annSrc) ? "yes" : "no";
         }
     }
 

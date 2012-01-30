@@ -705,16 +705,12 @@ function updateAnnSrcs() {
             var li = result.annSrcs[i];
 
             $(e).click(function() {
-                annSrcId = li.id;
-                annSrcType = li.annSrcType;
                 adminCall('validateannSrc', {
-                    annSrcId:annSrcId
-                    , type: annSrcType
+                    annSrcId:li.id
+                    , type: li.annSrcType
                 }, function (result) {
-                   window.confirm('Validation message ' + result.validationMsg);
 
-
-                    renderTpl('validationMessage', result.validationMsg);
+                    $('#validationMsg_' + li.id).text(result.validationMsg);
 
                 });
             });
@@ -837,7 +833,11 @@ function storeExperimentsFormState() {
 }
 
 function renderTpl(name, data) {
-    $('#'+name).render(data, $tpl[name]);
+    renderTemplate(name, name, data);
+}
+
+function renderTemplate(targetId, templateName, data) {
+    $('#' + targetId).render(data, $tpl[templateName]);
 }
 
 $.fn.appendClassTpl = function (data, name) {
@@ -924,7 +924,9 @@ function compileTemplates() {
                 '.currAnnSrc': 'annSrc.currName',
                 '.appliedAnn': 'annSrc.applied',
                 '.appliedMapping': 'annSrc.appliedMapping',
-                '.validationMsg': 'annSrc.validation',
+//                '.validationMsg': 'annSrc.validation',
+                '.validationText@id+': 'annSrc.id',
+                '.validationText': 'annSrc.validation',
                 '.orgSelector@value': 'annSrc.id',
                 '.orgSelector@id+': 'annSrc.id'
             }
