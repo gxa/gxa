@@ -129,7 +129,7 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public boolean isEmpty() {
-        return uEFVs.size() == 0;
+        return uEFVs.isEmpty();
     }
 
     @Override
