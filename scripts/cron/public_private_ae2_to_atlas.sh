@@ -85,6 +85,7 @@ while read line; do
           else
              err_msg="Updating private/public status of experiments on $3:$4/$5 unsuccessful: failed to find $exp_accession in AE2"
              echo $err_msg >> $process_file.log
+             mailx -s "$err_msg" $6 < /dev/null
           fi
        else
           err_msg="Updating private/public status of experiments on $3:$4/$5 failed due to incorrect format of Atlas API call output"
