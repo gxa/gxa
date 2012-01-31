@@ -201,8 +201,8 @@ public class StatisticsCursor implements DesignElementStatistics {
         BitSet assays = new BitSet(factorValues.length);
         for (int i = 0; i < factors.length; i++) {
             if (name.equals(factors[i])) {
-                for (int j = 0; j < factorValues.length; j++) {
-                    assays.set(j, value.equals(factorValues[j][i]));
+                for (int j = 0; j < factorValues[i].length; j++) {
+                    assays.set(j, value.equals(factorValues[i][j]));
                 }
             }
         }

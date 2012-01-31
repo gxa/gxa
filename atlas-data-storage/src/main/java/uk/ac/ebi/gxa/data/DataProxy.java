@@ -73,7 +73,7 @@ interface DataProxy extends Closeable {
     String[] getFactorValues(String factor) throws AtlasDataException;
 
     /**
-     * Returns the whole matrix of factor values for assays (|Assay| X |EF|).
+     * Returns the whole matrix of factor values for assays (|EF| X |Assay|).
      *
      * @return an array of strings - an array of factor values per assay
      * @throws AtlasDataException if data could not be read form the netCDF file
