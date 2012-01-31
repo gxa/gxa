@@ -238,13 +238,15 @@ public class ArrayDataStep {
                                 if (localZipFile != null && !localZipFile.delete()) {
                                     log.error("Cannot delete " + localZipFile.getAbsolutePath());
                                 }
-                                throw new AtlasLoaderException("Error: '"+e.getMessage()+"' occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
+                                log.error("IOException is thrown: " + e.getMessage());
+                                throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
                             }
                         }
                         try {
                             extractZip(localZipFile, adData.dataDir);
                         } catch (IOException e) {
-                            throw new AtlasLoaderException("Error: '"+e.getMessage()+"' occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
+                            log.error("IOException is thrown: " + e.getMessage());
+                            throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
                         }
                     }
                 }
