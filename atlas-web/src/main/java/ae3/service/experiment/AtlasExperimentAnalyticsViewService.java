@@ -80,7 +80,9 @@ public class AtlasExperimentAnalyticsViewService {
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
         result.setTotalSize(totalSize);
         for (StatisticsSnapshot de : sublist) {
-            result.add(geneSolrDAO.getGeneById(de.getBioEntityId()).getGene(), de);
+            final GeneSolrDAO.AtlasGeneResult gene = geneSolrDAO.getGeneById(de.getBioEntityId());
+            if (gene.isFound())
+                result.add(gene.getGene(), de);
         }
         return result;
     }
