@@ -45,7 +45,7 @@ mv atlas-data-relcan-package.log atlas-data-relcan
 echo "Installing into target DB..."  >> $log
 pushd atlas-data-relcan
 chmod 744 install.sh
-./install.sh ${TARGET_ATLAS_CONNECTION} ${TARGET_ATLAS_USER}_DATA Data 2>&1 > atlas-data-relcan-install.log
+./install.sh ${TARGET_ATLAS_CONNECTION} ${TARGET_ATLAS_USER}_INDX Data 2>&1 > atlas-data-relcan-install.log
 
 # Capture return status for install.sh
 rc=$?
