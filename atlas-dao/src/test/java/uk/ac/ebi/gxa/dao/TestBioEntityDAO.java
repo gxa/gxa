@@ -28,6 +28,9 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class TestBioEntityDAO extends AtlasDAOTestCase {
     @Test
     public void testGetAllGenes() throws Exception {

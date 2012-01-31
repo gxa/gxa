@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.compute;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
