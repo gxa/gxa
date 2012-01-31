@@ -45,7 +45,7 @@ import java.util.Collection;
     private MartPropertiesValidator validator;
 
     @Autowired
-    private VersionFinder versionFinder;
+    private MartVersionFinder versionFinder;
 
     @Override
     protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
@@ -67,7 +67,7 @@ import java.util.Collection;
     }
 
     @Override
-    protected AnnotationSourceConverter getConverter() {
+    protected BioMartAnnotationSourceConverter getConverter() {
         return bioMartAnnotationSourceConverter;
     }
 
@@ -90,7 +90,7 @@ import java.util.Collection;
         return annSrcClass.equals(BioMartAnnotationSource.class);
     }
 
-    protected void setVersionFinder(VersionFinder versionFinder) {
+    protected void setVersionFinder(MartVersionFinder versionFinder) {
         this.versionFinder = versionFinder;
     }
 

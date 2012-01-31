@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.VersionFinder;
+import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -79,9 +80,9 @@ public class MartAnnotationSourceManagerTest extends AtlasDAOTestCase {
         assertEquals("100", result.getAnnotationSource().getSoftware().getVersion());
     }
 
-    private static VersionFinder versionFinder = new VersionFinder() {
+    private static MartVersionFinder versionFinder = new MartVersionFinder() {
         @Override
-        public String fetchOnLineVersion(AnnotationSource annSrc) {
+        public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
             return "100";
         }
     };
