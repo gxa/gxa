@@ -155,13 +155,23 @@ public class StatisticsCursor implements DesignElementStatistics {
     public boolean nextEFV() {
         for (efvi++; efvi < uEFVs.size() && !efvPredicate.apply(uEFVs.get(efvi)); efvi++) {
         }
-        return efvi < uEFVs.size();
+        if (efvi < uEFVs.size()) {
+            return true;
+        } else {
+            efvi = -1;
+            return false;
+        }
     }
 
     public boolean nextBioEntity() {
         for (dii++; dii < des.length && !bePredicate.apply(bioentities[de()]); dii++) {
         }
-        return dii < des.length;
+        if (dii < des.length) {
+            return true;
+        } else {
+            dii = -1;
+            return false;
+        }
     }
 
     public String toString() {
