@@ -27,7 +27,7 @@ import uk.ac.ebi.gxa.utils.Pair;
 
 import javax.annotation.Nonnull;
 
-import static com.google.common.base.Predicates.alwaysTrue;
+import static com.google.common.base.Predicates.*;
 
 /**
  * Statistics together with DE details
@@ -35,7 +35,7 @@ import static com.google.common.base.Predicates.alwaysTrue;
  * @author alf
  */
 public interface DesignElementStatistics extends BaseStatistics {
-    Predicate<Long> ANY_GENE = alwaysTrue();
+    Predicate<Long> ANY_GENE = not(equalTo(0L));
     Predicate<Pair<String, String>> ANY_EFV = alwaysTrue();
 
     @Nonnull
