@@ -781,10 +781,6 @@ end;
 
 ALTER TRIGGER A2_DESIGNELTBIOENTITY_INSERT ENABLE;
 
-CREATE BITMAP INDEX "IDX_BIOENTITYBEPV_BEID_SWID"
-ON "A2_BIOENTITYBEPV" (BIOENTITYID, SOFTWAREID)
-/*INDEX_TABLESPACE*/;
-
 --------------------------------------------------------
 --  DDL for TEMP TABLE
 --------------------------------------------------------

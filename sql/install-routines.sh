@@ -35,7 +35,6 @@ TABLE_NAMES_SCHEMA="ArrayDesign \
 
 create_schema() {
     ATLAS_CONNECTION=$1
-    ATLAS_INDEX_TABLESPACE=$2
 
     # scripts which must be executed first, in given order
     CORE_SCRIPTS="Types.sql Tables.sql Views.sql list_to_table.sql list_to_table_str.sql PKG_ATLASMGR.sql \
@@ -45,19 +44,10 @@ create_schema() {
     TR_CUR_OntologyMapping.sql CUR_SetCurated.sql CUR_SetUnCurated.sql CUR_ExperimentProperty.sql"
     SCHEMA_FOLDER=Schema
 
-    if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
-      sed "s/\/\*PK_TABLESPACE\*\//USING INDEX TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" Schema/Tables.sql | \
-      sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" > Schema/TablesTablespace.sql
-    fi
     for SCRIPT_NAME in $CORE_SCRIPTS
       do
       if [ ! -r Schema/$SCRIPT_NAME ]; then
-	  echo "required script not found in Schema folder:" $SCRIPT_NAME; exit -1
-      fi
-      if [ "$SCRIPT_NAME" == "Tables.sql" ]; then
-	  if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
-	      SCRIPT_NAME=TablesTablespace.sql 
-	  fi
+	     echo "required script not found in Schema folder:" $SCRIPT_NAME; exit -1
       fi
       echo "executing " $SCRIPT_NAME
       
@@ -73,6 +63,7 @@ load_data() {
     DATA_FOLDER=$2
     CTL_FOLDER=$3
     INSTALL_MODE=$4
+    ATLAS_INDEX_TABLESPACE=$5
 
     echo "call ATLASMGR.DisableConstraints();" | sqlplus -L -S $ATLAS_CONNECTION
 
@@ -96,6 +87,13 @@ load_data() {
     done
 
     echo "Creating indexes and constraints..."
+    SCRIPT_NAME=Indexes.sql
+    if [ ! -z "${ATLAS_INDEX_TABLESPACE}" ]; then
+        sed "s/\/\*PK_TABLESPACE\*\//USING INDEX TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" Schema/Indexes.sql | \
+        sed "s/\/\*INDEX_TABLESPACE\*\//TABLESPACE ${ATLAS_INDEX_TABLESPACE}/" > Schema/IndexesTablespace.sql
+	    SCRIPT_NAME=IndexesTablespace.sql
+    fi
+
     sqlplus -L -S $ATLAS_CONNECTION @Schema/Indexes.sql
     if [ "$?" -ne "0" ]; then
 	   echo "can not execute script" Indexes.sql ; exit -1
