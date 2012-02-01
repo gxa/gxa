@@ -94,7 +94,7 @@ load_data() {
 	    SCRIPT_NAME=IndexesTablespace.sql
     fi
 
-    sqlplus -L -S $ATLAS_CONNECTION @Schema/Indexes.sql
+    sqlplus -L -S $ATLAS_CONNECTION @Schema/${SCRIPT_NAME}
     if [ "$?" -ne "0" ]; then
 	   echo "can not execute script" Indexes.sql ; exit -1
     fi
