@@ -97,26 +97,6 @@ abstract class NetCDFProxy implements DataProxy {
         }
     }
 
-    FloatMatrixProxy readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
-        try {
-            Variable variable = netCDF.findVariable(varName);
-            int[] shape = variable.getShape();
-
-            float[][] result = new float[shape[0]][shape[1]];
-
-            for (int i = 0; i < result.length; i++) {
-                int[] origin = {i, 0};
-                int[] size = new int[]{1, shape[1]};
-                result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
-            }
-            return new FloatMatrixProxy(variable, result);
-        } catch (IOException e) {
-            throw new AtlasDataException(e);
-        } catch (InvalidRangeException e) {
-            throw new AtlasDataException(e);
-        }
-    }
-
     String[] getArrayOfStrings(NetcdfFile netCDF, String variable) throws AtlasDataException {
         try {
             if (netCDF.findVariable(variable) == null) {
@@ -199,6 +179,26 @@ abstract class NetCDFProxy implements DataProxy {
             }
             return result;
         } catch (IOException e) {
+            throw new AtlasDataException(e);
+        }
+    }
+
+    FloatMatrixProxy readFloatValuesForAllRows(NetcdfFile netCDF, String varName) throws AtlasDataException {
+        try {
+            Variable variable = netCDF.findVariable(varName);
+            int[] shape = variable.getShape();
+
+            float[][] result = new float[shape[0]][shape[1]];
+
+            for (int i = 0; i < result.length; i++) {
+                int[] origin = {i, 0};
+                int[] size = new int[]{1, shape[1]};
+                result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
+            }
+            return new FloatMatrixProxy(variable, result);
+        } catch (IOException e) {
+            throw new AtlasDataException(e);
+        } catch (InvalidRangeException e) {
             throw new AtlasDataException(e);
         }
     }
