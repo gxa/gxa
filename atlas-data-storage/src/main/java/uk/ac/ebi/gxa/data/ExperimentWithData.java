@@ -231,7 +231,9 @@ public class ExperimentWithData implements Closeable {
 
         final List<ExpressionAnalysis> list = newArrayList();
         while (statistics.nextEFV()) {
-            list.add(new ExpressionAnalysis(arrayDesign.getAccession(), statistics.getSnapshot()));
+            while (statistics.nextBioEntity()) {
+                list.add(new ExpressionAnalysis(arrayDesign.getAccession(), statistics.getSnapshot()));
+            }
         }
         return list;
     }
