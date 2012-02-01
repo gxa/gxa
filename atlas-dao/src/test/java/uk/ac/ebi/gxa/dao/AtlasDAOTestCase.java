@@ -22,10 +22,8 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.apache.commons.httpclient.util.IdleConnectionHandler;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
-import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.DatabaseDataSourceConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.DataSetException;
@@ -47,7 +45,6 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -96,16 +93,26 @@ public abstract class AtlasDAOTestCase {
 
     private void populateDatabase() throws SQLException, DatabaseUnitException {
         assertNotNull(atlasDataSource);
-        DatabaseOperation.CLEAN_INSERT.execute(getConnection(), getDataSet());
+        IDatabaseConnection conn = getConnection(atlasDataSource);
+        try {
+            DatabaseOperation.CLEAN_INSERT.execute(conn, getDataSet());
+        } finally {
+            conn.close();
+        }
     }
     
     private void cleanupDatabase() throws SQLException, DatabaseUnitException {
         assertNotNull(atlasDataSource);
-        DatabaseOperation.DELETE_ALL.execute(getConnection(), getDataSet());
+        IDatabaseConnection conn = getConnection(atlasDataSource);
+        try {
+            DatabaseOperation.DELETE_ALL.execute(conn, getDataSet());
+        } finally {
+            conn.close();
+        }
     }
 
-    private IDatabaseConnection getConnection() throws SQLException {
-        IDatabaseConnection conn = new DatabaseDataSourceConnection(atlasDataSource);
+    private IDatabaseConnection getConnection(DataSource dataSource) throws SQLException {
+        IDatabaseConnection conn = new DatabaseDataSourceConnection(dataSource);
         conn.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY,
                 new HsqldbDataTypeFactory());
         return conn;

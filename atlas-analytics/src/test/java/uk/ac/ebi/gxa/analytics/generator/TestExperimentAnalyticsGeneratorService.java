@@ -22,11 +22,8 @@
 
 package uk.ac.ebi.gxa.analytics.generator;
 
-import junit.framework.AssertionFailedError;
-import org.easymock.EasyMock;
 import org.junit.Test;
 import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -37,7 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertNotNull;
 
 public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
@@ -57,10 +55,6 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
         atlasDataDAO.setAtlasDataRepo(ResourceUtil.getResourceRoot(getClass()));
 
         final AtlasComputeService atlasComputeService = createMock(AtlasComputeService.class);
-        expect(atlasComputeService
-                .computeTask(EasyMock.<ComputeTask<Object>>anyObject()))
-                .andThrow(new AssertionFailedError("Unexpected call to computeTask"))
-                .anyTimes();
         replay(atlasComputeService);
 
         final ExperimentAnalyticsGeneratorService experimentAnalyticsGeneratorService =

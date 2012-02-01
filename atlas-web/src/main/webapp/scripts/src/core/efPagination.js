@@ -25,7 +25,7 @@
 
     /**
      * @param opts {
-     *     factors - an array of experiment factors
+     *     factors - an array of experiment factors (e.g., {name: "factor_name", displayName: "Factor name"})
      *     pageState - page state object to register for stateChange event (optional)
      *     pageStatePrefix - a hierarchical prefix for page state; required if pageState is given
      * }
@@ -78,8 +78,8 @@
         function draw() {
             var html = [], factors = opts.factors;
             for (var i = 0, len = factors.length; i < len; i++) {
-                var item = factors[i];
-                html.push("<div data-ef=\"" + item + "\">" + item + "</div>");
+                var factor = factors[i];
+                html.push("<div data-ef=\"" + factor.name + "\">" + factor.displayName + "</div>");
             }
             var el = $(elem);
             if (!el.hasClass("pagination_ef")) {

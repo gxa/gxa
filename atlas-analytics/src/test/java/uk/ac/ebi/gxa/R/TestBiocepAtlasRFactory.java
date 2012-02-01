@@ -22,7 +22,9 @@
 
 package uk.ac.ebi.gxa.R;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import uk.ac.ebi.rcloud.server.RServices;
 
 import java.util.ArrayList;
@@ -31,21 +33,22 @@ import java.util.List;
 /**
  * @author Tony Burdett
  */
-public class TestBiocepAtlasRFactory extends TestCase {
+public class TestBiocepAtlasRFactory {
     private AtlasRFactory rFactory;
     private List<RServices> rServicesList;
 
+    @Before
     public void setUp() throws InstantiationException {
         rServicesList = new ArrayList<RServices>();
         rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
     }
 
+    @After
     public void tearDown() {
         for (RServices rServices : rServicesList) {
             try {
                 rFactory.recycleRServices(rServices);
-            }
-            catch (AtlasRServicesException e) {
+            } catch (AtlasRServicesException e) {
                 e.printStackTrace();
             }
         }
@@ -53,6 +56,7 @@ public class TestBiocepAtlasRFactory extends TestCase {
         rFactory.releaseResources();
     }
 
+    @Test
     public void testMultipleCreateRServices() throws AtlasRServicesException {
         // test 8 iterations
         for (int i = 0; i < 4; i++) {
