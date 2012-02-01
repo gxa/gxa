@@ -173,11 +173,17 @@ public class ExperimentWithData implements Closeable {
         return getProxy(arrayDesign).getGenes();
     }
 
-    @Deprecated
+    // do NOT change visibility
     List<Pair<String, String>> getUniqueEFVs(ArrayDesign arrayDesign) throws AtlasDataException, StatisticsNotFoundException {
         return getProxy(arrayDesign).getUniqueEFVs();
     }
 
+    /**
+     * @param arrayDesign array design to look up factors for
+     * @return an array of experiment factors used in the experiment
+     * @throws AtlasDataException if data is not available Ñ or broken
+     * @deprecated must be package private
+     */
     @Deprecated
     public String[] getFactors(ArrayDesign arrayDesign) throws AtlasDataException {
         return getProxy(arrayDesign).getFactors();

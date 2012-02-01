@@ -106,12 +106,9 @@ interface DataProxy extends Closeable {
 
     FloatMatrixProxy getAllExpressionData() throws AtlasDataException;
 
-    @Deprecated
     List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
 
-    @Deprecated
     FloatMatrixProxy getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
 
-    @Deprecated
     FloatMatrixProxy getPValues() throws AtlasDataException, StatisticsNotFoundException;
 }
