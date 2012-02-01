@@ -155,6 +155,15 @@ public class ExperimentPlot {
         }
     }
 
+    private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {
+        return Lists.transform(Arrays.asList(factors), new Function<String, EfName>() {
+            @Override
+            public EfName apply(@Nullable String input) {
+                return new EfName(input, stringConverter.apply(input));
+            }
+        });
+    }
+
     private static Map<Integer, Map<Pair<String, String>, BoxAndWhisker>> retrieveBoxAndWhiskersData(
             ExperimentWithData ewd, ArrayDesign ad, int[] deIndices)
             throws AtlasDataException, StatisticsNotFoundException {
@@ -168,15 +177,6 @@ public class ExperimentPlot {
             baw.put(statistics.getDeIndex(), deCharts);
         }
         return baw;
-    }
-
-    private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {
-        return Lists.transform(Arrays.asList(factors), new Function<String, EfName>() {
-            @Override
-            public EfName apply(@Nullable String input) {
-                return new EfName(input, stringConverter.apply(input));
-            }
-        });
     }
 
     private static class EfName {
