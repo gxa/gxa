@@ -27,12 +27,7 @@ import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.Properties;
-
-import static com.google.common.io.Closeables.closeQuietly;
+import java.util.*;
 
 /**
  * User: nsklyar
@@ -46,28 +41,44 @@ class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMart
     private static final String DATASET_NAME_PROPNAME = "datasetName";
     private static final String DATABASE_NAME_PROPNAME = "databaseName";
 
+    private final static List<String> BM_PROPNAMES = Arrays.asList(ORGANISM_PROPNAME,
+            MYSQLDBNAME_PROPNAME,
+            MYSQLDBURL_PROPNAME,
+            DATASET_NAME_PROPNAME,
+            DATABASE_NAME_PROPNAME);
+
     @Override
     protected Class<BioMartAnnotationSource> getClazz() {
         return BioMartAnnotationSource.class;
     }
 
     @Override
-    protected BioMartAnnotationSource initAnnotationSource(BioMartAnnotationSource annSrc, Properties properties) throws AnnotationLoaderException {
+    protected BioMartAnnotationSource initAnnotationSource(Properties properties){
         Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
-        if (annSrc == null) {
-            return new BioMartAnnotationSource(software, organism);
-        }
+        return new BioMartAnnotationSource(software, organism);
+    }
+
+    @Override
+    protected void validateStableFields(BioMartAnnotationSource annSrc, Properties properties, ValidationReportBuilder reportBuilder) {
+        Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
+        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
         if (!annSrc.getSoftware().equals(software)) {
-             throw new AnnotationLoaderException("Software should not be changed when editing Annotation Source!");
+            reportBuilder.addMessage("Software should not be changed when editing Annotation Source!");
         }
 
         if (!annSrc.getOrganism().equals(organism)) {
-            throw new AnnotationLoaderException("Organism should not be changed when editing Annotation Source!");
+            reportBuilder.addMessage("Organism should not be changed when editing Annotation Source!");
         }
-        return annSrc;
+    }
+
+    @Override
+    protected Collection<String> getRequiredProperties() {
+        List<String> propertyNames = new ArrayList<String>(BM_PROPNAMES);
+        propertyNames.addAll(PROPNAMES);
+        return Collections.unmodifiableCollection(propertyNames);
     }
 
     @Override

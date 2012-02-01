@@ -43,6 +43,9 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import static com.google.common.collect.Sets.difference;
@@ -58,6 +61,12 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected static final String SOFTWARE_VERSION_PROPNAME = "software.version";
     protected static final String TYPES_PROPNAME = "types";
     protected static final String URL_PROPNAME = "url";
+
+    protected static final List<String> PROPNAMES = Arrays.asList(SOFTWARE_NAME_PROPNAME,
+            SOFTWARE_VERSION_PROPNAME,
+            TYPES_PROPNAME,
+            URL_PROPNAME);
+
     private static final String EXTPROPERTY_PROPNAME = "property";
     private static final String ARRAYDESIGN_PROPNAME = "arrayDesign";
 
@@ -90,19 +99,62 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    public T editOrCreateAnnotationSource(T annSrc, String text) throws AnnotationLoaderException {
+    public T editOrCreateAnnotationSource(T annSrc, String text, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
         Reader input = new StringReader(text);
         Properties properties = new Properties();
         try {
             properties.load(input);
-            //Fetch organism and software
-            initAnnotationSource(annSrc, properties);
+            validateText(annSrc, properties, reportBuilder);
+            if (!reportBuilder.isEmpty()) {
+                return null;
+            }
+            if (annSrc == null) {
+                annSrc = initAnnotationSource(properties);
+            }
             updateAnnotationSource(properties, annSrc);
             return annSrc;
         } catch (IOException e) {
             throw new AnnotationLoaderException("Cannot read annotation properties", e);
         } finally {
             closeQuietly(input);
+        }
+    }
+
+    protected void validateText(T annSrc, Properties properties, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
+        
+        validateRequiredFields(properties, reportBuilder);
+        validateURL(properties, reportBuilder);
+        if (annSrc != null) {
+            validateStableFields(annSrc, properties, reportBuilder);
+        }
+
+    }
+
+    protected abstract void validateStableFields(T annSrc, Properties properties, ValidationReportBuilder reportBuilder);
+
+    protected void validateRequiredFields(Properties properties, ValidationReportBuilder reportBuilder) {
+        List<String> propertyNames = new ArrayList<String>(getRequiredProperties());
+        propertyNames.addAll(PROPNAMES);
+
+        for (String propertyName : propertyNames) {
+            final String property = getProperty(propertyName, properties);
+            if (StringUtils.isEmpty(property)) {
+                reportBuilder.addMessage("Required property " + propertyName + " is missing");
+            }
+        }
+    }
+
+    protected abstract Collection<String> getRequiredProperties();
+
+    private void validateURL(Properties properties, ValidationReportBuilder reportBuilder) {
+        final String urlString = getProperty(URL_PROPNAME, properties);
+        try {
+            final URI uri = new URI(urlString);
+            uri.toURL();
+        } catch (URISyntaxException e) {
+            reportBuilder.addMessage("Invalid software url");
+        } catch (MalformedURLException e) {
+            reportBuilder.addMessage("Invalid software url");
         }
     }
 
@@ -174,12 +226,8 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    protected String getProperty(String name, Properties properties) throws AnnotationLoaderException {
-        String property = properties.getProperty(name);
-        if (property == null) {
-            throw new AnnotationLoaderException("Required property " + name + " is missing");
-        }
-        return property;
+    protected String getProperty(String name, Properties properties) {
+        return properties.getProperty(name);
     }
 
     protected void writeExternalProperties(T annSrc, PropertiesConfiguration properties) {
@@ -291,7 +339,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected abstract void writeExtraProperties(T annSrc, PropertiesConfiguration properties);
 
-    protected abstract T initAnnotationSource(T annSrc, Properties properties) throws AnnotationLoaderException;
+    protected abstract T initAnnotationSource(Properties properties);
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;
@@ -316,4 +364,5 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     public void setArrayDesignService(ArrayDesignService arrayDesignService) {
         this.arrayDesignService = arrayDesignService;
     }
+
 }

@@ -26,6 +26,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Properties;
 
 /**
@@ -35,22 +37,28 @@ import java.util.Properties;
 class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSigAnnotationSource> {
 
     @Override
+    protected void validateStableFields(GeneSigAnnotationSource annSrc, Properties properties, ValidationReportBuilder reportBuilder) {
+
+        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
+        if (!annSrc.getSoftware().equals(software)) {
+            reportBuilder.addMessage("Software should not be changed when editing Annotation Source!");
+        }
+    }
+
+    @Override
+    protected Collection<String> getRequiredProperties() {
+        return Collections.unmodifiableCollection(PROPNAMES);
+    }
+
+    @Override
     protected Class<GeneSigAnnotationSource> getClazz() {
         return GeneSigAnnotationSource.class;
     }
-    
+
     @Override
-    protected GeneSigAnnotationSource initAnnotationSource(GeneSigAnnotationSource annSrc, Properties properties) throws AnnotationLoaderException {
+    protected GeneSigAnnotationSource initAnnotationSource(Properties properties) {
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
-
-        if (annSrc == null) {
-            return new GeneSigAnnotationSource(software);
-        }
-
-        if (!annSrc.getSoftware().equals(software)) {
-            throw new AnnotationLoaderException("Software should not be changed when editing Annotation Source!");
-        }
-        return annSrc;
+        return new GeneSigAnnotationSource(software);
     }
 
     @Override

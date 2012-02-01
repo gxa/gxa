@@ -34,7 +34,7 @@ import java.util.Set;
  * User: nsklyar
  * Date: 20/01/2012
  */
-public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource>{
+public class FileBasedPropertiesValidator extends AnnotationSourcePropertiesValidator<GeneSigAnnotationSource>{
 
     @Override
     public Collection<String> getInvalidPropertyNames(GeneSigAnnotationSource annotationSource) {

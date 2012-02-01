@@ -48,9 +48,6 @@ public class MartVersionFinder implements VersionFinder<BioMartAnnotationSource>
             MartServiceClientImpl martClient = MartServiceClientImpl.create(httpClient, annSrc);
             final String database = martClient.getMartLocation().getDatabase();
             return database.substring(database.lastIndexOf("_") + 1);
-
-        } catch (URISyntaxException e) {
-            throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + annSrc.getName(), e);
         } catch (BioMartException e) {
             throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + annSrc.getName(), e);
         } catch (IOException e) {

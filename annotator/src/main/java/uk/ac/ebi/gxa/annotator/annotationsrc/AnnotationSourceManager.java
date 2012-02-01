@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -64,11 +63,16 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     @Transactional
-    public void saveAnnSrc(String id, String text) {
+    public ValidationReportBuilder saveAnnSrc(String id, String text) {
         final AnnotationSourceConverter<T> converter = getConverter();
         try {
-            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(fetchAnnSrcById(id), text);
-            annSrcDAO.save(annotationSource);
+            final T annSrc = fetchAnnSrcById(id);
+            final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
+            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
+            if (reportBuilder.isEmpty()) {
+                annSrcDAO.save(annotationSource);
+            }
+            return reportBuilder;
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }
@@ -80,7 +84,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 //        return getConverter().validateStructure(annSrc);
 //    }
 
-    public Collection<String> validateProperties(String annSrcId){
+    public Collection<String> validateProperties(String annSrcId) {
         return validateProperties(fetchAnnSrcById(annSrcId));
     }
 

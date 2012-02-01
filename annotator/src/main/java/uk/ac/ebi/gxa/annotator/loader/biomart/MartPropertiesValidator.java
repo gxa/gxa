@@ -37,7 +37,7 @@ import java.util.HashSet;
  * User: nsklyar
  * Date: 19/01/2012
  */
-public class MartPropertiesValidator implements AnnotationSourcePropertiesValidator<BioMartAnnotationSource> {
+public class MartPropertiesValidator extends AnnotationSourcePropertiesValidator<BioMartAnnotationSource> {
 
     private final HttpClient httpClient;
 
@@ -69,8 +69,6 @@ public class MartPropertiesValidator implements AnnotationSourcePropertiesValida
                 missingProperties.add(annSrc.getDatasetName());
             }
 
-        } catch (URISyntaxException e) {
-            throw LogUtil.createUnexpected("Problem when validating annotation source " + annSrc.getName(), e);
         } catch (BioMartException e) {
             throw LogUtil.createUnexpected("Problem when validating annotation source " + annSrc.getName(), e);
         } catch (IOException e) {

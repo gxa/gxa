@@ -30,7 +30,7 @@ public class BioMartAnnotationLoader {
 
     private DesignElementMappingData.Builder deMappingsBuilder;
 
-    public BioMartAnnotationLoader(HttpClient httpClient, BioMartAnnotationSource annotSource) throws URISyntaxException {
+    public BioMartAnnotationLoader(HttpClient httpClient, BioMartAnnotationSource annotSource) {
         this.martClient = MartServiceClientImpl.create(httpClient, annotSource);
         this.annotSource = annotSource;
     }

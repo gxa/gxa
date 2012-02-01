@@ -37,8 +37,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * User: nsklyar
@@ -75,20 +74,23 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
     }
 
     @Test
-    @Transactional
     public void testEditOrCreateAnnotationSourceCreate() throws Exception {
-        FileBasedAnnotationSource annotationSource = converter.editOrCreateAnnotationSource(null, ANN_SRC);
+        ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
+        FileBasedAnnotationSource annotationSource = converter.editOrCreateAnnotationSource(null, ANN_SRC, reportBuilder);
         assertNotNull(annotationSource);
         assertEquals(new Software("GeneSigDB", "test"), annotationSource.getSoftware());
         assertEquals(1, annotationSource.getExternalBioEntityProperties().size());
+        assertTrue(reportBuilder.isEmpty());
     }
 
-    @Test(expected = AnnotationLoaderException.class)
-    @Transactional
+    @Test
     public void testEditOrCreateAnnotationSourceEditWithException() throws Exception {
-        final GeneSigAnnotationSource byId = annSrcDAO.getById(1001, GeneSigAnnotationSource.class);
-        assertNotNull(byId);
-        converter.editOrCreateAnnotationSource(byId, ANN_SRC);
+        final GeneSigAnnotationSource annSrc = annSrcDAO.getById(1001, GeneSigAnnotationSource.class);
+        assertNotNull(annSrc);
+        ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
+        final GeneSigAnnotationSource newAnnSrc = converter.editOrCreateAnnotationSource(annSrc, ANN_SRC, reportBuilder);
+        assertNull(newAnnSrc);
+        assertEquals(1, reportBuilder.getMessages().size());
     }
 
     //ToDo: the test fails in the end because there are some problems with sequences.
@@ -121,7 +123,7 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
                     "types = ensgene\n" +
                     "property.genesigdb = genesigdbid";
 
-    private static final String ANN_SRC_EDITED=
+    private static final String ANN_SRC_EDITED =
             "software.name = GeneSigDB\n" +
                     "software.version = 4\n" +
                     "url = file://genesigdb\n" +

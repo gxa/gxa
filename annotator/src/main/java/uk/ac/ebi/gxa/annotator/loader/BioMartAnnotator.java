@@ -28,6 +28,7 @@ import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotationLoader;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartException;
+import uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
 import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
@@ -37,6 +38,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collection;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -71,6 +73,7 @@ public class BioMartAnnotator extends Annotator {
     @Override
     public void updateAnnotations() {
         try {
+            validate(annSrc);
             String organismName = annSrc.getOrganism().getName();
             reportProgress("Loading Ensembl annotations for organism " + organismName);
             BioMartAnnotationLoader annotLoader = new BioMartAnnotationLoader(httpClient, annSrc);
@@ -100,8 +103,6 @@ public class BioMartAnnotator extends Annotator {
             reportError(e);
         } catch (BioMartException e) {
             reportError(e);
-        } catch (URISyntaxException e) {
-            reportError(e);
         } catch (InvalidAnnotationDataException e) {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
@@ -112,6 +113,7 @@ public class BioMartAnnotator extends Annotator {
     @Override
     public void updateMappings() {
         try {
+            validate(annSrc);
             String organismName = annSrc.getOrganism().getName();
             reportProgress("Loading Ensembl design element mappings for organism " + organismName);
             BioMartAnnotationLoader annotLoader = new BioMartAnnotationLoader(httpClient, annSrc);
@@ -141,12 +143,17 @@ public class BioMartAnnotator extends Annotator {
             reportError(e);
         } catch (BioMartException e) {
             reportError(e);
-        } catch (URISyntaxException e) {
-            reportError(e);
         } catch (InvalidAnnotationDataException e) {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
             reportError(e);
         }
+    }
+
+    private void validate(BioMartAnnotationSource annSrc) throws BioMartException {
+        MartPropertiesValidator validator = new MartPropertiesValidator(httpClient);
+        final String summary = validator.getSummary(annSrc);
+        if (!summary.isEmpty())
+            throw new BioMartException(summary);
     }
 }

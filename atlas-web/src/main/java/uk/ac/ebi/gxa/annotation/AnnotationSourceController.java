@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
 import uk.ac.ebi.gxa.annotator.annotationsrc.UpdatedAnnotationSource;
+import uk.ac.ebi.gxa.annotator.annotationsrc.ValidationReportBuilder;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
@@ -50,8 +51,9 @@ public class AnnotationSourceController {
         return manager.getAnnSrcString(id, type);
     }
 
-    public void saveAnnSrc(String id, String type, String text) {
-        manager.saveAnnSrc(id, text, type);
+    public String saveAnnSrc(String id, String type, String text) {
+        final ValidationReportBuilder validationReportBuilder = manager.saveAnnSrc(id, text, type);
+        return validationReportBuilder.getSummary("Invalid text", "\n");
     }
 
     public String validate(String annSrcId, String type) {

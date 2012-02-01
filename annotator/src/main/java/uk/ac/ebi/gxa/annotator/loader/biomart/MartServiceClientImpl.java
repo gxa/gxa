@@ -73,8 +73,8 @@ class MartServiceClientImpl implements MartServiceClient {
     private final HttpClient httpClient;
     private MartRegistry.MartUrlLocation martLocation;
 
-    public MartServiceClientImpl(HttpClient httpClient, String martUrl, String databaseName, String datasetName) throws URISyntaxException {
-        this.martUri = new URI(martUrl);
+    public MartServiceClientImpl(HttpClient httpClient, String martUrl, String databaseName, String datasetName) {
+        this.martUri = URI.create(martUrl);
         this.databaseName = databaseName;
         this.datasetName = datasetName;
         this.httpClient = httpClient;
@@ -207,7 +207,7 @@ class MartServiceClientImpl implements MartServiceClient {
         }
     }
 
-    public static MartServiceClientImpl create(HttpClient httpClient, BioMartAnnotationSource annSrc) throws URISyntaxException {
+    public static MartServiceClientImpl create(HttpClient httpClient, BioMartAnnotationSource annSrc){
         return new MartServiceClientImpl(httpClient, annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
     }
 }

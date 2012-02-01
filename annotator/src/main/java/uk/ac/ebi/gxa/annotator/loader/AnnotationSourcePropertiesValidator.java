@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.annotator.loader;
 
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 
 import java.util.Collection;
@@ -31,7 +32,19 @@ import java.util.Collection;
  * User: nsklyar
  * Date: 19/01/2012
  */
-public interface AnnotationSourcePropertiesValidator<T extends AnnotationSource> {
+public abstract class AnnotationSourcePropertiesValidator<T extends AnnotationSource> {
 
-    public Collection<String> getInvalidPropertyNames(T annotationSource);
+    public abstract Collection<String> getInvalidPropertyNames(T annotationSource);
+
+    public String getSummary(T annotationSource) {
+        StringBuilder sb = new StringBuilder();
+
+        final Collection<String> invalidPropertyNames = getInvalidPropertyNames(annotationSource);
+        if (!CollectionUtils.isEmpty(invalidPropertyNames)) {
+            sb.append("Invalid properties: ");
+            sb.append(invalidPropertyNames);
+        }
+        return sb.toString();
+
+    }
 }
