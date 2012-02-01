@@ -65,7 +65,7 @@ public class ExperimentWithData implements Closeable {
     public StatisticsCursor getStatistics(ArrayDesign arrayDesign, int designElementId,
                                           Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsCursor(getProxy(arrayDesign), ANY_KNOWN_GENE, efvPredicate, designElementId);
+        return new StatisticsCursor(getProxy(arrayDesign), efvPredicate, designElementId);
     }
 
     public StatisticsCursor getStatistics(ArrayDesign ad, int[] deIndices)

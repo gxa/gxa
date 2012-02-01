@@ -82,9 +82,9 @@ public class StatisticsCursor implements DesignElementStatistics {
         this(dataProxy, bePredicate, efvPredicate, arrayOfIndices(dataProxy.getDesignElementAccessions().length));
     }
 
-    StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate, int de)
+    StatisticsCursor(DataProxy dataProxy, Predicate<Pair<String, String>> efvPredicate, int de)
             throws AtlasDataException, StatisticsNotFoundException {
-        this(dataProxy, bePredicate, efvPredicate, new int[]{de});
+        this(dataProxy, ANY_KNOWN_GENE, efvPredicate, new int[]{de});
     }
 
     StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate, int[] des)

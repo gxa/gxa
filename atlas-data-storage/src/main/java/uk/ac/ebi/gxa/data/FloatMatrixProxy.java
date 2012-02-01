@@ -62,8 +62,4 @@ public class FloatMatrixProxy {
         }
         return result;
     }
-
-    public int getRowCount() {
-        return matrix.length;
-    }
 }
