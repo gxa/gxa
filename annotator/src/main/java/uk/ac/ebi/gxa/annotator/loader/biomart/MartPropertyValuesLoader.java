@@ -57,7 +57,6 @@ class MartPropertyValuesLoader {
         List<String> columns = new ArrayList<String>();
         columns.addAll(name2Type.keySet());
         columns.add(property.getName());
-        martClient.runCountQuery(columns);
         parse(martClient.runQuery(columns), property, builder);
 
     }
