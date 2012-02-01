@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.FactorValueOrdering;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import javax.annotation.Nullable;
@@ -52,11 +53,11 @@ public class ExperimentPlot {
     private static final Comparator<String> FACTOR_VALUE_COMPARATOR = new FactorValueOrdering();
 
     private FloatMatrixProxy expressions;
-    private List<List<BoxAndWhisker>> boxAndWhisker;
+    private List<List<BoxAndWhisker>> boxAndWhisker = newArrayList();
 
     private List<EfName> efNames;
-    private List<Set<String>> efvNames;
-    private Map<Integer, Map<Integer, List<Integer>>> efEfvAssays;
+    private List<Set<String>> efvNames = newArrayList();
+    private Map<Integer, Map<Integer, List<Integer>>> efEfvAssays = newHashMap();
 
     private int[] deIndices;
 
@@ -92,12 +93,10 @@ public class ExperimentPlot {
 
     private void load(int[] deIndices, ExperimentWithData ewd, ArrayDesign ad, Function<String, String> stringConverter) throws AtlasDataException {
         this.deIndices = Arrays.copyOf(deIndices, deIndices.length);
-
         expressions = ewd.getExpressionValues(ad, deIndices);
 
-        efNames = createEfNames(ewd.getFactors(ad), stringConverter);
-        efvNames = newArrayList();
-        efEfvAssays = newHashMap();
+        final String[] efs = ewd.getFactors(ad);
+        efNames = createEfNames(efs, stringConverter);
 
         String[][] factorValues = ewd.getFactorValues(ad);
 
@@ -140,18 +139,35 @@ public class ExperimentPlot {
         }
 
         try {
-            StatisticsCursor statistics = ewd.getStatistics(ad, deIndices);
-            boxAndWhisker = newArrayList();
-            while (statistics.nextBioEntity()) {
-                List<BoxAndWhisker> list = newArrayList();
-                while (statistics.nextEFV()) {
-                    list.add(new BoxAndWhisker(statistics));
+            final Map<Integer, Map<Pair<String, String>, BoxAndWhisker>> baw = retrieveBoxAndWhiskersData(ewd, ad, deIndices);
+
+            for (int de : deIndices) {
+                List<BoxAndWhisker> bawForEF = newArrayList();
+                for (int i = 0; i < efvNames.size(); i++) {
+                    for (String efv : efvNames.get(i)) {
+                        bawForEF.add(baw.get(de).get(Pair.create(efs[i], efv)));
+                    }
                 }
-                boxAndWhisker.add(list);
+                boxAndWhisker.add(bawForEF);
             }
         } catch (StatisticsNotFoundException e) {
             log.warn("No statistics found for {}", ewd);
         }
+    }
+
+    private static Map<Integer, Map<Pair<String, String>, BoxAndWhisker>> retrieveBoxAndWhiskersData(
+            ExperimentWithData ewd, ArrayDesign ad, int[] deIndices)
+            throws AtlasDataException, StatisticsNotFoundException {
+        Map<Integer, Map<Pair<String, String>, BoxAndWhisker>> baw = newHashMap();
+        StatisticsCursor statistics = ewd.getStatistics(ad, deIndices);
+        while (statistics.nextBioEntity()) {
+            final Map<Pair<String, String>, BoxAndWhisker> de?harts = newHashMap();
+            while (statistics.nextEFV()) {
+                de?harts.put(statistics.getEfv(), new BoxAndWhisker(statistics));
+            }
+            baw.put(statistics.getDeIndex(), de?harts);
+        }
+        return baw;
     }
 
     private List<EfName> createEfNames(String[] factors, final Function<String, String> stringConverter) {
