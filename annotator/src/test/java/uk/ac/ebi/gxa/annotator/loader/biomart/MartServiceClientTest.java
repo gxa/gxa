@@ -51,14 +51,6 @@ public class MartServiceClientTest {
         assertTrue(result.size() > 0);
     }
 
-    @Test
-    public void testRunCountQuery() throws Exception {
-        final MartServiceClient martServiceClient = initClient();
-        final int count = martServiceClient.runCountQuery(asList("external_gene_id"));
-        assertTrue(count > 0);
-    }
-
-
     private MartServiceClient initClient() throws URISyntaxException {
         HttpClient httpClient = new DefaultHttpClient();
         return new MartServiceClientImpl(httpClient, "http://plants.ensembl.org/biomart/martservice?", "plants", "athaliana_eg_gene");

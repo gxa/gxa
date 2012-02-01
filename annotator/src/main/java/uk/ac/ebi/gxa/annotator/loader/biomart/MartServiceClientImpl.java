@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 
-import org.apache.commons.fileupload.util.Streams;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -90,16 +89,6 @@ class MartServiceClientImpl implements MartServiceClient {
     }
 
     @Override
-    public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException {
-        return parseCount(runQuery(
-                new MartQuery(
-                        getVirtualSchemaName(),
-                        datasetName)
-                        .addAttributes(attributes)
-                        .setCount(true)));
-    }
-
-    @Override
     public Collection<String> runAttributesQuery() throws BioMartException, IOException {
         final InputStream inputStream = httpPost(martUri, asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
         return MartAttributes.parseAttributes(inputStream);
@@ -136,18 +125,6 @@ class MartServiceClientImpl implements MartServiceClient {
             throw new BioMartException("Server returned invalid response: [status_code = " + statusCode + "; url = " + uri + "]");
         }
         return response.getEntity().getContent();
-    }
-
-    private int parseCount(InputStream in) throws IOException, BioMartException {
-        try {
-            String str = (Streams.asString(in)).trim();
-            if (str.matches("\\d+")) {
-                return Integer.parseInt(str);
-            }
-            throw new BioMartException("Bad server response: [" + str + "]");
-        } finally {
-            closeQuietly(in);
-        }
     }
 
     private String getVirtualSchemaName() throws BioMartException, IOException {

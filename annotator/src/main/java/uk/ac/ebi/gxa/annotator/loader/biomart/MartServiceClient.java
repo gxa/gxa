@@ -33,8 +33,6 @@ public interface MartServiceClient {
 
     public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException;
 
-    public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException;
-
     public Collection<String> runAttributesQuery() throws BioMartException, IOException;
 
     public Collection<String> runDatasetListQuery() throws BioMartException, IOException;

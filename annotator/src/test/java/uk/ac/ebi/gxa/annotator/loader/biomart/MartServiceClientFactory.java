@@ -42,17 +42,11 @@ public class MartServiceClientFactory {
             sb.append(Joiner.on("\t").join(row)).append("\n");
         }
         final String columns = sb.toString();
-        final int size = table.size() - 1;
 
         return new MartServiceClient() {
             @Override
             public InputStream runQuery(Collection<String> attributes) throws BioMartException, IOException {
                 return new ByteArrayInputStream(columns.getBytes("UTF-8"));
-            }
-
-            @Override
-            public int runCountQuery(Collection<String> attributes) throws BioMartException, IOException {
-                return size;
             }
 
             @Override
