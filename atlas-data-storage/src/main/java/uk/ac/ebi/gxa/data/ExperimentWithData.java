@@ -181,7 +181,7 @@ public class ExperimentWithData implements Closeable {
     /**
      * @param arrayDesign array design to look up factors for
      * @return an array of experiment factors used in the experiment
-     * @throws AtlasDataException if data is not available Ñ or broken
+     * @throws AtlasDataException if data is not available&mdash;or broken
      * @deprecated must be package private
      */
     @Deprecated
