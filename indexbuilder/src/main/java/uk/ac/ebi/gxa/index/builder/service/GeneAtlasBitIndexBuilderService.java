@@ -11,6 +11,7 @@ import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Predicates.*;
+import static com.google.common.base.Predicates.in;
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
@@ -37,7 +38,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
      * <p/>
      * In order to build test index, use {@link #TEST_BIOENTITIES} instead
      */
-    private static final Predicate<Long> KNOWN_BIOENTITIES = not(equalTo(0L));
+    private static final Predicate<Long> KNOWN_BIOENTITIES = DesignElementStatistics.ANY_KNOWN_GENE;
     /**
      * Filter for bioentities used in the tests
      * <p/>

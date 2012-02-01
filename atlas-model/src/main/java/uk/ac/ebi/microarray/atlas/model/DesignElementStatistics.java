@@ -35,7 +35,7 @@ import static com.google.common.base.Predicates.*;
  * @author alf
  */
 public interface DesignElementStatistics extends BaseStatistics {
-    Predicate<Long> ANY_GENE = not(equalTo(0L));
+    Predicate<Long> ANY_KNOWN_GENE = not(equalTo(0L));
     Predicate<Pair<String, String>> ANY_EFV = alwaysTrue();
 
     @Nonnull

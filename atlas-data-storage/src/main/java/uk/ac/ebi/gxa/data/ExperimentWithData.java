@@ -36,7 +36,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 
-import static com.google.common.base.Predicates.alwaysTrue;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -45,7 +44,7 @@ import static java.lang.Float.isNaN;
 import static uk.ac.ebi.gxa.data.StatisticsCursor.NON_EMPTY_EFV;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_EFV;
-import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_GENE;
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN_GENE;
 
 public class ExperimentWithData implements Closeable {
     private final static Logger log = LoggerFactory.getLogger(ExperimentWithData.class);
@@ -66,12 +65,12 @@ public class ExperimentWithData implements Closeable {
     public StatisticsCursor getStatistics(ArrayDesign arrayDesign, int designElementId,
                                           Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsCursor(getProxy(arrayDesign), ANY_GENE, efvPredicate, designElementId);
+        return new StatisticsCursor(getProxy(arrayDesign), ANY_KNOWN_GENE, efvPredicate, designElementId);
     }
 
     public StatisticsCursor getStatistics(ArrayDesign ad, int[] deIndices)
             throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsCursor(getProxy(ad), ANY_GENE, ANY_EFV, deIndices);
+        return new StatisticsCursor(getProxy(ad), ANY_KNOWN_GENE, ANY_EFV, deIndices);
     }
 
     public Experiment getExperiment() {
@@ -224,7 +223,7 @@ public class ExperimentWithData implements Closeable {
 
         final Predicate<Pair<String, String>> efvPredicate;
         if (efName == null)
-            efvPredicate = alwaysTrue();
+            efvPredicate = ANY_EFV;
         else
             efvPredicate = equalTo(Pair.create(efName, efvName));
 
