@@ -28,7 +28,7 @@ public class OrganismDAO extends AbstractDAO<Organism> {
             return getByName(name);
         } catch (RecordNotFoundException e) {
             // organism not found - create a new one
-            Organism organism = new Organism(null, name);
+            Organism organism = new Organism(null, lowerCaseNameMatch() ? name.toLowerCase() : name);
             save(organism);
             template.flush();
             return organism;
