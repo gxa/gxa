@@ -24,40 +24,7 @@
 
 <dataset>
     <DUAL
-        dummy="X"
-        />
-
-    <A2_EXPERIMENT
-            experimentid="174501824"
-            accession="E-MEXP-420"
-            description="A test experiment"
-            performer="Someone"
-            lab="Somewhere"
-            loaddate="2009-10-05"
-            pmid="15966770"
-            private="0"
-            />
-
-    <A2_EXPERIMENT
-            experimentid="2"
-            accession="E-WXYZ-6789"
-            description="Another test experiment"
-            performer="Someone else"
-            lab="Somewhere else"
-            loaddate="2009-10-05"
-            pmid="15361863"
-            private="0"
-            />
-
-    <A2_EXPERIMENT
-            experimentid="3"
-            accession="E-GEOD-5035"
-            description="Another test experiment"
-            performer="Someone else"
-            lab="Somewhere else"
-            loaddate="2009-10-05"
-            pmid="15361863"
-            private="0"
+            dummy="X"
             />
 
     <A2_ARRAYDESIGN
@@ -149,53 +116,53 @@
             />
 
     <A2_BIOENTITYTYPE
-            BIOENTITYTYPEID="100"
-            NAME="enstranscript"
-            ID_FOR_INDEX="0"
-            ID_FOR_ANALYTICS="0"
-            PROP_FOR_INDEX="1"
+            bioentitytypeid="100"
+            name="enstranscript"
+            id_for_index="0"
+            id_for_analytics="0"
+            prop_for_index="1"
             identifierPropertyID="200"
             namePropertyID="200"
             />
 
     <A2_BIOENTITYTYPE
-            BIOENTITYTYPEID="200"
-            NAME="ensgene"
-            ID_FOR_INDEX="1"
-            ID_FOR_ANALYTICS="1"
-            PROP_FOR_INDEX="0"
-            identifierPropertyID="300"
-            namePropertyID="300"
+            bioentitytypeid="200"
+            name="ensgene"
+            id_for_index="1"
+            id_for_analytics="1"
+            prop_for_index="0"
+            identifierpropertyid="300"
+            namepropertyid="300"
             />
 
     <A2_BIOENTITY
-            BIOENTITYID="516248"
+            bioentityid="516248"
             organismid="1000"
             identifier="ENSMUSG00000020275"
-            BIOENTITYTYPEID="200"
-            NAME="testGene"
+            bioentitytypeid="200"
+            name="testGene"
             />
 
     <A2_BIOENTITY
-            BIOENTITYID="2"
+            bioentityid="2"
             organismid="1000"
             identifier="ENST0000001"
-            BIOENTITYTYPEID="100"
-            NAME="DNAa"
+            bioentitytypeid="100"
+            name="DNAa"
             />
 
     <A2_SOFTWARE
-            SOFTWAREID="1000"
-            NAME="Ensembl"
-            VERSION="60"
-            ISACTIVE="T"
+            softwareid="1000"
+            name="Ensembl"
+            version="60"
+            isactive="T"
             />
 
     <A2_SOFTWARE
-            SOFTWAREID="2000"
-            NAME="BioConductor"
-            VERSION="4"
-            ISACTIVE="F"
+            softwareid="2000"
+            name="BioConductor"
+            version="4"
+            isactive="F"
             />
 
     <A2_GENEPROPERTY
@@ -218,29 +185,29 @@
             />
 
     <A2_BIOENTITYPROPERTY
-            BIOENTITYPROPERTYID="200"
+            bioentitypropertyid="200"
             name="enstranscript"
             />
     <A2_BIOENTITYPROPERTY
-            BIOENTITYPROPERTYID="300"
+            bioentitypropertyid="300"
             name="ensgene"
             />
     <A2_BIOENTITYPROPERTY
-            BIOENTITYPROPERTYID="100"
+            bioentitypropertyid="100"
             name="goterm"
             />
 
     <A2_BIOENTITYPROPERTYVALUE
-            BEPROPERTYVALUEID="1"
-            BIOENTITYPROPERTYID="100"
+            bepropertyvalueid="1"
+            bioentitypropertyid="100"
             value="Some GO value"
             />
 
     <A2_BIOENTITYBEPV
-            BIOENTITYBEPVID="1"
-            BIOENTITYID="2"
-            BEPROPERTYVALUEID="1"
-            SOFTWAREID="1000"
+            bioentitybepvid="1"
+            bioentityid="2"
+            bepropertyvalueid="1"
+            softwareid="1000"
             />
 
     <A2_ORGANISM
@@ -258,6 +225,34 @@
             name="arabidopsis thaliana"
             />
 
+    <!-- Experiment E-WXYZ-6789 -->
+
+    <A2_EXPERIMENT
+            experimentid="2"
+            accession="E-WXYZ-6789"
+            description="Another test experiment"
+            performer="Someone else"
+            lab="Somewhere else"
+            loaddate="2009-10-05"
+            pmid="15361863"
+            private="0"
+            />
+
+    <!-- /E-WXYZ-6789 -->
+
+    <!--Experiment E-MEXP-420 -->
+
+    <A2_EXPERIMENT
+            experimentid="174501824"
+            accession="E-MEXP-420"
+            description="A test experiment"
+            performer="Someone"
+            lab="Somewhere"
+            loaddate="2009-10-05"
+            pmid="15966770"
+            private="0"
+            />
+
     <A2_ASSAY
             assayid="1"
             accession="abc:ABCxyz:SomeThing:1234.ABC123"
@@ -272,11 +267,30 @@
             arraydesignid="2"
             />
 
-    <A2_ASSAY
-            assayid="3"
-            accession="xyz:XYZabc:AnotherThing:6789.XYZ789"
-            experimentid="3"
-            arraydesignid="1"
+    <A2_SAMPLE
+            sampleid="1"
+            experimentid="174501824"
+            accession="abc:some/Sample:ABC_DEFG_123a"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="2"
+            experimentid="174501824"
+            accession="xyz:other/Sample2:XYZ_TUVW_789x"
+            organismid="2"
+            channel=""
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="1"
+            sampleid="1"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="2"
+            sampleid="2"
             />
 
     <A2_ASSAYPV
@@ -338,22 +352,6 @@
 
             />
 
-    <A2_SAMPLE
-            sampleid="1"
-            experimentid="174501824"
-            accession="abc:some/Sample:ABC_DEFG_123a"
-            organismid="1000"
-            channel=""
-            />
-
-    <A2_SAMPLE
-            sampleid="2"
-            experimentid="174501824"
-            accession="xyz:other/Sample2:XYZ_TUVW_789x"
-            organismid="2"
-            channel=""
-            />
-
     <A2_SAMPLEPV
             samplepvid="1"
             sampleid="1"
@@ -380,37 +378,22 @@
 
             />
 
-    <A2_ASSAYSAMPLE
-            assayid="1"
-            sampleid="1"
-            />
-
-    <A2_ASSAYSAMPLE
-            assayid="2"
-            sampleid="2"
-            />
-
-    <A2_DESIGNELEMENT
-            designelementid="171606351"
-            arraydesignid="1"
-            geneid="2"
-            accession="acc1"
-            name="acc1"
-            type="someType"
-            iscontrol="1"
-            />
-
-    <A2_DESIGNELEMENT
-            designelementid="2"
-            arraydesignid="2"
-            geneid="2"
-            accession="acc2"
-            name="acc2"
-            type="someType"
-            iscontrol="2"
-            />
-
     <!-- Test for one to many sample-to-assay mapping -->
+
+    <A2_ASSAY
+            assayid="10"
+            accession="one:ToMany:TestAssay1"
+            arraydesignid="1"
+            experimentid="174501824"
+            />
+
+    <A2_ASSAY
+            assayid="11"
+            accession="one:ToMany:TestAssay2"
+            arraydesignid="1"
+            experimentid="174501824"
+            />
+
     <A2_SAMPLE
             sampleid="10"
             experimentid="174501824"
@@ -425,20 +408,6 @@
             accession="one:ToMany:TestSample2"
             organismid="1000"
             channel=""
-            />
-
-    <A2_ASSAY
-            assayid="10"
-            accession="one:ToMany:TestAssay1"
-            arraydesignid="1"
-            experimentid="174501824"
-            />
-
-    <A2_ASSAY
-            assayid="11"
-            accession="one:ToMany:TestAssay2"
-            arraydesignid="1"
-            experimentid="174501824"
             />
 
     <A2_ASSAYSAMPLE
@@ -464,6 +433,7 @@
             />
 
     <!-- dummy ontology mapping -->
+
     <A2_ONTOLOGYMAPPING
             experimentid="174501824"
             accession="E-MEXP-420"
@@ -492,95 +462,368 @@
 
             />
 
-     <A2_DESIGNELTBIOENTITY
-        DEBEID="1000"
-        DESIGNELEMENTID="171606351"
-        BIOENTITYID="516248"
-        SOFTWAREID="1000"
+    <!--/E-MEXP-420 -->
+
+    <!-- Experiment E-GEOD-5035 -->
+
+    <A2_EXPERIMENT
+            experimentid="3"
+            accession="E-GEOD-5035"
+            description="Another test experiment"
+            performer="Someone else"
+            lab="Somewhere else"
+            loaddate="2009-10-05"
+            pmid="15361863"
+            private="0"
+            />
+
+    <A2_ASSAY
+            assayid="21"
+            accession="brain, hindbrain and spinal cord: P5KO3_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="22"
+            accession="brain, hindbrain and spinal cord: P5KO1_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="23"
+            accession="brain, hindbrain and spinal cord: P5WT3_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="24"
+            accession="brain, hindbrain and spinal cord: P0KO2_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="25"
+            accession="brain, hindbrain and spinal cord: P0WT3_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="26"
+            accession="brain, hindbrain and spinal cord: P5WT1_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="27"
+            accession="brain, hindbrain and spinal cord: P5WT2_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="28"
+            accession="brain, hindbrain and spinal cord: P5KO2_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="29"
+            accession="brain, hindbrain and spinal cord: P0WT2_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="30"
+            accession="brain, hindbrain and spinal cord: P0KO3_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="31"
+            accession="brain, hindbrain and spinal cord: P0WT1_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_ASSAY
+            assayid="32"
+            accession="brain, hindbrain and spinal cord: P0KO1_e1_le1"
+            experimentid="3"
+            arraydesignid="1"
+            />
+
+    <A2_SAMPLE
+            sampleid="21"
+            experimentid="3"
+            accession="GSE5035GSM113680"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="22"
+            experimentid="3"
+            accession="GSE5035GSM113686"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="23"
+            experimentid="3"
+            accession="GSE5035GSM113689"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="24"
+            experimentid="3"
+            accession="GSE5035GSM113687"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="25"
+            experimentid="3"
+            accession="GSE5035GSM113679"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="26"
+            experimentid="3"
+            accession="GSE5035GSM113682"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="27"
+            experimentid="3"
+            accession="GSE5035GSM113681"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="28"
+            experimentid="3"
+            accession="GSE5035GSM113690"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="29"
+            experimentid="3"
+            accession="GSE5035GSM113688"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="30"
+            experimentid="3"
+            accession="GSE5035GSM113683"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="31"
+            experimentid="3"
+            accession="GSE5035GSM113685"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_SAMPLE
+            sampleid="32"
+            experimentid="3"
+            accession="GSE5035GSM113684"
+            organismid="1000"
+            channel=""
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="29"
+            sampleid="21"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="27"
+            sampleid="22"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="28"
+            sampleid="23"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="23"
+            sampleid="24"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="31"
+            sampleid="25"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="32"
+            sampleid="26"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="25"
+            sampleid="27"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="21"
+            sampleid="28"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="22"
+            sampleid="29"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="24"
+            sampleid="30"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="26"
+            sampleid="31"
+            />
+
+    <A2_ASSAYSAMPLE
+            assayid="30"
+            sampleid="32"
+            />
+
+    <!-- /E-GEOD-5035 -->
+
+    <A2_DESIGNELEMENT
+            designelementid="171606351"
+            arraydesignid="1"
+            geneid="2"
+            accession="acc1"
+            name="acc1"
+            type="someType"
+            iscontrol="1"
+            />
+
+    <A2_DESIGNELEMENT
+            designelementid="2"
+            arraydesignid="2"
+            geneid="2"
+            accession="acc2"
+            name="acc2"
+            type="someType"
+            iscontrol="2"
+            />
+
+    <A2_DESIGNELTBIOENTITY
+            debeid="1000"
+            designelementid="171606351"
+            bioentityid="516248"
+            softwareid="1000"
             />
 
     <A2_ANNOTATIONSRC
             annotationsrcid="1000"
-            SOFTWAREID="1000"
-            ORGANISMID="1000"
+            softwareid="1000"
+            organismid="1000"
             url="http://www.ensembl.org/biomart/martservice?"
             biomartorganismname="hsapiens_gene_ensembl"
             databasename="ensembl"
-            mySqlDbName = "homo_sapiens"
-            mySqlDbUrl = "ensembldb.ensembl.org:5306"
+            mysqldbname="homo_sapiens"
+            mysqldburl="ensembldb.ensembl.org:5306"
             annsrctype="biomart"
-            LOADDATE="2011-01-06"
+            loaddate="2011-01-06"
             isApplied="F"
             />
-    <A2_ANNSRC_BIOENTITYTYPE
-            annotationsrcid="1000"
-            BIOENTITYTYPEID="100"
-            />
 
     <A2_ANNSRC_BIOENTITYTYPE
             annotationsrcid="1000"
-            BIOENTITYTYPEID="200"
+            bioentitytypeid="100"
+            />
+
+    <A2_ANNSRC_BIOENTITYTYPE
+            annotationsrcid="1000"
+            bioentitytypeid="200"
             />
 
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="1000"
+            biomartpropertyid="1000"
             annotationsrcid="1000"
-            BIOENTITYPROPERTYID="100"
-            NAME="name_1006"
+            bioentitypropertyid="100"
+            name="name_1006"
             />
 
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="2000"
+            biomartpropertyid="2000"
             annotationsrcid="1000"
-            BIOENTITYPROPERTYID="300"
-            NAME="ensembl_gene_id"
+            bioentitypropertyid="300"
+            name="ensembl_gene_id"
             />
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="3000"
+            biomartpropertyid="3000"
             annotationsrcid="1000"
-            BIOENTITYPROPERTYID="100"
-            NAME="go_cellular_component__dm_name_1006"
+            bioentitypropertyid="100"
+            name="go_cellular_component__dm_name_1006"
             />
 
     <A2_BIOMARTPROPERTY
-            BIOMARTPROPERTYID="4000"
+            biomartpropertyid="4000"
             annotationsrcid="1000"
-            BIOENTITYPROPERTYID="200"
-            NAME="ensembl_transcript_id"
+            bioentitypropertyid="200"
+            name="ensembl_transcript_id"
             />
 
     <A2_BIOMARTARRAYDESIGN
-            BIOMARTARRAYDESIGNID="1000"
+            biomartarraydesignid="1000"
             annotationsrcid="1000"
-            ARRAYDESIGNID="1"
-            NAME="affy_74a"
+            arraydesignid="1"
+            name="affy_74a"
             />
 
-    
     <A2_ONTOLOGY
-            ONTOLOGYID="1"
+            ontologyid="1"
             name="EFO"
-            SOURCE_URI="/dev/null"
+            source_uri="/dev/null"
             version="unknown-alpha"
-            DESCRIPTION="Sample experimental factor ontology"/>
+            description="Sample experimental factor ontology"/>
 
     <A2_ONTOLOGYTERM
-            ONTOLOGYTERMID="1"
-            ONTOLOGYID="1"
-            ACCESSION="EFO_0000827"
-            DESCRIPTION="Just a term"/>
+            ontologytermid="1"
+            ontologyid="1"
+            accession="EFO_0000827"
+            description="Just a term"/>
 
     <A2_ONTOLOGYTERM
-            ONTOLOGYTERMID="2"
-            ONTOLOGYID="1"
-            ACCESSION="EFO_0000828"
-            DESCRIPTION="Another term"/>
+            ontologytermid="2"
+            ontologyid="1"
+            accession="EFO_0000828"
+            description="Another term"/>
 
     <A2_ASSAYPVONTOLOGY
-            ONTOLOGYTERMID="1"
-            ASSAYPVID="1"/>
-
-    <A2_SAMPLEPVONTOLOGY
-            ONTOLOGYTERMID="1"
-            SAMPLEPVID="1"/>
+            ontologytermid="1"
+            assaypvid="1"/>
 </dataset>
