@@ -161,11 +161,11 @@ public class ExperimentPlot {
         Map<Integer, Map<Pair<String, String>, BoxAndWhisker>> baw = newHashMap();
         StatisticsCursor statistics = ewd.getStatistics(ad, deIndices);
         while (statistics.nextBioEntity()) {
-            final Map<Pair<String, String>, BoxAndWhisker> de?harts = newHashMap();
+            final Map<Pair<String, String>, BoxAndWhisker> deCharts = newHashMap();
             while (statistics.nextEFV()) {
-                de?harts.put(statistics.getEfv(), new BoxAndWhisker(statistics));
+                deCharts.put(statistics.getEfv(), new BoxAndWhisker(statistics));
             }
-            baw.put(statistics.getDeIndex(), de?harts);
+            baw.put(statistics.getDeIndex(), deCharts);
         }
         return baw;
     }
