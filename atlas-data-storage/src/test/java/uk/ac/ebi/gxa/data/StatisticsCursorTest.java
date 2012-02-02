@@ -98,11 +98,10 @@ public class StatisticsCursorTest {
         return result;
     }
 
-
     private long[] longs(int count) {
         final long[] longs = new long[count];
         for (int i = 0; i < longs.length; i++) {
-            longs[i] = r.nextLong();
+            longs[i] = r.nextInt(20);
         }
         return longs;
     }
