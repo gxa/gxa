@@ -89,7 +89,7 @@ abstract class NetCDFProxy implements DataProxy {
                 int[] size = new int[]{1, shape[1]};
                 result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
             }
-            return new FloatMatrixProxy(variable, result);
+            return new FloatMatrixProxy(result, NetCDFMissingVal.forVariable(variable));
         } catch (IOException e) {
             throw new AtlasDataException(e);
         } catch (InvalidRangeException e) {
@@ -195,7 +195,7 @@ abstract class NetCDFProxy implements DataProxy {
                 int[] size = new int[]{1, shape[1]};
                 result[i] = (float[]) variable.read(origin, size).get1DJavaArray(float.class);
             }
-            return new FloatMatrixProxy(variable, result);
+            return new FloatMatrixProxy(result, NetCDFMissingVal.forVariable(variable));
         } catch (IOException e) {
             throw new AtlasDataException(e);
         } catch (InvalidRangeException e) {
