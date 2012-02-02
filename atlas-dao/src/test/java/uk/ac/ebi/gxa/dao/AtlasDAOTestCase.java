@@ -22,9 +22,15 @@
 
 package uk.ac.ebi.gxa.dao;
 
-import org.dbunit.DataSourceBasedDBTestCase;
+import org.dbunit.DatabaseUnitException;
+import org.dbunit.database.DatabaseConfig;
+import org.dbunit.database.DatabaseDataSourceConnection;
+import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.dataset.DataSetException;
 import org.dbunit.dataset.IDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
+import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.SessionFactory;
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +48,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Abstract TestCase useful for setting up an in memory (hypersonic) database, and creating a DBUnit environment for
  * testing DAO methods and other stuff.
@@ -52,7 +60,7 @@ import java.sql.Statement;
 @ContextConfiguration
 @TransactionConfiguration(transactionManager = "atlasTxManager", defaultRollback = false)
 @Transactional
-public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
+public abstract class AtlasDAOTestCase {
     private static final String ATLAS_DATA_RESOURCE = "atlas-be-db.xml";
 
     @Autowired(required = true)
@@ -78,15 +86,36 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     @Autowired
     protected SessionFactory sessionFactory;
 
-    protected IDataSet getDataSet() throws Exception {
+    protected IDataSet getDataSet() throws DataSetException {
         InputStream in = this.getClass().getClassLoader().getResourceAsStream(ATLAS_DATA_RESOURCE);
-
-        return new FlatXmlDataSet(in);
+        return new FlatXmlDataSetBuilder().build(in);
     }
 
-    @Override
-    protected DataSource getDataSource() {
-        return atlasDataSource;
+    private void populateDatabase() throws SQLException, DatabaseUnitException {
+        assertNotNull(atlasDataSource);
+        IDatabaseConnection conn = getConnection(atlasDataSource);
+        try {
+            DatabaseOperation.CLEAN_INSERT.execute(conn, getDataSet());
+        } finally {
+            conn.close();
+        }
+    }
+    
+    private void cleanupDatabase() throws SQLException, DatabaseUnitException {
+        assertNotNull(atlasDataSource);
+        IDatabaseConnection conn = getConnection(atlasDataSource);
+        try {
+            DatabaseOperation.DELETE_ALL.execute(conn, getDataSet());
+        } finally {
+            conn.close();
+        }
+    }
+
+    private IDatabaseConnection getConnection(DataSource dataSource) throws SQLException {
+        IDatabaseConnection conn = new DatabaseDataSourceConnection(dataSource);
+        conn.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY,
+                new HsqldbDataTypeFactory());
+        return conn;
     }
 
     /**
@@ -99,12 +128,12 @@ public abstract class AtlasDAOTestCase extends DataSourceBasedDBTestCase {
     @Before
     public void setUp() throws Exception {
         createDatabase();
-        super.setUp();
+        populateDatabase();
     }
 
     @After
     public void tearDown() throws Exception {
-        super.tearDown();
+        cleanupDatabase();
         destroyDatabase();
     }
 

@@ -49,7 +49,7 @@ public class AtlasStatisticsQueryServiceTest {
         bioEntityId = 838592;  // identifier: ENSG00000162924; name: REL)
         hematopoieticStemCellEfo = new EfoAttribute("CL_0000037");
         hematopoieticCellEfo = new EfoAttribute("CL_0000988");
-        hematopoieticStemCellEfv = new EfvAttribute("369_groups", "hematopoietic stem cell");
+        hematopoieticStemCellEfv = new EfvAttribute("groups_369", "hematopoietic stem cell");
         E_MTAB_62 = new ExperimentInfo("E-MTAB-62", 1036809468l);
     }
 

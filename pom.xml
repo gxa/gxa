@@ -27,7 +27,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.11-SNAPSHOT</version>
+    <version>2.0.12-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -36,6 +36,7 @@
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
         <spring.version>3.0.5.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
+        <jri.libs>${env.R_HOME}/library/rJava/jri</jri.libs>
     </properties>
 
     <scm>
@@ -70,11 +71,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.4.2</version>
+                <version>2.7.2</version>
                 <configuration>
-                    <argLine>-Xmx1024m</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
+                    <argLine>-Xmx2g -Djava.library.path=${jri.libs}</argLine>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.7.2</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -87,7 +95,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-clover2-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
                 <configuration>
                     <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
                     <singleCloverDatabase>true</singleCloverDatabase>
@@ -134,7 +142,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.8.1</version>
+                <version>2.9</version>
                 <configuration>
                     <aggregate>false</aggregate>
                     <showSuccess>true</showSuccess>
@@ -214,8 +222,6 @@
         <developer>
             <id>alf</id>
             <name>Alexey Filippov</name>
-            <organization>EBI</organization>
-            <organizationUrl>http://www.ebi.ac.uk</organizationUrl>
             <roles>
                 <role>Developer (in 2010-2011)</role>
             </roles>
@@ -287,9 +293,32 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
-        <module>atlas-wro4j</module>
         <module>annotator</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- testing -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.8.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.dbunit</groupId>
+                <artifactId>dbunit</artifactId>
+                <version>2.4.8</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>1.8.0.10</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -303,13 +332,6 @@
             <version>1.3.9</version>
         </dependency>
 
-        <!-- testing -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-            <scope>test</scope>
-        </dependency>
         <!-- logging uses SLF4J throughout -->
         <dependency> <!-- this will allow redirection of java.util.logging calls via slf4j -->
             <groupId>org.slf4j</groupId>
@@ -327,6 +349,17 @@
             <version>1.5.6</version>
         </dependency>
 
+        <!-- log4j via slf4j -->
+        <dependency> <!-- log4j itself (note the runtime scope) -->
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.5.6</version>
+        </dependency>
 
         <!-- todo: dependencies for solr - required here? or defer to individual components? -->
         <dependency>
@@ -365,6 +398,7 @@
             <artifactId>commons-lang</artifactId>
             <version>2.5</version>
         </dependency>
+
         <!-- Spring dependency for jdbc and webapp support -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -387,10 +421,11 @@
             <version>${spring.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- testing -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.6</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -402,8 +437,14 @@
         <dependency>
             <groupId>net.java</groupId>
             <artifactId>quickcheck</artifactId>
-            <version>0.5.1</version>
+            <version>0.6</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit-dep</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

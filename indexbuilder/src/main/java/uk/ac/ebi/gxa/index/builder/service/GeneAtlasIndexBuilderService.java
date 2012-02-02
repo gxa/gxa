@@ -28,7 +28,6 @@ import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
-import uk.ac.ebi.gxa.index.builder.UpdateIndexForExperimentCommand;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -76,11 +75,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Indexing all genes...");
         indexGenes(progressUpdater, bioEntityDAO.getAllGenesFast());
-    }
-
-    @Override
-    public void processCommand(UpdateIndexForExperimentCommand cmd, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        getLog().info("Genes are not experiment-dependent - skipping");
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -230,11 +224,6 @@ public class GeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
         return solrInputDoc;
-    }
-
-    @Override
-    public void finalizeCommand(UpdateIndexForExperimentCommand updateIndexForExperimentCommand, ProgressUpdater progressUpdater) throws IndexBuilderException {
-        commit(); // do not optimize
     }
 
     public String getName() {
