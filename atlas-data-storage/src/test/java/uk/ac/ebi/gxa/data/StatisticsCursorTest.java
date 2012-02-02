@@ -158,7 +158,7 @@ public class StatisticsCursorTest {
 
     private DataProxy dataProxy(List<Pair<String, String>> efvs, long[] genes) throws AtlasDataException, StatisticsNotFoundException {
         final DataProxy proxy = createMock(DataProxy.class);
-        expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).times(1, 2);
+        expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).once();
         expect(proxy.getUniqueEFVs()).andReturn(efvs).once();
         expect(proxy.getTStatistics()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
         expect(proxy.getPValues()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
