@@ -49,15 +49,9 @@ public class StatisticsCursorTest {
 
     @Test
     public void walkByEfvFirst() throws AtlasDataException, StatisticsNotFoundException {
-        final DataProxy proxy = createMock(DataProxy.class);
-        expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).anyTimes();
         final List<Pair<String, String>> efvs = efvs();
-        expect(proxy.getUniqueEFVs()).andReturn(efvs).anyTimes();
-        expect(proxy.getTStatistics()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
-        expect(proxy.getPValues()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
         final long[] genes = longs(DE_COUNT);
-        expect(proxy.getGenes()).andReturn(genes).once();
-        replay(proxy);
+        final DataProxy proxy = dataProxy(efvs, genes);
 
         StatisticsCursor cursor = new StatisticsCursor(proxy, ANY_KNOWN_GENE, ANY_EFV);
         int c = 0;
@@ -67,6 +61,33 @@ public class StatisticsCursorTest {
             }
         }
         assertEquals("Invalid number of cells", countOfNonZeros(genes) * efvs.size(), c);
+    }
+
+    @Test
+    public void walkByGeneFirst() throws AtlasDataException, StatisticsNotFoundException {
+        final List<Pair<String, String>> efvs = efvs();
+        final long[] genes = longs(DE_COUNT);
+        final DataProxy proxy = dataProxy(efvs, genes);
+
+        StatisticsCursor cursor = new StatisticsCursor(proxy, ANY_KNOWN_GENE, ANY_EFV);
+        int c = 0;
+        while (cursor.nextBioEntity()) {
+            while (cursor.nextEFV()) {
+                c++;
+            }
+        }
+        assertEquals("Invalid number of cells", countOfNonZeros(genes) * efvs.size(), c);
+    }
+
+    private DataProxy dataProxy(List<Pair<String, String>> efvs, long[] genes) throws AtlasDataException, StatisticsNotFoundException {
+        final DataProxy proxy = createMock(DataProxy.class);
+        expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).anyTimes();
+        expect(proxy.getUniqueEFVs()).andReturn(efvs).anyTimes();
+        expect(proxy.getTStatistics()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getPValues()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getGenes()).andReturn(genes).once();
+        replay(proxy);
+        return proxy;
     }
 
     private int countOfNonZeros(long[] genes) {
