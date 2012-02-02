@@ -29,11 +29,13 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.utils.Pair;
 
+import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.Float.floatToIntBits;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -90,7 +92,7 @@ public class StatisticsCursorTest {
         final long[] genes = longs(DE_COUNT);
         final DataProxy proxy = dataProxy(efvs, genes);
 
-        final Predicate<Pair<String,String>> efvPredicate = Predicates.equalTo(Pair.create("EF2", "EFV21"));
+        final Predicate<Pair<String, String>> efvPredicate = Predicates.equalTo(Pair.create("EF2", "EFV21"));
         StatisticsCursor cursor = new StatisticsCursor(proxy, ANY_KNOWN_GENE, efvPredicate);
         int c = 0;
         while (cursor.nextBioEntity()) {
@@ -118,6 +120,51 @@ public class StatisticsCursorTest {
             }
         }
         assertEquals("Invalid number of cells", filter(Longs.asList(genes), bePredicate).size() * efvs.size(), c);
+    }
+
+    @Test
+    public void arrayOfIndices() {
+        for (int i = 0; i < 10; i++) {
+            int len = r.nextInt(2000);
+            final int[] ints = StatisticsCursor.arrayOfIndices(len);
+            for (int j = 0; j < ints.length; j++) {
+                assertEquals("Oops!", j, ints[j]);
+            }
+        }
+    }
+
+    @Test
+    public void filteredCopy() {
+        for (int i = 0; i < 10; i++) {
+            int len = r.nextInt(2000);
+
+            final BitSet mask = randomMask(len);
+            final float[] floats = floats(len);
+            final float[] result = StatisticsCursor.copySelected(floats, mask);
+            assertEquals("Wrong length", mask.cardinality(), result.length);
+
+            for (int j = 0, jj = 0; j < mask.size(); j++) {
+                if (mask.get(j)) {
+                    assertEquals("Wrong value", floatToIntBits(result[jj++]), floatToIntBits(floats[j]));
+                }
+            }
+        }
+    }
+
+    private float[] floats(int len) {
+        final float[] floats = new float[len];
+        for (int i = 0; i < floats.length; i++) {
+            floats[i] = r.nextFloat();
+        }
+        return floats;
+    }
+
+    private BitSet randomMask(int len) {
+        final BitSet result = new BitSet(len);
+        for (int i = 0; i < len; i++) {
+            result.set(i, r.nextBoolean());
+        }
+        return result;
     }
 
     private DataProxy dataProxy(List<Pair<String, String>> efvs, long[] genes) throws AtlasDataException, StatisticsNotFoundException {
