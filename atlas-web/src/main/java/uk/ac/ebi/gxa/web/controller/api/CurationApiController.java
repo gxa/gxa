@@ -31,7 +31,6 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("v") final ApiVersionType version,
             HttpServletResponse response)
             throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getPropertyNames();
     }
 
@@ -43,7 +42,6 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("v") final ApiVersionType version,
             @PathVariable("propertyName") final String propertyName, HttpServletResponse response)
             throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getPropertyValues(propertyName);
     }
 
@@ -56,7 +54,6 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("propertyValue") final String propertyValue,
             HttpServletResponse response)
             throws ResourceNotFoundException {
-        crossOriginHack(response);
         curationService.removePropertyValue(propertyName, propertyValue);
     }
 
@@ -65,7 +62,6 @@ public class CurationApiController extends AtlasViewController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getAllExperiments(@PathVariable("v") final ApiVersionType version,
                                                               HttpServletResponse response) {
-        crossOriginHack(response);
         return curationService.getAllExperiments();
     }
 
@@ -79,7 +75,6 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("newPropertyValue") final String newPropertyValue,
             HttpServletResponse response)
             throws ResourceNotFoundException {
-        crossOriginHack(response);
         curationService.replacePropertyValueInExperiments(propertyName, oldPropertyValue, newPropertyValue);
     }
 
@@ -89,7 +84,6 @@ public class CurationApiController extends AtlasViewController {
     public ApiShallowExperiment getExperiment(@PathVariable("v") final ApiVersionType version,
                                               @PathVariable("experimentAccession") final String experimentAccession,
                                               HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getExperiment(experimentAccession);
     }
 
@@ -99,7 +93,6 @@ public class CurationApiController extends AtlasViewController {
     public void removePropertyFromAssays(@PathVariable("v") final ApiVersionType version,
                                          @PathVariable("propertyName") final String propertyName,
                                          HttpServletResponse response) {
-        crossOriginHack(response);
         curationService.removePropertyFromAssays(propertyName);
     }
 
@@ -109,7 +102,6 @@ public class CurationApiController extends AtlasViewController {
     public void removePropertyFromSamples(@PathVariable("v") final ApiVersionType version,
                                           @PathVariable("propertyName") final String propertyName,
                                           HttpServletResponse response) {
-        crossOriginHack(response);
         curationService.removePropertyFromSamples(propertyName);
     }
 
@@ -120,7 +112,6 @@ public class CurationApiController extends AtlasViewController {
                                                                           @PathVariable("propertyName") final String propertyName,
                                                                           @PathVariable("propertyValue") final String propertyValue,
                                                                           HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getExperimentsByPropertyValue(propertyName, propertyValue);
     }
 
@@ -130,7 +121,6 @@ public class CurationApiController extends AtlasViewController {
     public Collection<ApiShallowExperiment> getExperimentsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
                                                                          @PathVariable("ontologyTerm") final String ontologyTerm,
                                                                          HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getExperimentsByOntologyTerm(ontologyTerm);
     }
 
@@ -138,8 +128,7 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowOntologyTerm> getOntologyTerms(@PathVariable("v") final ApiVersionType version,
-                                                        HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
+                                                               HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getOntologyTerms();
     }
 
@@ -150,7 +139,6 @@ public class CurationApiController extends AtlasViewController {
                              @PathVariable("experimentAccession") final String experimentAccession,
                              @PathVariable("assayAccession") final String assayAccession,
                              HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getAssay(experimentAccession, assayAccession);
     }
 
@@ -161,7 +149,6 @@ public class CurationApiController extends AtlasViewController {
                                @PathVariable("experimentAccession") final String experimentAccession,
                                @PathVariable("sampleAccession") final String sampleAccession,
                                HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getSample(experimentAccession, sampleAccession);
     }
 
@@ -173,7 +160,6 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("experimentAccession") final String experimentAccession,
             @PathVariable(value = "assayAccession") final String assayAccession,
             HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getAssayProperties(experimentAccession, assayAccession);
     }
 
@@ -185,7 +171,6 @@ public class CurationApiController extends AtlasViewController {
                                    @PathVariable(value = "assayAccession") final String assayAccession,
                                    @RequestBody final ApiProperty[] assayProperties,
                                    HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties);
     }
 
@@ -197,7 +182,6 @@ public class CurationApiController extends AtlasViewController {
                                       @PathVariable(value = "assayAccession") final String assayAccession,
                                       @RequestBody final ApiProperty[] assayProperties,
                                       HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
     }
 
@@ -209,7 +193,6 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("experimentAccession") final String experimentAccession,
             @PathVariable(value = "sampleAccession") final String sampleAccession,
             HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getSampleProperties(experimentAccession, sampleAccession);
     }
 
@@ -221,7 +204,6 @@ public class CurationApiController extends AtlasViewController {
                                     @PathVariable(value = "sampleAccession") final String sampleAccession,
                                     @RequestBody final ApiProperty[] sampleProperties,
                                     HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties);
     }
 
@@ -233,7 +215,6 @@ public class CurationApiController extends AtlasViewController {
                                        @PathVariable(value = "sampleAccession") String sampleAccession,
                                        @RequestBody ApiProperty[] sampleProperties,
                                        HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
     }
 
@@ -243,7 +224,6 @@ public class CurationApiController extends AtlasViewController {
     public ApiOntology getOntology(@PathVariable("v") final ApiVersionType version,
                                    @PathVariable(value = "ontologyName") final String ontologyName,
                                    HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getOntology(ontologyName);
     }
 
@@ -253,7 +233,6 @@ public class CurationApiController extends AtlasViewController {
     public void putOntology(@PathVariable("v") final ApiVersionType version,
                             @RequestBody final ApiOntology apiOntology,
                             HttpServletResponse response) {
-        crossOriginHack(response);
         curationService.putOntology(apiOntology);
     }
 
@@ -263,7 +242,6 @@ public class CurationApiController extends AtlasViewController {
     public ApiOntologyTerm getOntologyTerm(@PathVariable("v") final ApiVersionType version,
                                            @PathVariable(value = "ontologyTerm") final String ontologyTerm,
                                            HttpServletResponse response) throws ResourceNotFoundException {
-        crossOriginHack(response);
         return curationService.getOntologyTerm(ontologyTerm);
     }
 
@@ -273,14 +251,7 @@ public class CurationApiController extends AtlasViewController {
     public void putOntologyTerms(@PathVariable("v") final ApiVersionType version,
                                  @RequestBody final ApiOntologyTerm[] apiOntologyTerms,
                                  HttpServletResponse response) {
-        crossOriginHack(response);
         curationService.putOntologyTerms(apiOntologyTerms);
 
     }
-
-    // TODO 4rpetry remove the following - temporary hack to aid development (prevent cross origin resource sharing issues)
-    private static void crossOriginHack(HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "*");
-    }
-
 }
