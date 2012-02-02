@@ -8,24 +8,13 @@ import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
  */
 public class ApiOntologyTerm {
     private ApiOntology ontology;
-    private String accession;
-    private String description;
-    private String term;
+    private OntologyTerm ontologyTerm;
 
     public ApiOntologyTerm() {
     }
 
-    public ApiOntologyTerm(final ApiOntology ontology, final String accession, final String description, final String term) {
-        this.ontology = ontology;
-        this.accession = accession;
-        this.description = description;
-        this.term = term;
-    }
-
     public ApiOntologyTerm(final OntologyTerm ontologyTerm) {
-        this.accession = ontologyTerm.getAccession();
-        this.description = ontologyTerm.getDescription();
-        this.term = ontologyTerm.getTerm();
+        this.ontologyTerm = ontologyTerm;
         this.ontology = new ApiOntology(ontologyTerm.getOntology());
     }
 
@@ -33,33 +22,26 @@ public class ApiOntologyTerm {
         return ontology;
     }
 
-    public void setOntology(ApiOntology ontology) {
-        this.ontology = ontology;
-    }
-
     public String getAccession() {
-        return accession;
+        return ontologyTerm.getAccession();
     }
 
     public void setAccession(String accession) {
-        this.accession = accession;
+        this.ontologyTerm.setAccession(accession);
     }
 
     public String getDescription() {
-        return description;
+        return ontologyTerm.getDescription();
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.ontologyTerm.setDescription(description);
     }
 
     public String getTerm() {
-        return term;
+        return ontologyTerm.getTerm();
     }
 
-    public void setTerm(String term) {
-        this.term = term;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -68,21 +50,21 @@ public class ApiOntologyTerm {
 
         ApiOntologyTerm term = (ApiOntologyTerm) o;
 
-        return accession == null ? term.accession == null : accession.equals(term.accession);
+        return getAccession() == null ? term.getAccession() == null : getAccession().equals(term.getAccession());
     }
 
     @Override
     public int hashCode() {
-        return accession != null ? accession.hashCode() : 0;
+        return getAccession() != null ? getAccession().hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "ApiOntologyTerm{" +
-                "accession=" + accession +
-                ", description='" + description + "'" +
+                "accession=" + getAccession() +
+                ", description='" + getDescription() + "'" +
                 ", ontology=" + ontology +
-                ", term=" + term +
+                ", term=" + getTerm() +
                 '}';
     }
 }
