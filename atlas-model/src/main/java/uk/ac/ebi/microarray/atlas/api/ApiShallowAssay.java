@@ -8,21 +8,23 @@ import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import java.util.Collection;
 
 /**
- * @author Misha Kapushesky
+ * A minimal version of ApiAssay
+ *
+ * @author Robert Petryszak
  */
-public class ApiAssay {
-    private String accession;
-    private ApiArrayDesign arrayDesign;
-    private Collection<ApiProperty> properties;
+public class ApiShallowAssay {
 
-    public ApiAssay() {
+    private String accession;
+    private Collection<ApiShallowProperty> properties;
+
+    public ApiShallowAssay() {
     }
 
-    public ApiAssay(final Assay assay) {
+    public ApiShallowAssay(final Assay assay) {
         this.accession = assay.getAccession();
-        this.arrayDesign = new ApiArrayDesign(assay.getArrayDesign());
         this.properties = Collections2.transform(assay.getProperties(),
-                TransformerUtil.instanceTransformer(AssayProperty.class, ApiProperty.class));
+                TransformerUtil.instanceTransformer(AssayProperty.class, ApiShallowProperty.class));
+
     }
 
     public String getAccession() {
@@ -33,11 +35,7 @@ public class ApiAssay {
         this.accession = accession;
     }
 
-    public ApiArrayDesign getArrayDesign() {
-        return arrayDesign;
-    }
-
-    public Collection<ApiProperty> getProperties() {
+    public Collection<ApiShallowProperty> getProperties() {
         return properties;
     }
 }
