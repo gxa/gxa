@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.primitives.Longs;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -29,9 +32,11 @@ import uk.ac.ebi.gxa.utils.Pair;
 import java.util.List;
 import java.util.Random;
 
+import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_EFV;
 import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN_GENE;
 
@@ -77,6 +82,42 @@ public class StatisticsCursorTest {
             }
         }
         assertEquals("Invalid number of cells", countOfNonZeros(genes) * efvs.size(), c);
+    }
+
+    @Test
+    public void filterByEFV() throws AtlasDataException, StatisticsNotFoundException {
+        final List<Pair<String, String>> efvs = efvs();
+        final long[] genes = longs(DE_COUNT);
+        final DataProxy proxy = dataProxy(efvs, genes);
+
+        final Predicate<Pair<String,String>> efvPredicate = Predicates.equalTo(Pair.create("EF2", "EFV21"));
+        StatisticsCursor cursor = new StatisticsCursor(proxy, ANY_KNOWN_GENE, efvPredicate);
+        int c = 0;
+        while (cursor.nextBioEntity()) {
+            while (cursor.nextEFV()) {
+                assertTrue("Invalid EFV", efvPredicate.apply(cursor.getEfv()));
+                c++;
+            }
+        }
+        assertEquals("Invalid number of cells", countOfNonZeros(genes), c);
+    }
+
+    @Test
+    public void filterByGene() throws AtlasDataException, StatisticsNotFoundException {
+        final List<Pair<String, String>> efvs = efvs();
+        final long[] genes = longs(DE_COUNT);
+        final DataProxy proxy = dataProxy(efvs, genes);
+
+        final Predicate<Long> bePredicate = Predicates.equalTo(genes[r.nextInt(genes.length)]);
+        StatisticsCursor cursor = new StatisticsCursor(proxy, bePredicate, ANY_EFV);
+        int c = 0;
+        while (cursor.nextBioEntity()) {
+            assertTrue("Invalid BioEntity", bePredicate.apply(cursor.getBioEntityId()));
+            while (cursor.nextEFV()) {
+                c++;
+            }
+        }
+        assertEquals("Invalid number of cells", filter(Longs.asList(genes), bePredicate).size() * efvs.size(), c);
     }
 
     private DataProxy dataProxy(List<Pair<String, String>> efvs, long[] genes) throws AtlasDataException, StatisticsNotFoundException {
