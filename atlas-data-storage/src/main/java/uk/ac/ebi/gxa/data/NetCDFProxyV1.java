@@ -248,12 +248,16 @@ final class NetCDFProxyV1 extends NetCDFProxy {
         }
     }
 
-    public FloatMatrixProxy getTStatistics() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "TSTAT");
+    public FloatMatrixProxy getTStatistics(int[] des) throws AtlasDataException {
+        return des == null ?
+                readFloatValuesForAllRows(netCDF, "TSTAT") :
+                readFloatValuesForRowIndices(netCDF, des, "TSTAT");
     }
 
-    public FloatMatrixProxy getPValues() throws AtlasDataException {
-        return readFloatValuesForAllRows(netCDF, "PVAL");
+    public FloatMatrixProxy getPValues(int[] des) throws AtlasDataException {
+        return des == null ?
+                readFloatValuesForAllRows(netCDF, "PVAL") :
+                readFloatValuesForRowIndices(netCDF, des, "PVAL");
     }
 
     /**

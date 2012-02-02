@@ -108,7 +108,7 @@ interface DataProxy extends Closeable {
 
     List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException;
 
-    FloatMatrixProxy getTStatistics() throws AtlasDataException, StatisticsNotFoundException;
+    FloatMatrixProxy getTStatistics(int[] des) throws AtlasDataException, StatisticsNotFoundException;
 
-    FloatMatrixProxy getPValues() throws AtlasDataException, StatisticsNotFoundException;
+    FloatMatrixProxy getPValues(int[] des) throws AtlasDataException, StatisticsNotFoundException;
 }

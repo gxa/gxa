@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.data;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.primitives.Longs;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -160,8 +161,8 @@ public class StatisticsCursorTest {
         final DataProxy proxy = createMock(DataProxy.class);
         expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).once();
         expect(proxy.getUniqueEFVs()).andReturn(efvs).once();
-        expect(proxy.getTStatistics()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
-        expect(proxy.getPValues()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getTStatistics(EasyMock.<int[]>anyObject())).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getPValues(EasyMock.<int[]>anyObject())).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
         expect(proxy.getGenes()).andReturn(genes).once();
         expect(proxy.getFactors()).andReturn(new String[]{"EF1", "EF2"}).once();
         expect(proxy.getFactorValues()).andReturn(new String[][]{{"EFV11", "EF12"}, {"EFV21", "EFV22"}}).once();

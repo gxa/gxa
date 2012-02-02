@@ -58,7 +58,8 @@ public class BoxAndWhisker {
     }
 
     private float percentile(float[] sortedList, double rank) {
-        return round(sortedList[(int) ((sortedList.length - 1) * rank)]);
+        return sortedList.length == 0 ? Float.NaN :
+                round(sortedList[(int) ((sortedList.length - 1) * rank)]);
     }
 
     private float round(float v) {

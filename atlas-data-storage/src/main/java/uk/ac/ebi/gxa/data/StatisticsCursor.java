@@ -97,8 +97,8 @@ public class StatisticsCursor implements DesignElementStatistics {
         this.des = des;
 
         uEFVs = dataProxy.getUniqueEFVs();
-        tstat = dataProxy.getTStatistics();
-        pvals = dataProxy.getPValues();
+        tstat = dataProxy.getTStatistics(des);
+        pvals = dataProxy.getPValues(des);
         factors = dataProxy.getFactors();
         factorValues = dataProxy.getFactorValues();
         deAccessions = dataProxy.getDesignElementAccessions();
@@ -124,12 +124,12 @@ public class StatisticsCursor implements DesignElementStatistics {
 
     @Override
     public float getT() {
-        return tstat.get(de(), efvi);
+        return tstat.get(dii, efvi);
     }
 
     @Override
     public float getP() {
-        return pvals.get(de(), efvi);
+        return pvals.get(dii, efvi);
     }
 
     public boolean isEmpty() {
@@ -179,17 +179,24 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public String toString() {
-        return "cursor over" + dataProxy;
+        return "StatisticsCursor{" + dataProxy + "}";
     }
 
     public StatisticsSnapshot getSnapshot() {
         return new StatisticsSnapshot(this);
     }
 
+    private int cachedFor = -1;
+    private float[] cachedExpression = null;
+
     public float[] getRawExpression() {
         try {
-            final float[] expressionData = dataProxy.getExpressionDataForDesignElementAtIndex(de());
-            return copySelected(expressionData, getAssaysForEFV(getEfv()));
+            final int de = de();
+            if (de != cachedFor) {
+                cachedExpression = dataProxy.getExpressionDataForDesignElementAtIndex(de);
+                cachedFor = de;
+            }
+            return copySelected(cachedExpression, getAssaysForEFV(getEfv()));
         } catch (AtlasDataException e) {
             throw createUnexpected("Failed to read expression data", e);
         }

@@ -253,12 +253,12 @@ final class NetCDFProxyV2 extends NetCDFProxy {
     }
 
     @Override
-    public FloatMatrixProxy getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
+    public FloatMatrixProxy getTStatistics(int[] des) throws AtlasDataException, StatisticsNotFoundException {
         return readFloatValuesForAllRows(stats(), "TSTAT");
     }
 
     @Override
-    public FloatMatrixProxy getPValues() throws AtlasDataException, StatisticsNotFoundException {
+    public FloatMatrixProxy getPValues(int[] des) throws AtlasDataException, StatisticsNotFoundException {
         return readFloatValuesForAllRows(stats(), "PVAL");
     }
 
