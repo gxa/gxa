@@ -15,6 +15,8 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Robert Petryszak
  */
@@ -203,7 +205,7 @@ public class TestCurationService extends AtlasDAOTestCase {
         newProps[0] = apiProperty;
         curationService.putSampleProperties(E_MEXP_420, SAMPLE_ACC, newProps);
 
-        // Now that both MICROGLIAL_CELL and VALUE004 are both present in ASSAY_ACC, replace VALUE004 with VALUE010
+        // Now that both VALUE010 and VALUE004 are both present in SAMPLE_ACC, replace VALUE004 with VALUE010
         curationService.replacePropertyValueInSamples(PROP3, VALUE004, VALUE010);
 
         assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in sample properties",
@@ -215,7 +217,7 @@ public class TestCurationService extends AtlasDAOTestCase {
             if (PROP3.equals(property.getPropertyValue().getProperty().getName()) &&
                     VALUE010.equals(property.getPropertyValue().getValue())) {
                 Set<ApiOntologyTerm> newTerms = property.getTerms();
-                assertEquals(2, newTerms.size());
+                assertEquals(1, newTerms.size());
                 // Set of terms in the retained VALUE004 property should be a superset of terms assigned
                 // to the replaced VALUE010 and to the replacing VALUE004
                 assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
@@ -347,7 +349,6 @@ public class TestCurationService extends AtlasDAOTestCase {
     @Test
     public void testPutOntology() throws Exception {
         ApiOntology ontology = curationService.getOntology(EFO);
-        ontology.setName(VBO);
         try {
             curationService.getOntology(VBO);
             fail("Ontology: " + VBO + " already exists");
@@ -355,6 +356,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         }
 
+        ontology.setName(VBO);
         // Create new ontology
         curationService.putOntology(ontology);
         try {

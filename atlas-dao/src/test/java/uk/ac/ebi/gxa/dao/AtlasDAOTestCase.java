@@ -100,7 +100,7 @@ public abstract class AtlasDAOTestCase {
             conn.close();
         }
     }
-
+    
     private void cleanupDatabase() throws SQLException, DatabaseUnitException {
         assertNotNull(atlasDataSource);
         IDatabaseConnection conn = getConnection(atlasDataSource);

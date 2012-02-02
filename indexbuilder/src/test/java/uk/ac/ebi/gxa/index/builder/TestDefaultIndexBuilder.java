@@ -51,6 +51,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.LogManager;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * A test case fo assessing whether the DefaultIndexBuilder class initializes correctly and can run a build of the index

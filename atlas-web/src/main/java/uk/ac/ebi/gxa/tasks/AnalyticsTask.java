@@ -64,7 +64,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
                             taskMan.writeTaskLog(AnalyticsTask.this, TaskEvent.FINISHED, "");
                             taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
-                            final TaskSpec indexTask = IndexTask.SPEC_INDEXEXPERIMENT(getTaskSpec().getAccession());
+                            final TaskSpec indexTask = IndexTask.SPEC_INDEXALL;
                             taskMan.updateTaskStage(indexTask, TaskStatus.INCOMPLETE);
                             if (!stop && isRunningAutoDependencies()) {
                                 taskMan.scheduleTask(AnalyticsTask.this, indexTask, TaskRunMode.CONTINUE, getUser(), true,
@@ -103,7 +103,7 @@ public class AnalyticsTask extends AbstractWorkingTask {
         }
     }
 
-    public AnalyticsTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
+    private AnalyticsTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(AnalyticsTask.this, TaskTagType.EXPERIMENT, getTaskSpec().getAccession());
     }
