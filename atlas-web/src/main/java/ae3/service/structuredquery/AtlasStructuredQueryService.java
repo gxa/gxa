@@ -627,9 +627,6 @@ public class AtlasStructuredQueryService {
     @Transactional(propagation = Propagation.REQUIRED)
     public AtlasStructuredQueryResult doStructuredAtlasQuery(final AtlasStructuredQuery query) {
 
-        // Flag to indicate if pvals/tstats should be retrieved from bit index and used for heatmap row ordering - for more
-        // information see documentation for atlas.structured.query.max.* constants in atlas.properties
-        boolean usePvalsInHeatmapOrdering = true;
         final QueryState qstate = new QueryState();
         AtlasStructuredQueryResult result = new AtlasStructuredQueryResult(query.getStart(), query.getRowsPerPage(), query.getExpsPerGene());
 
@@ -664,27 +661,6 @@ public class AtlasStructuredQueryService {
 
         log.info("Total efo mappings count: " + mappingCount + "; total experiment count: " + totalExperimentCount);
 
-        // Impose restrictions on mappingCount and totalExperimentCount - for more information see documentation for
-        // atlas.structured.query.max.* constants in atlas.properties
-        if (mappingCount > atlasProperties.getMaxEfoMappingsCountForStructuredQuery() ||
-                totalExperimentCount > atlasProperties.getMaxExperimentCountForStructuredQuery()) {
-            if (query.isFullHeatmap()) { // API queries
-                StringBuilder errMsg = new StringBuilder();
-                errMsg.append("Atlas cannot handle this query in a timely fashion. ");
-                if (mappingCount > atlasProperties.getMaxEfoMappingsCountForStructuredQuery()) {
-                    errMsg.append("Please try again after restricting the condition part of your query.");
-                    log.warn("API query too complex - efo mapping count: " + mappingCount + " > " + atlasProperties.getMaxEfoMappingsCountForStructuredQuery());
-                } else {
-                    errMsg.append("Please try again after restricting the gene and/or condition part of your query.");
-                    log.warn("API query too complex - heatmap's total experiment count: " + totalExperimentCount + " > " + atlasProperties.getMaxExperimentCountForStructuredQuery());
-                }
-                result.setUserErrorMsg(errMsg.toString());
-                return result;
-            } else { // web queries
-                usePvalsInHeatmapOrdering = false;
-            }
-        }
-
         appendGeneQuery(query.getGeneConditions(), qstate.getSolrq());
 
         result.setConditions(conditions);
@@ -710,7 +686,7 @@ public class AtlasStructuredQueryService {
                 QueryResponse response = solrServerAtlas.query(q);
                 log.info("Solr query: " + query.getApiUrl() + ": " + qstate.toString() + " took: " + (System.currentTimeMillis() - timeStart) + " ms");
                 timeStart = System.currentTimeMillis();
-                processResultGenes(response, result, qstate, query, numOfResults, statsQuery, usePvalsInHeatmapOrdering);
+                processResultGenes(response, result, qstate, query, numOfResults, statsQuery);
                 log.info("processResultGenes took: " + (System.currentTimeMillis() - timeStart) + " ms");
 
                 Set<String> expandableEfs = new HashSet<String>();
@@ -814,6 +790,7 @@ public class AtlasStructuredQueryService {
      *
      * @param query  query
      * @param qstate state
+     * @param statsQuery
      * @return iterable conditions resulted from this append
      */
     public Collection<ExpFactorResultCondition> appendEfvsQuery(final AtlasStructuredQuery query, final QueryState qstate, StatisticsQueryCondition statsQuery) {
@@ -1171,8 +1148,7 @@ public class AtlasStructuredQueryService {
             final Set<Integer> bioEntityIdRestrictionSet,
             final Collection<String> autoFactors,
             QueryState qstate,
-            StatisticsType statisticType,
-            boolean isFullHeatMap
+            StatisticsType statisticType
     ) {
         List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, autoFactors);
@@ -1182,11 +1158,8 @@ public class AtlasStructuredQueryService {
             EfvAttribute attr = attrCount.getElement();
             if (autoFactors.contains(attr.getEf()) && attr.getEfv() != null && !attr.getEfv().isEmpty()) {
                 EfAttribute efAttr = new EfAttribute(attr.getEf());
-                // restrict the amount of efvs shown  for each ef to max atlasProperties.getMaxEfvsPerEfInHeatmap()
-                if (isFullHeatMap || efAttrCounts.count(efAttr) < atlasProperties.getMaxEfvsPerEfInHeatmap()) {
-                    qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
-                    efAttrCounts.add(efAttr);
-                }
+                qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
+                efAttrCounts.add(efAttr);
             }
         }
     }
@@ -1213,7 +1186,6 @@ public class AtlasStructuredQueryService {
      * @param bioEntityId
      * @param bioEntityIdRestrictionSet
      * @param showNonDEData
-     * @param usePvalsInHeatmapOrdering
      * @return get up/dn/nonde stats for geneId, efo/refv attribute; restrict bitstats query to geneRestrictionSet only
      */
     public UpdownCounter getStats(
@@ -1221,8 +1193,7 @@ public class AtlasStructuredQueryService {
             final Attribute attribute,
             final Integer bioEntityId,
             Set<Integer> bioEntityIdRestrictionSet,
-            boolean showNonDEData,
-            boolean usePvalsInHeatmapOrdering
+            boolean showNonDEData
     ) {
         int upCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, StatisticsType.UP, bioEntityIdRestrictionSet);
         int downCnt = getExperimentCountsForBioEntity(scoresCache, attribute, bioEntityId, StatisticsType.DOWN, bioEntityIdRestrictionSet);
@@ -1235,33 +1206,31 @@ public class AtlasStructuredQueryService {
         float minPValUp = 0;
         float minPValDown = 0;
 
-        if (usePvalsInHeatmapOrdering) {
-
-            minPValUp = 1;
-            minPValDown = 1;
-            long start = System.currentTimeMillis();
-            if (upCnt > 0) {
-                // Get best up pValue
-                List<ExperimentResult> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1, StatisticsType.UP);
-                if (bestUpExperimentsForAttribute.isEmpty()) {
-                    throw LogUtil.createUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
-                }
-                minPValUp = bestUpExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
+        minPValUp = 1;
+        minPValDown = 1;
+        long start = System.currentTimeMillis();
+        if (upCnt > 0) {
+            // Get best up pValue
+            List<ExperimentResult> bestUpExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1, StatisticsType.UP);
+            if (bestUpExperimentsForAttribute.isEmpty()) {
+                throw LogUtil.createUnexpected("Failed to retrieve best UP experiment for geneId: " + bioEntityId + "); attr: " + attribute + " despite the UP count: " + upCnt);
             }
-
-            if (downCnt > 0) {
-                // Get best down pValue
-                List<ExperimentResult> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1, StatisticsType.DOWN);
-                if (bestDownExperimentsForAttribute.isEmpty()) {
-                    throw LogUtil.createUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
-                }
-                minPValDown = bestDownExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
-            }
-
-            if (minPValUp != 1 || minPValDown != 1)
-                log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + bioEntityId + "; attr: " + attribute +
-                        "' in: " + (System.currentTimeMillis() - start) + " ms");
+            minPValUp = bestUpExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
         }
+
+        if (downCnt > 0) {
+            // Get best down pValue
+            List<ExperimentResult> bestDownExperimentsForAttribute = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, attribute, 0, 1, StatisticsType.DOWN);
+            if (bestDownExperimentsForAttribute.isEmpty()) {
+                throw LogUtil.createUnexpected("Failed to retrieve best DOWN experiment for geneId: " + bioEntityId + "; attr: " + attribute + " despite the DOWN count: " + downCnt);
+            }
+            minPValDown = bestDownExperimentsForAttribute.get(0).getPValTStatRank().getPValue();
+        }
+
+        if (minPValUp != 1 || minPValDown != 1)
+            log.debug("Retrieved best UP & DOWN pVals: (" + minPValUp + " : " + minPValDown + ") for geneId: " + bioEntityId + "; attr: " + attribute +
+                    "' in: " + (System.currentTimeMillis() - start) + " ms");
+
         return new UpdownCounter(
                 upCnt,
                 downCnt,
@@ -1280,7 +1249,6 @@ public class AtlasStructuredQueryService {
      * @param numOfResults
      * @param statisticsQuery           specified in user's query (if the user has not chosen any efv/efo conditions,
      *                                  the statistics type in this query will be used to find out scoring Attributes for that statistic type)
-     * @param usePvalsInHeatmapOrdering if true, retrieve pval/tstats from bit index; otherwise don't.
      * @throws SolrServerException
      */
     private void processResultGenes(QueryResponse response,
@@ -1288,8 +1256,7 @@ public class AtlasStructuredQueryService {
                                     QueryState qstate,
                                     AtlasStructuredQuery query,
                                     Integer numOfResults,
-                                    StatisticsQueryCondition statisticsQuery,
-                                    boolean usePvalsInHeatmapOrdering
+                                    StatisticsQueryCondition statisticsQuery
     ) throws SolrServerException {
 
         // Note that this method processes results from the query assembled from an already sorted list of
@@ -1348,7 +1315,7 @@ public class AtlasStructuredQueryService {
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(bioEntityIdRestrictionSet, autoFactors, qstate, statisticsQuery.getStatisticsType(), query.isFullHeatmap());
+            populateScoringAttributes(bioEntityIdRestrictionSet, autoFactors, qstate, statisticsQuery.getStatisticsType());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             List<EfvTree.EfEfv<ColumnInfo>> scoringEfvs = qstate.getEfvs().getValueSortedList();
@@ -1426,7 +1393,7 @@ public class AtlasStructuredQueryService {
                         // for the current gene that maps to that attribute
                         // 2. In the heatmap view, the use of attrToCounter is not essential, but it innocuous
                         long timeStart = System.currentTimeMillis();
-                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efEfv.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
+                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efEfv.getPayload()).displayNonDECounts());
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
                         overallBitStatsProcessingTimeForHeatMapRow += diff;
@@ -1462,7 +1429,7 @@ public class AtlasStructuredQueryService {
                             if (!attrToCounter.containsKey(attr)) {
                                 // the above test prevents querying bit index for the same attribute more then once  - if more
                                 // than one efo processed here maps to that attribute (e.g. an efo's term and its parent)
-                                counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
+                                counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts());
                                 if (efoItem.getPayload().isQualified(counter)) {
                                     rowQualifies = true;
                                     attrToCounter.put(attr, counter);
@@ -1477,7 +1444,7 @@ public class AtlasStructuredQueryService {
                         long timeStart = System.currentTimeMillis();
                         // third param is not important below in getStats() - as we get counts for all stat types anyway
                         Attribute attr = new EfoAttribute(efoTerm);
-                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts(), usePvalsInHeatmapOrdering);
+                        counter = getStats(scoresCache, attr, bioEntityId, bioEntityIdRestrictionSet, ((QueryColumnInfo) efoItem.getPayload()).displayNonDECounts());
                         long diff = System.currentTimeMillis() - timeStart;
                         overallBitStatsProcessingTime += diff;
                         overallBitStatsProcessingTimeForHeatMapRow += diff;
