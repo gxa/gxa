@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -221,6 +222,8 @@ public class AssayAndHybridizationStep {
             String factorValueName = factorValueAttribute.getNodeName();
             if (factorValueName.length() == 0) {
                 factorValueName = "(empty)";
+            } else if (factorValueAttribute.unit != null) {
+                factorValueName = Joiner.on(" ").join(factorValueName, factorValueAttribute.unit.getAttributeValue());
             }
 
             // try and lookup factor type for factor name: factorValueAttribute.type
