@@ -76,10 +76,12 @@ public class StatisticsCursor implements DesignElementStatistics {
     private final Predicate<Long> bePredicate;
     private final Predicate<Pair<String, String>> efvPredicate;
     private final int[] des; // consideration: BitSet will do just fine and might even be cleaner
+    private final String[] factors;
+    private String[][] factorValues;
 
     StatisticsCursor(DataProxy dataProxy, Predicate<Long> bePredicate, Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        this(dataProxy, bePredicate, efvPredicate, arrayOfIndices(dataProxy.getDesignElementAccessions().length));
+        this(dataProxy, bePredicate, efvPredicate, null);
     }
 
     StatisticsCursor(DataProxy dataProxy, Predicate<Pair<String, String>> efvPredicate, int de)
@@ -97,6 +99,8 @@ public class StatisticsCursor implements DesignElementStatistics {
         uEFVs = dataProxy.getUniqueEFVs();
         tstat = dataProxy.getTStatistics();
         pvals = dataProxy.getPValues();
+        factors = dataProxy.getFactors();
+        factorValues = dataProxy.getFactorValues();
         deAccessions = dataProxy.getDesignElementAccessions();
         bioentities = dataProxy.getGenes();
     }
@@ -149,7 +153,7 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public int getDeCount() {
-        return des.length;
+        return des == null ? deAccessions.length : des.length;
     }
 
     public boolean nextEFV() {
@@ -164,9 +168,9 @@ public class StatisticsCursor implements DesignElementStatistics {
     }
 
     public boolean nextBioEntity() {
-        for (dii++; dii < des.length && !bePredicate.apply(bioentities[de()]); dii++) {
+        for (dii++; dii < getDeCount() && !bePredicate.apply(bioentities[de()]); dii++) {
         }
-        if (dii < des.length) {
+        if (dii < getDeCount()) {
             return true;
         } else {
             dii = -1;
@@ -195,9 +199,6 @@ public class StatisticsCursor implements DesignElementStatistics {
         final String name = efv.getFirst();
         final String value = efv.getSecond();
 
-        final String[] factors = dataProxy.getFactors();
-        final String[][] factorValues = dataProxy.getFactorValues();
-
         BitSet assays = new BitSet(factorValues.length);
         for (int i = 0; i < factors.length; i++) {
             if (name.equals(factors[i])) {
@@ -213,16 +214,7 @@ public class StatisticsCursor implements DesignElementStatistics {
      * @return current design element's index in the NetCDF
      */
     private int de() {
-        return des[dii];
-    }
-
-    @VisibleForTesting
-    static int[] arrayOfIndices(int length) {
-        int[] indices = new int[length];
-        for (int i = 0; i < indices.length; i++) {
-            indices[i] = i;
-        }
-        return indices;
+        return des == null ? dii : des[dii];
     }
 
     @VisibleForTesting

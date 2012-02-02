@@ -123,17 +123,6 @@ public class StatisticsCursorTest {
     }
 
     @Test
-    public void arrayOfIndices() {
-        for (int i = 0; i < 10; i++) {
-            int len = r.nextInt(2000);
-            final int[] ints = StatisticsCursor.arrayOfIndices(len);
-            for (int j = 0; j < ints.length; j++) {
-                assertEquals("Oops!", j, ints[j]);
-            }
-        }
-    }
-
-    @Test
     public void filteredCopy() {
         for (int i = 0; i < 10; i++) {
             int len = r.nextInt(2000);
@@ -169,10 +158,13 @@ public class StatisticsCursorTest {
 
     private DataProxy dataProxy(List<Pair<String, String>> efvs, long[] genes) throws AtlasDataException, StatisticsNotFoundException {
         final DataProxy proxy = createMock(DataProxy.class);
-        expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).anyTimes();
-        expect(proxy.getUniqueEFVs()).andReturn(efvs).anyTimes();
+        expect(proxy.getDesignElementAccessions()).andReturn(new String[DE_COUNT]).times(1, 2);
+        expect(proxy.getUniqueEFVs()).andReturn(efvs).once();
         expect(proxy.getTStatistics()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
         expect(proxy.getPValues()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getGenes()).andReturn(genes).once();
+        expect(proxy.getFactors()).andReturn(new String[]{"EF1", "EF2"}).once();
+        expect(proxy.getFactorValues()).andReturn(new String[][]{{"EFV11", "EF12"}, {"EFV21", "EFV22"}}).once();
         expect(proxy.getGenes()).andReturn(genes).once();
         replay(proxy);
         return proxy;
@@ -195,7 +187,11 @@ public class StatisticsCursorTest {
     }
 
     private FloatMatrixProxy floatMatrix(int a, int b) {
-        return new FloatMatrixProxy(new float[a][b], missVal());
+        final float[][] result = new float[a][];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = floats(b);
+        }
+        return new FloatMatrixProxy(result, missVal());
     }
 
     private NetCDFMissingVal missVal() {
