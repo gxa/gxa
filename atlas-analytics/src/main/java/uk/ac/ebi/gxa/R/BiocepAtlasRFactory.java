@@ -41,6 +41,9 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.NoSuchElementException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -145,18 +148,30 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
                 return rServices;
             } catch (TimeoutException e) {
                 log.debug("RServices pool is probably busy..", e);
-                log.info("No free workers in the pool currently. Waiting for {} {}", wait, timeUnit);
+                log.info("No free workers in the pool currently. Waiting for {} {}...", wait, timeUnit);
             } catch (Exception e) {
                 throw new AtlasRServicesException("Failed to borrow RServices worker", e);
             }
-
-            try {
-                timeUnit.wait(wait);
-            } catch (InterruptedException e) {
-                log.error("Was interrupted", e);
-            }
+            waitFor(timeUnit.toMillis(wait));
         }
         throw new AtlasRServicesException("Could not borrow RServices after " + attempts + " attempts");
+    }
+
+    private static void waitFor(long milliseconds) {
+        final CountDownLatch latch = new CountDownLatch(1);
+        
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                latch.countDown();
+            }
+        }, milliseconds);
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //Wake up! 
+        }
     }
 
     public void recycleRServices(RServices rServices)
