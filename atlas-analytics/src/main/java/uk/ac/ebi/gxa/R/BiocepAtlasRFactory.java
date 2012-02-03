@@ -30,6 +30,7 @@ import uk.ac.ebi.rcloud.rpf.RemoteLogListener;
 import uk.ac.ebi.rcloud.rpf.ServantProvider;
 import uk.ac.ebi.rcloud.rpf.ServantProviderFactory;
 import uk.ac.ebi.rcloud.rpf.db.ServantProxyPoolSingletonDB;
+import uk.ac.ebi.rcloud.rpf.exception.TimeoutException;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RNumeric;
 import uk.ac.ebi.rcloud.server.callback.RAction;
@@ -40,6 +41,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A concrete implementation of {@link uk.ac.ebi.gxa.R.AtlasRFactory} that generates RServices that run on a biocep
@@ -123,23 +125,38 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         // lazily initialize servant provider
         initialize();
 
-        log.trace("Worker pool before borrow... " +
-                "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
+        log.trace("Worker pool before borrow: [active = {}, idle = {}]",
+                workerPool.getNumActive(), workerPool.getNumIdle());
         try {
-            // borrow a worker
-            RServices rServices = (RServices) workerPool.borrowObject();
-            log.debug("Borrowed " + rServices.getServantName() + " from the pool");
-            return rServices;
-        }
-        catch (Exception e) {
-            log.error("borrowObject() threw an exception: {}", e);
-            throw new AtlasRServicesException(
-                    "Failed to borrow an RServices object from the pool of workers", e);
+           return tryBorrowAWorker(5, 20, TimeUnit.SECONDS);
         }
         finally {
-            log.trace("Worker pool after borrow... " +
-                    "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
+            log.trace("Worker pool after borrow: [active = {}, idle = {}]",
+                    workerPool.getNumActive(), workerPool.getNumIdle());
         }
+    }
+
+    private RServices tryBorrowAWorker(int attempts, long wait, TimeUnit timeUnit) throws AtlasRServicesException {
+        for (int i = 0; i < attempts; i++) {
+            log.debug("Borrow attempt: {}", i);
+            try {
+                RServices rServices = (RServices) workerPool.borrowObject();
+                log.debug("Borrowed {} from the pool", rServices.getServantName());
+                return rServices;
+            } catch (TimeoutException e) {
+                log.debug("RServices pool is probably busy..", e);
+                log.info("No free workers in the pool currently. Waiting for {} {}", wait, timeUnit);
+            } catch (Exception e) {
+                throw new AtlasRServicesException("Failed to borrow RServices worker", e);
+            }
+
+            try {
+                timeUnit.wait(wait);
+            } catch (InterruptedException e) {
+                log.error("Was interrupted", e);
+            }
+        }
+        throw new AtlasRServicesException("Could not borrow RServices after " + attempts + " attempts");
     }
 
     public void recycleRServices(RServices rServices)
