@@ -50,7 +50,7 @@ public class RFactoryTest {
 
     private static final Logger log = LoggerFactory.getLogger(RFactoryTest.class);
     
-    private static AtlasRFactory rFactory;
+    private AtlasRFactory rFactory;
     private final RType rType;
 
     public RFactoryTest(RType rType) {
@@ -81,15 +81,18 @@ public class RFactoryTest {
     public void testMultipleRServices() {
         final int n = 4;
         List<RServices> services = new ArrayList<RServices>();
-        for (int i = 0; i < n; i++) {
-            try {
-                services.add(rFactory.createRServices());
-            } catch (AtlasRServicesException e) {
-                log.error("Can not create RServices", e);
+        try {
+            for (int i = 0; i < n; i++) {
+                try {
+                    services.add(rFactory.createRServices());
+                } catch (AtlasRServicesException e) {
+                    log.error("Can not create RServices", e);
+                }
             }
+            assertEquals(n, services.size());
+        } finally {
+            recycleRServices(services);
         }
-        assertEquals(n, services.size());
-        recycleRServices(services);
     }
 
     @Test
@@ -112,7 +115,7 @@ public class RFactoryTest {
             try {
                 rFactory.recycleRServices(rServices);
             } catch (AtlasRServicesException e) {
-                e.printStackTrace();
+                log.error("Failed to recycle RServices");
             }
         }
         services.clear();
