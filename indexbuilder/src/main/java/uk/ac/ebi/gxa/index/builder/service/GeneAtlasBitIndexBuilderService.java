@@ -134,8 +134,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     for (int j = 0; j < numOfUEFVs; j++) {
                         final Pair<String, String> efv = uEFVs.get(j);
 
-                        if (!factorNames.contains(efv.getKey()) || // TODO: remove this to process all uEFVs
-                                isNullOrEmpty(efv.getValue()) || "(empty)".equals(efv.getValue()))
+                        if (!factorNames.contains(efv.getKey())) // TODO: remove this to process all uEFVs
                             continue;
 
                         final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.getKey(), efv.getValue()));
