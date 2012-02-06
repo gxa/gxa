@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
@@ -73,7 +74,10 @@ public class SourceStep {
         // fetch characteristics of this sourceNode
         for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
             // create Property for this attribute
-            if (characteristicsAttribute.type.contains("||") || characteristicsAttribute.getNodeName().contains("||")) {
+            String characteristicValue = characteristicsAttribute.getNodeName();
+            if (Strings.isNullOrEmpty(characteristicValue)) {
+               continue; // We don't load empty sample characteristic values
+            } else if (characteristicsAttribute.type.contains("||") || characteristicValue.contains("||")) {
                 // generate error item and throw exception
                 throw new AtlasLoaderException(
                         "Characteristics and their values must NOT contain '||' - " +
@@ -83,12 +87,12 @@ public class SourceStep {
             // Does this sample already contain this property/property value pair? If so, don't add it to sample again
             boolean existing = false;
             for (SampleProperty sp : sample.getProperties(Property.getSanitizedPropertyAccession(characteristicsAttribute.type))) {
-                if (sp.getValue().equals(characteristicsAttribute.getNodeName()))
+                if (sp.getValue().equals(characteristicValue))
                     existing = true;
             }
 
             if (!existing) {
-                final PropertyValue property = dao.getOrCreatePropertyValue(characteristicsAttribute.type, characteristicsAttribute.getNodeName());
+                final PropertyValue property = dao.getOrCreatePropertyValue(characteristicsAttribute.type, characteristicValue);
                 sample.addProperty(property);
 
                 if ("organism".equals(property.getDefinition().getName().toLowerCase())) {

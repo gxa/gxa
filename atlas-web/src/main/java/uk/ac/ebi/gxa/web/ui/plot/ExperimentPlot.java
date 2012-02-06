@@ -113,9 +113,6 @@ public class ExperimentPlot {
             Map<String, List<Integer>> efvMap = Maps.newTreeMap(FACTOR_VALUE_COMPARATOR);
             for (int j = 0; j < efvs.length; j++) {
                 String efv = efvs[j];
-                if (isNullOrEmpty(efv) || "(empty)".equals(efv)) {
-                    continue;
-                }
                 List<Integer> assays = efvMap.get(efv);
                 if (assays == null) {
                     assays = Lists.newArrayList();
