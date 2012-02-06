@@ -159,7 +159,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Attribute hematopoieticStemCellEfv = new EfvAttribute("cell_type", "hematopoietic stem cell");
         boolean showNonDEData = true;
         UpdownCounter counter = service.getStats(scoresCache, hematopoieticStemCellEfv, bioEntityId,
-                Collections.singleton(bioEntityId), showNonDEData, true);
+                Collections.singleton(bioEntityId), showNonDEData);
         assertFalse(counter.isZero());
         assertTrue(counter.getNoStudies() > 0 || counter.getNones() > 0);
         assertTrue(counter.getMpvDn() != 1 || counter.getMpvUp() != 1); // At least one of up/down min pVals should have been populated

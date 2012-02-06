@@ -27,7 +27,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.11-SNAPSHOT</version>
+    <version>2.0.12-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -95,7 +95,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>maven-clover2-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
                 <configuration>
                     <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
                     <singleCloverDatabase>true</singleCloverDatabase>
@@ -293,7 +293,6 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
-        <module>atlas-wro4j</module>
         <module>annotator</module>
     </modules>
 
@@ -360,7 +359,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.5.6</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- todo: dependencies for solr - required here? or defer to individual components? -->
