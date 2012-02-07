@@ -7,6 +7,7 @@ import uk.ac.ebi.gxa.R.compute.RUtil;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 
+import java.net.URL;
 import java.rmi.RemoteException;
 
 /**
@@ -16,9 +17,9 @@ import java.rmi.RemoteException;
 public class RCommand {
 
     private final AtlasComputeService computeService;
-    private final String rCodeResourcePath;
+    private final URL rCodeResourcePath;
 
-    public RCommand(AtlasComputeService computeService, String rCodeResourcePath) {
+    public RCommand(AtlasComputeService computeService, URL rCodeResourcePath) {
         this.computeService = computeService;
         this.rCodeResourcePath = rCodeResourcePath;
     }

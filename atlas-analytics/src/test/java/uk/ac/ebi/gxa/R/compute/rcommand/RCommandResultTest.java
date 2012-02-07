@@ -47,7 +47,7 @@ public class RCommandResultTest {
         computeService.setAtlasRFactory(rFactory);
 
         rCommand = new RCommand(computeService,
-                "ae3/service/experiment/rcommand/RCommandResultTest.R");
+                RCommandResultTest.class.getResource("RCommandResultTest.R"));
     }
 
     @AfterClass
