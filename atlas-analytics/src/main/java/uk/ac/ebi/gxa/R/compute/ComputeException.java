@@ -20,18 +20,23 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.analytics.compute;
+package uk.ac.ebi.gxa.R.compute;
 
-import com.google.common.io.Resources;
-import java.io.IOException;
-import java.nio.charset.Charset;
+/**
+ * A {@link RuntimeException} that is thrown whenever a {@link ComputeTask} fails.
+ *
+ * @author Tony Burdett
+ */
+public class ComputeException extends RuntimeException {
+    public ComputeException(String message) {
+        super(message);
+    }
 
-public abstract class RUtil {
-    public static String getRCodeFromResource(String resourcePath) throws ComputeException {
-        try {
-            return Resources.toString(RUtil.class.getClassLoader().getResource(resourcePath), Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new ComputeException("Error while reading in R code from " + resourcePath, e);
-        }
+    public ComputeException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ComputeException(Throwable cause) {
+        super(cause);
     }
 }

@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.service.experiment.rcommand;
+package uk.ac.ebi.gxa.R.compute.rcommand;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -28,7 +28,7 @@ import org.junit.Test;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
 import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
 
 import static org.junit.Assert.*;
 

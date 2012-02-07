@@ -1,15 +1,12 @@
-package ae3.service.experiment.rcommand;
+package uk.ac.ebi.gxa.R.compute.rcommand;
 
-import com.google.common.io.Resources;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import uk.ac.ebi.gxa.analytics.compute.RUtil;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.ComputeException;
+import uk.ac.ebi.gxa.R.compute.ComputeTask;
+import uk.ac.ebi.gxa.R.compute.RUtil;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 
 /**

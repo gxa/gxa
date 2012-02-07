@@ -146,7 +146,7 @@
     </bean>
 
     <!--Configure R workbench -->
-    <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService">
+    <bean name="atlasComputeService" class="uk.ac.ebi.gxa.R.compute.AtlasComputeService">
         <property name="atlasRFactory" ref="atlasRFactory"/>
     </bean>
 
