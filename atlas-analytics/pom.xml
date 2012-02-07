@@ -38,7 +38,17 @@
         <testResources>
             <testResource>
                 <directory>src/test/resources</directory>
+                <excludes>
+                    <exclude>**/*.nc</exclude>
+                </excludes>
                 <filtering>true</filtering>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>**/*.nc</include>
+                </includes>
+                <filtering>false</filtering>
             </testResource>
         </testResources>
     </build>
