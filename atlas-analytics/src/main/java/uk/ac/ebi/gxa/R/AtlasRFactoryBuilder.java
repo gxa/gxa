@@ -47,48 +47,6 @@ public class AtlasRFactoryBuilder {
 
     /**
      * Creates an AtlasRFactory, which can be used to obtain RServices.  Invoking this method is equivalent to invoking
-     * {@link #buildAtlasRFactory(RType, java.util.Properties)} where the RType is attempted to be discovered by reading
-     * the file R.properties on the current classpath, and the properties are empty.  If the chosen concrete
-     * implementation absolutely requires properties to be set, and these properties can not be discovered either from
-     * {@link System}<code>.getProperties()</code> or by reading a dedicated properties file from the classpath, then an
-     * {@link UnsupportedOperationException} should be thrown.
-     *
-     * @return an AtlasRFactory,  configured to generate RServices for the current environment
-     * @throws InstantiationException if the type of R installation could not be discovered from properties on the
-     *                                current path, or if there is a hard requirement for configuration elements that
-     *                                could not be discovered from system properties or classpath properties files.
-     */
-    public AtlasRFactory buildAtlasRFactory() throws InstantiationException {
-        try {
-            // no specifed RType enum - read properties file to assess type
-            if (getClass().getClassLoader().getResourceAsStream("R.properties") == null) {
-                throw new InstantiationException(
-                        "R.properties file absent - cannot automatically configure R environment");
-            }
-            else {
-                Properties rProps = new Properties();
-                rProps.load(getClass().getClassLoader().getResourceAsStream("R.properties"));
-
-                if (rProps.containsKey("r.env.type")) {
-                    String rTypeStr = rProps.getProperty("r.env.type");
-                    for (RType rType : RType.values()) {
-                        if (rTypeStr.equals(rType.key())) {
-                            return buildAtlasRFactory(rType);
-                        }
-                    }
-                    throw new InstantiationException("r.env.type value '" + rTypeStr + "' in R.properties is " +
-                            "not recognised as a valid R environment");
-                }
-                throw new InstantiationException("r.env.type property not found in R.properties");
-            }
-        }
-        catch (IOException e) {
-            throw new InstantiationException("Unable to instantiate AtlasRFactoryBuilder - no R.properties file found");
-        }
-    }
-
-    /**
-     * Creates an AtlasRFactory, which can be used to obtain RServices.  Invoking this method is equivalent to invoking
      * {@link #buildAtlasRFactory(RType, java.util.Properties)} with an empty set of properties, where possible.  If the
      * chosen concrete implementation absolutely requires properties to be set, and these properties can not be
      * discovered from {@link System}<code>.getProperties()</code>, then an {@link UnsupportedOperationException} should
@@ -120,20 +78,13 @@ public class AtlasRFactoryBuilder {
     public AtlasRFactory buildAtlasRFactory(RType rType, Properties properties) throws InstantiationException {
         switch (rType) {
             case LOCAL:
-                // if we pass R properties here, read them in
-                if (properties != null) {
-                    setLocalSystemProperties(properties);
-                }
-
+                // R_HOME env variable and -Djava.library.path should be configured on the app start
                 return new LocalAtlasRFactory();
             case BIOCEP:
                 if (properties != null) {
-                    // set any properties passed in our properties object
                     setBiocepSystemProperties(properties);
-                }
-                else {
+                } else {
                     try {
-                        // try and read from properties file
                         Properties biocepProperties = new Properties();
                         biocepProperties.load(getClass().getClassLoader().getResourceAsStream("biocep.properties"));
                         setBiocepSystemProperties(biocepProperties);
@@ -143,18 +94,10 @@ public class AtlasRFactoryBuilder {
                                 " with null properties and without a biocep.properties file on the classpath");
                     }
                 }
-
                 return new BiocepAtlasRFactory();
             default:
                 throw new InstantiationException("Unrecognised type: " + rType);
         }
-    }
-
-    private void setLocalSystemProperties(Properties properties) throws InstantiationException {
-        if (properties.getProperty("R_HOME") == null) {
-            throw new InstantiationException("Supplied properties don't contain required property 'R_HOME'");
-        }
-        System.setProperty("R_HOME", properties.getProperty("R_HOME"));
     }
 
     private void setBiocepSystemProperties(Properties biocepProps) throws InstantiationException {

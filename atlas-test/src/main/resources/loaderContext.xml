@@ -150,7 +150,9 @@
         <property name="atlasRFactory" ref="atlasRFactory"/>
     </bean>
 
-    <bean name="atlasRFactory" factory-bean="atlasRFactoryBuilder" factory-method="buildAtlasRFactory"/>
+    <bean name="atlasRFactory" factory-bean="atlasRFactoryBuilder" factory-method="buildAtlasRFactory">
+        <constructor-arg type="uk.ac.ebi.gxa.R.RType" value="LOCAL"/>
+    </bean>
 
     <bean name="atlasRFactoryBuilder"
           class="uk.ac.ebi.gxa.R.AtlasRFactoryBuilder"
