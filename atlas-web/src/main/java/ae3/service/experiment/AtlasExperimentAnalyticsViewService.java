@@ -2,7 +2,6 @@ package ae3.service.experiment;
 
 import ae3.dao.GeneSolrDAO;
 import com.google.common.base.Predicate;
-import it.uniroma3.mat.extendedset.FastSet;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.Best;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -15,7 +14,6 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.sort;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.boundSafeSublist;
-import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.valueOf;
 
 
 /**
@@ -58,57 +56,33 @@ public class AtlasExperimentAnalyticsViewService {
         if (expPart == null)
             return new BestDesignElementsResult();
 
-        final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
-        final TwoDFloatArray pvals = expPart.getPValues();
-        final TwoDFloatArray tstat = expPart.getTStatistics();
+        StatisticsCursor stats = expPart.getStatisticsIterator(geneIdPredicate, fvPredicate);
 
-        List<DesignElementStatistics> stats = newArrayList();
-        for (int deidx : selectedDesignElements(expPart.getGeneIds(), geneIdPredicate)) {
-            Best<DesignElementStatistics> result = Best.create();
-            for (int uefidx = 0; uefidx < uEFVs.size(); uefidx++) {
-                float p = pvals.get(deidx, uefidx);
-                float t = tstat.get(deidx, uefidx);
-
-                if (fvPredicate.apply(uEFVs.get(uefidx)) && upDownPredicate.apply(valueOf(p, t))) {
-                    result.offer(new DesignElementStatistics(p, t, deidx, uefidx));
+        List<StatisticsSnapshot> result = newArrayList();
+        while (stats.nextBioEntity()) {
+            Best<StatisticsSnapshot> bestDE = Best.create();
+            while (stats.nextEFV()) {
+                if (upDownPredicate.apply(stats.getExpression())) {
+                    bestDE.offer(stats.getSnapshot());
                 }
             }
-            if (result.isFound())
-                stats.add(result.get());
+            if (bestDE.isFound())
+                result.add(bestDE.get());
         }
-        sort(stats);
+        sort(result);
 
-        return convert(expPart, stats, offset, limit);
+        return convert(expPart, boundSafeSublist(result, offset, offset + limit), result.size());
     }
 
-    private BestDesignElementsResult convert(ExperimentPart expPart, List<DesignElementStatistics> stats,
-                                             int offset, int limit)
+    private BestDesignElementsResult convert(ExperimentPart expPart, List<StatisticsSnapshot> sublist, int totalSize)
             throws AtlasDataException, StatisticsNotFoundException {
-        final List<Pair<String, String>> uEFVs = expPart.getUniqueEFVs();
-        final List<Long> allGeneIds = expPart.getGeneIds();
-        final String[] designElementAccessions = expPart.getDesignElementAccessions();
-
         final BestDesignElementsResult result = new BestDesignElementsResult();
         result.setArrayDesignAccession(expPart.getArrayDesign().getAccession());
-        result.setTotalSize(stats.size());
-        for (DesignElementStatistics de : boundSafeSublist(stats, offset, offset + limit)) {
-            result.add(geneSolrDAO.getGeneById(allGeneIds.get(de.getDEIndex())).getGene(),
-                    de.getDEIndex(),
-                    designElementAccessions[de.getDEIndex()],
-                    de.getPValue(),
-                    de.getTStat(),
-                    uEFVs.get(de.getUEFVIndex()));
-        }
-        return result;
-    }
-
-    private static FastSet selectedDesignElements(List<Long> allGeneIds, final Predicate<Long> geneIdPredicate) {
-        FastSet result = new FastSet();
-        for (int deidx = 0; deidx < allGeneIds.size(); deidx++) {
-            final Long geneId = allGeneIds.get(deidx);
-            if (geneId > 0 && geneIdPredicate.apply(geneId)) {
-                result.add(deidx);
-            }
+        result.setTotalSize(totalSize);
+        for (StatisticsSnapshot de : sublist) {
+            final GeneSolrDAO.AtlasGeneResult gene = geneSolrDAO.getGeneById(de.getBioEntityId());
+            if (gene.isFound())
+                result.add(gene.getGene(), de);
         }
         return result;
     }

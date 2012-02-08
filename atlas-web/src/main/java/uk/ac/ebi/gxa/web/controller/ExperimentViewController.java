@@ -68,6 +68,7 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 import static uk.ac.ebi.gxa.utils.Pair.create;
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN_GENE;
 
 /**
  * @author Olga Melnichuk
@@ -360,7 +361,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
     private Predicate<Long> genePredicate(String gid) {
         if (isNullOrEmpty(gid))
-            return alwaysTrue();
+            return ANY_KNOWN_GENE;
 
         return in(findGeneIds(Arrays.asList(gid.trim())));
     }
