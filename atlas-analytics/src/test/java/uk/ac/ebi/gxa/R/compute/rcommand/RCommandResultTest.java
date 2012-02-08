@@ -26,11 +26,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
 import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.R.AtlasRFactoryBuilder.getAtlasRFactoryBuilder;
+import static uk.ac.ebi.gxa.R.BiocepPropertiesUtils.killUsed;
 
 /**
  * @author Olga Melnichuk
@@ -42,7 +44,7 @@ public class RCommandResultTest {
 
     @BeforeClass
     public static void setUp() throws InstantiationException {
-        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
+        AtlasRFactory rFactory = getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP, killUsed(false));
         computeService = new AtlasComputeService();
         computeService.setAtlasRFactory(rFactory);
 

@@ -41,6 +41,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static uk.ac.ebi.gxa.R.BiocepPropertiesUtils.killUsed;
 
 /**
  * @author Olga Melnichuk
@@ -64,7 +65,7 @@ public class RFactoryTest {
 
     @Before
     public void createRFactory() throws InstantiationException {
-        AtlasRFactory rf = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(rType); 
+        AtlasRFactory rf = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(rType, killUsed(false));
         assertTrue(rf.validateEnvironment());
         rFactory = rf;
     }
