@@ -29,6 +29,7 @@ import java.util.Random;
 import static com.google.common.primitives.Floats.asList;
 import static java.util.Collections.shuffle;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.NONDE;
 
 /**
@@ -40,9 +41,14 @@ public class BoxAndWhiskerTest {
 
     private static final Random RANDOM = new Random(12345L);
 
-    @Test(expected = java.lang.IndexOutOfBoundsException.class)
+    @Test
     public void testEmptyData() {
-        newBoxAndWhisker();
+        BoxAndWhisker plot = newBoxAndWhisker();
+        assertTrue(Float.isNaN(plot.getMax()));
+        assertTrue(Float.isNaN(plot.getMedian()));
+        assertTrue(Float.isNaN(plot.getMin()));
+        assertTrue(Float.isNaN(plot.getLowerQuartile()));
+        assertTrue(Float.isNaN(plot.getUpperQuartile()));
     }
 
     @Test
