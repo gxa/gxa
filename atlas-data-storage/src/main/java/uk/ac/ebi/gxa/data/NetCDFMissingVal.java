@@ -46,13 +46,11 @@ class NetCDFMissingVal {
      *
      * @param var a netCDF variable
      * @param v   a missing value to attach
-     * @return the same variable
      */
-    public static Variable attachMissingValue(Variable var, Number v) {
+    public static void attachMissingValue(Variable var, Number v) {
         for (String attr : MISSING_VALUE_ATTRIBUTES) {
             var.addAttribute(new Attribute(attr, v));
         }
-        return var;
     }
 
     private Object missingVal = null;

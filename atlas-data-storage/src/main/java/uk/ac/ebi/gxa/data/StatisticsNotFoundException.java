@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.data;
 
 public class StatisticsNotFoundException extends Exception {
-    public StatisticsNotFoundException(String message) {
-        super(message);
+    public StatisticsNotFoundException() {
+        super("Statistics file does not exist");
     }
 }
