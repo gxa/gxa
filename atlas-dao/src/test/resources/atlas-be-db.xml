@@ -152,17 +152,21 @@
             />
 
     <A2_SOFTWARE
+            softwareid="999"
+            name="Ensembl"
+            version="59"
+            />
+
+    <A2_SOFTWARE
             softwareid="1000"
             name="Ensembl"
             version="60"
-            isactive="T"
             />
 
     <A2_SOFTWARE
             softwareid="2000"
             name="BioConductor"
             version="4"
-            isactive="F"
             />
 
     <A2_GENEPROPERTY
