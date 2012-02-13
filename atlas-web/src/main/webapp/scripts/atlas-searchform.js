@@ -301,7 +301,7 @@ var atlas = atlas || {};
 
                 form.bind('submit', function () {
                     try {
-                        atlas.startSearching(form);
+                        showSearchingIndicator(form);
                         atlas.submitForm(asQuery(form), form);
                     } catch(e) {
                         if (window.console) {
@@ -655,7 +655,7 @@ var atlas = atlas || {};
                 var form = $('#structform');
                 form.bind('submit', function () {
                     try {
-                        atlas.startSearching(form);
+                        showSearchingIndicator(form);
                         atlas.submitForm(asQuery(form), form);
                     } catch(e) {
                         if (window.console) {
@@ -678,52 +678,46 @@ var atlas = atlas || {};
     })();
 
     /**
-     *  SearchForm Help  ///////////////////////////////////////////////////////////////////////////////////////////////
+     * Private routine  ///////////////////////////////////////////////////////////////////////////////////////////////
      */
-    var searchFormHelp = (function() {
-        function toggleAtlasHelp() {
-            if ($("div.atlasHelp").is(":hidden")) {
-                showAtlasHelp();
+
+    function initSearchFormHelp() {
+        function toggleHelp(el) {
+            var hidden = $("div.atlasHelp").is(":hidden");
+            if (hidden) {
+                $("div.atlasHelp").slideToggle();
+                $(el).text("hide help");
+                $.cookie('atlas_help_state', 'shown');
             } else {
-                hideAtlasHelp();
-            }
-            return false;
-        }
-
-        function showAtlasHelp() {
-            if ($("div.atlasHelp").is(":hidden")) {
                 $("div.atlasHelp").slideToggle();
-                $("#atlasHelpToggle").text("hide help");
-            }
-            $.cookie('atlas_help_state', 'shown');
-        }
-
-        function hideAtlasHelp() {
-            if ($("div.atlasHelp").is(":visible")) {
-                $("div.atlasHelp").slideToggle();
-                $("#atlasHelpToggle").text("show help");
-            }
-            $.cookie('atlas_help_state', 'hidden');
-        }
-
-        return {
-            init: function() {
-                var helpToggle = $("#atlasHelpToggle");
-                if (helpToggle.length > 0) {
-                    helpToggle.click(toggleAtlasHelp);
-
-                    if (($.cookie('atlas_help_state') == "shown") && ($("div.atlasHelp").is(":hidden"))) {
-                        showAtlasHelp();
-                    } else if (($.cookie('atlas_help_state') == "hidden") && ($("div.atlasHelp").is(":visible"))) {
-                        hideAtlasHelp();
-                    }
-                }
+                $(el).text("show help");
+                $.cookie('atlas_help_state', 'hidden');
             }
         }
-    })();
+
+        var toggleEl = $("#atlasHelpToggle");
+        if (toggleEl.length > 0) {
+            toggleEl.click(function(ev) {
+                toggleHelp(ev.target);
+                return false;
+            });
+
+            var helpClicked = $.cookie('atlas_help_state') === "shown";
+            var helpHidden = $("div.atlasHelp").is(":hidden");
+            if ((helpClicked && helpHidden) || (!helpClicked && !helpHidden)) {
+                toggleHelp(toggleEl);
+            }
+        }
+    }
+
+    function showSearchingIndicator(form) {
+        var v = $(form).find('input[type=submit]');
+        v.val('Searching...');
+        $(form).find('input:hidden').trigger('preSubmit');
+    }
 
     /**
-     * /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     * Public
      */
 
     atlas.initSearchForm = function(query) {
@@ -736,13 +730,7 @@ var atlas = atlas || {};
 
         simpleForm.init(query);
         advancedForm.init(query);
-        searchFormHelp.init();
-    };
-
-    atlas.startSearching = function(form) {
-        var v = $(form).find('input[type=submit]');
-        v.val('Searching...');
-        $(form).find('input:hidden').trigger('preSubmit');
+        initSearchFormHelp();
     };
 
     atlas.submitForm = function(query, form) {
