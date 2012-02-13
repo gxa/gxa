@@ -169,6 +169,68 @@ var atlas = atlas || {};
     };
 
     /**
+     *  Query Builder //////////////////////////////////////////////////////////////////////////////////////////////////
+     */
+
+    function QueryBuilder() {
+        if (!(this instanceof arguments.callee)) {
+            return new QueryBuilder();
+        }
+
+        var q = {
+            geneConditions:[],
+            conditions:[],
+            species:[],
+            view:""
+        };
+
+        function trim(value) {
+            return (value || "").trim();
+        }
+
+        function isValid() {
+            return (q.geneConditions.length > 0 || q.conditions.length > 0);
+        }
+
+        // condition => {
+        //   value - required
+        //   property  - required
+        //   not - optional (condition negation)
+        // }
+        this.addGeneCondition = function (condition) {
+            if ((condition.value = trim(condition.value)).length) {
+                q.geneConditions.push(condition);
+            }
+        };
+
+        // condition => {
+        //   value - required
+        //   expression - required
+        //   factor - optional (default is 'Any')
+        //   minExperiments - optional (default is 1)
+        // }
+        this.addCondition = function (condition) {
+            if ((condition.value = trim(condition.value)).length) {
+                q.conditions.push(condition);
+            }
+        };
+
+        this.addSpecies = function (value) {
+            if ((value = trim(value)).length) {
+                q.species.push(value);
+            }
+        };
+
+        this.setView = function (value) {
+            q.view = value;
+        };
+
+        this.query = function () {
+            return isValid() ? q : null;
+        };
+    }
+
+    /**
      *  Simple form ////////////////////////////////////////////////////////////////////////////////////////////////////
      */
 
@@ -257,7 +319,7 @@ var atlas = atlas || {};
         }
 
         function asQuery(form) {
-            var query = { geneConditions:[], conditions:[], species:[] };
+            var qBuilder = new QueryBuilder();
 
             var field = geneConditionsField(form);
             var value0 = field.val();
@@ -275,18 +337,21 @@ var atlas = atlas || {};
                 }
             }
 
-            query.geneConditions.push({value:value0, property:prop0});
+            qBuilder.addGeneCondition({
+                value: value0,
+                property: prop0
+            });
 
-            query.conditions.push({
+            qBuilder.addCondition({
                 expression: expressionField(form).val(),
                 value: expConditionField(form).val()
             });
 
-            query.species.push(speciesField(form).val());
+            qBuilder.addSpecies(speciesField(form).val());
 
-            query.view = $('input[name=view]:checked', form).val();
+            qBuilder.setView($('input[name=view]:checked', form).val());
 
-            return query;
+            return qBuilder.query();
         }
 
         return {
@@ -301,8 +366,7 @@ var atlas = atlas || {};
 
                 form.bind('submit', function () {
                     try {
-                        showSearchingIndicator(form);
-                        atlas.submitForm(asQuery(form), form);
+                        submitForm(asQuery(form), form);
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -573,10 +637,10 @@ var atlas = atlas || {};
         }
 
         function asQuery(form) {
-            var query = { conditions:[], geneConditions:[], species:[] };
+            var qBuilder = new QueryBuilder();
 
             $('input.specval').each(function() {
-                query.species.push(this.value);
+                qBuilder.addSpecies(this.value);
             });
 
             function contains(string, substr) {
@@ -596,7 +660,7 @@ var atlas = atlas || {};
                         condition.expression = this.value;
                     }
                 });
-                query.conditions.push(condition);
+                qBuilder.addCondition(condition);
             });
 
             $('#conditions tr.genecond').each(function() {
@@ -610,11 +674,11 @@ var atlas = atlas || {};
                          condition.value = this.value;
                      }
                 });
-                query.geneConditions.push(condition);
+                qBuilder.addGeneCondition(condition);
             });
 
-            query.view = $('input[name=view]:checked', form).val();
-            return query;
+            qBuilder.setView($('input[name=view]:checked', form).val());
+            return qBuilder.query();
         }
 
         return {
@@ -655,8 +719,7 @@ var atlas = atlas || {};
                 var form = $('#structform');
                 form.bind('submit', function () {
                     try {
-                        showSearchingIndicator(form);
-                        atlas.submitForm(asQuery(form), form);
+                        submitForm(asQuery(form), form);
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -716,24 +779,14 @@ var atlas = atlas || {};
         $(form).find('input:hidden').trigger('preSubmit');
     }
 
-    /**
-     * Public
-     */
+    function submitForm(query, form) {
+        if (query) {
+            showSearchingIndicator(form);
+            submitQuery(query, form);
+        }
+    }
 
-    atlas.initSearchForm = function(query) {
-        atlas.latestSearchQuery = query;
-
-        // disable Firefox's bfcache
-        $(window).unload(function() {
-            return true;
-        });
-
-        simpleForm.init(query);
-        advancedForm.init(query);
-        initSearchFormHelp();
-    };
-
-    atlas.submitForm = function(query, form) {
+    function submitQuery(query, form) {
         form = form || $('#simpleform:visible, #structform:visible');
 
         if ($('#temporaryform')) {
@@ -777,6 +830,27 @@ var atlas = atlas || {};
         var tform = $("#temporaryform");
         tform.attr("action", form.attr("action"));
         tform.submit();
+    }
+
+    /**
+     * Public
+     */
+
+    atlas.initSearchForm = function(query) {
+        atlas.latestSearchQuery = query;
+
+        // disable Firefox's bfcache
+        $(window).unload(function() {
+            return true;
+        });
+
+        simpleForm.init(query);
+        advancedForm.init(query);
+        initSearchFormHelp();
+    };
+
+    atlas.submitQuery = function(query) {
+        submitQuery(query);
     };
 
     atlas.clearQuery = function() {
