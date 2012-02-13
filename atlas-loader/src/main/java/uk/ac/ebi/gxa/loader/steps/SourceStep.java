@@ -74,7 +74,7 @@ public class SourceStep {
         // fetch characteristics of this sourceNode
         for (CharacteristicsAttribute characteristicsAttribute : sourceNode.characteristics) {
             // create Property for this attribute
-            String characteristicValue = characteristicsAttribute.getNodeName();
+            String characteristicValue = characteristicsAttribute.getNodeName().trim();
             if (Strings.isNullOrEmpty(characteristicValue)) {
                continue; // We don't load empty sample characteristic values
             } else if (characteristicsAttribute.type.contains("||") || characteristicValue.contains("||")) {
