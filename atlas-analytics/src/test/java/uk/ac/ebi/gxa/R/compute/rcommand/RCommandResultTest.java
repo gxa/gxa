@@ -20,17 +20,19 @@
  * http://gxa.github.com/gxa
  */
 
-package ae3.service.experiment.rcommand;
+package uk.ac.ebi.gxa.R.compute.rcommand;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
 import uk.ac.ebi.gxa.R.RType;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
 
+import static com.google.common.collect.Maps.newHashMap;
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.R.AtlasRFactoryBuilder.getAtlasRFactoryBuilder;
+import static uk.ac.ebi.gxa.R.BiocepPropertiesUtils.killUsed;
 
 /**
  * @author Olga Melnichuk
@@ -42,12 +44,12 @@ public class RCommandResultTest {
 
     @BeforeClass
     public static void setUp() throws InstantiationException {
-        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP);
+        AtlasRFactory rFactory = getAtlasRFactoryBuilder().buildAtlasRFactory(RType.BIOCEP, killUsed(false));
         computeService = new AtlasComputeService();
         computeService.setAtlasRFactory(rFactory);
 
         rCommand = new RCommand(computeService,
-                "ae3/service/experiment/rcommand/RCommandResultTest.R");
+                RCommandResultTest.class.getResource("RCommandResultTest.R"));
     }
 
     @AfterClass
