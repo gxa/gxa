@@ -329,7 +329,7 @@ public class AtlasPlotter {
         private int numberOfValues = 0;
 
         private void addFactorValue(String fv, ExpressionAnalysis bestEA, boolean isInsignificant, Collection<Float> assayValues) {
-            FactorValueInfo fvInfo = new FactorValueInfo(fv, bestEA.getUpDownExpression(), bestEA.getPValAdjusted(), isInsignificant);
+            FactorValueInfo fvInfo = new FactorValueInfo(fv, bestEA.getExpression(), bestEA.getP(), isInsignificant);
             fvInfo.setAssayValues(assayValues);
             numberOfValues += assayValues.size();
             factorValues.add(fvInfo);
@@ -534,7 +534,7 @@ public class AtlasPlotter {
                     }
 
                     // Get the actual expression data from the proxy-designindex corresponding to the best pValue
-                    final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDesignElementIndex());
+                    final float[] expressions = ewd.getExpressionDataForDesignElementAtIndex(ad, bestEA.getDeIndex());
 
                     Collection<Float> assays = factorValues.getAssayExpressionsFor(factorValue, Floats.asList(expressions));
 
@@ -573,11 +573,11 @@ public class AtlasPlotter {
         for (Map<String, ExpressionAnalysis> efvToEa : efToEfvToEA.values()) {
             for (ExpressionAnalysis ea : efvToEa.values()) {
                 // lower pVals, or for the same pVals, higher tStats, are better
-                if (bestPValue == null || bestPValue > ea.getPValAdjusted()
-                        || (bestPValue == ea.getPValAdjusted() && bestTStat < ea.getTStatistic())) {
-                    bestEf = ea.getEfName();
-                    bestPValue = ea.getPValAdjusted();
-                    bestTStat = ea.getTStatistic();
+                if (bestPValue == null || bestPValue > ea.getP()
+                        || (bestPValue == ea.getP() && bestTStat < ea.getT())) {
+                    bestEf = ea.getEfv().getFirst();
+                    bestPValue = ea.getP();
+                    bestTStat = ea.getT();
                 }
             }
         }

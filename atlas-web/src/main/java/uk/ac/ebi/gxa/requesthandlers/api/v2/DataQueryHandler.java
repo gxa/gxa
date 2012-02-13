@@ -32,7 +32,7 @@ import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.TwoDFloatArray;
+import uk.ac.ebi.gxa.data.FloatMatrixProxy;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -72,10 +72,10 @@ class DataQueryHandler implements QueryHandler {
     }
 
     private static class TwoDDataProvider implements DataProvider {
-        private final TwoDFloatArray array;
+        private final FloatMatrixProxy array;
         private final int rowIndex;
 
-        TwoDDataProvider(TwoDFloatArray array, int rowIndex) {
+        TwoDDataProvider(FloatMatrixProxy array, int rowIndex) {
             this.array = array;
             this.rowIndex = rowIndex;
         }
@@ -92,7 +92,7 @@ class DataQueryHandler implements QueryHandler {
 
         GeneDataDecorator(String designElementAccession, DataProvider provider, Set<Integer> colIndices) {
             this.designElementAccession = designElementAccession;
-            this.provider = provider;   
+            this.provider = provider;
             this.colIndices = colIndices;
         }
 
@@ -197,18 +197,18 @@ class DataQueryHandler implements QueryHandler {
         final List<String> genes = (value instanceof List) ? (List<String>) value : null;
 
         try {
-            final Map<Long,AtlasGene> genesById;
+            final Map<Long, AtlasGene> genesById;
             if (genes != null) {
-                genesById = new TreeMap<Long,AtlasGene>();
+                genesById = new TreeMap<Long, AtlasGene>();
                 if (useGeneNames) {
                     for (String geneName : genes) {
                         for (AtlasGene gene : geneSolrDAO.getGenesByName(geneName)) {
-                            genesById.put((long)gene.getGeneId(), gene);
+                            genesById.put((long) gene.getGeneId(), gene);
                         }
                     }
                 } else /* use gene identifiers */ {
                     for (AtlasGene gene : geneSolrDAO.getGenesByIdentifiers(genes)) {
-                        genesById.put((long)gene.getGeneId(), gene);
+                        genesById.put((long) gene.getGeneId(), gene);
                     }
                 }
             } else {
@@ -217,7 +217,7 @@ class DataQueryHandler implements QueryHandler {
             final List<DataDecorator> data = new LinkedList<DataDecorator>();
             final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
             final ExperimentWithData experimentWithData =
-                atlasDataDAO.createExperimentWithData(experiment);
+                    atlasDataDAO.createExperimentWithData(experiment);
             for (ArrayDesign ad : experiment.getArrayDesigns()) {
                 final Map<Integer, String> assayAccessionByIndex = new TreeMap<Integer, String>();
                 int index = 0;
@@ -238,8 +238,8 @@ class DataQueryHandler implements QueryHandler {
                 final long[] proxyGenes = experimentWithData.getGenes(ad);
                 final String[] proxyDEAccessions = experimentWithData.getDesignElementAccessions(ad);
                 if (genesById == null) {
-                    final TwoDFloatArray array = experimentWithData.getAllExpressionData(ad);
-                    final TreeMap<Long,String> allGenesById = new TreeMap<Long,String>();
+                    final FloatMatrixProxy array = experimentWithData.getAllExpressionData(ad);
+                    final TreeMap<Long, String> allGenesById = new TreeMap<Long, String>();
                     for (BioEntity g : bioEntityDAO.getAllGenesFast()) {
                         allGenesById.put(g.getId(), useGeneNames ? g.getName() : g.getIdentifier());
                     }
@@ -251,17 +251,17 @@ class DataQueryHandler implements QueryHandler {
                         final GeneDataDecorator geneInfo;
                         if (useGeneNames) {
                             d.genes.add(new GeneDataDecoratorWithName(
-                                geneString,
-                                proxyDEAccessions[i],
-                                new TwoDDataProvider(array, i),
-                                assayAccessionByIndex.keySet()
+                                    geneString,
+                                    proxyDEAccessions[i],
+                                    new TwoDDataProvider(array, i),
+                                    assayAccessionByIndex.keySet()
                             ));
                         } else {
                             d.genes.add(new GeneDataDecoratorWithIdentifier(
-                                geneString,
-                                proxyDEAccessions[i],
-                                new TwoDDataProvider(array, i),
-                                assayAccessionByIndex.keySet()
+                                    geneString,
+                                    proxyDEAccessions[i],
+                                    new TwoDDataProvider(array, i),
+                                    assayAccessionByIndex.keySet()
                             ));
                         }
                     }
