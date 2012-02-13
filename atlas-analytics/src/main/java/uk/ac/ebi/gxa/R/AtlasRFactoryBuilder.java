@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
-import static uk.ac.ebi.gxa.R.BiocepPropertiesUtils.bicepPropertiesSetup;
+import static uk.ac.ebi.gxa.R.BiocepPropertiesUtils.biocepPropertiesSetup;
 
 /**
  * A singleton class that is reponsible for build {@link uk.ac.ebi.gxa.R.AtlasRFactory} objects.  The type of factory
@@ -87,7 +87,7 @@ public class AtlasRFactoryBuilder {
                 return new LocalAtlasRFactory();
             case BIOCEP:
                 try {
-                    bicepPropertiesSetup(properties);
+                    biocepPropertiesSetup(properties);
                 } catch (BiocepPropertiesSetupException e) {
                     log.error("Failed setup biocep properties", e);
                     throw new InstantiationException("Failed to setup biocep properties");

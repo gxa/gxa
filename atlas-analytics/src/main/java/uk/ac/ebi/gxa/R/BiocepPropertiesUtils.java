@@ -139,7 +139,7 @@ public class BiocepPropertiesUtils {
      *                                        - if a value format is not valid (e.g. database url)
      *                                        - if any error happened during reading default properties
      */
-    public static void bicepPropertiesSetup(Properties userDefined) throws BiocepPropertiesSetupException {
+    public static void biocepPropertiesSetup(Properties userDefined) throws BiocepPropertiesSetupException {
         Properties defaults;
         try {
             defaults = defaults();
