@@ -85,12 +85,6 @@ public class CurationService {
                 }
             };
 
-    private static final Function<OntologyTerm, ApiShallowOntologyTerm> ONTOLOGY_TERM =
-            new Function<OntologyTerm, ApiShallowOntologyTerm>() {
-                public ApiShallowOntologyTerm apply(@Nonnull OntologyTerm t) {
-                    return new ApiShallowOntologyTerm(t);
-                }
-            };
 
     /**
      * @return alphabetically sorted collection of all property names
@@ -146,6 +140,26 @@ public class CurationService {
     }
 
     /**
+     * @param propertyName
+     * @param propertyValue
+     * @param exactValueMatch if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
+     *                        otherwise all experiments with assays/samples containing a property value of which propertyValue is a substring will be considered.
+     * @return List of ApiShallowProperty's containing propertyName-propertyValue
+     */
+    public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValue(final String propertyName, @Nonnull final String propertyValue, boolean exactValueMatch) {
+        boolean caseInsensitive = true;
+        ApiPropertyValueMappings pvMappings = new ApiPropertyValueMappings(propertyName, propertyValue, caseInsensitive, exactValueMatch);
+        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
+            pvMappings.add(new ApiProperty(assayProperty));
+        }
+        for (SampleProperty sampleProperty : sampleDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
+            pvMappings.add(new ApiProperty(sampleProperty));
+        }
+
+        return pvMappings.getAll();
+    }
+
+    /**
      * @param ontologyTerm
      * @return List of ApiExperiment's containing a property value mapped to  ontologyTerm
      */
@@ -154,13 +168,6 @@ public class CurationService {
         experiments.addAll(experimentDAO.getExperimentsByAssayPropertyOntologyTerm(ontologyTerm));
         experiments.addAll(experimentDAO.getExperimentsBySamplePropertyOntologyTerm(ontologyTerm));
         return transform(experiments, EXPERIMENT);
-    }
-
-        /**
-     * @return Collection of all Atlas ontology terms
-     */
-    public Collection<ApiShallowOntologyTerm> getOntologyTerms() {
-        return transform(ontologyTermDAO.getAll(), ONTOLOGY_TERM);
     }
 
     /**
@@ -330,37 +337,6 @@ public class CurationService {
     /**
      * @param experimentAccession
      * @param assayAccession
-     * @return ApiAssay corresponding to assayAccession in experiment: experimentAccession
-     * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
-     */
-    public ApiAssay getAssay(final String experimentAccession, final String assayAccession)
-            throws ResourceNotFoundException {
-
-        Assay assay = findAssay(experimentAccession, assayAccession);
-        return new ApiAssay(assay);
-    }
-
-    /**
-     * @param experimentAccession
-     * @param sampleAccession
-     * @return ApiSample corresponding to sampleAccession in experiment: experimentAccession
-     * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession in that experiment are not found
-     */
-    public ApiSample getSample(final String experimentAccession, final String sampleAccession)
-            throws ResourceNotFoundException {
-        Sample sample = findSample(experimentAccession, sampleAccession);
-        return new ApiSample(sample);
-    }
-
-    /**
-     * @return all ApiShallowExperiment's in Atlas
-     */
-    public List<ApiShallowExperiment> getAllExperiments() {
-        return Lists.newArrayList(transform(experimentDAO.getAll(), EXPERIMENT));
-    }
-    /**
-     * @param experimentAccession
-     * @param assayAccession
      * @return Collection of ApiAssayProperty for assay: assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
@@ -490,39 +466,6 @@ public class CurationService {
         }
 
         sampleDAO.save(sample);
-    }
-
-    /**
-     * @param ontologyName
-     * @return ApiOntology corresponding to ontologyName
-     * @throws ResourceNotFoundException if ontology: ontologyName was not found
-     */
-    public ApiOntology getOntology(final String ontologyName) throws ResourceNotFoundException {
-        try {
-            Ontology ontology = ontologyDAO.getByName(ontologyName);
-            return new ApiOntology(ontology);
-        } catch (RecordNotFoundException e) {
-            throw convert(e);
-        }
-    }
-
-    /**
-     * Adds or updates details for Ontology corresponding to apiOntology
-     *
-     * @param apiOntology
-     */
-    @Transactional
-    public void putOntology(@Nonnull final ApiOntology apiOntology) {
-        try {
-            Ontology ontology = ontologyDAO.getByName(apiOntology.getName());
-            ontology.setDescription(apiOntology.getDescription());
-            ontology.setName(apiOntology.getName());
-            ontology.setVersion(apiOntology.getVersion());
-            ontology.setSourceUri(apiOntology.getSourceUri());
-            ontologyDAO.save(ontology);
-        } catch (RecordNotFoundException e) { // ontology not found - create a new one
-            getOrCreateOntology(apiOntology);
-        }
     }
 
     /**

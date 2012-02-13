@@ -24,6 +24,8 @@ public class TestCurationService extends AtlasDAOTestCase {
 
     private static final String CELL_TYPE = "cell_type";
     private static final String PROP3 = "prop3";
+    private static final String VALUE_UC = "VALUE";
+    private static final String VALUE = "value";
     private static final String VALUE007 = "value007";
     private static final String VALUE004 = "value004";
     private static final String VALUE010 = "value010";
@@ -31,11 +33,9 @@ public class TestCurationService extends AtlasDAOTestCase {
     private static final String E_MEXP_420 = "E-MEXP-420";
     private static final String ASSAY_ACC = "abc:ABCxyz:SomeThing:1234.ABC123";
     private static final String SAMPLE_ACC = "abc:some/Sample:ABC_DEFG_123a";
-    private static final String EFO = "EFO";
-    private static final String VBO = "VBO";
     private static final String EFO_0000827 = "EFO_0000827";
     private static final String EFO_0000828 = "EFO_0000828";
-    private static final String VBO_0000001 = "VBO_0000001";
+
 
     private static final Function<ApiPropertyName, String> PROPERTY_NAME_FUNC =
             new Function<ApiPropertyName, String>() {
@@ -97,14 +97,8 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAllExperiments() throws Exception {
-        assertTrue("Some experiments should have been returned",
-                curationService.getAllExperiments().size() > 0);
-    }
-
-    @Test
-    public void testGetExperimentsByAssayPropertyOntologyTerm() throws Exception {
-        assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
+    public void testGetExperimentsByPropertyOntologyTerm() throws Exception {
+        assertTrue("Some assays or samples should contain property values mapped to ontology term: " + EFO_0000827,
                 curationService.getExperimentsByOntologyTerm(EFO_0000827).size() > 0);
     }
 
@@ -112,6 +106,22 @@ public class TestCurationService extends AtlasDAOTestCase {
     public void testGetExperimentsByAssayPropertyValue() throws Exception {
         assertTrue("Some assays should contain property value: " + PROP3 + ":" + VALUE004,
                 curationService.getExperimentsByPropertyValue(PROP3, VALUE004).size() > 0);
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyValueExactMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property value: " + PROP3.toUpperCase() + ":" + VALUE004.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(PROP3.toUpperCase(), VALUE004.toUpperCase(), true).size() > 0);
+        assertTrue("Some assays or samples should contain property value: " + VALUE004.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(null, VALUE004.toUpperCase(), true).size() > 0);;
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyValuePartialMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property value as a substring: " + PROP3.toUpperCase() + ":" + VALUE.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(PROP3.toUpperCase(), VALUE.toUpperCase(), false).size() > 0);
+        assertTrue("Some assays or samples should contain property value as a substring: " + VALUE.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(null, VALUE.toUpperCase(), false).size() > 0);
     }
 
     @Test
@@ -270,24 +280,6 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAssay() throws Exception {
-        try {
-            curationService.getAssay(E_MEXP_420, ASSAY_ACC);
-        } catch (ResourceNotFoundException e) {
-            fail("Assay: " + ASSAY_ACC + " in experiment: " + E_MEXP_420 + " not found");
-        }
-    }
-
-    @Test
-    public void testGetSample() throws Exception {
-        try {
-            curationService.getSample(E_MEXP_420, SAMPLE_ACC);
-        } catch (ResourceNotFoundException e) {
-            fail("Sample: " + SAMPLE_ACC + " in experiment: " + E_MEXP_420 + " not found");
-        }
-    }
-
-    @Test
     public void testGetAssayProperties() throws Exception {
         Collection<ApiProperty> properties = curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC);
         assertTrue("No properties found in assay: " + ASSAY_ACC + " in experiment: " + E_MEXP_420, properties.size() > 0);
@@ -338,87 +330,6 @@ public class TestCurationService extends AtlasDAOTestCase {
         curationService.putSampleProperties(E_MEXP_420, SAMPLE_ACC, newProps);
         properties = curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC);
         assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not added to sample properties", propertyPresent(properties, PROP3, VALUE004));
-    }
-
-    @Test
-    public void testGetOntology() throws Exception {
-        ApiOntology ontology = curationService.getOntology(EFO);
-        assertNotNull("Ontology: " + EFO + " not found ", ontology);
-    }
-
-    @Test
-    public void testPutOntology() throws Exception {
-        ApiOntology ontology = curationService.getOntology(EFO);
-        try {
-            curationService.getOntology(VBO);
-            fail("Ontology: " + VBO + " already exists");
-        } catch (ResourceNotFoundException e) {
-
-        }
-
-        ontology.setName(VBO);
-        // Create new ontology
-        curationService.putOntology(ontology);
-        try {
-            curationService.getOntology(VBO);
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology: " + VBO);
-        }
-
-        // Update ontology
-        String newDescr = "Updated " + ontology.getDescription();
-        ontology.setDescription(newDescr);
-        curationService.putOntology(ontology);
-        try {
-            ApiOntology updatedOntology = curationService.getOntology(VBO);
-            assertEquals(newDescr, updatedOntology.getDescription());
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology: " + VBO);
-        }
-
-    }
-
-    @Test
-    public void testGetOntologyTerm() throws Exception {
-        ApiOntologyTerm ontologyTerm = curationService.getOntologyTerm(EFO_0000827);
-        assertNotNull("Ontology term: " + EFO_0000827 + " not found ", ontologyTerm);
-    }
-
-    @Test
-    public void testPutOntologyTerms() throws Exception {
-        ApiOntologyTerm ontologyTerm = curationService.getOntologyTerm(EFO_0000827);
-
-        try {
-            curationService.getOntologyTerm(VBO_0000001);
-            fail("Ontology term: " + VBO_0000001 + " already exists");
-        } catch (ResourceNotFoundException e) {
-
-        }
-
-        // Create new ontology term
-        ontologyTerm.setAccession(VBO_0000001);
-
-        ApiOntologyTerm[] ontologyTerms = new ApiOntologyTerm[1];
-        ontologyTerms[0] = ontologyTerm;
-        curationService.putOntologyTerms(ontologyTerms);
-
-        try {
-            curationService.getOntologyTerm(VBO_0000001);
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology term: " + VBO_0000001);
-        }
-
-        // Update ontology term
-        String newDescr = "Updated " + ontologyTerm.getDescription();
-        ontologyTerm.setDescription(newDescr);
-        curationService.putOntologyTerms(ontologyTerms);
-
-        try {
-            ApiOntologyTerm updatedOntologyTerm = curationService.getOntologyTerm(VBO_0000001);
-            assertEquals(newDescr, updatedOntologyTerm.getDescription());
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology term: " + VBO_0000001);
-        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

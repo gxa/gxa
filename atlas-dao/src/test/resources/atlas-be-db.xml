@@ -826,4 +826,12 @@
     <A2_ASSAYPVONTOLOGY
             ontologytermid="1"
             assaypvid="1"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ontologytermid="2"
+            assaypvid="4"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ontologytermid="1"
+            assaypvid="8"/>
 </dataset>
