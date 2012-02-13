@@ -17,4 +17,5 @@ set apv.propertyvalueid = (
 where apv.propertyvalueid in (select propertyvalueid from A2_propertyvalue where length(trim(name)) <> length(name));
 
 -- Finally remove now obsolete non-trimmed property values (from A2_propertyvalue and via FK constraints from A2_assaypv and A2_samplepv)
-delete from A2_propertyvalue pv where length(trim(name)) <> length(name) and exists (select name from A2_propertyvalue where name = trim(pv.name));
+delete from A2_propertyvalue pv where length(trim(name)) <> length(name) and exists (select name from A2_propertyvalue where name = trim(pv.name))
+and not exists (select 1 from a2_assaypv a, a2_samplepv s where a.propertyvalueid = pv.propertyvalueid or s.propertyvalueid = pv.propertyvalueid );
