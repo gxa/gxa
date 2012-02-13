@@ -20,23 +20,17 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.analytics.compute;
+package uk.ac.ebi.gxa.R.compute;
+
+import uk.ac.ebi.rcloud.server.RServices;
+
+import java.rmi.RemoteException;
 
 /**
- * A {@link RuntimeException} that is thrown whenever a {@link ComputeTask} fails.
+ * A mathematical computation task.
  *
- * @author Tony Burdett
+ * @author Misha Kapushesky
  */
-public class ComputeException extends RuntimeException {
-    public ComputeException(String message) {
-        super(message);
-    }
-
-    public ComputeException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ComputeException(Throwable cause) {
-        super(cause);
-    }
+public interface ComputeTask<T> {
+    public T compute(RServices R) throws RemoteException;
 }

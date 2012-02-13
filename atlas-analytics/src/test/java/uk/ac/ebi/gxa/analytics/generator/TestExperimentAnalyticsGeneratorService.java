@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.analytics.generator;
 
 import org.junit.Test;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
