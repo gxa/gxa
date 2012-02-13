@@ -28,10 +28,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
-import uk.ac.ebi.gxa.R.AtlasRFactory;
-import uk.ac.ebi.gxa.R.AtlasRFactoryBuilder;
-import uk.ac.ebi.gxa.R.RType;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
@@ -49,9 +45,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.*;
 import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
@@ -107,13 +101,6 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                 referencedArrayDesigns.add(assay.getArrayDesign().getAccession());
             }
         }
-    }
-
-    private AtlasComputeService getComputeService() throws InstantiationException {
-        AtlasRFactory rFactory = AtlasRFactoryBuilder.getAtlasRFactoryBuilder().buildAtlasRFactory(RType.LOCAL);
-        AtlasComputeService computeService = new AtlasComputeService();
-        computeService.setAtlasRFactory(rFactory);
-        return computeService;
     }
 
     @Test

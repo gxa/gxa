@@ -20,16 +20,22 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.analytics.compute;
+package uk.ac.ebi.gxa.R.compute;
 
 import com.google.common.io.Resources;
+
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 
 public abstract class RUtil {
     public static String getRCodeFromResource(String resourcePath) throws ComputeException {
+        return getRCodeFromResource(RUtil.class.getClassLoader().getResource(resourcePath));
+    }
+
+    public static String getRCodeFromResource(URL resourcePath) throws ComputeException {
         try {
-            return Resources.toString(RUtil.class.getClassLoader().getResource(resourcePath), Charset.defaultCharset());
+            return Resources.toString(resourcePath, Charset.defaultCharset());
         } catch (IOException e) {
             throw new ComputeException("Error while reading in R code from " + resourcePath, e);
         }

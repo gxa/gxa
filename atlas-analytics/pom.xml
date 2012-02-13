@@ -35,12 +35,22 @@
     <url>http://www.ebi.ac.uk/gxa/</url>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <excludes>
+                    <exclude>**/*.nc</exclude>
+                </excludes>
                 <filtering>true</filtering>
-            </resource>
-        </resources>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>**/*.nc</include>
+                </includes>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
     </build>
 
     <dependencies>

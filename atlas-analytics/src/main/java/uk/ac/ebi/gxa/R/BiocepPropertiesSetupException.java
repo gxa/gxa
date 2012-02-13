@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,18 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.analytics.compute;
-
-import uk.ac.ebi.rcloud.server.RServices;
-
-import java.rmi.RemoteException;
+package uk.ac.ebi.gxa.R;
 
 /**
- * A mathematical computation task.
- *
- * @author Misha Kapushesky
+ * @author Olga Melnichuk
  */
-public interface ComputeTask<T> {
-    public T compute(RServices R) throws RemoteException;
+public class BiocepPropertiesSetupException extends Exception {
+
+    public BiocepPropertiesSetupException(String message) {
+        super(message);
+    }
+
+    public BiocepPropertiesSetupException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
