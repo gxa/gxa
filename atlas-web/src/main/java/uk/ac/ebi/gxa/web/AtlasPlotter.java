@@ -521,7 +521,7 @@ public class AtlasPlotter {
         try {
 
             // Find array design accession for bestProxyId - this will be displayed under the plot
-            String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession).getName();
+            String arrayDesignName = atlasDatabaseDAO.getArrayDesignShallowByAccession(bestArrayDesignAccession, false).getName();
             String arrayDesignDescription = bestArrayDesignAccession + (arrayDesignName != null ? " " + arrayDesignName : "");
 
             final BarPlotDataBuilder barPlotData = new BarPlotDataBuilder();

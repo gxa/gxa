@@ -59,16 +59,27 @@ public class ArrayDesignDAO {
 
     /**
      * @param accession Array design accession
+     * @param searchSynonyms if true, check if accession is a synonym of another existing array design
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
-    public ArrayDesign getArrayDesignShallowByAccession(String accession) {
+    public ArrayDesign getArrayDesignShallowByAccession(String accession, boolean searchSynonyms) {
         @SuppressWarnings("unchecked")
         List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
+        if (results.isEmpty() && searchSynonyms)
+            results = getArrayDesignShallowBySynonymAccession(accession);
         return getFirst(results, null);
     }
 
+    /**
+     * @param accession Array design accession
+     * @return Array design (with no design element and gene ids filled in) that accession is a synonym of
+     */
+    public List<ArrayDesign> getArrayDesignShallowBySynonymAccession(String accession) {
+         return ht.find("from ArrayDesign where synonyms like '%" + accession + " %'");
+    }
+
     public void save(ArrayDesign ad) {
-        ht.saveOrUpdate(ad);   
+        ht.saveOrUpdate(ad);
         ht.flush();
     }
 

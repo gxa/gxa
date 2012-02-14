@@ -41,7 +41,11 @@ public class LoaderDAO {
     }
 
     public ArrayDesign getArrayDesignShallow(String accession) {
-        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession, true);
+    }
+
+    public boolean isArrayDesignSynonym(String accession) {
+        return !arrayDesignDAO.getArrayDesignShallowBySynonymAccession(accession).isEmpty();
     }
 
     public ArrayDesign getArrayDesign(String accession) {
