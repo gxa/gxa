@@ -152,21 +152,21 @@
             />
 
     <A2_SOFTWARE
-            softwareid="999"
-            name="Ensembl"
-            version="59"
+            SOFTWAREID="999"
+            NAME="Ensembl"
+            VERSION="59"
             />
 
     <A2_SOFTWARE
-            softwareid="1000"
-            name="Ensembl"
-            version="60"
+            SOFTWAREID="1000"
+            NAME="Ensembl"
+            VERSION="60"
             />
 
     <A2_SOFTWARE
-            softwareid="2000"
-            name="BioConductor"
-            version="4"
+            SOFTWAREID="2000"
+            NAME="BioConductor"
+            VERSION="4"
             />
 
     <A2_SOFTWARE
