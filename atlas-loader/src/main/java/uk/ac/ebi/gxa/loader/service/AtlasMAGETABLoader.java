@@ -134,7 +134,7 @@ public class AtlasMAGETABLoader {
                 Collection<String> useRawData = cmd.getUserData().get("useRawData");
                 if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                     logProgress(listener, 5, ArrayDataStep.displayName());
-                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache);
+                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao);
                 }
 
                 logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
