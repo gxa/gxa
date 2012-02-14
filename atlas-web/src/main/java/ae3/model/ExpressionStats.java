@@ -23,138 +23,57 @@
 package ae3.model;
 
 
-import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentWithData;
-import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
+import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
+
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_EFV;
 
 /**
  * Lazy expression statistics class
  *
- * @author pashky
+ * @deprecated to be replaced with {@link StatisticsCursor} ASAP
  */
+@Deprecated
 public class ExpressionStats {
     private final ExperimentWithData experiment;
     private final ArrayDesign arrayDesign;
-    private final EfvTree<Integer> efvTree = new EfvTree<Integer>();
 
-    private EfvTree<Stat> lastData;
-    private long lastDesignElement = -1;
+    private EfvTree<StatisticsSnapshot> cachedResult;
+    private int cachedDe = -1;
 
     ExpressionStats(ExperimentWithData experiment, ArrayDesign arrayDesign) throws AtlasDataException {
         this.experiment = experiment;
         this.arrayDesign = arrayDesign;
-
-        int valueIndex = 0;
-        try {
-            for (Pair<String, String> uefv : experiment.getUniqueEFVs(arrayDesign)) {
-                efvTree.put(uefv.getKey(), uefv.getValue(), valueIndex);
-                ++valueIndex;
-            }
-        } catch (StatisticsNotFoundException e) {
-            // TODO: ignore
-        }
     }
 
     /**
      * Gets {@link uk.ac.ebi.gxa.utils.EfvTree} of expression statistics structures
      *
-     * @param designElementId design element id
+     * @param deIndex design element index
      * @return efv tree of stats
+     * @throws AtlasDataException whenever it wants to
      */
-    EfvTree<Stat> getExpressionStats(int designElementId) throws AtlasDataException {
-        if (lastData != null && designElementId == lastDesignElement) {
-            return lastData;
+    EfvTree<StatisticsSnapshot> getExpressionStats(int deIndex) throws AtlasDataException {
+        if (cachedResult == null || deIndex != cachedDe) {
+            cachedDe = deIndex;
+            cachedResult = retrieveExpressionStats(deIndex);
         }
+        return cachedResult;
+    }
 
-        final EfvTree<Stat> result = new EfvTree<Stat>();
+    private EfvTree<StatisticsSnapshot> retrieveExpressionStats(int deIndex) throws AtlasDataException {
+        final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
-            final float[] pvals = experiment.getPValuesForDesignElement(arrayDesign, designElementId);
-            final float[] tstats = experiment.getTStatisticsForDesignElement(arrayDesign, designElementId);
-            for (EfvTree.EfEfv<Integer> efefv : efvTree.getNameSortedList()) {
-                float pvalue = pvals[efefv.getPayload()];
-                float tstat = tstats[efefv.getPayload()];
-                if (tstat > 1e-8 || tstat < -1e-8) {
-                    result.put(efefv.getEf(), efefv.getEfv(), new Stat(tstat, pvalue));
-                }
+            final StatisticsCursor statistics = experiment.getStatistics(arrayDesign, deIndex, ANY_EFV);
+            while (statistics.nextEFV()) {
+                final Pair<String, String> efv = statistics.getEfv();
+                result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());
             }
         } catch (StatisticsNotFoundException e) {
             // TODO: throw this exception outside?
         }
-        lastDesignElement = designElementId;
-        lastData = result;
         return result;
-    }
-
-    /**
-     * Expression statistics for ef/efv pair for one design element
-     */
-    public static class Stat implements Comparable<Stat> {
-        private final float pvalue;
-        private final float tstat;
-
-        /**
-         * Constructor
-         *
-         * @param tstat  t-statistics
-         * @param pvalue p-value
-         */
-        public Stat(float tstat, float pvalue) {
-            this.pvalue = pvalue;
-            this.tstat = tstat;
-        }
-
-        /**
-         * Gets p-value
-         *
-         * @return p-value
-         */
-        public float getPvalue() {
-            return pvalue;
-        }
-
-        /**
-         * Gets t-statistics
-         *
-         * @return t-statistics value
-         */
-        public float getTstat() {
-            return tstat;
-        }
-
-        /**
-         * Returns whether gene is over-expressed or under-expressed
-         *
-         * @return gene expression
-         */
-        public UpDownExpression getExpression() {
-            return UpDownExpression.valueOf(pvalue, tstat);
-        }
-
-        /**
-         * Useful, as {@link uk.ac.ebi.gxa.utils.EfvTree} can return elements sorted by value.
-         * P-value of statistics, in this case.
-         *
-         * @param o other object
-         * @return 1, 0 or -1
-         */
-        public int compareTo(Stat o) {
-            assert o.getPvalue() >= 0 && o.getPvalue() <= 1;
-            assert getPvalue() >= 0 && getPvalue() <= 1;
-            return Float.valueOf(getPvalue()).compareTo(o.getPvalue());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof Stat && compareTo((Stat) obj) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return pvalue != +0.0f ? Float.floatToIntBits(pvalue) : 0;
-        }
     }
 }

@@ -1,17 +1,19 @@
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.base.Predicate;
 import it.uniroma3.mat.extendedset.FastSet;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.DesignElementStatistics;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
-import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,15 +24,29 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.base.Predicates.in;
 import static com.google.common.io.Closeables.closeQuietly;
+import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 
 /**
  * Class used to build ConciseSet-based gene expression statistics index
  */
 public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
+    /**
+     * Filter for bioentities to index.
+     * <p/>
+     * In order to build test index, use {@link #TEST_BIOENTITIES} instead
+     */
+    private static final Predicate<Long> KNOWN_BIOENTITIES = DesignElementStatistics.ANY_KNOWN_GENE;
+    /**
+     * Filter for bioentities used in the tests
+     * <p/>
+     * For production code, use {@link #KNOWN_BIOENTITIES} instead
+     */
+    @SuppressWarnings("unused")
+    private static final Predicate<Long> TEST_BIOENTITIES = in(asList(516248L, 838592L));
+
     private AtlasDataDAO atlasDataDAO;
     private String indexFileName;
     private File atlasIndex;
@@ -83,8 +99,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
     /**
      * Generates a ConciseSet-based index for all statistics types in StatisticsType enum, across all Atlas data
      *
-     *
-     * @param progressUpdater
+     * @param progressUpdater a listener to be informed about the indexing process
      * @return StatisticsStorage containing statistics for all statistics types in StatisticsType enum - collected over all Atlas data
      */
     private StatisticsStorage bitIndexExperiments(final ProgressUpdater progressUpdater) {
@@ -112,31 +127,22 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 final ExperimentInfo experimentInfo = experimentPool.intern(new ExperimentInfo(exp.getAccession(), exp.getId()));
 
                 for (ArrayDesign ad : exp.getArrayDesigns()) {
-                    final List<Pair<String, String>> uEFVs = experimentWithData.getUniqueEFVs(ad);
-                    final Set<String> factorNames = newHashSet(Arrays.asList(experimentWithData.getFactors(ad)));
                     int car = 0; // count of all Statistics records added for this experiment/array design pair
 
-                    if (uEFVs.size() == 0) {
+                    StatisticsCursor stats = experimentWithData.indexableStatistics(ad, KNOWN_BIOENTITIES);
+
+                    if (stats.isEmpty()) {
                         //task.skipEmpty(f);
-                        getLog().info("Skipping empty " + exp.getAccession() + "/" + ad.getAccession());
+                        getLog().info("Skipping empty " + stats);
                         continue;
                     }
 
-                    final long[] bioEntityIdsArr = experimentWithData.getGenes(ad);
-                    final TwoDFloatArray tstat = experimentWithData.getTStatistics(ad);
-                    final TwoDFloatArray pvals = experimentWithData.getPValues(ad);
-                    final int rowCount = tstat.getRowCount();
 
-                    final int numOfUEFVs = uEFVs.size();
-                    getLog().info("   Processing ad: {}, # de's: {}, # uEFVs: " + numOfUEFVs, ad.getAccession(), rowCount);
-
+                    getLog().info("   Processing ad: {}, # de's: {}, # uEFVs: {}",
+                            new Object[]{ad.getAccession(), stats.getDeCount(), stats.getEfvCount()});
                     final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
-                    for (int j = 0; j < numOfUEFVs; j++) {
-                        final Pair<String, String> efv = uEFVs.get(j);
-
-                        if (!factorNames.contains(efv.getKey()) || // TODO: remove this to process all uEFVs
-                                isNullOrEmpty(efv.getValue()) || "(empty)".equals(efv.getValue()))
-                            continue;
+                    while (stats.nextEFV()) {
+                        final Pair<String, String> efv = stats.getEfv();
 
                         final EfvAttribute efvAttribute = efvAttributePool.intern(new EfvAttribute(efv.getKey(), efv.getValue()));
                         final EfAttribute efAttribute = efAttributePool.intern(new EfAttribute(efv.getKey()));
@@ -156,40 +162,41 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final MinPMaxT ptUp = new MinPMaxT();
                         final MinPMaxT ptDown = new MinPMaxT();
 
-                        for (int i = 0; i < rowCount; i++) {
-                            int bioEntityId = safelyCastToInt(bioEntityIdsArr[i]);
+                        while (stats.nextBioEntity()) {
+                            int bioEntityId = safelyCastToInt(stats.getBioEntityId());
 
-                            // in order to create a resource used for unit tests,
-                            // use <code>|| (bioEntityId != 516248 && bioEntityId != 838592)</code>
-                            // so that you would only index the bio entities used in tests
-                            if (bioEntityId == 0) continue;
-
-                            float t = tstat.get(i, j);
-                            float p = pvals.get(i, j);
-                            UpDownExpression upDown = UpDownExpression.valueOf(p, t);
-
-                            // Exclude NA p/t vals from bit index
-                            if (upDown.isNA()) continue;
-
-                            final PTRank pt = PTRank.of(p, t);
-                            car++;
-                            if (upDown.isNonDe()) {
-                                noBioEntityIds.add(bioEntityId);
-                            } else {
-                                if (upDown.isUp()) {
+                            switch (stats.getExpression()) {
+                                case NA:
+                                    continue;
+                                case NONDE:
+                                    noBioEntityIds.add(bioEntityId);
+                                    break;
+                                case UP: {
+                                    final PTRank pt = PTRank.of(stats.getP(), stats.getT());
                                     upBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up)
                                     ptUp.update(bioEntityId, pt);
-                                } else {
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
+                                    ptUpDown.update(bioEntityId, pt);
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
+                                    ptUpDownForEf.update(bioEntityId, pt);
+                                    break;
+                                }
+                                case DOWN: {
+                                    final PTRank pt = PTRank.of(stats.getP(), stats.getT());
                                     dnBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (down)
                                     ptDown.update(bioEntityId, pt);
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
+                                    ptUpDown.update(bioEntityId, pt);
+                                    // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
+                                    ptUpDownForEf.update(bioEntityId, pt);
+                                    break;
                                 }
-                                // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
-                                ptUpDown.update(bioEntityId, pt);
-                                // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
-                                ptUpDownForEf.update(bioEntityId, pt);
+                                default:
+                                    continue;
                             }
+                            car++;
                         }
 
                         summarizer.submit(new Runnable() {
@@ -225,10 +232,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         // Add genes for ef-efv attributes across all experiments
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, upBioEntityIds);
                         updnStats.addBioEntitiesForEfvAttribute(efvAttribute, dnBioEntityIds);
-
-                        if (j > 0 && (j % 50 == 0 || j == numOfUEFVs)) {
-                            getLog().debug("   Processed: " + ((j * 100) / numOfUEFVs) + "% efvs so far");
-                        }
                     }
 
                     summarizer.submit(new Runnable() {
@@ -244,7 +247,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                     task.processedStats(car);
                     if (car == 0) {
-                        getLog().debug(exp.getAccession() + "/" + ad.getAccession() + " num uEFVs : " + uEFVs.size() + " [" + car + "]");
+                        getLog().debug("{} num uEFVs : {} [{}]", new Object[]{stats, stats.getEfvCount(), car});
                     }
                 }
 
@@ -255,7 +258,7 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
             } catch (StatisticsNotFoundException e) {
                 // this is just info, not warning because Atlas normally includes
                 // some experiments with no statistics
-                getLog().info("Cannot access statistics for experiment " + exp.getAccession() + ", skipping");
+                getLog().info("Cannot access statistics for experiment {}, skipping", exp.getAccession());
             } finally {
                 closeQuietly(experimentWithData);
             }
@@ -294,13 +297,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
         }
 
         return statisticsStorage;
-    }
-
-    private int safelyCastToInt(long l) {
-        int i = (int) l;
-        if ((long) i != l)
-            throw new IndexBuilderException("bioEntityId: " + i + " is too large to be cast to int safely- unable to build bit index");
-        return i;
     }
 
     private List<Experiment> experimentsToProcess() {
@@ -348,5 +344,11 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                 stats.addPvalueTstatRank(efAttribute, entry.getValue(), expIdx, entry.getKey());
             }
         }
+    }
+
+    private static int safelyCastToInt(long l) {
+        if (l != (int) l)
+            throw LogUtil.createUnexpected("bioEntityId: " + l + " is too large to be cast to int safely- unable to build bit index");
+        return (int) l;
     }
 }

@@ -24,12 +24,13 @@ package uk.ac.ebi.gxa.web.ui.plot;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
+import static com.google.common.primitives.Floats.asList;
+import static java.util.Collections.shuffle;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static uk.ac.ebi.microarray.atlas.model.UpDownExpression.NONDE;
 
 /**
  * @author Olga Melnichuk
@@ -40,9 +41,14 @@ public class BoxAndWhiskerTest {
 
     private static final Random RANDOM = new Random(12345L);
 
-    @Test(expected = java.lang.IndexOutOfBoundsException.class)
+    @Test
     public void testEmptyData() {
-        newBoxAndWhisker();
+        BoxAndWhisker plot = newBoxAndWhisker();
+        assertTrue(Float.isNaN(plot.getMax()));
+        assertTrue(Float.isNaN(plot.getMedian()));
+        assertTrue(Float.isNaN(plot.getMin()));
+        assertTrue(Float.isNaN(plot.getLowerQuartile()));
+        assertTrue(Float.isNaN(plot.getUpperQuartile()));
     }
 
     @Test
@@ -71,9 +77,8 @@ public class BoxAndWhiskerTest {
         assertEquals(box.getMedian(), median, E);
     }
 
-    private static BoxAndWhisker newBoxAndWhisker(Float... data) {
-        List<Float> list = Arrays.asList(data);
-        Collections.shuffle(list, RANDOM);
-        return new BoxAndWhisker(list, null);
+    private static BoxAndWhisker newBoxAndWhisker(float... data) {
+        shuffle(asList(data), RANDOM);
+        return new BoxAndWhisker(data, NONDE);
     }
 }

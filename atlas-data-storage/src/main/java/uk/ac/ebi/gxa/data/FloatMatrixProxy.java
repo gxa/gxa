@@ -22,8 +22,6 @@
 
 package uk.ac.ebi.gxa.data;
 
-import ucar.nc2.Variable;
-
 /**
  * A proxy for double index array to work around missing values in NetCDF files.
  * <p/>
@@ -33,13 +31,12 @@ import ucar.nc2.Variable;
  * @author Olga Melnichuk
  */
 public class FloatMatrixProxy {
-
     private final NetCDFMissingVal missVal;
 
     private final float[][] matrix;
 
-    FloatMatrixProxy(Variable variable, float[][] result) {
-        this.missVal = NetCDFMissingVal.forVariable(variable);
+    FloatMatrixProxy(float[][] result, NetCDFMissingVal missingVal) {
+        this.missVal = missingVal;
         this.matrix = result;
     }
 
@@ -49,14 +46,18 @@ public class FloatMatrixProxy {
     }
 
     public float[][] asMatrix() {
-        final int rowNumber = matrix.length;
-        final int colNumber = rowNumber != 0 ? matrix[0].length : 0;
-        float[][] copy = new float[rowNumber][colNumber];
-        for (int r = 0; r < rowNumber; r++) {
-            for (int c = 0; c < colNumber; c++) {
-                copy[r][c] = get(r, c);
-            }
+        float[][] copy = new float[matrix.length][];
+        for (int r = 0; r < matrix.length; r++) {
+            copy[r] = getRow(r);
         }
         return copy;
+    }
+
+    public float[] getRow(int rowIndex) {
+        final float[] result = new float[matrix[rowIndex].length];
+        for (int c = 0; c < matrix[rowIndex].length; c++) {
+            result[c] = get(rowIndex, c);
+        }
+        return result;
     }
 }

@@ -26,7 +26,6 @@ import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -41,7 +40,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static uk.ac.ebi.gxa.statistics.StatisticsType.*;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 import static uk.ac.ebi.gxa.utils.EscapeUtil.nullzero;
 
 /**
@@ -316,7 +316,7 @@ public class AtlasGene {
     /**
      * Returns number of experiments gene studied in
      *
-     * @param attribute                          ef or ef-efv for which to retrieve experiments; if null, return all experiments for this gene
+     * @param attribute                   ef or ef-efv for which to retrieve experiments; if null, return all experiments for this gene
      * @param atlasStatisticsQueryService
      * @return number
      */
@@ -338,7 +338,7 @@ public class AtlasGene {
     /**
      * Returns number of experiments gene studied in
      *
-     * @param attribute                          Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
+     * @param attribute                   Experimental Factor name for which to retrieve experiments; if nul, return all experiments for this gene
      * @param atlasStatisticsQueryService
      * @return number
      */
@@ -506,5 +506,12 @@ public class AtlasGene {
         });
 
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "AtlasGene{" +
+                "geneSolrDocument=" + geneSolrDocument +
+                '}';
     }
 }

@@ -78,19 +78,19 @@ public class TestAtlasDataDAO extends TestCase {
             ExpressionAnalysis ea = geneIdsToEfToEfvToEA.get(geneId).get(ef).get(efv);
 
             assertNotNull(ea);
-            assertNotNull("Got null for design element ID", ea.getDesignElementAccession());
+            assertNotNull("Got null for design element ID", ea.getDeAccession());
             //assertNotNull("Got null for experiment ID", ea.getExperimentID());
-            assertNotNull("Got null for ef name", ea.getEfName());
-            assertNotNull("Got null for efv name", ea.getEfvName());
-            assertNotNull("Got null for pvalue", ea.getPValAdjusted());
-            assertNotNull("Got null for tstat", ea.getTStatistic());
+            assertNotNull("Got null for ef name", ea.getEfv().getFirst());
+            assertNotNull("Got null for efv name", ea.getEfv().getSecond());
+            assertNotNull("Got null for pvalue", ea.getP());
+            assertNotNull("Got null for tstat", ea.getT());
             assertNotNull("Got null for arrayDesign accession", ea.getArrayDesignAccession());
-            assertNotNull("Got null for design element index", ea.getDesignElementIndex());
+            assertNotNull("Got null for design element index", ea.getDeIndex());
             System.out.println("Got expression analysis for gene id: " + geneId + " \n" + ea.toString());
 
 
-            assertEquals(designElementAccessionForMinPValue, ea.getDesignElementAccession());
-            assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getPValAdjusted()));
+            assertEquals(designElementAccessionForMinPValue, ea.getDeAccession());
+            assertEquals(pValFormat.format(minPValue), pValFormat.format(ea.getP()));
         } finally {
             closeQuietly(ewd);
         }

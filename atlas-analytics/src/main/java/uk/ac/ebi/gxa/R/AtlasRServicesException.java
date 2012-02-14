@@ -28,6 +28,11 @@ package uk.ac.ebi.gxa.R;
  * @author Tony Burdett
  */
 public class AtlasRServicesException extends Exception {
+
+    public AtlasRServicesException(String message) {
+        super(message);
+    }
+
     public AtlasRServicesException(String s, Throwable throwable) {
         super(s, throwable);
     }

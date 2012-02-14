@@ -287,7 +287,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <!-- interface compute executor -->
-    <bean name="atlasComputeService" class="uk.ac.ebi.gxa.analytics.compute.AtlasComputeService"
+    <bean name="atlasComputeService" class="uk.ac.ebi.gxa.R.compute.AtlasComputeService"
           destroy-method="shutdown">
         <property name="atlasRFactory" ref="atlasRFactory"/>
     </bean>
@@ -504,7 +504,6 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     </bean>
 
     <!--Configure R workbench -->
-    <!-- note that no-arg factory method reads R.properties from classpath, and possibly rservice.properties too -->
     <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory" init-method="init" destroy-method="destroy">
         <property name="atlasProperties" ref="atlasProperties"/>
     </bean>

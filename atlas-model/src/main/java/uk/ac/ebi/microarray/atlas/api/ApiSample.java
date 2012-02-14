@@ -21,15 +21,6 @@ public class ApiSample {
 
     public ApiSample() {}
 
-    public ApiSample(final String accession, final ApiOrganism organism, final String channel,
-                     final Collection<ApiAssay> assays, final Collection<ApiProperty> properties) {
-        this.accession = accession;
-        this.organism = organism;
-        this.channel = channel;
-        this.assays = assays;
-        this.properties = properties;
-    }
-
     public ApiSample(final Sample sample) {
         this.accession = sample.getAccession();
         this.channel = sample.getChannel();
@@ -46,39 +37,19 @@ public class ApiSample {
         return accession;
     }
 
-    public void setAccession(String accession) {
-        this.accession = accession;
-    }
-
     public ApiOrganism getOrganism() {
         return organism;
-    }
-
-    public void setOrganism(ApiOrganism organism) {
-        this.organism = organism;
     }
 
     public String getChannel() {
         return channel;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
-    }
-
-    public Collection<ApiAssay> getAssays() {
-        return assays;
-    }
-
-    public void setAssays(Collection<ApiAssay> assays) {
-        this.assays = assays;
-    }
-
     public Collection<ApiProperty> getProperties() {
         return properties;
     }
 
-    public void setProperties(Collection<ApiProperty> properties) {
-        this.properties = properties;
+    public Collection<ApiAssay> getAssays() {
+        return assays;
     }
 }
