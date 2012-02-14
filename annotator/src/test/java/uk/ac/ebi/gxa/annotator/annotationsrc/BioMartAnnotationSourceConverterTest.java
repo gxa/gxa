@@ -91,18 +91,6 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
         assertEquals(1, annotationSource.getExternalArrayDesignNames().size());
     }
 
-    //ToDo: the test fails in the end because there are some problems with sequences.
-//    @Test
-//    @Transactional
-//    public void testEditOrCreateAnnotationSourceEdit() throws Exception {
-//        BioMartAnnotationSource annotationSource = converter.editOrCreateAnnotationSource("1000", ANN_SRC);
-//        assertNotNull(annotationSource);
-//        assertEquals("gallus gallus", annotationSource.getOrganism().getName());
-//        assertEquals(new Software("Ensembl", "63"), annotationSource.getSoftware());
-//        assertEquals(10, annotationSource.getExternalBioEntityProperties().size());
-//        assertEquals(1, annotationSource.getExternalArrayDesignNames().size());
-//    }
-
     @Test
     public void testConvertToString() throws Exception {
         final BioMartAnnotationSource byId = annSrcDAO.getById(1000, BioMartAnnotationSource.class);

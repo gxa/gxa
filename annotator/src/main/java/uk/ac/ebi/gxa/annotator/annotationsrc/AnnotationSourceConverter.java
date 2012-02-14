@@ -158,38 +158,6 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    //ToDo: maybe move this method to AnnotationSource
-    public Collection<String> validateStructure(AnnotationSource annSrc) {
-        List<String> missingProperties = new ArrayList<String>();
-        final Set<BioEntityProperty> properties = annSrc.getBioEntityPropertiesOfExternalProperties();
-        final Set<BioEntityType> types = annSrc.getTypes();
-        for (BioEntityType type : types) {
-            if (type.getIdentifierProperty() != null && !properties.contains(type.getIdentifierProperty())) {
-                missingProperties.add("Bioentity type " + type.getName() + " identifier of type  " + type.getIdentifierProperty().getName());
-
-            }
-            if (type.getNameProperty() != null && !properties.contains(type.getNameProperty())) {
-                missingProperties.add("Bioentity type " + type.getName() + " identifier of type  " + type.getNameProperty().getName());
-            }
-        }
-        return missingProperties;
-    }
-
-    protected abstract Class<T> getClazz();
-
-    protected T fetchAnnSrcById(String id) {
-        T annSrc = null;
-        if (!StringUtils.isEmpty(id)) {
-            try {
-                final long idL = Long.parseLong(id.trim());
-                annSrc = annSrcDAO.getById(idL, getClazz());
-            } catch (NumberFormatException e) {
-                throw LogUtil.createUnexpected("Cannot fetch Annotation Source. Wrong ID ", e);
-            }
-        }
-        return annSrc;
-    }
-
     protected void addCommaSeparatedProperties(String propNamePrefix, PropertiesConfiguration properties, Multimap<String, String> bePropToBmProp) {
         int count;
         for (String beProp : bePropToBmProp.keySet()) {

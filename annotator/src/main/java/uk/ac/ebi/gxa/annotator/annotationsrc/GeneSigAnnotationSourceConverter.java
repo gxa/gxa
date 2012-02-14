@@ -51,11 +51,6 @@ class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSig
     }
 
     @Override
-    protected Class<GeneSigAnnotationSource> getClazz() {
-        return GeneSigAnnotationSource.class;
-    }
-
-    @Override
     protected GeneSigAnnotationSource initAnnotationSource(Properties properties) {
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
         return new GeneSigAnnotationSource(software);

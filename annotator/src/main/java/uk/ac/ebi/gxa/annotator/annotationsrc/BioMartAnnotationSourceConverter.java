@@ -48,11 +48,6 @@ class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMart
             DATABASE_NAME_PROPNAME);
 
     @Override
-    protected Class<BioMartAnnotationSource> getClazz() {
-        return BioMartAnnotationSource.class;
-    }
-
-    @Override
     protected BioMartAnnotationSource initAnnotationSource(Properties properties){
         Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
