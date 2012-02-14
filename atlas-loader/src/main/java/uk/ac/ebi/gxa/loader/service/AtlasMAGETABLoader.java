@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
@@ -129,14 +129,18 @@ public class AtlasMAGETABLoader {
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
                 new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
 
+                boolean arrayDataRead = false;
                 //use raw data
                 Collection<String> useRawData = cmd.getUserData().get("useRawData");
                 if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                     logProgress(listener, 5, ArrayDataStep.displayName());
-                    new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache);
+                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache);
+                }
+
+                logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
+                if (arrayDataRead) {
                     log.info("Raw data are used; processed data will not be processed");
                 } else {
-                    logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
                     new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
                 }
 

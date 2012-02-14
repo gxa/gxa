@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.data;
 
+import com.google.common.base.Predicate;
 import com.google.common.primitives.Longs;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -29,6 +30,8 @@ import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
 
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.filter;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -43,33 +46,15 @@ public class ExperimentPart {
         this.arrayDesign = arrayDesign;
     }
 
-    public List<Pair<String, String>> getUniqueEFVs() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getUniqueEFVs(arrayDesign);
-    }
-
-    public TwoDFloatArray getPValues() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getPValues(arrayDesign);
-    }
-
-    public TwoDFloatArray getTStatistics() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getTStatistics(arrayDesign);
-    }
-
-    public String[] getDesignElementAccessions() throws AtlasDataException, StatisticsNotFoundException {
-        return ewd.getDesignElementAccessions(arrayDesign);
-    }
-
-    public List<Long> getGeneIds() throws AtlasDataException {
-        return Longs.asList(ewd.getGenes(arrayDesign));
+    public StatisticsCursor getStatisticsIterator(Predicate<Long> bePredicate,
+                                                  Predicate<Pair<String, String>> efvPredicate)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getStatistics(arrayDesign, bePredicate, efvPredicate);
     }
 
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(Collection<Long> geneIds)
             throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getExpressionAnalysesForGeneIds(geneIds, arrayDesign);
-    }
-
-    public String[] getFactorValues(String ef) throws AtlasDataException {
-        return ewd.getFactorValues(arrayDesign, ef);
     }
 
     public List<ExpressionValue> getBestGeneExpressionValues(Long geneId, String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
@@ -88,7 +73,7 @@ public class ExperimentPart {
             return Collections.emptyList();
         }
         ExpressionAnalysis bestEA = eaByEf.get(efv);
-        return getDeExpressionValues(bestEA.getDesignElementIndex(), ef);
+        return getDeExpressionValues(bestEA.getDeIndex(), ef);
     }
 
     public List<ExpressionValue> getDeExpressionValues(String deAccession, String ef) throws AtlasDataException {
@@ -109,7 +94,7 @@ public class ExperimentPart {
             throw createUnexpected("Inconsistent parallel arrays in " + toString() + ": " + expressions.length + " != " + assayEfvs.length);
         }
         for (int i = 0; i < expressions.length; i++) {
-            res.add(new ExpressionValue(ef, assayEfvs[i], expressions[i]));
+            res.add(new ExpressionValue(assayEfvs[i], expressions[i]));
         }
         return res;
     }
@@ -128,5 +113,23 @@ public class ExperimentPart {
 
     public ArrayDesign getArrayDesign() {
         return arrayDesign;
+    }
+
+    boolean hasEfEfv(String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {
+        for (Pair<String, String> efEfv : ewd.getUniqueEFVs(arrayDesign)) {
+            if (efEfv.getKey().equals(ef) &&
+                    (isNullOrEmpty(efv) || efEfv.getValue().equals(efv))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean contaisBioEntity(Predicate<Long> be) throws AtlasDataException {
+        return filter(Longs.asList(ewd.getGenes(arrayDesign)), be).iterator().hasNext();
+    }
+
+    boolean containsAllBioEntities(Collection<Long> bes) throws AtlasDataException {
+        return Longs.asList(ewd.getGenes(arrayDesign)).containsAll(bes);
     }
 }

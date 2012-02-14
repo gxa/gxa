@@ -26,18 +26,12 @@ package uk.ac.ebi.gxa.data;
  * @author Olga Melnichuk
  */
 public class ExpressionValue {
-    private final String ef;
     private final String efv;
     private final float value;
 
-    public ExpressionValue(String ef, String efv, float value) {
-        this.ef = ef;
+    public ExpressionValue(String efv, float value) {
         this.efv = efv;
         this.value = value;
-    }
-
-    public String getEf() {
-        return ef;
     }
 
     public String getEfv() {

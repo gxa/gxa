@@ -32,6 +32,8 @@ import uk.ac.ebi.microarray.atlas.model.*;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.*;
+
 /**
  * Actual tests for AtlasDAO, extends AtlasDAOTestCase which does all the handy instantiation of a basic, in memory DB.
  *
@@ -44,6 +46,8 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     private static final String ARRAY_DESIGN_ACCESSION = "A-AFFY-45";
     private static final String E_MEXP_420 = "E-MEXP-420";
     private static final String PROPERTY_NAME = "SEX";
+    private static final String PROPERTY_NAME1 = "cell_type";
+    private static final String PROPERTY_NAME2 = "prop2";
     private static final String PROPERTY_VALUE = "MALE";
     private static final String PROPERTY_VALUE1 = "value007";
     private static final String PROPERTY_VALUE2 = "value005";
@@ -111,7 +115,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     @Test
     public void testGetAssayPropertiesByPropertyValue() throws Exception {
-        final List<Assay> assays = assayDAO.getAssaysByPropertyValue(PROPERTY_VALUE1);
+        final List<Assay> assays = assayDAO.getAssaysByPropertyValue(PROPERTY_NAME1, PROPERTY_VALUE1);
         for (Assay assay : assays) {
             boolean found = false;
             for (AssayProperty prop : assay.getProperties()) {
@@ -124,7 +128,7 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
 
     @Test
     public void testGetSamplePropertiesByPropertyValue() throws Exception {
-        final List<Sample> samples = sampleDAO.getSamplesByPropertyValue(PROPERTY_VALUE2);
+        final List<Sample> samples = sampleDAO.getSamplesByPropertyValue(PROPERTY_NAME2, PROPERTY_VALUE2);
         for (Sample sample : samples) {
             boolean found = false;
             for (SampleProperty prop : sample.getProperties()) {

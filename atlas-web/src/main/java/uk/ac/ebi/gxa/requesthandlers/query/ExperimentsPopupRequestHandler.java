@@ -196,8 +196,8 @@ public class ExperimentsPopupRequestHandler extends AbstractRestRequestHandler {
                 }
 
                 if (ea != null) {
-                    final float p = ea.getPValAdjusted();
-                    final float t = ea.getTStatistic();
+                    final float p = ea.getP();
+                    final float t = ea.getT();
                     if (!UpDownExpression.valueOf(p, t).isNA()) {
                         ptRank = PTRank.of(p, t);
                         allExperiments.add(new ExperimentResult(expInfo, highestRankAttribute, ptRank)); // Add nonDE expression statistic to allExperiments

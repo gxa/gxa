@@ -30,6 +30,7 @@ import uk.ac.ebi.rcloud.rpf.RemoteLogListener;
 import uk.ac.ebi.rcloud.rpf.ServantProvider;
 import uk.ac.ebi.rcloud.rpf.ServantProviderFactory;
 import uk.ac.ebi.rcloud.rpf.db.ServantProxyPoolSingletonDB;
+import uk.ac.ebi.rcloud.rpf.exception.TimeoutException;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RNumeric;
 import uk.ac.ebi.rcloud.server.callback.RAction;
@@ -40,6 +41,10 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.NoSuchElementException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A concrete implementation of {@link uk.ac.ebi.gxa.R.AtlasRFactory} that generates RServices that run on a biocep
@@ -60,51 +65,50 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
      * Validates that all the system properties required by biocep are set.
      *
      * @return true if the validation succeed, flase if it failed for a reason OTHER than a missing property
-     * @throws AtlasRServicesException if any required properties are missing.
      */
-    public boolean validateEnvironment() throws AtlasRServicesException {
+    public boolean validateEnvironment() {
         if (System.getProperty("pools.dbmode.host") == null) {
-            log.warn("pools.dbmode.host not set");
+            log.error("pools.dbmode.host not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.port") == null) {
-            log.warn("pools.dbmode.port not set");
+            log.error("pools.dbmode.port not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.name") == null) {
-            log.warn("pools.dbmode.name not set");
+            log.error("pools.dbmode.name not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.user") == null) {
-            log.warn("biocep.dbmode.user not set");
+            log.error("biocep.dbmode.user not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.password") == null) {
-            log.warn("biocep.db.password not set");
+            log.error("biocep.db.password not set");
             return false;
         }
         if (System.getProperty("naming.mode") == null) {
-            log.warn("biocep.naming.mode not set");
+            log.error("biocep.naming.mode not set");
             return false;
         }
         if (System.getProperty("pools.provider.factory") == null) {
-            log.warn("biocep.provider.factory not set");
+            log.error("biocep.provider.factory not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.type") == null) {
-            log.warn("biocep.db.type not set");
+            log.error("biocep.db.type not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.driver") == null) {
-            log.warn("pools.dbmode.driver not set");
+            log.error("pools.dbmode.driver not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.defaultpool") == null) {
-            log.warn("pools.dbmode.defaultpool not set");
+            log.error("pools.dbmode.defaultpool not set");
             return false;
         }
         if (System.getProperty("pools.dbmode.killused") == null) {
-            log.warn("pools.dbmode.killused not set");
+            log.error("pools.dbmode.killused not set");
             return false;
         }
 
@@ -117,8 +121,6 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
                     "check biocep is installed and required database is present", e);
             return false;
         }
-        
-        // otherwise, checks passed so return true
         return true;
     }
 
@@ -126,22 +128,49 @@ public class BiocepAtlasRFactory implements AtlasRFactory {
         // lazily initialize servant provider
         initialize();
 
-        log.trace("Worker pool before borrow... " +
-                "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
+        log.trace("Worker pool before borrow: [active = {}, idle = {}]",
+                workerPool.getNumActive(), workerPool.getNumIdle());
         try {
-            // borrow a worker
-            RServices rServices = (RServices) workerPool.borrowObject();
-            log.debug("Borrowed " + rServices.getServantName() + " from the pool");
-            return rServices;
-        }
-        catch (Exception e) {
-            log.error("borrowObject() threw an exception: {}", e);
-            throw new AtlasRServicesException(
-                    "Failed to borrow an RServices object from the pool of workers", e);
+           return tryBorrowAWorker(5, 20, TimeUnit.SECONDS);
         }
         finally {
-            log.trace("Worker pool after borrow... " +
-                    "active = " + workerPool.getNumActive() + ", idle = " + workerPool.getNumIdle());
+            log.trace("Worker pool after borrow: [active = {}, idle = {}]",
+                    workerPool.getNumActive(), workerPool.getNumIdle());
+        }
+    }
+
+    private RServices tryBorrowAWorker(int attempts, long wait, TimeUnit timeUnit) throws AtlasRServicesException {
+        for (int i = 0; i < attempts; i++) {
+            log.debug("Borrow attempt: {}", i);
+            try {
+                RServices rServices = (RServices) workerPool.borrowObject();
+                log.debug("Borrowed {} from the pool", rServices.getServantName());
+                return rServices;
+            } catch (TimeoutException e) {
+                log.debug("RServices pool is probably busy..", e);
+                log.info("No free workers in the pool currently. Waiting for {} {}...", wait, timeUnit);
+            } catch (Exception e) {
+                throw new AtlasRServicesException("Failed to borrow RServices worker", e);
+            }
+            waitFor(timeUnit.toMillis(wait));
+        }
+        throw new AtlasRServicesException("Could not borrow RServices after " + attempts + " attempts");
+    }
+
+    private static void waitFor(long milliseconds) {
+        final CountDownLatch latch = new CountDownLatch(1);
+        
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                latch.countDown();
+            }
+        }, milliseconds);
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //Wake up! 
         }
     }
 

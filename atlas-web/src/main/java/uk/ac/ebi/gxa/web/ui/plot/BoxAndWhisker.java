@@ -22,14 +22,13 @@
 
 package uk.ac.ebi.gxa.web.ui.plot;
 
-import com.google.common.collect.Lists;
+import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.jackson.annotate.JsonProperty;
+import uk.ac.ebi.gxa.data.StatisticsCursor;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import javax.annotation.Nonnull;
+import java.util.Arrays;
 
 /**
  * @author Olga Melnichuk
@@ -41,23 +40,26 @@ public class BoxAndWhisker {
     private final float lowerQuartile;
     private final float max;
     private final float min;
-    private final boolean up;
-    private final boolean down;
+    private final UpDownExpression expression;
 
-    public BoxAndWhisker(Collection<Float> data, @Nullable UpDownExpression upDown) {
-        List<Float> list = Lists.newArrayList(data);
-        Collections.sort(list);
-        this.median = percentile(list, 0.5);
-        this.max = percentile(list, 1.0);
-        this.min = percentile(list, 0.0);
-        this.upperQuartile = percentile(list, 0.75);
-        this.lowerQuartile = percentile(list, 0.25);
-        this.up = upDown != null && upDown.isUp();
-        this.down = upDown != null && upDown.isDown();
+    @VisibleForTesting
+    BoxAndWhisker(float[] data, @Nonnull UpDownExpression upDown) {
+        Arrays.sort(data);
+        this.median = percentile(data, 0.5);
+        this.max = percentile(data, 1.0);
+        this.min = percentile(data, 0.0);
+        this.upperQuartile = percentile(data, 0.75);
+        this.lowerQuartile = percentile(data, 0.25);
+        expression = upDown;
     }
 
-    private float percentile(List<Float> sortedList, double rank) {
-        return round(sortedList.get((int) ((sortedList.size() - 1) * rank)));
+    public BoxAndWhisker(StatisticsCursor statistics) {
+        this(statistics.getRawExpression(), statistics.getExpression());
+    }
+
+    private float percentile(float[] sortedList, double rank) {
+        return sortedList.length == 0 ? Float.NaN :
+                round(sortedList[(int) ((sortedList.length - 1) * rank)]);
     }
 
     private float round(float v) {
@@ -91,11 +93,11 @@ public class BoxAndWhisker {
 
     @JsonProperty("up")
     public boolean isUp() {
-        return up;
+        return expression.isUp();
     }
 
     @JsonProperty("down")
     public boolean isDown() {
-        return down;
+        return expression.isDown();
     }
 }

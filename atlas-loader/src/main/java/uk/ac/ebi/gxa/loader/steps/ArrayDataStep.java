@@ -28,9 +28,9 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.ArrayDesignAttribute;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import uk.ac.ebi.gxa.analytics.compute.RUtil;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.ComputeTask;
+import uk.ac.ebi.gxa.R.compute.RUtil;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -133,7 +133,7 @@ public class ArrayDataStep {
         }
     }
 
-    public void readArrayData(@Nonnull AtlasComputeService computeService, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
+    public boolean readArrayData(@Nonnull AtlasComputeService computeService, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -147,8 +147,11 @@ public class ArrayDataStep {
             boolean useLocalCopy = true;
             final Collection<ArrayDataNode> dataNodes =
                 investigation.SDRF.getNodes(ArrayDataNode.class);
-            if (dataNodes.isEmpty())
-                throw new AtlasLoaderException("No data nodes for raw data are defined in " + sdrfURL + USE_PROCCESSED_FILES);
+            if (dataNodes.isEmpty()) {
+                log.warn("No data nodes for raw data are defined in " + sdrfURL);
+                // the experiment loading logic will use the processed files instead
+                return false;
+            }
 
             listener.setProgress("Loading CEL files");
             for (ArrayDataNode node : dataNodes) {
@@ -180,10 +183,13 @@ public class ArrayDataStep {
                 final String dataFileName = node.getNodeName();
                 final String scanName = scanNode != null ? scanNode.getNodeName() : assayNode.getNodeName();
 
-                // We check if this sample is made on Affymetrics chip
                 // TODO: use better way to check this if such way exists
-                if (!arrayDesignName.toLowerCase().contains("affy"))
-                    throw new AtlasLoaderException("Array design " + arrayDesignName + " is not an Affymetrix");
+                if (!arrayDesignName.toLowerCase().contains("affy")) {
+                    log.warn("Array design " + arrayDesignName + " is not an Affymetrix");
+                    // For non-Affymetrics chip we don't throw and exception but allow the experiment loading logic
+                    // to silently move to using the processed files instead.
+                    return false;
+                }
 
                 if (dataFileName == null || dataFileName.length() == 0) {
                     continue;
@@ -196,7 +202,6 @@ public class ArrayDataStep {
                 }
                 if (adData.celFiles.get(dataFileName) != null)
                     throw new AtlasLoaderException("Error processing file: '" + dataFileName + "' - this file is used twice" + USE_PROCCESSED_FILES);
-
                 adData.celFiles.put(dataFileName, scanName);
                 adData.assays.put(dataFileName, assay);
 
@@ -219,7 +224,6 @@ public class ArrayDataStep {
                         // ignore
                     }
                 }
-
                 if (!tempFile.exists() && node.comments != null) {
                     useLocalCopy = false;
                     final String zipName = DataUtils.fixZipURL(node.comments.get("ArrayExpress FTP file"));
@@ -234,20 +238,16 @@ public class ArrayDataStep {
                                 if (localZipFile != null && !localZipFile.delete()) {
                                     log.error("Cannot delete " + localZipFile.getAbsolutePath());
                                 }
-                                log.error("IOException is thrown: " + e.getMessage());
-                                throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
+                                throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES, e);
                             }
                         }
-
                         try {
                             extractZip(localZipFile, adData.dataDir);
                         } catch (IOException e) {
-                            log.warn("IOException is thrown: " + e.getMessage());
-                            throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES);
+                            throw new AtlasLoaderException("Error occurred while retrieving raw data files from ArrayExpress ftp site" + USE_PROCCESSED_FILES, e);
                         }
                     }
                 }
-
                 if (!tempFile.exists()) {
                     throw new AtlasLoaderException("Error occurred while processing raw data files: File '" + dataFileName + "' is not found" + USE_PROCCESSED_FILES);
                 }
@@ -261,12 +261,11 @@ public class ArrayDataStep {
                 // currently we receive instances of "try-error" as RChar objects
                 final RObject result = computeService.computeTask(normalizer);
                 if (result != null) {
-                    log.error(
-                            result instanceof RChar
+                    throw new AtlasLoaderException(
+                            "Something unexpected happened during R processing; returned " +
+                            (result instanceof RChar
                                     ? ((RChar) result).getValue()[0]
-                                    : "Something unexpected happened during R processing; returned " + result
-                    );
-                    throw new AtlasLoaderException("An error occurred in R processing of raw data files");
+                                    : result));
                 }
                 try {
                     final File mergedFile = new File(normalizer.mergedFilePath);
@@ -285,6 +284,7 @@ public class ArrayDataStep {
                 }
             }
 
+            return true;
         } finally {
             for (RawData data : dataByArrayDesign.values()) {
                 deleteDirectory(data.dataDir);

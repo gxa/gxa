@@ -15,6 +15,8 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Robert Petryszak
  */
@@ -92,6 +94,24 @@ public class TestCurationService extends AtlasDAOTestCase {
         } catch (ResourceNotFoundException e) {
             fail("Experiment: " + E_MEXP_420 + " not found");
         }
+    }
+
+    @Test
+    public void testGetAllExperiments() throws Exception {
+        assertTrue("Some experiments should have been returned",
+                curationService.getAllExperiments().size() > 0);
+    }
+
+    @Test
+    public void testGetExperimentsByAssayPropertyOntologyTerm() throws Exception {
+        assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
+                curationService.getExperimentsByOntologyTerm(EFO_0000827).size() > 0);
+    }
+
+    @Test
+    public void testGetExperimentsByAssayPropertyValue() throws Exception {
+        assertTrue("Some assays should contain property value: " + PROP3 + ":" + VALUE004,
+                curationService.getExperimentsByPropertyValue(PROP3, VALUE004).size() > 0);
     }
 
     @Test
@@ -185,12 +205,12 @@ public class TestCurationService extends AtlasDAOTestCase {
         newProps[0] = apiProperty;
         curationService.putSampleProperties(E_MEXP_420, SAMPLE_ACC, newProps);
 
-        // Now that both MICROGLIAL_CELL and VALUE004 are both present in ASSAY_ACC, replace VALUE004 with VALUE010
+        // Now that both VALUE010 and VALUE004 are both present in SAMPLE_ACC, replace VALUE004 with VALUE010
         curationService.replacePropertyValueInSamples(PROP3, VALUE004, VALUE010);
 
-        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in assay properties",
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in sample properties",
                 propertyPresent(sampleProperties, PROP3, VALUE004));
-        assertTrue("Property : " + PROP3 + ":" + VALUE010 + " not found in assay properties",
+        assertTrue("Property : " + PROP3 + ":" + VALUE010 + " not found in sample properties",
                 propertyPresent(sampleProperties, PROP3, VALUE010));
 
         for (ApiProperty property : sampleProperties) {
@@ -227,6 +247,26 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         propertyValues = curationService.getPropertyValues(PROP3);
         assertFalse("Property value: " + VALUE004 + " found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE004));
+    }
+
+    @Test
+    public void testRemovePropertyFromAssaysSamples() throws Exception {
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
+        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
+
+        curationService.removePropertyFromAssays(CELL_TYPE);
+        curationService.removePropertyFromSamples(PROP3);
+
+        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
+
+        Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
+        assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
+        assertTrue("Property: " + PROP3 + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(PROP3));
     }
 
     @Test
@@ -309,7 +349,6 @@ public class TestCurationService extends AtlasDAOTestCase {
     @Test
     public void testPutOntology() throws Exception {
         ApiOntology ontology = curationService.getOntology(EFO);
-        ontology.setName(VBO);
         try {
             curationService.getOntology(VBO);
             fail("Ontology: " + VBO + " already exists");
@@ -317,6 +356,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         }
 
+        ontology.setName(VBO);
         // Create new ontology
         curationService.putOntology(ontology);
         try {
