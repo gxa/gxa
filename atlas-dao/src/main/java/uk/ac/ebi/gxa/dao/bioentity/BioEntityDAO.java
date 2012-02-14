@@ -123,10 +123,9 @@ public class BioEntityDAO {
                 "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
                 "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid \n" +
                 "  JOIN a2_bioentity be ON be.bioentityid = debe.bioentityid\n" +
-                "  join a2_software sw on sw.softwareid = debe.softwareid\n" +
                 "  JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid \n" +
                 "  WHERE bet.ID_FOR_INDEX = 1\n" +
-                "  and sw.isactive = 'T'";
+                "  AND debe.softwareid in (select max(softwareid) from A2_software group by name)";
 
         template.query(query,
                 mapper);
@@ -379,19 +378,12 @@ public class BioEntityDAO {
         // query template for genes
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
-        //find all recent software
-        List<Software> softwares = softwareDAO.getActiveSoftwares();
-        Set<Long> swIds = new HashSet<Long>(softwares.size());
-        for (Software software : softwares) {
-            swIds.add(software.getSoftwareid());
-        }
-
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
         for (List<Long> geneIDsChunk : partition(geneIDs, MAX_QUERY_PARAMS)) {
             // now query for properties that map to one of these genes
             MapSqlParameterSource propertyParams = new MapSqlParameterSource();
-            propertyParams.addValue("swid", swIds);
+            propertyParams.addValue("swid", softwareDAO.getActiveSoftwareIds());
             propertyParams.addValue("geneids", geneIDsChunk);
 
             namedTemplate.query("select " + GenePropertyMapper.FIELDS + "\n" +
