@@ -13,7 +13,6 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
@@ -108,6 +107,36 @@ public class CurationService {
         } catch (RecordNotFoundException e) {
             throw convert(e);
         }
+    }
+
+    /**
+     * @return alphabetically sorted collection of property names not used in any assays/samples
+     */
+    public Collection<ApiPropertyName> getUnusedPropertyNames() {
+        List<ApiPropertyName> propertyNames = Lists.newArrayList(transform(propertyDAO.getUnusedProperties(), PROPERTY_NAME));
+
+        Collections.sort(propertyNames, new Comparator<ApiPropertyName>() {
+            public int compare(ApiPropertyName o1, ApiPropertyName o2) {
+                return o1.getName().compareToIgnoreCase(o2.getName());
+            }
+        });
+
+        return propertyNames;
+    }
+
+    /**
+     * @return alphabetically sorted collection of property names not used in any assays/samples
+     */
+    public Collection<ApiPropertyValue> getUnusedPropertyValues() {
+        List<ApiPropertyValue> propertyValues = Lists.newArrayList(transform(propertyValueDAO.getUnusedPropertyValues(), PROPERTY_VALUE));
+
+        Collections.sort(propertyValues, new Comparator<ApiPropertyValue>() {
+            public int compare(ApiPropertyValue o1, ApiPropertyValue o2) {
+                return o1.getValue().compareToIgnoreCase(o2.getValue());
+            }
+        });
+
+        return propertyValues;
     }
 
     /**

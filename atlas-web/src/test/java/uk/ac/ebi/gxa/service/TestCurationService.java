@@ -433,6 +433,16 @@ public class TestCurationService extends AtlasDAOTestCase {
         assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not added to sample properties", propertyPresent(properties, PROP3, VALUE004));
     }
 
+    @Test
+    public void testGetUnusedProperties() throws Exception {
+        assertTrue(curationService.getUnusedPropertyNames().size() > 0);
+    }
+
+    @Test
+    public void testGetUnusedPropertyValues() throws Exception {
+        assertTrue(curationService.getUnusedPropertyValues().size() > 0);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private boolean propertyPresent(Collection<ApiProperty> properties, String propertyName, @Nullable String propertyValue) {
         boolean found = false;

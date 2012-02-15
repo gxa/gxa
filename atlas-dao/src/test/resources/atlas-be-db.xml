@@ -61,6 +61,12 @@
             accession="PropAcc3"
             />
 
+    <A2_PROPERTY
+            propertyid="4"
+            name="unused"
+            accession="unused"
+            />
+
     <A2_PROPERTYVALUE
             propertyvalueid="1"
             propertyid="1"
@@ -113,6 +119,12 @@
             propertyvalueid="9"
             propertyid="3"
             name="value009"
+            />
+
+        <A2_PROPERTYVALUE
+            propertyvalueid="10"
+            propertyid="4"
+            name="unused_val"
             />
 
     <A2_BIOENTITYTYPE
