@@ -251,7 +251,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     results.add(makeMap(
                             "accession", arrayDesign.getAccession(),
                             "provider", arrayDesign.getProvider(),
-                            "description", arrayDesign.getName()));
+                            "description", arrayDesign.getName(),
+                            "synonyms", arrayDesign.getSynonyms()
+                    ));
 
                 ++total;
             }
