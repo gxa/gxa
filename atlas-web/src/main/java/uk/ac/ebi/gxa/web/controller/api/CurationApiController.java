@@ -47,6 +47,17 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getPropertyValues(propertyName);
     }
 
+    @RequestMapping(value = "/properties/{propertyName}",
+            method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void removePropertyFromAssaysSamples(@PathVariable("v") final ApiVersionType version,
+                                                @PathVariable("propertyName") final String propertyName,
+                                                HttpServletResponse response)
+        throws ResourceNotFoundException {
+        crossOriginHack(response);
+        curationService.deleteProperty(propertyName);
+    }
+
     @RequestMapping(value = "/properties/{propertyName}/{propertyValue}",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -57,10 +68,10 @@ public class CurationApiController extends AtlasViewController {
             HttpServletResponse response)
             throws ResourceNotFoundException {
         crossOriginHack(response);
-        curationService.removePropertyValue(propertyName, propertyValue);
+        curationService.deletePropertyValue(propertyName, propertyValue);
     }
 
-    @RequestMapping(value = "/experiments/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
+    @RequestMapping(value = "/properties/{propertyName}/{oldPropertyValue}/{newPropertyValue}",
             method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
     public void replacePropertyValueInExperiments(
@@ -72,6 +83,19 @@ public class CurationApiController extends AtlasViewController {
             throws ResourceNotFoundException {
         crossOriginHack(response);
         curationService.replacePropertyValueInExperiments(propertyName, oldPropertyValue, newPropertyValue);
+    }
+
+    @RequestMapping(value = "/properties/{oldPropertyName}/{newPropertyName}",
+            method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void replacePropertyInExperiments(
+            @PathVariable("v") final ApiVersionType version,
+            @PathVariable("oldPropertyName") final String oldPropertyName,
+            @PathVariable("newPropertyName") final String newPropertyName,
+            HttpServletResponse response)
+            throws ResourceNotFoundException {
+        crossOriginHack(response);
+        curationService.replacePropertyInExperiments(oldPropertyName, newPropertyName);
     }
 
     @RequestMapping(value = "/propertyvaluemappings/exactmatch/{propertyName}/{propertyValue}.json",
@@ -124,26 +148,6 @@ public class CurationApiController extends AtlasViewController {
                                               HttpServletResponse response) throws ResourceNotFoundException {
         crossOriginHack(response);
         return curationService.getExperiment(experimentAccession);
-    }
-
-    @RequestMapping(value = "/assays/properties/{propertyName}",
-            method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.OK)
-    public void removePropertyFromAssays(@PathVariable("v") final ApiVersionType version,
-                                         @PathVariable("propertyName") final String propertyName,
-                                         HttpServletResponse response) {
-        crossOriginHack(response);
-        curationService.removePropertyFromAssays(propertyName);
-    }
-
-    @RequestMapping(value = "/samples/properties/{propertyName}",
-            method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.OK)
-    public void removePropertyFromSamples(@PathVariable("v") final ApiVersionType version,
-                                          @PathVariable("propertyName") final String propertyName,
-                                          HttpServletResponse response) {
-        crossOriginHack(response);
-        curationService.removePropertyFromSamples(propertyName);
     }
 
     @RequestMapping(value = "/experiments/properties/{propertyName}/{propertyValue}.json",

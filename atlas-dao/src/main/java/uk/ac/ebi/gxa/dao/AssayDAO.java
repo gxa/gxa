@@ -13,7 +13,7 @@ import java.util.List;
 public class AssayDAO extends AbstractDAO<Assay> {
     public static final String NAME_COL = "accession";
 
-    private static String COMMON_HQL = "from Experiment e left join e.assays a left join a.properties p where p.propertyValue.property.name = ? ";
+    private static String COMMON_HQL = "from Assay a left join a.properties p where p.propertyValue.property.name = ? ";
 
     public static final Logger log = LoggerFactory.getLogger(AssayDAO.class);
 
@@ -28,11 +28,6 @@ public class AssayDAO extends AbstractDAO<Assay> {
     @SuppressWarnings("unchecked")
     public List<Assay> getAssaysByProperty(String propertyName) {
         return template.find("select a " + COMMON_HQL, propertyName);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByProperty(String propertyName) {
-        return template.find("select p " + COMMON_HQL, propertyName);
     }
 
     @SuppressWarnings("unchecked")

@@ -16,7 +16,7 @@ import java.util.List;
 public class SampleDAO extends AbstractDAO<Sample> {
     public static final String NAME_COL = "accession";
 
-    private static String COMMON_HQL = "from Experiment e left join e.samples s left join s.properties p where p.propertyValue.property.name = ? ";
+    private static String COMMON_HQL = "from Sample s left join s.properties p where p.propertyValue.property.name = ? ";
 
     public static final Logger log = LoggerFactory.getLogger(SampleDAO.class);
 
@@ -31,11 +31,6 @@ public class SampleDAO extends AbstractDAO<Sample> {
     @SuppressWarnings("unchecked")
     public List<Sample> getSamplesByProperty(String propertyName) {
         return template.find("select s " + COMMON_HQL, propertyName);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByProperty(String propertyName) {
-        return template.find("select p " + COMMON_HQL, propertyName);
     }
 
     @SuppressWarnings("unchecked")

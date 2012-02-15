@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.*;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
@@ -68,23 +69,6 @@ public class CurationService {
                     return new ApiShallowExperiment(e);
                 }
             };
-
-    private static final Function<AssayProperty, PropertyValue> ASSAY_PROPERTY =
-            new Function<AssayProperty, PropertyValue>() {
-                @Override
-                public PropertyValue apply(@Nonnull AssayProperty input) {
-                    return input.getPropertyValue();
-                }
-            };
-
-    private static final Function<SampleProperty, PropertyValue> SAMPLE_PROPERTY =
-            new Function<SampleProperty, PropertyValue>() {
-                @Override
-                public PropertyValue apply(@Nonnull SampleProperty input) {
-                    return input.getPropertyValue();
-                }
-            };
-
 
     /**
      * @return alphabetically sorted collection of all property names
@@ -171,15 +155,30 @@ public class CurationService {
     }
 
     /**
-     * Remove propertyName:propertyValue from all assays and samples that are mapped to it (via FK cascading in Oracle) and remove propertyValue from
-     * the list of values assigned to propertyName
+     * Delete property from Property table (thus deleting all its values from PropertyValue? table and all assays/samples they occur in)
+     *
+     * @param propertyName
+     * @throws ResourceNotFoundException
+     */
+    @Transactional
+    public void deleteProperty(final String propertyName) throws ResourceNotFoundException {
+        try {
+            Property property = propertyDAO.getByName(propertyName);
+            propertyDAO.delete(property);
+        } catch (RecordNotFoundException e) {
+            throw convert(e);
+        }
+    }
+
+    /**
+     * Delete property value from PropertyValue table (thus deleting it from all assays/samples it occurs in)
      *
      * @param propertyName
      * @param propertyValue
      * @throws ResourceNotFoundException
      */
     @Transactional
-    public void removePropertyValue(final String propertyName,
+    public void deletePropertyValue(final String propertyName,
                                     final String propertyValue) throws ResourceNotFoundException {
         try {
             Property property = propertyDAO.getByName(propertyName);
@@ -187,36 +186,6 @@ public class CurationService {
             propertyDAO.delete(property, propValue);
         } catch (RecordNotFoundException e) {
             throw convert(e);
-        }
-    }
-
-    /**
-     * Remove all AssayProperties from assays which have property values for property: propertyName
-     *
-     * @param propertyName
-     */
-    @Transactional
-    public void removePropertyFromAssays(
-            @Nonnull final String propertyName) {
-        for (Assay assay : assayDAO.getAssaysByProperty(propertyName)) {
-            for (PropertyValue propValue : Lists.newArrayList(transform(assay.getProperties(propertyName, null), ASSAY_PROPERTY)))
-                assay.deleteProperty(propValue);
-            assayDAO.save(assay);
-        }
-    }
-
-    /**
-     * Remove all SampleProperties from assays which have property values for property: propertyName
-     *
-     * @param propertyName
-     */
-    @Transactional
-    public void removePropertyFromSamples(
-            @Nonnull final String propertyName) {
-        for (Sample sample : sampleDAO.getSamplesByProperty(propertyName)) {
-            for (PropertyValue propValue : Lists.newArrayList(transform(sample.getProperties(propertyName), SAMPLE_PROPERTY)))
-                sample.deleteProperty(propValue);
-            sampleDAO.save(sample);
         }
     }
 
@@ -240,6 +209,21 @@ public class CurationService {
         replacePropertyValueInSamples(propertyName, oldValue, newValue);
     }
 
+    /**
+     * Replaces oldPropertyName with newPropertyName in all assays/samples in which value(s) of oldPropertyName exist.
+     * In cases when a given assay/sample contains values for both oldPropertyName and newPropertyName, values corresponding to the retained
+     * newPropertyName get mapped to the superset of OntologyTerms assigned to values for newPropertyName and oldPropertyName.
+     *
+     * @param oldPropertyName
+     * @param newPropertyName
+     */
+    @Transactional
+    public void replacePropertyInExperiments(
+            final String oldPropertyName,
+            final String newPropertyName) {
+        replacePropertyInAssays(oldPropertyName, newPropertyName);
+        replacePropertyInSamples(oldPropertyName, newPropertyName);
+    }
 
     /**
      * Replaces oldValue of property: propertyName with newValue in all assays in which propertyName-oldValue exists.
@@ -314,6 +298,94 @@ public class CurationService {
             }
         } catch (RecordNotFoundException e) {
             throw convert(e);
+        }
+    }
+
+    /**
+     * Replaces oldPropertyName with newPropertyName in all assays in which value(s) of oldPropertyName exist.
+     * In cases when a given assay contains values for both oldPropertyName and newPropertyName, values corresponding to the retained
+     * newPropertyName get mapped to the superset of OntologyTerms assigned to values for newPropertyName and oldPropertyName.
+     *
+     * @param oldPropertyName
+     * @param newPropertyName
+     */
+    @Transactional
+    protected void replacePropertyInAssays(
+            final String oldPropertyName,
+            final String newPropertyName) {
+        Property newProperty = propertyDAO.getOrCreateProperty(newPropertyName);
+        List<Assay> assays = assayDAO.getAssaysByProperty(oldPropertyName);
+        List<Pair<PropertyValue, List<OntologyTerm>>> pvsToAdd;
+        List<PropertyValue> pvsToDelete;
+
+        for (Assay assay : assays) {
+            pvsToAdd = new ArrayList<Pair<PropertyValue, List<OntologyTerm>>>();
+            pvsToDelete = new ArrayList<PropertyValue>();
+            for (AssayProperty oldAssayProperty : assay.getProperties()) {
+                if (oldAssayProperty.getName().equals(oldPropertyName)) {
+
+                    // Collate ontology terms into newAssayProperty
+                    List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldAssayProperty.getTerms());
+                    PropertyValue newPropertyValue =
+                            propertyValueDAO.getOrCreatePropertyValue(newProperty, oldAssayProperty.getPropertyValue().getValue());
+                    AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
+                    if (newAssayProperty != null)
+                        terms.addAll(newAssayProperty.getTerms());
+
+                    pvsToAdd.add(Pair.create(newPropertyValue, terms));
+                    pvsToDelete.add(oldAssayProperty.getPropertyValue());
+                }
+            }
+            for (PropertyValue pv : pvsToDelete)
+                assay.deleteProperty(pv);
+            for (Pair<PropertyValue, List<OntologyTerm>> pvToTerms : pvsToAdd)
+                assay.addOrUpdateProperty(pvToTerms.getKey(), pvToTerms.getValue());
+            assayDAO.save(assay);
+        }
+    }
+
+    /**
+     * Replaces oldPropertyName with newPropertyName in all samples in which value(s) of oldPropertyName exist.
+     * In cases when a given sample contains values for both oldPropertyName and newPropertyName, values corresponding to the retained
+     * newPropertyName get mapped to the superset of OntologyTerms assigned to values for newPropertyName and oldPropertyName.
+     *
+     * @param oldPropertyName
+     * @param newPropertyName
+     */
+    @Transactional
+    protected void replacePropertyInSamples(
+            final String oldPropertyName,
+            final String newPropertyName) {
+        Property newProperty = propertyDAO.getOrCreateProperty(newPropertyName);
+        List<Sample> samples = sampleDAO.getSamplesByProperty(oldPropertyName);
+        List<Pair<PropertyValue, List<OntologyTerm>>> pvsToAdd;
+        List<PropertyValue> pvsToDelete;
+
+        for (Sample sample : samples) {
+            pvsToAdd = new ArrayList<Pair<PropertyValue, List<OntologyTerm>>>();
+            pvsToDelete = new ArrayList<PropertyValue>();
+
+            for (SampleProperty oldSampleProperty : sample.getProperties()) {
+                if (oldSampleProperty.getName().equals(oldPropertyName)) {
+
+                    // Collate ontology terms into newSampleProperty
+                    List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldSampleProperty.getTerms());
+                    PropertyValue newPropertyValue =
+                            propertyValueDAO.getOrCreatePropertyValue(newProperty, oldSampleProperty.getPropertyValue().getValue());
+                    SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
+                    if (newSampleProperty != null)
+                        terms.addAll(newSampleProperty.getTerms());
+
+                    pvsToAdd.add(Pair.create(newPropertyValue, terms));
+                    pvsToDelete.add(oldSampleProperty.getPropertyValue());
+                }
+            }
+
+            for (PropertyValue pv : pvsToDelete)
+                sample.deleteProperty(pv);
+            for (Pair<PropertyValue, List<OntologyTerm>> pvToTerms : pvsToAdd)
+                sample.addOrUpdateProperty(pvToTerms.getKey(), pvToTerms.getValue());
+            sampleDAO.save(sample);
         }
     }
 

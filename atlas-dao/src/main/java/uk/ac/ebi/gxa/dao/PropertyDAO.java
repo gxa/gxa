@@ -28,6 +28,11 @@ public class PropertyDAO extends AbstractDAO<Property> {
         template.flush();
     }
 
+    public void delete(Property object) {
+        template.delete(object);
+        template.flush();
+    }
+
     @Override
     protected String getNameColumn() {
         return "name";
