@@ -144,5 +144,4 @@ public class BioMartAnnotationSource extends AnnotationSource {
                 ", externalBioEntityProperties=" + getExternalBioEntityProperties() +
                 "} ";
     }
-
 }

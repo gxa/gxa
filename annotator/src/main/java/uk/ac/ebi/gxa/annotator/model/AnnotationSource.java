@@ -234,6 +234,18 @@ public abstract class AnnotationSource {
         return properties;
     }
 
+    public List<ExternalBioEntityProperty> getNonIdentifierExternalProperties() {
+        List<ExternalBioEntityProperty> properties = new ArrayList<ExternalBioEntityProperty>();
+        Map<String, BioEntityType> identifierNames = getExternalName2TypeMap();
+        for (ExternalBioEntityProperty extProp : externalBioEntityProperties) {
+            if (identifierNames.containsKey(extProp.getName())) {
+                continue;
+            }
+            properties.add(extProp);
+        }
+        return properties;
+    }
+
     public Set<BioEntityProperty> getBioEntityPropertiesOfExternalProperties() {
         Set<BioEntityProperty> answer = newHashSet();
         for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {

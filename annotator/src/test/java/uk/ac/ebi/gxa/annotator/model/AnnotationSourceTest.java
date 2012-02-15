@@ -50,13 +50,13 @@ public class AnnotationSourceTest {
     }
 
     @Test
-    public void testNonIdentifierProperties() throws AnnotationException {
+    public void testNonIdentifierExternalProperties() throws AnnotationException {
         BioMartAnnotationSource annotSource = newAnnotationSource();
-        List<BioEntityProperty> properties = annotSource.getNonIdentifierProperties();
+        List<ExternalBioEntityProperty> properties = annotSource.getNonIdentifierExternalProperties();
         assertEquals(3, properties.size());
-        assertTrue(properties.contains(new BioEntityProperty(null, "go")));
-        assertTrue(properties.contains(new BioEntityProperty(null, "identifier")));
-        assertTrue(properties.contains(new BioEntityProperty(null, "name")));
+        assertTrue(properties.contains(new ExternalBioEntityProperty("go_id", new BioEntityProperty(null, "go"), annotSource)));
+        assertTrue(properties.contains(new ExternalBioEntityProperty("identifier", new BioEntityProperty(null, "identifier"), annotSource)));
+        assertTrue(properties.contains(new ExternalBioEntityProperty("symbol", new BioEntityProperty(null, "name"), annotSource)));
     }
 
     @Test

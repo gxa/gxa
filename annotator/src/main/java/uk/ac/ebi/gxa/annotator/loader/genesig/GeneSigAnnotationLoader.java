@@ -9,10 +9,10 @@ import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.loader.URLContentLoader;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
+import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.utils.FileUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
-import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.io.File;
@@ -62,7 +62,7 @@ public class GeneSigAnnotationLoader {
     }
 
     private void parse(InputStream in) throws AnnotationException, IOException, InvalidCSVColumnException {
-        List<BioEntityProperty> properties = annotSource.getNonIdentifierProperties();
+        List<ExternalBioEntityProperty> properties = annotSource.getNonIdentifierExternalProperties();
         Map<String, BioEntityType> name2Type = annotSource.getExternalName2TypeMap();
 
         CSVBasedReader reader = null;
@@ -71,8 +71,8 @@ public class GeneSigAnnotationLoader {
 
             CSVBasedReader.Row row;
             while ((row = reader.readNext()) != null) {
-                for (BioEntityProperty property : properties) {
-                    BEPropertyValue propertyValue = new BEPropertyValue(property, row.get(property.getName()));
+                for (ExternalBioEntityProperty property : properties) {
+                    BEPropertyValue propertyValue = new BEPropertyValue(property.getBioEntityProperty(), row.get(property.getName()));
                     for (Map.Entry<String, BioEntityType> entry : name2Type.entrySet()) {
                         builder.addPropertyValue(row.get(entry.getKey()), entry.getValue(), propertyValue);
                     }
