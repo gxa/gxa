@@ -30,6 +30,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
@@ -189,7 +190,11 @@ public class Assay {
     }
 
     public Collection<AssayProperty> getProperties(final String type) {
-        return filter(properties, new PropertyNamePredicate(type));
+        return filter(properties, new PropertyValuePredicate(type, null));
+    }
+
+    public Collection<AssayProperty> getProperties(final String type, final String value) {
+        return filter(properties, new PropertyValuePredicate(type, value));
     }
 
     public Collection<AssayProperty> getProperties(final Property property) {
@@ -273,16 +278,18 @@ public class Assay {
         return result;
     }
 
-    private static class PropertyNamePredicate implements Predicate<AssayProperty> {
+    private static class PropertyValuePredicate implements Predicate<AssayProperty> {
         private final String type;
+        private final String value;
 
-        public PropertyNamePredicate(String type) {
+        public PropertyValuePredicate(String type, @Nullable String value) {
             this.type = type;
+            this.value = value;
         }
 
         @Override
         public boolean apply(@Nonnull AssayProperty input) {
-            return input.getName().equals(type);
+            return input.getName().equals(type) && (value == null || input.getPropertyValue().getValue().equals(value));
         }
     }
 

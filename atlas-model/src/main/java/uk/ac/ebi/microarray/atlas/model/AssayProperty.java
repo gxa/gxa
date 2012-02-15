@@ -35,6 +35,7 @@ import java.util.List;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.unmodifiableList;
 
 @Entity
@@ -55,7 +56,8 @@ public final class AssayProperty {
     @JoinTable(name = "A2_ASSAYPVONTOLOGY",
             joinColumns = @JoinColumn(name = "ASSAYPVID", referencedColumnName = "ASSAYPVID"),
             inverseJoinColumns = @JoinColumn(name = "ONTOLOGYTERMID", referencedColumnName = "ONTOLOGYTERMID"))
-    private List<OntologyTerm> terms = new ArrayList<OntologyTerm>();
+    @Fetch(FetchMode.SUBSELECT)
+    private List<OntologyTerm> terms = newArrayList();
 
     AssayProperty() {
     }

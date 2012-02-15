@@ -54,7 +54,7 @@ public class ThumbnailPlotTest {
                 j++;
             }
             float v = i % 5 == 0 ? Float.NaN : 1 + rnd.nextFloat() * 5;
-            EXPRESSION_VALUES.add(new ExpressionValue("EF", "EFV" + j, v));
+            EXPRESSION_VALUES.add(new ExpressionValue("EFV" + j, v));
             if (!Float.isNaN(v)) {
                 max = max == null ? v : Math.max(max, v);
                 min = min == null ? v : Math.min(min, v);

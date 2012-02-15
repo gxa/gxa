@@ -67,7 +67,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
     }
 
     private static final AtlasRFactory DUMMY_FACTORY = new AtlasRFactory() {
-        public boolean validateEnvironment() throws AtlasRServicesException {
+        public boolean validateEnvironment() {
             return false;
         }
 
@@ -117,7 +117,7 @@ public class DynamicAtlasRFactory implements AtlasRFactory, AtlasPropertiesListe
             atlasProperties.unregisterListener(this);
     }
 
-    public boolean validateEnvironment() throws AtlasRServicesException {
+    public boolean validateEnvironment() {
         return getCurrentRFactory().validateEnvironment();
     }
 
