@@ -36,9 +36,6 @@ public class Software {
     private Long softwareid;
     private String name;
     private String version;
-    // TODO: Ticket #3117 to enable proper handling of isActive field via the Admin UI
-    @org.hibernate.annotations.Type(type="true_false")
-    private Boolean isActive = false;
 
     Software() {
     }
@@ -72,7 +69,6 @@ public class Software {
                 "softwareid=" + softwareid +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
-                ", isActive=" + isActive +
                 '}';
     }
 
