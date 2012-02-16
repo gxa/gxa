@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.requesthandlers.tasks;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
@@ -244,6 +245,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         for (ArrayDesign arrayDesign : arrayDesignDAO.getAllArrayDesigns())
             if ("".equals(search)
                     || arrayDesign.getAccession().toLowerCase().contains(search)
+                    || (!Strings.isNullOrEmpty(arrayDesign.getSynonyms()) && arrayDesign.getSynonyms().toLowerCase().contains(search))
                     || StringUtils.trimToEmpty(arrayDesign.getName()).toLowerCase().contains(search)
                     || StringUtils.trimToEmpty(arrayDesign.getProvider()).toLowerCase().contains(search)
                     ) {
@@ -251,7 +253,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     results.add(makeMap(
                             "accession", arrayDesign.getAccession(),
                             "provider", arrayDesign.getProvider(),
-                            "description", arrayDesign.getName()));
+                            "description", arrayDesign.getName(),
+                            "synonyms", arrayDesign.getSynonyms()
+                    ));
 
                 ++total;
             }
