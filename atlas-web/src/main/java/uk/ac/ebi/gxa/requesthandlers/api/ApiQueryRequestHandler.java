@@ -54,8 +54,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.google.common.base.Predicates.in;
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN_GENE;
 
 /**
  * REST API structured query servlet. Handles all gene and experiment API queries according to HTTP request parameters
@@ -171,8 +173,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                         try {
                                             Collection<String> geneIdentifiers = query.getGeneIdentifiers();
                                             Predicate<Long> geneIdPredicate = geneIdentifiers.isEmpty() ?
-                                                    Predicates.<Long>alwaysTrue() :
-                                                    Predicates.in(geneSolrDAO.findGeneIds(geneIdentifiers));
+                                                    ANY_KNOWN_GENE :
+                                                    in(geneSolrDAO.findGeneIds(geneIdentifiers));
 
                                             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
                                             criteria.containsAtLeastOneGene(geneIdPredicate);

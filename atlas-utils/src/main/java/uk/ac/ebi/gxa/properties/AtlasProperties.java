@@ -489,26 +489,4 @@ public class AtlasProperties {
     public List<String> getDasFactors() {
         return getListProperty("atlas.dasfactors");
     }
-
-    public Integer getMaxEfvsPerEfInHeatmap() {
-        return getIntProperty("atlas.max.efvs.per.ef.in.heatmap");
-    }
-
-    /**
-     * @return The restriction of the overall experiment count for (max. atlas.query.pagesize) sorted bioentities to be displayed
-     *         in a heatmap. This value is a crude (though more accurate than the overall amount of genes matched by user's query) measure of
-     *         the cost of constructing a heatmap, short of actually constructing that heatmap. For more info see atlas.properties
-     */
-    public Integer getMaxExperimentCountForStructuredQuery() {
-        return getIntProperty("atlas.structured.query.max.experiment.count");
-    }
-
-    /**
-     * @return The restriction of the total amount of mappings for all efo's to be shown in heatmap to their experiment-efv pairs.
-     *         This again is a crude measure of how much work AtlasStatisticsQueryService will need to perform in order to retrieve experiment
-     *         counts and pvals/tstats from bit index, for each cell of the heatmap.
-     */
-    public Integer getMaxEfoMappingsCountForStructuredQuery() {
-        return getIntProperty("atlas.structured.query.max.efo.mappings.count");
-    }
 }

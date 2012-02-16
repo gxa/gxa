@@ -280,7 +280,6 @@ public abstract class AtlasDAOTestCase {
                 "CREATE TABLE A2_SOFTWARE " +
                         "(SOFTWAREID bigint, " +
                         "NAME VARCHAR(255) NOT NULL, " +
-                        "ISACTIVE VARCHAR(1) NOT NULL, " +
                         "VERSION VARCHAR(255) NOT NULL) ;");
 
         runStatement(conn,
