@@ -9,7 +9,6 @@ fi
 
 NCDF_DIR=$1
 
-echo "The following experiments/designs have no statistics:"
 for stats_file in $(find $NCDF_DIR -name *_statistics.nc); do
    tstat=`ncdump -v PVAL $stats_file | egrep -v PVAL | egrep -v TSTAT`
    pval=`ncdump -v TSTAT $stats_file | egrep -v PVAL | egrep -v TSTAT`
@@ -41,7 +40,7 @@ for stats_file in $(find $NCDF_DIR -name *_statistics.nc); do
            num_efvs=$[ $num_efs * $num_assays ]
            efvs=`ncdump -v EFV $data_file | grep '"' | tail -$num_efvs | sed 's|[";,]||g' | sed 's|[ ;]$||g'`
 
-           echo "$exp_ad: "
+           echo "No statistics in: $exp_ad: "
            efvs_remainder=$efvs
            for ef in $(echo $efs); do
                if [ $num_efvs -ne 0 ]; then
