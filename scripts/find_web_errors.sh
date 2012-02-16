@@ -36,7 +36,7 @@ while read error_id; do
       echo "" >> $process_file.log
       echo "------------------------------------------------------------------------------------------------" >> $process_file.log
       echo "-- IPADDR, TIME, REQUEST, HTTP_RETURN_CODE, REFERER, USER_AGENT for '$error_id' : " >> $process_file.log
-      grep "$error_id" $atlaslog_file | awk '{print $2}' | awk -F, '{print $1}' | xargs -I % grep % $accesslog_file | xargs -I % echo % | awk '{print $1, $4, $7, $9, $11, $12}' | egrep -v ' 200 ' | egrep -v ' 302 '>> $process_file.log
+      grep "$error_id" $atlaslog_file | awk '{print $2}' | awk -F, '{print $1}' | xargs -I % grep % $accesslog_file | xargs -I % echo % | awk '{print $1, $4, $7, $9, $11, $12}' | egrep -v ' 200 ' | egrep -v ' 302 ' | egrep -v 'SAMSUNG-SGH-E250' >> $process_file.log
 done < $process_file.error_ids
 
 mailx -s "[gxa/cron] "`eval date +%Y-%m-%d`": Atlas web error report for: "`hostname`  $2 < $process_file.log
