@@ -265,8 +265,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processSearchOrganisms() {
         List<Map> results = new ArrayList<Map>();
-        Collection<AnnotationSourceController.BioMartAnnotationSourceView> bioMartAnnSrcs = annSrcController.getBioMartAnnSrcViews();
-        for (AnnotationSourceController.BioMartAnnotationSourceView sourceView : bioMartAnnSrcs) {
+        Collection<AnnotationSourceController.AnnotationSourceView> annSrcs = annSrcController.getAnnSrcViews();
+        for (AnnotationSourceController.AnnotationSourceView sourceView : annSrcs) {
             results.add(
                     makeMap("organismName", sourceView.getOrganismName()
                             , "id", sourceView.getAnnSrcId()
@@ -274,6 +274,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                             , "currName", sourceView.getSoftware()
                             , "validation", sourceView.getValidationMessage()
                             , "applied", sourceView.getApplied()
+                            , "appliedMapping", sourceView.areMappingsApplied()
+                            , "annSrcType", sourceView.getType()
 
                     ));
         }
@@ -281,14 +283,19 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("annSrcs", results);
     }
 
-    private Object processSearchAnnSrc(String annSrcId) {
-        String emptyAnnSrcString = "CREATE NEW ANNOTATION SOURCE ";
-        String annSrcString = "";
+    private Object processSearchAnnSrc(String annSrcId, String type) {
+        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
         if (!StringUtils.EMPTY.equals(annSrcId)) {
-            annSrcString = annSrcController.getAnnSrcString(annSrcId);
+            annSrcString = annSrcController.getAnnSrcString(annSrcId, type);
         }
 
-        return makeMap("annSrcText", StringUtils.EMPTY.equals(annSrcString)?emptyAnnSrcString:annSrcString);
+        return makeMap("annSrcText", annSrcString, "type", type);
+    }
+
+    private Object processValidateAnnSrc(String annSrcId, String type) {
+        String validationMsg = annSrcController.validate(annSrcId, type);
+
+        return makeMap("validationMsg", validationMsg);
     }
 
     private Date parseDate(String toDateStr) {
@@ -365,9 +372,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Object processUpdateAnnSrc(String text){
-        annSrcController.saveAnnSrc(text);
-        return EMPTY;
+    private Object processUpdateAnnSrc(String id, String type, String text){
+        return makeMap("formValidationMessage", annSrcController.saveAnnSrc(id, type, text));
     }
 
     private Object processAboutSystem() {
@@ -456,11 +462,14 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         else if ("searchorg".equals(op))
             return processSearchOrganisms();
 
-        else if ("searchannSrc".equals(op))
-            return processSearchAnnSrc(req.getStr("annSrcId"));
-
+        else if ("searchannSrc".equals(op)) {
+            return processSearchAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
+        }
+        else if ("validateannSrc".equals(op)) {
+            return processValidateAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
+        }
         else if ("annSrcUpdate".equals(op))
-            return processUpdateAnnSrc(req.getStr("asText"));
+            return processUpdateAnnSrc(req.getStr("annSrcId"), req.getStr("type"), req.getStr("asText"));
 
         else if ("schedulesearchexp".equals(op))
             return processScheduleSearchExperiments(
