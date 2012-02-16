@@ -63,6 +63,12 @@
             ACCESSION="PropAcc3"
             />
 
+    <A2_PROPERTY
+            PROPERTYID="4"
+            NAME="unused"
+            ACCESSION="unused"
+            />
+
     <A2_PROPERTYVALUE
             PROPERTYVALUEID="1"
             PROPERTYID="1"
@@ -115,6 +121,12 @@
             PROPERTYVALUEID="9"
             PROPERTYID="3"
             NAME="value009"
+            />
+
+        <A2_PROPERTYVALUE
+            PROPERTYVALUEID="10"
+            PROPERTYID="4"
+            NAME="unused_val"
             />
 
     <A2_BIOENTITYTYPE
@@ -860,4 +872,12 @@
     <A2_ASSAYPVONTOLOGY
             ONTOLOGYTERMID="1"
             ASSAYPVID="1"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ONTOLOGYTERMID="2"
+            ASSAYPVID="4"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ONTOLOGYTERMID="1"
+            ASSAYPVID="8"/>
 </dataset>
