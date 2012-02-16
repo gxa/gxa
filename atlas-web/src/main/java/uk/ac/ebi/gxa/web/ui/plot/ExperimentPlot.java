@@ -115,6 +115,9 @@ public class ExperimentPlot {
             // for all non-empty EFVs
             for (int j = 0; j < efvs.length; j++) {
                 String efv = efvs[j];
+                if (isNullOrEmpty(efv)) {
+                    continue;
+                }
                 List<Integer> assays = efvMap.get(efv);
                 if (assays == null) {
                     efvMap.put(efv, assays = newArrayList());
