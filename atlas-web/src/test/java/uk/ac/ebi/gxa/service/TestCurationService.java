@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.service;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -24,6 +26,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
     private static final String CELL_TYPE = "cell_type";
     private static final String PROP3 = "prop3";
+    private static final String VALUE = "value";
     private static final String VALUE007 = "value007";
     private static final String VALUE004 = "value004";
     private static final String VALUE010 = "value010";
@@ -31,11 +34,9 @@ public class TestCurationService extends AtlasDAOTestCase {
     private static final String E_MEXP_420 = "E-MEXP-420";
     private static final String ASSAY_ACC = "abc:ABCxyz:SomeThing:1234.ABC123";
     private static final String SAMPLE_ACC = "abc:some/Sample:ABC_DEFG_123a";
-    private static final String EFO = "EFO";
-    private static final String VBO = "VBO";
     private static final String EFO_0000827 = "EFO_0000827";
     private static final String EFO_0000828 = "EFO_0000828";
-    private static final String VBO_0000001 = "VBO_0000001";
+
 
     private static final Function<ApiPropertyName, String> PROPERTY_NAME_FUNC =
             new Function<ApiPropertyName, String>() {
@@ -97,14 +98,8 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAllExperiments() throws Exception {
-        assertTrue("Some experiments should have been returned",
-                curationService.getAllExperiments().size() > 0);
-    }
-
-    @Test
-    public void testGetExperimentsByAssayPropertyOntologyTerm() throws Exception {
-        assertTrue("Some assays should contain property values mapped to ontology term: " + EFO_0000827,
+    public void testGetExperimentsByPropertyOntologyTerm() throws Exception {
+        assertTrue("Some assays or samples should contain property values mapped to ontology term: " + EFO_0000827,
                 curationService.getExperimentsByOntologyTerm(EFO_0000827).size() > 0);
     }
 
@@ -115,6 +110,132 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyValueExactMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property value: " + PROP3.toUpperCase() + ":" + VALUE004.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(PROP3.toUpperCase(), VALUE004.toUpperCase(), true).size() > 0);
+        assertTrue("Some assays or samples should contain property value: " + VALUE004.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(null, VALUE004.toUpperCase(), true).size() > 0);
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyValuePartialMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property value as a substring: " + PROP3.toUpperCase() + ":" + VALUE.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(PROP3.toUpperCase(), VALUE.toUpperCase(), false).size() > 0);
+        assertTrue("Some assays or samples should contain property value as a substring: " + VALUE.toUpperCase(),
+                curationService.getOntologyMappingsByPropertyValue(null, VALUE.toUpperCase(), false).size() > 0);
+    }
+
+    @Test
+    public void testReplacePropertyInAssays() throws Exception {
+        // Test replace VALUE007 (already a property of ASSAY_ACC) with VALUE010 (not a property of ASSAY_ACC)
+        Collection<ApiProperty> assayProperties = curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC);
+
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
+                propertyPresent(assayProperties, CELL_TYPE, VALUE007));
+
+        curationService.replacePropertyInAssays(CELL_TYPE, PROP3);
+
+        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " found in assay properties",
+                propertyPresent(assayProperties, CELL_TYPE, VALUE007));
+        assertTrue("Property : " + PROP3 + ":" + VALUE007 + " not found in assay properties",
+                propertyPresent(assayProperties, PROP3, VALUE007));
+    }
+
+    @Test
+    public void testReplacePropertyInAssays1() throws Exception {
+        // Test replace MICROGLIAL_CELL with VALUE004 (both properties of ASSAY_ACC)
+        Collection<ApiProperty> assayProperties = curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC);
+
+        assertTrue("Property : " + CELL_TYPE + ":" + MICROGLIAL_CELL + " not found in assay properties",
+                propertyPresent(assayProperties, CELL_TYPE, MICROGLIAL_CELL));
+
+        // First add VALUE004 to ASSAY_ACC properties
+        Set<ApiOntologyTerm> terms = Sets.newHashSet();
+        terms.add(curationService.getOntologyTerm(EFO_0000828));
+        ApiProperty apiProperty = new ApiProperty(new ApiPropertyValue(new ApiPropertyName(PROP3), MICROGLIAL_CELL), terms);
+        ApiProperty[] newProps = new ApiProperty[1];
+        newProps[0] = apiProperty;
+        curationService.putAssayProperties(E_MEXP_420, ASSAY_ACC, newProps);
+
+        // Now that both CELL_TYPE:MICROGLIAL_CELL and PROP3:MICROGLIAL_CELL are both present in ASSAY_ACC, replace CELL_TYPE with PROP3
+        curationService.replacePropertyInAssays(CELL_TYPE, PROP3);
+
+        assertFalse("Property : " + CELL_TYPE + ":" + MICROGLIAL_CELL + " found in assay properties",
+                propertyPresent(assayProperties, CELL_TYPE, MICROGLIAL_CELL));
+
+        assertTrue("Property : " + PROP3 + ":" + MICROGLIAL_CELL + " not found in assay properties",
+                propertyPresent(assayProperties, PROP3, MICROGLIAL_CELL));
+
+        for (ApiProperty property : assayProperties) {
+            if (PROP3.equals(property.getPropertyValue().getProperty().getName()) &&
+                    MICROGLIAL_CELL.equals(property.getPropertyValue().getValue())) {
+                Set<ApiOntologyTerm> newTerms = property.getTerms();
+                assertEquals(2, newTerms.size());
+                // Set of terms in the retained VALUE004 property should be a superset of terms assigned
+                // to the replaced VALUE010 and to the replacing VALUE004
+                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000827),
+                        newTerms.contains(curationService.getOntologyTerm(EFO_0000827))); // from property VALUE010
+                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
+                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); // from property VALUE004
+            }
+        }
+    }
+
+    @Test
+    public void testReplacePropertyInSamples() throws Exception {
+        // Test replace PROP3 with CELL_TYPE
+        Collection<ApiProperty> sampleProperties = curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC);
+
+        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(sampleProperties, PROP3, VALUE004));
+
+        curationService.replacePropertyInSamples(PROP3, CELL_TYPE);
+
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in sample properties",
+                propertyPresent(sampleProperties, PROP3, VALUE004));
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(sampleProperties, CELL_TYPE, VALUE004));
+    }
+
+    @Test
+    public void testReplacePropertyInSamples1() throws Exception {
+         // Test replace PROP3 with CELL_TYPE, WHERE values of CELL_TYPE already exist in ASSAY
+        Collection<ApiProperty> sampleProperties = curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC);
+
+        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(sampleProperties, PROP3, VALUE004));
+
+        // First add VALUE004 to ASSAY_ACC properties
+        Set<ApiOntologyTerm> terms = Sets.newHashSet();
+        terms.add(curationService.getOntologyTerm(EFO_0000828));
+        ApiProperty apiProperty = new ApiProperty(new ApiPropertyValue(new ApiPropertyName(CELL_TYPE), VALUE004), terms);
+        ApiProperty[] newProps = new ApiProperty[1];
+        newProps[0] = apiProperty;
+        curationService.putSampleProperties(E_MEXP_420, SAMPLE_ACC, newProps);
+
+        // Now that both CELL_TYPE:VALUE004 and PROP3:VALUE004 are both present in SAMPLE_ACC, replace PROP3 with CELL_TYPE
+        curationService.replacePropertyInSamples(PROP3, CELL_TYPE);
+
+        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " found in sample properties",
+                propertyPresent(sampleProperties, PROP3, VALUE004));
+
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE004 + " not found in sample properties",
+                propertyPresent(sampleProperties, CELL_TYPE, VALUE004));
+
+        for (ApiProperty property : sampleProperties) {
+            if (CELL_TYPE.equals(property.getPropertyValue().getProperty().getName()) &&
+                    VALUE004.equals(property.getPropertyValue().getValue())) {
+                Set<ApiOntologyTerm> newTerms = property.getTerms();
+                assertEquals(1, newTerms.size());
+                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
+                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); 
+            }
+        }
+    }
+
+
+
+       @Test
     public void testReplacePropertyValueInAssays() throws Exception {
         // Test replace VALUE007 (already a property of ASSAY_ACC) with VALUE010 (not a property of ASSAY_ACC)
         Collection<ApiProperty> assayProperties = curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC);
@@ -228,14 +349,14 @@ public class TestCurationService extends AtlasDAOTestCase {
 
 
     @Test
-    public void testRemovePropertyValue() throws Exception {
+    public void testDeletePropertyValue() throws Exception {
         assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
                 propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
         assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
                 propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
 
-        curationService.removePropertyValue(CELL_TYPE, VALUE007);
-        curationService.removePropertyValue(PROP3, VALUE004);
+        curationService.deletePropertyValue(CELL_TYPE, VALUE007);
+        curationService.deletePropertyValue(PROP3, VALUE004);
 
         assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
                 propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
@@ -250,41 +371,13 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testRemovePropertyFromAssaysSamples() throws Exception {
-        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " not found in assay properties",
-                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
-        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
-                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
-
-        curationService.removePropertyFromAssays(CELL_TYPE);
-        curationService.removePropertyFromSamples(PROP3);
-
-        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
-                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
-        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
-                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
-
+    public void testDeleteProperty() throws Exception {
         Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
         assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
-        assertTrue("Property: " + PROP3 + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(PROP3));
-    }
+        curationService.deleteProperty(CELL_TYPE);
+        propertyNames = curationService.getPropertyNames();
+        assertFalse("Property: " + CELL_TYPE + " not removed", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
 
-    @Test
-    public void testGetAssay() throws Exception {
-        try {
-            curationService.getAssay(E_MEXP_420, ASSAY_ACC);
-        } catch (ResourceNotFoundException e) {
-            fail("Assay: " + ASSAY_ACC + " in experiment: " + E_MEXP_420 + " not found");
-        }
-    }
-
-    @Test
-    public void testGetSample() throws Exception {
-        try {
-            curationService.getSample(E_MEXP_420, SAMPLE_ACC);
-        } catch (ResourceNotFoundException e) {
-            fail("Sample: " + SAMPLE_ACC + " in experiment: " + E_MEXP_420 + " not found");
-        }
     }
 
     @Test
@@ -341,91 +434,20 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetOntology() throws Exception {
-        ApiOntology ontology = curationService.getOntology(EFO);
-        assertNotNull("Ontology: " + EFO + " not found ", ontology);
+    public void testGetUnusedProperties() throws Exception {
+        assertTrue(curationService.getUnusedPropertyNames().size() > 0);
     }
 
     @Test
-    public void testPutOntology() throws Exception {
-        ApiOntology ontology = curationService.getOntology(EFO);
-        try {
-            curationService.getOntology(VBO);
-            fail("Ontology: " + VBO + " already exists");
-        } catch (ResourceNotFoundException e) {
-
-        }
-
-        ontology.setName(VBO);
-        // Create new ontology
-        curationService.putOntology(ontology);
-        try {
-            curationService.getOntology(VBO);
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology: " + VBO);
-        }
-
-        // Update ontology
-        String newDescr = "Updated " + ontology.getDescription();
-        ontology.setDescription(newDescr);
-        curationService.putOntology(ontology);
-        try {
-            ApiOntology updatedOntology = curationService.getOntology(VBO);
-            assertEquals(newDescr, updatedOntology.getDescription());
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology: " + VBO);
-        }
-
-    }
-
-    @Test
-    public void testGetOntologyTerm() throws Exception {
-        ApiOntologyTerm ontologyTerm = curationService.getOntologyTerm(EFO_0000827);
-        assertNotNull("Ontology term: " + EFO_0000827 + " not found ", ontologyTerm);
-    }
-
-    @Test
-    public void testPutOntologyTerms() throws Exception {
-        ApiOntologyTerm ontologyTerm = curationService.getOntologyTerm(EFO_0000827);
-
-        try {
-            curationService.getOntologyTerm(VBO_0000001);
-            fail("Ontology term: " + VBO_0000001 + " already exists");
-        } catch (ResourceNotFoundException e) {
-
-        }
-
-        // Create new ontology term
-        ontologyTerm.setAccession(VBO_0000001);
-
-        ApiOntologyTerm[] ontologyTerms = new ApiOntologyTerm[1];
-        ontologyTerms[0] = ontologyTerm;
-        curationService.putOntologyTerms(ontologyTerms);
-
-        try {
-            curationService.getOntologyTerm(VBO_0000001);
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology term: " + VBO_0000001);
-        }
-
-        // Update ontology term
-        String newDescr = "Updated " + ontologyTerm.getDescription();
-        ontologyTerm.setDescription(newDescr);
-        curationService.putOntologyTerms(ontologyTerms);
-
-        try {
-            ApiOntologyTerm updatedOntologyTerm = curationService.getOntologyTerm(VBO_0000001);
-            assertEquals(newDescr, updatedOntologyTerm.getDescription());
-        } catch (ResourceNotFoundException e) {
-            fail("Failed to create ontology term: " + VBO_0000001);
-        }
+    public void testGetUnusedPropertyValues() throws Exception {
+        assertTrue(curationService.getUnusedPropertyValues().size() > 0);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private boolean propertyPresent(Collection<ApiProperty> properties, String propertyName, String propertyValue) {
+    private boolean propertyPresent(Collection<ApiProperty> properties, String propertyName, @Nullable String propertyValue) {
         boolean found = false;
         for (ApiProperty property : properties) {
-            if (propertyName.equals(property.getPropertyValue().getProperty().getName()) && propertyValue.equals(property.getPropertyValue().getValue()))
+            if (propertyName.equals(property.getPropertyValue().getProperty().getName()) && (Strings.isNullOrEmpty(propertyValue) || propertyValue.equals(property.getPropertyValue().getValue())))
                 found = true;
         }
         return found;
