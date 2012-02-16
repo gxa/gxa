@@ -5,5 +5,5 @@ http://www.springframework.org/schema/beans/spring-beans.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/dao/testHibernateContext.xml"/>
 
-    <bean name="test" class="uk.ac.ebi.gxa.dao.TestAtlasDAO" />
+    <bean name="test" class="uk.ac.ebi.gxa.dao.TestAtlasDAO"/>
 </beans>

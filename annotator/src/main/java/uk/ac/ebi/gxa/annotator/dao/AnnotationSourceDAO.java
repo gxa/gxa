@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
@@ -51,13 +50,17 @@ public class AnnotationSourceDAO {
         this.atlasJdbcTemplate = atlasJdbcTemplate;
     }
 
+    public <T extends AnnotationSource> T getById(long id, Class<T> type) {
+        return template.get(type, id);
+    }
+
     public AnnotationSource getById(long id) {
         return template.get(AnnotationSource.class, id);
     }
 
-    public void save(AnnotationSource object) {
-        object.setLoadDate(new Date());
-        template.save(object);
+    public void save(AnnotationSource annSrc) {
+        annSrc.setLoadDate(new Date());
+        template.save(annSrc);
         template.flush();
     }
 
@@ -78,7 +81,7 @@ public class AnnotationSourceDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
-    public void remove(BioMartAnnotationSource annSrc) {
+    public void remove(AnnotationSource annSrc) {
 
         template.delete(annSrc);
         template.flush();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,34 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotator;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 /**
  * User: nsklyar
- * Date: 28/07/2011
+ * Date: 03/01/2012
  */
+
 public class AnnotatorFactory {
 
+    @Autowired
     private AtlasBioEntityDataWriter beDataWriter;
+    @Autowired
     private AnnotationSourceDAO annSrcDAO;
+    @Autowired
     private BioEntityPropertyDAO propertyDAO;
+    @Autowired
+    private HttpClient httpClient;
 
-    public AnnotatorFactory(AtlasBioEntityDataWriter beDataWriter, AnnotationSourceDAO annotationSourceDAO, BioEntityPropertyDAO propertyDAO) {
-        this.beDataWriter = beDataWriter;
-        this.annSrcDAO = annotationSourceDAO;
-        this.propertyDAO = propertyDAO;
+    public BioMartAnnotator createBioMartAnnotator(BioMartAnnotationSource annSrc) {
+        return new BioMartAnnotator(annSrc, annSrcDAO, propertyDAO, beDataWriter, httpClient);
     }
 
-    public BioMartAnnotator getEnsemblAnnotator() {
-        return new BioMartAnnotator(annSrcDAO, propertyDAO, beDataWriter);
+    public <T extends FileBasedAnnotationSource> FileBasedAnnotator createFileBasedAnnotator(T annSrc) {
+        return new FileBasedAnnotator(annSrc, beDataWriter, httpClient);
     }
-
 }
