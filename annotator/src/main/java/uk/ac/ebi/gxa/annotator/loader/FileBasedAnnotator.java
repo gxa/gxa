@@ -48,14 +48,14 @@ public class FileBasedAnnotator extends Annotator {
     }
 
     @Override
-    public void updateAnnotations() {
+    public void updateAnnotations(int batchSize) {
         try {
             reportProgress("Loading properties from annotation source " + annSrc.getName());
             GeneSigAnnotationLoader loader = new GeneSigAnnotationLoader(httpClient, annSrc);
             loader.loadPropertyValues();
 
             reportProgress("Writing properties from annotation source " + annSrc.getName());
-            writePropertyValues(loader.getPropertyValuesData(), annSrc, true);
+            writePropertyValues(loader.getPropertyValuesData(), annSrc, true, batchSize);
 
             reportSuccess("Update annotations from Annotation Source " + annSrc.getName() + " completed");
         } catch (AnnotationException e) {
@@ -70,7 +70,7 @@ public class FileBasedAnnotator extends Annotator {
     }
 
     @Override
-    public void updateMappings() {
+    public void updateMappings(int batchSize) {
         //ToDo: implement this method if we file based annotation source with mappings
         throw new UnsupportedOperationException(this.getClass().getSimpleName() + " doesn't support method updateMappings ");
     }

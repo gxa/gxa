@@ -45,12 +45,12 @@ public class AnnotationProcessor {
     public AnnotationProcessor() {
     }
 
-    public void updateAnnotations(String annSrcId, AnnotationCommandListener listener) {
-        createAnnotator(annSrcId, listener).updateAnnotations();
+    public void updateAnnotations(String annSrcId, int batchSize, AnnotationCommandListener listener) {
+        createAnnotator(annSrcId, listener).updateAnnotations(batchSize);
     }
 
-    public void updateMappings(String annSrcId, AnnotationCommandListener listener) {
-        createAnnotator(annSrcId, listener).updateMappings();
+    public void updateMappings(String annSrcId, int batchSize, AnnotationCommandListener listener) {
+        createAnnotator(annSrcId, listener).updateMappings(batchSize);
     }
 
     private AnnotationSource fetchAnnSrcById(String id) {

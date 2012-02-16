@@ -50,9 +50,9 @@ public abstract class Annotator {
         this.listener = listener;
     }
 
-    public abstract void updateAnnotations();
+    public abstract void updateAnnotations(int batchSize);
 
-    public abstract void updateMappings();
+    public abstract void updateMappings(int batchSize);
 
     protected void reportProgress(String report) {
         log.info(report);
@@ -72,16 +72,16 @@ public abstract class Annotator {
             listener.commandSuccess(message);
     }
 
-    protected void writeBioEntities(BioEntityData data) {
-        beDataWriter.writeBioEntities(data, listener);
+    protected void writeBioEntities(BioEntityData data, int batchSize) {
+        beDataWriter.writeBioEntities(data, batchSize, listener);
     }
 
-    protected void writePropertyValues(BioEntityAnnotationData data, AnnotationSource annSrc, boolean checkBioEntities) {
-        beDataWriter.writePropertyValues(data.getPropertyValues(), listener);
-        beDataWriter.writeBioEntityToPropertyValues(data, annSrc, checkBioEntities, listener);
+    protected void writePropertyValues(BioEntityAnnotationData data, AnnotationSource annSrc, boolean checkBioEntities, int batchSize) {
+        beDataWriter.writePropertyValues(data.getPropertyValues(), batchSize, listener);
+        beDataWriter.writeBioEntityToPropertyValues(data, annSrc, checkBioEntities, batchSize, listener);
     }
 
-    protected void writeDesignElements(DesignElementMappingData data, ArrayDesign arrayDesign, Software software, boolean deleteBeforeWrite) {
-        beDataWriter.writeDesignElements(data, arrayDesign, software, deleteBeforeWrite, listener);
+    protected void writeDesignElements(DesignElementMappingData data, ArrayDesign arrayDesign, Software software, boolean deleteBeforeWrite, int batchSize) {
+        beDataWriter.writeDesignElements(data, arrayDesign, software, deleteBeforeWrite, batchSize, listener);
     }
 }

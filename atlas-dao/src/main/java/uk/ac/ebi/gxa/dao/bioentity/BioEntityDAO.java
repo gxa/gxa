@@ -144,7 +144,7 @@ public class BioEntityDAO {
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
-    public void writeBioEntities(final Collection<BioEntity> bioEntities) {
+    public void writeBioEntities(final Collection<BioEntity> bioEntities, final int batchSize) {
         String query = "merge into a2_bioentity p\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
@@ -165,12 +165,12 @@ public class BioEntityDAO {
 
         };
 
-        int loadedRecordsNumber = writeBatchInChunks(query, bioEntities, statementSetter);
+        int loadedRecordsNumber = writeBatchInChunks(query, bioEntities, statementSetter, batchSize);
         log.info("BioEntities merged: " + loadedRecordsNumber);
 
     }
 
-    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, final int batchSize) {
 
         String query = "merge into a2_bioentitypropertyvalue pv\n" +
                 "  using (select  1 from dual)\n" +
@@ -189,7 +189,7 @@ public class BioEntityDAO {
             }
         };
 
-        int loadedRecords = writeBatchInChunks(query, propertyValues, statementSetter);
+        int loadedRecords = writeBatchInChunks(query, propertyValues, statementSetter, batchSize);
         log.info("PropertieValues merged : " + loadedRecords);
 
     }
@@ -200,9 +200,10 @@ public class BioEntityDAO {
      *                     [1] - BEPropertyValue
      * @param beType
      * @param software
+     * @param batchSize
      */
     public void writeBioEntityToPropertyValues(final Collection<Pair<String, BEPropertyValue>> beProperties, final BioEntityType beType,
-                                               final Software software) {
+                                               final Software software, final int batchSize) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
                 "  values (\n" +
@@ -226,7 +227,7 @@ public class BioEntityDAO {
 
         };
 
-        writeBatchInChunks(query, beProperties, statementSetter);
+        writeBatchInChunks(query, beProperties, statementSetter, batchSize);
     }
 
     /**
@@ -237,9 +238,10 @@ public class BioEntityDAO {
      *                     [1] - BEPropertyValue
      * @param beType
      * @param software
+     * @param batchSize
      */
     public void writeBioEntityToPropertyValuesChecked(final Collection<Pair<String, BEPropertyValue>> beProperties, final BioEntityType beType,
-                                                      final Software software) {
+                                                      final Software software, final int batchSize) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
                 "  select \n" +
@@ -266,11 +268,11 @@ public class BioEntityDAO {
 
         };
 
-        writeBatchInChunks(query, beProperties, statementSetter);
+        writeBatchInChunks(query, beProperties, statementSetter, batchSize);
     }
 
 
-    public void writeDesignElements(final Collection<DesignElement> designElements, final ArrayDesign arrayDesign) {
+    public void writeDesignElements(final Collection<DesignElement> designElements, final ArrayDesign arrayDesign, final int batchSize) {
         String query = "MERGE INTO a2_designelement de\n" +
                 "  USING (select  1 from dual)\n" +
                 "  ON (de.arraydesignid = ? AND de.accession = ?)\n" +
@@ -292,13 +294,14 @@ public class BioEntityDAO {
                 ps.setString(5, list.get(i).getName());
             }
         };
-        writeBatchInChunks(query, designElements, setter);
+        writeBatchInChunks(query, designElements, setter, batchSize);
 
     }
 
     public void writeDesignElementBioEntityMappings(final Collection<Pair<String, String>> deToBeMappings, final BioEntityType beType,
                                                     final Software software,
-                                                    final ArrayDesign arrayDesign) {
+                                                    final ArrayDesign arrayDesign,
+                                                    final int batchSize) {
 
         String query = "INSERT INTO a2_designeltbioentity \n" +
                 " (designelementid, bioentityid, softwareid)\n" +
@@ -321,7 +324,7 @@ public class BioEntityDAO {
             }
         };
 
-        writeBatchInChunks(query, deToBeMappings, setter);
+        writeBatchInChunks(query, deToBeMappings, setter, batchSize);
     }
 
     public int deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
@@ -349,14 +352,16 @@ public class BioEntityDAO {
 
     private <T> int writeBatchInChunks(String query,
                                        final Collection<T> entityList,
-                                       ListStatementSetter<T> statementSetter) throws DataAccessException {
+                                       ListStatementSetter<T> statementSetter, 
+                                       int batchSize) throws DataAccessException {
         int loadedRecordsNumber = 0;
 
-        for (List<T> subList : partition(entityList, SUB_BATCH_SIZE)) {
+        int subBatchSize = batchSize != 0 ? batchSize : SUB_BATCH_SIZE;
+        for (List<T> subList : partition(entityList, subBatchSize)) {
             statementSetter.setList(subList);
             int[] rowsAffectedArray = template.batchUpdate(query, statementSetter);
             loadedRecordsNumber += rowsAffectedArray.length;
-            if (loadedRecordsNumber % (SUB_BATCH_SIZE * 100) == 0) { // report every 100 batches
+            if (loadedRecordsNumber % (subBatchSize * 100) == 0) { // report every 100 batches
                 log.info("Number of rows loaded to the DB = " + loadedRecordsNumber);
             }
         }

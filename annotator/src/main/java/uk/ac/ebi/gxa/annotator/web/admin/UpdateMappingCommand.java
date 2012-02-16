@@ -31,13 +31,15 @@ import uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor;
 public class UpdateMappingCommand implements AnnotationCommand {
 
     private final String annSrcId;
+    private final int batchSize;
 
-    public UpdateMappingCommand(String annSrcId) {
+    public UpdateMappingCommand(String annSrcId, int batchSize) {
         this.annSrcId = annSrcId;
+        this.batchSize = batchSize;
     }
 
     @Override
     public void execute(AnnotationProcessor annotationProcessor, AnnotationCommandListener listener) {
-        annotationProcessor.updateMappings(annSrcId, listener);
+        annotationProcessor.updateMappings(annSrcId, batchSize, listener);
     }
 }

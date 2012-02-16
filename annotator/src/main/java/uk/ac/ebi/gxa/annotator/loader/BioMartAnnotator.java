@@ -71,7 +71,7 @@ public class BioMartAnnotator extends Annotator {
     }
 
     @Override
-    public void updateAnnotations() {
+    public void updateAnnotations(int batchSize) {
         try {
             validate(annSrc);
             String organismName = annSrc.getOrganism().getName();
@@ -94,8 +94,8 @@ public class BioMartAnnotator extends Annotator {
                 log.debug("Done. {} ms).\n", (currentTimeMillis() - startTime));
             }
 
-            writeBioEntities(annotLoader.getBioEntityData());
-            writePropertyValues(annotLoader.getPropertyValuesData(), annSrc, false);
+            writeBioEntities(annotLoader.getBioEntityData(), batchSize);
+            writePropertyValues(annotLoader.getPropertyValuesData(), annSrc, false, batchSize);
 
             reportSuccess("Update annotations for Organism " + organismName + " completed");
 
@@ -111,7 +111,7 @@ public class BioMartAnnotator extends Annotator {
     }
 
     @Override
-    public void updateMappings() {
+    public void updateMappings(int batchSize) {
         try {
             validate(annSrc);
             String organismName = annSrc.getOrganism().getName();
@@ -121,7 +121,7 @@ public class BioMartAnnotator extends Annotator {
             if (!annSrc.isApplied()) {
                 reportProgress("Loading bioentities for " + organismName);
                 annotLoader.loadBioEntities();
-                writeBioEntities(annotLoader.getBioEntityData());
+                writeBioEntities(annotLoader.getBioEntityData(), batchSize);
             }
 
             for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
@@ -135,7 +135,8 @@ public class BioMartAnnotator extends Annotator {
                 writeDesignElements(annotLoader.getDeMappingsData(),
                         externalArrayDesign.getArrayDesign(),
                         annSrc.getSoftware(),
-                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign()));
+                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign()),
+                        batchSize);
             }
 
             reportSuccess("Update mappings for Organism " + organismName + " completed");

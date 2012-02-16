@@ -31,13 +31,15 @@ import uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor;
 public class UpdateBioEntityAnnotationCommand implements AnnotationCommand {
 
     private final String annSrcId;
+    private final int batchSize;
 
-    public UpdateBioEntityAnnotationCommand(String annSrcId) {
+    public UpdateBioEntityAnnotationCommand(String annSrcId, int batchSize) {
         this.annSrcId = annSrcId;
+        this.batchSize = batchSize;
     }
 
     @Override
     public void execute(AnnotationProcessor annotationProcessor, AnnotationCommandListener listener) {
-        annotationProcessor.updateAnnotations(annSrcId, listener);
+        annotationProcessor.updateAnnotations(annSrcId, batchSize, listener);
     }
 }

@@ -38,9 +38,9 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
 
     private AnnotationCommand getAnnotationCommand() {
         if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
-            return new UpdateBioEntityAnnotationCommand(getTaskSpec().getAccession());
+            return new UpdateBioEntityAnnotationCommand(getTaskSpec().getAccession(), taskMan.getAtlasProperties().getBatchUpdateSize());
         else if (TYPE_UPDATEMAPPINGS.endsWith(getTaskSpec().getType()))
-            return new UpdateMappingCommand(getTaskSpec().getAccession());
+            return new UpdateMappingCommand(getTaskSpec().getAccession(), taskMan.getAtlasProperties().getBatchUpdateSize());
         throw new IllegalStateException();
     }
 

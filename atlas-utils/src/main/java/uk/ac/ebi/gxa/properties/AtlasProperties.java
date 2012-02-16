@@ -489,4 +489,9 @@ public class AtlasProperties {
     public List<String> getDasFactors() {
         return getListProperty("atlas.dasfactors");
     }
+
+    public Integer getBatchUpdateSize() {
+        return getIntProperty("atlas.bioentity.annotations.batchupdate.size");
+    }
+
 }

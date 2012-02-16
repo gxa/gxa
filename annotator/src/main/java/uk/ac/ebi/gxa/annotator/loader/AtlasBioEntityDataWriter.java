@@ -65,24 +65,25 @@ public class AtlasBioEntityDataWriter {
     }
 
     @Transactional
-    public void writeBioEntities(final BioEntityData data, AnnotationCommandListener listener) {
+    public void writeBioEntities(final BioEntityData data, final int batchSize, AnnotationCommandListener listener) {
         for (BioEntityType type : data.getBioEntityTypes()) {
             reportProgress("Writing bioentities of type " + type.getName() + " for Organism " + data.getOrganism().getName(), listener);
             Collection<BioEntity> bioEntities = data.getBioEntitiesOfType(type);
-            bioEntityDAO.writeBioEntities(bioEntities);
+            bioEntityDAO.writeBioEntities(bioEntities, batchSize);
         }
     }
 
     @Transactional
-    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, AnnotationCommandListener listener) {
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, final int batchSize, AnnotationCommandListener listener) {
         reportProgress("Writing " + propertyValues.size() + " property values", listener);
-        bioEntityDAO.writePropertyValues(propertyValues);
+        bioEntityDAO.writePropertyValues(propertyValues, batchSize);
     }
 
     @Transactional
     public void writeBioEntityToPropertyValues(final BioEntityAnnotationData data,
                                                final AnnotationSource annSrc,
                                                boolean checkBioEntities,
+                                               final int batchSize,
                                                AnnotationCommandListener listener) {
         if (annSrc.isApplied()) {
             deleteBioEntityToPropertyValues(annSrc, listener);
@@ -91,9 +92,9 @@ public class AtlasBioEntityDataWriter {
             Collection<Pair<String, BEPropertyValue>> propValues = data.getPropertyValuesForBioEntityType(type);
             reportProgress("Writing " + propValues.size() + " property values for " + type.getName() + "; annSrc = " + annSrc.getName(), listener);
             if (checkBioEntities) {
-                bioEntityDAO.writeBioEntityToPropertyValuesChecked(propValues, type, annSrc.getSoftware());
+                bioEntityDAO.writeBioEntityToPropertyValuesChecked(propValues, type, annSrc.getSoftware(), batchSize);
             } else {
-                bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, annSrc.getSoftware());
+                bioEntityDAO.writeBioEntityToPropertyValues(propValues, type, annSrc.getSoftware(), batchSize);
             }
         }
 
@@ -125,12 +126,17 @@ public class AtlasBioEntityDataWriter {
 
 
     @Transactional
-    public void writeDesignElements(final DesignElementMappingData data, final ArrayDesign arrayDesign, final Software software, boolean deleteBeforeWrite, AnnotationCommandListener listener) {
+    public void writeDesignElements(final DesignElementMappingData data, 
+                                    final ArrayDesign arrayDesign, 
+                                    final Software software, 
+                                    boolean deleteBeforeWrite, 
+                                    final int batchSize, 
+                                    AnnotationCommandListener listener) {
         if (deleteBeforeWrite) {
             deleteDesignElementBioEntityMappings(software, arrayDesign, listener);
         }
         reportProgress("Writing " + data.getDesignElements().size() + " design elements of " + arrayDesign.getAccession(), listener);
-        bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign);
+        bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign, batchSize);
         for (BioEntityType bioEntityType : data.getBioEntityTypes()) {
             Collection<Pair<String, String>> designElementToBioEntity = data.getDesignElementToBioEntity(bioEntityType);
             reportProgress("Writing " + designElementToBioEntity.size() + " design elements to " +
@@ -138,7 +144,8 @@ public class AtlasBioEntityDataWriter {
             bioEntityDAO.writeDesignElementBioEntityMappings(designElementToBioEntity,
                     bioEntityType,
                     software,
-                    arrayDesign);
+                    arrayDesign,
+                    batchSize);
         }
     }
 
