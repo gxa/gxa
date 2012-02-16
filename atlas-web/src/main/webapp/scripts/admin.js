@@ -46,6 +46,7 @@ var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
 var selectedOrganisms = {};
+var selectedAnnSrcTypes = {};
 var selectAll = false;
 var selectAllOrg = false;
 var $time = {};
@@ -63,6 +64,7 @@ var $options = {
 };
 
 var annSrcId;
+var annSrcType;
 
 var $msg = {
     taskType: {
@@ -693,25 +695,51 @@ function updateAnnSrcs() {
 
             $(e).click(function() {
                annSrcId = li.id;
+               annSrcType=li.annSrcType;
                $('#tabs').tabs('select', $tab.annSrcEd);
             });
 
         });
+
+        $('#orgList .validate input').each(function (i, e) {
+            var li = result.annSrcs[i];
+
+            $(e).click(function() {
+                adminCall('validateannSrc', {
+                    annSrcId:li.id
+                    , type: li.annSrcType
+                }, function (result) {
+
+                    $('#validationMsg_' + li.id).text(result.validationMsg);
+
+                });
+            });
+
+        });
+
 
         $('#orgList input.update').click(function () {
             startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
         });
 
         $('#orgList input.updateMapping').click(function () {
-            startSelectedTasks('mappingupdate', 'RESTART', 'update annotations for organism ');
+            startSelectedTasks('mappingupdate', 'RESTART', 'update mappings for organism ');
         });
 
+        $('#orgList input.newannsrc').click(function () {
+            annSrcType=$('#annSrcSelect').val();
+            $('#tabs').tabs('select', $tab.annSrcEd);
+        });
+        
         bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
     });
 }
 
-function editAnnSrc(annSrcId) {
-    adminCall('searchannSrc', {annSrcId:annSrcId}, function (result) {
+function editAnnSrc(id, type) {
+    adminCall('searchannSrc', {
+        annSrcId:id
+        , type: type
+    }, function (result) {
 
         renderTpl('annSrcEd', result);
 
@@ -720,6 +748,8 @@ function editAnnSrc(annSrcId) {
         });
 
          $('#cancelAnnSrcButton').click(function () {
+            annSrcId="";
+            annSrcType="";
             $('#tabs').tabs('select', $tab.annSrc);
         });
     });
@@ -729,11 +759,15 @@ function saveAnnSrc() {
     var asText = $('#txtAnnSrc').val();
 
     function switchToAnnSrcList() {
+        annSrcId="";
+        annSrcType="";
         $('#tabs').tabs('select', $tab.annSrc);
     }
 
     adminCall('annSrcUpdate', {
-                asText: asText
+                asText: asText,
+                annSrcId:annSrcId,
+                type:annSrcType
             }, switchToAnnSrcList);
 }
 
@@ -776,7 +810,7 @@ function redrawCurrentState() {
         updateAnnSrcs();
         $('#tabs').tabs('select', $tab.annSrc);
     } else if(currentState['tab'] == $tab.annSrcEd) {
-        editAnnSrc(annSrcId);
+        editAnnSrc(annSrcId, annSrcType);
         $('#tabs').tabs('select', $tab.annSrcEd);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
@@ -799,7 +833,11 @@ function storeExperimentsFormState() {
 }
 
 function renderTpl(name, data) {
-    $('#'+name).render(data, $tpl[name]);
+    renderTemplate(name, name, data);
+}
+
+function renderTemplate(targetId, templateName, data) {
+    $('#' + targetId).render(data, $tpl[templateName]);
 }
 
 $.fn.appendClassTpl = function (data, name) {
@@ -880,11 +918,15 @@ function compileTemplates() {
      compileTpl('orgList', {
         'tbody tr': {
             'annSrc <- annSrcs': {
-                'label.name': 'annSrc.organismName',
+                'label.annSrcType': 'annSrc.annSrcType',
+                '.name': 'annSrc.organismName',
                 '.types': 'annSrc.beTypes',
                 '.currAnnSrc': 'annSrc.currName',
-                '.validation': 'annSrc.validation',
-                '.applied': 'annSrc.applied',
+                '.appliedAnn': 'annSrc.applied',
+                '.appliedMapping': 'annSrc.appliedMapping',
+//                '.validationMsg': 'annSrc.validation',
+                '.validationText@id+': 'annSrc.id',
+                '.validationText': 'annSrc.validation',
                 '.orgSelector@value': 'annSrc.id',
                 '.orgSelector@id+': 'annSrc.id'
             }
@@ -892,7 +934,7 @@ function compileTemplates() {
     });
 
     compileTpl('annSrcEd', {
-
+        '.type':'type',
         'textarea.value':'annSrcText'
     });
 

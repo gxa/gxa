@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,22 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.Collection;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Nataliya Sklyar
  */
-public class BioMartDbDAOTest extends TestCase {
+public class BioMartDbDAOTest {
     private BioMartDbDAO bioMartDbDAO;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         bioMartDbDAO = new BioMartDbDAO("ensembldb.ensembl.org:5306");
     }
 

@@ -36,4 +36,24 @@ public class Organism implements Comparable<Organism> {
     public int compareTo(Organism o) {
         return name.compareTo(o.name);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Organism organism = (Organism) o;
+
+        if (name != null ? !name.equals(organism.name) : organism.name != null) return false;
+        if (organismid != null ? !organismid.equals(organism.organismid) : organism.organismid != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = organismid != null ? organismid.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
+    }
 }

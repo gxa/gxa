@@ -1,0 +1,11 @@
+<MartRegistry>
+  <MartURLLocation database="ensembl_mart_65" default="1" displayName="ENSEMBL GENES 65 (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="ensembl" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="1" />
+  <MartURLLocation database="snp_mart_65" default="0" displayName="ENSEMBL VARIATION 65 (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="snp" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="1" />
+  <MartURLLocation database="functional_genomics_mart_65" default="0" displayName="ENSEMBL REGULATION 65 (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="functional_genomics" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="1" />
+  <MartURLLocation database="vega_mart_65" default="0" displayName="VEGA 45  (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="vega" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="1" />
+  <MartURLLocation database="genomic_features_mart_65" default="0" displayName="ENSEMBL GENOMIC FEATURES 65 (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="genomic_features" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="0" />
+  <MartURLLocation database="ontology_mart_65" default="0" displayName="ENSEMBL ONTOLOGY 65 (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="ontology" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="0" />
+  <MartURLLocation database="egontology_mart_12" default="0" displayName="" host="www.biomart.org" includeDatasets="" martUser="" name="ontology" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="0" />
+  <MartURLLocation database="sequence_mart_65" default="0" displayName="ENSEMBL SEQUENCE 65 (SANGER UK)" host="www.biomart.org" includeDatasets="" martUser="" name="sequence" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="0" />
+  <MartURLLocation database="bacteria_mart_12" default="0" displayName="ENSEMBL BACTERIA 12 (EBI UK)" host="www.biomart.org" includeDatasets="" martUser="" name="bacteria_mart_12" path="/biomart/martservice" port="80" serverVirtualSchema="default" visible="1" />
+</MartRegistry>
