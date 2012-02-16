@@ -80,8 +80,7 @@ public class ArrayDesignDAO {
                     "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
                     "  join a2_bioentity indexedbe on indexedbe.bioentityid = debe.bioentityid\n" +
                     "  join a2_bioentitytype betype on betype.bioentitytypeid = indexedbe.bioentitytypeid\n" +
-                    "  JOIN A2_SOFTWARE SW ON SW.SOFTWAREID = DEBE.SOFTWAREID\n" +
-                    "  where sw.isactive = 'T'\n" +
+                    "  where debe.softwareid in (select max(softwareid) from A2_software group by name)\n" +
                     "  AND BETYPE.ID_FOR_INDEX = 1\n" +
                     "  and de.arraydesignid = ?",
                     new Object[]{arrayDesign.getArrayDesignID()},

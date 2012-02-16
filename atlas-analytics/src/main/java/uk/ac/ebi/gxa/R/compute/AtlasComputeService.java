@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.analytics.compute;
+package uk.ac.ebi.gxa.R.compute;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

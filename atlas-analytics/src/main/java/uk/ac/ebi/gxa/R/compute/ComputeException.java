@@ -20,20 +20,23 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.R;
+package uk.ac.ebi.gxa.R.compute;
 
 /**
- * An exception thrown whenever the R framework fails to create, reuse or recycle an RService
+ * A {@link RuntimeException} that is thrown whenever a {@link ComputeTask} fails.
  *
  * @author Tony Burdett
  */
-public class AtlasRServicesException extends Exception {
-
-    public AtlasRServicesException(String message) {
+public class ComputeException extends RuntimeException {
+    public ComputeException(String message) {
         super(message);
     }
 
-    public AtlasRServicesException(String s, Throwable throwable) {
-        super(s, throwable);
+    public ComputeException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ComputeException(Throwable cause) {
+        super(cause);
     }
 }

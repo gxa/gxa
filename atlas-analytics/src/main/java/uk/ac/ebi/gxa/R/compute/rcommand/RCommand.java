@@ -1,15 +1,13 @@
-package ae3.service.experiment.rcommand;
+package uk.ac.ebi.gxa.R.compute.rcommand;
 
-import com.google.common.io.Resources;
-import uk.ac.ebi.gxa.analytics.compute.AtlasComputeService;
-import uk.ac.ebi.gxa.analytics.compute.ComputeException;
-import uk.ac.ebi.gxa.analytics.compute.ComputeTask;
-import uk.ac.ebi.gxa.analytics.compute.RUtil;
+import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.R.compute.ComputeException;
+import uk.ac.ebi.gxa.R.compute.ComputeTask;
+import uk.ac.ebi.gxa.R.compute.RUtil;
 import uk.ac.ebi.rcloud.server.RServices;
 import uk.ac.ebi.rcloud.server.RType.RDataFrame;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.net.URL;
 import java.rmi.RemoteException;
 
 /**
@@ -19,9 +17,9 @@ import java.rmi.RemoteException;
 public class RCommand {
 
     private final AtlasComputeService computeService;
-    private final String rCodeResourcePath;
+    private final URL rCodeResourcePath;
 
-    public RCommand(AtlasComputeService computeService, String rCodeResourcePath) {
+    public RCommand(AtlasComputeService computeService, URL rCodeResourcePath) {
         this.computeService = computeService;
         this.rCodeResourcePath = rCodeResourcePath;
     }
