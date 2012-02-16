@@ -137,7 +137,7 @@ log2.safe <-
 }
 
 ### function to check if factor value is empty
-isEmptyEFV <- function(value) return (is.null(value) || value == "" || value == "(empty)")
+isEmptyEFV <- function(value) return (is.null(value))
 
 ### Omnibus one-way ANOVA (with moderated t) F-statistic computation
 fstat.eset <-

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~ Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,18 +29,16 @@
         <property name="sourceList">
             <list merge="true">
                 <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartProperty</value>
-                <value>uk.ac.ebi.gxa.annotator.model.biomart.BioMartArrayDesign</value>
+                <value>uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty</value>
+                <value>uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign</value>
             </list>
         </property>
     </bean>
 
-    <bean id="annotatorFactory" class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory">
-        <constructor-arg index="0" ref="beDataWriter"/>
-        <constructor-arg index="1" ref="annSrcDAO"/>
-        <constructor-arg index="2" ref="bioEntityPropertyDAO"/>
-    </bean>
+    <bean id="annotationProcessor" class="uk.ac.ebi.gxa.annotator.loader.AnnotationProcessor"/>
 
     <bean id="beDataWriter" class="uk.ac.ebi.gxa.annotator.loader.AtlasBioEntityDataWriter"/>
 
@@ -49,11 +47,50 @@
         <constructor-arg ref="atlasJdbcTemplate"/>
     </bean>
 
-    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.loader.arraydesign.ArrayDesignService">
+    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService">
         <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
-    <bean name="annotationSourceLoader"
-          class="uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader"/>
+    <!-- annotation source managers -->
+    <bean name="martSourceManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.MartAnnotationSourceManager"/>
+
+    <bean name="geneSigSourceManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceManager"/>
+
+    <!-- main Managed is used by Controller -->
+    <bean name="annotationSourceManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager">
+        <constructor-arg>
+            <list>
+                <ref bean="martSourceManager"/>
+                <ref bean="geneSigSourceManager"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!-- Converters -->
+    <bean name="bioMartAnnotationSourceConverter"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartAnnotationSourceConverter"/>
+
+    <bean name="fileBasedAnnotationSourceConverter"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceConverter"/>
+
+    <!-- Validators -->
+    <bean name="martValidator"
+          class="uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator">
+        <constructor-arg ref="httpClient"/>
+    </bean>
+
+    <bean name="geneSigValidator"
+          class="uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedPropertiesValidator"/>
+
+    <!-- Version finder -->
+    <bean name="versionFinder"
+          class="uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder"/>
+
+    <!-- Annotator -->
+    <bean name="annotatorFactory"
+          class="uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory"/>
 
 </beans>
