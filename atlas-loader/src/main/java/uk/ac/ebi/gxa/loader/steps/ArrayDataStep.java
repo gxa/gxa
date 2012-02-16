@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.R.compute.RUtil;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
+import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.datamatrix.DataMatrixFileBuffer;
 import uk.ac.ebi.gxa.loader.service.AtlasLoaderServiceListener;
 import uk.ac.ebi.gxa.utils.FileUtil;
@@ -133,7 +134,7 @@ public class ArrayDataStep {
         }
     }
 
-    public boolean readArrayData(@Nonnull AtlasComputeService computeService, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
+    public boolean readArrayData(@Nonnull AtlasComputeService computeService, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -184,8 +185,8 @@ public class ArrayDataStep {
                 final String scanName = scanNode != null ? scanNode.getNodeName() : assayNode.getNodeName();
 
                 // TODO: use better way to check this if such way exists
-                if (!arrayDesignName.toLowerCase().contains("affy")) {
-                    log.warn("Array design " + arrayDesignName + " is not an Affymetrix");
+                if (!arrayDesignName.toLowerCase().contains("affy") && !dao.isArrayDesignSynonym(arrayDesignName)) {
+                    log.warn("Array design " + arrayDesignName + " is not an Affymetrix or a synonym of an existing array design");
                     // For non-Affymetrics chip we don't throw and exception but allow the experiment loading logic
                     // to silently move to using the processed files instead.
                     return false;

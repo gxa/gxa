@@ -40,7 +40,7 @@ public class ArrayDesignService {
     }
 
     public ArrayDesign findOrCreateArrayDesignShallow(String accession) {
-        ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+        ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignShallowByAccession(accession, true);
         if (arrayDesign == null) {
             ArrayExpressConnection aeConnection = new ArrayExpressConnection(accession);
             arrayDesign = createNew(accession,
