@@ -319,6 +319,8 @@ var atlas = atlas || {};
         }
 
         function asQuery(form) {
+            flushTokenizedValues(form);
+
             var qBuilder = new QueryBuilder();
 
             var field = geneConditionsField(form);
@@ -637,6 +639,8 @@ var atlas = atlas || {};
         }
 
         function asQuery(form) {
+            flushTokenizedValues(form);
+
             var qBuilder = new QueryBuilder();
 
             $('input.specval').each(function() {
@@ -773,10 +777,17 @@ var atlas = atlas || {};
         }
     }
 
+    /**
+     * Triggers 'preSubmit' event on all tokenized input fields in the form
+     * to flush tokenized values into corresponding hidden form fields
+     */
+    function flushTokenizedValues(form) {
+        $(form).find('input:hidden').trigger('preSubmit');
+    }
+
     function showSearchingIndicator(form) {
         var v = $(form).find('input[type=submit]');
         v.val('Searching...');
-        $(form).find('input:hidden').trigger('preSubmit');
     }
 
     function submitForm(query, form) {
