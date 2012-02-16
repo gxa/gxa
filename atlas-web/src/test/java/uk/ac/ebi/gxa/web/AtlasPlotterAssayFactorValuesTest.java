@@ -39,7 +39,7 @@ public class AtlasPlotterAssayFactorValuesTest {
 
     @Test
     public void testAssayFactorValues() {
-        String[] factorValues = new String[]{"value1", "value2", "value1", "value2", "value3", "(empty)"};
+        String[] factorValues = new String[]{"value1", "value2", "value1", "value2", "value3"};
         List<Float> expressions = Arrays.asList(1.0f, 2.0f, 1.0f, 2.0f, 3.0f, 0.0f);
         assertEquals(factorValues.length, expressions.size());
 
