@@ -1,0 +1,1 @@
+delete from A2_propertyvalue where regexp_like(name, '^[ ]+$') or name = '(empty)';
