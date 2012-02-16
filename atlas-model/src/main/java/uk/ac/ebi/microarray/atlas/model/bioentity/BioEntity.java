@@ -39,9 +39,8 @@ public class BioEntity {
 
     private Organism organism;
 
-    public BioEntity(String identifier, String name, BioEntityType type, Organism organism) {
+    public BioEntity(String identifier, BioEntityType type, Organism organism) {
         this.identifier = identifier;
-        this.name = name;
         this.type = type;
         this.organism = organism;
     }
@@ -86,6 +85,9 @@ public class BioEntity {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
     @Override
     public boolean equals(Object o) {

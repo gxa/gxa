@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,44 +24,34 @@ package uk.ac.ebi.gxa.annotator.loader.data;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 
 /**
  * User: nsklyar
  * Date: 25/08/2011
  */
-public class BioEntityAnnotationData extends BioEntityData {
+public class BioEntityAnnotationData {
 
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
+    public static final int PROPERTY_VALUE_DB_FIELD_SIZE = 1000;
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     //Keeps a Set of Pairs for each bioentity type, each Pair contains bioentity identifier and bioentity property value
-    final Multimap<BioEntityType, Pair<String, BEPropertyValue>> typeToBEPropValues = HashMultimap.create();
-
+    private final Multimap<BioEntityType, Pair<String, BEPropertyValue>> typeToBEPropValues = HashMultimap.create();
     private final Set<BEPropertyValue> propertyValues = new HashSet<BEPropertyValue>();
 
-    BioEntityAnnotationData(List<BioEntityType> bioEntityTypes) {
-        super(bioEntityTypes);
-    }
-
-    void addPropertyValue(String beIdentifier, BioEntityType bioEntityType, BEPropertyValue pv) {
-        if (StringUtils.isNotBlank(pv.getValue())) {
-            //Value's length is limited by the length of corresponding DB field
-            if (pv.getValue().length() < 1000) {
-                Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
-                typeToBEPropValues.put(bioEntityType, beProperty);
-
-                propertyValues.add(pv);
-            } else {
-                log.info("BioEntity property value is too long (>1000) " + pv.getValue());
-            }
-        }
+    private BioEntityAnnotationData() {
     }
 
     public Set<BEPropertyValue> getPropertyValues() {
@@ -72,4 +62,40 @@ public class BioEntityAnnotationData extends BioEntityData {
         return Collections.unmodifiableCollection(typeToBEPropValues.get(bioEntityType));
     }
 
+    public Collection<BioEntityType> getBioEntityTypes() {
+        return Collections.unmodifiableCollection(typeToBEPropValues.keySet());
+    }
+
+    void addPropertyValue(String beIdentifier, BioEntityType bioEntityType, BEPropertyValue pv) {
+        String value = pv.getValue();
+        if (!isNullOrEmpty(value)) {
+            if (value.length() < PROPERTY_VALUE_DB_FIELD_SIZE) {
+                Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
+                typeToBEPropValues.put(bioEntityType, beProperty);
+                propertyValues.add(pv);
+                return;
+            }
+            log.warn("Invalid BE property value: {}", pv.getValue());
+        }
+    }
+
+    boolean isValid(Collection<BioEntityType> types) {
+        return (typeToBEPropValues.isEmpty() ||
+                isEqualCollection(typeToBEPropValues.keySet(), types));
+    }
+
+    public static class Builder {
+        private final BioEntityAnnotationData data = new BioEntityAnnotationData();
+
+        public void addPropertyValue(String beIdentifier, BioEntityType bioEntityType, BEPropertyValue pv) {
+            data.addPropertyValue(beIdentifier, bioEntityType, pv);
+        }
+
+        public BioEntityAnnotationData build(Collection<BioEntityType> types) throws InvalidAnnotationDataException {
+            if (data.isValid(types)) {
+                return data;
+            }
+            throw new InvalidAnnotationDataException("BE annotation data is invalid");
+        }
+    }
 }

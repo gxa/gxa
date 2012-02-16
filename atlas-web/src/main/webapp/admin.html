@@ -245,12 +245,15 @@
                 <tr>
                     <td class="sel">
                     </td>
+                    <td>Type</td>
                     <td>Organism</td>
                     <td>BioEntity Types</td>
                     <td>Current software</td>
-                    <td>Validation message</td>
-                    <td>Applied</td>
+                    <td>Applied Annotations</td>
+                    <td>Applied Mappings</td>
                     <td>Edit</td>
+                    <td>Validate</td>
+                    <td>Validation message</td>
                 </tr>
             </thead>
             <tbody>
@@ -258,12 +261,15 @@
                     <td>
                         <input class="orgSelector" type="checkbox" value="" id="selOrg">
                     </td>
-                    <td class="name"><label class="name" for="selOrg">Mouse</label></td>
+                    <td class="annSrcType"><label class="annSrcType" for="selOrg">Mouse</label></td>
+                    <td class="name">Mouse</td>
                     <td class="types">ensgene</td>
                     <td class="currAnnSrc">Ens 61</td>
-                    <td class="validation">valid</td>
-                    <td class="applied">false</td>
+                    <td class="appliedAnn">false</td>
+                    <td class="appliedMapping">NOT CHECKED</td>
                     <td class="edit"><input type="button" value="Edit"></td>
+                    <td class="validate"><input type="button" value="Validate"></td>
+                    <td><div class="validationText" id="validationMsg_">msg</div></td>
                 </tr>
             </tbody>
         </table>
@@ -275,13 +281,27 @@
                 <input type="button" value="Update Array Design Mappings" class="updateMapping">
             </div>
         </fieldset>
+
+        <fieldset class="annSrcNew">
+            <div class="annSrcNewButtons">
+                <input type="button" value="Create New Annotation Source" class="newannsrc">
+                <select id="annSrcSelect">
+                    <option value="BioMart">BioMart</option>
+                    <option value="GeneSigDB">GeneSigDB</option>
+                </select>
+            </div>
+        </fieldset>
+
     </div>
 </div>
 
 <div id="tab-annSrcEd">
     <div id="annSrcEd">
         <table>
-
+            <tr>
+                <td>Type:</td>
+                <td class="type"></td>
+            </tr>
             <tr>
                 <td class="label"><label for="txtAnnSrc">Annotation Source:</label></td>
                 <td>

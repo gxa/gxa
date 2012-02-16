@@ -1,0 +1,4 @@
+ensembl_gene_id	Ensembl Gene ID	Ensembl Stable ID of the Gene	feature_page	html,txt,csv,tsv,xls	athaliana_eg_gene__gene__main	stable_id_1023
+ensembl_transcript_id	Ensembl Transcript ID	Ensembl Stable ID of the Transcript	feature_page	html,txt,csv,tsv,xls	athaliana_eg_gene__transcript__main	stable_id_1066
+ensembl_peptide_id	Ensembl Protein ID		feature_page	html,txt,csv,tsv,xls	athaliana_eg_gene__translation__main	stable_id_1070
+description	Description		feature_page	html,txt,csv,tsv,xls	athaliana_eg_gene__gene__main	description_1020

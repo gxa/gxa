@@ -2,10 +2,10 @@ package uk.ac.ebi.gxa.tasks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationCommand;
-import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateBioEntityAnnotationCommand;
-import uk.ac.ebi.gxa.annotator.loader.biomart.UpdateMappingCommand;
-import uk.ac.ebi.gxa.annotator.loader.listner.AnnotationLoaderListener;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommand;
+import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
+import uk.ac.ebi.gxa.annotator.web.admin.UpdateBioEntityAnnotationCommand;
+import uk.ac.ebi.gxa.annotator.web.admin.UpdateMappingCommand;
 
 /**
  * User: nsklyar
@@ -20,7 +20,6 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
     private AnnotationLoaderTask(TaskManager taskMan, long taskId,
                                  TaskSpec taskSpec, TaskRunMode runMode,
                                  TaskUser user, boolean runningAutoDependencies) {
-        
         super(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         taskMan.addTaskTag(AnnotationLoaderTask.this, TaskTagType.ANNOTATIONS, getTaskSpec().getAccession());
     }
@@ -34,14 +33,14 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         taskMan.updateTaskStage(getTaskSpec(), TaskStatus.INCOMPLETE);
         taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.STARTED, "");
 
-        taskMan.getAnnotationLoader().annotate(getAnnotationCommand(), getListner());
+        taskMan.getAnnotationCommandRunner().run(getAnnotationCommand(), getListner());
     }
 
     private AnnotationCommand getAnnotationCommand() {
         if (TYPE_UPDATEANNOTATIONS.equals(getTaskSpec().getType()))
-            return new UpdateBioEntityAnnotationCommand(getTaskSpec().getAccession());
+            return new UpdateBioEntityAnnotationCommand(getTaskSpec().getAccession(), taskMan.getAtlasProperties().getBatchUpdateSize());
         else if (TYPE_UPDATEMAPPINGS.endsWith(getTaskSpec().getType()))
-            return new UpdateMappingCommand(getTaskSpec().getAccession());
+            return new UpdateMappingCommand(getTaskSpec().getAccession(), taskMan.getAtlasProperties().getBatchUpdateSize());
         throw new IllegalStateException();
     }
 
@@ -56,10 +55,12 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
     }
 
     public static final TaskFactory FACTORY = new TaskFactory() {
+        @Override
         public QueuedTask createTask(TaskManager taskMan, long taskId, TaskSpec taskSpec, TaskRunMode runMode, TaskUser user, boolean runningAutoDependencies) {
             return new AnnotationLoaderTask(taskMan, taskId, taskSpec, runMode, user, runningAutoDependencies);
         }
 
+        @Override
         public boolean isFor(TaskSpec taskSpec) {
 
             return
@@ -70,10 +71,10 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
         }
     };
 
-    private AnnotationLoaderListener getListner() {
-        return new AnnotationLoaderListener() {
+    private AnnotationCommandListener getListner() {
+        return new AnnotationCommandListener() {
             @Override
-            public void buildSuccess(String msg) {
+            public void commandSuccess(String msg) {
                 taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FINISHED, msg);
                 taskMan.updateTaskStage(getTaskSpec(), TaskStatus.DONE);
 
@@ -81,12 +82,12 @@ public class AnnotationLoaderTask extends AbstractWorkingTask {
             }
 
             @Override
-            public void buildProgress(String progressStatus) {
+            public void commandProgress(String progressStatus) {
                 currentProgress = progressStatus;
             }
 
             @Override
-            public void buildError(Throwable error) {
+            public void commandError(Throwable error) {
                 log.error("Task failed because of:", error);
 
                 taskMan.writeTaskLog(AnnotationLoaderTask.this, TaskEvent.FAILED, error.getMessage());

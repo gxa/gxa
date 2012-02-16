@@ -51,13 +51,13 @@ import static com.google.common.collect.Iterables.partition;
  */
 public class BioEntityDAO {
 
-    public static final int MAX_QUERY_PARAMS = 15;
-    public static final int SUB_BATCH_SIZE = 70;
+    private static final int MAX_QUERY_PARAMS = 15;
+    private static final int SUB_BATCH_SIZE = 70;
 
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private SoftwareDAO softwareDAO;
     private BioEntityTypeDAO typeDAO;
-    protected JdbcTemplate template;
+    private JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
 
@@ -132,7 +132,7 @@ public class BioEntityDAO {
         return beToDe;
     }
 
-    public BioEntityType findOrCreateBioEntityType(final String name) {
+    BioEntityType findOrCreateBioEntityType(final String name) {
         if (beTypeCache.containsKey(name)) {
             return beTypeCache.get(name);
         }
@@ -141,11 +141,10 @@ public class BioEntityDAO {
         return type;
     }
 
-
     /////////////////////////////////////////////////////////////////////////////
     //   Write methods
     /////////////////////////////////////////////////////////////////////////////
-    public void writeBioEntities(final Collection<BioEntity> bioEntities) {
+    public void writeBioEntities(final Collection<BioEntity> bioEntities, final int batchSize) {
         String query = "merge into a2_bioentity p\n" +
                 "  using (select  1 from dual)\n" +
                 "  on (p.identifier = ? and p.bioentitytypeid = ?)\n" +
@@ -166,12 +165,12 @@ public class BioEntityDAO {
 
         };
 
-        int loadedRecordsNumber = writeBatchInChunks(query, bioEntities, statementSetter);
+        int loadedRecordsNumber = writeBatchInChunks(query, bioEntities, statementSetter, batchSize);
         log.info("BioEntities merged: " + loadedRecordsNumber);
 
     }
 
-    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues) {
+    public void writePropertyValues(final Collection<BEPropertyValue> propertyValues, final int batchSize) {
 
         String query = "merge into a2_bioentitypropertyvalue pv\n" +
                 "  using (select  1 from dual)\n" +
@@ -190,7 +189,7 @@ public class BioEntityDAO {
             }
         };
 
-        int loadedRecords = writeBatchInChunks(query, propertyValues, statementSetter);
+        int loadedRecords = writeBatchInChunks(query, propertyValues, statementSetter, batchSize);
         log.info("PropertieValues merged : " + loadedRecords);
 
     }
@@ -201,9 +200,10 @@ public class BioEntityDAO {
      *                     [1] - BEPropertyValue
      * @param beType
      * @param software
+     * @param batchSize
      */
     public void writeBioEntityToPropertyValues(final Collection<Pair<String, BEPropertyValue>> beProperties, final BioEntityType beType,
-                                               final Software software) {
+                                               final Software software, final int batchSize) {
 
         String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
                 "  values (\n" +
@@ -227,10 +227,52 @@ public class BioEntityDAO {
 
         };
 
-        writeBatchInChunks(query, beProperties, statementSetter);
+        writeBatchInChunks(query, beProperties, statementSetter, batchSize);
     }
 
-    public void writeDesignElements(final Collection<DesignElement> designElements, final ArrayDesign arrayDesign) {
+    /**
+     * Writes Bioentity -> bioentityProperty relations, with a check if bioentity with a given identifier exists.
+     *
+     * @param beProperties - a Collection of Pair, which contains values:
+     *                     [0] - BioEntity identifier
+     *                     [1] - BEPropertyValue
+     * @param beType
+     * @param software
+     * @param batchSize
+     */
+    public void writeBioEntityToPropertyValuesChecked(final Collection<Pair<String, BEPropertyValue>> beProperties, final BioEntityType beType,
+                                                      final Software software, final int batchSize) {
+
+        String query = "insert into a2_bioentitybepv (bioentityid, bepropertyvalueid, softwareid) \n" +
+                "  select \n" +
+                "  (select be.bioentityid from a2_bioentity be where be.identifier = ? and be.bioentitytypeid = ?),\n" +
+                "  (select pv.bepropertyvalueid from a2_bioentitypropertyvalue pv " +
+                "where pv.VALUE = ? " +
+                "  and pv.bioentitypropertyid = ?),\n" +
+                "  ? \n" +
+                "FROM  DUAL \n" +
+                "where (SELECT COUNT(BE.BIOENTITYID) FROM A2_BIOENTITY BE WHERE BE.IDENTIFIER = ? AND BE.BIOENTITYTYPEID = ?)!=0";
+
+        ListStatementSetter<Pair<String, BEPropertyValue>> statementSetter = new ListStatementSetter<Pair<String, BEPropertyValue>>() {
+            long softwareId = software.getSoftwareid();
+
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, list.get(i).getFirst());
+                ps.setLong(2, beType.getId());
+                ps.setString(3, list.get(i).getSecond().getValue());
+                ps.setLong(4, list.get(i).getSecond().getProperty().getBioEntitypropertyId());
+                ps.setLong(5, softwareId);
+                ps.setString(6, list.get(i).getFirst());
+                ps.setLong(7, beType.getId());
+            }
+
+        };
+
+        writeBatchInChunks(query, beProperties, statementSetter, batchSize);
+    }
+
+
+    public void writeDesignElements(final Collection<DesignElement> designElements, final ArrayDesign arrayDesign, final int batchSize) {
         String query = "MERGE INTO a2_designelement de\n" +
                 "  USING (select  1 from dual)\n" +
                 "  ON (de.arraydesignid = ? AND de.accession = ?)\n" +
@@ -252,13 +294,14 @@ public class BioEntityDAO {
                 ps.setString(5, list.get(i).getName());
             }
         };
-        writeBatchInChunks(query, designElements, setter);
+        writeBatchInChunks(query, designElements, setter, batchSize);
 
     }
 
     public void writeDesignElementBioEntityMappings(final Collection<Pair<String, String>> deToBeMappings, final BioEntityType beType,
                                                     final Software software,
-                                                    final ArrayDesign arrayDesign) {
+                                                    final ArrayDesign arrayDesign,
+                                                    final int batchSize) {
 
         String query = "INSERT INTO a2_designeltbioentity \n" +
                 " (designelementid, bioentityid, softwareid)\n" +
@@ -281,7 +324,7 @@ public class BioEntityDAO {
             }
         };
 
-        writeBatchInChunks(query, deToBeMappings, setter);
+        writeBatchInChunks(query, deToBeMappings, setter, batchSize);
     }
 
     public int deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign) {
@@ -300,16 +343,25 @@ public class BioEntityDAO {
         return template.update(query, software.getSoftwareid(), organism.getId());
     }
 
+    public int deleteBioEntityToPropertyValues(final Software software) {
+        String query = "DELETE FROM A2_BIOENTITYBEPV BEPV\n" +
+                " WHERE BEPV.SOFTWAREID = ?\n";
+
+        return template.update(query, software.getSoftwareid());
+    }
+
     private <T> int writeBatchInChunks(String query,
                                        final Collection<T> entityList,
-                                       ListStatementSetter<T> statementSetter) throws DataAccessException {
+                                       ListStatementSetter<T> statementSetter, 
+                                       int batchSize) throws DataAccessException {
         int loadedRecordsNumber = 0;
 
-        for (List<T> subList : partition(entityList, SUB_BATCH_SIZE)) {
+        int subBatchSize = batchSize != 0 ? batchSize : SUB_BATCH_SIZE;
+        for (List<T> subList : partition(entityList, subBatchSize)) {
             statementSetter.setList(subList);
             int[] rowsAffectedArray = template.batchUpdate(query, statementSetter);
             loadedRecordsNumber += rowsAffectedArray.length;
-            if (loadedRecordsNumber % (SUB_BATCH_SIZE * 100) == 0) { // report every 100 batches
+            if (loadedRecordsNumber % (subBatchSize * 100) == 0) { // report every 100 batches
                 log.info("Number of rows loaded to the DB = " + loadedRecordsNumber);
             }
         }
@@ -403,9 +455,10 @@ public class BioEntityDAO {
         public BioEntity mapRow(ResultSet resultSet, int i) throws SQLException {
             BioEntityType type = findOrCreateBioEntityType(resultSet.getString(6));
             Organism organism = new Organism(resultSet.getLong(5), intern(resultSet.getString(4)));
-            BioEntity gene = new BioEntity(resultSet.getString(2), resultSet.getString(3), type, organism);
+            BioEntity gene = new BioEntity(resultSet.getString(2), type, organism);
 
             gene.setId(resultSet.getLong(1));
+            gene.setName(resultSet.getString(3));
 
             return gene;
         }
@@ -413,7 +466,7 @@ public class BioEntityDAO {
 
 
     private abstract static class ListStatementSetter<T> implements BatchPreparedStatementSetter {
-        protected List<T> list;
+        List<T> list;
 
         public int getBatchSize() {
             return list.size();
