@@ -130,7 +130,7 @@
                 for (var i = 0; i < data.allProperties.length; i++) {
                     var p = data.allProperties[i];
                     var v = p.values[p.assays[assayIndex]];
-                    if (v == "" || v.toLowerCase() == "(empty)" || uniq[p.name] == v) {
+                    if (uniq[p.name] == v) {
                         continue;
                     }
                     obj.push([p.name, v]);

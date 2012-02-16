@@ -328,7 +328,6 @@ $(document).ready(function() {
                         </c:otherwise>
                     </c:choose>
                     <c:forEach var="e" items="${values}" varStatus="i">
-                        <c:if test='${e.efv!="(empty)"}'>
                             <tr class="heatmap_row"
                                 onclick="FilterExps('${u:escapeJS(e.ef)}', '${u:escapeJS(e.efv)}'); return false;"
                                 title="${e.efv}"
@@ -436,7 +435,6 @@ $(document).ready(function() {
                                 </td>
 
                             </tr>
-                        </c:if>
                     </c:forEach>
                     </tbody>
                 </table>
