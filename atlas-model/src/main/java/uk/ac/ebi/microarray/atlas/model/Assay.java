@@ -67,13 +67,6 @@ public class Assay {
                     return input.getValue();
                 }
             };
-    private static final Function<AssayProperty, Collection<OntologyTerm>> PROPERTY_TERMS =
-            new Function<AssayProperty, Collection<OntologyTerm>>() {
-                @Override
-                public Collection<OntologyTerm> apply(@Nonnull AssayProperty input) {
-                    return input.getTerms();
-                }
-            };
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "assaySeq")

@@ -5,7 +5,9 @@ import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
     private PropertyDAO propertyDAO;
@@ -56,5 +58,16 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
             save(propertyValue);
             return propertyValue;
         }
+    }
+
+    /**
+     * @return List of PropertyValue's that are not referenced in any assay/sample
+     */
+    public Set<PropertyValue> getUnusedPropertyValues() {
+        @SuppressWarnings("unchecked")
+        Set<PropertyValue> results = new HashSet<PropertyValue>();
+        results.addAll(template.find("from PropertyValue pv where not exists (from Assay a left join a.properties p where p.propertyValue.value = pv.value)"));
+        results.retainAll(template.find("from PropertyValue pv where not exists (from Sample s left join s.properties p where p.propertyValue.value = pv.value) "));
+        return results;
     }
 }

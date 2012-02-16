@@ -8,6 +8,7 @@ import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.Collections2.transform;
 
@@ -25,9 +26,16 @@ public class ApiShallowProperty {
                 }
             };
 
+
     private String name;
     private String value;
     private List<String> terms;
+
+    public ApiShallowProperty(final ApiPropertyValue pv, Set<String> terms) {
+        name = pv.getProperty().getName();
+        value = pv.getValue();
+        this.terms = Lists.newArrayList(terms);
+    }
 
     public ApiShallowProperty(final AssayProperty assayProperty) {
         this.name = assayProperty.getName();
@@ -40,7 +48,6 @@ public class ApiShallowProperty {
         this.value = sampleProperty.getValue();
         this.terms = Lists.newArrayList(transform(sampleProperty.getTerms(), ONTOLOGY_TERM));
     }
-
 
     public String getName() {
         return name;
