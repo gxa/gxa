@@ -57,6 +57,10 @@ import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 public class AssayAndHybridizationStep {
     private final static Logger log = LoggerFactory.getLogger(AssayAndHybridizationStep.class);
 
+    // These constants are used in merging compounds and doses together
+    private static final String COMPOUND = "compound";
+    private static final String DOSE = "dose";
+
     public static String displayName() {
         return "Processing assay and hybridization nodes";
     }
@@ -212,6 +216,8 @@ public class AssayAndHybridizationStep {
      */
     public static void writeAssayProperties(MAGETABInvestigation investigation, Assay assay,
                                             HybridizationNode assayNode, LoaderDAO dao) throws AtlasLoaderException {
+        String compoundFactorValue = null;
+        String doseFactorValue = null;
         // fetch factor values of this assayNode
         for (FactorValueAttribute factorValueAttribute : assayNode.factorValues) {
             // create Property for this attribute
@@ -245,6 +251,20 @@ public class AssayAndHybridizationStep {
                 efType = factorValueAttribute.type;
             }
 
+            if (COMPOUND.equalsIgnoreCase(efType))
+                compoundFactorValue = factorValueName;
+            else if (DOSE.equalsIgnoreCase(efType))
+                doseFactorValue = factorValueName;
+
+            if (COMPOUND.equalsIgnoreCase(efType) || DOSE.equalsIgnoreCase(efType)) {
+                if (!Strings.isNullOrEmpty(compoundFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) {
+                    efType = COMPOUND;
+                    factorValueName = Joiner.on(" ").join(compoundFactorValue, doseFactorValue);
+                } else {
+                    continue;
+                }
+            }
+
             // If assay already contains values for efType then:
             // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
             // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
@@ -267,6 +287,10 @@ public class AssayAndHybridizationStep {
                 assay.addProperty(dao.getOrCreatePropertyValue(efType, factorValueName));
                 // todo - factor values can have ontology entries, set these values
             }
+        }
+        if ((Strings.isNullOrEmpty(compoundFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) ||
+                (!Strings.isNullOrEmpty(compoundFactorValue) && Strings.isNullOrEmpty(doseFactorValue))) {
+            throw new AtlasLoaderException("AssayNode did not contain values for both " + COMPOUND + " and " + DOSE);
         }
     }
 }
