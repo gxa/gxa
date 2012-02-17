@@ -794,6 +794,20 @@ var atlas = atlas || {};
         if (query) {
             showSearchingIndicator(form);
             submitQuery(query, form);
+        } else {
+            var notice = $('#emptyFormNotice');
+            if (notice.length == 0) {
+                $('body').prepend(
+                    '<div id="emptyFormNotice" style="display:none; color: red; background-color:#fff; position:absolute; z-index: 1000"></div>');
+                notice = $('#emptyFormNotice')
+                    .html("Please specify at least one gene or condition");
+            }
+
+            var pos   = $(form).offset();
+            var height = $(form).height();
+            var width = $(form).width();
+            notice.css({ "left": pos.left + "px", "top": (pos.top + height + 10) + "px" });
+            notice.fadeIn().delay(3000).fadeOut('slow');
         }
     }
 
