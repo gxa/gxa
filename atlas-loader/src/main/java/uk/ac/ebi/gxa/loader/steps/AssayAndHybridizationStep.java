@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.loader.steps;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,9 +220,9 @@ public class AssayAndHybridizationStep {
                 throw new AtlasLoaderException("Factors and their values must NOT contain '||' - " +
                         "this is a special reserved character used as a delimiter in the database");
             }
-            String factorValueName = factorValueAttribute.getNodeName();
-            if (factorValueName.length() == 0) {
-                factorValueName = "(empty)";
+            String factorValueName = factorValueAttribute.getNodeName().trim();
+            if (Strings.isNullOrEmpty(factorValueName)) {
+                continue; // We don't load empty factor values
             } else if (factorValueAttribute.unit != null) {
                 factorValueName = Joiner.on(" ").join(factorValueName, factorValueAttribute.unit.getAttributeValue());
             }
