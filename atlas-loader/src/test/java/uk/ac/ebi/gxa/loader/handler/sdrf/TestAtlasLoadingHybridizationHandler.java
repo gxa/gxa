@@ -28,6 +28,7 @@ import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -112,8 +113,9 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
+        final Efo efo = MockFactory.createEfo();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, efo);
 
         System.out.println("parse() completed!");
 

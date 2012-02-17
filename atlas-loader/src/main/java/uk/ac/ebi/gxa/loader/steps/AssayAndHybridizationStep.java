@@ -34,6 +34,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
@@ -65,26 +66,31 @@ public class AssayAndHybridizationStep {
         return "Processing assay and hybridization nodes";
     }
 
-    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao) throws AtlasLoaderException {
+    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao, Efo efo) throws AtlasLoaderException {
         Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                writeScanNode(scanNode, cache, investigation, dao);
+                writeScanNode(scanNode, cache, investigation, dao, efo);
             }
         }
 
         if (!isHTS(investigation)) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
-                writeHybridizationNode(hybridizationNode, cache, investigation, dao);
+                writeHybridizationNode(hybridizationNode, cache, investigation, dao, efo);
             }
 
             for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
-                writeHybridizationNode(assayNode, cache, investigation, dao);
+                writeHybridizationNode(assayNode, cache, investigation, dao, efo);
             }
         }
     }
 
-    private void writeHybridizationNode(HybridizationNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+    private void writeHybridizationNode(
+            HybridizationNode node,
+            ExperimentBuilder cache,
+            MAGETABInvestigation investigation,
+            LoaderDAO dao,
+            Efo efo) throws AtlasLoaderException {
         assert !isHTS(investigation);
 
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
@@ -106,7 +112,7 @@ public class AssayAndHybridizationStep {
         populateArrayDesign(node, assay, dao);
 
         // now record any properties
-        writeAssayProperties(investigation, assay, node, dao);
+        writeAssayProperties(investigation, assay, node, dao, efo);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -118,7 +124,12 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private void writeScanNode(ScanNode node, ExperimentBuilder cache, MAGETABInvestigation investigation, LoaderDAO dao) throws AtlasLoaderException {
+    private void writeScanNode(
+            ScanNode node,
+            ExperimentBuilder cache,
+            MAGETABInvestigation investigation,
+            LoaderDAO dao,
+            Efo efo) throws AtlasLoaderException {
         String enaRunName = node.comments.get("ENA_RUN");
 
         log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);
@@ -163,7 +174,7 @@ public class AssayAndHybridizationStep {
         }
 
         // now record any properties
-        writeAssayProperties(investigation, assay, assayNode, dao);
+        writeAssayProperties(investigation, assay, assayNode, dao, efo);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -211,11 +222,12 @@ public class AssayAndHybridizationStep {
      * @param assay         the assay you want to attach properties to
      * @param assayNode     the assayNode being read
      * @param dao           the LoaderDAO to consult for the objects necessary
+     * @param efo           EFO to test units being loaded against
      * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
      *          if there is a problem creating the property object
      */
     public static void writeAssayProperties(MAGETABInvestigation investigation, Assay assay,
-                                            HybridizationNode assayNode, LoaderDAO dao) throws AtlasLoaderException {
+                                            HybridizationNode assayNode, LoaderDAO dao, Efo efo) throws AtlasLoaderException {
         String compoundFactorValue = null;
         String doseFactorValue = null;
         // fetch factor values of this assayNode
@@ -230,7 +242,11 @@ public class AssayAndHybridizationStep {
             if (Strings.isNullOrEmpty(factorValueName)) {
                 continue; // We don't load empty factor values
             } else if (factorValueAttribute.unit != null) {
-                factorValueName = Joiner.on(" ").join(factorValueName, factorValueAttribute.unit.getAttributeValue());
+                String unitValue = factorValueAttribute.unit.getAttributeValue();
+                if (efo.searchTerm(unitValue).isEmpty()) {
+                     throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
+                }
+                factorValueName = Joiner.on(" ").join(factorValueName, unitValue);
             }
 
             // try and lookup factor type for factor name: factorValueAttribute.type

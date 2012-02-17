@@ -106,7 +106,7 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createEfo());
 
         System.out.println("Parsing done");
         checkAssaysInCache();

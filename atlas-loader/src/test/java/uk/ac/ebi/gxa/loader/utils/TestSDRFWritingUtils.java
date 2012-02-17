@@ -56,7 +56,7 @@ public class TestSDRFWritingUtils extends TestCase {
 
         final LoaderDAO dao = MockFactory.createLoaderDAO();
 
-        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode, dao);
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode, dao, MockFactory.createEfo());
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
@@ -104,7 +104,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setAttributeValue("specific factor value");
         hybridizationNode.factorValues.add(fva);
 
-        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, hybridizationNode, MockFactory.createLoaderDAO());
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, hybridizationNode, MockFactory.createLoaderDAO(), MockFactory.createEfo());
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);

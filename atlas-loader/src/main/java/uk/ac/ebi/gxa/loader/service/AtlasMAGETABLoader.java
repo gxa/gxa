@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
 import uk.ac.ebi.gxa.data.NetCDFDataCreator;
+import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.LoadExperimentCommand;
 import uk.ac.ebi.gxa.loader.UnloadExperimentCommand;
@@ -70,8 +71,10 @@ public class AtlasMAGETABLoader {
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
+    private Efo efo;
 
     private AtlasExperimentUnloaderService unloaderService;
+
 
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
@@ -127,7 +130,7 @@ public class AtlasMAGETABLoader {
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, efo);
 
                 boolean arrayDataRead = false;
                 //use raw data
@@ -312,6 +315,10 @@ public class AtlasMAGETABLoader {
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public void setEfo(Efo efo) {
+        this.efo = efo;
     }
 
     public static boolean isHTS(MAGETABInvestigation investigation) {

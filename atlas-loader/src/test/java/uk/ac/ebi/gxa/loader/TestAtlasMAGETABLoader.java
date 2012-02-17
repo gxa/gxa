@@ -89,7 +89,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(expt);
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createEfo());
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
@@ -111,7 +111,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createEfo());
 
 
         // parsing finished, look in our cache...

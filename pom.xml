@@ -293,6 +293,7 @@
         <module>atlas-updates</module>
         <module>atlas-analytics</module>
         <module>atlas-data-storage</module>
+        <module>atlas-efo</module>
         <module>annotator</module>
     </modules>
 
