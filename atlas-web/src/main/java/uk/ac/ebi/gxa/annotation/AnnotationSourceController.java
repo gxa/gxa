@@ -108,13 +108,15 @@ public class AnnotationSourceController {
             return annSrc.isApplied() ? "yes" : "no";
         }
 
-        public String getType() {
-            return AnnotationSourceType.annSrcTypeOf(annSrc).getName();
+        public String getMappingsApplied() {
+            if (annSrc.getExternalArrayDesigns().isEmpty()) {
+                return "N/A";
+            }
+            return annSrc.isMappingsApplied() ? "yes" : "no";
         }
 
-        public String areMappingsApplied() {
-            return "";
-//            return manager.areMappingsApplied(annSrc) ? "yes" : "no";
+        public String getType() {
+            return AnnotationSourceType.annSrcTypeOf(annSrc).getName();
         }
     }
 

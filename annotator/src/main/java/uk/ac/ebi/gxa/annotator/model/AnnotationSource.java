@@ -69,6 +69,9 @@ public abstract class AnnotationSource {
     @org.hibernate.annotations.Type(type = "true_false")
     private boolean isApplied = false;
 
+    @org.hibernate.annotations.Type(type = "true_false")
+    private boolean mappingsApplied = false;
+
     @OneToMany(targetEntity = ExternalBioEntityProperty.class
             , mappedBy = "annotationSrc"
             , cascade = {CascadeType.ALL}
@@ -149,6 +152,14 @@ public abstract class AnnotationSource {
 
     public void setApplied(boolean applied) {
         isApplied = applied;
+    }
+
+    public boolean isMappingsApplied() {
+        return mappingsApplied;
+    }
+
+    public void setMappingsApplied(boolean mappingsApplied) {
+        this.mappingsApplied = mappingsApplied;
     }
 
     public Set<ExternalBioEntityProperty> getExternalBioEntityProperties() {

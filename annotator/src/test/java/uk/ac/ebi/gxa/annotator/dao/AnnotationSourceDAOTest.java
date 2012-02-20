@@ -231,6 +231,6 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testIsAnnSrcAppliedForArrayDesignMapping() throws Exception {
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignByAccession("A-AFFY-45");
-        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign));
+        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource.getSoftware(), arrayDesign));
     }
 }

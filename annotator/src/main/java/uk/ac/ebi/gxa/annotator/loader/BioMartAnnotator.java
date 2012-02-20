@@ -134,10 +134,11 @@ public class BioMartAnnotator extends Annotator {
 
                 writeDesignElements(annotLoader.getDeMappingsData(),
                         externalArrayDesign.getArrayDesign(),
-                        annSrc.getSoftware(),
-                        annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign()),
+                        annSrc,
                         batchSize);
             }
+
+            checkAllMappingsApplied();
 
             reportSuccess("Update mappings for Organism " + organismName + " completed");
         } catch (IOException e) {
@@ -148,6 +149,18 @@ public class BioMartAnnotator extends Annotator {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
             reportError(e);
+        }
+    }
+
+    private void checkAllMappingsApplied() {
+        boolean allAppied = true;
+        for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
+            allAppied = allAppied & annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc.getSoftware(), externalArrayDesign.getArrayDesign());
+        }
+
+        if (allAppied) {
+            annSrc.setMappingsApplied(true);
+            updateAnnotationSource(annSrc);
         }
     }
 
