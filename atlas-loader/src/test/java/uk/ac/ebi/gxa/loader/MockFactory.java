@@ -7,6 +7,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
@@ -67,18 +68,13 @@ public class MockFactory {
         }
     }
 
-        public static Efo createEfo() {
-        return new MockEfo();
+    public static PropertyValueMergeService createPropertyValueMergeService() {
+        return new MockPropertyValueMergeService();
     }
 
-      static class MockEfo extends EfoImpl {
-        public MockEfo() {
+    static class MockPropertyValueMergeService extends PropertyValueMergeService {
+        public MockPropertyValueMergeService() {
             super();
         }
-
-          @Override
-          public Collection<EfoTerm> searchTerm(String text) {
-              return Collections.singleton(new EfoTerm("EFO_00001", text, Collections.<String>emptyList(), false, false, false, 0));
-          }
-      }
+    }
 }
