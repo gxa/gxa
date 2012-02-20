@@ -144,6 +144,8 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degree", "5"));
         assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degrees", "5"));
         assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degrees", "1"));
+        assertEquals("International Units per mililiter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("International Unit per mililiter", "5"));
+
     }
 
 
