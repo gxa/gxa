@@ -771,6 +771,7 @@
             NAME="homo sapiens / Ensembl v.61"
             LOADDATE="2011-01-06"
             ISAPPLIED="F"
+            mappingsApplied="F"
             ANNSRCTYPE="biomart"
             />
 
@@ -790,6 +791,7 @@
             NAME="GeneGigDB v.63"
             LOADDATE="2011-01-06"
             ISAPPLIED="F"
+            mappingsApplied="F"
             ANNSRCTYPE="genesigdb"
             />
 

@@ -337,6 +337,7 @@ public abstract class AtlasDAOTestCase {
                         "  , annsrctype VARCHAR(100) NOT NULL\n" +
                         "  , LOADDATE DATE\n" +
                         "  , isApplied VARCHAR(1) DEFAULT 'F'\n" +
+                        "  , mappingsApplied VARCHAR(1) DEFAULT 'F'\n" +
                         ");");
         runStatement(conn,
                 "CREATE TABLE A2_BIOMART_ANNSRC(\n" +
