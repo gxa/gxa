@@ -131,7 +131,6 @@ public class AtlasBioEntityDataWriter {
                                     final AnnotationSource annSrc,
                                     final int batchSize,
                                     AnnotationCommandListener listener) {
-//        if (annSrc.isMappingsApplied()) {
         if (annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc.getSoftware(), arrayDesign)) {
             deleteDesignElementBioEntityMappings(annSrc.getSoftware(), arrayDesign, listener);
         }
