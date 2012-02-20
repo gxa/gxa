@@ -31,6 +31,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -89,7 +90,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(expt);
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createEfo());
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
@@ -111,7 +112,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createEfo());
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
 
 
         // parsing finished, look in our cache...
@@ -126,25 +127,25 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     @Test
     public void testUnitPluralisation() throws AtlasLoaderException {
-        assertEquals("microgram", AssayAndHybridizationStep.pluraliseUnitIfNeeded("microgram", "1"));
-        assertEquals("micrograms", AssayAndHybridizationStep.pluraliseUnitIfNeeded("microgram", "1.0"));
-        assertEquals("other", AssayAndHybridizationStep.pluraliseUnitIfNeeded("other", " 5"));
-        assertEquals("percent", AssayAndHybridizationStep.pluraliseUnitIfNeeded("percent", "5.0 "));
-        assertEquals("volume percent", AssayAndHybridizationStep.pluraliseUnitIfNeeded("volume percent", "5 "));
-        assertEquals("percent per volume", AssayAndHybridizationStep.pluraliseUnitIfNeeded("percent per volume", "5 "));
-        assertEquals("nanograms per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanogram per milliliter", "10"));
-        assertEquals("nanograms per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanograms per milliliter", "10"));
-        assertEquals("nanogram per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanogram per milliliter", "1"));
-        assertEquals(null, AssayAndHybridizationStep.pluraliseUnitIfNeeded(null, "1"));
-        assertEquals("nanogram per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanogram per milliliter", null));
-        assertEquals(null, AssayAndHybridizationStep.pluraliseUnitIfNeeded(null, null));
-        assertEquals("cubic centimeters", AssayAndHybridizationStep.pluraliseUnitIfNeeded("cubic centimeter", "5"));
-        assertEquals("parts per million", AssayAndHybridizationStep.pluraliseUnitIfNeeded("parts per million", "5"));
-        assertEquals("degrees celsius", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degree celsius", "5"));
-        assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degree", "5"));
-        assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degrees", "5"));
-        assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degrees", "1"));
-        assertEquals("International Units per mililiter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("International Unit per mililiter", "5"));
+        assertEquals("microgram", PropertyValueMergeService.pluraliseUnitIfApplicable("microgram", "1"));
+        assertEquals("micrograms", PropertyValueMergeService.pluraliseUnitIfApplicable("microgram", "1.0"));
+        assertEquals("other", PropertyValueMergeService.pluraliseUnitIfApplicable("other", " 5"));
+        assertEquals("percent", PropertyValueMergeService.pluraliseUnitIfApplicable("percent", "5.0 "));
+        assertEquals("volume percent", PropertyValueMergeService.pluraliseUnitIfApplicable("volume percent", "5 "));
+        assertEquals("percent per volume", PropertyValueMergeService.pluraliseUnitIfApplicable("percent per volume", "5 "));
+        assertEquals("nanograms per milliliter", PropertyValueMergeService.pluraliseUnitIfApplicable("nanogram per milliliter", "10"));
+        assertEquals("nanograms per milliliter", PropertyValueMergeService.pluraliseUnitIfApplicable("nanograms per milliliter", "10"));
+        assertEquals("nanogram per milliliter", PropertyValueMergeService.pluraliseUnitIfApplicable("nanogram per milliliter", "1"));
+        assertEquals(null, PropertyValueMergeService.pluraliseUnitIfApplicable(null, "1"));
+        assertEquals("nanogram per milliliter", PropertyValueMergeService.pluraliseUnitIfApplicable("nanogram per milliliter", null));
+        assertEquals(null, PropertyValueMergeService.pluraliseUnitIfApplicable(null, null));
+        assertEquals("cubic centimeters", PropertyValueMergeService.pluraliseUnitIfApplicable("cubic centimeter", "5"));
+        assertEquals("parts per million", PropertyValueMergeService.pluraliseUnitIfApplicable("parts per million", "5"));
+        assertEquals("degrees celsius", PropertyValueMergeService.pluraliseUnitIfApplicable("degree celsius", "5"));
+        assertEquals("degrees", PropertyValueMergeService.pluraliseUnitIfApplicable("degree", "5"));
+        assertEquals("degrees", PropertyValueMergeService.pluraliseUnitIfApplicable("degrees", "5"));
+        assertEquals("degrees", PropertyValueMergeService.pluraliseUnitIfApplicable("degrees", "1"));
+        assertEquals("International Units per mililiter", PropertyValueMergeService.pluraliseUnitIfApplicable("International Unit per mililiter", "5"));
 
     }
 

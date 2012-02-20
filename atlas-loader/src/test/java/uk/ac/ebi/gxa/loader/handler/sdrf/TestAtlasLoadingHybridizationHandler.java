@@ -113,9 +113,8 @@ public class TestAtlasLoadingHybridizationHandler extends TestAssayHandler {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
-        final Efo efo = MockFactory.createEfo();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, efo);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
 
         System.out.println("parse() completed!");
 

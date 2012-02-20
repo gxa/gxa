@@ -34,11 +34,14 @@
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="unloaderService" ref="experimentUnloaderService"/>
         <property name="loaderDAO" ref="loaderDAO"/>
-        <property name="efo" ref="efo"/>
+        <property name="propertyValueMergeService" ref="propertyValueMergeService"/>
     </bean>
 
     <bean name="netCDFUpdaterService" class="uk.ac.ebi.gxa.loader.service.AtlasNetCDFUpdaterService">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="atlasDataDAO" ref="atlasDataDAO"/>
+    </bean>
+        <bean name="propertyValueMergeService" class="uk.ac.ebi.gxa.loader.service.PropertyValueMergeService">
+        <property name="efo" ref="efo"/>
     </bean>
 </beans>

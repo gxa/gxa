@@ -71,7 +71,7 @@ public class AtlasMAGETABLoader {
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
-    private Efo efo;
+    private PropertyValueMergeService propertyValueMergeService;
 
     private AtlasExperimentUnloaderService unloaderService;
 
@@ -130,7 +130,7 @@ public class AtlasMAGETABLoader {
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, efo);
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
 
                 boolean arrayDataRead = false;
                 //use raw data
@@ -317,8 +317,8 @@ public class AtlasMAGETABLoader {
         this.unloaderService = unloaderService;
     }
 
-    public void setEfo(Efo efo) {
-        this.efo = efo;
+    public void setPropertyValueMergeService(PropertyValueMergeService propertyValueMergeService) {
+        this.propertyValueMergeService = propertyValueMergeService;
     }
 
     public static boolean isHTS(MAGETABInvestigation investigation) {

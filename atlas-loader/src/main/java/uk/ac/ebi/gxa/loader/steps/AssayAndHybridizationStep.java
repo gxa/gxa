@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -34,15 +33,17 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
-import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
+import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -58,37 +59,25 @@ import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 public class AssayAndHybridizationStep {
     private final static Logger log = LoggerFactory.getLogger(AssayAndHybridizationStep.class);
 
-    // These constants are used in merging compounds and doses together
-    private static final String COMPOUND = "compound";
-    private static final String DOSE = "dose";
-
-    // Units that should never be pluralised when being joined to factor values
-    private static final String OTHER = "other";
-    private static final String PERCENT = "percent";
-    // separator in units in which only the first work should be pluralised (e.g. "micromole per kilogram")
-    private static final String PER = "per";
-    // The only case other than the above in which only the first word should be pluralised (e.g. "degree celcius")
-    private static final String DEGREE = "degree";
-
     public static String displayName() {
         return "Processing assay and hybridization nodes";
     }
 
-    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao, Efo efo) throws AtlasLoaderException {
+    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                writeScanNode(scanNode, cache, investigation, dao, efo);
+                writeScanNode(scanNode, cache, investigation, dao, propertyValueMergeService);
             }
         }
 
         if (!isHTS(investigation)) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
-                writeHybridizationNode(hybridizationNode, cache, investigation, dao, efo);
+                writeHybridizationNode(hybridizationNode, cache, investigation, dao, propertyValueMergeService);
             }
 
             for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
-                writeHybridizationNode(assayNode, cache, investigation, dao, efo);
+                writeHybridizationNode(assayNode, cache, investigation, dao, propertyValueMergeService);
             }
         }
     }
@@ -98,7 +87,7 @@ public class AssayAndHybridizationStep {
             ExperimentBuilder cache,
             MAGETABInvestigation investigation,
             LoaderDAO dao,
-            Efo efo) throws AtlasLoaderException {
+            PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         assert !isHTS(investigation);
 
         log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
@@ -120,7 +109,7 @@ public class AssayAndHybridizationStep {
         populateArrayDesign(node, assay, dao);
 
         // now record any properties
-        writeAssayProperties(investigation, assay, node, dao, efo);
+        writeAssayProperties(investigation, assay, node, dao, propertyValueMergeService);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -137,7 +126,7 @@ public class AssayAndHybridizationStep {
             ExperimentBuilder cache,
             MAGETABInvestigation investigation,
             LoaderDAO dao,
-            Efo efo) throws AtlasLoaderException {
+            PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         String enaRunName = node.comments.get("ENA_RUN");
 
         log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);
@@ -182,7 +171,7 @@ public class AssayAndHybridizationStep {
         }
 
         // now record any properties
-        writeAssayProperties(investigation, assay, assayNode, dao, efo);
+        writeAssayProperties(investigation, assay, assayNode, dao, propertyValueMergeService);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -221,50 +210,6 @@ public class AssayAndHybridizationStep {
     }
 
     /**
-     * Pluralise a unit only if:
-     * - unit is not empty
-     * - factor value it describes is not equal to 1
-     * - it is not equal to OTHER or contains PERCENT in it
-     * - it does not already end in "s"
-     * <p/>
-     * Pluralisation method is as follows:
-     * - if a unit contains PER, pluralise the term preceding it (unless that term ends in "s" already)
-     * - else if a unit starts with DEGREE, pluralise word DEGREE unless the unit starts with DEGREE + "s"
-     * - else unless the units already ends in "s", pluralise thh whole unit.
-     * <p/>
-     * See the junit test case of this method for the full list of test cases.
-     * <p/> c.f. examples of units in EFO in ticket 3356:
-     * MAGE-OM_to_EFO_Units.txt
-     * OtherUnitsMappedToEFO.txt
-     *
-     * @param unit
-     * @param factorValue
-     * @return
-     */
-    public static String pluraliseUnitIfNeeded(String unit, String factorValue) {
-        try {
-            if (Strings.isNullOrEmpty(factorValue) || Integer.parseInt(factorValue) == 1)
-                return unit;
-        } catch (NumberFormatException nfe) {
-            // quiesce
-        }
-
-        if (!Strings.isNullOrEmpty(unit) && !unit.equals(OTHER) && !unit.contains(PERCENT)) {
-            int idx = unit.indexOf(PER);
-            if (idx != -1) {
-                String firstWord = unit.substring(0, idx - 1).trim();
-                if (!firstWord.endsWith("s"))
-                    return firstWord + "s " + unit.substring(idx);
-            } else if (unit.startsWith(DEGREE) && !unit.equals(DEGREE + "s")) {
-                return DEGREE + "s" + unit.substring(DEGREE.length());
-            } else if (!unit.endsWith("s"))
-                return unit + "s";
-        }
-
-        return unit;
-    }
-
-    /**
      * Write out the properties associated with an {@link uk.ac.ebi.microarray.atlas.model.Assay} in the SDRF graph.  These properties are obtained by
      * looking at the "factorvalue" column in the SDRF graph, extracting the type and linking this type (the property)
      * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode} provided (the property
@@ -274,14 +219,14 @@ public class AssayAndHybridizationStep {
      * @param assay         the assay you want to attach properties to
      * @param assayNode     the assayNode being read
      * @param dao           the LoaderDAO to consult for the objects necessary
-     * @param efo           all loaded units need to exist in EFO - this param is used to check that
+     * @param propertyValueMergeService           servce responsible for merging property values
      * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
      *          if there is a problem creating the property object
      */
     public static void writeAssayProperties(MAGETABInvestigation investigation, Assay assay,
-                                            HybridizationNode assayNode, LoaderDAO dao, Efo efo) throws AtlasLoaderException {
-        String compoundFactorValue = null;
-        String doseFactorValue = null;
+                                            HybridizationNode assayNode, LoaderDAO dao, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
+
+        List<Pair<String, FactorValueAttribute>> factorValueAttributes = new ArrayList<Pair<String, FactorValueAttribute>>();
         // fetch factor values of this assayNode
         for (FactorValueAttribute factorValueAttribute : assayNode.factorValues) {
             // create Property for this attribute
@@ -290,85 +235,67 @@ public class AssayAndHybridizationStep {
                 throw new AtlasLoaderException("Factors and their values must NOT contain '||' - " +
                         "this is a special reserved character used as a delimiter in the database");
             }
-            String factorValueName = factorValueAttribute.getNodeName().trim();
-            if (Strings.isNullOrEmpty(factorValueName)) {
-                continue; // We don't load empty factor values
-            } else if (factorValueAttribute.unit != null) {
-                String unitValue = factorValueAttribute.unit.getAttributeValue();
-                if (Strings.isNullOrEmpty(unitValue))
-                    throw new AtlasLoaderException("Unable to find unit value for factor value: " + factorValueName);
-                unitValue = pluraliseUnitIfNeeded(unitValue.trim(), factorValueName);
-                if (efo.searchTerm(unitValue).isEmpty()) {
-                    throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
-                }
-                factorValueName = Joiner.on(" ").join(factorValueName, unitValue);
-            }
 
-            // try and lookup factor type for factor name: factorValueAttribute.type
-            String efType = null;
-            List<String> efNames = investigation.IDF.experimentalFactorName;
-            for (int i = 0; i < efNames.size(); i++) {
-                if (efNames.get(i).equals(factorValueAttribute.type)) {
-                    if (investigation.IDF.experimentalFactorType.size() > i) {
-                        efType = investigation.IDF.experimentalFactorType.get(i);
-                    }
-                }
-            }
-
-            if (efType == null) {
-                // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
-                log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
-                        "', using type from SDRF");
-                efType = factorValueAttribute.type;
-            }
-
-            if (Strings.isNullOrEmpty(efType))
-                throw new AtlasLoaderException("Unable to find factor type for factor value: " + factorValueName);
-
-            if (COMPOUND.equalsIgnoreCase(efType))
-                compoundFactorValue = factorValueName;
-            else if (DOSE.equalsIgnoreCase(efType))
-                doseFactorValue = factorValueName;
-
-            if (COMPOUND.equalsIgnoreCase(efType) || DOSE.equalsIgnoreCase(efType)) {
-                if (!Strings.isNullOrEmpty(compoundFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) {
-                    efType = COMPOUND;
-                    factorValueName = Joiner.on(" ").join(compoundFactorValue, doseFactorValue);
-                    compoundFactorValue = null;
-                    doseFactorValue = null;
-                } else {
-                    // Don't add either compound or dose factor values to assay on their own, until:
-                    // - you have both of them, in which case merge them together and then add to assay
-                    // - you know that either dose or compound values are missing, in which case add to assay that one
-                    //   (dose or compound) that is present
-                    continue;
-                }
-            }
-            tryAddPropertyToAssay(efType, factorValueName, assay, dao);
+            factorValueAttributes.add(Pair.create(getFactor(investigation, factorValueAttribute), factorValueAttribute));
         }
 
-        if (!Strings.isNullOrEmpty(compoundFactorValue) && Strings.isNullOrEmpty(doseFactorValue)) {
-            tryAddPropertyToAssay(COMPOUND, compoundFactorValue, assay, dao);
-            log.warn("Adding " + COMPOUND + " : " + compoundFactorValue + " to assay with no corresponding value for factor: " + DOSE);
-        } else if (!Strings.isNullOrEmpty(doseFactorValue) && Strings.isNullOrEmpty(compoundFactorValue)) {
-            tryAddPropertyToAssay(DOSE, doseFactorValue, assay, dao);
-            log.warn("Adding " + DOSE + " : " + doseFactorValue + " to assay with no corresponding value for factor: " + COMPOUND);
-        }
+        for (Pair<String, String> efEfv : propertyValueMergeService.getMergedFactorValues(factorValueAttributes))
+               tryAddPropertyToAssay(efEfv.getKey(), efEfv.getValue(), assay, dao);
     }
 
-    private static void tryAddPropertyToAssay(String ef, String efv, Assay assay, LoaderDAO dao)
+    /**
+     * @param investigation
+     * @param factorValueAttribute
+     * @return factor name derived from either factor type field in IDF, or failing that, from factorValueAttribute.type
+     * @throws AtlasLoaderException - if no factor could be found usin gthe above methods
+     */
+    private static String getFactor(MAGETABInvestigation investigation, FactorValueAttribute factorValueAttribute)
+            throws AtlasLoaderException {
+        // try and lookup factor type for factor name: factorValueAttribute.type
+        String efType = null;
+        List<String> efNames = investigation.IDF.experimentalFactorName;
+        for (int i = 0; i < efNames.size(); i++) {
+            if (efNames.get(i).equals(factorValueAttribute.type)) {
+                if (investigation.IDF.experimentalFactorType.size() > i) {
+                    efType = investigation.IDF.experimentalFactorType.get(i);
+                }
+            }
+        }
+
+        if (efType == null) {
+            // if name->type mapping is null in IDF, warn and fallback to using type from SDRF
+            log.warn("Experimental Factor type is null for '" + factorValueAttribute.type +
+                    "', using type from SDRF");
+            efType = factorValueAttribute.type;
+        }
+
+        if (Strings.isNullOrEmpty(efType))
+            throw new AtlasLoaderException("Unable to find factor type for factor value: " + factorValueAttribute.getNodeName().trim());
+
+        return efType;
+    }
+
+    /**
+     * Try adding efType-factorValueName to assay, throwing an exception if a different value for efType already exists in assay.
+     * @param efType
+     * @param factorValueName
+     * @param assay
+     * @param dao
+     * @throws AtlasLoaderException
+     */
+    private static void tryAddPropertyToAssay(String efType, String factorValueName, Assay assay, LoaderDAO dao)
             throws AtlasLoaderException {
         // If assay already contains values for efType then:
         // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
         // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
         // with such experiments)
         boolean existing = false;
-        for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(ef))) {
+        for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(efType))) {
             existing = true;
-            if (!ap.getValue().equals(efv)) {
+            if (!ap.getValue().equals(factorValueName)) {
                 throw new AtlasLoaderException(
                         "Assay " + assay.getAccession() + " has multiple factor values for " +
-                                ap.getName() + "(" + ap.getValue() + " and " + efv +
+                                ap.getName() + "(" + ap.getValue() + " and " + factorValueName +
                                 ") on different rows.  This may be because this is a 2 channel experiment, " +
                                 "which cannot currently be loaded into the atlas. Or, this could be a result " +
                                 "of inconsistent annotations"
@@ -377,7 +304,7 @@ public class AssayAndHybridizationStep {
         }
 
         if (!existing) {
-            assay.addProperty(dao.getOrCreatePropertyValue(ef, efv));
+            assay.addProperty(dao.getOrCreatePropertyValue(efType, factorValueName));
             // todo - factor values can have ontology entries, set these values
         }
     }
