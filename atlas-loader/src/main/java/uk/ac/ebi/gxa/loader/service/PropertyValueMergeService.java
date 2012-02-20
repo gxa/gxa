@@ -90,7 +90,7 @@ public class PropertyValueMergeService {
      * @return factorValue contained in factorValueAttribute (with an appended unit, if one exists)
      * @throws AtlasLoaderException - if UnitAttribute within factorValueAttribute exists but has not value or if unit value cannot be found in EFO
      */
-    public String getFactorValue(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
+    private String getFactorValue(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
         String factorValueName = factorValueAttribute.getNodeName().trim();
         if (!Strings.isNullOrEmpty(factorValueName) && factorValueAttribute.unit != null) {
             String unitValue = factorValueAttribute.unit.getAttributeValue();
