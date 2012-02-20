@@ -124,6 +124,29 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         log.debug("Parse and check sample/assays done");
     }
 
+    @Test
+    public void testUnitPluralisation() throws AtlasLoaderException {
+        assertEquals("microgram", AssayAndHybridizationStep.pluraliseUnitIfNeeded("microgram", "1"));
+        assertEquals("micrograms", AssayAndHybridizationStep.pluraliseUnitIfNeeded("microgram", "1.0"));
+        assertEquals("other", AssayAndHybridizationStep.pluraliseUnitIfNeeded("other", " 5"));
+        assertEquals("percent", AssayAndHybridizationStep.pluraliseUnitIfNeeded("percent", "5.0 "));
+        assertEquals("volume percent", AssayAndHybridizationStep.pluraliseUnitIfNeeded("volume percent", "5 "));
+        assertEquals("percent per volume", AssayAndHybridizationStep.pluraliseUnitIfNeeded("percent per volume", "5 "));
+        assertEquals("nanograms per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanogram per milliliter", "10"));
+        assertEquals("nanograms per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanograms per milliliter", "10"));
+        assertEquals("nanogram per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanogram per milliliter", "1"));
+        assertEquals(null, AssayAndHybridizationStep.pluraliseUnitIfNeeded(null, "1"));
+        assertEquals("nanogram per milliliter", AssayAndHybridizationStep.pluraliseUnitIfNeeded("nanogram per milliliter", null));
+        assertEquals(null, AssayAndHybridizationStep.pluraliseUnitIfNeeded(null, null));
+        assertEquals("cubic centimeters", AssayAndHybridizationStep.pluraliseUnitIfNeeded("cubic centimeter", "5"));
+        assertEquals("parts per million", AssayAndHybridizationStep.pluraliseUnitIfNeeded("parts per million", "5"));
+        assertEquals("degrees celsius", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degree celsius", "5"));
+        assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degree", "5"));
+        assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degrees", "5"));
+        assertEquals("degrees", AssayAndHybridizationStep.pluraliseUnitIfNeeded("degrees", "1"));
+    }
+
+
     private LoaderDAO mockLoaderDAO() {
         final LoaderDAO dao = createMock(LoaderDAO.class);
         expect(dao.getOrCreatePropertyValue(EasyMock.<String>anyObject(), EasyMock.<String>anyObject()))

@@ -62,6 +62,14 @@ public class AssayAndHybridizationStep {
     private static final String COMPOUND = "compound";
     private static final String DOSE = "dose";
 
+    // Units that should never be pluralised when being joined to factor values
+    private static final String OTHER = "other";
+    private static final String PERCENT = "percent";
+    // separator in units in which only the first work should be pluralised (e.g. "micromole per kilogram")
+    private static final String PER = "per";
+    // The only case other than the above in which only the first word should be pluralised (e.g. "degree celcius")
+    private static final String DEGREE = "degree";
+
     public static String displayName() {
         return "Processing assay and hybridization nodes";
     }
@@ -213,6 +221,50 @@ public class AssayAndHybridizationStep {
     }
 
     /**
+     * Pluralise a unit only if:
+     * - unit is not empty
+     * - factor value it describes is not equal to 1
+     * - it is not equal to OTHER or contains PERCENT in it
+     * - it does not already end in "s"
+     * <p/>
+     * Pluralisation method is as follows:
+     * - if a unit contains PER, pluralise the term preceding it (unless that term ends in "s" already)
+     * - else if a unit starts with DEGREE, pluralise word DEGREE unless the unit starts with DEGREE + "s"
+     * - else unless the units already ends in "s", pluralise thh whole unit.
+     * <p/>
+     * See the junit test case of this method for the full list of test cases.
+     * <p/> c.f. examples of units in EFO in ticket 3356:
+     * MAGE-OM_to_EFO_Units.txt
+     * OtherUnitsMappedToEFO.txt
+     *
+     * @param unit
+     * @param factorValue
+     * @return
+     */
+    public static String pluraliseUnitIfNeeded(String unit, String factorValue) {
+        try {
+            if (Strings.isNullOrEmpty(factorValue) || Integer.parseInt(factorValue) == 1)
+                return unit;
+        } catch (NumberFormatException nfe) {
+            // quiesce
+        }
+
+        if (!Strings.isNullOrEmpty(unit) && !unit.equals(OTHER) && !unit.contains(PERCENT)) {
+            int idx = unit.indexOf(PER);
+            if (idx != -1) {
+                String firstWord = unit.substring(0, idx - 1).trim();
+                if (!firstWord.endsWith("s"))
+                    return firstWord + "s " + unit.substring(idx);
+            } else if (unit.startsWith(DEGREE) && !unit.equals(DEGREE + "s")) {
+                return DEGREE + "s" + unit.substring(DEGREE.length());
+            } else if (!unit.endsWith("s"))
+                return unit + "s";
+        }
+
+        return unit;
+    }
+
+    /**
      * Write out the properties associated with an {@link uk.ac.ebi.microarray.atlas.model.Assay} in the SDRF graph.  These properties are obtained by
      * looking at the "factorvalue" column in the SDRF graph, extracting the type and linking this type (the property)
      * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode} provided (the property
@@ -243,6 +295,9 @@ public class AssayAndHybridizationStep {
                 continue; // We don't load empty factor values
             } else if (factorValueAttribute.unit != null) {
                 String unitValue = factorValueAttribute.unit.getAttributeValue();
+                if (Strings.isNullOrEmpty(unitValue))
+                    throw new AtlasLoaderException("Unable to find unit value for factor value: " + factorValueName);
+                unitValue = pluraliseUnitIfNeeded(unitValue.trim(), factorValueName);
                 if (efo.searchTerm(unitValue).isEmpty()) {
                     throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
                 }
@@ -268,7 +323,7 @@ public class AssayAndHybridizationStep {
             }
 
             if (Strings.isNullOrEmpty(efType))
-                 throw new AtlasLoaderException("Unable to find factor type for factor value: " + factorValueName);
+                throw new AtlasLoaderException("Unable to find factor type for factor value: " + factorValueName);
 
             if (COMPOUND.equalsIgnoreCase(efType))
                 compoundFactorValue = factorValueName;
