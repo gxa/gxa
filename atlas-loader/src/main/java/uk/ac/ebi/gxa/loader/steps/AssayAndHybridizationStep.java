@@ -222,7 +222,7 @@ public class AssayAndHybridizationStep {
      * @param assay         the assay you want to attach properties to
      * @param assayNode     the assayNode being read
      * @param dao           the LoaderDAO to consult for the objects necessary
-     * @param efo           EFO to test units being loaded against
+     * @param efo           all loaded units need to exist in EFO - this param is used to check that
      * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
      *          if there is a problem creating the property object
      */
@@ -244,7 +244,7 @@ public class AssayAndHybridizationStep {
             } else if (factorValueAttribute.unit != null) {
                 String unitValue = factorValueAttribute.unit.getAttributeValue();
                 if (efo.searchTerm(unitValue).isEmpty()) {
-                     throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
+                    throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
                 }
                 factorValueName = Joiner.on(" ").join(factorValueName, unitValue);
             }
@@ -267,6 +267,9 @@ public class AssayAndHybridizationStep {
                 efType = factorValueAttribute.type;
             }
 
+            if (Strings.isNullOrEmpty(efType))
+                 throw new AtlasLoaderException("Unable to find factor type for factor value: " + factorValueName);
+
             if (COMPOUND.equalsIgnoreCase(efType))
                 compoundFactorValue = factorValueName;
             else if (DOSE.equalsIgnoreCase(efType))
@@ -276,37 +279,51 @@ public class AssayAndHybridizationStep {
                 if (!Strings.isNullOrEmpty(compoundFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) {
                     efType = COMPOUND;
                     factorValueName = Joiner.on(" ").join(compoundFactorValue, doseFactorValue);
+                    compoundFactorValue = null;
+                    doseFactorValue = null;
                 } else {
+                    // Don't add either compound or dose factor values to assay on their own, until:
+                    // - you have both of them, in which case merge them together and then add to assay
+                    // - you know that either dose or compound values are missing, in which case add to assay that one
+                    //   (dose or compound) that is present
                     continue;
                 }
             }
+            tryAddPropertyToAssay(efType, factorValueName, assay, dao);
+        }
 
-            // If assay already contains values for efType then:
-            // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
-            // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
-            // with such experiments)
-            boolean existing = false;
-            for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(efType))) {
-                existing = true;
-                if (!ap.getValue().equals(factorValueName)) {
-                    throw new AtlasLoaderException(
-                            "Assay " + assay.getAccession() + " has multiple factor values for " +
-                                    ap.getName() + "(" + ap.getValue() + " and " + factorValueName +
-                                    ") on different rows.  This may be because this is a 2 channel experiment, " +
-                                    "which cannot currently be loaded into the atlas. Or, this could be a result " +
-                                    "of inconsistent annotations"
-                    );
-                }
-            }
+        if (!Strings.isNullOrEmpty(compoundFactorValue) && Strings.isNullOrEmpty(doseFactorValue)) {
+            tryAddPropertyToAssay(COMPOUND, compoundFactorValue, assay, dao);
+            log.warn("Adding " + COMPOUND + " : " + compoundFactorValue + " to assay with no corresponding value for factor: " + DOSE);
+        } else if (!Strings.isNullOrEmpty(doseFactorValue) && Strings.isNullOrEmpty(compoundFactorValue)) {
+            tryAddPropertyToAssay(DOSE, doseFactorValue, assay, dao);
+            log.warn("Adding " + DOSE + " : " + doseFactorValue + " to assay with no corresponding value for factor: " + COMPOUND);
+        }
+    }
 
-            if (!existing) {
-                assay.addProperty(dao.getOrCreatePropertyValue(efType, factorValueName));
-                // todo - factor values can have ontology entries, set these values
+    private static void tryAddPropertyToAssay(String ef, String efv, Assay assay, LoaderDAO dao)
+            throws AtlasLoaderException {
+        // If assay already contains values for efType then:
+        // If factorValueName is one of the existing values, don't re-add it; otherwise, throw an Exception
+        // as one factor type cannot have more then one value in a single assay (Atlas cannot currently cope
+        // with such experiments)
+        boolean existing = false;
+        for (AssayProperty ap : assay.getProperties(Property.getSanitizedPropertyAccession(ef))) {
+            existing = true;
+            if (!ap.getValue().equals(efv)) {
+                throw new AtlasLoaderException(
+                        "Assay " + assay.getAccession() + " has multiple factor values for " +
+                                ap.getName() + "(" + ap.getValue() + " and " + efv +
+                                ") on different rows.  This may be because this is a 2 channel experiment, " +
+                                "which cannot currently be loaded into the atlas. Or, this could be a result " +
+                                "of inconsistent annotations"
+                );
             }
         }
-        if ((Strings.isNullOrEmpty(compoundFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) ||
-                (!Strings.isNullOrEmpty(compoundFactorValue) && Strings.isNullOrEmpty(doseFactorValue))) {
-            throw new AtlasLoaderException("AssayNode did not contain values for both " + COMPOUND + " and " + DOSE);
+
+        if (!existing) {
+            assay.addProperty(dao.getOrCreatePropertyValue(ef, efv));
+            // todo - factor values can have ontology entries, set these values
         }
     }
 }
