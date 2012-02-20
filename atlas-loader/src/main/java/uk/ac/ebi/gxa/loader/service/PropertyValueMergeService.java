@@ -96,11 +96,10 @@ public class PropertyValueMergeService {
             String unitValue = factorValueAttribute.unit.getAttributeValue();
             if (Strings.isNullOrEmpty(unitValue))
                 throw new AtlasLoaderException("Unable to find unit value for factor value: " + factorValueName);
-            unitValue = PropertyValueMergeService.pluraliseUnitIfApplicable(unitValue.trim(), factorValueName);
             if (isEfoTerm(unitValue)) {
                 throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
             }
-            return Joiner.on(" ").join(factorValueName, unitValue);
+            return Joiner.on(" ").join(factorValueName, PropertyValueMergeService.pluraliseUnitIfApplicable(unitValue.trim(), factorValueName));
         }
         return factorValueName;
     }
