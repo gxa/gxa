@@ -105,7 +105,7 @@ public class AnnotationSourceController {
         }
 
         public String getApplied() {
-            return annSrc.isApplied() ? "yes" : "no";
+            return annSrc.isAnnotationsApplied() ? "yes" : "no";
         }
 
         public String getMappingsApplied() {

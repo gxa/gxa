@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.VersionFinder;
 import uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator;
 import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;

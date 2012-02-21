@@ -37,8 +37,6 @@ import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collection;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -118,7 +116,7 @@ public class BioMartAnnotator extends Annotator {
             reportProgress("Loading Ensembl design element mappings for organism " + organismName);
             BioMartAnnotationLoader annotLoader = new BioMartAnnotationLoader(httpClient, annSrc);
 
-            if (!annSrc.isApplied()) {
+            if (!annSrc.isAnnotationsApplied()) {
                 reportProgress("Loading bioentities for " + organismName);
                 annotLoader.loadBioEntities();
                 writeBioEntities(annotLoader.getBioEntityData(), batchSize);

@@ -171,13 +171,13 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testUpdate() throws Exception {
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         assertNotNull(annotationSource);
-        assertEquals(false, annotationSource.isApplied());
-        annotationSource.setApplied(true);
+        assertEquals(false, annotationSource.isAnnotationsApplied());
+        annotationSource.setAnnotationsApplied(true);
 
         annSrcDAO.update(annotationSource);
 
         BioMartAnnotationSource annotationSource1 = fetchAnnotationSource();
-        assertTrue(annotationSource1.isApplied());
+        assertTrue(annotationSource1.isAnnotationsApplied());
     }
 
     @Test

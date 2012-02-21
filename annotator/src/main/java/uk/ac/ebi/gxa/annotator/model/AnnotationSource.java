@@ -67,7 +67,7 @@ public abstract class AnnotationSource {
     private Date loadDate;
 
     @org.hibernate.annotations.Type(type = "true_false")
-    private boolean isApplied = false;
+    private boolean annotationsApplied = false;
 
     @org.hibernate.annotations.Type(type = "true_false")
     private boolean mappingsApplied = false;
@@ -146,12 +146,12 @@ public abstract class AnnotationSource {
         this.loadDate = copyOf(loadDate);
     }
 
-    public boolean isApplied() {
-        return isApplied;
+    public boolean isAnnotationsApplied() {
+        return annotationsApplied;
     }
 
-    public void setApplied(boolean applied) {
-        isApplied = applied;
+    public void setAnnotationsApplied(boolean annotationsApplied) {
+        this.annotationsApplied = annotationsApplied;
     }
 
     public boolean isMappingsApplied() {

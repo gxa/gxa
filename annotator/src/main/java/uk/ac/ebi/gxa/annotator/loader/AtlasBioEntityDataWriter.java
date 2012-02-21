@@ -85,7 +85,7 @@ public class AtlasBioEntityDataWriter {
                                                boolean checkBioEntities,
                                                final int batchSize,
                                                AnnotationCommandListener listener) {
-        if (annSrc.isApplied()) {
+        if (annSrc.isAnnotationsApplied()) {
             deleteBioEntityToPropertyValues(annSrc, listener);
         }
         for (BioEntityType type : data.getBioEntityTypes()) {
@@ -98,7 +98,7 @@ public class AtlasBioEntityDataWriter {
             }
         }
 
-        annSrc.setApplied(true);
+        annSrc.setAnnotationsApplied(true);
         annSrcDAO.update(annSrc);
     }
 
