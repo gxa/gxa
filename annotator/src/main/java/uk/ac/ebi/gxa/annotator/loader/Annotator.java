@@ -28,6 +28,7 @@ import uk.ac.ebi.gxa.annotator.loader.data.BioEntityAnnotationData;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.web.admin.AnnotationCommandListener;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
@@ -81,7 +82,11 @@ public abstract class Annotator {
         beDataWriter.writeBioEntityToPropertyValues(data, annSrc, checkBioEntities, batchSize, listener);
     }
 
-    protected void writeDesignElements(DesignElementMappingData data, ArrayDesign arrayDesign, Software software, boolean deleteBeforeWrite, int batchSize) {
-        beDataWriter.writeDesignElements(data, arrayDesign, software, deleteBeforeWrite, batchSize, listener);
+    protected void writeDesignElements(DesignElementMappingData data, ArrayDesign arrayDesign, AnnotationSource annSrc, int batchSize) {
+        beDataWriter.writeDesignElements(data, arrayDesign, annSrc, batchSize, listener);
+    }
+
+    protected void updateAnnotationSource(AnnotationSource annSrc) {
+        beDataWriter.updateAnnotationSource(annSrc);
     }
 }
