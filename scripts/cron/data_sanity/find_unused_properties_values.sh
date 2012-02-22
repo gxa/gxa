@@ -25,13 +25,12 @@ curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties/values/unused.json" |
 if [ -e "${process_file}.properties" ]; then
     echo "The following properties are not used in any assays/samples: "
     cat ${process_file}.properties
+    echo -e "\n"
+    echo -e "\n"
 fi
 
-echo -e "\n"
-echo -e "\n"
-
 if [ -e "${process_file}.property_values" ]; then
-    echo "The following properties are not used in any assays/samples: "
+    echo "The following property values are not used in any assays/samples: "
     cat "${process_file}.property_values"
 fi
 
