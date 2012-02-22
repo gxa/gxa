@@ -143,8 +143,7 @@ public class PropertyValueMergeService {
             factorValues.add(Pair.create(COMPOUND, compoundFactorValue));
             log.warn("Adding " + COMPOUND + " : " + compoundFactorValue + " to assay with no corresponding value for factor: " + DOSE);
         } else if (!Strings.isNullOrEmpty(doseFactorValue) && Strings.isNullOrEmpty(compoundFactorValue)) {
-            factorValues.add(Pair.create(DOSE, doseFactorValue));
-            log.warn("Adding " + DOSE + " : " + doseFactorValue + " to assay with no corresponding value for factor: " + COMPOUND);
+            throw new AtlasLoaderException(DOSE + " : " + doseFactorValue + " has no corresponding value for factor: " + COMPOUND);
         }
 
         return factorValues;
