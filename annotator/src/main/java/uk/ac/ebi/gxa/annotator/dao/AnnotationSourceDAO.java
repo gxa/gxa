@@ -87,11 +87,11 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
-    public boolean isAnnSrcAppliedForArrayDesignMapping(final AnnotationSource annSrc, final ArrayDesign arrayDesign) {
+    public boolean isAnnSrcAppliedForArrayDesignMapping(final Software software, final ArrayDesign arrayDesign) {
         String query = "SELECT count (DESIGNELEMENTID) FROM A2_DESIGNELTBIOENTITY\n" +
                 "WHERE SOFTWAREID = ?\n" +
                 "AND DESIGNELEMENTID IN (SELECT DE.DESIGNELEMENTID FROM A2_DESIGNELEMENT DE WHERE DE.ARRAYDESIGNID=?)";
-        int count = atlasJdbcTemplate.queryForInt(query, annSrc.getSoftware().getSoftwareid(), arrayDesign.getArrayDesignID());
+        int count = atlasJdbcTemplate.queryForInt(query, software.getSoftwareid(), arrayDesign.getArrayDesignID());
 
         return count > 0;
     }
