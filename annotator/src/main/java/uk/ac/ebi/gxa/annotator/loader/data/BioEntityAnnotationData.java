@@ -73,9 +73,9 @@ public class BioEntityAnnotationData {
                 Pair<String, BEPropertyValue> beProperty = Pair.create(beIdentifier, pv);
                 typeToBEPropValues.put(bioEntityType, beProperty);
                 propertyValues.add(pv);
-                return;
+            } else {
+                log.warn("Invalid (longer then accepted in DB) BE property value: {}", value);
             }
-            log.warn("Invalid BE property value: {}", pv.getValue());
         }
     }
 
