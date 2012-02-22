@@ -274,7 +274,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                             , "currName", sourceView.getSoftware()
                             , "validation", sourceView.getValidationMessage()
                             , "applied", sourceView.getApplied()
-                            , "appliedMapping", sourceView.areMappingsApplied()
+                            , "appliedMapping", sourceView.getMappingsApplied()
                             , "annSrcType", sourceView.getType()
 
                     ));

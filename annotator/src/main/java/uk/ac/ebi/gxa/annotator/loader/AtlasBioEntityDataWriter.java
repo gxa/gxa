@@ -85,7 +85,7 @@ public class AtlasBioEntityDataWriter {
                                                boolean checkBioEntities,
                                                final int batchSize,
                                                AnnotationCommandListener listener) {
-        if (annSrc.isApplied()) {
+        if (annSrc.isAnnotationsApplied()) {
             deleteBioEntityToPropertyValues(annSrc, listener);
         }
         for (BioEntityType type : data.getBioEntityTypes()) {
@@ -98,7 +98,7 @@ public class AtlasBioEntityDataWriter {
             }
         }
 
-        annSrc.setApplied(true);
+        annSrc.setAnnotationsApplied(true);
         annSrcDAO.update(annSrc);
     }
 
@@ -128,12 +128,11 @@ public class AtlasBioEntityDataWriter {
     @Transactional
     public void writeDesignElements(final DesignElementMappingData data, 
                                     final ArrayDesign arrayDesign, 
-                                    final Software software, 
-                                    boolean deleteBeforeWrite, 
-                                    final int batchSize, 
+                                    final AnnotationSource annSrc,
+                                    final int batchSize,
                                     AnnotationCommandListener listener) {
-        if (deleteBeforeWrite) {
-            deleteDesignElementBioEntityMappings(software, arrayDesign, listener);
+        if (annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc.getSoftware(), arrayDesign)) {
+            deleteDesignElementBioEntityMappings(annSrc.getSoftware(), arrayDesign, listener);
         }
         reportProgress("Writing " + data.getDesignElements().size() + " design elements of " + arrayDesign.getAccession(), listener);
         bioEntityDAO.writeDesignElements(data.getDesignElements(), arrayDesign, batchSize);
@@ -143,11 +142,12 @@ public class AtlasBioEntityDataWriter {
                     bioEntityType.getName() + " mappings of " + arrayDesign.getAccession(), listener);
             bioEntityDAO.writeDesignElementBioEntityMappings(designElementToBioEntity,
                     bioEntityType,
-                    software,
+                    annSrc.getSoftware(),
                     arrayDesign,
                     batchSize);
         }
     }
+
 
     private void deleteDesignElementBioEntityMappings(final Software software, final ArrayDesign arrayDesign, AnnotationCommandListener listener) {
         reportProgress("Mappings for array design " + arrayDesign.getAccession() +
@@ -160,5 +160,10 @@ public class AtlasBioEntityDataWriter {
         log.info(report);
         if (listener != null)
             listener.commandProgress(report);
+    }
+
+    @Transactional
+    public void updateAnnotationSource(AnnotationSource annSrc) {
+        annSrcDAO.update(annSrc);
     }
 }

@@ -88,16 +88,6 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
         return validateProperties(fetchAnnSrcById(annSrcId));
     }
 
-    public boolean areMappingsApplied(AnnotationSource annSrc) {
-        if (annSrc.getExternalArrayDesigns().isEmpty()) {
-            return false;
-        }
-        boolean result = true;
-        for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
-            result = result & annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annSrc, externalArrayDesign.getArrayDesign());
-        }
-        return result;
-    }
 
     public abstract boolean isForClass(Class<? extends AnnotationSource> annSrcClass);
 
