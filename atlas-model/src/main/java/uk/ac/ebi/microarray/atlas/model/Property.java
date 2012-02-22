@@ -43,7 +43,7 @@ public final class Property implements Comparable<Property> {
     }
 
     public static String getSanitizedPropertyAccession(String name) {
-        return EscapeUtil.encode(name).toLowerCase();
+        return EscapeUtil.encode(name);
     }
 
     public static Property createProperty(String displayName) {
