@@ -17,7 +17,7 @@ rm -rf $log
 
 ./find_no_stats_exps.sh $NCDF_DIR >> $log
 
-./find_unused_properties_values.sh $NCDF_DIR >> $log
+./find_unused_properties_values.sh $ATLAS_URL >> $log
 
 ./find_near_duplicate_properties.sh $ATLAS_URL >> $log
 

@@ -27,6 +27,7 @@ for stats_file in $(find $NCDF_DIR -name *_statistics.nc); do
         num_des=`ncdump -h $data_file | grep 'DE = ' | awk -F" = " '{print $2}' | sed 's|[ ;]$||g'`
         if [ $num_des -eq 1 ]; then
             echo "$exp_ad: limma's lmFit function fails when num of DE's = $num_des"
+            echo -e "\n"
         else
 
            # EFs
@@ -60,6 +61,7 @@ for stats_file in $(find $NCDF_DIR -name *_statistics.nc); do
                   efvs_remainder=`echo "$efvs_remainder" | tail -$num_efvs`
                fi
            done
+           echo -e "\n"
         fi
    fi
 done
