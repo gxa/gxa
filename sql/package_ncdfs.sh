@@ -26,9 +26,11 @@ echo "Packing the NetCDFs"
 if [ ! -z "$WITH_BAMS" ]; then
    sqlplus -S $ATLAS_CONNECTION @ncdfs-to-export.sql | \
      awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" }'  | \
-     xargs tar rvz -C $ATLAS_NCDF_PATH/.. -f $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
+     xargs tar rv -C $ATLAS_NCDF_PATH/.. -f $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
 else
    sqlplus -S $ATLAS_CONNECTION @ncdfs-to-export.sql | \
      awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" }'  | \
-     xargs tar rvz -C $ATLAS_NCDF_PATH/.. --exclude 'assays' --exclude 'annotations' -f $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
+     xargs tar rv -C $ATLAS_NCDF_PATH/.. --exclude 'assays' --exclude 'annotations' -f $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
 fi
+
+gzip $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
