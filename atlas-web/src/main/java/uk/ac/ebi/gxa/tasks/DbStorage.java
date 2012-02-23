@@ -450,6 +450,14 @@ public class DbStorage implements PersistentStorage {
                 });
     }
 
+    public void setIncompleteNcdfUpdate(String accession) {
+        jdbcTemplate.update("update A2_taskman_status set status = ? where accession = ? and type = ? and status = ?", "INCOMPLETE", accession, "updateexperiment", "DONE");
+    }
+
+    public void setIncompleteAnalytics(String accession) {
+        jdbcTemplate.update("update A2_taskman_status set status = ? where accession = ? and type = ? and status = ?", "INCOMPLETE", accession, "analytics", "DONE");
+    }
+
     private static String likeifyString(String searchStr) {
         return "%" + searchStr.replaceAll("[%_*\\[\\]]", "").toLowerCase().replaceAll("\\s+", "%") + "%";
     }
