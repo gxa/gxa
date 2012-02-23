@@ -33,4 +33,5 @@ else
      xargs tar rv -C $ATLAS_NCDF_PATH/.. --exclude 'assays' --exclude 'annotations' -f $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
 fi
 
+rm -rf $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar.gz
 gzip $DESTINATION_DIRECTORY/$ATLAS_RELEASE-ncdf.tar
