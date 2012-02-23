@@ -30,6 +30,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +53,7 @@ public class CSVBasedReader implements Closeable {
         return new CSVBasedReader(in, '\t', '"');
     }
 
-    public Row readNext() throws IOException {
+    public Row readNext() throws IOException, InvalidCSVColumnException {
         String[] line = csvReader.readNext();
         if (rowCount == 0) {
             fillInColumnNames(line);
@@ -68,10 +70,12 @@ public class CSVBasedReader implements Closeable {
         csvReader.close();
     }
 
-    private void fillInColumnNames(String[] line) {
-        if (line == null) {
-            return;
+    private void fillInColumnNames(String[] line) throws InvalidCSVColumnException {
+        if (line == null || line.length == 0 || Arrays.toString(line).contains("Exception")
+                || Arrays.toString(line).contains("ERROR")) {
+            throw new InvalidCSVColumnException("There is no data, or error occurred. " +  (line != null?Arrays.toString(line):""));
         }
+
         for (int i = 0; i < line.length; i++) {
             String cName = line[i];
             columnIndexes.put(cName, i);
