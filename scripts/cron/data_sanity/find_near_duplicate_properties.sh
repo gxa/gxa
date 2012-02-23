@@ -20,7 +20,7 @@ for property in $(cat "${process_file}.properties"); do
 	: # Exclude values for property 'individual' - as requested by curators
     else
 	curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties/${property}.json" | sed 's|},{|\
-|g' | sed 's/"apiPropertyValueList"://g' | awk -F"," '{print $1":"$2}' | awk -F"value" '{print $2}' | sed 's|[}"]||g' | sed 's|^:||' | sed 's|]||g' | sort -f | uniq >> ${process_file}.values
+|g' | sed 's/"apiPropertyValueList"://g' | awk -F"value" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sed 's|^:||' | sort -f | uniq >> ${process_file}.values
     fi 
 done
 
@@ -43,7 +43,8 @@ for property in $(cat "${process_file}.properties"); do
           ld=`./ldistance.py $canonical_current $canonical_previous`
           if [ "$ld" -le "$max_levenstein_distance" ]; then
 	      similarity="$previous	$property"
-	      if [[ "$exceptions_properties" =~ "$similarity" ]]; then # If similarity is already tagged as an allowable exception, exclude it from the report
+	      similarity_esc="$(echo "$similarity" | sed 's/[^-A-Za-z0-9_]/\\&/g')" # backslash special characters
+	      if [[ "$exceptions_properties" =~ "$similarity_esc" ]]; then # If similarity is already tagged as an allowable exception, exclude it from the report
 		  : # ignoring $similarity
 	      else
 		  echo $similarity >> ${process_file}.ld${max_levenstein_distance}.properties
@@ -80,7 +81,8 @@ for value in $(cat "${process_file}.values"); do
              if [ "$ld" -le "$max_levenstein_distance" ]; then
 	           if [ $previous != $value ]; then
 	             similarity="$previous	$value"
-	             if [[ "$exceptions_values" =~ "$similarity" ]]; then # If similarity is already tagged as an allowable exception, exclude it from the report
+	             similarity_esc="$(echo "$similarity" | sed 's/[^-A-Za-z0-9_'\''<>]/\\&/g')" # backslash special characters (note exclusion of single quote and <>)
+	             if [[ "$exceptions_values" =~ "$similarity_esc" ]]; then # If similarity is already tagged as an allowable exception, exclude it from the report
 		           : # ignoring $similarity
 	             else
 		           echo $similarity >> ${process_file}.ld${max_levenstein_distance}.values.nonuniq
