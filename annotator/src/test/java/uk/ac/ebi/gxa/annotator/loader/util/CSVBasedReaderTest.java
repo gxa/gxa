@@ -38,14 +38,14 @@ import static org.junit.Assert.*;
  */
 public class CSVBasedReaderTest {
 
-    @Test
-    public void testEmptyFile() throws IOException {
+    @Test (expected = InvalidCSVColumnException.class)
+    public void testEmptyFile() throws IOException, InvalidCSVColumnException {
         File emptyFile = File.createTempFile("empty-file-test", ".txt");
         CSVBasedReader reader = null;
         try {
             reader = CSVBasedReader.tsvReader(new FileInputStream(emptyFile));
             CSVBasedReader.Row row = reader.readNext();
-            assertNull(row);
+
         } finally {
             closeQuietly(reader);
         }
@@ -91,7 +91,7 @@ public class CSVBasedReaderTest {
     }
 
     @Test
-    public void testInvalidColumnException() throws IOException {
+    public void testInvalidColumnException() throws IOException, InvalidCSVColumnException {
         CSVBasedReader reader = null;
         try {
             reader = CSVBasedReader.tsvReader(getClass().getResourceAsStream("csv-reader-test.tsv"));
@@ -110,6 +110,18 @@ public class CSVBasedReaderTest {
             } catch (InvalidCSVColumnException e) {
                 // ok
             }
+        } finally {
+            closeQuietly(reader);
+        }
+    }
+
+    @Test(expected = InvalidCSVColumnException.class)
+    public void testErrorInFile() throws IOException, InvalidCSVColumnException {
+        CSVBasedReader reader = null;
+        try {
+            reader = CSVBasedReader.tsvReader(getClass().getResourceAsStream("csv-reader-test-error.csv"));
+            CSVBasedReader.Row row = reader.readNext();
+
         } finally {
             closeQuietly(reader);
         }
