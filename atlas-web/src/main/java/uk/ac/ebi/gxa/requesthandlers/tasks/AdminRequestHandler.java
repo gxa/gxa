@@ -372,6 +372,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
+    private Object processSetIncompleteNcdfAnalytics(String accession) {
+        taskManagerDbStorage.setIncompleteNcdfUpdate(accession);
+        taskManagerDbStorage.setIncompleteAnalytics(accession);
+        return EMPTY;
+    }
+
     private Object processUpdateAnnSrc(String id, String type, String text){
         return makeMap("formValidationMessage", annSrcController.saveAnnSrc(id, type, text));
     }
@@ -503,6 +509,9 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
         else if ("aboutsys".equals(op))
             return processAboutSystem();
+
+        else if ("setincomplete".equals(op))
+            return processSetIncompleteNcdfAnalytics(req.getStr("accession"));
 
         else if ("logout".equals(op)) {
             session.removeAttribute(SESSION_ADMINUSER);
