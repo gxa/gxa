@@ -184,17 +184,13 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("tamoxifen 5 milligrams", factorValues.get(0).getValue());
     }
 
-    @Test
+    @Test(expected = AtlasLoaderException.class)
     public void testGetMergedFactorValues3() throws AtlasLoaderException {
-        try {
-            List<Pair<String, FactorValueAttribute>> factorValueAttributes = Lists.newArrayList();
-            factorValueAttributes.add(Pair.create("compound", mockFactorValueAttribute("tamoxifen", null)));
-            factorValueAttributes.add(Pair.create("dose", mockFactorValueAttribute("5", "mg")));
-            propertyValueMergeService.getMergedFactorValues(factorValueAttributes);
-            fail("AtlasLoaderException: 'Unit: mg not found in EFO' should have been thrown");
-        } catch (AtlasLoaderException e) {
-            // Test successful
-        }
+        List<Pair<String, FactorValueAttribute>> factorValueAttributes = Lists.newArrayList();
+        factorValueAttributes.add(Pair.create("compound", mockFactorValueAttribute("tamoxifen", null)));
+        factorValueAttributes.add(Pair.create("dose", mockFactorValueAttribute("5", "mg")));
+        propertyValueMergeService.getMergedFactorValues(factorValueAttributes);
+        fail("AtlasLoaderException: 'Unit: mg not found in EFO' should have been thrown");
     }
 
     private LoaderDAO mockLoaderDAO() {
@@ -214,7 +210,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     private FactorValueAttribute mockFactorValueAttribute(String factorValue, String unit) {
         final FactorValueAttribute factorValueAttribute = createMock(FactorValueAttribute.class);
-        factorValueAttribute.unit =  mockUnitAttribute(unit);
+        factorValueAttribute.unit = mockUnitAttribute(unit);
         expect(factorValueAttribute.getNodeName()).andReturn(factorValue).once();
         replay(factorValueAttribute);
         return factorValueAttribute;
