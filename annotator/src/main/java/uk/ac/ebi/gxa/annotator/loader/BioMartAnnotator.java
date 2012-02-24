@@ -104,7 +104,7 @@ public class BioMartAnnotator extends Annotator {
         } catch (InvalidAnnotationDataException e) {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
-            reportError(e);
+            reportError(new BioMartException("Cannot parse CSV for annotation source " + annSrc.getName(), e));
         }
     }
 
@@ -146,7 +146,7 @@ public class BioMartAnnotator extends Annotator {
         } catch (InvalidAnnotationDataException e) {
             reportError(e);
         } catch (InvalidCSVColumnException e) {
-            reportError(e);
+            reportError(new BioMartException("Cannot parse CSV for annotation source " + annSrc.getName(), e));
         }
     }
 

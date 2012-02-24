@@ -74,10 +74,10 @@ public class DesignElementMappingData {
 
                 DesignElement designElement = new DesignElement(deAccession, deAccession);
                 designElements.add(designElement);
-                return;
+            } else {
+                log.warn("Invalid (longer then accepted in DB) deAccession: {}", deAccession);
             }
         }
-        log.warn("Invalid deAccession: {}", deAccession);
     }
 
     boolean isValid(Collection<BioEntityType> types) {

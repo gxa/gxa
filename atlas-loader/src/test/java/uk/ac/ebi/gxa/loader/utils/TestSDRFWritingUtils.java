@@ -40,17 +40,18 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 public class TestSDRFWritingUtils extends TestCase {
+    public static final String TYPE = "Type";
     public void testWriteAssayProperties() throws AtlasLoaderException {
         // create investigation
         MAGETABInvestigation investigation = new MAGETABInvestigation();
-        investigation.IDF.experimentalFactorType.add("Type");
-        investigation.IDF.experimentalFactorName.add("Type");
+        investigation.IDF.experimentalFactorType.add(TYPE);
+        investigation.IDF.experimentalFactorName.add(TYPE);
 
         Assay assay = new Assay("TEST-ASSAY");
 
         AssayNode assayNode = new AssayNode();
         FactorValueAttribute fva = new FactorValueAttribute();
-        fva.type = "Type";
+        fva.type = TYPE;
         fva.setAttributeValue("specific factor value");
         assayNode.factorValues.add(fva);
 
@@ -61,7 +62,7 @@ public class TestSDRFWritingUtils extends TestCase {
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
         for (AssayProperty p : assay.getProperties()) {
-            assertEquals("Wrong property name", p.getName(), "type");
+            assertEquals("Wrong property name", p.getName(), TYPE);
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
         }
@@ -75,7 +76,7 @@ public class TestSDRFWritingUtils extends TestCase {
 
         SourceNode sourceNode = new SourceNode();
         CharacteristicsAttribute fva = new CharacteristicsAttribute();
-        fva.type = "Type";
+        fva.type = TYPE;
         fva.setAttributeValue("specific factor value");
         sourceNode.characteristics.add(fva);
 
@@ -85,7 +86,7 @@ public class TestSDRFWritingUtils extends TestCase {
         assertSame("Wrong number of properties", sample.getProperties().size(),
                 1);
         for (SampleProperty p : sample.getProperties()) {
-            assertEquals("Wrong property name", p.getName(), "type");
+            assertEquals("Wrong property name", p.getName(), TYPE);
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
         }
@@ -100,7 +101,7 @@ public class TestSDRFWritingUtils extends TestCase {
 
         HybridizationNode hybridizationNode = new HybridizationNode();
         FactorValueAttribute fva = new FactorValueAttribute();
-        fva.type = "Type";
+        fva.type = TYPE;
         fva.setAttributeValue("specific factor value");
         hybridizationNode.factorValues.add(fva);
 
@@ -109,7 +110,7 @@ public class TestSDRFWritingUtils extends TestCase {
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
         for (AssayProperty p : assay.getProperties()) {
-            assertEquals("Wrong property name", p.getName(), "type");
+            assertEquals("Wrong property name", p.getName(), TYPE);
             assertEquals("Wrong property value", p.getValue(),
                     "specific factor value");
         }
