@@ -1,10 +1,6 @@
 package uk.ac.ebi.gxa.loader;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoImpl;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
@@ -14,12 +10,11 @@ import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
+import static org.easymock.EasyMock.*;
 
 public class MockFactory {
     public static LoaderDAO createLoaderDAO() {
@@ -69,12 +64,23 @@ public class MockFactory {
     }
 
     public static PropertyValueMergeService createPropertyValueMergeService() {
-        return new MockPropertyValueMergeService();
+        MockPropertyValueMergeService mockPropertyValueMergeService = new MockPropertyValueMergeService();
+        mockPropertyValueMergeService.setEfo(mockEfo());
+        return mockPropertyValueMergeService;
     }
 
     static class MockPropertyValueMergeService extends PropertyValueMergeService {
         public MockPropertyValueMergeService() {
             super();
         }
+    }
+
+
+    private static Efo mockEfo() {
+        final Efo efo = createMock(Efo.class);
+        expect(efo.searchTerm("milligram")).andReturn(Collections.singleton(createMock(EfoTerm.class))).anyTimes();
+        expect(efo.searchTerm("mg")).andReturn(Collections.<EfoTerm>emptySet()).anyTimes();
+        replay(efo);
+        return efo;
     }
 }
