@@ -62,12 +62,13 @@ for ncdf in $(find $NCDF_DIR -name *_data.nc); do
    done
 done
 
-curl -c ${process_file}.session-cookie -X POST -H "Accept: application/json" '${ATLAS_URL}/admin?op=login&userName=${ADMIN_USER}&password=${ADMIN_PWD}'
-for exp in $(cat "${process_file}.experimentsToSetAsIncomplete" | sort | uniq ); do
-      echo "curl -X POST -b ${process_file}.session-cookie -H \"Accept: application/json\" '${ATLAS_URL}/admin?accession=${exp}&op=setincomplete'"
-done
-curl -X POST -b ${process_file}.session-cookie -H "Accept: application/json" '${ATLAS_URL}/admin?op=logout'
-
+curl -c ${process_file}.session-cookie -X POST -H "Accept: application/json" "${ATLAS_URL}/admin?op=login&userName=${ADMIN_USER}&password=${ADMIN_PWD}"
+if [ -e "${process_file}.experimentsToSetAsIncomplete" ]; then
+   for exp in $(cat "${process_file}.experimentsToSetAsIncomplete" | sort | uniq ); do
+        curl -X POST -b ${process_file}.session-cookie -H "Accept: application/json" "${ATLAS_URL}/admin?accession=${exp}&op=setincomplete"
+   done
+   curl -X POST -b ${process_file}.session-cookie -H "Accept: application/json" "${ATLAS_URL}/admin?op=logout"
+fi
 unset IFS
 
 rm -rf ${process_file}.properties
