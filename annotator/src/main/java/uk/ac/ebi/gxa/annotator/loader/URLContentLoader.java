@@ -22,12 +22,15 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
+import com.google.common.base.Strings;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.slf4j.Logger;
@@ -48,6 +51,9 @@ public class URLContentLoader {
 
     static final private Logger log = LoggerFactory.getLogger(URLContentLoader.class);
 
+    private static final String PROXY_HOST = "http.proxyHost";
+    private static final String PROXY_PORT = "http.proxyPort";
+
     private final HttpClient httpClient;
 
     public URLContentLoader(HttpClient httpClient) {
@@ -64,6 +70,7 @@ public class URLContentLoader {
 
         FileOutputStream out = null;
         try {
+            setProxyIfExists(httpClient);
             HttpResponse response = httpClient.execute(httpGet);
 
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -88,5 +95,19 @@ public class URLContentLoader {
             closeQuietly(out);
         }
         return file;
+    }
+
+    private void setProxyIfExists(HttpClient httpClient) throws AnnotationException {
+        String proxyHost = System.getProperty(PROXY_HOST);
+        String proxyPort = System.getProperty(PROXY_PORT);
+        if (!Strings.isNullOrEmpty(proxyHost) && !Strings.isNullOrEmpty(proxyPort)) {
+            try {
+                int port = Integer.parseInt(proxyPort);
+                final HttpHost proxy = new HttpHost(proxyHost, port, "http");
+                httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            } catch (NumberFormatException nfe) {
+                throw new AnnotationException("Non-integer proxy port: " + proxyPort + "for proxy host: " + proxyHost);
+            }
+        }
     }
 }
