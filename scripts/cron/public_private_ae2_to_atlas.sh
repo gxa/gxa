@@ -29,26 +29,26 @@ exps_not_in_ae2=$process_file.$$.exps_not_in_ae2
 rm -rf $process_file
 
 # login to Atlas admin
-curl -X GET -c $authentication_cookie -H "Accept: application/json" "http://ATLAS_URL:ATLAS_PORT/ATLAS_ROOT/admin?op=login&userName=ADMIN_USERNAME&password=ADMIN_PASSWORD&indent" >> /dev/null
+curl -X GET -c $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?op=login&userName=${ADMIN_USERNAME}&password=${ADMIN_PASSWORD}&indent" >> /dev/null
 
 # cut commands extract e.g. 0 from {"numTotal":0,
-num_all_atlas_exps=`curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://ATLAS_URL:ATLAS_PORT/ATLAS_ROOT/admin?pendingOnly=ALL&op=searchexp" | cut -d'{' -f2 | cut -d':' -f2 | cut -d',' -f1`
+num_all_atlas_exps=`curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?pendingOnly=ALL&op=searchexp" | cut -d'{' -f2 | cut -d':' -f2 | cut -d',' -f1`
 echo "Found $num_all_atlas_exps experiments in Atlas. Processing..."  >> $process_file.log
 
 # Retrieve all Atlas experiments into $all_atlas_experiments_file (json)
-curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://ATLAS_URL:ATLAS_PORT/ATLAS_ROOT/admin?&p=0&n=$num_all_atlas_exps&search=&fromDate=&toDate=&pendingOnly=ALL&op=searchexp&indent" > $all_atlas_experiments_file
+curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?&p=0&n=$num_all_atlas_exps&search=&fromDate=&toDate=&pendingOnly=ALL&op=searchexp&indent" > $all_atlas_experiments_file
 if [ ! -f $all_atlas_experiments_file ]; then
-   err_msg="Updating private/public status of experiments on ATLAS_URL:ATLAS_PORT/ATLAS_ROOT was unsuccessful due failure to retrieve all Atlas experiments"
+   err_msg="Updating private/public status of experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT} was unsuccessful due failure to retrieve all Atlas experiments"
    echo $err_msg >> $process_file.log
-   mailx -s "[gxa/cron] $err_msg" ERROR_NOTIFICATION_EMAILADDRESS < $process_file.log
+   mailx -s "[gxa/cron] $err_msg" ${ERROR_NOTIFICATION_EMAILADDRESS} < $process_file.log
 fi
 
 # Retrieve all AE2 experiments into $all_ae2_experiments_file (ssv)
 curl -X GET "http://www.ebi.ac.uk/arrayexpress/admin/privacy" > $all_ae2_experiments_file
 if [ ! -f $all_ae2_experiments_file ]; then
-   err_msg="Updating private/public status of experiments on ATLAS_URL:ATLAS_PORT/ATLAS_ROOT  was unsuccessful due failure to retrieve all AE2 experiments"
+   err_msg="Updating private/public status of experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}  was unsuccessful due failure to retrieve all AE2 experiments"
    echo $err_msg >> $process_file.log
-   mailx -s "[gxa/cron] $err_msg" ERROR_NOTIFICATION_EMAILADDRESS < $process_file.log
+   mailx -s "[gxa/cron] $err_msg" ${ERROR_NOTIFICATION_EMAILADDRESS} < $process_file.log
 fi
 
 
@@ -67,7 +67,7 @@ while read line; do
           # Now get the experiment's private/public status in AE2
           # E.g. line in $all_ae2_experiments_file: accession:E-MEXP-31 privacy:public releasedate:2004-03-01
           ae2_experiment=`grep "accession:$exp_accession " $all_ae2_experiments_file`
-	      ae2_release_date=`echo $ae2_experiment | awk '{print ATLAS_URL}' | cut -d':' -f2`
+	      ae2_release_date=`echo $ae2_experiment | awk '{print $3}' | cut -d':' -f2`
           if [ ! -z "$ae2_experiment" ]; then
                ae2_public_status=`echo $ae2_experiment | grep -Po 'privacy:public'`
                ae2_private_status=`echo $ae2_experiment | grep -Po 'privacy:private'`
@@ -78,7 +78,7 @@ while read line; do
                       if [ $date_diff -gt 0 ]; then
                           # Experiment $exp_accession became public in AE2 more than a month ago, but it's still private in Atlas
                           echo "$exp_accession - AE2: public; AE2 reldate: $ae2_release_date; Atlas: private - status change in Atlas: private->public"  >> $process_file.log
-                          curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://ATLAS_URL:ATLAS_PORT/ATLAS_ROOT/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentpublic&autoDepends=false&op=schedule"
+                          curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentpublic&autoDepends=false&op=schedule"
                       else
                           echo "$exp_accession - AE2: public; AE2 release_date: $ae2_release_date; Atlas: private - NO status change in Atlas: private->public"  >> $process_file.log
                       fi
@@ -87,18 +87,18 @@ while read line; do
                    if [ $atlas_private_flag == "false" ]; then
                       # Experiment private in AE2 and public in Atlas - make it private in Atlas
                       echo "$exp_accession - AE2: private; Atlas: public - status change in Atlas: public->private" >> $process_file.log
-                      curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://ATLAS_URL:ATLAS_PORT/ATLAS_ROOT/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentprivate&autoDepends=false&op=schedule"
+                      curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?runMode=RESTART&accession=$exp_accession&type=makeexperimentprivate&autoDepends=false&op=schedule"
                    fi
                fi
           else
-             err_msg="Updating private/public status of experiments on ATLAS_URL:ATLAS_PORT/ATLAS_ROOT unsuccessful: failed to find $exp_accession in AE2"
+             err_msg="Updating private/public status of experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT} unsuccessful: failed to find $exp_accession in AE2"
              echo $err_msg >> $process_file.log
              echo "$exp_accession" >>  $exps_not_in_ae2
           fi
        else
-          err_msg="Updating private/public status of experiments on ATLAS_URL:ATLAS_PORT/ATLAS_ROOT failed due to incorrect format of Atlas API call output"
+          err_msg="Updating private/public status of experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT} failed due to incorrect format of Atlas API call output"
           echo $err_msg >> $process_file.log
-          mailx -s "[gxa/cron] $err_msg" ERROR_NOTIFICATION_EMAILADDRESS < $process_file.log
+          mailx -s "[gxa/cron] $err_msg" ${ERROR_NOTIFICATION_EMAILADDRESS} < $process_file.log
           exit 1
        fi
    fi
@@ -106,11 +106,11 @@ done < $all_atlas_experiments_file
 
 # Notify of any experiments in Atlas but not in AE2
 if [ -e $exps_not_in_ae2 ]; then
-   mailx -s "[gxa/cron] Experiments in Atlas but not in AE2" ERROR_NOTIFICATION_EMAILADDRESS < $exps_not_in_ae2
+   mailx -s "[gxa/cron] Experiments in Atlas but not in AE2" ${ERROR_NOTIFICATION_EMAILADDRESS} < $exps_not_in_ae2
 fi
 
 # logout from Atlas admin
-curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://ATLAS_URL:ATLAS_PORT/ATLAS_ROOT/admin?op=logout&indent" >> /dev/null
+curl -X GET -b $authentication_cookie -H "Accept: application/json" "http://${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}/admin?op=logout&indent" >> /dev/null
 rm -rf $authentication_cookie
 
 # Remove auxiliary file created by this script

@@ -59,8 +59,8 @@ import java.util.Collection;
         } else {
             Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
             BioMartAnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
-            annSrcDAO.save(newAnnSrc);
             annSrcDAO.remove(annSrc);
+            annSrcDAO.save(newAnnSrc);
             return new UpdatedAnnotationSource<BioMartAnnotationSource>(newAnnSrc, true);
         }
     }

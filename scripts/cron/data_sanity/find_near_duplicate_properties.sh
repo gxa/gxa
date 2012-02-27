@@ -12,7 +12,7 @@ ATLAS_URL=$1
 process_file="/tmp/find_properties."`eval date +%Y%m%d`
 
 curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties.json" | sed 's|},{|\
-|g' | awk -F":" '{print $2}' | sed 's|["}]||g' | sed 's|]||g' | sort -f | uniq > ${process_file}.properties
+|g' | sed 's/"apiPropertyNameList"://g' | awk -F":" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sort -f | uniq > ${process_file}.properties
 
 rm -rf ${process_file}.values
 for property in $(cat "${process_file}.properties"); do

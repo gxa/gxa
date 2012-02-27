@@ -25,7 +25,7 @@ rm -rf ${process_file}.propertyValuesNotInDB
 rm -rf ${process_file}.experimentsToSetAsIncomplete
 
 curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties.json" | sed 's|},{|\
-|g' | awk -F":" '{print $2}' | sed 's|["}]||g' | sed 's|]||g' | sort -f | uniq > ${process_file}.properties
+|g' | sed 's/"apiPropertyNameList"://g' | awk -F":" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sort -f | uniq > ${process_file}.properties
 db_props=`cat ${process_file}.properties`
 
 rm -rf ${process_file}.values
@@ -38,14 +38,15 @@ db_vals=`cat ${process_file}.values | sort -f | uniq`
 IFS="
 "
 for ncdf in $(find $NCDF_DIR -name *_data.nc); do
-   ncdf_props=`ncdump -v EF $ncdf | grep '  "' | sed 's|[";\\]||g' | sed 's|^[ ]*||g' | sed 's|[ ]*$||g' | sed 's|,$||g' | sort -f | uniq | sed '/^$/d'`
-   ncdf_vals=`ncdump -v EFV $ncdf | grep '  "' | sed 's|[";\\]||g' | sed 's|^[ ]*||g' | sed 's|[ ]*$||g' | sed 's|,$||g' | sort -f | uniq | sed '/^$/d'`
+   ncdf_props=`ncdump -v EF $ncdf | grep '  "' | sed 's|["\\]||g' | sed 's|^[ ]*||g' | sed 's|;$||g' | sed 's|[ ]*$||g' | sed 's|,$||g' | sort -f | uniq | sed '/^$/d'`
+   ncdf_vals=`ncdump -v EFV $ncdf | grep '  "' | sed 's|["\\]||g' | sed 's|^[ ]*||g' | sed 's|;$||g' | sed 's|[ ]*$||g' | sed 's|,$||g' | sort -f | uniq | sed '/^$/d'`
 
    for ncdf_prop in $(echo "$ncdf_props"); do
           ncdf_prop_esc="$(echo "$ncdf_prop" | sed 's/[^-A-Za-z0-9_]/\\&/g')" # backslash special characters
           if [[ "$db_props" =~ "$ncdf_prop_esc" ]]; then # if $ncdf_prop in DB, all well and good
 		      : # ignoring $ncdf_prop
 	      else
+	         echo "$ncdf : $ncdf_prop : .$ncdf_prop_esc."
 		     echo $ncdf" : "$ncdf_prop >> ${process_file}.propertiesNotInDB
 		     echo `echo $ncdf | awk -F "/" '{print $10}'` >> ${process_file}.experimentsToSetAsIncomplete
 	      fi
@@ -62,12 +63,12 @@ for ncdf in $(find $NCDF_DIR -name *_data.nc); do
    done
 done
 
-curl -c ${process_file}.session-cookie -X POST -H "Accept: application/json" "${ATLAS_URL}/admin?op=login&userName=${ADMIN_USER}&password=${ADMIN_PWD}"
+curl -c ${process_file}.session-cookie -X GET -H "Accept: application/json" "${ATLAS_URL}/admin?op=login&userName=${ADMIN_USER}&password=${ADMIN_PWD}"
 if [ -e "${process_file}.experimentsToSetAsIncomplete" ]; then
    for exp in $(cat "${process_file}.experimentsToSetAsIncomplete" | sort | uniq ); do
-        curl -X POST -b ${process_file}.session-cookie -H "Accept: application/json" "${ATLAS_URL}/admin?accession=${exp}&op=setincomplete"
+        curl -X GET -b ${process_file}.session-cookie -H "Accept: application/json" "${ATLAS_URL}/admin?accession=${exp}&op=setincomplete"
    done
-   curl -X POST -b ${process_file}.session-cookie -H "Accept: application/json" "${ATLAS_URL}/admin?op=logout"
+   curl -X GET -b ${process_file}.session-cookie -H "Accept: application/json" "${ATLAS_URL}/admin?op=logout"
 fi
 unset IFS
 
