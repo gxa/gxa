@@ -78,8 +78,8 @@ public class MockFactory {
 
     private static Efo mockEfo() {
         final Efo efo = createMock(Efo.class);
-        expect(efo.searchTerm("milligram")).andReturn(Collections.singleton(createMock(EfoTerm.class))).anyTimes();
-        expect(efo.searchTerm("mg")).andReturn(Collections.<EfoTerm>emptySet()).anyTimes();
+        expect(efo.searchTermPrefix("milligram")).andReturn(Collections.singleton(new EfoTerm("", "milligram", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("mg")).andReturn(Collections.<EfoTerm>emptySet()).anyTimes();
         replay(efo);
         return efo;
     }

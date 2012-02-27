@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.utils.Pair;
 
@@ -96,7 +97,7 @@ public class PropertyValueMergeService {
             String unitValue = factorValueAttribute.unit.getAttributeValue();
             if (Strings.isNullOrEmpty(unitValue))
                 throw new AtlasLoaderException("Unable to find unit value for factor value: " + factorValueName);
-            if (isEfoTerm(unitValue)) {
+            if (!isEfoTerm(unitValue)) {
                 throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
             }
             return Joiner.on(" ").join(factorValueName, PropertyValueMergeService.pluraliseUnitIfApplicable(unitValue.trim(), factorValueName));
@@ -154,6 +155,10 @@ public class PropertyValueMergeService {
      * @return true if term can be found in EFO; false otherwise
      */
     private boolean isEfoTerm(String term) {
-        return efo.searchTerm(term).isEmpty();
+        for (EfoTerm t : efo.searchTermPrefix(term)) {
+            if (term.equals(t.getTerm()))
+                return true;
+        }
+        return false;
     }
 }
