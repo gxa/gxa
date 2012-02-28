@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.index;
+package uk.ac.ebi.gxa.efo;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

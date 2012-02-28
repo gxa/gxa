@@ -104,7 +104,7 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
         new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
 
         System.out.println("Parsing done");

@@ -70,8 +70,10 @@ public class AtlasMAGETABLoader {
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
+    private PropertyValueMergeService propertyValueMergeService;
 
     private AtlasExperimentUnloaderService unloaderService;
+
 
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
@@ -127,7 +129,7 @@ public class AtlasMAGETABLoader {
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
 
                 boolean arrayDataRead = false;
                 //use raw data
@@ -316,6 +318,10 @@ public class AtlasMAGETABLoader {
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public void setPropertyValueMergeService(PropertyValueMergeService propertyValueMergeService) {
+        this.propertyValueMergeService = propertyValueMergeService;
     }
 
     public static boolean isHTS(MAGETABInvestigation investigation) {
