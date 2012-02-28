@@ -149,6 +149,10 @@ public class AtlasMAGETABLoader {
                 if (isHTS(investigation)) {
                     logProgress(listener, 7, HTSArrayDataStep.displayName());
                     new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                    logProgress(listener, 8, HTSAnnotationStep.displayName());
+                    HTSAnnotationStep hTSAnnotationStep = new HTSAnnotationStep();
+                    hTSAnnotationStep.populateAnnotationsForSpecies(investigation, cache.fetchExperiment(), atlasDataDAO);
+                    hTSAnnotationStep.populateBams(investigation, cache.fetchExperiment(), atlasDataDAO);
                 }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
