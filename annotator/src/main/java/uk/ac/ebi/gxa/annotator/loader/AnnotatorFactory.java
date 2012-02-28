@@ -40,9 +40,6 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
  */
 
 public class AnnotatorFactory {
-
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
     private static final String PROXY_HOST = "http.proxyHost";
     private static final String PROXY_PORT = "http.proxyPort";
 
@@ -65,7 +62,7 @@ public class AnnotatorFactory {
         return new FileBasedAnnotator(annSrc, beDataWriter, httpClient);
     }
 
-    private void setProxyIfExists(HttpClient httpClient) {
+    public static void setProxyIfExists(HttpClient httpClient) {
         String proxyHost = System.getProperty(PROXY_HOST);
         String proxyPort = System.getProperty(PROXY_PORT);
         if (!Strings.isNullOrEmpty(proxyHost) && !Strings.isNullOrEmpty(proxyPort)) {
@@ -74,7 +71,7 @@ public class AnnotatorFactory {
                 final HttpHost proxy = new HttpHost(proxyHost, port, "http");
                 httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
             } catch (NumberFormatException nfe) {
-                log.warn("Non-integer proxy port: " + proxyPort + "for proxy host: " + proxyHost);
+                // queisce
             }
         }
     }

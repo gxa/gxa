@@ -24,8 +24,8 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory;
 import uk.ac.ebi.gxa.annotator.loader.VersionFinder;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
@@ -45,6 +45,7 @@ public class MartVersionFinder implements VersionFinder<BioMartAnnotationSource>
     public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
 
         try {
+            AnnotatorFactory.setProxyIfExists(httpClient);
             MartServiceClientImpl martClient = MartServiceClientImpl.create(httpClient, annSrc);
             final String database = martClient.getMartLocation().getDatabase();
             return database.substring(database.lastIndexOf("_") + 1);
