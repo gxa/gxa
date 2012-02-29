@@ -73,6 +73,8 @@ public class HTSAnnotationStep {
 
         boolean found = false;
         for (String specie : species) {
+            if (found)
+                continue;
             String encodedSpecies = StringUtil.upcaseFirst(specie.replaceAll(" ", "_"));
             FileFilter fileFilter = new WildcardFileFilter(encodedSpecies + "*" + ".gtf");
             File[] files = htsAnnotationsDir.listFiles(fileFilter);
@@ -93,7 +95,6 @@ public class HTSAnnotationStep {
                 throw new AtlasLoaderException("Error copying annotations from: " + files[0].getAbsolutePath() +
                         " to: " + experimentAnnotationsDir.getAbsolutePath() + " for experiment: " + experiment.getAccession(), ioe);
             }
-            log.warn("Failed to find any files in Gene Annotation Format (.gtf) in " + htsAnnotationsDir.getAbsolutePath() + " for experiment: " + experiment.getAccession() + " and species: " + specie);
         }
 
         if (!found)
