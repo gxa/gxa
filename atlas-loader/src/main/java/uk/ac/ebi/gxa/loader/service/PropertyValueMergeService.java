@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
@@ -144,13 +145,33 @@ public class PropertyValueMergeService {
         return unit;
     }
 
+    /**
+     * @param characteristicsAttribute
+     * @return sample characteristic value contained in characteristicsAttribute (with an appended unit, if one exists)
+     * @throws AtlasLoaderException - if UnitAttribute within characteristicsAttribute exists but has not value or if unit value cannot be found in EFO
+     */
+    public String getCharacteristicValueWithUnit(CharacteristicsAttribute characteristicsAttribute) throws AtlasLoaderException {
+        String scValue = characteristicsAttribute.getNodeName().trim();
+        if (!Strings.isNullOrEmpty(scValue) && characteristicsAttribute.unit != null) {
+            String unitValue = translateUnitToEFOIfApplicable(characteristicsAttribute.unit.getAttributeValue());
+
+            if (Strings.isNullOrEmpty(unitValue))
+                throw new AtlasLoaderException("Unable to find unit value for sample characteristic value: " + scValue);
+            if (!isEfoTerm(unitValue)) {
+                throw new AtlasLoaderException("Unit: " + unitValue + " not found in EFO");
+            }
+            return Joiner.on(" ").join(scValue, PropertyValueMergeService.pluraliseUnitIfApplicable(unitValue.trim(), scValue));
+        }
+        return scValue;
+    }
+
 
     /**
      * @param factorValueAttribute
      * @return factorValue contained in factorValueAttribute (with an appended unit, if one exists)
      * @throws AtlasLoaderException - if UnitAttribute within factorValueAttribute exists but has not value or if unit value cannot be found in EFO
      */
-    private String getFactorValue(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
+    private String getFactorValueWithUnit(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
         String factorValueName = factorValueAttribute.getNodeName().trim();
         if (!Strings.isNullOrEmpty(factorValueName) && factorValueAttribute.unit != null) {
             String unitValue = translateUnitToEFOIfApplicable(factorValueAttribute.unit.getAttributeValue());
@@ -179,7 +200,7 @@ public class PropertyValueMergeService {
         for (Pair<String, FactorValueAttribute> pv : factorValueAttributes) {
 
             String ef = pv.getKey();
-            String efv = getFactorValue(pv.getValue());
+            String efv = getFactorValueWithUnit(pv.getValue());
 
             if (Strings.isNullOrEmpty(efv))
                 continue; // We don't load empty factor values

@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.UnitAttribute;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -95,7 +96,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
         cache.setExperiment(expt);
         final LoaderDAO dao = mockLoaderDAO();
-        new SourceStep().readSamples(investigation, cache, dao);
+        new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
         new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
@@ -117,7 +118,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = mockLoaderDAO();
-        new SourceStep().readSamples(investigation, cache, dao);
+        new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
         new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
 
 
@@ -207,11 +208,33 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals(factorValues.size(), 1);
         assertEquals("temperature", factorValues.get(0).getKey());
         assertEquals("5 degrees fahrenheit", factorValues.get(0).getValue());
-                factorValues =
+        factorValues =
                 propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("temperature", mockFactorValueAttribute("5", " K"))));
         assertEquals(factorValues.size(), 1);
         assertEquals("temperature", factorValues.get(0).getKey());
         assertEquals("5 kelvins", factorValues.get(0).getValue());
+    }
+
+        @Test
+    public void testGetMergedSampleCharacteristicValues1() throws AtlasLoaderException {
+        assertEquals("5 milligrams", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", "milligram")));
+    }
+
+    @Test(expected = AtlasLoaderException.class)
+    public void testGetMergedSampleCharacteristicValues2() throws AtlasLoaderException {
+        propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", "mg"));
+    }
+
+    @Test
+    public void testGetMergedSampleCharacteristicValues3() throws AtlasLoaderException {
+        assertEquals("5", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", null)));
+    }
+
+    @Test
+    public void testGetMergedFactorValues5() throws AtlasLoaderException {
+        assertEquals("5 degrees celsius", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", "degrees_C")));
+        assertEquals("5 degrees fahrenheit", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", " degrees_F")));
+        assertEquals("5 kelvins", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", " K")));
     }
 
     private LoaderDAO mockLoaderDAO() {
@@ -227,6 +250,14 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
                 .anyTimes();
         replay(dao);
         return dao;
+    }
+
+    private CharacteristicsAttribute mockSampleCharacteristicValueAttribute(String characteristicAttributeValue, String unit) {
+        final CharacteristicsAttribute characteristicsAttribute = createMock(CharacteristicsAttribute.class);
+        characteristicsAttribute.unit = mockUnitAttribute(unit);
+        expect(characteristicsAttribute.getNodeName()).andReturn(characteristicAttributeValue).once();
+        replay(characteristicsAttribute);
+        return characteristicsAttribute;
     }
 
     private FactorValueAttribute mockFactorValueAttribute(String factorValue, String unit) {

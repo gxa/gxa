@@ -32,6 +32,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValue
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.SourceStep;
 import uk.ac.ebi.microarray.atlas.model.Assay;
@@ -40,7 +41,10 @@ import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 public class TestSDRFWritingUtils extends TestCase {
+
+    PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
     public static final String TYPE = "Type";
+
     public void testWriteAssayProperties() throws AtlasLoaderException {
         // create investigation
         MAGETABInvestigation investigation = new MAGETABInvestigation();
@@ -80,7 +84,7 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setAttributeValue("specific factor value");
         sourceNode.characteristics.add(fva);
 
-        new SourceStep().readSampleProperties(sample, sourceNode, MockFactory.createLoaderDAO());
+        new SourceStep().readSampleProperties(sample, sourceNode, MockFactory.createLoaderDAO(), propertyValueMergeService);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", sample.getProperties().size(),

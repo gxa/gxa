@@ -74,7 +74,6 @@ public class AtlasMAGETABLoader {
 
     private AtlasExperimentUnloaderService unloaderService;
 
-
     /**
      * Load a MAGE-TAB format document at the given URL into the Atlas DB.
      *
@@ -125,7 +124,7 @@ public class AtlasMAGETABLoader {
 
                 // Samples
                 logProgress(listener, 3, SourceStep.displayName());
-                new SourceStep().readSamples(investigation, cache, dao);
+                new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
