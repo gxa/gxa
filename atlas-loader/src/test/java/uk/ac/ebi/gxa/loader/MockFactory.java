@@ -79,6 +79,9 @@ public class MockFactory {
     private static Efo mockEfo() {
         final Efo efo = createMock(Efo.class);
         expect(efo.searchTermPrefix("milligram")).andReturn(Collections.singleton(new EfoTerm("", "milligram", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("degree celsius")).andReturn(Collections.singleton(new EfoTerm("", "degree celsius", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("degree fahrenheit")).andReturn(Collections.singleton(new EfoTerm("", "degree fahrenheit", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("kelvin")).andReturn(Collections.singleton(new EfoTerm("", "kelvin", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
         expect(efo.searchTermPrefix("mg")).andReturn(Collections.<EfoTerm>emptySet()).anyTimes();
         replay(efo);
         return efo;
