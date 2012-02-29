@@ -156,7 +156,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("other", PropertyValueMergeService.pluraliseUnitIfApplicable("other", "5"));
         assertEquals("picomolar", PropertyValueMergeService.pluraliseUnitIfApplicable("picomolar", "5"));
         assertEquals("molar", PropertyValueMergeService.pluraliseUnitIfApplicable("molar", "5"));
-        assertEquals("milligram per kilogram", PropertyValueMergeService.pluraliseUnitIfApplicable("milligram per kilogram", "5"));
+        assertEquals("milligrams per kilogram", PropertyValueMergeService.pluraliseUnitIfApplicable("milligram per kilogram", "5"));
         assertEquals("inches", PropertyValueMergeService.pluraliseUnitIfApplicable("inch", "5"));
     }
 
