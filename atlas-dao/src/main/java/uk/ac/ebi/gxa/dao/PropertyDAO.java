@@ -46,7 +46,7 @@ public class PropertyDAO extends AbstractDAO<Property> {
      */
     @Override
     protected boolean lowerCaseNameMatch() {
-        return true;
+        return false;
     }
 
     public Property getOrCreateProperty(String displayName) {
