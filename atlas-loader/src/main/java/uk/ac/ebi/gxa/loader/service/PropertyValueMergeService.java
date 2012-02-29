@@ -37,7 +37,6 @@ public class PropertyValueMergeService {
         NON_PLURALISED_UNITS.add("other");
         NON_PLURALISED_UNITS.add("percent");
         NON_PLURALISED_UNITS.add("molar");
-        NON_PLURALISED_UNITS.add("milligram per kilogram");
     }
 
     // Units that should end in 'es' rather than 's' in their plural form
