@@ -181,11 +181,12 @@ var atlas = atlas || {};
             geneConditions:[],
             conditions:[],
             species:[],
-            view:""
+            view:"",
+            searchMode:"advanced"
         };
 
         function trim(value) {
-            return (value || "").trim();
+            return $.trim(value || "");
         }
 
         function isValid() {
@@ -210,7 +211,9 @@ var atlas = atlas || {};
         //   minExperiments - optional (default is 1)
         // }
         this.addCondition = function (condition) {
-            if ((condition.value = trim(condition.value)).length) {
+            var v = (condition.value = trim(condition.value || ""));
+            var f = (condition.factor || "");
+            if (v.length || f.length) {
                 q.conditions.push(condition);
             }
         };
@@ -224,6 +227,10 @@ var atlas = atlas || {};
         this.setView = function (value) {
             q.view = value;
         };
+
+        this.setSearchMode = function (mode) {
+            q.searchMode = mode;
+        }
 
         this.query = function () {
             return isValid() ? q : null;
@@ -318,6 +325,13 @@ var atlas = atlas || {};
             }
         }
 
+        function initFormTips() {
+            $("#simple_genes_tip").uiTip("Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.");
+            $("#simple_conditions_tip").uiTip(
+                "Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice."
+            );
+        }
+
         function asQuery(form) {
             flushTokenizedValues(form);
 
@@ -353,6 +367,8 @@ var atlas = atlas || {};
 
             qBuilder.setView($('input[name=view]:checked', form).val());
 
+            qBuilder.setSearchMode("simple");
+
             return qBuilder.query();
         }
 
@@ -365,10 +381,13 @@ var atlas = atlas || {};
                 initGeneConditions(form, query);
                 initExpConditions(form, query);
                 initSpecies(form, query);
+                initFormTips();
 
                 form.bind('submit', function () {
                     try {
-                        submitForm(asQuery(form), form);
+                        submitForm(asQuery(form), form, {
+                            failureMsg: "Please specify at least one gene or condition"
+                        });
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -682,6 +701,7 @@ var atlas = atlas || {};
             });
 
             qBuilder.setView($('input[name=view]:checked', form).val());
+            qBuilder.setSearchMode("advanced");
             return qBuilder.query();
         }
 
@@ -723,7 +743,9 @@ var atlas = atlas || {};
                 var form = $('#structform');
                 form.bind('submit', function () {
                     try {
-                        submitForm(asQuery(form), form);
+                         submitForm(asQuery(form), form, {
+                             failureMsg: "Please specify at least one gene property or experimental factor condition"
+                         });
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -748,35 +770,6 @@ var atlas = atlas || {};
      * Private routine  ///////////////////////////////////////////////////////////////////////////////////////////////
      */
 
-    function initSearchFormHelp() {
-        function toggleHelp(el) {
-            var hidden = $("div.atlasHelp").is(":hidden");
-            if (hidden) {
-                $("div.atlasHelp").slideToggle();
-                $(el).text("hide help");
-                $.cookie('atlas_help_state', 'shown');
-            } else {
-                $("div.atlasHelp").slideToggle();
-                $(el).text("show help");
-                $.cookie('atlas_help_state', 'hidden');
-            }
-        }
-
-        var toggleEl = $("#atlasHelpToggle");
-        if (toggleEl.length > 0) {
-            toggleEl.click(function(ev) {
-                toggleHelp(ev.target);
-                return false;
-            });
-
-            var helpClicked = $.cookie('atlas_help_state') === "shown";
-            var helpHidden = $("div.atlasHelp").is(":hidden");
-            if ((helpClicked && helpHidden) || (!helpClicked && !helpHidden)) {
-                toggleHelp(toggleEl);
-            }
-        }
-    }
-
     /**
      * Triggers 'preSubmit' event on all tokenized input fields in the form
      * to flush tokenized values into corresponding hidden form fields
@@ -790,26 +783,28 @@ var atlas = atlas || {};
         v.val('Searching...');
     }
 
-    function submitForm(query, form) {
+    function submitForm(query, form, msg) {
         if (query) {
             showSearchingIndicator(form);
             submitQuery(query, form);
-        } else {
-            var notice = $('#emptyFormNotice');
-            if (notice.length == 0) {
-                $('body').prepend(
-                    '<div id="emptyFormNotice" style="display:none; color: red; background-color:#fff; position:absolute; z-index: 1000"></div>');
-                notice = $('#emptyFormNotice')
-                    .html("Please specify at least one gene or condition");
-            }
-
-            var pos   = $(form).offset();
-            var height = $(form).height();
-            var width = $(form).width();
-            notice.css({ "left": pos.left + "px", "top": (pos.top + height + 10) + "px" });
-            notice.fadeIn().delay(3000).fadeOut('slow');
+        } else if (msg){
+            showFormNotice(form, msg.failureMsg || "Can't submit empty query");
         }
     }
+
+    function showFormNotice(form, msg) {
+        var notice = $('#formNotice');
+            if (notice.length == 0) {
+                $('body').prepend(
+                '<div id="formNotice" style=" color: red; background-color:#fff; position:absolute; z-index: 1000"></div>');
+            notice = $('#formNotice').html(msg);
+            }
+
+        var pos = $(form).offset();
+            var height = $(form).height();
+        notice.css({ "left":pos.left + "px", "top":(pos.top + height + 10) + "px" });
+        notice.fadeIn().delay(6000).fadeOut('slow');
+        }
 
     function submitQuery(query, form) {
         form = form || $('#simpleform:visible, #structform:visible');
@@ -850,6 +845,8 @@ var atlas = atlas || {};
 
         formEl.append($.tmpl(tmpl, {name: "view", value: query.view || ""}));
 
+        formEl.append($.tmpl(tmpl, {name: "searchMode", value: query.searchMode || "advanced"}));
+
         $(document.body).append(formEl);
 
         var tform = $("#temporaryform");
@@ -861,7 +858,7 @@ var atlas = atlas || {};
      * Public
      */
 
-    atlas.initSearchForm = function(query) {
+    atlas.initSearchForm = function(query, viewMode) {
         atlas.latestSearchQuery = query;
 
         // disable Firefox's bfcache
@@ -870,8 +867,10 @@ var atlas = atlas || {};
         });
 
         simpleForm.init(query);
+
+        if (viewMode === "advanced") {
         advancedForm.init(query);
-        initSearchFormHelp();
+        }
     };
 
     atlas.submitQuery = function(query) {
@@ -880,19 +879,14 @@ var atlas = atlas || {};
 
     atlas.clearQuery = function() {
         advancedForm.clear();
-        atlas.simpleMode();
     };
 
     atlas.structMode = function() {
-        if ($('#structform:visible').length)
-            return;
         $('#simpleform').hide();
         $('#structform').show();
     };
 
     atlas.simpleMode = function() {
-        if ($('#simpleform:visible').length)
-            return;
         $('#simpleform').show();
         $('#structform').hide();
     };

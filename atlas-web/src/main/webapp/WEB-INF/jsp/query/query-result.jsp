@@ -24,7 +24,6 @@
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="result" type="ae3.service.structuredquery.AtlasStructuredQueryResult" scope="request"/>
-<jsp:useBean id="forcestruct" type="java.lang.Boolean" scope="request"/>
 <jsp:useBean id="heatmap" type="java.lang.Boolean" scope="request"/>
 <jsp:useBean id="list" type="java.lang.Boolean" scope="request"/>
 <jsp:useBean id="timeStart" type="java.lang.Long" scope="request"/>
@@ -63,12 +62,8 @@
 
 <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp"/>
 
-<c:set var="simpleformvisible" value="${query.none ? !forcestruct : query.simple}" />
-
 <div id="topcontainer">
-    <jsp:include page="/WEB-INF/jsp/includes/atlas-searchform.jsp">
-        <jsp:param name="isInAdvancedState" value="${!simpleformvisible}"/>
-    </jsp:include>
+    <jsp:include page="/WEB-INF/jsp/includes/atlas-searchform.jsp"/>
 </div>
 
 <script type="text/javascript">
@@ -183,7 +178,7 @@
 
 </script>
 
-<div id = "result_cont">
+<div id = "result_cont" style="margin-top:30px">
 <table class="two-column-layout">
 <tr class="top">
 <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">

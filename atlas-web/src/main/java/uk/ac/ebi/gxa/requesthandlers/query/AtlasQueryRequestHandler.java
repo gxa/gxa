@@ -110,8 +110,8 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
         request.setAttribute("timeStart", startTime);
         request.setAttribute("heatmap", atlasQuery.getViewType() == ViewType.HEATMAP);
         request.setAttribute("list", atlasQuery.getViewType() == ViewType.LIST);
-        request.setAttribute("forcestruct", request.getParameter("struct") != null);
         request.setAttribute("noDownloads", downloadService.getNumOfDownloads(request.getSession().getId()));
+        request.setAttribute("searchMode", request.getParameter("searchMode"));
 
         request.getRequestDispatcher("/WEB-INF/jsp/query/query-result.jsp").forward(request, response);
     }

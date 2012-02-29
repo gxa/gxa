@@ -21,18 +21,12 @@
   --%>
 <%@include file="../includes/global-inc.jsp" %>
 
-<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService"
-             scope="application"/>
+<jsp:useBean id="atlasQueryService" class="ae3.service.structuredquery.AtlasStructuredQueryService" scope="application"/>
 <jsp:useBean id="query" class="ae3.service.structuredquery.AtlasStructuredQuery" scope="request"/>
+<jsp:useBean id="searchMode" class="java.lang.String" scope="request"/>
 
-<c:set var="isAdvanced"><c:out value="${param.isAdvanced}" default="true"/></c:set>
-<c:set var="isInAdvancedState"><c:out value="${param.isInAdvancedState}" default="true"/></c:set>
-
-<c:set var="isSimple" value="${! isAdvanced}"/>
-<c:set var="showHelp" value="${isSimple}"/>
-<c:set var="showResultTypes" value="${isAdvanced}"/>
-<c:set var="showAdvancedView" value="${isAdvanced && isInAdvancedState}"/>
-<c:set var="showSimpleView" value="${!showAdvancedView}"/>
+<c:set var="inAdvancedView"><c:out value="${param.isAdvanced}" default="true"/></c:set>
+<c:set var="showSimple" value="${!inAdvancedView || searchMode == 'simple'}"/>
 
 <script type="text/javascript">
     var options = {
@@ -61,21 +55,20 @@
 
     $(document).ready(function() {
         var query = ${u:toJson(query)};
-        atlas.initSearchForm(query);
+        atlas.initSearchForm(query, "${inAdvancedView ? 'advanced' : 'simple'}");
     });
 </script>
 
-<form id="simpleform" class="searchform" action="${pageContext.request.contextPath}/qrs"
-      style="display:${showSimpleView ? 'inherit' : 'none'}">
-
+<form id="simpleform" class="searchform" action="${pageContext.request.contextPath}/qrs" style="display:${showSimple ? 'visible' : 'none'};">
+    <input type="hidden" name="searchMode" value="simple"/>
     <table>
         <tr>
-            <td><label class="label">Genes</label></td>
+            <td><label class="label" id="simple_genes_tip">Genes</label></td>
             <td></td>
             <td><label class="label">Organism</label></td>
-            <td><label class="label">Conditions</label></td>
+            <td><label class="label" id="simple_conditions_tip">Conditions</label></td>
             <td>
-                <c:if test="${showResultTypes}">
+                <c:if test="${inAdvancedView}">
                     <label class="label">View</label>
                 </c:if>
             </td>
@@ -109,7 +102,7 @@
                 <span class="example">e.g. liver, cancer, diabetes</span>
             </td>
             <td class="label" nowrap="nowrap">
-                <div ${showResultTypes? '' : 'style="display:none"'}>
+                <div ${inAdvancedView? '' : 'style="display:none"'}>
                     <input type="radio" name="view" style="vertical-align:bottom" value="hm"
                     ${heatmap || !list ? 'checked="checked"' :''}/>Heatmap <br/>
                     <input type="radio" name="view" style="vertical-align:bottom" value="list"
@@ -120,50 +113,29 @@
                 <input type="submit" value="Search Atlas" class="searchatlas">
                 <div style="position:relative;width:100%;">
                     <div style="position:absolute;right:0;overflow:visible;height:auto;text-align:right;top:10px;">
-                        <c:if test="${showHelp}">
-                            <a id="atlasHelpToggle" class="smallgreen" style="font-size:12px" href="#">show help</a>
-                        </c:if>
-                        <c:if test="${isSimple}">
-                            <a class="smallgreen" style="font-size:12px"
-                               href="${pageContext.request.contextPath}/qrs?struct">
+                        <c:choose>
+                            <c:when test="${inAdvancedView}">
+                                <a class="smallgreen" style="font-size:12px" href="javascript:atlas.structMode();">
                                 <nobr>advanced search</nobr>
                             </a>
-                        </c:if>
-                        <c:if test="${isAdvanced}">
-                            <a class="smallgreen" style="font-size:12px" href="javascript:atlas.structMode();">
+                            </c:when>
+                            <c:otherwise>
+                                <a class="smallgreen" style="font-size:12px"
+                                   href="${pageContext.request.contextPath}/qrs">
                                 <nobr>advanced search</nobr>
                             </a>
-                        </c:if>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </td>
-        </tr>
-        <tr>
-            <td valign="top">
-                <div class="atlasHelp">
-                    <div class="div1">&nbsp;</div>
-                    <div class="div2">
-                        Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.
-                    </div>
-                </div>
-            </td>
-            <td colspan="2"></td>
-            <td valign="top">
-                <div class="atlasHelp">
-                    <div class="div1">&nbsp;</div>
-                    <div class="div2">
-                        Please enter an experimental condition or tissue, etc. Start typing and autosuggest will
-                        help you narrow down your choice.
-                    </div>
-                </div>
-            </td>
-            <td colspan="2"></td>
         </tr>
     </table>
 </form>
 
-<form id="structform" class="searchform" action="qrs" style="display:${showAdvancedView ? 'inherit' : 'none'}">
-
+<c:if test="${inAdvancedView}">
+    <form id="structform" class="searchform" action="qrs" style="display:${!showSimple ? 'visible' : 'none'};">
+        <input type="hidden" name="searchMode" value="advanced"/>
     <fieldset>
         <legend>Find genes matching all of the following conditions</legend>
         <table cellspacing="3">
@@ -226,13 +198,14 @@
             </tr>
             <tr>
                 <td colspan="5" align="right">
-                    <a class="smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();"><nobr>simple search</nobr></a>
+                        <a class="smallgreen" style="font-size:12px" href="javascript:atlas.simpleMode();">
+                            <nobr>simple search</nobr>
+                        </a>
                 </td>
             </tr>
         </table>
     </fieldset>
 
-    <c:if test="${isAdvanced}">
         <c:forEach var="c" varStatus="s" items="${result.conditions}">
             <c:if test="${c.ignored}">
                 <fieldset class="ignoretext top">
@@ -241,5 +214,5 @@
                 </fieldset>
             </c:if>
         </c:forEach>
+    </form>
     </c:if>
-</form>
