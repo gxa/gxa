@@ -152,6 +152,12 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("degrees", PropertyValueMergeService.pluraliseUnitIfApplicable("degrees", "5"));
         assertEquals("degrees", PropertyValueMergeService.pluraliseUnitIfApplicable("degrees", "1"));
         assertEquals("International Units per mililiter", PropertyValueMergeService.pluraliseUnitIfApplicable("International Unit per mililiter", "5"));
+        assertEquals("other", PropertyValueMergeService.pluraliseUnitIfApplicable("other", "5"));
+        assertEquals("other", PropertyValueMergeService.pluraliseUnitIfApplicable("other", "5"));
+        assertEquals("picomolar", PropertyValueMergeService.pluraliseUnitIfApplicable("picomolar", "5"));
+        assertEquals("molar", PropertyValueMergeService.pluraliseUnitIfApplicable("molar", "5"));
+        assertEquals("milligram per kilogram", PropertyValueMergeService.pluraliseUnitIfApplicable("milligram per kilogram", "5"));
+        assertEquals("inches", PropertyValueMergeService.pluraliseUnitIfApplicable("inch", "5"));
     }
 
     @Test
@@ -163,14 +169,10 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("tamoxifen", factorValues.get(0).getValue());
     }
 
-    @Test
+    @Test(expected = AtlasLoaderException.class)
     public void testGetMergedFactorValues1() throws AtlasLoaderException {
-        try {
-            propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("dose", mockFactorValueAttribute("5", null))));
-            fail("AtlasLoaderException: 'dose : 5 has no corresponding value for factor: compound' should have been thrown");
-        } catch (AtlasLoaderException e) {
-            // Test successful
-        }
+        propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("dose", mockFactorValueAttribute("5", null))));
+        fail("AtlasLoaderException: 'dose : 5 has no corresponding value for factor: compound' should have been thrown");
     }
 
     @Test
@@ -191,6 +193,25 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         factorValueAttributes.add(Pair.create("dose", mockFactorValueAttribute("5", "mg")));
         propertyValueMergeService.getMergedFactorValues(factorValueAttributes);
         fail("AtlasLoaderException: 'Unit: mg not found in EFO' should have been thrown");
+    }
+
+    @Test
+    public void testGetMergedFactorValues4() throws AtlasLoaderException {
+        List<Pair<String, String>> factorValues =
+                propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("temperature", mockFactorValueAttribute("5", "degrees_C"))));
+        assertEquals(factorValues.size(), 1);
+        assertEquals("temperature", factorValues.get(0).getKey());
+        assertEquals("5 degrees celsius", factorValues.get(0).getValue());
+        factorValues =
+                propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("temperature", mockFactorValueAttribute("5", " degrees_F"))));
+        assertEquals(factorValues.size(), 1);
+        assertEquals("temperature", factorValues.get(0).getKey());
+        assertEquals("5 degrees fahrenheit", factorValues.get(0).getValue());
+                factorValues =
+                propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("temperature", mockFactorValueAttribute("5", " K"))));
+        assertEquals(factorValues.size(), 1);
+        assertEquals("temperature", factorValues.get(0).getKey());
+        assertEquals("5 kelvins", factorValues.get(0).getValue());
     }
 
     private LoaderDAO mockLoaderDAO() {

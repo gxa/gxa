@@ -2,6 +2,8 @@ package uk.ac.ebi.gxa.loader.service;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
@@ -12,6 +14,7 @@ import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This service class deals with cross-factor merging of factor values at experiment load time.
@@ -27,18 +30,50 @@ public class PropertyValueMergeService {
     private static final String COMPOUND = "compound";
     private static final String DOSE = "dose";
 
-    // Units that should never be pluralised when being joined to factor values
-    private static final String OTHER = "other";
-    private static final String PERCENT = "percent";
+    // Units containing the following values should never be pluralised when being joined to factor values
+    private static final List<String> NON_PLURALISED_UNITS = Lists.newArrayList();
+
+    static {
+        NON_PLURALISED_UNITS.add("other");
+        NON_PLURALISED_UNITS.add("percent");
+        NON_PLURALISED_UNITS.add("molar");
+        NON_PLURALISED_UNITS.add("milligram per kilogram");
+    }
+
+    // Units that should end in 'es' rather than 's' in their plural form
+    private static final String INCH = "inch";
+
     // separator in units in which only the first work should be pluralised (e.g. "micromole per kilogram")
     private static final String PER = "per";
     // The only case other than the above in which only the first word should be pluralised (e.g. "degree celsius")
     private static final String DEGREE = "degree";
 
+    // A temporary mapping from MAGE-OM to EFO - for certain units that for operational reasons cannot for the time being arrive
+    // into Atlas as EFO units
+    private static final Map<String, String> TRANSLATED_UNITS = Maps.newHashMap();
+
+    static {
+        TRANSLATED_UNITS.put("K", "kelvin");
+        TRANSLATED_UNITS.put("degrees_C", "degree celsius");
+        TRANSLATED_UNITS.put("degrees_F", "degree fahrenheit");
+    }
+
     private Efo efo;
 
     public void setEfo(Efo efo) {
         this.efo = efo;
+    }
+
+    /**
+     * @param unit
+     * @return true if unit should be pluralised; false otherwise
+     */
+    private static boolean isPluralised(String unit) {
+        for (String unitVal : NON_PLURALISED_UNITS) {
+            if (unit.contains(unitVal))
+                return false;
+        }
+        return true;
     }
 
     /**
@@ -70,18 +105,43 @@ public class PropertyValueMergeService {
             // quiesce
         }
 
-        if (!Strings.isNullOrEmpty(unit) && !unit.equals(OTHER) && !unit.contains(PERCENT)) {
+        if (!Strings.isNullOrEmpty(unit) && isPluralised(unit)) {
             int idx = unit.indexOf(PER);
-            if (idx != -1) {
-                String firstWord = unit.substring(0, idx - 1).trim();
-                if (!firstWord.endsWith("s"))
-                    return firstWord + "s " + unit.substring(idx);
-            } else if (unit.startsWith(DEGREE) && !unit.equals(DEGREE + "s")) {
-                return DEGREE + "s" + unit.substring(DEGREE.length());
-            } else if (!unit.endsWith("s"))
-                return unit + "s";
+            if (idx != -1)
+                return pluralise(unit.substring(0, idx - 1).trim()) + " " + unit.substring(idx);
+            else if (unit.startsWith(DEGREE) && !unit.equals(DEGREE + "s"))
+                return pluralise(DEGREE) + unit.substring(DEGREE.length());
+            else
+                return pluralise(unit);
         }
 
+        return unit;
+    }
+
+    /**
+     * @param word
+     * @return Word pluralised according to a naive pluralisation definition - this method does not implement an exhaustive
+     * English language  pluralisation method but is designed to cover the universe of units used in Atlas only.
+     */
+    private static String pluralise(String word) {
+        if (!word.endsWith("s")) {
+            if (INCH.equals(word)) {
+                return word + "es";
+            } else
+                return word + "s";
+        }
+        return word;
+    }
+
+
+    /**
+     *
+     * @param unit
+     * @return an EFO term, corresponding to unit - if unit is a key in TRANSLATED_UNITS; else unit itself
+     */
+    private static String translateUnitToEFOIfApplicable(String unit) {
+        if (TRANSLATED_UNITS.containsKey(unit.trim()))
+            return TRANSLATED_UNITS.get(unit.trim());
         return unit;
     }
 
@@ -94,7 +154,8 @@ public class PropertyValueMergeService {
     private String getFactorValue(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
         String factorValueName = factorValueAttribute.getNodeName().trim();
         if (!Strings.isNullOrEmpty(factorValueName) && factorValueAttribute.unit != null) {
-            String unitValue = factorValueAttribute.unit.getAttributeValue();
+            String unitValue = translateUnitToEFOIfApplicable(factorValueAttribute.unit.getAttributeValue());
+
             if (Strings.isNullOrEmpty(unitValue))
                 throw new AtlasLoaderException("Unable to find unit value for factor value: " + factorValueName);
             if (!isEfoTerm(unitValue)) {
@@ -105,6 +166,12 @@ public class PropertyValueMergeService {
         return factorValueName;
     }
 
+    /**
+     *
+     * @param factorValueAttributes
+     * @return equivalent of factorValueAttributes, but with all the relevant merge operations performed.
+     * @throws AtlasLoaderException
+     */
     public List<Pair<String, String>> getMergedFactorValues(List<Pair<String, FactorValueAttribute>> factorValueAttributes)
             throws AtlasLoaderException {
         String compoundFactorValue = null;
