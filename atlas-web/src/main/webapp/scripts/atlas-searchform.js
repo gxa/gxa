@@ -326,8 +326,8 @@ var atlas = atlas || {};
         }
 
         function initFormTips() {
-            $("#simple_genes_tip").uiTip("Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.");
-            $("#simple_conditions_tip").uiTip(
+            $("#simple_genes_tip").qMarkTip("Please enter a gene name, synonym, Ensembl or UniProt identifier, GO category, etc.");
+            $("#simple_conditions_tip").qMarkTip(
                 "Please enter an experimental condition or tissue, etc. Start typing and autosuggest will help you narrow down your choice."
             );
         }
