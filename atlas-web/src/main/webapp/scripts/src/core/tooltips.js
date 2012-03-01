@@ -20,11 +20,11 @@
  * http://gxa.github.com/gxa
  */
 (function ($) {
-    var pluginName = "uiTip";
+    var pluginName = "qMarkTip";
 
-    function UITip(elem, text) {
-        $("&nbsp;<span class='uiTip'>?</span>").appendTo(elem);
-        var tip = $(".uiTip", elem);
+    function QMarkTip(elem, text) {
+        $("&nbsp;<span class='qMarkTip'>?</span>").appendTo(elem);
+        var tip = $(".qMarkTip", elem);
         tip.css({ opacity: 0.3 });
         tip.mouseenter(function() {
             $(this).fadeTo('fast', 1.0);
@@ -48,17 +48,17 @@
     }
 
     $.extend($.fn, {
-        uiTip:function (text) {
+        qMarkTip:function (text) {
             if (this.length > 1) {
                 this.each(function () {
-                    $(this).uiTip(text);
+                    $(this).qMarkTip(text);
                 });
                 return this;
             }
 
             var p = $(this).data(pluginName);
             if (!p) {
-                p = new UITip(this, text);
+                p = new QMarkTip(this, text);
                 $(this).data(pluginName, p);
             }
             return p;
