@@ -70,6 +70,7 @@ public class AtlasMAGETABLoader {
     private AtlasComputeService atlasComputeService;
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
+    private PropertyValueMergeService propertyValueMergeService;
 
     private AtlasExperimentUnloaderService unloaderService;
 
@@ -123,18 +124,18 @@ public class AtlasMAGETABLoader {
 
                 // Samples
                 logProgress(listener, 3, SourceStep.displayName());
-                new SourceStep().readSamples(investigation, cache, dao);
+                new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
 
                 boolean arrayDataRead = false;
                 //use raw data
                 Collection<String> useRawData = cmd.getUserData().get("useRawData");
                 if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                     logProgress(listener, 5, ArrayDataStep.displayName());
-                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache);
+                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao);
                 }
 
                 logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
@@ -149,6 +150,10 @@ public class AtlasMAGETABLoader {
                 if (isHTS(investigation)) {
                     logProgress(listener, 7, HTSArrayDataStep.displayName());
                     new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+                    logProgress(listener, 8, HTSAnnotationStep.displayName());
+                    HTSAnnotationStep hTSAnnotationStep = new HTSAnnotationStep();
+                    hTSAnnotationStep.populateAnnotationsForSpecies(investigation, cache.fetchExperiment(), atlasDataDAO);
+                    hTSAnnotationStep.populateBams(investigation, cache.fetchExperiment(), atlasDataDAO);
                 }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
@@ -312,6 +317,10 @@ public class AtlasMAGETABLoader {
 
     public void setUnloaderService(AtlasExperimentUnloaderService unloaderService) {
         this.unloaderService = unloaderService;
+    }
+
+    public void setPropertyValueMergeService(PropertyValueMergeService propertyValueMergeService) {
+        this.propertyValueMergeService = propertyValueMergeService;
     }
 
     public static boolean isHTS(MAGETABInvestigation investigation) {

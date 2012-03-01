@@ -36,6 +36,7 @@ import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
 import uk.ac.ebi.gxa.loader.steps.SourceStep;
@@ -48,6 +49,8 @@ import java.util.Properties;
 
 public class TestAtlasLoadingSourceHandler extends TestCase {
     public static final Logger log = LoggerFactory.getLogger(TestAtlasLoadingSourceHandler.class);
+
+    PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
 
     private ExperimentBuilder cache;
 
@@ -107,7 +110,7 @@ public class TestAtlasLoadingSourceHandler extends TestCase {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
-        new SourceStep().readSamples(investigation, cache, dao);
+        new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
 
         // parsing finished, look in our cache...
         // expect 404 samples

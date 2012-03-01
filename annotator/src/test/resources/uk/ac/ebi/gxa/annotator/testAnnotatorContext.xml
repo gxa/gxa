@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~ Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -47,6 +47,14 @@
                 <prop key="hibernate.show_sql">true</prop>
             </props>
         </property>
+    </bean>
+
+    <bean id="httpClient" class="org.apache.http.impl.client.DefaultHttpClient">
+        <constructor-arg ref="httpClientConnectionManager"/>
+    </bean>
+
+    <bean id="httpClientConnectionManager" class="org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager"
+            destroy-method="shutdown">
     </bean>
 </beans>
 

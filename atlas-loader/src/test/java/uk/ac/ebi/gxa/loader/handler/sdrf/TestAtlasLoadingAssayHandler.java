@@ -32,6 +32,7 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.loader.steps.AssayAndHybridizationStep;
 import uk.ac.ebi.gxa.loader.steps.CreateExperimentStep;
 import uk.ac.ebi.gxa.loader.steps.ParsingStep;
@@ -43,6 +44,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
+    PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
+
     private URL parseURL;
 
     public void setUp() {
@@ -105,8 +108,8 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
-        new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
 
         System.out.println("Parsing done");
         checkAssaysInCache();

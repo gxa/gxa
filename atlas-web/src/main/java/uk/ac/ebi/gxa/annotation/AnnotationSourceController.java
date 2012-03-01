@@ -1,17 +1,13 @@
 package uk.ac.ebi.gxa.annotation;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.annotationsrc.AnnotationLoaderException;
-import uk.ac.ebi.gxa.annotator.loader.annotationsrc.BioMartAnnotationSourceLoader;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAccessException;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnection;
-import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartConnectionFactory;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
+import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
+import uk.ac.ebi.gxa.annotator.annotationsrc.UpdatedAnnotationSource;
+import uk.ac.ebi.gxa.annotator.annotationsrc.ValidationReportBuilder;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.util.*;
@@ -22,63 +18,54 @@ import java.util.*;
  */
 public class AnnotationSourceController {
 
-    final private Logger log = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
-    private BioMartAnnotationSourceLoader loader;
+    protected TopAnnotationSourceManager manager;
 
     public AnnotationSourceController() {
     }
 
-    public Collection<BioMartAnnotationSourceView> getBioMartAnnSrcViews() {
-        List<BioMartAnnotationSourceView> viewSources = new ArrayList<BioMartAnnotationSourceView>();
-        Collection<BioMartAnnotationSource> annotationSources = loader.getCurrentAnnotationSources();
-        
-        for (BioMartAnnotationSource annSrc : annotationSources) {
-            try {
-                BioMartConnection connection = BioMartConnectionFactory.createConnectionForAnnSrc(annSrc);
-                ValidationReport validationReport = new ValidationReport();
-                if (!connection.isValidDataSetName()) {
-                    validationReport.setOrganismName(annSrc.getDatasetName());
-                }
-                validationReport.setMissingProperties(connection.validateAttributeNames(annSrc.getBioMartPropertyNames()));
-                validationReport.addMissingProperties(connection.validateAttributeNames(annSrc.getBioMartArrayDesignNames()));
+    public Collection<AnnotationSourceView> getAnnSrcViews() {
+        List<AnnotationSourceView> viewSources = new ArrayList<AnnotationSourceView>();
 
-                BioMartAnnotationSourceView view = new BioMartAnnotationSourceView(annSrc, validationReport);
+        Collection<UpdatedAnnotationSource> annotationSources = manager.getAllAnnotationSources();
+        for (UpdatedAnnotationSource updatedAnnotationSource : annotationSources) {
+            ValidationReport validationReport = null;
 
-                viewSources.add(view);
-
-            } catch (BioMartAccessException e) {
-                throw LogUtil.createUnexpected("Problem when fetching version for " + annSrc.getSoftware().getName(), e);
+            if (updatedAnnotationSource.isUpdated()) {
+                Collection<String> invalidPropertyNames = manager.validateProperties(updatedAnnotationSource.getAnnotationSource());
+                validationReport = new ValidationReport(invalidPropertyNames);
             }
+            AnnotationSourceView view = new AnnotationSourceView(updatedAnnotationSource.getAnnotationSource(), validationReport);
+            viewSources.add(view);
         }
-
-        Collections.sort(viewSources, new Comparator<BioMartAnnotationSourceView>() {
+        Collections.sort(viewSources, new Comparator<AnnotationSourceView>() {
             @Override
-            public int compare(BioMartAnnotationSourceView o, BioMartAnnotationSourceView o1) {
+            public int compare(AnnotationSourceView o, AnnotationSourceView o1) {
                 return o.getOrganismName().compareTo(o1.getOrganismName());
             }
         });
         return viewSources;
     }
 
-    public String getAnnSrcString(String id) {
-        return loader.getAnnSrcAsStringById(id);
+    public String getAnnSrcString(String id, String type) {
+        return manager.getAnnSrcString(id, type);
     }
 
-    public void saveAnnSrc(String text) {
-        try {
-            loader.saveAnnSrc(text);
-        } catch (AnnotationLoaderException e) {
-            throw LogUtil.createUnexpected("Cannot save AnnotationSource! ", e);
-        }
+    public String saveAnnSrc(String id, String type, String text) {
+        final ValidationReportBuilder validationReportBuilder = manager.saveAnnSrc(id, text, type);
+        return validationReportBuilder.getSummary("Invalid text", "\n");
     }
 
-    public static class BioMartAnnotationSourceView {
-        private BioMartAnnotationSource annSrc;
+    public String validate(String annSrcId, String type) {
+        ValidationReport report = new ValidationReport(manager.validateProperties(annSrcId, type));
+        return report.getSummary();
+    }
+
+    public class AnnotationSourceView {
+        private AnnotationSource annSrc;
         private ValidationReport validationReport;
 
-        public BioMartAnnotationSourceView(BioMartAnnotationSource annSrc, ValidationReport validationReport) {
+        public AnnotationSourceView(AnnotationSource annSrc, ValidationReport validationReport) {
             this.annSrc = annSrc;
             this.validationReport = validationReport;
         }
@@ -88,7 +75,10 @@ public class AnnotationSourceController {
         }
 
         public String getOrganismName() {
-            return annSrc.getOrganism().getName();
+            if (annSrc instanceof BioMartAnnotationSource) {
+                return ((BioMartAnnotationSource) annSrc).getOrganism().getName();
+            }
+            return "ANY";
         }
 
         public String getBioEntityTypes() {
@@ -108,23 +98,33 @@ public class AnnotationSourceController {
         }
 
         public String getValidationMessage() {
-            return validationReport.getSummary();
+            if (validationReport != null) {
+                return validationReport.getSummary();
+            }
+            return "";
         }
 
         public String getApplied() {
-            return annSrc.isApplied()?"yes":"no";
+            return annSrc.isAnnotationsApplied() ? "yes" : "no";
+        }
+
+        public String getMappingsApplied() {
+            if (annSrc.getExternalArrayDesigns().isEmpty()) {
+                return "N/A";
+            }
+            return annSrc.isMappingsApplied() ? "yes" : "no";
+        }
+
+        public String getType() {
+            return AnnotationSourceType.annSrcTypeOf(annSrc).getName();
         }
     }
 
     private static class ValidationReport {
-        private String organismName;
         private Collection<String> missingProperties;
 
-        public ValidationReport() {
-        }
-
-        public void setOrganismName(String organismName) {
-            this.organismName = organismName;
+        ValidationReport(Collection<String> missingProperties) {
+            this.missingProperties = missingProperties;
         }
 
         public String getSummary() {
@@ -132,26 +132,16 @@ public class AnnotationSourceController {
                 return "Valid";
             }
             StringBuilder sb = new StringBuilder();
-            if (!StringUtils.isEmpty(organismName)) {
-                sb.append("Dataset name is not valid: " + organismName + "\n ");
-            }
-            if (!missingProperties.isEmpty()) {
+
+            if (!CollectionUtils.isEmpty(missingProperties)) {
                 sb.append("Invalid properties: ");
                 sb.append(missingProperties);
             }
             return sb.toString();
         }
 
-        public void setMissingProperties(Collection<String> missingProperties) {
-            this.missingProperties = missingProperties;
-        }
-
-        public void addMissingProperties(Collection<String> missingProperties) {
-            this.missingProperties.addAll(missingProperties);
-        }
-
         public boolean isValid() {
-            return StringUtils.isEmpty(organismName) && CollectionUtils.isEmpty(missingProperties);
+            return missingProperties != null && missingProperties.isEmpty();
         }
     }
 }

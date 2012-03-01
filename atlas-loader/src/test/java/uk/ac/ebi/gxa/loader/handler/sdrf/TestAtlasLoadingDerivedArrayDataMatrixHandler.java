@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.loader.steps.*;
 
 import java.io.IOException;
@@ -42,6 +43,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
+    PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
+
     private AtlasLoadCache cache;
 
     private URL parseURL;
@@ -103,8 +106,8 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
-        new SourceStep().readSamples(investigation, cache, dao);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao);
+        new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
         new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
 
         System.out.println("Parsing done");
