@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,14 @@
 
 package uk.ac.ebi.gxa.annotator.dao;
 
-import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.biomart.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -76,7 +77,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     @Test
     @Transactional
-    public void testSave() throws Exception {
+    public void testSaveBioMart() throws Exception {
         Software software = softwareDAO.findOrCreate("plants", "8");
         Organism organism = organismDAO.getByName("arabidopsis thaliana");
 
@@ -86,24 +87,56 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
 
         BioEntityProperty goterm = propertyDAO.findOrCreate("goterm");
-        Assert.assertNotNull(goterm);
-        annotationSource.addBioMartProperty("name_1006", goterm);
+        assertNotNull(goterm);
+        annotationSource.addExternalProperty("name_1006", goterm);
 
         annSrcDAO.save(annotationSource);
-        Assert.assertNotNull(annotationSource.getAnnotationSrcId());
+        assertNotNull(annotationSource.getAnnotationSrcId());
+    }
+
+    @Test
+    @Transactional
+    public void testSaveGineSig() throws Exception {
+        Software software = softwareDAO.findOrCreate("genesigdb", "63");
+
+        GeneSigAnnotationSource annotationSource = new GeneSigAnnotationSource(software);
+
+        annotationSource.setUrl("ftp://files");
+        BioEntityType type1 = typeDAO.findOrCreate("ensgene");
+        assertNotNull(type1);
+
+        annotationSource.addBioEntityType(type1);
+
+        annSrcDAO.save(annotationSource);
+        assertNotNull(annotationSource.getAnnotationSrcId());
     }
 
     @Test
     public void testGetById() {
-        AnnotationSource annotationSource = annSrcDAO.getById(1000);
-        Assert.assertNotNull(annotationSource);
+        BioMartAnnotationSource annotationSource = annSrcDAO.getById(1000, BioMartAnnotationSource.class);
+        assertNotNull(annotationSource);
     }
 
     @Test
-    public void testGetAnnotationSourcesOfType() throws Exception {
+    public void testGetByIdWithoutType() {
+        AnnotationSource annotationSource = annSrcDAO.getById(1000);
+        assertNotNull(annotationSource);
+        final AnnotationSourceType byType = AnnotationSourceType.annSrcTypeOf(annotationSource);
+        assertEquals(BioMartAnnotationSource.class, byType.getClazz());
+    }
+
+    @Test
+    public void testGetAnnotationSourcesOfType1() throws Exception {
         Collection<BioMartAnnotationSource> annotationSources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
         assertEquals(1, annotationSources.size());
     }
+
+    @Test
+    public void testGetAnnotationSourcesOfType2() throws Exception {
+        Collection<GeneSigAnnotationSource> annotationSources = annSrcDAO.getAnnotationSourcesOfType(GeneSigAnnotationSource.class);
+        assertEquals(1, annotationSources.size());
+    }
+
 
     @Test
     @Transactional
@@ -138,13 +171,13 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testUpdate() throws Exception {
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         assertNotNull(annotationSource);
-        assertEquals(false, annotationSource.isApplied());
-        annotationSource.setApplied(true);
+        assertEquals(false, annotationSource.isAnnotationsApplied());
+        annotationSource.setAnnotationsApplied(true);
 
         annSrcDAO.update(annotationSource);
 
         BioMartAnnotationSource annotationSource1 = fetchAnnotationSource();
-        assertTrue(annotationSource1.isApplied());
+        assertTrue(annotationSource1.isAnnotationsApplied());
     }
 
     @Test
@@ -198,6 +231,6 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testIsAnnSrcAppliedForArrayDesignMapping() throws Exception {
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignByAccession("A-AFFY-45");
-        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource, arrayDesign));
+        assertTrue(annSrcDAO.isAnnSrcAppliedForArrayDesignMapping(annotationSource.getSoftware(), arrayDesign));
     }
 }

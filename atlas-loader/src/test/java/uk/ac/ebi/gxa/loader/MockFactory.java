@@ -1,16 +1,20 @@
 package uk.ac.ebi.gxa.loader;
 
+import uk.ac.ebi.gxa.efo.Efo;
+import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
+import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
+import static org.easymock.EasyMock.*;
 
 public class MockFactory {
     public static LoaderDAO createLoaderDAO() {
@@ -57,5 +61,29 @@ public class MockFactory {
             }
             return o;
         }
+    }
+
+    public static PropertyValueMergeService createPropertyValueMergeService() {
+        MockPropertyValueMergeService mockPropertyValueMergeService = new MockPropertyValueMergeService();
+        mockPropertyValueMergeService.setEfo(mockEfo());
+        return mockPropertyValueMergeService;
+    }
+
+    static class MockPropertyValueMergeService extends PropertyValueMergeService {
+        public MockPropertyValueMergeService() {
+            super();
+        }
+    }
+
+
+    private static Efo mockEfo() {
+        final Efo efo = createMock(Efo.class);
+        expect(efo.searchTermPrefix("milligram")).andReturn(Collections.singleton(new EfoTerm("", "milligram", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("degree celsius")).andReturn(Collections.singleton(new EfoTerm("", "degree celsius", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("degree fahrenheit")).andReturn(Collections.singleton(new EfoTerm("", "degree fahrenheit", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("kelvin")).andReturn(Collections.singleton(new EfoTerm("", "kelvin", Collections.<String>emptySet(), false, false, false, 0))).anyTimes();
+        expect(efo.searchTermPrefix("mg")).andReturn(Collections.<EfoTerm>emptySet()).anyTimes();
+        replay(efo);
+        return efo;
     }
 }

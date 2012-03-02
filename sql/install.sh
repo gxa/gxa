@@ -22,9 +22,9 @@ echo "Dropping all objects..."
 sqlplus -S $ATLAS_CONNECTION @drop_all.sql &> drop_all.log
 
 echo "Creating schema..."
-create_schema $ATLAS_CONNECTION $ATLAS_INDEX_TABLESPACE
+create_schema $ATLAS_CONNECTION
 
 echo "Loading data..."
-load_data $ATLAS_CONNECTION Data Data $INSTALL_MODE
+load_data $ATLAS_CONNECTION Data Data $INSTALL_MODE $ATLAS_INDEX_TABLESPACE
 
 echo "Installation complete. Please install the NetCDFs separately."

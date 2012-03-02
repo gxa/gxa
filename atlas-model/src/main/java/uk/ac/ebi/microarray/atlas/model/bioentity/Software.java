@@ -63,6 +63,12 @@ public class Software {
         return version;
     }
 
+    public String getFullName(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(name).append(" v.").append(version);
+        return sb.toString();
+    }
+
     @Override
     public String toString() {
         return "Software{" +

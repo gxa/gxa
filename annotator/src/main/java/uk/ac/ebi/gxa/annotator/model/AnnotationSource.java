@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,16 @@
 
 package uk.ac.ebi.gxa.annotator.model;
 
-import uk.ac.ebi.microarray.atlas.model.Organism;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
 
 /**
@@ -46,14 +45,14 @@ import static uk.ac.ebi.gxa.utils.DateUtil.copyOf;
         name = "annsrctype",
         discriminatorType = DiscriminatorType.STRING
 )
-public abstract class AnnotationSource implements Serializable {
+public abstract class AnnotationSource {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "annSrcSeq")
     @SequenceGenerator(name = "annSrcSeq", sequenceName = "A2_ANNOTATIONSRC_SEQ", allocationSize = 1)
-    protected Long annotationSrcId;
+    private Long annotationSrcId = null;
 
-    @ManyToOne()
-    protected Organism organism;
+    @Column(name = "url")
+    private String url;
 
     @ManyToOne()
     private Software software;
@@ -62,24 +61,68 @@ public abstract class AnnotationSource implements Serializable {
     @JoinTable(name = "A2_ANNSRC_BIOENTITYTYPE",
             joinColumns = @JoinColumn(name = "annotationsrcid", referencedColumnName = "annotationsrcid"),
             inverseJoinColumns = @JoinColumn(name = "bioentitytypeid", referencedColumnName = "bioentitytypeid"))
-    protected Set<BioEntityType> types = new HashSet<BioEntityType>();
+    private Set<BioEntityType> types = new HashSet<BioEntityType>();
 
     @Temporal(TemporalType.DATE)
     private Date loadDate;
 
-    @org.hibernate.annotations.Type(type="true_false")
-    private boolean isApplied = false;
+    @org.hibernate.annotations.Type(type = "true_false")
+    private boolean annotationsApplied = false;
 
-    protected AnnotationSource() {
+    @org.hibernate.annotations.Type(type = "true_false")
+    private boolean mappingsApplied = false;
+
+    @OneToMany(targetEntity = ExternalBioEntityProperty.class
+            , mappedBy = "annotationSrc"
+            , cascade = {CascadeType.ALL}
+            , fetch = FetchType.EAGER
+            , orphanRemoval = true
+    )
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<ExternalBioEntityProperty> externalBioEntityProperties = new HashSet<ExternalBioEntityProperty>();
+    @OneToMany(targetEntity = ExternalArrayDesign.class
+            , mappedBy = "annotationSrc"
+            , cascade = {CascadeType.ALL}
+            , fetch = FetchType.EAGER
+            , orphanRemoval = true
+    )
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<ExternalArrayDesign> externalArrayDesigns = newHashSet();
+
+    private String name;
+
+    AnnotationSource() {
+        /*used by hibernate only*/
     }
 
-    public AnnotationSource(Software software, Organism organism) {
+    public AnnotationSource(Software software, String name) {
         this.software = software;
-        this.organism = organism;
+        this.name = name;
     }
 
     public Long getAnnotationSrcId() {
         return annotationSrcId;
+    }
+
+    @Column(name = "name")
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Location of biomart martservice, e.g.:
+     * "http://www.ensembl.org/biomart/martservice?"
+     * "http://plants.ensembl.org/biomart/martservice?"
+     * or location of other annotations
+     *
+     * @return location
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public Set<BioEntityType> getTypes() {
@@ -94,10 +137,6 @@ public abstract class AnnotationSource implements Serializable {
         return types.remove(type);
     }
 
-    public Organism getOrganism() {
-        return organism;
-    }
-
 
     public Software getSoftware() {
         return software;
@@ -107,22 +146,153 @@ public abstract class AnnotationSource implements Serializable {
         this.loadDate = copyOf(loadDate);
     }
 
+    public boolean isAnnotationsApplied() {
+        return annotationsApplied;
+    }
+
+    public void setAnnotationsApplied(boolean annotationsApplied) {
+        this.annotationsApplied = annotationsApplied;
+    }
+
+    public boolean isMappingsApplied() {
+        return mappingsApplied;
+    }
+
+    public void setMappingsApplied(boolean mappingsApplied) {
+        this.mappingsApplied = mappingsApplied;
+    }
+
+    public Set<ExternalBioEntityProperty> getExternalBioEntityProperties() {
+        return Collections.unmodifiableSet(externalBioEntityProperties);
+    }
+
+    public Set<String> getExternalPropertyNames() {
+        Set<String> answer = new HashSet<String>(externalBioEntityProperties.size());
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            answer.add(externalBioEntityProperty.getName());
+        }
+        return answer;
+    }
+
+    public void addExternalProperty(String externalPropertyName, BioEntityProperty bioEntityProperty) {
+        ExternalBioEntityProperty externalBioEntityProperty = new ExternalBioEntityProperty(externalPropertyName, bioEntityProperty, this);
+        this.externalBioEntityProperties.add(externalBioEntityProperty);
+    }
+
+    public void addExternalProperty(ExternalBioEntityProperty externalBioEntityProperty) {
+        externalBioEntityProperty.setAnnotationSrc(this);
+        this.externalBioEntityProperties.add(externalBioEntityProperty);
+    }
+
+    public boolean removeExternalProperty(ExternalBioEntityProperty propertyExternal) {
+        return externalBioEntityProperties.remove(propertyExternal);
+    }
+
+    public Set<ExternalArrayDesign> getExternalArrayDesigns() {
+        return externalArrayDesigns;
+    }
+
+    public void addExternalArrayDesign(ExternalArrayDesign externalArrayDesign) {
+        externalArrayDesign.setAnnotationSrc(this);
+        this.externalArrayDesigns.add(externalArrayDesign);
+    }
+
+    public boolean removeExternalArrayDesign(ExternalArrayDesign externalArrayDesign) {
+        return externalArrayDesigns.remove(externalArrayDesign);
+    }
+
+    public Set<String> getExternalArrayDesignNames() {
+        Set<String> answer = newHashSet();
+        for (ExternalArrayDesign externalArrayDesign : externalArrayDesigns) {
+            answer.add(externalArrayDesign.getName());
+        }
+        return answer;
+    }
+
+    /**
+     * @return a map of external identifier property name to bio-entity type;
+     *         an order of map entries is fixed, as it can be used as a column set when
+     *         querying bioMart service
+     */
+    public Map<String, BioEntityType> getExternalName2TypeMap() {
+        Map<BioEntityProperty, String> map = new HashMap<BioEntityProperty, String>();
+        for (ExternalBioEntityProperty extProp : externalBioEntityProperties) {
+            map.put(extProp.getBioEntityProperty(), extProp.getName());
+        }
+
+        Map<String, BioEntityType> names = new LinkedHashMap<String, BioEntityType>();
+        for (BioEntityType type : types) {
+            BioEntityProperty beProperty = type.getIdentifierProperty();
+            String name = map.get(beProperty);
+            if (name == null) {
+                //TODO put it in the proper annotation source validator
+                throw new IllegalStateException("Annotation is no valid: no external name was found for property " + beProperty);
+            }
+            names.put(name, type);
+        }
+        return names;
+    }
+
+    public List<BioEntityProperty> getNonIdentifierProperties() {
+        List<BioEntityProperty> properties = new ArrayList<BioEntityProperty>();
+        Map<String, BioEntityType> identifierNames = getExternalName2TypeMap();
+        for (ExternalBioEntityProperty extProp : externalBioEntityProperties) {
+            if (identifierNames.containsKey(extProp.getName())) {
+                continue;
+            }
+            properties.add(extProp.getBioEntityProperty());
+        }
+        return properties;
+    }
+
+    public List<ExternalBioEntityProperty> getNonIdentifierExternalProperties() {
+        List<ExternalBioEntityProperty> properties = new ArrayList<ExternalBioEntityProperty>();
+        Map<String, BioEntityType> identifierNames = getExternalName2TypeMap();
+        for (ExternalBioEntityProperty extProp : externalBioEntityProperties) {
+            if (identifierNames.containsKey(extProp.getName())) {
+                continue;
+            }
+            properties.add(extProp);
+        }
+        return properties;
+    }
+
+    public Set<BioEntityProperty> getBioEntityPropertiesOfExternalProperties() {
+        Set<BioEntityProperty> answer = newHashSet();
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            answer.add(externalBioEntityProperty.getBioEntityProperty());
+        }
+        return answer;
+    }
+
+    /////////////////////////
+    //  Helper methods
+    ////////////////////////
+//    public abstract <T extends AnnotationSource> T createCopyForNewSoftware(Software newSoftware);
+
+    protected AnnotationSource updateProperties(AnnotationSource result) {
+        result.setUrl(this.url);
+        for (ExternalBioEntityProperty externalBioEntityProperty : externalBioEntityProperties) {
+            result.addExternalProperty(externalBioEntityProperty.getName(), externalBioEntityProperty.getBioEntityProperty());
+        }
+        for (ExternalArrayDesign externalArrayDesign : externalArrayDesigns) {
+            result.addExternalArrayDesign(new ExternalArrayDesign(externalArrayDesign.getName(), externalArrayDesign.getArrayDesign(), result));
+        }
+        for (BioEntityType type : types) {
+            result.addBioEntityType(type);
+        }
+
+        return result;
+    }
+
     @Override
     public String toString() {
         return "AnnotationSource{" +
                 "annotationSrcId=" + annotationSrcId +
-                ", organism=" + organism +
                 ", software=" + software +
                 ", types=" + types +
                 ", loadDate=" + loadDate +
                 '}';
     }
 
-    public boolean isApplied() {
-        return isApplied;
-    }
-
-    public void setApplied(boolean applied) {
-        isApplied = applied;
-    }
 }
