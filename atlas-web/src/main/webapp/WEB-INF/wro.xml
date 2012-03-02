@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
     <group name="bundle-jquery">
-        <js minimize="false">/scripts/jquery-1.4.3.min.js</js>
+        <js minimize="false">/scripts/jquery-1.5.min.js</js>
     </group>
 
     <group name="bundle-jquery-flot">
@@ -23,7 +23,9 @@
 
     <group name="bundle-common-libs">
         <css>/scripts/jquery-impromptu/css/default.css</css>
+        <css>/scripts/jquery-qtip/jquery.qtip.css</css>
         <js>/scripts/jquery-impromptu/jquery-impromptu.3.1.js</js>
+        <js>/scripts/jquery-qtip/jquery.qtip.js</js>
         <js>/scripts/jquery.address-1.4.js</js>
         <js>/scripts/jquery.tooltip.js</js>
         <js>/scripts/jquery.cookie.js</js>
@@ -41,6 +43,7 @@
         <js>/scripts/src/core/pageState.js</js>
         <js>/scripts/src/core/barPlot.js</js>
         <js>/scripts/src/core/efPagination.js</js>
+        <js>/scripts/src/core/tooltips.js</js>
         <js>/scripts/src/core/geneExperimentList.js</js>
         <js>/scripts/src/core/genePage.js</js>
         <js>/scripts/common-query.js</js>
