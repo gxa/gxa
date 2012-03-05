@@ -333,6 +333,13 @@
             <version>1.3.9</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.1.2</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- logging uses SLF4J throughout -->
         <dependency> <!-- this will allow redirection of java.util.logging calls via slf4j -->
             <groupId>org.slf4j</groupId>
