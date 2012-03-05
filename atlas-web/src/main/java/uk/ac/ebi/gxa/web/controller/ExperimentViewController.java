@@ -120,56 +120,99 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     }
 
     /**
-     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
-     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/
-     * Parameter gid (geneid) is optional - this is to support queries such as: /experiment/E-GEOD-5099?ad=A-AFFY-34&gid=GBP5
+     * Handles experiment page requests with known experiment accession.<br/>
+     * Gene identifier and experimental factor parameters are optional.<br/>
+     * <ul>Request uri examples:
+     * <li>/experiment?eid=E-MTAB-62/</li>
+     * <li>/experiment?eid=E-MTAB-62&gid=KRT7</li>
+     * <li>/experiment?eid=E-MTAB-62&ef=organism_part</li>
+     * <li>/experiment?eid=E-MTAB-62&gid=KRT7&ef=organism_part</li>
+     * </ul>
      *
-     * @param accession an experiment accession to show experiment page for
-     * @param model     a model for the view to render
-     * @return path of the view
-     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     * @param accession an experiment accession to show experiment details for
+     * @param gid       a gene identifier to search for by default
+     * @param ef        an experimental factor to search for by default
+     * @param model     a model to render the view
+     * @return path of the view to render
+     * @throws ResourceNotFoundException if an experiment with the given accession not found
+     */
+    @RequestMapping(value = "/experiment", method = RequestMethod.GET)
+    public String getExperimentByAccessionParam(
+            @RequestParam("eid") String accession,
+            @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "ef", required = false) String ef,
+            Model model) throws ResourceNotFoundException {
+
+        return getExperiment(model, accession, gid, ef);
+    }
+
+    /**
+     * Handles experiment page requests with known experiment accession.<br/>
+     * Gene identifier and experimental factor parameters are optional.<br/>
+     * <ul>Request uri examples:
+     * <li>/experiment/E-MTAB-62/</li>
+     * <li>/experiment/E-MTAB-62?gid=KRT7</li>
+     * <li>/experiment/E-MTAB-62?ef=organism_part</li>
+     * <li>/experiment/E-MTAB-62?gid=KRT7&ef=organism_part</li>
+     * </ul>
+     *
+     * @param accession an experiment accession to show experiment details for
+     * @param gid       a gene identifier to search for by default
+     * @param ef        an experimental factor to search for by default
+     * @param model     a model to render the view
+     * @return path of the view to render
+     * @throws ResourceNotFoundException if an experiment with the given accession not found
      */
     @RequestMapping(value = "/experiment/{eid}", method = RequestMethod.GET)
-    public String getExperimentWithOptionalGene(
+    public String getExperimentByAccession(
             @PathVariable("eid") final String accession,
             @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "ef", required = false) String ef,
             Model model) throws ResourceNotFoundException {
 
-        return getExperiment(model, accession, gid, null);
+        return getExperiment(model, accession, gid, ef);
     }
 
     /**
-     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
-     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487).
+     * Handles experiment page requests with known experiment accession and gene identifier. <br/>
+     * Only experimental factor parameter is optional. <br/>
+     * <ul>Request uri examples:
+     * <li>/experiment/E-MTAB-62/KRT7</li>
+     * <li>/experiment/E-MTAB-62/KRT7&ef=organism_part</li>
+     * </ul>
      *
-     * @param accession an experiment accession to show experiment page for
-     * @param gid       a gene identifier to fill in initial search fields
-     * @param model     a model for the view to render
-     * @return path of the view
-     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     * @param accession an experiment accession to show experiment details for
+     * @param gid       a gene identifier to search for by default
+     * @param ef        an experimental factor to search for by default
+     * @param model     a model to render the view
+     * @return path of the view to render
+     * @throws ResourceNotFoundException if an experiment with the given accession not found
      */
     @RequestMapping(value = "/experiment/{eid}/{gid}", method = RequestMethod.GET)
-    public String getExperiment(
+    public String getExperimentByAccessionAndGene(
             @PathVariable("eid") final String accession,
             @PathVariable("gid") final String gid,
+            @RequestParam(value = "ef", required = false) String ef,
             Model model) throws ResourceNotFoundException {
 
-        return getExperiment(model, accession, gid, null);
+        return getExperiment(model, accession, gid, ef);
     }
 
     /**
-     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
-     * appropriate values and returns the corresponding view. E.g. /experiment/E-MTAB-62/ENSG00000136487/organism_part).
+     * Handles experiment page requests with known experiment accession, gene identifier and experimental factor.<br/>
+     * <ul>Request uri examples:
+     * <li>/experiment/E-MTAB-62/KRT7/organism_part</li>
+     * </ul>
      *
-     * @param accession an experiment accession to show experiment page for
-     * @param gid       a gene identifier to fill in initial search fields
-     * @param ef        an experiment factor name to fill in initial search fields
-     * @param model     a model for the view to render
-     * @return path of the view
-     * @throws ResourceNotFoundException if an experiment with the given accession is not found
+     * @param accession an experiment accession to show experiment details for
+     * @param gid       a gene identifier to search for by default
+     * @param ef        an experimental factor to search for by default
+     * @param model     a model to render the view
+     * @return path of the view to render
+     * @throws ResourceNotFoundException if an experiment with the given accession not found
      */
     @RequestMapping(value = "/experiment/{eid}/{gid}/{ef}", method = RequestMethod.GET)
-    public String getExperiment(
+    public String getExperimentByAccessionAndGeneAndEf(
             @PathVariable("eid") final String accession,
             @PathVariable("gid") final String gid,
             @PathVariable("ef") final String ef,
@@ -179,36 +222,15 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     }
 
     /**
-     * An experiment page handler. If the experiment with the given id/accession exists it fills the model with the
-     * appropriate values and returns the corresponding view. Parameters like gid (geneId) and ef (experiment factor)
-     * are optional; they can be specified manually e.g.  /experiment?eid=E-MTAB-62&gid=ENSG00000136487&ef=organism_part
-     *
-     * @param accession an experiment accession to show experiment page for
-     * @param gid       a gene identifier to fill in initial search fields
-     * @param ef        an experiment factor name to fill in initial search fields
-     * @param model     a model for the view to render
-     * @return path of the view
-     * @throws ResourceNotFoundException if an experiment with the given accession is not found
-     */
-    @RequestMapping(value = "/experiment", method = RequestMethod.GET)
-    public String getExperimentWithOptionalParams(
-            @RequestParam("eid") String accession,
-            @RequestParam(value = "gid", required = false) String gid,
-            @RequestParam(value = "ef", required = false) String ef,
-            Model model) throws ResourceNotFoundException {
-        return getExperiment(model, accession, gid, ef);
-    }
-
-    /**
-     * Returns experiment plots for given set of design elements.
+     * Handles experiment plot requests.
      * (JSON view only supported)
      *
-     * @param accession               an experiment accession to find out the required data
-     * @param adAcc                   an array design accession to find out the required data
-     * @param des                     an array of design element indexes to get plot data for
-     * @param assayPropertiesRequired a boolean value to specify if assay properties ard needed
-     * @param model                   a model for the view to render
-     * @return the view path
+     * @param accession               an experiment accession to fetch the data for
+     * @param adAcc                   an array design accession to fetch the data for
+     * @param des                     an array of design element indices to fetch data for
+     * @param assayPropertiesRequired a boolean value; just a flag to load assay properties only once
+     * @param model                   a model to render the view
+     * @return path of the view to render
      * @throws ResourceNotFoundException if an experiment or array design is not found
      * @throws AtlasDataException        if any data reading error happened (including index out of range)
      */
@@ -219,7 +241,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("de") int[] des,
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
-    ) throws ResourceNotFoundException, AtlasDataException, RecordNotFoundException {
+    ) throws ResourceNotFoundException, AtlasDataException {
 
         final ExperimentPage page = createExperimentPage(accession);
         final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
@@ -227,7 +249,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             throw new ResourceNotFoundException("Improper array design accession: " + adAcc + " (in " + accession + " experiment)");
         }
 
-        final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
+        final Experiment experiment = page.getExperiment();
         ExperimentWithData ewd = null;
         try {
             ewd = atlasDataDAO.createExperimentWithData(experiment);
@@ -251,6 +273,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      * @param response      HttpServletResponse
      * @throws IOException
      * @throws ResourceNotFoundException
+     * @throws uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException
      */
     @RequestMapping(value = "/assets", method = RequestMethod.GET)
     public void getExperimentAsset(
