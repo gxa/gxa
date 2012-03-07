@@ -23,13 +23,11 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.http.client.HttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -37,7 +35,7 @@ import java.util.HashSet;
  * User: nsklyar
  * Date: 19/01/2012
  */
-public class MartPropertiesValidator extends AnnotationSourcePropertiesValidator<BioMartAnnotationSource> {
+public class MartPropertiesValidator implements AnnotationSourcePropertiesValidator<BioMartAnnotationSource> {
 
     private final HttpClient httpClient;
 

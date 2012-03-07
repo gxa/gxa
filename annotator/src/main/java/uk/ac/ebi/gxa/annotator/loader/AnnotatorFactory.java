@@ -25,13 +25,12 @@ package uk.ac.ebi.gxa.annotator.loader;
 import com.google.common.base.Strings;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.params.ConnRoutePNames;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 /**

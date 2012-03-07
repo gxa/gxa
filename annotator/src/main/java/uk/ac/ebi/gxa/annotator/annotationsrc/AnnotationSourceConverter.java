@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
@@ -110,6 +111,11 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
             }
             if (annSrc == null) {
                 annSrc = initAnnotationSource(properties);
+                if (annSrcExists(annSrc)) {
+                    reportBuilder.addMessage("Annotation source  " + annSrc.getName() + " already exists. If you need to " +
+                            "change it use Edit button");
+                    return annSrc;
+                }
             }
             updateAnnotationSource(properties, annSrc);
             return annSrc;
@@ -134,7 +140,6 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected void validateRequiredFields(Properties properties, ValidationReportBuilder reportBuilder) {
         List<String> propertyNames = new ArrayList<String>(getRequiredProperties());
-        propertyNames.addAll(PROPNAMES);
 
         for (String propertyName : propertyNames) {
             final String property = getProperty(propertyName, properties);
@@ -151,9 +156,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         try {
             final URI uri = new URI(urlString);
             uri.toURL();
-        } catch (URISyntaxException e) {
-            reportBuilder.addMessage("Invalid software url");
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             reportBuilder.addMessage("Invalid software url");
         }
     }
@@ -308,6 +311,8 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected abstract void writeExtraProperties(T annSrc, PropertiesConfiguration properties);
 
     protected abstract T initAnnotationSource(Properties properties);
+
+    protected abstract boolean annSrcExists(T annSrc);
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;

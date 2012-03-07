@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 import java.io.IOException;
@@ -163,8 +164,11 @@ public class BioMartAnnotator extends Annotator {
     }
 
     private void validate(BioMartAnnotationSource annSrc) throws BioMartException {
+        ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
         MartPropertiesValidator validator = new MartPropertiesValidator(httpClient);
-        final String summary = validator.getSummary(annSrc);
+        reportBuilder.addMessages(validator.getInvalidPropertyNames(annSrc));
+
+        final String summary = reportBuilder.getSummary("Cannot load annotations (mappings) - invalid properties: ", ", ");
         if (!summary.isEmpty())
             throw new BioMartException(summary);
     }

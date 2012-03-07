@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
-import com.google.common.base.Strings;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -37,12 +37,9 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.util.Collection;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static uk.ac.ebi.gxa.annotator.AnnotationSourceFactory.newBioMartAnnotationSource;
 
 /**
  * User: nsklyar

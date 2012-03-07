@@ -71,7 +71,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     private BioMartAnnotationSource fetchAnnotationSource() {
         Software software = softwareDAO.findOrCreate("Ensembl", "60");
         Organism organism = organismDAO.getOrCreateOrganism("homo sapiens");
-        return annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
+        return annSrcDAO.findBioMartAnnotationSource(software, organism);
     }
 
 
@@ -143,13 +143,23 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     public void testFindAnnotationSource() throws Exception {
         Software software = softwareDAO.findOrCreate("Ensembl", "60");
         Organism organism = organismDAO.getByName("homo sapiens");
-        BioMartAnnotationSource annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
+        BioMartAnnotationSource annotationSource = annSrcDAO.findBioMartAnnotationSource(software, organism);
         assertNotNull(annotationSource);
 
         //Not existing ann src
         software = softwareDAO.findOrCreate("animals", "8");
-        annotationSource = annSrcDAO.findAnnotationSource(software, organism, BioMartAnnotationSource.class);
+        annotationSource = annSrcDAO.findBioMartAnnotationSource(software, organism);
         assertNull(annotationSource);
+    }
+
+    @Test
+    @Transactional
+    public void testFindAnnotationSourceGeneSig() throws Exception {
+        Software software = softwareDAO.findOrCreate("GeneSigDB", "4");
+
+        GeneSigAnnotationSource annotationSource = annSrcDAO.findGeneSigAnnotationSource(software);
+        assertNotNull(annotationSource);
+
     }
 
     @Test

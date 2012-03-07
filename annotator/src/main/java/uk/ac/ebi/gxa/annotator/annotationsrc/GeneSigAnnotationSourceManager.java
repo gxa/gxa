@@ -23,9 +23,10 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedPropertiesValidator;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 
 import java.util.Collection;
 
@@ -39,7 +40,7 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     private GeneSigAnnotationSourceConverter geneSigAnnotationSourceConverter;
 
     @Autowired
-    private FileBasedPropertiesValidator validator;
+    private AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> geneSigValidator;
 
     @Override
     protected Collection<GeneSigAnnotationSource> getCurrentAnnSrcs() {
@@ -52,7 +53,7 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     }
 
     @Override
-    protected AnnotationSourceConverter getConverter() {
+    protected AnnotationSourceConverter<GeneSigAnnotationSource> getConverter() {
         return geneSigAnnotationSourceConverter;
     }
 
@@ -62,13 +63,15 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     }
 
     @Override
-    public Collection<String> validateProperties(AnnotationSource annSrc) {
+    public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         if (isForClass(annSrc.getClass())) {
-            return validator.getInvalidPropertyNames((GeneSigAnnotationSource) annSrc);
+            geneSigValidator.getInvalidPropertyNames((GeneSigAnnotationSource) annSrc);
+        } else {
+            throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
+                    ". Class casting problem " + GeneSigAnnotationSource.class);
         }
-        throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
-                ". Class casting problem "  + GeneSigAnnotationSource.class);
     }
+
     @Override
     public boolean isForClass(Class<? extends AnnotationSource> annSrcClass) {
         return annSrcClass.equals(GeneSigAnnotationSource.class);

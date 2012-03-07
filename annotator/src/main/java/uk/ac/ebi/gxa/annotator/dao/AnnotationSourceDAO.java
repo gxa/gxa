@@ -25,7 +25,10 @@ package uk.ac.ebi.gxa.annotator.dao;
 import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate3.HibernateTemplate;
+import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
@@ -74,10 +77,17 @@ public class AnnotationSourceDAO {
         return template.find("from " + type.getSimpleName());
     }
 
-    public <T extends AnnotationSource> T findAnnotationSource(Software software, Organism organism, Class<T> type) {
-        String queryString = "from " + type.getSimpleName() + " where software = ? and organism = ?";
+    public BioMartAnnotationSource findBioMartAnnotationSource(Software software, Organism organism) {
+        String queryString = "from " + BioMartAnnotationSource.class.getSimpleName() + " where software = ? and organism = ?";
         @SuppressWarnings("unchecked")
-        final List<T> results = template.find(queryString, software, organism);
+        final List<BioMartAnnotationSource> results = template.find(queryString, software, organism);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
+        public GeneSigAnnotationSource findGeneSigAnnotationSource(Software software) {
+        String queryString = "from " + GeneSigAnnotationSource.class.getSimpleName() + " where software = ?";
+        @SuppressWarnings("unchecked")
+        final List<GeneSigAnnotationSource> results = template.find(queryString, software);
         return results.isEmpty() ? null : results.get(0);
     }
 
