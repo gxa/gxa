@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.loader.datamatrix;
 
 import au.com.bytecode.opencsv.CSVReader;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.utils.MAGETABUtils;
@@ -37,6 +36,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static com.google.common.base.Joiner.on;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
@@ -128,6 +128,23 @@ public class DataMatrixFileBuffer {
     }
 
     private void init() throws AtlasLoaderException {
+        try {
+            readDataMatrixFile();
+        } catch (IOException e) {
+            throw dataMatrixFileError(e);
+        } catch (DataMatrixFileFormatException e) {
+            throw dataMatrixFileError(e);
+        }
+    }
+    
+    private AtlasLoaderException dataMatrixFileError(Exception e) {
+        log.error("Reading " + dataMatrixURL + " failure", e);
+        return new AtlasLoaderException(
+                "An error occurred whilst attempting to read from the " +
+                        "derived array data matrix file at " + dataMatrixURL + ": " + e.getMessage());
+    }
+
+    private void readDataMatrixFile() throws IOException, DataMatrixFileFormatException {
         CSVReader csvReader = null;
         try {
             // create a buffered reader
@@ -161,26 +178,26 @@ public class DataMatrixFileBuffer {
 
                         if (possibleTypes.size() > 1) {
                             sb.append("Possible types: [");
-                            sb.append(StringUtils.join(possibleTypes, ","));
+                            sb.append(on(",").join(possibleTypes));
                             sb.append("]");
                         }
 
                         if (allTypes.size() > 1) {
                             sb.append("All types: [");
-                            sb.append(StringUtils.join(allTypes, ","));
+                            sb.append(on(",").join(allTypes, ","));
                             sb.append("]");
                         }
 
-                        throw new AtlasLoaderException(
-                                "Unable to load - data matrix file contains " + possibleTypes.size() +
+                        throw new DataMatrixFileFormatException(
+                                "Data matrix file contains " + possibleTypes.size() +
                                         " recognised candidate quantitation types out of " + allTypes.size() +
                                         " total to use for expression values.\n" +
                                         "Ambiguity over which QT type should be used, from: " + sb.toString()
                         );
                     } else if (allTypes.isEmpty()) {
-                        log.error("No matching terms: " + StringUtils.join(possibleQTypes, ","));
-                        throw new AtlasLoaderException(
-                                "Unable to load - data matrix file contains 0 " +
+                        log.error("No matching terms: " + on(",").join(possibleQTypes, ","));
+                        throw new DataMatrixFileFormatException(
+                                "Data matrix file contains 0 " +
                                         "recognised candidate quantitation types to use for " +
                                         "expression values"
                         );
@@ -199,10 +216,6 @@ public class DataMatrixFileBuffer {
 
             // read all the data into the buffer...
             readFileIntoBuffer(csvReader);
-        } catch (IOException e) {
-            throw new AtlasLoaderException(
-                    "An error occurred whilst attempting to read from the " +
-                            "derived array data matrix file at " + dataMatrixURL);
         } finally {
             closeQuietly(csvReader);
         }
@@ -215,10 +228,10 @@ public class DataMatrixFileBuffer {
      * the array is exactly the correct size - empty elements will be trimmed off the end once parsing has completed.
      *
      * @param csvReader
-     * @return
-     * @throws AtlasLoaderException
+     * @throws java.io.IOException if any I/O error happen during reading dataMatrixFile
+     * @throws DataMatrixFileFormatException if format of a data matrix file is invalid
      */
-    private void readFileIntoBuffer(CSVReader csvReader) throws AtlasLoaderException {
+    private void readFileIntoBuffer(CSVReader csvReader) throws IOException, DataMatrixFileFormatException {
         try {
             log.info("Reading data matrix from " + dataMatrixURL + "...");
 
@@ -231,6 +244,11 @@ public class DataMatrixFileBuffer {
                 if (line.length == 0 || line[0].startsWith("#")) {
                     continue;
                 }
+
+                if (line[0].length() == 0) {
+                    throw new DataMatrixFileFormatException("Unexpected empty value is in the first column: [" + on(" \t ").join(line) + "]");
+                }
+
                 // ignore header lines
                 String tag = MAGETABUtils.digestHeader(line[0]);
                 if (tag.equals("hybridizationref") ||
@@ -250,27 +268,21 @@ public class DataMatrixFileBuffer {
                     continue;
                 }
 
-                String de = new String(line[0].toCharArray());
+                String de = new String(line[0]);
                 storage.add(de, refToEVColumn, referenceNames, line);
             }
-        } catch (IOException e) {
-            // generate error item and throw exception
-            throw new AtlasLoaderException(
-                    "An error occurred whilst attempting to read from the " +
-                            "derived array data matrix file at " + dataMatrixURL
-            );
         } finally {
             log.info("Finished reading from " + dataMatrixURL + (fileName != null ? ":" + fileName : "") + ", closing");
             closeQuietly(csvReader);
         }
     }
 
-    private String[] getHeaderLine(CSVReader csvReader) throws IOException, AtlasLoaderException {
+    private String[] getHeaderLine(CSVReader csvReader) throws IOException, DataMatrixFileFormatException {
         String[] line;
         do {
             line = csvReader.readNext();
             if (line == null) {
-                throw new AtlasLoaderException(
+                throw new DataMatrixFileFormatException(
                         "Failed to parse the derived array data matrix file - the header " +
                                 "lines were badly formatted, could not read the first two " +
                                 "lines as expected"
@@ -280,7 +292,7 @@ public class DataMatrixFileBuffer {
         return line;
     }
 
-    private List<Header> parseHeaders(CSVReader csvReader) throws IOException, AtlasLoaderException {
+    private List<Header> parseHeaders(CSVReader csvReader) throws IOException, DataMatrixFileFormatException {
         String[] valRefs = getHeaderLine(csvReader);
         String[] qtTypes = null;
 
@@ -294,7 +306,7 @@ public class DataMatrixFileBuffer {
         // check they have the same number of tokens
         if (qtTypes != null && valRefs.length != qtTypes.length) {
             // this file looks wrong, so generate error item and throw exception
-            throw new AtlasLoaderException(
+            throw new DataMatrixFileFormatException(
                     "Failed to parse the derived array data matrix file - there were " +
                             "different numbers of hybridization references to quantitation " +
                             "types, this must be a one-to-one binding"
@@ -307,7 +319,7 @@ public class DataMatrixFileBuffer {
                 && !refName.startsWith("assayref")
                 && !refName.startsWith("scanref")) {
             // this file looks wrong, so generate error item and throw exception
-            throw new AtlasLoaderException(
+            throw new DataMatrixFileFormatException(
                     "Failed to parse the derived array data matrix file - the " +
                             "first line started with '" + refName + "' when one of " +
                             "'hybridizationref', 'assayref' or 'scanref' was expected"
