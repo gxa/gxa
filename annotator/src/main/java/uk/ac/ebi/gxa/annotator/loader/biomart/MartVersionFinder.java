@@ -44,7 +44,6 @@ public class MartVersionFinder implements VersionFinder<BioMartAnnotationSource>
     public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
 
         try {
-            AnnotatorFactory.setProxyIfExists(httpClient);
             MartServiceClientImpl martClient = MartServiceClientImpl.create(httpClient, annSrc);
             final String database = martClient.getMartLocation().getDatabase();
             return database.substring(database.lastIndexOf("_") + 1);

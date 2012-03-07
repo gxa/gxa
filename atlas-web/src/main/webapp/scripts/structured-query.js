@@ -328,7 +328,7 @@ if(!atlas)
 
                                 var newQuery = atlas.latestSearchQuery;
                                 newQuery.conditions = newConditions;
-                                atlas.submitForm(newQuery);
+                                atlas.submitQuery(newQuery);
                             }
                         }
                     });

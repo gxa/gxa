@@ -207,13 +207,18 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     </bean>
 
     <!-- http client -->
-
-    <bean id="httpClient" class="org.apache.http.impl.client.DefaultHttpClient">
-        <constructor-arg ref="httpClientConnectionManager"/>
+    <bean id="httpClientConnectionManager" class="org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager"
+          destroy-method="shutdown">
     </bean>
 
-    <bean id="httpClientConnectionManager" class="org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager"
-            destroy-method="shutdown">
+    <bean id="httpClientFactoryBean" class="uk.ac.ebi.gxa.web.HttpClientFactoryBean">
+        <property name="connManager" ref="httpClientConnectionManager"/>
+    </bean>
+
+    <bean id="httpClient"
+          class="org.apache.http.client.HttpClient"
+            factory-bean="httpClientFactoryBean"
+            factory-method="createInstance">
     </bean>
 
     <!-- Web interface component -->
