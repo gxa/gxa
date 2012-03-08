@@ -327,7 +327,7 @@
                         </td>
                         <td class="padded" colspan="2">
                             <select id="efvFilter" style="width:100%;">
-                                <option value="">All factor values</option>
+                                <option value="||">All factor values</option>
                                 <c:forEach var="EF" items="${exp.experimentFactors}">
                                     <optgroup label="${f:escapeXml(EF.displayName)}">
                                         <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
