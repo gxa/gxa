@@ -2,7 +2,6 @@ package ae3.service.experiment;
 
 import ae3.dao.GeneSolrDAO;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Ordering;
 import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.utils.Best;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -10,13 +9,9 @@ import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Comparator;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Ordering.natural;
-import static java.lang.Math.abs;
-import static java.util.Collections.reverse;
 import static java.util.Collections.sort;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.boundSafeSublist;
 
