@@ -69,7 +69,6 @@ public class AtlasExperimentAnalyticsViewService {
             if (bestDE.isFound())
                 result.add(bestDE.get());
         }
-
         sort(result);
 
         return convert(expPart, boundSafeSublist(result, offset, offset + limit), result.size());
