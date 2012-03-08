@@ -6,8 +6,8 @@
 # @author: rpetry
 # @date:   23 Feb 2012
 
-if [ $# -lt 2 ]; then
-        echo "Usage: $0 NCDF_DIR ATLAS_URL ADMIN_USER ADMIN_PWD"
+if [ $# -lt 6 ]; then
+        echo "Usage: $0 NCDF_DIR ATLAS_URL ADMIN_USER ADMIN_PWD CURAPI_USERNAME CURAPI_PASSWORD"
         exit;
 fi
 
@@ -15,6 +15,8 @@ NCDF_DIR=$1
 ATLAS_URL=$2
 ADMIN_USER=$3
 ADMIN_PWD=$4
+CURAPI_USERNAME=$5
+CURAPI_PASSWORD=$6
 
 process_file="/tmp/find_outdated_ncdfs."`eval date +%Y%m%d`
 
@@ -24,13 +26,13 @@ rm -rf ${process_file}.propertiesNotInDB
 rm -rf ${process_file}.propertyValuesNotInDB
 rm -rf ${process_file}.experimentsToSetAsIncomplete
 
-curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties.json" | sed 's|},{|\
+curl -s -X GET -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties.json" | sed 's|},{|\
 |g' | sed 's/"apiPropertyNameList"://g' | awk -F":" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sort -f | uniq > ${process_file}.properties
 db_props=`cat ${process_file}.properties`
 
 rm -rf ${process_file}.values
 for property in $(cat "${process_file}.properties"); do
-	curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties/${property}.json" | sed 's|},{|\
+	curl -s -X GET -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties/${property}.json" | sed 's|},{|\
 |g' | sed 's/"apiPropertyValueList"://g' | awk -F"value" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sed 's|^:||' | sort -f | uniq >> ${process_file}.values
 done
 db_vals=`cat ${process_file}.values | sort -f | uniq`
