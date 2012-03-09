@@ -210,9 +210,10 @@ public class HTSArrayDataStep {
         organismToArrayDesign.put("Sus scrofa", "A-ENST-10");
         organismToArrayDesign.put("Gallus gallus", "A-ENST-11");
         organismToArrayDesign.put("Saccharomyces cerevisiae", "A-ENST-12");
-        organismToArrayDesign.put("Xenopus laevis", "A-ENST-13");
+        organismToArrayDesign.put("Xenopus tropicalis", "A-ENST-13");
         organismToArrayDesign.put("Macaca mulatta", "A-ENST-14");
         organismToArrayDesign.put("Caenorhabditis elegans", "A-ENST-15");
+        organismToArrayDesign.put("Dasypus novemcinctus", "A-ENST-16");
     }
 
     //ToDo: this is only temp solution! Array design will not be used for RNA-seq experiments
