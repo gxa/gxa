@@ -388,6 +388,13 @@
             <artifactId>cglib</artifactId>
             <version>2.2</version>
         </dependency>
+
+        <!-- etc. -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <properties>

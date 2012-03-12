@@ -2,16 +2,18 @@
 # @author: rpetry
 # @date:   27 Jan 2012
 
-if [ $# -lt 1 ]; then
-        echo "Usage: $0 ATLAS_URL"
+if [ $# -lt 3 ]; then
+        echo "Usage: $0 ATLAS_URL CURAPI_USERNAME CURAPI_PASSWORD"
         exit;
 fi
 
 ATLAS_URL=$1
+CURAPI_USERNAME=$2
+CURAPI_PASSWORD=$3
 
 process_file="/tmp/find_properties."`eval date +%Y%m%d`
 
-curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties.json" | sed 's|},{|\
+curl -s -X GET -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties.json" | sed 's|},{|\
 |g' | sed 's/"apiPropertyNameList"://g' | awk -F":" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sort -f | uniq > ${process_file}.properties
 
 rm -rf ${process_file}.values
@@ -19,7 +21,7 @@ for property in $(cat "${process_file}.properties"); do
     if [ "$property" == "individual" ]; then
 	: # Exclude values for property 'individual' - as requested by curators
     else
-	curl -s -X GET -v "${ATLAS_URL}/api/curators/v1/properties/${property}.json" | sed 's|},{|\
+	curl -s -X GET -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties/${property}.json" | sed 's|},{|\
 |g' | sed 's/"apiPropertyValueList"://g' | awk -F"value" '{print $2}' | sed 's|}]}||g' | sed 's|"||g' | sed 's|^:||' | sort -f | uniq >> ${process_file}.values
     fi 
 done

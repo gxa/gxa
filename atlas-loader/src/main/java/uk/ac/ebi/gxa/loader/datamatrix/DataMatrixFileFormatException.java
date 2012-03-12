@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,31 +20,14 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.utils;
+package uk.ac.ebi.gxa.loader.datamatrix;
 
 /**
- * @author alf
+ * @author Olga Melnichuk
  */
-public class Best<T extends Comparable<T>> {
-    private T x = null;
+public class DataMatrixFileFormatException extends Exception {
 
-    public Best() {
-    }
-
-    public void offer(T o) {
-        if (x == null || o.compareTo(x) < 0)
-            x = o;
-    }
-
-    public T get() {
-        return x;
-    }
-
-    public boolean isFound() {
-        return x != null;
-    }
-
-    public static <E extends Comparable<E>> Best<E> create() {
-        return new Best<E>();
+    public DataMatrixFileFormatException(String message) {
+        super(message);
     }
 }
