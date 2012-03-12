@@ -51,16 +51,10 @@ public class ListResultRowExperiment {
         this.deAccession = deAccession;
     }
 
-    @RestOut(name = "pvalue")
     public float getPvalue() {
         return pvalue;
     }
 
-    public long getExperimentId() {
-        return experiment.getId();
-    }
-
-    @RestOut(name = "accession")
     public String getExperimentAccession() {
         return experiment.getAccession();
     }
@@ -69,12 +63,10 @@ public class ListResultRowExperiment {
         return experiment.getDescription();
     }
 
-    @RestOut(name = "expression")
     public UpDownExpression getUpdn() {
         return updn;
     }
 
-    @RestOut(name = "deAccession")
     public String getDeAccession() {
         return deAccession;
     }
