@@ -54,7 +54,7 @@ public class AnnotationSourceController {
         final ValidationReportBuilder validationReportBuilder = manager.saveAnnSrc(id, text, type);
         if (!validationReportBuilder.isEmpty()) {
             //add log msg
-            return validationReportBuilder.getSummary("Error ", "\n");
+            return validationReportBuilder.getSummary("Error(s) ", "\n");
         } else {
             return "";
         }
