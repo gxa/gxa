@@ -63,7 +63,7 @@ public class AnnotationSourceController {
     public String validate(String annSrcId, String type) {
         ValidationReportBuilder report = new ValidationReportBuilder();
         manager.validateProperties(annSrcId, type, report);
-        return report.getSummary("Valid", "Invalid properties: ", ", ");
+        return report.getSummary("Valid", "Invalid properties ", ", ");
     }
 
     public class AnnotationSourceView {

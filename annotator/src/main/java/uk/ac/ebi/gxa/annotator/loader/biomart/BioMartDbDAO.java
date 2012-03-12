@@ -23,7 +23,10 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -38,6 +41,8 @@ import java.util.Collection;
  */
 class BioMartDbDAO {
     private String url;
+
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     BioMartDbDAO(String url) {
         this.url = url;
@@ -71,6 +76,7 @@ class BioMartDbDAO {
                     new SingleColumnRowMapper<String>(String.class),
                     dbNameTemplate + "_core_" + version + "%");
         } catch (DataAccessException e) {
+            log.error("Cannot fetch synonyms! URL: "+ url +  "/ name: " + dbNameTemplate, e);
             throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
         }
     }
@@ -82,5 +88,22 @@ class BioMartDbDAO {
         source.setUsername("anonymous");
         source.setPassword("");
         return new JdbcTemplate(source);
+    }
+
+    public String validateConnection(String name, String version) {
+        final JdbcTemplate template = createTemplate("");
+        try {
+            template.queryForObject("SHOW DATABASES LIKE ?",
+                    new SingleColumnRowMapper<String>(String.class),
+                    name + "_core_" + version + "%");
+
+        } catch (IncorrectResultSizeDataAccessException e) {
+            log.warn("Validation failed! ", e);
+            return "Invalid database name (" + name + ")";
+        } catch (DataAccessException e) {
+            log.warn("Validation failed! ", e);
+            return "Invalid url (" + url + ")";
+        }
+        return "";
     }
 }

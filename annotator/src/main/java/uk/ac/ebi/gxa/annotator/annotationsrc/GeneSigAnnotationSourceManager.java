@@ -65,7 +65,7 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Override
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         if (isForClass(annSrc.getClass())) {
-            geneSigValidator.getInvalidPropertyNames((GeneSigAnnotationSource) annSrc);
+            geneSigValidator.getInvalidPropertyNames((GeneSigAnnotationSource) annSrc, reportBuilder);
         } else {
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + GeneSigAnnotationSource.class);

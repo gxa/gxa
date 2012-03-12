@@ -166,9 +166,9 @@ public class BioMartAnnotator extends Annotator {
     private void validate(BioMartAnnotationSource annSrc) throws BioMartException {
         ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
         MartPropertiesValidator validator = new MartPropertiesValidator(httpClient);
-        reportBuilder.addMessages(validator.getInvalidPropertyNames(annSrc));
+        validator.getInvalidPropertyNames(annSrc, reportBuilder);
 
-        final String summary = reportBuilder.getSummary("Cannot load annotations (mappings) - invalid properties: ", ", ");
+        final String summary = reportBuilder.getSummary("Cannot load annotations (mappings) - invalid properties ", ", ");
         if (!summary.isEmpty())
             throw new BioMartException(summary);
     }

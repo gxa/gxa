@@ -22,9 +22,11 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.IOException;
@@ -44,8 +46,7 @@ public class MartPropertiesValidator implements AnnotationSourcePropertiesValida
     }
 
     @Override
-    public Collection<String> getInvalidPropertyNames(BioMartAnnotationSource annSrc) {
-        Collection<String> missingProperties = new HashSet<String>();
+    public void getInvalidPropertyNames(BioMartAnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
 
         try {
             MartServiceClient martService = MartServiceClientImpl.create(httpClient, annSrc);
@@ -53,18 +54,23 @@ public class MartPropertiesValidator implements AnnotationSourcePropertiesValida
             final Collection<String> attributes = martService.runAttributesQuery();
             for (String property : annSrc.getExternalPropertyNames()) {
                 if (!attributes.contains(property)) {
-                    missingProperties.add(property);
+                    reportBuilder.addMessage(property);
                 }
             }
 
             for (String arrayDesign : annSrc.getExternalArrayDesignNames()) {
                 if (!attributes.contains(arrayDesign)) {
-                    missingProperties.add(arrayDesign);
+                    reportBuilder.addMessage(arrayDesign);
                 }
             }
 
             if (!martService.runDatasetListQuery().contains(annSrc.getDatasetName())) {
-                missingProperties.add(annSrc.getDatasetName());
+                reportBuilder.addMessage(annSrc.getDatasetName());
+            }
+
+            final String validationMessage = validateMySqlProperties(annSrc.getMySqlDbUrl(), annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+            if (!validationMessage.isEmpty()) {
+                reportBuilder.addMessage("Invalid MySQLDb Connection: " + validationMessage);
             }
 
         } catch (BioMartException e) {
@@ -72,7 +78,11 @@ public class MartPropertiesValidator implements AnnotationSourcePropertiesValida
         } catch (IOException e) {
             throw LogUtil.createUnexpected("Problem when validating annotation source " + annSrc.getName(), e);
         }
-        
-        return missingProperties;
+
+    }
+
+    private String validateMySqlProperties(String url, String dbName, String software) {
+        BioMartDbDAO dao = new BioMartDbDAO(url);
+        return dao.validateConnection(dbName, software);
     }
 }

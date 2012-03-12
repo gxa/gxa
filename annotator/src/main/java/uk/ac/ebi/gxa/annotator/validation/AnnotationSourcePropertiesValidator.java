@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.validation;
 
 
-import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 
 import java.util.Collection;
@@ -34,6 +33,6 @@ import java.util.Collection;
  */
 public interface AnnotationSourcePropertiesValidator<T extends AnnotationSource> {
 
-    public Collection<String> getInvalidPropertyNames(T annotationSource);
+    public void getInvalidPropertyNames(T annotationSource, ValidationReportBuilder reportBuilder);
 
 }
