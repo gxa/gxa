@@ -72,4 +72,11 @@ public final class StringUtil {
     public static String prettify(String s) {
         return s.replaceAll("_", " ");
     }
+
+    public static String removeSeparatorDuplicates(String s) {
+        s = s.replaceAll("( )+", " ");
+        s = s.replaceAll("(_)+", "_");
+        return s.trim();
+
+    }
 }
