@@ -770,6 +770,7 @@
             annotationsApplied="F"
             mappingsApplied="F"
             ANNSRCTYPE="biomart"
+            isObsolete="F"
             />
 
     <A2_BIOMART_ANNSRC
@@ -790,6 +791,7 @@
             annotationsApplied="F"
             mappingsApplied="F"
             ANNSRCTYPE="genesigdb"
+            isObsolete="F"
             />
 
     <A2_ANNSRC_BIOENTITYTYPE

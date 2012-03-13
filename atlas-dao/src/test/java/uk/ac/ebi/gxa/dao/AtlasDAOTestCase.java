@@ -339,6 +339,7 @@ public abstract class AtlasDAOTestCase {
                         "  , LOADDATE DATE\n" +
                         "  , annotationsApplied VARCHAR(1) DEFAULT 'F'\n" +
                         "  , mappingsApplied VARCHAR(1) DEFAULT 'F'\n" +
+                        "  , isObsolete VARCHAR(1) DEFAULT 'F'\n" +
                         ");");
         runStatement(conn,
                 "CREATE TABLE A2_BIOMART_ANNSRC(\n" +

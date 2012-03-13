@@ -91,6 +91,9 @@ public abstract class AnnotationSource {
 
     private String name;
 
+    @org.hibernate.annotations.Type(type = "true_false")
+    private boolean isObsolete = false;
+
     AnnotationSource() {
         /*used by hibernate only*/
     }
@@ -160,6 +163,14 @@ public abstract class AnnotationSource {
 
     public void setMappingsApplied(boolean mappingsApplied) {
         this.mappingsApplied = mappingsApplied;
+    }
+
+    public boolean isObsolete() {
+        return isObsolete;
+    }
+
+    public void setObsolete(boolean obsolete) {
+        isObsolete = obsolete;
     }
 
     public Set<ExternalBioEntityProperty> getExternalBioEntityProperties() {
