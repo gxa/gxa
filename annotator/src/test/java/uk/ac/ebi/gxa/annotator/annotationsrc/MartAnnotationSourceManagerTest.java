@@ -26,9 +26,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.loader.VersionFinder;
 import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
@@ -72,7 +70,7 @@ public class MartAnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Test
     public void testCreateUpdatedAnnotationSource() throws Exception {
-        manager.setVersionFinder(versionFinder);
+        manager.setMartVersionFinder(versionFinder);
         final BioMartAnnotationSource annSrc = annSrcDAO.getById(1000, BioMartAnnotationSource.class);
         final UpdatedAnnotationSource<BioMartAnnotationSource> result = manager.createUpdatedAnnotationSource(annSrc);
         assertNotNull(result);

@@ -758,17 +758,21 @@ function editAnnSrc(id, type) {
 function saveAnnSrc() {
     var asText = $('#txtAnnSrc').val();
 
-    function switchToAnnSrcList() {
-        annSrcId="";
-        annSrcType="";
-        $('#tabs').tabs('select', $tab.annSrc);
+    function switchToAnnSrcList(result) {
+        if (result.isValid) {
+            annSrcId = "";
+            annSrcType = "";
+            $('#tabs').tabs('select', $tab.annSrc);
+        } else {
+            window.alert("Annotation Source cannot be saved! \n" + result.formValidationMessage);
+        }
     }
 
     adminCall('annSrcUpdate', {
-                asText: asText,
-                annSrcId:annSrcId,
-                type:annSrcType
-            }, switchToAnnSrcList);
+        asText: asText,
+        annSrcId:annSrcId,
+        type:annSrcType
+    }, switchToAnnSrcList);
 }
 
 function redrawCurrentState() {
@@ -1079,7 +1083,7 @@ $(document).ready(function () {
                     type: 'loadexperiment',
                     autoDepends: autoDep,
                     useRawData: useRawData,
-                    private: private,
+                    private: private
                 }, updateQueueAndLog);
 
             if(arraydesigns.length)

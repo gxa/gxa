@@ -29,6 +29,8 @@ import uk.ac.ebi.gxa.utils.Pair;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Nataliya Sklyar
@@ -48,8 +50,33 @@ public class BioMartDbDAOTest {
     }
 
     @Test
-    public void testfindDBName() throws Exception {
+    public void testFindDBName() throws Exception {
         String dbName = bioMartDbDAO.findSynonymsDBName("homo_sapiens", "63");
         assertEquals("homo_sapiens_core_63_37", dbName);
+    }
+
+    @Test
+    public void testValidateConnection1() throws Exception {
+        final BioMartDbDAO bioMartDbDAO1 = new BioMartDbDAO("ensembldb.ensem");
+        String message = bioMartDbDAO1.validateConnection("xenopus_tropicalis", "66");
+        assertFalse(message.isEmpty());
+        assertTrue("Fails with invalid URL", message.contains("Invalid url"));
+
+
+        final BioMartDbDAO bioMartDbDAO3 = new BioMartDbDAO("ensembldb.ensembl.org:5306");
+        message = bioMartDbDAO3.validateConnection("xenopus_tropicalis", "66");
+        assertTrue(message.isEmpty());
+    }
+
+    @Test
+    public void testValidateConnection2() throws Exception {
+        String message = bioMartDbDAO.validateConnection("xenopus_tropis", "66");
+        assertFalse(message.isEmpty());
+        assertTrue("Fails with Invalid database name", message.contains("Invalid database name"));
+
+        message = bioMartDbDAO.validateConnection("", "66");
+        assertFalse(message.isEmpty());
+        assertTrue("Fails with Invalid database name", message.contains("Invalid database name"));
+
     }
 }

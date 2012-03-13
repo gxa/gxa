@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
@@ -54,6 +55,11 @@ class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSig
     protected GeneSigAnnotationSource initAnnotationSource(Properties properties) {
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
         return new GeneSigAnnotationSource(software);
+    }
+
+    @Override
+    protected boolean annSrcExists(GeneSigAnnotationSource annSrc) {
+        return annSrcDAO.findGeneSigAnnotationSource(annSrc.getSoftware()) != null;
     }
 
     @Override

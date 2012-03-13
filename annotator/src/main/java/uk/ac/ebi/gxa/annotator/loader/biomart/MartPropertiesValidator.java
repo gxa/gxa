@@ -22,14 +22,14 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.AnnotationSourcePropertiesValidator;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -37,7 +37,7 @@ import java.util.HashSet;
  * User: nsklyar
  * Date: 19/01/2012
  */
-public class MartPropertiesValidator extends AnnotationSourcePropertiesValidator<BioMartAnnotationSource> {
+public class MartPropertiesValidator implements AnnotationSourcePropertiesValidator<BioMartAnnotationSource> {
 
     private final HttpClient httpClient;
 
@@ -46,8 +46,7 @@ public class MartPropertiesValidator extends AnnotationSourcePropertiesValidator
     }
 
     @Override
-    public Collection<String> getInvalidPropertyNames(BioMartAnnotationSource annSrc) {
-        Collection<String> missingProperties = new HashSet<String>();
+    public void getInvalidPropertyNames(BioMartAnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
 
         try {
             MartServiceClient martService = MartServiceClientImpl.create(httpClient, annSrc);
@@ -55,18 +54,23 @@ public class MartPropertiesValidator extends AnnotationSourcePropertiesValidator
             final Collection<String> attributes = martService.runAttributesQuery();
             for (String property : annSrc.getExternalPropertyNames()) {
                 if (!attributes.contains(property)) {
-                    missingProperties.add(property);
+                    reportBuilder.addMessage(property);
                 }
             }
 
             for (String arrayDesign : annSrc.getExternalArrayDesignNames()) {
                 if (!attributes.contains(arrayDesign)) {
-                    missingProperties.add(arrayDesign);
+                    reportBuilder.addMessage(arrayDesign);
                 }
             }
 
             if (!martService.runDatasetListQuery().contains(annSrc.getDatasetName())) {
-                missingProperties.add(annSrc.getDatasetName());
+                reportBuilder.addMessage(annSrc.getDatasetName());
+            }
+
+            final String validationMessage = validateMySqlProperties(annSrc.getMySqlDbUrl(), annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+            if (!validationMessage.isEmpty()) {
+                reportBuilder.addMessage("Invalid MySQLDb Connection: " + validationMessage);
             }
 
         } catch (BioMartException e) {
@@ -74,7 +78,11 @@ public class MartPropertiesValidator extends AnnotationSourcePropertiesValidator
         } catch (IOException e) {
             throw LogUtil.createUnexpected("Problem when validating annotation source " + annSrc.getName(), e);
         }
-        
-        return missingProperties;
+
+    }
+
+    private String validateMySqlProperties(String url, String dbName, String software) {
+        BioMartDbDAO dao = new BioMartDbDAO(url);
+        return dao.validateConnection(dbName, software);
     }
 }

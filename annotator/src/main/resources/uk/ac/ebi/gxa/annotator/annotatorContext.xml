@@ -86,7 +86,7 @@
           class="uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedPropertiesValidator"/>
 
     <!-- Version finder -->
-    <bean name="versionFinder"
+    <bean name="martVersionFinder"
           class="uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder"/>
 
     <!-- Annotator -->
