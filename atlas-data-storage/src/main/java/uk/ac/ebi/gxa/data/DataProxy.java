@@ -111,4 +111,8 @@ interface DataProxy extends Closeable {
     FloatMatrixProxy getTStatistics(int[] des) throws AtlasDataException, StatisticsNotFoundException;
 
     FloatMatrixProxy getPValues(int[] des) throws AtlasDataException, StatisticsNotFoundException;
+
+    FloatMatrixProxy getAllTStatistics() throws AtlasDataException, StatisticsNotFoundException;
+
+    FloatMatrixProxy getAllPValues() throws AtlasDataException, StatisticsNotFoundException;
 }
