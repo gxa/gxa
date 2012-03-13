@@ -153,6 +153,10 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     private void validateTypes(Properties properties, ValidationReportBuilder reportBuilder) {
         String typesString = getProperty(TYPES_PROPNAME, properties);
+        if (Strings.isNullOrEmpty(typesString)) {
+            reportBuilder.addMessage("Required property \"types\" is missing");
+            return;
+        }
         StringTokenizer tokenizer = new StringTokenizer(typesString, ",");
         String currentType = "";
         boolean valid = true;
