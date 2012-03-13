@@ -37,6 +37,9 @@ public class Software {
     private String name;
     private String version;
 
+    @org.hibernate.annotations.Type(type="true_false")
+    private Boolean isActive = false;
+
     Software() {
     }
 
@@ -75,6 +78,7 @@ public class Software {
                 "softwareid=" + softwareid +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
+                ", isActive=" + isActive +
                 '}';
     }
 

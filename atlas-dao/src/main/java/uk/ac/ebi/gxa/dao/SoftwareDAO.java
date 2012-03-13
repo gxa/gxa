@@ -40,7 +40,7 @@ public class SoftwareDAO extends AbstractDAO<Software> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Integer> getActiveSoftwareIds() {
-        return template.find("select max(s.softwareid) from Software s group by s.name");
+    public List<Software> getActiveSoftwares() {
+        return template.find("from Software where isActive = 'T'");
     }
 }
