@@ -20,31 +20,16 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader;
+package uk.ac.ebi.gxa.annotator.validation;
 
 
-import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-
-import java.util.Collection;
 
 /**
  * User: nsklyar
- * Date: 19/01/2012
+ * Date: 23/01/2012
  */
-public abstract class AnnotationSourcePropertiesValidator<T extends AnnotationSource> {
+public interface VersionFinder<T extends AnnotationSource> {
 
-    public abstract Collection<String> getInvalidPropertyNames(T annotationSource);
-
-    public String getSummary(T annotationSource) {
-        StringBuilder sb = new StringBuilder();
-
-        final Collection<String> invalidPropertyNames = getInvalidPropertyNames(annotationSource);
-        if (!CollectionUtils.isEmpty(invalidPropertyNames)) {
-            sb.append("Invalid properties: ");
-            sb.append(invalidPropertyNames);
-        }
-        return sb.toString();
-
-    }
+    public String fetchOnLineVersion(T annSrc);
 }
