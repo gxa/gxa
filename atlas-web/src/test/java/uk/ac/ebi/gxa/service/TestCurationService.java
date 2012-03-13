@@ -434,13 +434,17 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetUnusedProperties() throws Exception {
+    public void testRemoveUnusedProperties() throws Exception {
         assertTrue(curationService.getUnusedPropertyNames().size() > 0);
+        curationService.removeUnusedPropertyNames();
+        assertEquals(0, curationService.getUnusedPropertyNames().size());
     }
 
     @Test
-    public void testGetUnusedPropertyValues() throws Exception {
+    public void testRemoveUnusedPropertyValues() throws Exception {
         assertTrue(curationService.getUnusedPropertyValues().size() > 0);
+        curationService.removeUnusedPropertyValues();
+        assertEquals(1, curationService.getUnusedPropertyValues().size());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
