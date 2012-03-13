@@ -163,6 +163,8 @@ public class StatisticsCursorTest {
         expect(proxy.getUniqueEFVs()).andReturn(efvs).once();
         expect(proxy.getTStatistics(EasyMock.<int[]>anyObject())).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
         expect(proxy.getPValues(EasyMock.<int[]>anyObject())).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getAllTStatistics()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
+        expect(proxy.getAllPValues()).andReturn(floatMatrix(DE_COUNT, efvs.size())).once();
         expect(proxy.getGenes()).andReturn(genes).once();
         expect(proxy.getFactors()).andReturn(new String[]{"EF1", "EF2"}).once();
         expect(proxy.getFactorValues()).andReturn(new String[][]{{"EFV11", "EF12"}, {"EFV21", "EFV22"}}).once();
