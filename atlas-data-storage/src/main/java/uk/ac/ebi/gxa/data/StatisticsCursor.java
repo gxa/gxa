@@ -97,8 +97,8 @@ public class StatisticsCursor implements DesignElementStatistics {
         this.des = des;
 
         uEFVs = dataProxy.getUniqueEFVs();
-        tstat = dataProxy.getTStatistics(des);
-        pvals = dataProxy.getPValues(des);
+        tstat = des == null ? dataProxy.getAllTStatistics() : dataProxy.getTStatistics(des);
+        pvals = des == null ? dataProxy.getAllPValues() : dataProxy.getPValues(des);
         factors = dataProxy.getFactors();
         factorValues = dataProxy.getFactorValues();
         deAccessions = dataProxy.getDesignElementAccessions();
