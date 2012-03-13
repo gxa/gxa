@@ -23,7 +23,10 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -39,40 +42,55 @@ import java.util.Collection;
 class BioMartDbDAO {
     private String url;
 
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
+
     BioMartDbDAO(String url) {
         this.url = url;
     }
 
     public Collection<Pair<String, String>> getSynonyms(String dbNameTemplate, String version) throws BioMartException {
-        final String dbName = findSynonymsDBName(dbNameTemplate, version);
-        final JdbcTemplate template = createTemplate(dbName);
-        return template.query(
-                "SELECT DISTINCT gene_stable_id.stable_id, external_synonym.synonym \n" +
-                        "FROM gene_stable_id, gene, xref, external_synonym \n" +
-                        "WHERE gene_stable_id.gene_id = gene.gene_id \n" +
-                        "AND gene.display_xref_id = xref.xref_id \n" +
-                        "AND external_synonym.xref_id = xref.xref_id \n" +
-                        "ORDER BY gene_stable_id.stable_id; ",
-                new RowMapper<Pair<String, String>>() {
-                    @Override
-                    public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return Pair.create(rs.getString(1), rs.getString(2));
-                    }
-                });
-    }
-
-
-    String findSynonymsDBName(String dbNameTemplate, String version) throws BioMartException {
-        final JdbcTemplate template = createTemplate("");
         try {
-            // here it is important that only a single line is returned.
-            // In a case Biomart changes format it is potentially possible more then a single result.
-            return template.queryForObject("SHOW DATABASES LIKE ?",
-                    new SingleColumnRowMapper<String>(String.class),
-                    dbNameTemplate + "_core_" + version + "%");
+            final String dbName = findSynonymsDBName(dbNameTemplate, version);
+            final JdbcTemplate template = createTemplate(dbName);
+            return template.query(
+                    "SELECT DISTINCT gene_stable_id.stable_id, external_synonym.synonym \n" +
+                            "FROM gene_stable_id, gene, xref, external_synonym \n" +
+                            "WHERE gene_stable_id.gene_id = gene.gene_id \n" +
+                            "AND gene.display_xref_id = xref.xref_id \n" +
+                            "AND external_synonym.xref_id = xref.xref_id \n" +
+                            "ORDER BY gene_stable_id.stable_id; ",
+                    new RowMapper<Pair<String, String>>() {
+                        @Override
+                        public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
+                            return Pair.create(rs.getString(1), rs.getString(2));
+                        }
+                    });
         } catch (DataAccessException e) {
+            log.error("Cannot fetch synonyms! URL: " + url + "/ name: " + dbNameTemplate, e);
             throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
         }
+    }
+
+    public String validateConnection(String name, String version) {
+        try {
+            findSynonymsDBName(name, version);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            log.warn("Validation failed! ", e);
+            return "Invalid database name (" + name + ")";
+        } catch (DataAccessException e) {
+            log.warn("Validation failed! ", e);
+            return "Invalid url (" + url + ")";
+        }
+        return "";
+    }
+
+    String findSynonymsDBName(String dbNameTemplate, String version) throws DataAccessException {
+        final JdbcTemplate template = createTemplate("");
+        // here it is important that only a single line is returned.
+        // In a case Biomart changes format it is potentially possible more then a single result.
+        return template.queryForObject("SHOW DATABASES LIKE ?",
+                new SingleColumnRowMapper<String>(String.class),
+                dbNameTemplate + "_core_" + version + "%");
     }
 
     JdbcTemplate createTemplate(String name) {

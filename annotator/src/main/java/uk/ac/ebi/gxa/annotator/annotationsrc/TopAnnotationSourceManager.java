@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,10 +52,11 @@ public class TopAnnotationSourceManager {
         return result;
     }
 
-    public Collection<String> validateProperties(AnnotationSource annSrc) {
+    public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             if (manager.isForClass(annSrc.getClass())) {
-                return manager.validateProperties(annSrc);
+                manager.validateProperties(annSrc, reportBuilder);
+                return;
             }
         }
         throw new IllegalArgumentException("Cannot validate annotation source of class " + annSrc.getClass().getName());
@@ -82,11 +84,12 @@ public class TopAnnotationSourceManager {
         throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
     }
 
-    public Collection<String> validateProperties(String annSrcId, String typeName) {
+    public void validateProperties(String annSrcId, String typeName, ValidationReportBuilder reportBuilder) {
         final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             if (manager.isForClass(type.getClazz())) {
-                return manager.validateProperties(annSrcId);
+                manager.validateProperties(annSrcId, reportBuilder);
+                return;
             }
         }
         throw new IllegalArgumentException("Cannot validate annotation source of class " + type);

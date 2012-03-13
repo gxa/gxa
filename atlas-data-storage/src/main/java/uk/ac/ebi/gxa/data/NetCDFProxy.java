@@ -31,6 +31,7 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * interface class for read access to NetCDF files
@@ -79,6 +80,9 @@ abstract class NetCDFProxy implements DataProxy {
     FloatMatrixProxy readFloatValuesForRowIndices(NetcdfFile netCDF, int[] rowIndices,
                                                   String varName) throws AtlasDataException {
         try {
+            if (rowIndices == null) {
+                throw new IllegalArgumentException("'rowIndices' should not be null");
+            }
             Variable variable = netCDF.findVariable(varName);
             int[] shape = variable.getShape();
 

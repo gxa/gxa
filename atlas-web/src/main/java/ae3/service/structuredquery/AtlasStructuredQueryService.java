@@ -1589,7 +1589,7 @@ public class AtlasStructuredQueryService {
         log.debug("Resulting EFVs are: " + resultEfvs.getNameSortedList().size());
         log.debug("Resulting EFOs are: " + resultEfos.getMarkedSubTreeList().size());
 
-    }
+            }
 
     /**
      * Loads experiments data for list view, where each list row corresponds to a single gene-ef-efv combination and each gene
@@ -1689,7 +1689,7 @@ public class AtlasStructuredQueryService {
                 closeQuietly(ewd);
             }
         }
-
+        
         if (showNonDEData) {
             // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
             scoringExps = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr, StatisticsType.NON_D_E);
@@ -1739,7 +1739,7 @@ public class AtlasStructuredQueryService {
         }
         // If at least one experiment row was created add to result ListResultRow corresponding to geneId-ef-efv
         if (experimentsForRow.size() > 0) {
-            ListResultRow row = new ListResultRow(ef, efv, counter.getUps(), counter.getDowns(), counter.getNones(), pup, pdn, designElementAccession);
+            ListResultRow row = new ListResultRow(ef, efv, counter.getUps(), counter.getDowns(), counter.getNones(), pup, pdn);
             row.setGene(gene);
             row.setExp_list(experimentsForRow);
             result.addListResult(row);

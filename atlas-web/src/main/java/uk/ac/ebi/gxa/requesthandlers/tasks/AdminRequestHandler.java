@@ -379,7 +379,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object processUpdateAnnSrc(String id, String type, String text){
-        return makeMap("formValidationMessage", annSrcController.saveAnnSrc(id, type, text));
+        final String validationMsg = annSrcController.saveAnnSrc(id, type, text);
+        boolean isValid = true;
+        if (!validationMsg.isEmpty()) {
+            isValid = false;
+        }
+        return makeMap("formValidationMessage", validationMsg,
+                "isValid", isValid);
     }
 
     private Object processAboutSystem() {

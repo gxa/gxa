@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
@@ -71,6 +71,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
             final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
             if (reportBuilder.isEmpty()) {
                 annSrcDAO.save(annotationSource);
+
             }
             return reportBuilder;
         } catch (AnnotationLoaderException e) {
@@ -78,14 +79,10 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
         }
     }
 
-    public abstract Collection<String> validateProperties(AnnotationSource annSrc);
+    public abstract void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder);
 
-//    public Collection<String>  validateStructure(T annSrc){
-//        return getConverter().validateStructure(annSrc);
-//    }
-
-    public Collection<String> validateProperties(String annSrcId) {
-        return validateProperties(fetchAnnSrcById(annSrcId));
+    public void validateProperties(String annSrcId, ValidationReportBuilder reportBuilder) {
+        validateProperties(fetchAnnSrcById(annSrcId), reportBuilder);
     }
 
 
