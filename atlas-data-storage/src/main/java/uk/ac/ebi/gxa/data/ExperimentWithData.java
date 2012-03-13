@@ -62,10 +62,10 @@ public class ExperimentWithData implements Closeable {
         this.experiment = experiment;
     }
 
-    public StatisticsCursor getStatistics(ArrayDesign arrayDesign, int designElementId,
+    public StatisticsCursor getStatistics(ArrayDesign arrayDesign, int deIndex,
                                           Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
-        return new StatisticsCursor(getProxy(arrayDesign), efvPredicate, designElementId);
+        return new StatisticsCursor(getProxy(arrayDesign), efvPredicate, deIndex);
     }
 
     public StatisticsCursor getStatistics(ArrayDesign ad, int[] deIndices)
