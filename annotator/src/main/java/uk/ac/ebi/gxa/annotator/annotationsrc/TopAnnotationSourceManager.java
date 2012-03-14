@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 
-import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
@@ -32,7 +31,10 @@ import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * User: nsklyar
@@ -71,9 +73,8 @@ public class TopAnnotationSourceManager {
         final List<Software> softwares = softwareDAO.getAllButLegacySoftware();
         result.addAll(softwares);
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            result.addAll(manager.getNewVersionSoftware(softwares));
+            result.addAll(manager.getNewVersionSoftware());
         }
-
         return result;
     }
     

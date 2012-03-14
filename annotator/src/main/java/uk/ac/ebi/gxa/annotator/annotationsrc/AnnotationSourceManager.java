@@ -35,7 +35,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * User: nsklyar
@@ -93,7 +92,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     protected abstract Collection<T> getCurrentAnnSrcs();
 
     @Transactional
-    public abstract Collection<Software> getNewVersionSoftware(List<Software> softwares);
+    public abstract Collection<Software> getNewVersionSoftware();
 
     protected abstract UpdatedAnnotationSource<T> createUpdatedAnnotationSource(T annSrc);
 

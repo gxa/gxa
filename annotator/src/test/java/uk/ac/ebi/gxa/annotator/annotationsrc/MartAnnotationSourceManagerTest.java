@@ -30,10 +30,11 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import java.util.Collection;
+
+import static org.junit.Assert.*;
 
 /**
  * User: nsklyar
@@ -78,6 +79,13 @@ public class MartAnnotationSourceManagerTest extends AtlasDAOTestCase {
         assertEquals("100", result.getAnnotationSource().getSoftware().getVersion());
     }
 
+    @Test
+    public void testGetNewVersionSoftware() {
+        manager.setMartVersionFinder(versionFinder);
+        final Collection<Software> newVersionSoftware = manager.getNewVersionSoftware();
+        assertEquals(1, newVersionSoftware.size());
+    }
+    
     private static MartVersionFinder versionFinder = new MartVersionFinder() {
         @Override
         public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
