@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -53,6 +54,11 @@ class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMart
         Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
 
         return new BioMartAnnotationSource(software, organism);
+    }
+
+    @Override
+    protected boolean annSrcExists(BioMartAnnotationSource annSrc) {
+        return annSrcDAO.findBioMartAnnotationSource(annSrc.getSoftware(), annSrc.getOrganism())!= null;
     }
 
     @Override

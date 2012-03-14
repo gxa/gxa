@@ -23,8 +23,9 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator;
-import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
@@ -35,16 +36,16 @@ import java.util.Collection;
  * User: nsklyar
  * Date: 23/01/2012
  */
- class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotationSource> {
+class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotationSource> {
 
     @Autowired
     private BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter;
 
     @Autowired
-    private MartPropertiesValidator validator;
+    private AnnotationSourcePropertiesValidator<BioMartAnnotationSource> martValidator;
 
     @Autowired
-    private MartVersionFinder versionFinder;
+    private VersionFinder<BioMartAnnotationSource> martVersionFinder;
 
     @Override
     protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
@@ -53,7 +54,7 @@ import java.util.Collection;
 
     @Override
     protected UpdatedAnnotationSource<BioMartAnnotationSource> createUpdatedAnnotationSource(BioMartAnnotationSource annSrc) {
-        final String newVersion = versionFinder.fetchOnLineVersion(annSrc);
+        final String newVersion = martVersionFinder.fetchOnLineVersion(annSrc);
         if (annSrc.getSoftware().getVersion().equals(newVersion)) {
             return new UpdatedAnnotationSource<BioMartAnnotationSource>(annSrc, false);
         } else {
@@ -76,12 +77,13 @@ import java.util.Collection;
     }
 
     @Override
-    public Collection<String> validateProperties(AnnotationSource annSrc) {
+    public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         if (isForClass(annSrc.getClass())) {
-            return validator.getInvalidPropertyNames((BioMartAnnotationSource) annSrc);
+            martValidator.getInvalidPropertyNames((BioMartAnnotationSource) annSrc, reportBuilder);
+        } else {
+            throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
+                    ". Class casting problem " + BioMartAnnotationSource.class);
         }
-        throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
-                ". Class casting problem "  + BioMartAnnotationSource.class);
     }
 
     @Override
@@ -89,8 +91,8 @@ import java.util.Collection;
         return annSrcClass.equals(BioMartAnnotationSource.class);
     }
 
-    protected void setVersionFinder(MartVersionFinder versionFinder) {
-        this.versionFinder = versionFinder;
+    protected void setMartVersionFinder(VersionFinder<BioMartAnnotationSource> martVersionFinder) {
+        this.martVersionFinder = martVersionFinder;
     }
 
     protected void setConverter(BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter) {

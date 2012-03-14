@@ -22,30 +22,33 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 
 import static com.google.common.collect.Sets.difference;
@@ -104,12 +107,15 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         Properties properties = new Properties();
         try {
             properties.load(input);
-            validateText(annSrc, properties, reportBuilder);
-            if (!reportBuilder.isEmpty()) {
-                return null;
-            }
+            if (!isValidInputText(annSrc, properties, reportBuilder)) return null;
+
             if (annSrc == null) {
                 annSrc = initAnnotationSource(properties);
+                if (annSrcExists(annSrc)) {
+                    reportBuilder.addMessage("Annotation source  " + annSrc.getName() + " already exists. If you need to " +
+                            "change it use Edit button");
+                    return null;
+                }
             }
             updateAnnotationSource(properties, annSrc);
             return annSrc;
@@ -120,27 +126,59 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         }
     }
 
-    protected void validateText(T annSrc, Properties properties, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
-        
+    protected boolean isValidInputText(T annSrc, Properties properties, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
+
         validateRequiredFields(properties, reportBuilder);
         validateURL(properties, reportBuilder);
+        validateTypes(properties, reportBuilder);
         if (annSrc != null) {
             validateStableFields(annSrc, properties, reportBuilder);
         }
 
+        return reportBuilder.isEmpty();
     }
 
     protected abstract void validateStableFields(T annSrc, Properties properties, ValidationReportBuilder reportBuilder);
 
-    protected void validateRequiredFields(Properties properties, ValidationReportBuilder reportBuilder) {
+    private void validateRequiredFields(Properties properties, ValidationReportBuilder reportBuilder) {
         List<String> propertyNames = new ArrayList<String>(getRequiredProperties());
-        propertyNames.addAll(PROPNAMES);
 
         for (String propertyName : propertyNames) {
             final String property = getProperty(propertyName, properties);
-            if (StringUtils.isEmpty(property)) {
+            if (Strings.isNullOrEmpty(property)) {
                 reportBuilder.addMessage("Required property " + propertyName + " is missing");
             }
+        }
+    }
+
+    private void validateTypes(Properties properties, ValidationReportBuilder reportBuilder) {
+        String typesString = getProperty(TYPES_PROPNAME, properties);
+        if (Strings.isNullOrEmpty(typesString)) {
+            reportBuilder.addMessage("Required property \"types\" is missing");
+            return;
+        }
+        StringTokenizer tokenizer = new StringTokenizer(typesString, ",");
+        String currentType = "";
+        boolean valid = true;
+        while (tokenizer.hasMoreElements()) {
+            try {
+                currentType = tokenizer.nextToken().trim();
+                typeDAO.getByName(currentType);
+            } catch (RecordNotFoundException e) {
+                reportBuilder.addMessage("Unknown bioentity type " + currentType);
+                valid = false;
+            }
+
+        }
+         if (!valid) {
+            final List<BioEntityType> all = typeDAO.getAll();
+            reportBuilder.addMessage("Valid biorntity types are: " +
+            StringUtils.collectionToCommaDelimitedString(Collections2.transform(all, new Function<BioEntityType, String>() {
+                @Override
+                public String apply(BioEntityType bioEntityType) {
+                    return bioEntityType.getName();
+                }
+            })));
         }
     }
 
@@ -151,9 +189,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         try {
             final URI uri = new URI(urlString);
             uri.toURL();
-        } catch (URISyntaxException e) {
-            reportBuilder.addMessage("Invalid software url");
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             reportBuilder.addMessage("Invalid software url");
         }
     }
@@ -192,6 +228,17 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         for (BioEntityType addedType : addedTypes) {
             annotationSource.addBioEntityType(addedType);
         }
+    }
+
+    private Set<BioEntityType> parseTypes(Properties properties) throws RecordNotFoundException {
+        String typesString = getProperty(TYPES_PROPNAME, properties);
+        Set<BioEntityType> newTypes = new HashSet<BioEntityType>();
+
+        StringTokenizer tokenizer = new StringTokenizer(typesString, ",");
+        while (tokenizer.hasMoreElements()) {
+            newTypes.add(typeDAO.getByName(tokenizer.nextToken().trim()));
+        }
+        return newTypes;
     }
 
     protected String getProperty(String name, Properties properties) {
@@ -308,6 +355,8 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected abstract void writeExtraProperties(T annSrc, PropertiesConfiguration properties);
 
     protected abstract T initAnnotationSource(Properties properties);
+
+    protected abstract boolean annSrcExists(T annSrc);
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;

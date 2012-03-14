@@ -20,7 +20,9 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc;
+package uk.ac.ebi.gxa.annotator.validation;
+
+import com.google.common.base.Joiner;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +36,9 @@ public class ValidationReportBuilder {
     private Collection<String> messages = new ArrayList<String>();
 
     public void addMessage(String message) {
-        messages.add(message);
+        if (!message.isEmpty()) {
+            messages.add(message);
+        }
     }
 
     public Collection<String> getMessages() {
@@ -44,18 +48,19 @@ public class ValidationReportBuilder {
     public boolean isEmpty() {
         return messages.isEmpty();
     }
+
     public String getSummary(String headMessage, String separator) {
+        return getSummary("", headMessage, separator);
+    }
+
+    public String  getSummary(String messageIfValid, String headMessage, String separator) {
         if (!isEmpty()) {
             StringBuilder sb = new StringBuilder();
             sb.append(headMessage);
             sb.append(": ");
-            for (String message : messages) {
-                sb.append(message);
-                sb.append(separator);
-            }
-            sb.delete(sb.lastIndexOf(separator), sb.length());
-            return sb.toString();
+            return Joiner.on(separator).appendTo(sb, messages).toString();
         }
-        return "";
+        return messageIfValid;
     }
+
 }
