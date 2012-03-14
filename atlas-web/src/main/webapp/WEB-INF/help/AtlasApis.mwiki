@@ -486,8 +486,6 @@ A special keyword value ''experiment=listAll'' can be used to list all available
 The query may be accompanied with one or many ''geneIs=<GeneIdentifier>'' arguments to get expression details of specified genes in matching experiments.
 <GeneIdentifier> can be magic value ''topN'', where N is the number of top N highly expressed genes in each experiment.
 
-'''Note''': ''topN'' functionality has been temporarily removed - 10 genes are always returned when no ''geneIs=<GeneIdentifier>'' arguments were specified. The ''topN'' functionality will be re-instated in a future Atlas release.
-
 Similar to gene query, there are two parameters to control result output:
 
 * ''start'' specifies starting number of experiments in results, default value is 0.
@@ -496,11 +494,11 @@ Similar to gene query, there are two parameters to control result output:
 There are also two additional parameters to control which subset of the experiment's genes from a list sorted by best expression statistics first should be output:
 
 * ''offset'' specifies starting position of the gene subset in results, default value is 0.
-* ''limit'' limits number of genes to output (starting from ''offset''), the default value is 10.
+* ''limit'' limits number of genes to output (starting from ''offset''), the default and maximum value is 10.
 
 * ''experimentInfoOnly'' limits amount of output to just experimentInfo section (see below in output example), this is useful if you need to retrieve a list of experiment accessions and titles only.
 
-* ''experimentAnalytics'' limits amount of output to just geneExpressionStatistics section (see below in output example), this is useful if all you need is gene expression statistics for each gene-factor-value combination (rather than actual gene expression values and the experiment design).
+* ''experimentAnalyticsOnly'' limits amount of output to just geneExpressionStatistics section (see below in output example), this is useful if all you need is gene expression statistics for each gene-factor-value combination (rather than actual gene expression values and the experiment design).
 
 
 Using these two parameters it is possible to get experiment results in "pages". To calculate exact amount of pages, one could
