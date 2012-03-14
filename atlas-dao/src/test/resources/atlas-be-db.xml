@@ -170,6 +170,15 @@
             NAME="Ensembl"
             VERSION="60"
             ISACTIVE="T"
+            LEGACY="F"
+            />
+
+    <A2_SOFTWARE
+            SOFTWAREID="1001"
+            NAME="Ensembl"
+            VERSION="1"
+            ISACTIVE="T"
+            LEGACY="F"
             />
 
     <A2_SOFTWARE
@@ -177,6 +186,7 @@
             NAME="BioConductor"
             VERSION="4"
             ISACTIVE="F"
+            LEGACY="T"
             />
 
     <A2_SOFTWARE
@@ -184,6 +194,7 @@
             NAME="GeneSigDB"
             VERSION="4"
             ISACTIVE="F"
+            LEGACY="F"
             />
     
     <A2_GENEPROPERTY
@@ -781,6 +792,28 @@
             MYSQLDBNAME = "homo_sapiens"
             MYSQLDBURL = "ensembldb.ensembl.org:5306"
             />
+
+    <A2_ANNOTATIONSRC
+            ANNOTATIONSRCID="1002"
+            SOFTWAREID="1001"
+            URL="http://www.ensembl.org/biomart/martservice?"
+            NAME="homo sapiens / Ensembl v.61"
+            LOADDATE="2011-01-06"
+            annotationsApplied="F"
+            mappingsApplied="F"
+            ANNSRCTYPE="biomart"
+            isObsolete="T"
+            />
+
+    <A2_BIOMART_ANNSRC
+            ANNOTATIONSRCID="1002"
+            ORGANISMID="1000"
+            BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
+            DATABASENAME="ensembl"
+            MYSQLDBNAME = "homo_sapiens"
+            MYSQLDBURL = "ensembldb.ensembl.org:5306"
+            />
+
 
     <A2_ANNOTATIONSRC
             ANNOTATIONSRCID="1001"

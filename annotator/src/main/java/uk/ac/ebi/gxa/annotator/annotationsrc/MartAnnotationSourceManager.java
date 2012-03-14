@@ -31,6 +31,8 @@ import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * User: nsklyar
@@ -50,6 +52,22 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Override
     protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
         return annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+    }
+
+    @Override
+    public List<Software> getNewVersionSoftware(List<Software> softwares) {
+        final Collection<BioMartAnnotationSource> currentAnnSrcs = getCurrentAnnSrcs();
+        for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
+            String newVersion = martVersionFinder.fetchOnLineVersion(annSrc);
+            if (!annSrc.getSoftware().getVersion().equals(newVersion)) {
+                Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
+                BioMartAnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
+                annSrcDAO.remove(annSrc);
+                annSrcDAO.save(newAnnSrc);
+            }
+        }
+        //ToDo:FIX ME
+        return Collections.EMPTY_LIST;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

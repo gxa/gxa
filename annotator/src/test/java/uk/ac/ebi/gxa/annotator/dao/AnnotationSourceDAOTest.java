@@ -42,6 +42,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -128,6 +129,12 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     @Test
     public void testGetAnnotationSourcesOfType1() throws Exception {
         Collection<BioMartAnnotationSource> annotationSources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        assertEquals(2, annotationSources.size());
+    }
+
+    @Test
+    public void testGetLatestAnnotationSourcesOfType() throws Exception {
+        Collection<BioMartAnnotationSource> annotationSources = annSrcDAO.getLatestAnnotationSourcesOfType(BioMartAnnotationSource.class);
         assertEquals(1, annotationSources.size());
     }
 
@@ -160,6 +167,39 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         GeneSigAnnotationSource annotationSource = annSrcDAO.findGeneSigAnnotationSource(software);
         assertNotNull(annotationSource);
 
+    }
+
+    @Test
+    public void testGetBioMartAnnotationSourceForSoftware() throws Exception {
+        Software software = softwareDAO.findOrCreate("Ensembl", "60");
+        final Collection<BioMartAnnotationSource> notEmptyResult = annSrcDAO.getBioMartAnnotationSourceForSoftware(software);
+        assertNotNull(notEmptyResult);
+        assertEquals(1, notEmptyResult.size());
+
+        Software newSoftware = softwareDAO.findOrCreate("Ensembl", "33");
+        final Collection<BioMartAnnotationSource> emptyResult = annSrcDAO.getBioMartAnnotationSourceForSoftware(newSoftware);
+        assertNotNull(emptyResult);
+        assertEquals(0, emptyResult.size());
+    }
+
+    @Test
+    public void testGetAnnotationSourceForSoftware() throws Exception {
+        Software software = softwareDAO.findOrCreate("Ensembl", "60");
+        final List<AnnotationSource> notEmptyResult = annSrcDAO.getAnnotationSourceForSoftware(software);
+        assertNotNull(notEmptyResult);
+        assertEquals(1, notEmptyResult.size());
+
+        Software newSoftware = softwareDAO.findOrCreate("Ensembl", "33");
+        final Collection<BioMartAnnotationSource> emptyResult = annSrcDAO.getBioMartAnnotationSourceForSoftware(newSoftware);
+        assertNotNull(emptyResult);
+        assertEquals(0, emptyResult.size());
+    }
+
+    @Test
+    public void testGetAnnotationSourceForSoftwareId() throws Exception {
+        final List<AnnotationSource> notEmptyResult = annSrcDAO.getAnnotationSourceForSoftware(1000l);
+        assertNotNull(notEmptyResult);
+        assertEquals(1, notEmptyResult.size());
     }
 
     @Test

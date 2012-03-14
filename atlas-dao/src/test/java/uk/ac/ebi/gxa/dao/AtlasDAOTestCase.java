@@ -282,6 +282,7 @@ public abstract class AtlasDAOTestCase {
                         "(SOFTWAREID bigint, " +
                         "NAME VARCHAR(255) NOT NULL, " +
                         "ISACTIVE VARCHAR(1) NOT NULL, " +
+                        "LEGACY VARCHAR(1) NOT NULL, " +
                         "VERSION VARCHAR(255) NOT NULL) ;");
 
         runStatement(conn,

@@ -27,8 +27,11 @@ import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * User: nsklyar
@@ -45,6 +48,11 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Override
     protected Collection<GeneSigAnnotationSource> getCurrentAnnSrcs() {
         return annSrcDAO.getAnnotationSourcesOfType(GeneSigAnnotationSource.class);
+    }
+
+    @Override
+    public Collection<Software> getNewVersionSoftware(List<Software> softwares) {
+        return Collections.emptySet();
     }
 
     @Override

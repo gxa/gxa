@@ -38,7 +38,10 @@ public class Software {
     private String version;
 
     @org.hibernate.annotations.Type(type="true_false")
-    private Boolean isActive = false;
+    private boolean isActive = false;
+
+    @org.hibernate.annotations.Type(type="true_false")
+    private boolean legacy = false;
 
     Software() {
     }
@@ -64,6 +67,14 @@ public class Software {
 
     public String getVersion() {
         return version;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public String getFullName(){
