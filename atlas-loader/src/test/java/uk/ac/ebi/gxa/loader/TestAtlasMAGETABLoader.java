@@ -168,12 +168,17 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals(factorValues.size(), 1);
         assertEquals("compound", factorValues.get(0).getKey());
         assertEquals("tamoxifen", factorValues.get(0).getValue());
+        factorValues =
+                propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("irradiate", mockFactorValueAttribute("xray", null))));
+        assertEquals(factorValues.size(), 1);
+        assertEquals("irradiate", factorValues.get(0).getKey());
+        assertEquals("xray", factorValues.get(0).getValue());
     }
 
     @Test(expected = AtlasLoaderException.class)
     public void testGetMergedFactorValues1() throws AtlasLoaderException {
         propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("dose", mockFactorValueAttribute("5", null))));
-        fail("AtlasLoaderException: 'dose : 5 has no corresponding value for factor: compound' should have been thrown");
+        fail("AtlasLoaderException: 'dose : 5 has no corresponding value for any of the following factors: [compound, irradiate]' should have been thrown");
     }
 
     @Test
@@ -187,6 +192,17 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("tamoxifen 5 milligrams", factorValues.get(0).getValue());
     }
 
+    @Test
+    public void testGetMergedFactorValues6() throws AtlasLoaderException {
+        List<Pair<String, FactorValueAttribute>> factorValueAttributes = Lists.newArrayList();
+        factorValueAttributes.add(Pair.create("irradiate", mockFactorValueAttribute("xray", null)));
+        factorValueAttributes.add(Pair.create("dose", mockFactorValueAttribute("5", "becquerel")));
+        List<Pair<String, String>> factorValues = propertyValueMergeService.getMergedFactorValues(factorValueAttributes);
+        assertEquals(factorValues.size(), 1);
+        assertEquals("irradiate", factorValues.get(0).getKey());
+        assertEquals("xray 5 becquerels", factorValues.get(0).getValue());
+    }
+
     @Test(expected = AtlasLoaderException.class)
     public void testGetMergedFactorValues3() throws AtlasLoaderException {
         List<Pair<String, FactorValueAttribute>> factorValueAttributes = Lists.newArrayList();
@@ -194,6 +210,17 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         factorValueAttributes.add(Pair.create("dose", mockFactorValueAttribute("5", "mg")));
         propertyValueMergeService.getMergedFactorValues(factorValueAttributes);
         fail("AtlasLoaderException: 'Unit: mg not found in EFO' should have been thrown");
+
+    }
+
+    @Test(expected = AtlasLoaderException.class)
+    public void testGetMergedFactorValues7() throws AtlasLoaderException {
+        List<Pair<String, FactorValueAttribute>> factorValueAttributes = Lists.newArrayList();
+        factorValueAttributes.add(Pair.create("irradiate", mockFactorValueAttribute("xray", null)));
+        factorValueAttributes.add(Pair.create("dose", mockFactorValueAttribute("5", "mg")));
+        propertyValueMergeService.getMergedFactorValues(factorValueAttributes);
+        fail("AtlasLoaderException: 'Unit: mg not found in EFO' should have been thrown");
+
     }
 
     @Test
@@ -215,7 +242,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         assertEquals("5 kelvins", factorValues.get(0).getValue());
     }
 
-        @Test
+    @Test
     public void testGetMergedSampleCharacteristicValues1() throws AtlasLoaderException {
         assertEquals("5 milligrams", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", "milligram")));
     }
