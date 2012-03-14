@@ -67,10 +67,11 @@ public class ExpressionStats {
         final EfvTree<StatisticsSnapshot> result = new EfvTree<StatisticsSnapshot>();
         try {
             final StatisticsCursor statistics = experiment.getStatistics(arrayDesign, deIndex, ANY_EFV);
-            while (statistics.nextEFV()) {
-                final Pair<String, String> efv = statistics.getEfv();
-                result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());
-            }
+            while (statistics.nextBioEntity())
+                while (statistics.nextEFV()) {
+                    final Pair<String, String> efv = statistics.getEfv();
+                    result.put(efv.getFirst(), efv.getSecond(), statistics.getSnapshot());
+                }
         } catch (StatisticsNotFoundException e) {
             // TODO: throw this exception outside?
         }
