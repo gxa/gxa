@@ -154,6 +154,12 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
             final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
 
+            String s = request.getParameter("offset");
+            final int genesStart = s == null ? 0 : Integer.parseInt(s);
+
+            s = request.getParameter("limit");
+            final int genesRows = s == null ? 10 : Integer.parseInt(s);
+
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
             if (experimentAnalytics) {
@@ -186,7 +192,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                             geneIdPredicate,
                                                             UpDownCondition.CONDITION_ANY,
                                                             Predicates.<Pair<String, String>>alwaysTrue(),
-                                                            0, 10
+                                                            genesStart, genesRows
                                                     );
                                             genes = geneResults.getGenes();
                                             expData = new ExperimentalData(ewd);
