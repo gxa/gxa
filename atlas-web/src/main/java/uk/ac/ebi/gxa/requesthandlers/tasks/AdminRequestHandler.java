@@ -429,16 +429,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return makeMap("notAuthenticated", true);
         }
 
-        if ("pause".equals(op))
+        if ("pause".equals(op)) {
             return processPause();
-
-        else if ("restart".equals(op))
+        } else if ("restart".equals(op)) {
             return processRestart();
-
-        else if ("tasklist".equals(op))
+        } else if ("tasklist".equals(op)) {
             return processTaskList(req.getInt("p"), req.getInt("n", 1, 1));
-
-        else if ("schedule".equals(op))
+        } else if ("schedule".equals(op)) {
             return processSchedule(
                     req.getStr("type"),
                     req.getStrArray("accession"),
@@ -447,16 +444,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     remoteId,
                     authenticatedUser,
                     req.getMultimap());
-
-        else if ("cancel".equals(op))
+        } else if ("cancel".equals(op)) {
             return processCancel(req.getStrArray("id"),
                     remoteId,
                     authenticatedUser);
-
-        else if ("cancelall".equals(op))
+        } else if ("cancelall".equals(op)) {
             return processCancelAll(remoteId, authenticatedUser);
-
-        else if ("searchexp".equals(op))
+        } else if ("searchexp".equals(op)) {
             return processSearchExperiments(
                     req.getStr("search"),
                     parseDate(req.getStr("fromDate")),
@@ -464,26 +458,20 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getEnum("pendingOnly", DbStorage.ExperimentIncompleteness.ALL),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-
-        else if ("searchad".equals(op))
+        } else if ("searchad".equals(op)) {
             return processSearchArrayDesigns(
                     req.getStr("search"),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-
-        else if ("searchorg".equals(op))
+        } else if ("searchorg".equals(op)) {
             return processSearchOrganisms();
-
-        else if ("searchannSrc".equals(op)) {
+        } else if ("searchannSrc".equals(op)) {
             return processSearchAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
-        }
-        else if ("validateannSrc".equals(op)) {
+        } else if ("validateannSrc".equals(op)) {
             return processValidateAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
-        }
-        else if ("annSrcUpdate".equals(op))
+        } else if ("annSrcUpdate".equals(op)) {
             return processUpdateAnnSrc(req.getStr("annSrcId"), req.getStr("type"), req.getStr("asText"));
-
-        else if ("schedulesearchexp".equals(op))
+        } else if ("schedulesearchexp".equals(op)) {
             return processScheduleSearchExperiments(
                     req.getStr("type"),
                     req.getStr("search"),
@@ -494,8 +482,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getBool("autoDepends"),
                     remoteId,
                     authenticatedUser);
-
-        else if ("tasklog".equals(op))
+        } else if ("tasklog".equals(op)) {
             return processTaskEventLog(
                     req.getEnumNullDefault("event", TaskEvent.class),
                     req.getStr("user"),
@@ -504,26 +491,27 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("p", -1, -1),
                     req.getInt("n", 1, 1));
 
-        else if ("tasklogtag".equals(op))
+        } else if ("tasklogtag".equals(op)) {
             return processExperimentTaskEventLog(req.getEnum("type", TaskTagType.EXPERIMENT), req.getStr("accession"));
 
-        else if ("proplist".equals(op))
+        } else if ("proplist".equals(op)) {
             return processPropertyList();
 
-        else if ("propset".equals(op))
+        } else if ("propset".equals(op)) {
             return processPropertySet(req.getMap());
 
-        else if ("aboutsys".equals(op))
+        } else if ("aboutsys".equals(op)) {
             return processAboutSystem();
 
-        else if ("setincomplete".equals(op))
+        } else if ("setincomplete".equals(op)) {
             return processSetIncompleteNcdfAnalytics(req.getStr("accession"));
 
-        else if ("logout".equals(op)) {
+        } else if ("logout".equals(op)) {
             session.removeAttribute(SESSION_ADMINUSER);
             return EMPTY;
-        } else if ("getuser".equals(op))
+        } else if ("getuser".equals(op)) {
             return makeMap("userName", authenticatedUser.getUserName());
+        }
 
         return new ErrorResult("Unknown operation specified: " + op);
     }
