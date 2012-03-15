@@ -44,7 +44,7 @@ if [ ! -f $all_atlas_experiments_file ]; then
 fi
 
 # Retrieve all AE2 experiments into $all_ae2_experiments_file (ssv)
-curl -X GET "http://wwwdev.ebi.ac.uk/arrayexpress/admin/privacy" > $all_ae2_experiments_file
+curl -X GET "http://www.ebi.ac.uk/arrayexpress/admin/privacy" > $all_ae2_experiments_file
 if [ ! -f $all_ae2_experiments_file ]; then
    err_msg="Updating private/public status of experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}  was unsuccessful due failure to retrieve all AE2 experiments"
    echo $err_msg >> $process_file.log
