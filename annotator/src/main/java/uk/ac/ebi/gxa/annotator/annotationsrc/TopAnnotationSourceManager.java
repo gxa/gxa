@@ -23,10 +23,15 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
+import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +43,12 @@ import java.util.List;
 public class TopAnnotationSourceManager {
 
     private List<AnnotationSourceManager<? extends AnnotationSource>> managers;
+
+    @Autowired
+    private AnnotationSourceDAO annSrcDAO;
+
+    @Autowired
+    private SoftwareDAO softwareDAO;
 
     public TopAnnotationSourceManager(List<AnnotationSourceManager<? extends AnnotationSource>> managers) {
         this.managers = managers;
@@ -52,6 +63,21 @@ public class TopAnnotationSourceManager {
         return result;
     }
 
+    public Collection<AnnotationSource> getAnnotationSourcesBySoftwareId(String softwareId){
+        final Long idL = Long.valueOf(softwareId.trim());
+        return annSrcDAO.getAnnotationSourceForSoftware(idL);
+    }
+
+    public List<Software> getAllSoftware() {
+        List<Software> result = new ArrayList<Software>();
+        final List<Software> softwares = softwareDAO.getAllButLegacySoftware();
+        result.addAll(softwares);
+        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+            result.addAll(manager.getNewVersionSoftware());
+        }
+        return result;
+    }
+    
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             if (manager.isForClass(annSrc.getClass())) {

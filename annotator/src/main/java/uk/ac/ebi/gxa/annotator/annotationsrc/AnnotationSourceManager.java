@@ -31,6 +31,7 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -89,6 +90,9 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     public abstract boolean isForClass(Class<? extends AnnotationSource> annSrcClass);
 
     protected abstract Collection<T> getCurrentAnnSrcs();
+
+    @Transactional
+    public abstract Collection<Software> getNewVersionSoftware();
 
     protected abstract UpdatedAnnotationSource<T> createUpdatedAnnotationSource(T annSrc);
 

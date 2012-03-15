@@ -23,14 +23,16 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * User: nsklyar
@@ -50,6 +52,25 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Override
     protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
         return annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+    }
+
+    @Override
+    public Collection<Software> getNewVersionSoftware() {
+        Set<Software> newSoftwares = new HashSet<Software>();
+        final Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getLatestAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
+            String newVersion = martVersionFinder.fetchOnLineVersion(annSrc);
+            if (!annSrc.getSoftware().getVersion().equals(newVersion)) {
+                Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
+                newSoftwares.add(newSoftware);
+                
+                BioMartAnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
+                annSrcDAO.save(newAnnSrc);
+                annSrc.setObsolete(true);
+                annSrcDAO.update(annSrc);
+            }
+        }
+        return newSoftwares;
     }
 
     @Override
