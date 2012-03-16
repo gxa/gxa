@@ -70,4 +70,12 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         results.retainAll(template.find("from PropertyValue pv where not exists (from Sample s left join s.properties p where p.propertyValue.value = pv.value) "));
         return results;
     }
+
+    /**
+     * @return remove PropertyValue's that are not referenced in any assay/sample
+     */
+    public void removeUnusedPropertyValues() {
+        for (PropertyValue propertyValue : getUnusedPropertyValues())
+            delete(propertyValue);
+    }
 }
