@@ -51,7 +51,7 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
 
     @Override
     protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
-        return annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        return annSrcDAO.getLatestAnnotationSourcesOfType(BioMartAnnotationSource.class);
     }
 
     @Override
