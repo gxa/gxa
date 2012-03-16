@@ -74,9 +74,7 @@ public final class StringUtil {
     }
 
     public static String removeSeparatorDuplicates(String s) {
-        s = s.replaceAll("( )+", " ");
-        s = s.replaceAll("(_)+", "_");
-        return s.trim();
+        return s.replaceAll("( )+", " ").replaceAll("(_)+", "_").trim();
 
     }
 }
