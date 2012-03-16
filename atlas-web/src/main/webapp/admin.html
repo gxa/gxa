@@ -34,6 +34,7 @@
     <script type="text/javascript" src="scripts/jquery-1.5.min.js"></script>
     <script type="text/javascript" src="scripts/jquery-ui/jquery-ui-1.7.2.atlas.min.js"></script>
     <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
+    <script type="text/javascript" src="scripts/jquery.tmpl.min.js"></script>
     <script type="text/javascript" src="scripts/pure2.js"></script>
     <script type="text/javascript" src="scripts/admin.js"></script>
     <link rel="stylesheet" href="atlas.css" type="text/css" />
@@ -66,7 +67,6 @@
     <li><a href="#tab-prop">Configuration</a></li>
     <li><a href="#tab-asys">System info</a></li>
     <li><a href="#tab-annSrc">Annotation Sources</a><sup>beta</sup></li>
-    <li><a href="#tab-annSrcEd">Annotation Source Editor</a><sup>beta</sup></li>
 </ul>
 
 <div id="tab-exp">
@@ -240,8 +240,130 @@
     </div>
 </div>
 
+<script id="softwareGroupTmpl" type="text/x-jQuery-tmpl">
+    {{if softwareGroups }}
+
+    {{each(key, group) softwareGroups}}
+    <div id="software_group_${group.id}" class="softwareGroup">
+        <div class="softwareVersions">
+            <div><b>${group.name}</b><br/> versions:</div>
+            {{each group.versions}}
+                <div class="version" id="software_${id}">${version}
+                   {{if isActive}}
+                    <br/><span class="active" title="The currently used version">active</span>
+                   {{/if}} 
+                </div>
+            {{/each}}
+         </div>
+         <div class="softwareContent">
+             <div class="annotSourceList"></div>
+         </div>
+    </div>
+    {{/each}}
+
+    <fieldset>
+        <div>
+            <button class="updateAnnotations">Update Annotations</button>
+            <button class="updateMappings">Update Array Design Mappings</button>
+        </div>
+    </fieldset>
+
+    {{else}}
+    <div class="msg">No any annotation sources available</div>
+    {{/if}}
+</script>
+
+<script id="annotSourceListTmpl" type="text/x-jQuery-tmpl">
+    {{if software}}
+       <div class="softwareInfo">${software.name} &raquo; ${software.version} &raquo;
+           {{if software.isActive}}
+               currently used
+           {{else}}
+               <a href="#" id="activateSoftware_${software.id}" title="Start using this version and rebuild the index">start using this version</a>
+           {{/if}}
+       </div>
+    {{/if}}
+    {{if annotSources.length > 0}}
+    <table>
+        <tr>
+            <th></th>
+            <th>Type</th>
+            <th>Organism</th>
+            <th>BioEntity Types</th>
+            <th>Annotations</th>
+            <th>Mappings</th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        {{each annotSources}}
+        <tr>
+            <td><input type="checkbox"/></td>
+            <td>${type}</td>
+            <td>${organism}</td>
+            <td>${bioEntityTypes}</td>
+            <td>${annotLoaded}</td>
+            <td>${mappingsLoaded}</td>
+            <td><a href="#" id="annot_edit_${id}" data-type="${type}" class="edit">view/edit</a></td>
+            <td>
+                {{if !isObsolete}}
+                   <a href="#" id="annot_validate_${id}" data-type="${type}" class="validate">validate</a>
+                {{/if}}
+            </td>
+            <td></td>
+        </tr>
+        {{/each}}
+    </table>
+    {{else}}
+       <div class="msg">No any annotation sources available</div>
+    {{/if}}
+</script>
+
+<script id="annotSourceEditTmpl" type="text/x-jQuery-tmpl">
+    <div class="annotSourceForm">
+        <form action="#" id="editAnnotSourceForm" onSubmit="return false">
+            <input type="hidden" name="id" value="${id}"/>
+            <input type="hidden" name="typeName" value="${type}"/>
+            <table cellspacing="5">
+                <tr>
+                    <td><label>Type:&nbsp;</label>${type}</td>
+                </tr>
+                <tr>
+                    <td><label>Annotation Source:</label></td>
+                </tr>
+                <tr>
+                    <td>
+                        <textarea rows="20" cols="100" name="body" class="value">${body}</textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <fieldset>
+                            <button class="saveAnnotSource">Save</button>
+                            <button class="cancelAnnotSource">Cancel</button>
+                        </fieldset>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
 <div id="tab-annSrc">
-    <div id="orgList">
+    <div id="annotSourceContent">
+        <div id="annotSourceList"></div>
+        <fieldset>
+            <div>
+                <button class="createAnnotSource">Create New Annotation Source</button>
+                <select id="annotSourceSelect">
+                    <option value="BioMart">BioMart</option>
+                    <option value="GeneSigDB">GeneSigDB</option>
+                </select>
+            </div>
+        </fieldset>
+    </div>
+    <div id="annotSourceEditor"></div>
+   <!-- <div id="orgList">
         <table>
             <thead>
                 <tr>
@@ -283,47 +405,8 @@
                 <input type="button" value="Update Array Design Mappings" class="updateMapping">
             </div>
         </fieldset>
-
-        <fieldset class="annSrcNew">
-            <div class="annSrcNewButtons">
-                <input type="button" value="Create New Annotation Source" class="newannsrc">
-                <select id="annSrcSelect">
-                    <option value="BioMart">BioMart</option>
-                    <option value="GeneSigDB">GeneSigDB</option>
-                </select>
-            </div>
-        </fieldset>
-
-    </div>
-</div>
-
-<div id="tab-annSrcEd">
-    <div id="annSrcEd">
-        <table>
-            <tr>
-                <td>Type:</td>
-                <td class="type"></td>
-            </tr>
-            <tr>
-                <td class="label"><label for="txtAnnSrc">Annotation Source:</label></td>
-                <td>
-                    <form action="#" id="editAnnSrcForm">
-                        <textarea rows="20" cols="50" id="txtAnnSrc" class="value">lll</textarea>
-                    </form>
-                </td>
-            </tr>
-
-            <tr>
-                <td>&nbsp;</td>
-                <td>
-                    <fieldset>
-                        <input type="button" value="Save" id="saveAnnSrcButton" class="saveannsrc">
-                        <input type="button" value="Cancel" id="cancelAnnSrcButton" class="cancelannsrc">
-                    </fieldset>
-                </td>
-            </tr>
-        </table>
-    </div>
+        </div>
+-->
 </div>
 
 <div id="tab-que">

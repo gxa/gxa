@@ -30,6 +30,7 @@ import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
@@ -65,7 +66,7 @@ public class MartAnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetAnnSrcString() throws Exception {
-        final String annSrcString = manager.getAnnSrcString("1000");
+        final String annSrcString = manager.getAnnSrcString(1000);
         assertEquals(BioMartAnnotationSourceConverterTest.ANN_SRC_DB, annSrcString.trim());
     }
 

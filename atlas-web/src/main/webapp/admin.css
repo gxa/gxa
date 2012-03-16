@@ -210,7 +210,7 @@ td.event {
 }
 
 #taskLog td.message { border-right: none; }
-#taskLog td.retry { border-left:none; } 
+#taskLog td.retry { border-left:none; }
 
 fieldset legend { font-weight: bold; }
 
@@ -276,4 +276,80 @@ td.time {
 
 .total {
     color: black;
+}
+
+/* Annotation Sources */
+
+.softwareGroup {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.softwareInfo {
+    padding: 10px 5px;
+    background: white;
+}
+
+.softwareContent {
+    margin-left: 50px;
+    border: 2px solid #eee;
+}
+
+.softwareVersions {
+    overflow: auto;
+    width: 100%
+}
+
+.softwareVersions div {
+    float: left;
+    padding: 2px 5px;
+}
+
+.softwareVersions .version {
+    height: 30px;
+    font-weight: bolder;
+    cursor: pointer;
+    border: 3px solid #eee;
+}
+
+.softwareVersions .version.selected {
+    height: 30px;
+    font-weight: bolder;
+    cursor: pointer;
+    border: 3px solid orange;
+}
+
+.softwareVersions .version .active {
+    font-size: 10px;
+    color: red;
+    font-weight: normal;
+    padding-top: 3px;
+}
+
+.annotSourceList table {
+    border-collapse: collapse;
+    margin-top: 5px;
+}
+
+.annotSourceList table tr:nth-child(even) {
+    background: #eee;
+}
+
+.annotSourceList table tr td {
+    padding: 5px 5px;
+}
+
+.annotSourceList table tr th {
+    text-align: left;
+    padding: 5px 5px;
+}
+
+.msg {
+    font-style:italic;
+    padding: 5px;
+    color: #aaa;
+}
+
+.annotSourceForm label {
+    font-weight: bolder;
 }

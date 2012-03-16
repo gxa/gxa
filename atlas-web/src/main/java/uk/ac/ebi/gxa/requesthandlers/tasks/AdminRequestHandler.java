@@ -28,6 +28,7 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotation.AnnotationSourceController;
+import uk.ac.ebi.gxa.annotation.AnnotationSourceControllerException;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -38,6 +39,7 @@ import uk.ac.ebi.gxa.tasks.*;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -263,41 +265,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("arraydesigns", results, "page", page, "numTotal", total);
     }
 
-    private Object processSearchOrganisms() {
-        List<Map> results = new ArrayList<Map>();
-        Collection<AnnotationSourceController.AnnotationSourceView> annSrcs = annSrcController.getAnnSrcViews();
-        for (AnnotationSourceController.AnnotationSourceView sourceView : annSrcs) {
-            results.add(
-                    makeMap("organismName", sourceView.getOrganismName()
-                            , "id", sourceView.getAnnSrcId()
-                            , "beTypes", sourceView.getBioEntityTypes()
-                            , "currName", sourceView.getSoftware()
-                            , "validation", sourceView.getValidationMessage()
-                            , "applied", sourceView.getApplied()
-                            , "appliedMapping", sourceView.getMappingsApplied()
-                            , "annSrcType", sourceView.getType()
-
-                    ));
-        }
-
-        return makeMap("annSrcs", results);
-    }
-
-    private Object processSearchAnnSrc(String annSrcId, String type) {
-        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
-        if (!StringUtils.EMPTY.equals(annSrcId)) {
-            annSrcString = annSrcController.getAnnSrcString(annSrcId, type);
-        }
-
-        return makeMap("annSrcText", annSrcString, "type", type);
-    }
-
-    private Object processValidateAnnSrc(String annSrcId, String type) {
-        String validationMsg = annSrcController.validate(annSrcId, type);
-
-        return makeMap("validationMsg", validationMsg);
-    }
-
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
@@ -378,14 +345,55 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Object processUpdateAnnSrc(String id, String type, String text){
-        final String validationMsg = annSrcController.saveAnnSrc(id, type, text);
-        boolean isValid = true;
-        if (!validationMsg.isEmpty()) {
-            isValid = false;
+    private Object annotSourceError(String msg, Exception e) {
+        log.error("Error getting list of annotation sources for software", e);
+        return makeMap("error", e.getMessage());
+    }
+
+    private Object processListAnnotSourceSoftware() {
+        return annSrcController.getAllSoftware();
+    }
+    
+    private Object processListAnnotSources(long softwareId) {
+        try {
+            Software software = annSrcController.getSoftware(softwareId);
+            return makeMap(
+                    "software", software,
+                    "annotSources", annSrcController.getAnnotationSourcesForSoftware(software)
+            );
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting list of annotation sources for software", e);
         }
-        return makeMap("formValidationMessage", validationMsg,
-                "isValid", isValid);
+    }
+
+    private Object processGetAnnotSource(long annSrcId, String typeName) {
+        try {
+            return annSrcController.getEditableAnnSrc(annSrcId, typeName);
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting editable annotation source", e);
+        }
+    }
+
+    private Object processValidateAnnotSource(long annSrcId, String typeName) {
+        try {
+            return makeMap("validationMsg", annSrcController.validate(annSrcId, typeName));
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error validating annotation source", e);
+        }
+    }
+
+    private Object processUpdateAnnotSource(long annSrcId, String typeName, String text){
+        try {
+            final String validationMsg = annSrcController.saveAnnSrc(annSrcId, typeName, text);
+            boolean isValid = true;
+            if (!validationMsg.isEmpty()) {
+                isValid = false;
+            }
+            return makeMap("formValidationMessage", validationMsg,
+                    "isValid", isValid);
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error updating annotation source", e);
+        }
     }
 
     private Object processAboutSystem() {
@@ -463,14 +471,16 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getStr("search"),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-        } else if ("searchorg".equals(op)) {
-            return processSearchOrganisms();
-        } else if ("searchannSrc".equals(op)) {
-            return processSearchAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
-        } else if ("validateannSrc".equals(op)) {
-            return processValidateAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
-        } else if ("annSrcUpdate".equals(op)) {
-            return processUpdateAnnSrc(req.getStr("annSrcId"), req.getStr("type"), req.getStr("asText"));
+        } else if ("listAnnotSourceSoftware".equals(op)) {
+            return processListAnnotSourceSoftware();
+        } else if ("listAnnotSources".equals(op)) {
+            return processListAnnotSources(req.getLong("softwareId"));
+        } else if ("getAnnotSource".equals(op)) {
+            return processGetAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
+        } else if ("validateAnnotSource".equals(op)) {
+            return processValidateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
+        } else if ("updateAnnotSource".equals(op)) {
+            return processUpdateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"), req.getStr("body"));
         } else if ("schedulesearchexp".equals(op)) {
             return processScheduleSearchExperiments(
                     req.getStr("type"),
