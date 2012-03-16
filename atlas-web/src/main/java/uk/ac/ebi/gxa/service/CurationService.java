@@ -140,6 +140,20 @@ public class CurationService {
     }
 
     /**
+     * Remove all property names not used in any assays/samples
+     */
+    public void removeUnusedPropertyNames() {
+        propertyDAO.removeUnusedProperties();
+    }
+
+    /**
+     * Remove property values not used in any assays/samples
+     */
+    public void removeUnusedPropertyValues() {
+        propertyValueDAO.removeUnusedPropertyValues();
+    }
+
+    /**
      * @param propertyName
      * @param propertyValue
      * @return List of ApiExperiment's containing propertyName-propertyValue

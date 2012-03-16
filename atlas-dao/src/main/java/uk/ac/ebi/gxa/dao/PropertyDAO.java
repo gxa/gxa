@@ -60,7 +60,7 @@ public class PropertyDAO extends AbstractDAO<Property> {
             return property;
         }
     }
-     /**
+    /**
      * @return List of Properties that are not referenced in any assay/sample
      */
     public Set<Property> getUnusedProperties() {
@@ -69,5 +69,13 @@ public class PropertyDAO extends AbstractDAO<Property> {
         results.addAll(template.find("from Property pr where not exists (from Assay a left join a.properties p where p.propertyValue.property.name = pr.name)"));
         results.retainAll(template.find("from Property pr where not exists (from Sample s left join s.properties p where p.propertyValue.property.name = pr.name)"));
         return results;
+    }
+
+    /**
+     * Remove all properties that are not referenced in any assay/sample
+     */
+    public void removeUnusedProperties() {
+        for (Property property : getUnusedProperties())
+            delete(property);
     }
 }

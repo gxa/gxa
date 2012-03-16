@@ -59,21 +59,21 @@ public class CurationApiController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/properties/values/unused.json",
-            method = RequestMethod.GET)
+            method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ApiPropertyValue> getUnusedPropertyValues(@PathVariable("v") final ApiVersionType version,
+    public void removeUnusedPropertyValues(@PathVariable("v") final ApiVersionType version,
                                                                 HttpServletResponse response) {
         crossOriginHack(response);
-        return curationService.getUnusedPropertyValues();
+        curationService.removeUnusedPropertyValues();
     }
 
     @RequestMapping(value = "/properties/unused.json",
-            method = RequestMethod.GET)
+            method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
-    public Collection<ApiPropertyName> getUnusedProperties(@PathVariable("v") final ApiVersionType version,
+    public void removeUnusedProperties(@PathVariable("v") final ApiVersionType version,
                                                            HttpServletResponse response) {
         crossOriginHack(response);
-        return curationService.getUnusedPropertyNames();
+        curationService.removeUnusedPropertyNames();
     }
 
     @RequestMapping(value = "/properties/{propertyName}/{propertyValue}",
