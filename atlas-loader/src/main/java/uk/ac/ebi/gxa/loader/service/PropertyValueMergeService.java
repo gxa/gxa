@@ -12,6 +12,7 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +152,7 @@ public class PropertyValueMergeService {
      * @throws AtlasLoaderException - if UnitAttribute within characteristicsAttribute exists but has not value or if unit value cannot be found in EFO
      */
     public String getCharacteristicValueWithUnit(CharacteristicsAttribute characteristicsAttribute) throws AtlasLoaderException {
-        String scValue = characteristicsAttribute.getNodeName().trim();
+        String scValue = StringUtil.removeSeparatorDuplicates(characteristicsAttribute.getNodeName()).trim();
         if (!Strings.isNullOrEmpty(scValue) && characteristicsAttribute.unit != null) {
             String unitValue = translateUnitToEFOIfApplicable(characteristicsAttribute.unit.getAttributeValue());
 
@@ -172,7 +173,7 @@ public class PropertyValueMergeService {
      * @throws AtlasLoaderException - if UnitAttribute within factorValueAttribute exists but has not value or if unit value cannot be found in EFO
      */
     private String getFactorValueWithUnit(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
-        String factorValueName = factorValueAttribute.getNodeName().trim();
+        String factorValueName = StringUtil.removeSeparatorDuplicates(factorValueAttribute.getNodeName()).trim();
         if (!Strings.isNullOrEmpty(factorValueName) && factorValueAttribute.unit != null) {
             String unitValue = translateUnitToEFOIfApplicable(factorValueAttribute.unit.getAttributeValue());
 

@@ -164,10 +164,10 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     @Test
     public void testGetMergedFactorValues() throws AtlasLoaderException {
         List<Pair<String, String>> factorValues =
-                propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("compound", mockFactorValueAttribute("tamoxifen", null))));
+                propertyValueMergeService.getMergedFactorValues(Collections.singletonList(Pair.create("compound", mockFactorValueAttribute("tamoxifen__medium  strength ", null))));
         assertEquals(factorValues.size(), 1);
         assertEquals("compound", factorValues.get(0).getKey());
-        assertEquals("tamoxifen", factorValues.get(0).getValue());
+        assertEquals("tamoxifen_medium strength", factorValues.get(0).getValue());
     }
 
     @Test(expected = AtlasLoaderException.class)
@@ -227,7 +227,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     @Test
     public void testGetMergedSampleCharacteristicValues3() throws AtlasLoaderException {
-        assertEquals("5", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("5", null)));
+        assertEquals("example_sample characteristic value", propertyValueMergeService.getCharacteristicValueWithUnit(mockSampleCharacteristicValueAttribute("  example__sample  characteristic value ", null)));
     }
 
     @Test
