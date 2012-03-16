@@ -22,6 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -86,10 +90,22 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
         validateProperties(fetchAnnSrcById(annSrcId), reportBuilder);
     }
 
+    public String getLatestAnnotationSourcesAsText(String separator) {
+
+        final Collection<T> sources = annSrcDAO.getLatestAnnotationSourcesOfType(getAnnSrcClass());
+        Collection<String> sourceStrings = Collections2.transform(sources, new Function<T, String>() {
+            @Override
+            public String apply(@Nullable T source) {
+                return getConverter().convertToString(source);
+            }
+        });
+
+        return Joiner.on(separator).join(sourceStrings);
+    }
+
+    protected abstract Class<T> getAnnSrcClass();
 
     public abstract boolean isForClass(Class<? extends AnnotationSource> annSrcClass);
-
-    protected abstract Collection<T> getCurrentAnnSrcs();
 
     @Transactional
     public abstract Collection<Software> getNewVersionSoftware();
@@ -109,6 +125,10 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
             }
         }
         return annSrc;
+    }
+
+    private Collection<T> getCurrentAnnSrcs() {
+        return annSrcDAO.getLatestAnnotationSourcesOfType(getAnnSrcClass());
     }
 
     protected abstract Class<T> getClazz();

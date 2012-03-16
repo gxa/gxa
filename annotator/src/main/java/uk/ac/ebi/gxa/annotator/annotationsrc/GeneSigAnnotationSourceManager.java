@@ -45,11 +45,6 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     private AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> geneSigValidator;
 
     @Override
-    protected Collection<GeneSigAnnotationSource> getCurrentAnnSrcs() {
-        return annSrcDAO.getAnnotationSourcesOfType(GeneSigAnnotationSource.class);
-    }
-
-    @Override
     public Collection<Software> getNewVersionSoftware() {
         return Collections.emptySet();
     }
@@ -77,6 +72,11 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + GeneSigAnnotationSource.class);
         }
+    }
+
+    @Override
+    protected Class<GeneSigAnnotationSource> getAnnSrcClass() {
+        return GeneSigAnnotationSource.class;
     }
 
     @Override

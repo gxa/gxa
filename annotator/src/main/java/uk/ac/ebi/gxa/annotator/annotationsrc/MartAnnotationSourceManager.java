@@ -49,10 +49,6 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Autowired
     private VersionFinder<BioMartAnnotationSource> martVersionFinder;
 
-    @Override
-    protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
-        return annSrcDAO.getLatestAnnotationSourcesOfType(BioMartAnnotationSource.class);
-    }
 
     @Override
     public Collection<Software> getNewVersionSoftware() {
@@ -105,6 +101,11 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + BioMartAnnotationSource.class);
         }
+    }
+
+    @Override
+    protected Class<BioMartAnnotationSource> getAnnSrcClass() {
+        return BioMartAnnotationSource.class;
     }
 
     @Override
