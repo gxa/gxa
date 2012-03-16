@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script 
-# Exaple usage: ./find_old_exp_ncdfs.sh /ebi/microarray/home/atlas-production/ATLASRAW2.ATLASDEV/ncdf 2>&1 > ~/old_exp_ncdfs.log &
+# Exaple usage: ./find_old_exp_ncdfs.sh <ncdf_dir> 2>&1 > ~/old_exp_ncdfs.log &
 #
 if [ $# != 1 ]; then
   echo "Please provide full path to ncdf repository you wish to analyse"
