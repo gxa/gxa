@@ -29,13 +29,22 @@ public class AnnotationSourceController {
     public AnnotationSourceController() {
     }
 
-    public Collection<Software> getAllSoftware() {
+    public List<Software> getAllSoftware() {
         final List<Software> softwares = manager.getAllSoftware();
         Collections.sort(softwares, new Comparator<Software>() {
             @Override
             public int compare(Software o, Software o1) {
-                //ToDo: implement proper sorting by version
-                return o.getFullName().compareTo(o1.getFullName());
+
+                int answer = o.getName().compareToIgnoreCase(o1.getName());
+                if (answer != 0) return answer;
+
+                try {
+                    final int v = Integer.parseInt(o.getVersion());
+                    final int v1 = Integer.parseInt(o1.getVersion());
+                    return v1 - v;
+                } catch (NumberFormatException e) {
+                    return o.getFullName().compareTo(o1.getFullName());
+                }
             }
         });
         return softwares;
