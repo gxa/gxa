@@ -45,10 +45,7 @@ $.fn.vale = function() {
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
-var selectedOrganisms = {};
-var selectedAnnSrcTypes = {};
 var selectAll = false;
-var selectAllOrg = false;
 var $time = {};
 var $tpl = {};
 var $tab = {};
@@ -62,9 +59,6 @@ var $options = {
     searchDelay: 500,
     tasklogPageSize: 20
 };
-
-var annSrcId;
-var annSrcType;
 
 var $msg = {
     taskType: {
@@ -634,150 +628,9 @@ function updateArrayDesigns() {
     });
 }
 
-function updateAnnSrcs() {
+function openAnnotSourcesTab() {
     annotSources.load();
-
-    /*adminCall('searchorg', {}, function (result) {
-
-        function updateOrgButtons() {
-            var cando = selectAllOrg;
-            for (var k in selectedOrganisms) {
-                cando = true;
-                break;
-            }
-            if (cando)
-                $('#orgList .orgbuttons input').removeAttr('disabled');
-            else
-                $('#orgList .orgbuttons input').attr('disabled', 'disabled');
-        }
-
-        renderTpl('orgList', result);
-
-        $('#orgList tr input.orgSelector').click(function () {
-            if ($(this).is(':checked'))
-                selectedOrganisms[this.value] = 1;
-            else
-                delete selectedOrganisms[this.value];
-            updateOrgButtons();
-        });
-
-        var newAccessions = {};
-        for (var i = 0; i < result.annSrcs.length; ++i)
-            newAccessions[result.annSrcs[i].id] = 1;
-        for (i in selectedOrganisms)
-            if (!newAccessions[i])
-                delete selectedOrganisms[i];
-        updateOrgButtons();
-
-        function startSelectedTasks(type, mode, title) {
-            var accessions = [];
-            for (var accession in selectedOrganisms)
-                accessions.push(accession);
-
-            if (accessions.length == 0 && !selectAllOrg)
-                return;
-
-            if (window.confirm('Do you really want to ' + title + ' '
-                    + (selectAllOrg ? result.numTotal : accessions.length)
-                    + ' organism(s)' + '?')) {
-
-                adminCall('schedule', {
-                    runMode: mode,
-                    accession: accessions,
-                    type: type,
-                    autoDepends: false
-                }, switchToQueue);
-
-
-                selectedOrganisms = {};
-                selectAllOrg = false;
-            }
-        }
-
-        $('#orgList .edit input').each(function (i, e) {
-            var li = result.annSrcs[i];
-
-            $(e).click(function() {
-               annSrcId = li.id;
-               annSrcType=li.annSrcType;
-               $('#tabs').tabs('select', $tab.annSrcEd);
-            });
-
-        });
-
-        $('#orgList .validate input').each(function (i, e) {
-            var li = result.annSrcs[i];
-
-            $(e).click(function() {
-                adminCall('validateannSrc', {
-                    annSrcId:li.id
-                    , type: li.annSrcType
-                }, function (result) {
-
-                    $('#validationMsg_' + li.id).text(result.validationMsg);
-
-                });
-            });
-
-        });
-
-
-        $('#orgList input.update').click(function () {
-            startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
-        });
-
-        $('#orgList input.updateMapping').click(function () {
-            startSelectedTasks('mappingupdate', 'RESTART', 'update mappings for organism ');
-        });
-
-        $('#orgList input.newannsrc').click(function () {
-            annSrcType=$('#annSrcSelect').val();
-            $('#tabs').tabs('select', $tab.annSrcEd);
-        });
-        
-        bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
-    });*/
 }
-
-/*function editAnnSrc(id, type) {
-    adminCall('searchannSrc', {
-        annSrcId:id
-        , type: type
-    }, function (result) {
-
-        renderTpl('annSrcEd', result);
-
-        $('#annSrcEd input.saveannsrc').click(function () {
-            saveAnnSrc();
-        });
-
-         $('#cancelAnnSrcButton').click(function () {
-            annSrcId="";
-            annSrcType="";
-            $('#tabs').tabs('select', $tab.annSrc);
-        });
-    });
-}*/
-/*
-function saveAnnSrc() {
-    var asText = $('#txtAnnSrc').val();
-
-    function switchToAnnSrcList(result) {
-        if (result.isValid) {
-            annSrcId = "";
-            annSrcType = "";
-            $('#tabs').tabs('select', $tab.annSrc);
-        } else {
-            window.alert("Annotation Source cannot be saved! \n" + result.formValidationMessage);
-        }
-    }
-
-    adminCall('annSrcUpdate', {
-        asText: asText,
-        annSrcId:annSrcId,
-        type:annSrcType
-    }, switchToAnnSrcList);
-}*/
 
 function redrawCurrentState() {
     for(var timeout in $time) {
@@ -815,7 +668,7 @@ function redrawCurrentState() {
         updateArrayDesigns();
         $('#tabs').tabs('select', $tab.ad);
     } else if(currentState['tab'] == $tab.annSrc) {
-        updateAnnSrcs();
+        openAnnotSourcesTab();
         $('#tabs').tabs('select', $tab.annSrc);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
@@ -1206,7 +1059,7 @@ var annotSources = (function() {
                 showFormValidationErrors(obj);
             } else {
                 closeEditor();
-                updateAnnSrcs();
+                openAnnotSourcesTab();
             }
         });
     }
