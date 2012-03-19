@@ -261,7 +261,7 @@
     </div>
     {{/each}}
 
-    <fieldset>
+    <fieldset id="batchActionButtons">
         <div>
             <button class="updateAnnotations">Update Annotations</button>
             <button class="updateMappings">Update Array Design Mappings</button>
@@ -271,6 +271,16 @@
     {{else}}
     <div class="msg">No any annotation sources available</div>
     {{/if}}
+
+    <fieldset>
+        <div>
+            <button class="createNewAnnotSource">Create New Annotation Source</button>
+            <select id="annotSourceType">
+                <option value="BioMart">BioMart</option>
+                <option value="GeneSigDB">GeneSigDB</option>
+            </select>
+        </div>
+    </fieldset>
 </script>
 
 <script id="annotSourceListTmpl" type="text/x-jQuery-tmpl">
@@ -298,7 +308,7 @@
         </tr>
         {{each annotSources}}
         <tr>
-            <td><input type="checkbox"/></td>
+            <td><input id="annot_batch_${id}" type="checkbox"/></td>
             <td>${type}</td>
             <td>${organism}</td>
             <td>${bioEntityTypes}</td>
@@ -364,63 +374,8 @@
 </script>
 
 <div id="tab-annSrc">
-    <div id="annotSourceContent">
-        <div id="annotSourceList"></div>
-        <fieldset>
-            <div>
-                <button class="createAnnotSource">Create New Annotation Source</button>
-                <select id="annotSourceSelect">
-                    <option value="BioMart">BioMart</option>
-                    <option value="GeneSigDB">GeneSigDB</option>
-                </select>
-            </div>
-        </fieldset>
-    </div>
+    <div id="annotSourceList"></div>
     <div id="annotSourceEditor"></div>
-   <!-- <div id="orgList">
-        <table>
-            <thead>
-                <tr>
-                    <td class="sel">
-                    </td>
-                    <td>Type</td>
-                    <td>Organism</td>
-                    <td>BioEntity Types</td>
-                    <td>Current software</td>
-                    <td>Applied Annotations</td>
-                    <td>Applied Mappings</td>
-                    <td>Edit</td>
-                    <td>Validate</td>
-                    <td>Validation message</td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="orgrow">
-                    <td>
-                        <input class="orgSelector" type="checkbox" value="" id="selOrg">
-                    </td>
-                    <td class="annSrcType"><label class="annSrcType" for="selOrg">Mouse</label></td>
-                    <td class="name">Mouse</td>
-                    <td class="types">ensgene</td>
-                    <td class="currAnnSrc">Ens 61</td>
-                    <td class="appliedAnn">false</td>
-                    <td class="appliedMapping">NOT CHECKED</td>
-                    <td class="edit"><input type="button" value="Edit"></td>
-                    <td class="validate"><input type="button" value="Validate"></td>
-                    <td><div class="validationText" id="validationMsg_">msg</div></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <fieldset class="orgall">
-
-            <div class="orgbuttons">
-                <input type="button" value="Update Annotations" class="update">
-                <input type="button" value="Update Array Design Mappings" class="updateMapping">
-            </div>
-        </fieldset>
-        </div>
--->
 </div>
 
 <div id="tab-que">

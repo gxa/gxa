@@ -987,10 +987,9 @@ function compileTemplates() {
 
 var annotSources = (function() {
     var _this = {};
-    var _contentId = "#annotSourceContent",
+    var _listId = "#annotSourceList",
         _editorId = "#annotSourceEditor",
         _editFormId = "#editAnnotSourceForm",
-        _listId = "#annotSourceList",
         _tmpl = {
             softwareGroups: function(softwareGroups) {
                 return $("#softwareGroupTmpl").tmpl({softwareGroups: softwareGroups});
@@ -1005,7 +1004,6 @@ var annotSources = (function() {
                 return $("#annotSourceFormErrorsTmpl").tmpl({validationErrors: errors});
             }
         };
-
 
     function softwareEl(softwareId) {
         return $("#software_" + softwareId);
@@ -1064,14 +1062,13 @@ var annotSources = (function() {
         return obj.length >= 0 ? res : res[0];
     }
 
-
     function openEditor() {
-        $(_contentId).hide();
+        $(_listId).hide();
     }
 
     function closeEditor() {
         $(_editorId).html("");
-        $(_contentId).show();
+        $(_listId).show();
     }
 
     function renderSoftwareVersions(softwares) {
@@ -1090,15 +1087,29 @@ var annotSources = (function() {
 
         $(_listId).html(_tmpl.softwareGroups($.isEmptyObject(groups) ? null : groups));
 
-        $(".version", _listId).click(function (ev) {
-            selectSoftwareVersion($(ev.currentTarget));
-        });
-
         for (var k in groups) {
             if (groups.hasOwnProperty(k)) {
                 selectSoftwareVersion(softwareEl(groups[k].versions[0].id));
             }
         }
+
+        $("#batchActionButtons button", _listId).attr("disabled", "disabled");
+
+        $(".version", _listId).click(function (ev) {
+            selectSoftwareVersion($(ev.currentTarget));
+        });
+
+        $(".updateAnnotations", _listId).click(function () {
+            updateAnnotations($("input:checked", _listId));
+        });
+
+        $(".updateMappings", _listId).click(function () {
+            updateMappings($("input:checked", _listId));
+        });
+
+        $(".createNewAnnotSource", _listId).click(function () {
+            createNewAnnotSource($("#annotSourceType").val());
+        });
     }
 
     function renderAnnotSources(obj, target) {
@@ -1116,6 +1127,17 @@ var annotSources = (function() {
             var el = $(ev.currentTarget);
             validate(numericId(el), el.data("type"));
             return false;
+        });
+
+        $("input:checkbox", _listId).click(function(ev) {
+            var v = $(ev.target).is(':checked') ? 1 : 0;
+            var enabled = $("input:checked", _listId).length +  v > 0;
+            var buttons = $("#batchActionButtons button", _listId);
+            if (enabled) {
+                buttons.removeAttr("disabled");
+            } else {
+                buttons.attr("disabled", "disabled");
+            }
         });
     }
 
@@ -1152,6 +1174,11 @@ var annotSources = (function() {
         adminCall("getAnnotSource", {annotSourceId: sourceId, typeName: type}, renderAnnotSource, closeEditor);
     }
 
+    function createNewAnnotSource(type) {
+        openEditor();
+        renderAnnotSource({id:0, typeName: type, body: "CREATE NEW ANNOTATION SOURCE"});
+    }
+
     function saveAnnotSource() {
         clearFormValidationErrors();
         var params = {};
@@ -1182,6 +1209,14 @@ var annotSources = (function() {
     }
 
     function validate(sourceId, type) {
+        //TODO
+    }
+
+    function updateAnnotations(elements) {
+        //TODO
+    }
+
+    function updateMappings(elements) {
         //TODO
     }
 
