@@ -1010,6 +1010,13 @@ var annotSources = (function() {
     }
 
     function numericId(el) {
+        if (el.length > 1) {
+            var arr = [];
+            $.each(el, function(_, i) {
+                arr.push(numericId($(i)));
+            });
+            return arr;
+        }
         var id = el.attr("id");
         var m = /(\d+)/.exec(id||"");
         return m.length > 1 ? m[1] : id;
@@ -1100,11 +1107,11 @@ var annotSources = (function() {
         });
 
         $(".updateAnnotations", _listId).click(function () {
-            updateAnnotations($("input:checked", _listId));
+            updateAnnotations();
         });
 
         $(".updateMappings", _listId).click(function () {
-            updateMappings($("input:checked", _listId));
+            updateMappings();
         });
 
         $(".createNewAnnotSource", _listId).click(function () {
@@ -1212,12 +1219,33 @@ var annotSources = (function() {
         //TODO
     }
 
-    function updateAnnotations(elements) {
-        //TODO
+    function getSelectedAnnotSourceIds() {
+        return [].concat(numericId($("input:checked", _listId)));
     }
 
-    function updateMappings(elements) {
-        //TODO
+    function updateAnnotations() {
+        var ids = getSelectedAnnotSourceIds() || [];
+        if (ids.length >0 &&
+            window.confirm("Do you really want to update annotations for selected annotation source(s)?")) {
+            batchAction("orgupdate", ids);
+        }
+    }
+
+    function updateMappings() {
+        var ids = getSelectedAnnotSourceIds() || [];
+        if (ids.length >0 &&
+            window.confirm("Do you really want to update mappings for selected annotation source(s)?")) {
+            batchAction("mappingupdate", ids);
+        }
+    }
+
+    function batchAction(actionType, annotSourceIds) {
+        adminCall('schedule', {
+            runMode: "RESTART",
+            accession: annotSourceIds,
+            type: actionType,
+            autoDepends: false
+        }, switchToQueue);
     }
 
     function loadSoftwareVersions() {
