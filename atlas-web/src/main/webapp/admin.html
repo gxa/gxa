@@ -296,7 +296,7 @@
     {{if annotSources.length > 0}}
     <table>
         <tr>
-            <th></th>
+            <th><input type="checkbox" class="selectAll" title="select all"/></th>
             <th>Type</th>
             <th>Organism</th>
             <th>BioEntity Types</th>
@@ -308,7 +308,7 @@
         </tr>
         {{each annotSources}}
         <tr>
-            <td><input id="annot_batch_${id}" type="checkbox"/></td>
+            <td><input id="annot_batch_${id}" class="annotCheckbox" type="checkbox"/></td>
             <td>${type}</td>
             <td>${organism}</td>
             <td>${bioEntityTypes}</td>

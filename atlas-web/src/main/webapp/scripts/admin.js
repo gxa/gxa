@@ -1136,7 +1136,11 @@ var annotSources = (function() {
             return false;
         });
 
-        $("input:checkbox", _listId).click(function(ev) {
+        $("input.selectAll:checkbox", target).click(function(ev) {
+            $("input.annotCheckbox", target).attr("checked", $(ev.target).is(":checked"));
+        });
+
+        $("input:checkbox", target).click(function(ev) {
             var v = $(ev.target).is(':checked') ? 1 : 0;
             var enabled = $("input:checked", _listId).length +  v > 0;
             var buttons = $("#batchActionButtons button", _listId);
@@ -1220,7 +1224,7 @@ var annotSources = (function() {
     }
 
     function getSelectedAnnotSourceIds() {
-        return [].concat(numericId($("input:checked", _listId)));
+        return [].concat(numericId($("input.annotCheckbox:checked", _listId)));
     }
 
     function updateAnnotations() {
