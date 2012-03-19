@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +31,7 @@ import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -62,12 +62,20 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
         return result;
     }
 
-    public String getAnnSrcString(String id) {
-        return getConverter().convertToString(fetchAnnSrcById(id));
+    public String getAnnSrcString(long id) throws RecordNotFoundException {
+        return getConverter().convertToString(getAnnSrc(id));
+    }
+
+    public T getAnnSrc(long id) throws RecordNotFoundException {
+        T annSource = fetchAnnSrcById(id);
+        if (annSource == null) {
+            throw new RecordNotFoundException("AnnotationSource not found: id=" + id);
+        }
+        return annSource;
     }
 
     @Transactional
-    public ValidationReportBuilder saveAnnSrc(String id, String text) {
+    public Collection<String> validateAndSaveAnnSrc(long id, String text) {
         final AnnotationSourceConverter<T> converter = getConverter();
         try {
             final T annSrc = fetchAnnSrcById(id);
@@ -76,7 +84,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
             if (reportBuilder.isEmpty()) {
                 annSrcDAO.save(annotationSource);
             }
-            return reportBuilder;
+            return reportBuilder.getMessages();
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }
@@ -84,7 +92,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     public abstract void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder);
 
-    public void validateProperties(String annSrcId, ValidationReportBuilder reportBuilder) {
+    public void validateProperties(long annSrcId, ValidationReportBuilder reportBuilder) {
         validateProperties(fetchAnnSrcById(annSrcId), reportBuilder);
     }
 
@@ -121,17 +129,8 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     protected abstract AnnotationSourceConverter<T> getConverter();
 
-    protected T fetchAnnSrcById(String id) {
-        T annSrc = null;
-        if (!StringUtils.isEmpty(id)) {
-            try {
-                final long idL = Long.parseLong(id.trim());
-                annSrc = annSrcDAO.getById(idL, getClazz());
-            } catch (NumberFormatException e) {
-                throw LogUtil.createUnexpected("Cannot fetch Annotation Source. Wrong ID ", e);
-            }
-        }
-        return annSrc;
+    protected T fetchAnnSrcById(long id) {
+        return annSrcDAO.getById(id, getClazz());
     }
 
     private Collection<T> getCurrentAnnSrcs() {

@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.annotator.dao;
 import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate3.HibernateTemplate;
-import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
@@ -106,11 +105,10 @@ public class AnnotationSourceDAO {
         return template.find(queryString, software);
     }
 
-    public List<AnnotationSource> getAnnotationSourceForSoftware(Long softwareId) {
-        String queryString = "from " + AnnotationSource.class.getSimpleName() + " where software.softwareid = ?";
-        return template.find(queryString, softwareId);
+    public Software getSoftwareById(long id) {
+        return template.get(Software.class, id);
     }
-
+    
     public void remove(AnnotationSource annSrc) {
 
         template.delete(annSrc);

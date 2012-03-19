@@ -25,8 +25,8 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -246,7 +246,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     }
 
     protected void writeExternalProperties(T annSrc, PropertiesConfiguration properties) {
-        Multimap<String, String> bePropToBmProp = HashMultimap.create();
+        Multimap<String, String> bePropToBmProp = TreeMultimap.create();
         for (ExternalBioEntityProperty externalBioEntityProperty : annSrc.getExternalBioEntityProperties()) {
             bePropToBmProp.put(externalBioEntityProperty.getBioEntityProperty().getName(), externalBioEntityProperty.getName());
         }
@@ -256,7 +256,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     }
 
     protected void writeExternalArrayDesign(T annSrc, PropertiesConfiguration properties) {
-        Multimap<String, String> bePropToBmProp = HashMultimap.create();
+        Multimap<String, String> bePropToBmProp = TreeMultimap.create();
 
         for (ExternalArrayDesign externalArrayDesign : annSrc.getExternalArrayDesigns()) {
             bePropToBmProp.put(externalArrayDesign.getArrayDesign().getAccession(), externalArrayDesign.getName());

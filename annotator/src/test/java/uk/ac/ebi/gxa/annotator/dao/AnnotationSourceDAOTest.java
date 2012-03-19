@@ -196,10 +196,11 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetAnnotationSourceForSoftwareId() throws Exception {
-        final List<AnnotationSource> notEmptyResult = annSrcDAO.getAnnotationSourceForSoftware(1000l);
-        assertNotNull(notEmptyResult);
-        assertEquals(1, notEmptyResult.size());
+    public void testGetSoftwareById() throws Exception {
+        final Software software = annSrcDAO.getSoftwareById(1000l);
+        assertNotNull(software);
+        assertNotNull(software.getSoftwareid());
+        assertEquals(10001L, software.getSoftwareid().longValue());
     }
 
     @Test

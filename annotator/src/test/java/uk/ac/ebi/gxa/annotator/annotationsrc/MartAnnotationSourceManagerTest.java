@@ -66,7 +66,7 @@ public class MartAnnotationSourceManagerTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetAnnSrcString() throws Exception {
-        final String annSrcString = manager.getAnnSrcString("1000");
+        final String annSrcString = manager.getAnnSrcString(1000);
         assertEquals(BioMartAnnotationSourceConverterTest.ANN_SRC_DB, annSrcString.trim());
     }
 
