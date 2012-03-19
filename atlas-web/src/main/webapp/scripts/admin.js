@@ -989,6 +989,7 @@ var annotSources = (function() {
     var _this = {};
     var _contentId = "#annotSourceContent",
         _editorId = "#annotSourceEditor",
+        _editFormId = "#editAnnotSourceForm",
         _listId = "#annotSourceList",
         _tmpl = {
             softwareGroups: function(softwareGroups) {
@@ -999,6 +1000,9 @@ var annotSources = (function() {
             },
             annotSourceEdit: function(annotSource) {
                 return $("#annotSourceEditTmpl").tmpl(annotSource);
+            },
+            annotSourceFormErrors: function(errors) {
+                return $("#annotSourceFormErrorsTmpl").tmpl({validationErrors: errors});
             }
         };
 
@@ -1119,14 +1123,14 @@ var annotSources = (function() {
         obj = obj || {};
         $(_editorId).html(_tmpl.annotSourceEdit(toEditableAnnotSource(obj)));
 
-        $(".saveAnnotSource", _editorId).click(function() {
+        $(".saveAnnotSource", _editorId).click(function(ev) {
+            ev.preventDefault();
             saveAnnotSource();
-            return false;
         });
 
-        $(".cancelAnnotSource", _editorId).click(function() {
+        $(".cancelAnnotSource", _editorId).click(function(ev) {
+            ev.preventDefault();
             closeEditor();
-            return false;
         });
     }
 
@@ -1149,7 +1153,32 @@ var annotSources = (function() {
     }
 
     function saveAnnotSource() {
-        //TODO
+        clearFormValidationErrors();
+        var params = {};
+        $.each($(_editFormId).serializeArray(), function(_, kv) {
+            if (params.hasOwnProperty(kv.name)) {
+                params[kv.name] = [].concat(params[kv.name]);
+                params[kv.name].push(kv.value);
+            } else {
+                params[kv.name] = kv.value;
+            }
+        });
+        adminCall("updateAnnotSource", params, function(obj) {
+            if (obj.validation === "error") {
+                showFormValidationErrors(obj);
+            } else {
+                closeEditor();
+                updateAnnSrcs();
+            }
+        });
+    }
+
+    function clearFormValidationErrors() {
+        $(".validationErrors", _editFormId).html("");
+    }
+
+    function showFormValidationErrors(obj) {
+        $(".validationErrors", _editFormId).html(_tmpl.annotSourceFormErrors(obj.validationErrors || []));
     }
 
     function validate(sourceId, type) {

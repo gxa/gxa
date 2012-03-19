@@ -322,7 +322,7 @@
 <script id="annotSourceEditTmpl" type="text/x-jQuery-tmpl">
     <div class="annotSourceForm">
         <form action="#" id="editAnnotSourceForm" onSubmit="return false">
-            <input type="hidden" name="id" value="${id}"/>
+            <input type="hidden" name="annotSourceId" value="${id}"/>
             <input type="hidden" name="typeName" value="${type}"/>
             <table cellspacing="5">
                 <tr>
@@ -337,6 +337,9 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="validationErrors"></td>
+                </tr>
+                <tr>
                     <td>
                         <fieldset>
                             <button class="saveAnnotSource">Save</button>
@@ -347,6 +350,17 @@
             </table>
         </form>
     </div>
+</script>
+
+<script id="annotSourceFormErrorsTmpl" type="text/x-jQuery-tmpl">
+    {{if validationErrors }}
+    <p>Can't save the data. Please fix the following errors first:</p>
+    <ul>
+    {{each(i, value) validationErrors}}
+        <li>${value}</li>
+    {{/each}}
+    </ul>
+    {{/if}}
 </script>
 
 <div id="tab-annSrc">

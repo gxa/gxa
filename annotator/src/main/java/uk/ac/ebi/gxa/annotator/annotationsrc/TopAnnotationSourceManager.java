@@ -107,10 +107,10 @@ public class TopAnnotationSourceManager {
         throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
     }
 
-    public ValidationReportBuilder saveAnnSrc(long id, String text, AnnotationSourceType type) {
+    public Collection<String> validateAndSaveAnnSrc(long id, String text, AnnotationSourceType type) {
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             if (manager.isForClass(type.getClazz())) {
-                return manager.saveAnnSrc(id, text);
+                return manager.validateAndSaveAnnSrc(id, text);
             }
         }
         throw new IllegalArgumentException("Annotation source manager is not available for type " + type);

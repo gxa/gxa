@@ -384,13 +384,12 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processUpdateAnnotSource(long annSrcId, String typeName, String text){
         try {
-            final String validationMsg = annSrcController.saveAnnSrc(annSrcId, typeName, text);
-            boolean isValid = true;
-            if (!validationMsg.isEmpty()) {
-                isValid = false;
+            Collection<String> errors = annSrcController.validateAndSaveAnnSrc(annSrcId, typeName, text);
+            if (errors.isEmpty()) {
+                return makeMap("validation", "ok");
             }
-            return makeMap("formValidationMessage", validationMsg,
-                    "isValid", isValid);
+            return makeMap("validation", "error",
+                    "validationErrors", errors);
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error updating annotation source", e);
         }

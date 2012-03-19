@@ -74,7 +74,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     @Transactional
-    public ValidationReportBuilder saveAnnSrc(long id, String text) {
+    public Collection<String> validateAndSaveAnnSrc(long id, String text) {
         final AnnotationSourceConverter<T> converter = getConverter();
         try {
             final T annSrc = fetchAnnSrcById(id);
@@ -84,7 +84,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
                 annSrcDAO.save(annotationSource);
 
             }
-            return reportBuilder;
+            return reportBuilder.getMessages();
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }

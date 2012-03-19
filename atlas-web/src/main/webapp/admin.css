@@ -353,3 +353,7 @@ td.time {
 .annotSourceForm label {
     font-weight: bolder;
 }
+
+.validationErrors {
+    color: red;
+}

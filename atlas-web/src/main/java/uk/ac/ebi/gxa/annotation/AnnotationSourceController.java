@@ -102,14 +102,8 @@ public class AnnotationSourceController {
         }
     }
     
-    public String saveAnnSrc(long id, String typeName, String text) throws AnnotationSourceControllerException {
-        final ValidationReportBuilder validationReportBuilder = manager.saveAnnSrc(id, text, getType(typeName));
-        if (!validationReportBuilder.isEmpty()) {
-            //add log msg
-            return validationReportBuilder.getSummary("Error(s) ", "\n");
-        } else {
-            return "";
-        }
+    public Collection<String> validateAndSaveAnnSrc(long id, String typeName, String text) throws AnnotationSourceControllerException {
+        return manager.validateAndSaveAnnSrc(id, text, getType(typeName));
     }
 
     public String validate(long annSrcId, String typeName) throws AnnotationSourceControllerException {
