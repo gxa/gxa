@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +75,6 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
             final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
             if (reportBuilder.isEmpty()) {
                 annSrcDAO.save(annotationSource);
-
             }
             return reportBuilder;
         } catch (AnnotationLoaderException e) {
@@ -100,7 +98,16 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
             }
         });
 
-        return Joiner.on(separator).join(sourceStrings);
+        return AnnotationSourcesExporter.joinAsText(sourceStrings, getAnnSrcClass().getSimpleName(), separator);
+    }
+
+    public void updateLatestAnnotation(String text, String separator) throws AnnotationLoaderException {
+        final Collection<String> stringSourcesOfType = AnnotationSourcesExporter.getStringSourcesOfType(text, getAnnSrcClass().getSimpleName(), separator);
+        for (String stringSource : stringSourcesOfType) {
+            final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
+            getConverter().editOrCreateAnnotationSource(null, stringSource, reportBuilder);
+        }
+
     }
 
     protected abstract Class<T> getAnnSrcClass();

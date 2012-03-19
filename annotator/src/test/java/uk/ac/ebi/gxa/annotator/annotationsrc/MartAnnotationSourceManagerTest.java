@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
+import com.google.common.base.Splitter;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -85,7 +86,18 @@ public class MartAnnotationSourceManagerTest extends AtlasDAOTestCase {
         final Collection<Software> newVersionSoftware = manager.getNewVersionSoftware();
         assertEquals(1, newVersionSoftware.size());
     }
-    
+
+    @Test
+    public void testGetLatestAnnotationSourcesAsText() throws Exception {
+        final String text = manager.getLatestAnnotationSourcesAsText("$$$");
+        final Iterable<String> result = Splitter.on("$$$").split(text);
+        int count = 0;
+        for (String s : result) {
+            count++;
+        }
+        assertEquals(1, count);
+    }
+
     private static MartVersionFinder versionFinder = new MartVersionFinder() {
         @Override
         public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
