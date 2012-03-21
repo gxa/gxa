@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotation.AnnotationSourceController;
 import uk.ac.ebi.gxa.annotation.AnnotationSourceControllerException;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -346,8 +347,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     }
 
     private Object annotSourceError(String msg, Exception e) {
-        log.error("Error getting list of annotation sources for software", e);
-        return makeMap("error", e.getMessage());
+        log.error(msg, e);
+        return makeMap("error", msg + ": " + e.getMessage());
     }
 
     private Object processListAnnotSourceSoftware() {
@@ -374,9 +375,10 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
     }
 
-    private Object processValidateAnnotSource(long annSrcId, String typeName) {
+    private Object processTestAnnotSource(long annSrcId, String typeName) {
         try {
-            return makeMap("validationMsg", annSrcController.validate(annSrcId, typeName));
+            return validationResult(
+                    annSrcController.validate(annSrcId, typeName));
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error validating annotation source", e);
         }
@@ -384,15 +386,15 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
 
     private Object processUpdateAnnotSource(long annSrcId, String typeName, String text){
         try {
-            Collection<String> errors = annSrcController.validateAndSaveAnnSrc(annSrcId, typeName, text);
-            if (errors.isEmpty()) {
-                return makeMap("validation", "ok");
-            }
-            return makeMap("validation", "error",
-                    "validationErrors", errors);
+            return validationResult(
+                    annSrcController.validateAndSaveAnnSrc(annSrcId, typeName, text));
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error updating annotation source", e);
         }
+    }
+
+    private Object validationResult(ValidationReportBuilder errors) {
+        return makeMap("validationErrors", errors.getMessages());
     }
 
     private Object processAboutSystem() {
@@ -476,8 +478,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processListAnnotSources(req.getLong("softwareId"));
         } else if ("getAnnotSource".equals(op)) {
             return processGetAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
-        } else if ("validateAnnotSource".equals(op)) {
-            return processValidateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
+        } else if ("testAnnotSource".equals(op)) {
+            return processTestAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
         } else if ("updateAnnotSource".equals(op)) {
             return processUpdateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"), req.getStr("body"));
         } else if ("schedulesearchexp".equals(op)) {

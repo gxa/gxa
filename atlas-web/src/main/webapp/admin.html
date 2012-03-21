@@ -296,7 +296,7 @@
     {{if annotSources.length > 0}}
     <table>
         <tr>
-            <th><input type="checkbox" class="selectAll" title="select all"/></th>
+            <th><input type="checkbox" class="selectAll" title="Select all"/></th>
             <th>Type</th>
             <th>Organism</th>
             <th>BioEntity Types</th>
@@ -307,20 +307,21 @@
             <th></th>
         </tr>
         {{each annotSources}}
-        <tr>
+        <tr  {{if isObsolete}} class="obsolete" {{/if}}>
             <td><input id="annot_batch_${id}" class="annotCheckbox" type="checkbox"/></td>
             <td>${type}</td>
             <td>${organism}</td>
             <td>${bioEntityTypes}</td>
             <td>${annotLoaded}</td>
             <td>${mappingsLoaded}</td>
-            <td><a href="#" id="annot_edit_${id}" data-type="${type}" class="edit">view/edit</a></td>
-            <td>
-                {{if !isObsolete}}
-                   <a href="#" id="annot_validate_${id}" data-type="${type}" class="validate">validate</a>
-                {{/if}}
+            <td><a href="#" id="annot_edit_${id}" data-type="${type}" class="edit" title="View annotation source properties">view</a></td>
+            {{if isObsolete}}
+                 <td>obsolete</td>
+            {{else}}
+                 <td><a href="#" id="annot_test_${id}" data-type="${type}" class="test" title="Test if annotations could be loaded">test</a></td>
+            {{/if}}
             </td>
-            <td></td>
+            <td id="annot_test_results_${id}"><div class="inlineValidation"></div></td>
         </tr>
         {{/each}}
     </table>
@@ -352,7 +353,9 @@
                 <tr>
                     <td>
                         <fieldset>
+                            {{if !isObsolete}}
                             <button class="saveAnnotSource">Save</button>
+                            {{/if}}
                             <button class="cancelAnnotSource">Cancel</button>
                         </fieldset>
                     </td>
@@ -363,13 +366,26 @@
 </script>
 
 <script id="annotSourceFormErrorsTmpl" type="text/x-jQuery-tmpl">
-    {{if validationErrors }}
-    <p>Can't save the data. Please fix the following errors first:</p>
+    <p>Errors:</p>
     <ul>
-    {{each(i, value) validationErrors}}
+    {{each(i, value) errors}}
         <li>${value}</li>
     {{/each}}
     </ul>
+</script>
+
+<script id="annotSourceInlineErrorsTmpl" type="text/x-jQuery-tmpl">
+    {{if errors.length > 0}}
+    <div class="failure">
+        <span>there are failures:</span>
+        <ul>
+            {{each(i, value) errors}}
+            <li>${value}</li>
+            {{/each}}
+        </ul>
+    </div>
+    {{else}}
+    <div class="success">success</div>
     {{/if}}
 </script>
 

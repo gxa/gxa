@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
-import uk.ac.ebi.gxa.annotator.annotationsrc.UpdatedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
@@ -13,7 +12,10 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static com.google.common.collect.Collections2.transform;
 
@@ -67,49 +69,30 @@ public class AnnotationSourceController {
         });
     }
 
-    public Collection<AnnotationSourceRow> getAnnSrcViews() {
-        List<AnnotationSourceRow> viewSources = new ArrayList<AnnotationSourceRow>();
-
-        Collection<UpdatedAnnotationSource> annotationSources = manager.getAllAnnotationSources();
-        for (UpdatedAnnotationSource updatedAnnotationSource : annotationSources) {
-            ValidationReportBuilder validationReport = new ValidationReportBuilder();
-
-            if (updatedAnnotationSource.isUpdated()) {
-                manager.validateProperties(updatedAnnotationSource.getAnnotationSource(), validationReport);
-            }
-            AnnotationSourceRow view = new ValidatedAnnotationSourceRow(updatedAnnotationSource.getAnnotationSource(), validationReport);
-            viewSources.add(view);
-        }
-        Collections.sort(viewSources, new Comparator<AnnotationSourceRow>() {
-            @Override
-            public int compare(AnnotationSourceRow o, AnnotationSourceRow o1) {
-                return o.getOrganismName().compareTo(o1.getOrganismName());
-            }
-        });
-        return viewSources;
-    }
-
     public AnnotationSourceView getEditableAnnSrc(long id, String typeName) throws AnnotationSourceControllerException {
         AnnotationSourceType type = getType(typeName);
         try {
-            return new AnnotationSourceView(
-                    id,
-                    typeName,
-                    manager.getAnnSrcString(id, type)
-            );
+            AnnotationSource annotSource = manager.getAnnSrc(id, type);
+            return new AnnotationSourceView(annotSource, type, manager.getAnnSrcString(id, type));
         } catch (RecordNotFoundException e) {
             throw new AnnotationSourceControllerException("Can't find annotation source to edit. See logs for details.", e);
         }
     }
     
-    public Collection<String> validateAndSaveAnnSrc(long id, String typeName, String text) throws AnnotationSourceControllerException {
+    public ValidationReportBuilder validateAndSaveAnnSrc(long id, String typeName, String text) throws AnnotationSourceControllerException {
         return manager.validateAndSaveAnnSrc(id, text, getType(typeName));
     }
 
-    public String validate(long annSrcId, String typeName) throws AnnotationSourceControllerException {
-        ValidationReportBuilder report = new ValidationReportBuilder();
-        manager.validateProperties(annSrcId, getType(typeName), report);
-        return report.getSummary("Valid", "Invalid properties ", ", ");
+    public ValidationReportBuilder validate(long id, String typeName) throws AnnotationSourceControllerException {
+        AnnotationSourceType type = getType(typeName);
+        try {
+            AnnotationSource annSrc = manager.getAnnSrc(id, type);
+            ValidationReportBuilder errors = new ValidationReportBuilder();
+            manager.validateProperties(annSrc, errors);
+            return errors;
+        } catch (RecordNotFoundException e) {
+            throw new AnnotationSourceControllerException("Can't find annotation source to validate. See logs for details.", e);
+        }
     }
 
     private AnnotationSourceType getType(String typeName) throws AnnotationSourceControllerException {
@@ -124,11 +107,13 @@ public class AnnotationSourceController {
         private long id;
         private String typeName;
         private String body;
+        private boolean obsolete;
 
-        public AnnotationSourceView(long id, String typeName, String annSrcAsString) {
-            this.id = id;
-            this.typeName = typeName;
+        public AnnotationSourceView(AnnotationSource annotSource, AnnotationSourceType type, String annSrcAsString) {
+            this.typeName = type.getName();
             this.body = annSrcAsString;
+            this.id = annotSource.getAnnotationSrcId();
+            this.obsolete = annotSource.isObsolete();
         }
 
         public long getId() {
@@ -141,6 +126,10 @@ public class AnnotationSourceController {
 
         public String getBody() {
             return body;
+        }
+
+        public boolean isObsolete() {
+            return obsolete;
         }
     }
     
@@ -191,20 +180,6 @@ public class AnnotationSourceController {
 
         public boolean isObsolete() {
             return annSrc.isObsolete();
-        }
-    }
-
-    public static class ValidatedAnnotationSourceRow extends AnnotationSourceRow {
-
-        private ValidationReportBuilder validationReport;
-
-        public ValidatedAnnotationSourceRow(AnnotationSource annSrc, ValidationReportBuilder validationReport) {
-            super(annSrc);
-            this.validationReport = validationReport;
-        }
-
-        public String getValidationMessage() {
-            return validationReport.getSummary("Invalid properties: ", ", ");
         }
     }
 }

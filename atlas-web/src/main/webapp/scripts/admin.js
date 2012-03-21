@@ -161,8 +161,8 @@ function requireLogin(op, params, func) {
     });
 }
 
-function adminCall(op, params, func, errorFunc) {
-    $('.loadIndicator').css('visibility', 'visible');
+function adminCall(op, params, func, errorFunc, target) {
+    showLoadingIndicator(target, true);
     return $.ajax({
         type: "POST",
         url: atlas.homeUrl + "admin",
@@ -170,7 +170,7 @@ function adminCall(op, params, func, errorFunc) {
         traditional: true,
         data: $.extend(params, { op : op }),
         success: function (json) {
-            $('.loadIndicator').css('visibility', 'hidden');
+            showLoadingIndicator(target, false);
             if(json.notAuthenticated) {
                 requireLogin(op, params, func);
                 return;
@@ -187,12 +187,37 @@ function adminCall(op, params, func, errorFunc) {
                 func(json);
         },
         error: function() {
-            $('.loadIndicator').css('visibility', 'hidden');
+            showLoadingIndicator(target, false);
             alert('AJAX error for ' + op + ' ' + params);
             if (errorFunc) {
                 errorFunc();
             }
         }});
+}
+
+function adminCall2(obj) {
+    adminCall(
+        obj.op,
+        obj.params || {},
+        obj.success,
+        obj.error,
+        obj.target
+    );
+}
+
+function showLoadingIndicator(target, on) {
+    target = target || {};
+    if (on) {
+        $('.loadIndicator').css('visibility', 'visible');
+        if (target.addClass) {
+            target.addClass("loading");
+        }
+    } else {
+        $('.loadIndicator').css('visibility', 'hidden');
+        if (target.removeClass) {
+            target.removeClass("loading");
+        }
+    }
 }
 
 function switchToQueue() {
@@ -854,7 +879,10 @@ var annotSources = (function() {
                 return $("#annotSourceEditTmpl").tmpl(annotSource);
             },
             annotSourceFormErrors: function(errors) {
-                return $("#annotSourceFormErrorsTmpl").tmpl({validationErrors: errors});
+                return $("#annotSourceFormErrorsTmpl").tmpl({errors: errors});
+            },
+            annotSourceInlineErrors: function(errors) {
+                return $("#annotSourceInlineErrorsTmpl").tmpl({errors: errors});
             }
         };
 
@@ -902,7 +930,7 @@ var annotSources = (function() {
                 bioEntityTypes: s.bioEntityTypes || null,
                 mappingsLoaded: s.mappingsLoaded || null,
                 annotLoaded: s.annotationsLoaded || null,
-                isObsolete: s.obsolete || true
+                isObsolete: s.obsolete || false
             });
         });
         return obj.length >= 0 ? res : res[0];
@@ -916,7 +944,8 @@ var annotSources = (function() {
             res.push({
                 id:s.id || null,
                 type:s.typeName || null,
-                body:s.body || ""
+                body:s.body || "",
+                isObsolete: s.obsolete || false
             });
         });
         return obj.length >= 0 ? res : res[0];
@@ -983,9 +1012,9 @@ var annotSources = (function() {
             return false;
         });
 
-        $(".validate", target).click(function (ev) {
+        $(".test", target).click(function (ev) {
             var el = $(ev.currentTarget);
-            validate(numericId(el), el.data("type"));
+            test(numericId(el), el.data("type"));
             return false;
         });
 
@@ -1033,9 +1062,28 @@ var annotSources = (function() {
         el.addClass("selected");
     }
 
+    function test(sourceId, type) {
+        var el = $("#annot_test_results_" + sourceId + " > div");
+        el.html("&nbsp;");
+
+        adminCall2({
+            op:"testAnnotSource",
+            params:{annotSourceId:sourceId, typeName:type},
+            target: el,
+            success:function (obj) {
+                el.html(_tmpl.annotSourceInlineErrors(obj.validationErrors || []));
+            }
+        });
+    }
+
     function viewOrEdit(sourceId, type) {
         openEditor();
-        adminCall("getAnnotSource", {annotSourceId: sourceId, typeName: type}, renderAnnotSource, closeEditor);
+        adminCall2({
+            op:"getAnnotSource",
+            params:{annotSourceId:sourceId, typeName:type},
+            success:renderAnnotSource,
+            error:closeEditor
+        });
     }
 
     function createNewAnnotSource(type) {
@@ -1054,26 +1102,26 @@ var annotSources = (function() {
                 params[kv.name] = kv.value;
             }
         });
-        adminCall("updateAnnotSource", params, function(obj) {
-            if (obj.validation === "error") {
-                showFormValidationErrors(obj);
-            } else {
-                closeEditor();
-                openAnnotSourcesTab();
-            }
-        });
+        adminCall2({
+            op:"updateAnnotSource",
+            params:params,
+            success:function (obj) {
+                var errors = obj.validationErrors || [];
+                if (errors.length > 0) {
+                    showFormValidationErrors(errors);
+                } else {
+                    closeEditor();
+                    openAnnotSourcesTab();
+                }
+            }});
     }
 
     function clearFormValidationErrors() {
         $(".validationErrors", _editFormId).html("");
     }
 
-    function showFormValidationErrors(obj) {
-        $(".validationErrors", _editFormId).html(_tmpl.annotSourceFormErrors(obj.validationErrors || []));
-    }
-
-    function validate(sourceId, type) {
-        //TODO
+    function showFormValidationErrors(errors) {
+        $(".validationErrors", _editFormId).html(_tmpl.annotSourceFormErrors(errors));
     }
 
     function getSelectedAnnotSourceIds() {
@@ -1097,24 +1145,34 @@ var annotSources = (function() {
     }
 
     function batchAction(actionType, annotSourceIds) {
-        adminCall('schedule', {
-            runMode: "RESTART",
-            accession: annotSourceIds,
-            type: actionType,
-            autoDepends: false
-        }, switchToQueue);
+        adminCall2({
+            op:"schedule",
+            params:{
+                runMode:"RESTART",
+                accession:annotSourceIds,
+                type:actionType,
+                autoDepends:false
+            },
+            success:switchToQueue
+        });
     }
 
     function loadSoftwareVersions() {
-        adminCall("listAnnotSourceSoftware", {}, renderSoftwareVersions);
+        adminCall2({
+            op: "listAnnotSourceSoftware",
+            success: renderSoftwareVersions
+        });
     }
 
     function loadAnnotSources(softwareId, target) {
         target.html("");
-        adminCall("listAnnotSources", {softwareId: softwareId},
-            function (annotSources) {
+        adminCall2({
+            op:"listAnnotSources",
+            params:{softwareId:softwareId},
+            success:function (annotSources) {
                 renderAnnotSources(annotSources, target);
-            });
+            }
+        });
     }
 
     _this.load = function() {

@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,6 @@ import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -62,7 +60,11 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     public String getAnnSrcString(long id) throws RecordNotFoundException {
-        return getConverter().convertToString(getAnnSrc(id));
+        return getAnnSrcString(getAnnSrc(id));
+    }
+
+    public String getAnnSrcString(T annSrc) throws RecordNotFoundException {
+        return getConverter().convertToString(annSrc);
     }
 
     public T getAnnSrc(long id) throws RecordNotFoundException {
@@ -74,17 +76,20 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     @Transactional
-    public Collection<String> validateAndSaveAnnSrc(long id, String text) {
+    public ValidationReportBuilder validateAndSaveAnnSrc(long id, String text) {
         final AnnotationSourceConverter<T> converter = getConverter();
         try {
             final T annSrc = fetchAnnSrcById(id);
-            final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
-            if (reportBuilder.isEmpty()) {
-                annSrcDAO.save(annotationSource);
-
+            ValidationReportBuilder errors = new ValidationReportBuilder();
+            AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, errors);
+            if (errors.isEmpty()) {
+                if (annotationSource.isObsolete()) {
+                    errors.addMessage("Can't save. The annotation source is obsolete.");
+                } else {
+                    annSrcDAO.save(annotationSource);
+                }
             }
-            return reportBuilder.getMessages();
+            return errors;
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }

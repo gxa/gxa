@@ -22,12 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.loader.genesig;
 
-import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * User: nsklyar
@@ -36,7 +33,7 @@ import java.util.Set;
 public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> {
 
     @Override
-    public void getInvalidPropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
+    public void validatePropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
 
     }
 }
