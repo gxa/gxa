@@ -1032,6 +1032,11 @@ var annotSources = (function() {
                 buttons.attr("disabled", "disabled");
             }
         });
+
+        $(".activateSoftware", target).click(function(ev) {
+            ev.preventDefault();
+            activateSoftware(numericId($(ev.target)));
+        });
     }
 
     function renderAnnotSource(obj) {
@@ -1159,8 +1164,8 @@ var annotSources = (function() {
 
     function loadSoftwareVersions() {
         adminCall2({
-            op: "listAnnotSourceSoftware",
-            success: renderSoftwareVersions
+            op:"listAnnotSourceSoftware",
+            success:renderSoftwareVersions
         });
     }
 
@@ -1169,9 +1174,18 @@ var annotSources = (function() {
         adminCall2({
             op:"listAnnotSources",
             params:{softwareId:softwareId},
+            target:target,
             success:function (annotSources) {
                 renderAnnotSources(annotSources, target);
             }
+        });
+    }
+
+    function activateSoftware(softwareId) {
+        adminCall2({
+            op: "activateSoftware",
+            params: {softwareId: softwareId},
+            success: loadSoftwareVersions
         });
     }
 
