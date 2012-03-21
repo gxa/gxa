@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.annotator.model;
 
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
 
 /**

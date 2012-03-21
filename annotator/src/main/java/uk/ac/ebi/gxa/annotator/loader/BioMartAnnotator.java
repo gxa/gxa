@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
+import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotationLoader;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartException;

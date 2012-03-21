@@ -29,7 +29,6 @@ import org.junit.Test;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertTrue;
 
 /**

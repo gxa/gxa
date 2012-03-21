@@ -22,16 +22,14 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
-import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * User: nsklyar

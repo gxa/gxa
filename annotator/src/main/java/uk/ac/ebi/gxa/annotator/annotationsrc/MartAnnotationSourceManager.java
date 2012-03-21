@@ -49,6 +49,8 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Autowired
     private VersionFinder<BioMartAnnotationSource> martVersionFinder;
 
+    @Autowired
+    private AnnotationSourceInputValidator<BioMartAnnotationSource> bioMartInputValidator;
 
     @Override
     public Collection<Software> getNewVersionSoftware() {
@@ -86,6 +88,10 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Override
     protected BioMartAnnotationSourceConverter getConverter() {
         return bioMartAnnotationSourceConverter;
+    }
+
+    public AnnotationSourceInputValidator<BioMartAnnotationSource> getInputValidator() {
+        return bioMartInputValidator;
     }
 
     @Override

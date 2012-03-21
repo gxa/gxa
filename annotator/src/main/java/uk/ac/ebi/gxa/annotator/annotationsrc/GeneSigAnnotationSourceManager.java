@@ -44,6 +44,9 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Autowired
     private AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> geneSigValidator;
 
+    @Autowired
+    private AnnotationSourceInputValidator<GeneSigAnnotationSource> fileBasedInputValidator;
+
     @Override
     public Collection<Software> getNewVersionSoftware() {
         return Collections.emptySet();
@@ -57,6 +60,11 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Override
     protected AnnotationSourceConverter<GeneSigAnnotationSource> getConverter() {
         return geneSigAnnotationSourceConverter;
+    }
+
+    @Override
+    public AnnotationSourceInputValidator<GeneSigAnnotationSource> getInputValidator() {
+        return fileBasedInputValidator;
     }
 
     @Override

@@ -24,9 +24,8 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory;
-import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.IOException;

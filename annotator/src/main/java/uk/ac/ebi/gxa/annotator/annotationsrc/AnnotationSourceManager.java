@@ -80,8 +80,8 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
         try {
             final T annSrc = fetchAnnSrcById(id);
             final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-            final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
-            if (reportBuilder.isEmpty()) {
+            if (getInputValidator().isValidInputText(annSrc, text, reportBuilder)) {
+                final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
                 annSrcDAO.save(annotationSource);
             }
             return reportBuilder.getMessages();
@@ -128,6 +128,8 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     protected abstract UpdatedAnnotationSource<T> createUpdatedAnnotationSource(T annSrc);
 
     protected abstract AnnotationSourceConverter<T> getConverter();
+
+    public abstract AnnotationSourceInputValidator<T> getInputValidator();
 
     protected T fetchAnnSrcById(long id) {
         return annSrcDAO.getById(id, getClazz());

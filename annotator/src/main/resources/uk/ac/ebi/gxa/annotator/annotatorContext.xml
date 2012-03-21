@@ -76,6 +76,13 @@
     <bean name="fileBasedAnnotationSourceConverter"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceConverter"/>
 
+    <!--Input text validator-->
+    <bean name="bioMartInputValidator"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartInputValidator"/>
+
+    <bean name="fileBasedInputValidator"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigInputValidator"/>
+
     <!-- Validators -->
     <bean name="martValidator"
           class="uk.ac.ebi.gxa.annotator.loader.biomart.MartPropertiesValidator">

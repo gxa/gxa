@@ -20,20 +20,35 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader.genesig;
+package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
-import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
+
+import java.util.Collection;
+import java.util.Collections;
+
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*;
 
 /**
  * User: nsklyar
- * Date: 20/01/2012
+ * Date: 21/03/2012
  */
-public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> {
+public class GeneSigInputValidator extends AnnotationSourceInputValidator<GeneSigAnnotationSource> {
 
     @Override
-    public void getInvalidPropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
+    protected void validateStableFields(GeneSigAnnotationSource annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
 
+        Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
+        if (!annSrc.getSoftware().equals(software)) {
+            reportBuilder.addMessage("Software should not be changed when editing Annotation Source!");
+        }
     }
+
+    @Override
+    protected Collection<String> getRequiredProperties() {
+        return Collections.unmodifiableCollection(PROPNAMES);
+    }
+
 }

@@ -24,9 +24,9 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.loader.util.CSVBasedReader;
 import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
-import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
