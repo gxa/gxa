@@ -85,45 +85,37 @@ public class TopAnnotationSourceManager {
         }
         return result;
     }
-    
-    public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(annSrc.getClass())) {
-                manager.validateProperties(annSrc, reportBuilder);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Cannot validate annotation source of class " + annSrc.getClass().getName());
 
+    public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
+        findManager(annSrc).validateProperties(annSrc, reportBuilder);
+    }
+
+    public AnnotationSource getAnnSrc(long id, AnnotationSourceType type) throws RecordNotFoundException {
+        return findManager(type).getAnnSrc(id);
     }
 
     public String getAnnSrcString(long id, AnnotationSourceType type) throws RecordNotFoundException {
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())) {
-                return manager.getAnnSrcString(id);
-            }
-        }
-
-        throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
+        return findManager(type).getAnnSrcString(id);
     }
 
-    public Collection<String> validateAndSaveAnnSrc(long id, String text, AnnotationSourceType type) {
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())) {
-                return manager.validateAndSaveAnnSrc(id, text);
-            }
-        }
-        throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
+    public ValidationReportBuilder validateAndSaveAnnSrc(long annSrcId, String text, AnnotationSourceType type) {
+        return findManager(type).validateAndSaveAnnSrc(annSrcId, text);
     }
 
-    public void validateProperties(long annSrcId, AnnotationSourceType type, ValidationReportBuilder reportBuilder) {
+    private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSource annSrc) {
+        return findManager(annSrc.getClass());
+    }
+
+    private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSourceType type) {
+        return findManager(type.getClazz());
+    }
+
+    private AnnotationSourceManager<? extends AnnotationSource> findManager(Class<? extends AnnotationSource> clazz) {
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())) {
-                manager.validateProperties(annSrcId, reportBuilder);
-                return;
+            if (manager.isForClass(clazz)) {
+                return manager;
             }
         }
-        throw new IllegalArgumentException("Cannot validate annotation source of class " + type);
-
+        throw new IllegalArgumentException("Annotation source manager is not available for class: " + clazz);
     }
 }

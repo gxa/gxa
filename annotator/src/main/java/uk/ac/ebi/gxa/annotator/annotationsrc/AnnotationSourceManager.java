@@ -63,7 +63,11 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     public String getAnnSrcString(long id) throws RecordNotFoundException {
-        return getConverter().convertToString(getAnnSrc(id));
+        return getAnnSrcString(getAnnSrc(id));
+    }
+
+    public String getAnnSrcString(T annSrc) throws RecordNotFoundException {
+        return getConverter().convertToString(annSrc);
     }
 
     public T getAnnSrc(long id) throws RecordNotFoundException {
@@ -75,16 +79,21 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     @Transactional
-    public Collection<String> validateAndSaveAnnSrc(long id, String text) {
+    public ValidationReportBuilder validateAndSaveAnnSrc(long id, String text) {
         final AnnotationSourceConverter<T> converter = getConverter();
         try {
             final T annSrc = fetchAnnSrcById(id);
-            final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-            if (getInputValidator().isValidInputText(annSrc, text, reportBuilder)) {
-                final AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, reportBuilder);
-                annSrcDAO.save(annotationSource);
+            ValidationReportBuilder errors = new ValidationReportBuilder();
+            if (getInputValidator().isValidInputText(annSrc, text, errors)) {
+                AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, errors);
+
+                if (annotationSource.isObsolete()) {
+                    errors.addMessage("Can't save. The annotation source is obsolete.");
+                } else {
+                    annSrcDAO.save(annotationSource);
+                }
             }
-            return reportBuilder.getMessages();
+            return errors;
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }

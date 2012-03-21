@@ -33,7 +33,7 @@ import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> {
 
     @Override
-    public void getInvalidPropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
+    public void validatePropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
 
     }
 }

@@ -71,17 +71,16 @@ class BioMartDbDAO {
         }
     }
 
-    public String validateConnection(String name, String version) {
+    public void testConnection(String name, String version) throws BioMartException {
         try {
             findSynonymsDBName(name, version);
         } catch (IncorrectResultSizeDataAccessException e) {
-            log.warn("Validation failed! ", e);
-            return "Invalid database name (" + name + ")";
+            log.warn("Synonyms DB '" + name + "' does not exist", e);
+            throw new BioMartException("Invalid database name '" + name + "'");
         } catch (DataAccessException e) {
-            log.warn("Validation failed! ", e);
-            return "Invalid url (" + url + ")";
+            log.warn("Can't access synonyms data by url: " + url, e);
+            throw new BioMartException("Invalid synonyms data url: " + url);
         }
-        return "";
     }
 
     String findSynonymsDBName(String dbNameTemplate, String version) throws DataAccessException {

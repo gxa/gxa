@@ -82,17 +82,7 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
         assertEquals(1, annotationSource.getExternalBioEntityProperties().size());
         assertTrue(reportBuilder.isEmpty());
     }
-
-    @Test
-    public void testEditOrCreateAnnotationSourceEditWithException() throws Exception {
-        final GeneSigAnnotationSource annSrc = annSrcDAO.getById(1001, GeneSigAnnotationSource.class);
-        assertNotNull(annSrc);
-        ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-        final GeneSigAnnotationSource newAnnSrc = converter.editOrCreateAnnotationSource(annSrc, ANN_SRC, reportBuilder);
-        assertNull(newAnnSrc);
-        assertEquals(1, reportBuilder.getMessages().size());
-    }
-
+    
     //ToDo: the test fails in the end because there are some problems with sequences.
 //    @Test
 //    @Transactional

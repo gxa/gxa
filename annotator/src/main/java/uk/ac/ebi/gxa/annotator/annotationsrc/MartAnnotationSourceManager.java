@@ -102,7 +102,7 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Override
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         if (isForClass(annSrc.getClass())) {
-            martValidator.getInvalidPropertyNames((BioMartAnnotationSource) annSrc, reportBuilder);
+            martValidator.validatePropertyNames((BioMartAnnotationSource) annSrc, reportBuilder);
         } else {
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + BioMartAnnotationSource.class);

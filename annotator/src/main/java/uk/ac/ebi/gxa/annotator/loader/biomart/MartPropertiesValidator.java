@@ -44,7 +44,7 @@ public class MartPropertiesValidator implements AnnotationSourcePropertiesValida
     }
 
     @Override
-    public void getInvalidPropertyNames(BioMartAnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
+    public void validatePropertyNames(BioMartAnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
 
         try {
             MartServiceClient martService = MartServiceClientImpl.create(httpClient, annSrc);
@@ -52,35 +52,34 @@ public class MartPropertiesValidator implements AnnotationSourcePropertiesValida
             final Collection<String> attributes = martService.runAttributesQuery();
             for (String property : annSrc.getExternalPropertyNames()) {
                 if (!attributes.contains(property)) {
-                    reportBuilder.addMessage(property);
+                    reportBuilder.addMessage("Invalid external property name: '" + property + "'");
                 }
             }
 
             for (String arrayDesign : annSrc.getExternalArrayDesignNames()) {
                 if (!attributes.contains(arrayDesign)) {
-                    reportBuilder.addMessage(arrayDesign);
+                    reportBuilder.addMessage("Invalid external array design name: '" + arrayDesign + "'");
                 }
             }
 
             if (!martService.runDatasetListQuery().contains(annSrc.getDatasetName())) {
-                reportBuilder.addMessage(annSrc.getDatasetName());
+                reportBuilder.addMessage("Invalid dataset name: '" + annSrc.getDatasetName() + "'");
             }
 
-            final String validationMessage = validateMySqlProperties(annSrc.getMySqlDbUrl(), annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
-            if (!validationMessage.isEmpty()) {
-                reportBuilder.addMessage("Invalid MySQLDb Connection: " + validationMessage);
-            }
+            validateMySqlProperties(annSrc, reportBuilder);
 
         } catch (BioMartException e) {
             throw LogUtil.createUnexpected("Problem when validating annotation source " + annSrc.getName(), e);
         } catch (IOException e) {
             throw LogUtil.createUnexpected("Problem when validating annotation source " + annSrc.getName(), e);
         }
-
     }
 
-    private String validateMySqlProperties(String url, String dbName, String software) {
-        BioMartDbDAO dao = new BioMartDbDAO(url);
-        return dao.validateConnection(dbName, software);
+    private void validateMySqlProperties(BioMartAnnotationSource annSrc, ValidationReportBuilder errors) {
+        try {
+            new BioMartDbDAO(annSrc.getMySqlDbUrl()).testConnection(annSrc.getMySqlDbName(), annSrc.getSoftware().getVersion());
+        } catch (BioMartException e) {
+            errors.addMessage(e.getMessage());
+        }
     }
 }

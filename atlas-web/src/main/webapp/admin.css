@@ -335,6 +335,10 @@ td.time {
     background: #eee;
 }
 
+.annotSourceList table tr.obsolete {
+    color:#999;
+}
+
 .annotSourceList table tr td {
     padding: 5px 5px;
 }
@@ -356,4 +360,18 @@ td.time {
 
 .validationErrors {
     color: red;
+}
+
+.inlineValidation {
+    background-color: white;
+}
+
+.inlineValidation .success {
+    color: green;
+    padding: 5px;
+}
+
+.inlineValidation .failure {
+    color: red;
+    padding: 5px;
 }

@@ -176,7 +176,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected void updateExternalArrayDesigns(AnnotationSourceProperties properties, T annotationSource) {
         Set<ExternalArrayDesign> externalArrayDesigns = new HashSet<ExternalArrayDesign>();
-        final Multimap<String, String> propertyValues = properties.getListPropertiesWithPrefix(EXTPROPERTY_PROPNAME);
+        final Multimap<String, String> propertyValues = properties.getListPropertiesWithPrefix(ARRAYDESIGN_PROPNAME);
         for (String propertyName : propertyValues.keySet()) {
             ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(propertyName);
             for (String value : propertyValues.get(propertyName)) {

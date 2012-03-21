@@ -31,6 +31,6 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
  */
 public interface AnnotationSourcePropertiesValidator<T extends AnnotationSource> {
 
-    public void getInvalidPropertyNames(T annotationSource, ValidationReportBuilder reportBuilder);
+    public void validatePropertyNames(T annotationSource, ValidationReportBuilder reportBuilder);
 
 }
