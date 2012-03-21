@@ -1188,19 +1188,24 @@ var annotSources = (function() {
     }
 
     function activateSoftware(softwareId) {
-        adminCall2({
-            op: "activateSoftware",
-            params: {softwareId: softwareId},
-            success: loadSoftwareVersions
-        });
+        if (window.confirm(
+            "The index will be automatically rebuilt just after this version become active. Do you really want to start using this version?")) {
+            adminCall2({
+                op:"activateSoftware",
+                params:{softwareId:softwareId},
+                success:loadSoftwareVersions
+            });
+        }
     }
 
     function deleteSoftware(softwareId) {
-        adminCall2({
-            op: "deleteSoftware",
-            params: {softwareId: softwareId},
-            success: loadSoftwareVersions
-        });
+        if (window.confirm("Do you really want to delete this version of annotations?")) {
+            adminCall2({
+                op:"deleteSoftware",
+                params:{softwareId:softwareId},
+                success:loadSoftwareVersions
+            });
+        }
     }
 
     _this.load = function() {
