@@ -19,7 +19,7 @@ rm -rf $log
 
 ./find_no_stats_exps.sh $NCDF_DIR >> $log
 
-./find_unused_properties_values.sh $ATLAS_URL $CURAPI_USERNAME $CURAPI_PASSWORD >> $log
+./remove_unused_properties_values.sh $ATLAS_URL $CURAPI_USERNAME $CURAPI_PASSWORD
 
 ./find_near_duplicate_properties.sh $ATLAS_URL $CURAPI_USERNAME $CURAPI_PASSWORD >> $log
 

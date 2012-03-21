@@ -152,7 +152,13 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 return new ErrorResult("No such experiments found for: " + query);
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
-            final boolean experimentAnalytics = (request.getParameter("experimentAnalytics") != null);
+            final boolean experimentAnalytics = (request.getParameter("experimentAnalyticsOnly") != null);
+
+            String s = request.getParameter("offset");
+            final int genesStart = s == null ? 0 : Integer.parseInt(s);
+
+            s = request.getParameter("limit");
+            final int genesRows = s == null ? 10 : Math.min(Integer.parseInt(s), 10);
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
@@ -186,7 +192,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                                                             geneIdPredicate,
                                                             UpDownCondition.CONDITION_ANY,
                                                             Predicates.<Pair<String, String>>alwaysTrue(),
-                                                            0, 10
+                                                            genesStart, genesRows
                                                     );
                                             genes = geneResults.getGenes();
                                             expData = new ExperimentalData(ewd);
