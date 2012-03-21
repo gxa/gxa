@@ -359,7 +359,20 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         try {
             Software software = annSrcController.getSoftware(softwareId);
             //TODO
-            return makeMap("error", "Sorry. This functionality has not been implemented yet.");
+            return makeMap("error", "Sorry, this functionality has not been implemented yet");
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting list of annotation sources for software", e);
+        }
+    }
+
+    private Object processDeleteSoftware(long softwareId) {
+        try {
+            Software software = annSrcController.getSoftware(softwareId);
+            if (software.isActive()) {
+                return makeMap("error", "Can't delete currently using version");
+            }
+            //TODO
+            return makeMap("error", "Sorry, this functionality has not been implemented yet");
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error getting list of annotation sources for software", e);
         }
@@ -494,6 +507,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processUpdateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"), req.getStr("body"));
         } else if ("activateSoftware".equals(op)) {
             return processActivateSoftware(req.getLong("softwareId"));
+        } else if ("deleteSoftware".equals(op)) {
+            return processDeleteSoftware(req.getLong("softwareId"));
         } else if ("schedulesearchexp".equals(op)) {
             return processScheduleSearchExperiments(
                     req.getStr("type"),

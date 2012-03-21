@@ -912,7 +912,8 @@ var annotSources = (function() {
                 name:s.name || null,
                 version:s.version || null,
                 id:s.softwareid || null,
-                isActive:s.active || false
+                isActive:s.active || false,
+                isObsolete:s.obsolete || true
             });
         });
         return obj.length >= 0 ? res : res[0];
@@ -1036,6 +1037,11 @@ var annotSources = (function() {
         $(".activateSoftware", target).click(function(ev) {
             ev.preventDefault();
             activateSoftware(numericId($(ev.target)));
+        });
+
+        $(".deleteSoftware", target).click(function(ev) {
+            ev.preventDefault();
+            deleteSoftware(numericId($(ev.target)));
         });
     }
 
@@ -1184,6 +1190,14 @@ var annotSources = (function() {
     function activateSoftware(softwareId) {
         adminCall2({
             op: "activateSoftware",
+            params: {softwareId: softwareId},
+            success: loadSoftwareVersions
+        });
+    }
+
+    function deleteSoftware(softwareId) {
+        adminCall2({
+            op: "deleteSoftware",
             params: {softwareId: softwareId},
             success: loadSoftwareVersions
         });
