@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
@@ -12,10 +13,12 @@ import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoTerm;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This service class deals with cross-factor merging of factor values at experiment load time.
@@ -27,8 +30,12 @@ public class PropertyValueMergeService {
 
     private final static Logger log = LoggerFactory.getLogger(PropertyValueMergeService.class);
 
-    // These constants are used in merging compounds and doses together
-    private static final String COMPOUND = "compound";
+    // Set containing all factors for which values need doses merged into them
+    private static final Set<String> FACTORS_NEEDING_DOSE = Sets.newHashSet();
+    static {
+        FACTORS_NEEDING_DOSE.add("compound");
+        FACTORS_NEEDING_DOSE.add("irradiate");
+    }
     private static final String DOSE = "dose";
 
     // Units containing the following values should never be pluralised when being joined to factor values
@@ -151,7 +158,7 @@ public class PropertyValueMergeService {
      * @throws AtlasLoaderException - if UnitAttribute within characteristicsAttribute exists but has not value or if unit value cannot be found in EFO
      */
     public String getCharacteristicValueWithUnit(CharacteristicsAttribute characteristicsAttribute) throws AtlasLoaderException {
-        String scValue = characteristicsAttribute.getNodeName().trim();
+        String scValue = StringUtil.removeSeparatorDuplicates(characteristicsAttribute.getNodeName()).trim();
         if (!Strings.isNullOrEmpty(scValue) && characteristicsAttribute.unit != null) {
             String unitValue = translateUnitToEFOIfApplicable(characteristicsAttribute.unit.getAttributeValue());
 
@@ -172,7 +179,7 @@ public class PropertyValueMergeService {
      * @throws AtlasLoaderException - if UnitAttribute within factorValueAttribute exists but has not value or if unit value cannot be found in EFO
      */
     private String getFactorValueWithUnit(FactorValueAttribute factorValueAttribute) throws AtlasLoaderException {
-        String factorValueName = factorValueAttribute.getNodeName().trim();
+        String factorValueName = StringUtil.removeSeparatorDuplicates(factorValueAttribute.getNodeName()).trim();
         if (!Strings.isNullOrEmpty(factorValueName) && factorValueAttribute.unit != null) {
             String unitValue = translateUnitToEFOIfApplicable(factorValueAttribute.unit.getAttributeValue());
 
@@ -194,7 +201,8 @@ public class PropertyValueMergeService {
      */
     public List<Pair<String, String>> getMergedFactorValues(List<Pair<String, FactorValueAttribute>> factorValueAttributes)
             throws AtlasLoaderException {
-        String compoundFactorValue = null;
+        String mainFactorValue = null;
+        String mainFactor = null;
         String doseFactorValue = null;
         List<Pair<String, String>> factorValues = new ArrayList<Pair<String, String>>();
         for (Pair<String, FactorValueAttribute> pv : factorValueAttributes) {
@@ -205,16 +213,18 @@ public class PropertyValueMergeService {
             if (Strings.isNullOrEmpty(efv))
                 continue; // We don't load empty factor values
 
-            if (COMPOUND.equalsIgnoreCase(ef))
-                compoundFactorValue = efv;
-            else if (DOSE.equalsIgnoreCase(ef))
+            if (FACTORS_NEEDING_DOSE.contains(ef.toLowerCase())) {
+                mainFactorValue = efv;
+                mainFactor = ef;
+            } else if (DOSE.equalsIgnoreCase(ef))
                 doseFactorValue = efv;
 
-            if (COMPOUND.equalsIgnoreCase(ef) || DOSE.equalsIgnoreCase(ef)) {
-                if (!Strings.isNullOrEmpty(compoundFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) {
-                    ef = COMPOUND;
-                    efv = Joiner.on(" ").join(compoundFactorValue, doseFactorValue);
-                    compoundFactorValue = null;
+            if (FACTORS_NEEDING_DOSE.contains(ef.toLowerCase()) || DOSE.equalsIgnoreCase(ef)) {
+                if (!Strings.isNullOrEmpty(mainFactorValue) && !Strings.isNullOrEmpty(doseFactorValue)) {
+                    ef = mainFactor;
+                    efv = Joiner.on(" ").join(mainFactorValue, doseFactorValue);
+                    mainFactor = null;
+                    mainFactorValue = null;
                     doseFactorValue = null;
                 } else {
                     // Don't add either compound or dose factor values to assay on their own, until:
@@ -227,11 +237,11 @@ public class PropertyValueMergeService {
             factorValues.add(Pair.create(ef, efv));
         }
 
-        if (!Strings.isNullOrEmpty(compoundFactorValue) && Strings.isNullOrEmpty(doseFactorValue)) {
-            factorValues.add(Pair.create(COMPOUND, compoundFactorValue));
-            log.warn("Adding " + COMPOUND + " : " + compoundFactorValue + " to assay with no corresponding value for factor: " + DOSE);
-        } else if (!Strings.isNullOrEmpty(doseFactorValue) && Strings.isNullOrEmpty(compoundFactorValue)) {
-            throw new AtlasLoaderException(DOSE + " : " + doseFactorValue + " has no corresponding value for factor: " + COMPOUND);
+        if (!Strings.isNullOrEmpty(mainFactorValue) && Strings.isNullOrEmpty(doseFactorValue)) {
+            factorValues.add(Pair.create(mainFactor, mainFactorValue));
+            log.warn("Adding " + mainFactor + " : " + mainFactorValue + " to assay with no corresponding value for factor: " + DOSE);
+        } else if (!Strings.isNullOrEmpty(doseFactorValue) && Strings.isNullOrEmpty(mainFactorValue)) {
+            throw new AtlasLoaderException(DOSE + " : " + doseFactorValue + " has no corresponding value for any of the following factors: " + FACTORS_NEEDING_DOSE);
         }
 
         return factorValues;
