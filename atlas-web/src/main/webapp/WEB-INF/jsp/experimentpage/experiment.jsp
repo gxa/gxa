@@ -300,7 +300,14 @@
     <b>\${name}:</b> \${value}<br/>
 </script>
 
-        <div id="topPagination" class="pagination_ie alignRight"></div>
+        <div style="margin-bottom: 5px">
+            <div style="float:left">
+                <a class="export2TsvLink" target="_tab"
+                   href="${pageContext.request.contextPath}/experimentTable?format=csv&eacc=${exp.accession}">Export to
+                    TSV</a>
+            </div>
+            <div id="topPagination" class="pagination_ie alignRight"></div>
+        </div>
 
         <div class="hrClear">
             <form id="expressionListFilterForm" action="javascript:alert('error');">

@@ -257,7 +257,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             if (assayPropertiesRequired) {
                 model.addAttribute("assayProperties", AssayProperties.create(ewd, ad, curatedStringConverter));
             }
-            return UNSUPPORTED_HTML_VIEW;
+            return JSON_ONLY_VIEW;
         } finally {
             closeQuietly(ewd);
         }
@@ -347,7 +347,6 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                 criteria.containsAtLeastOneGene(geneIdPredicate);
             }
 
-
             BestDesignElementsResult res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
                     geneIdPredicate, updown,
@@ -366,7 +365,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
                     })
             );
             model.addAttribute("geneToolTips", getGeneTooltips(res.getGenes()));
-            return UNSUPPORTED_HTML_VIEW;
+            return "experimentTable";
         } finally {
             closeQuietly(ewd);
         }
@@ -471,7 +470,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
     }
 
-    private static class ExperimentTableRow {
+    public static class ExperimentTableRow {
         private final String geneName;
         private final String geneIdentifier;
         private final String deAccession;
@@ -479,8 +478,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         private final String factor;
         private final String factorValue;
         private final UpDownExpression upDown;
-        private final String pValue;
-        private final String tValue;
+        private final float pValue;
+        private final float tValue;
 
         public ExperimentTableRow(BestDesignElementsResult.Item item) {
 
@@ -490,8 +489,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             deIndex = item.getDeIndex();
             factor = item.getEf();
             factorValue = item.getEfv();
-            pValue = formatPValue(item.getPValue());
-            tValue = formatTValue(item.getTValue());
+            pValue = item.getPValue();
+            tValue = item.getTValue();
             upDown = UpDownExpression.valueOf(item.getPValue(), item.getTValue());
         }
 
@@ -532,11 +531,19 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         @JsonProperty("pVal")
         public String getPValue() {
-            return pValue;
+            return formatPValue(pValue);
         }
 
         @JsonProperty("tVal")
         public String getTValue() {
+            return formatPValue(tValue);
+        }
+
+        public float getFloatPValue() {
+            return pValue;
+        }
+
+        public float getFloatTValue() {
             return tValue;
         }
     }

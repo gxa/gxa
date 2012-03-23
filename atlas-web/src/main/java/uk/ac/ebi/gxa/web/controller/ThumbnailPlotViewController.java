@@ -86,7 +86,7 @@ public class ThumbnailPlotViewController extends AtlasViewController {
                             ThumbnailPlot.create(expPart, deacc, ef, efv)
                                     .scale(width, height)
                                     .asMap());
-            return UNSUPPORTED_HTML_VIEW;
+            return JSON_ONLY_VIEW;
         } finally {
             closeQuietly(ewd);
         }
@@ -124,7 +124,7 @@ public class ThumbnailPlotViewController extends AtlasViewController {
                             ThumbnailPlot.create(expPart, geneId, ef, efv)
                                     .scale(width, height)
                                     .asMap());
-            return UNSUPPORTED_HTML_VIEW;
+            return JSON_ONLY_VIEW;
         } finally {
             closeQuietly(ewd);
         }

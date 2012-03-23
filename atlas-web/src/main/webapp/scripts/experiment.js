@@ -1876,15 +1876,27 @@
         }
 
         function updatePageLinks() {
-            $("a.experimentLink").each(function() {
+            var state = {gid: _state.gid(), ef: _state.ef(), efv: _state.efv(), updown: _state.updown()};
+
+            $("a.changeArrayDesignLink").each(function() {
                 var el = $(this);
                 var href = el.attr("href");
-                el.attr("href", enhanceUrlParameters(href));
-            })
+                el.attr("href", updateUrlParameters(href, state));
+            });
+
+            $("a.export2TsvLink").each(function() {
+                var el = $(this);
+                var href = el.attr("href");
+                el.attr("href", updateUrlParameters(href, $.extend(true, state, {ad: _state.ad()})));
+            });
         }
 
-        function enhanceUrlParameters(url) {
-            var params = {gid: _state.gid(), ef: _state.ef(), efv: _state.efv(), updown: _state.updown()};
+        /**
+         * Updates url parameters.
+         * @param url - an url to be updated
+         * @param params  - an object with new paramteres
+         */
+        function updateUrlParameters(url, params) {
             var paramString = [];
             for (var p in params) {
                 var v = params[p];
