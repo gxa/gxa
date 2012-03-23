@@ -26,4 +26,4 @@ find . -xdev -depth -print | cpio -pdm $ATLAS_EXPORTED_NCDF_PATH
 # Now delete private expriment's files from $ATLAS_EXPORTED_NCDF_PATH
 cd $ATLAS_EXPORTED_NCDF_PATH/..
 sqlplus -S $ATLAS_CONNECTION @$BASEDIR/ncdfs-to-recall.sql | \
-  awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" }'  | xargs -I % rm -rf
+  awk '{ split($1, a, "-"); print "ncdf/" a[2] "/" (a[3] < 100 ? "" : int(a[3]/100)) "00/" $1 "/" }'  | xargs -I % rm -rf %
