@@ -142,6 +142,7 @@ public class CurationService {
     /**
      * Remove all property names not used in any assays/samples
      */
+    @Transactional
     public void removeUnusedPropertyNames() {
         propertyDAO.removeUnusedProperties();
     }
@@ -149,6 +150,7 @@ public class CurationService {
     /**
      * Remove property values not used in any assays/samples
      */
+    @Transactional
     public void removeUnusedPropertyValues() {
         propertyValueDAO.removeUnusedPropertyValues();
     }
