@@ -37,7 +37,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * User: nsklyar
@@ -52,15 +51,15 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     @Autowired
     protected SoftwareDAO softwareDAO;
 
-    @Transactional
-    public Collection<UpdatedAnnotationSource<T>> getCurrentAnnotationSources() {
-        final Collection<UpdatedAnnotationSource<T>> result = new HashSet<UpdatedAnnotationSource<T>>();
-        final Collection<T> currentAnnSrcs = getCurrentAnnSrcs();
-        for (T currentAnnSrc : currentAnnSrcs) {
-            result.add(createUpdatedAnnotationSource(currentAnnSrc));
-        }
-        return result;
-    }
+//    @Transactional
+//    public Collection<UpdatedAnnotationSource<T>> getCurrentAnnotationSources() {
+//        final Collection<UpdatedAnnotationSource<T>> result = new HashSet<UpdatedAnnotationSource<T>>();
+//        final Collection<T> currentAnnSrcs = getCurrentAnnSrcs();
+//        for (T currentAnnSrc : currentAnnSrcs) {
+//            result.add(createUpdatedAnnotationSource(currentAnnSrc));
+//        }
+//        return result;
+//    }
 
     public String getAnnSrcString(long id) throws RecordNotFoundException {
         return getAnnSrcString(getAnnSrc(id));
@@ -80,24 +79,50 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     @Transactional
     public ValidationReportBuilder validateAndSaveAnnSrc(long id, String text) {
-        final AnnotationSourceConverter<T> converter = getConverter();
-        try {
-            final T annSrc = fetchAnnSrcById(id);
-            ValidationReportBuilder errors = new ValidationReportBuilder();
-            if (getInputValidator().isValidInputText(annSrc, text, errors)) {
-                AnnotationSource annotationSource = converter.editOrCreateAnnotationSource(annSrc, text, errors);
+        final ValidationReportBuilder errors = new ValidationReportBuilder();
 
-                if (annotationSource.isObsolete()) {
-                    errors.addMessage("Can't save. The annotation source is obsolete.");
-                } else {
-                    annSrcDAO.save(annotationSource);
-                }
+        try {
+            T annSrc = fetchAnnSrcById(id);
+
+            //validate input form
+            if (!getInputValidator().isValidInputText(text, errors)) return errors;
+
+            if (annSrc == null) {
+                annSrc = createNewAnnotationSource(text, errors);
+            } else {
+               editExistingAnnotationSource(annSrc, text, errors);
             }
+
+            if (!errors.isEmpty()) return errors;
+
+            if (annSrc.isObsolete()) {
+                errors.addMessage("Can't save. The annotation source is obsolete.");
+            } else {
+                annSrcDAO.save(annSrc);
+            }
+
             return errors;
         } catch (AnnotationLoaderException e) {
             throw LogUtil.createUnexpected("Cannot save Annotation Source: " + e.getMessage(), e);
         }
     }
+
+    private void editExistingAnnotationSource(T annSrc, String text, ValidationReportBuilder errors) throws AnnotationLoaderException {
+        if (getInputValidator().isImmutableFieldsValid(annSrc, text, errors)) {
+            getConverter().editAnnotationSource(annSrc, text);
+        }
+    }
+
+    private T createNewAnnotationSource(String text, ValidationReportBuilder errors) throws AnnotationLoaderException {
+        final AnnotationSourceInputValidator<T> inputValidator = getInputValidator();
+
+        if (!inputValidator.isNewAnnSrcUnique(text, errors)) return null;
+
+        T annSrc = getConverter().initAnnotationSource(text);
+        getConverter().editAnnotationSource(annSrc, text);
+        return annSrc;
+    }
+
 
     public abstract void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder);
 
@@ -122,7 +147,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
         final Collection<String> stringSourcesOfType = AnnotationSourcesExporter.getStringSourcesOfType(text, getAnnSrcClass().getSimpleName(), separator);
         for (String stringSource : stringSourcesOfType) {
             final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-            getConverter().editOrCreateAnnotationSource(null, stringSource, reportBuilder);
+            getConverter().editAnnotationSource(null, stringSource);
         }
 
     }

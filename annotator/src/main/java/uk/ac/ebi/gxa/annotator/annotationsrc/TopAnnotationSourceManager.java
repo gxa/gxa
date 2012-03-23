@@ -34,7 +34,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -55,14 +54,14 @@ public class TopAnnotationSourceManager {
         this.managers = managers;
     }
 
-    public Collection<UpdatedAnnotationSource> getAllAnnotationSources() {
-        Collection<UpdatedAnnotationSource> result = new HashSet<UpdatedAnnotationSource>();
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            result.addAll(manager.getCurrentAnnotationSources());
-        }
-
-        return result;
-    }
+//    public Collection<UpdatedAnnotationSource> getAllAnnotationSources() {
+//        Collection<UpdatedAnnotationSource> result = new HashSet<UpdatedAnnotationSource>();
+//        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+//            result.addAll(manager.getCurrentAnnotationSources());
+//        }
+//
+//        return result;
+//    }
 
     public Software getSoftware(long softwareId) throws RecordNotFoundException {
         Software software = annSrcDAO.getSoftwareById(softwareId);

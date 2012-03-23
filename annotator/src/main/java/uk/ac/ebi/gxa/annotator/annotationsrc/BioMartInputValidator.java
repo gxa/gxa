@@ -22,9 +22,10 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotator.loader.biomart.MartVersionFinder;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
-import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.ArrayList;
@@ -39,18 +40,25 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
  * Date: 21/03/2012
  */
 public class BioMartInputValidator extends AnnotationSourceInputValidator<BioMartAnnotationSource> {
+
+    @Autowired
+    MartVersionFinder martVersionFinder;
+
     @Override
-    protected void validateStableFields(BioMartAnnotationSource annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
-        Organism organism = organismDAO.getOrCreateOrganism(properties.getProperty(ORGANISM_PROPNAME));
-        Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
-
-        if (!annSrc.getSoftware().equals(software)) {
+    protected boolean isImmutableFieldsValid(BioMartAnnotationSource annSrc, String text, ValidationReportBuilder reportBuilder) {
+        final AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        boolean isValid = true;
+        if (!annSrc.getSoftware().getName().equalsIgnoreCase(properties.getProperty(SOFTWARE_NAME_PROPNAME)) ||
+                !annSrc.getSoftware().getVersion().equalsIgnoreCase(properties.getProperty(SOFTWARE_VERSION_PROPNAME))) {
             reportBuilder.addMessage("Software should not be changed when editing Annotation Source!");
+            isValid = false;
         }
 
-        if (!annSrc.getOrganism().equals(organism)) {
+        if (!annSrc.getOrganism().getName().equalsIgnoreCase(properties.getProperty(ORGANISM_PROPNAME))) {
             reportBuilder.addMessage("Organism should not be changed when editing Annotation Source!");
+            isValid = false;
         }
+        return isValid;
     }
 
     @Override
@@ -59,4 +67,31 @@ public class BioMartInputValidator extends AnnotationSourceInputValidator<BioMar
         propertyNames.addAll(PROPNAMES);
         return Collections.unmodifiableCollection(propertyNames);
     }
+
+
+    @Override
+    public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder) {
+        final AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        Software software = new Software(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
+        final String onlineVersion = martVersionFinder.fetchOnLineVersion(
+                properties.getProperty(URL_PROPNAME),
+                properties.getProperty(DATABASE_NAME_PROPNAME),
+                properties.getProperty(DATASET_NAME_PROPNAME));
+        if (!software.getVersion().equalsIgnoreCase(onlineVersion)) {
+            reportBuilder.addMessage("Software version " + software.getVersion() + " does not corresponds to on-line version "
+                    + onlineVersion);
+            return false;
+        }
+
+        if (annSrcDAO.findBioMartAnnotationSource(software.getName(), software.getVersion(),
+                properties.getProperty(ORGANISM_PROPNAME)) != null) {
+            reportBuilder.addMessage("Annotation source with software " + software.getName() + "/" +
+                    software.getVersion() + " for Organism " + properties.getProperty(ORGANISM_PROPNAME) +
+                    " already exists. If you need to " +
+                    "change it use Edit button");
+            return false;
+        }
+        return true;
+    }
+
 }

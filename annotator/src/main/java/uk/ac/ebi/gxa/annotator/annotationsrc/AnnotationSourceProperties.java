@@ -73,14 +73,28 @@ public class AnnotationSourceProperties {
     public static final String EXTPROPERTY_PROPNAME = "property";
     public static final String ARRAYDESIGN_PROPNAME = "arrayDesign";
 
-    private PropertiesConfiguration properties = new PropertiesConfiguration();
+    private PropertiesConfiguration properties;
 
 
     public AnnotationSourceProperties() {
+        properties = new PropertiesConfiguration();
         properties.setListDelimiter(',');
     }
 
-    public void initFromText(String text) {
+    public static AnnotationSourceProperties createPropertiesFromText(String text) {
+        AnnotationSourceProperties annotationSourceProperties = new AnnotationSourceProperties();
+        Reader input = new StringReader(text);
+        try {
+            annotationSourceProperties.properties.load(input);
+            return annotationSourceProperties;
+        } catch (ConfigurationException e) {
+            throw LogUtil.createUnexpected("Cannot read annotation properties", e);
+        } finally {
+            closeQuietly(input);
+        }
+    }
+
+    private void initFromText(String text) {
         Reader input = new StringReader(text);
         try {
             this.properties.load(input);

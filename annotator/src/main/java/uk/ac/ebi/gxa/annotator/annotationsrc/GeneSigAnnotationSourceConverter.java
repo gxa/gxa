@@ -36,7 +36,9 @@ class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSig
 
 
     @Override
-    protected GeneSigAnnotationSource initAnnotationSource(AnnotationSourceProperties properties) {
+    protected GeneSigAnnotationSource initAnnotationSource(String text) {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+
         Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
         return new GeneSigAnnotationSource(software);
     }

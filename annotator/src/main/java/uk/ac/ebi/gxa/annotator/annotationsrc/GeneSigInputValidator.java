@@ -38,17 +38,32 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
 public class GeneSigInputValidator extends AnnotationSourceInputValidator<GeneSigAnnotationSource> {
 
     @Override
-    protected void validateStableFields(GeneSigAnnotationSource annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
-
+    protected boolean isImmutableFieldsValid(GeneSigAnnotationSource annSrc, String text, ValidationReportBuilder reportBuilder) {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
         Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
         if (!annSrc.getSoftware().equals(software)) {
             reportBuilder.addMessage("Software should not be changed when editing Annotation Source!");
+            return false;
         }
+        return true;
     }
 
     @Override
     protected Collection<String> getRequiredProperties() {
         return Collections.unmodifiableCollection(PROPNAMES);
+    }
+
+    @Override
+    public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder) {
+        AnnotationSourceProperties properties = new AnnotationSourceProperties();
+        Software software = new Software(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
+        if (annSrcDAO.findGeneSigAnnotationSource(software.getName(), software.getVersion()) != null) {
+            reportBuilder.addMessage("Annotation source with software " + software.getName() + "/" +
+                    software.getVersion() + " already exists. If you need to " +
+                    "change it use Edit button");
+            return false;
+        }
+        return true;
     }
 
 }

@@ -36,7 +36,9 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
 class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMartAnnotationSource> {
 
     @Override
-    protected BioMartAnnotationSource initAnnotationSource(AnnotationSourceProperties properties){
+    protected BioMartAnnotationSource initAnnotationSource(String text){
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        
         Organism organism = organismDAO.getOrCreateOrganism(properties.getProperty(ORGANISM_PROPNAME));
         Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
 

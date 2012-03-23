@@ -43,8 +43,7 @@ public class AnnotationSourcePropertiesTest {
 
     @Test
     public void testInitFromText() throws Exception {
-        properties = new AnnotationSourceProperties();
-        properties.initFromText(fullSrc);
+        properties = AnnotationSourceProperties.createPropertiesFromText(fullSrc);
 
         final String result = properties.serializeToString();
         assertEquals(fullSrc.trim(), result.trim());
@@ -52,8 +51,7 @@ public class AnnotationSourcePropertiesTest {
 
     @Test
     public void testGetProperty() throws Exception {
-        properties = new AnnotationSourceProperties();
-        properties.initFromText("databaseName = metazoa\n" +
+        properties = AnnotationSourceProperties.createPropertiesFromText("databaseName = metazoa\n" +
                 "datasetName = agambiae_eg_gene\n");
         assertEquals("metazoa", properties.getProperty("databaseName"));
         assertEquals("agambiae_eg_gene", properties.getProperty("datasetName"));
@@ -84,14 +82,13 @@ public class AnnotationSourcePropertiesTest {
     @Test
     public void testAddListProperties() throws Exception {
         properties = new AnnotationSourceProperties();
-        properties.addListProperties("types", Lists.newArrayList("enstranscript","ensgene"));
+        properties.addListProperties("types", Lists.newArrayList("enstranscript", "ensgene"));
         assertEquals("types = enstranscript,ensgene", properties.serializeToString());
     }
 
     @Test
     public void testGetListPropertiesOfType() throws Exception {
-        properties = new AnnotationSourceProperties();
-        properties.initFromText("types = enstranscript,ensgene\n");
+        properties = AnnotationSourceProperties.createPropertiesFromText("types = enstranscript,ensgene\n");
         final Collection<String> types = properties.getListPropertiesOfType("types");
         assertEquals(2, types.size());
         assertTrue(types.contains("enstranscript"));
@@ -100,8 +97,7 @@ public class AnnotationSourcePropertiesTest {
 
     @Test
     public void testGetListPropertiesWithPrefix() throws Exception {
-        properties = new AnnotationSourceProperties();
-        properties.initFromText(
+        properties = AnnotationSourceProperties.createPropertiesFromText(
                 "property.uniprot = uniprot_sptrembl,uniprot_swissprot_accession\n" +
                         "property.go = go_accession\n" +
                         "arrayDesign.A-AFFY-102 = affy_plasmodium_anopheles");

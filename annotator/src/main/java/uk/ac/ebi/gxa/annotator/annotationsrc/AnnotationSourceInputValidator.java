@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
@@ -46,6 +47,8 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.U
 public abstract class AnnotationSourceInputValidator<T extends AnnotationSource> {
 
     @Autowired
+    protected AnnotationSourceDAO annSrcDAO;
+    @Autowired
     protected BioEntityTypeDAO typeDAO;
     @Autowired
     protected OrganismDAO organismDAO;
@@ -53,17 +56,13 @@ public abstract class AnnotationSourceInputValidator<T extends AnnotationSource>
     protected SoftwareDAO softwareDAO;
 
 
-    public boolean isValidInputText(T annSrc, String text, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
+    public boolean isValidInputText(String text, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
 
-        AnnotationSourceProperties properties = new AnnotationSourceProperties();
-        properties.initFromText(text);
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
 
         validateRequiredFields(properties, reportBuilder);
         validateURL(properties, reportBuilder);
         validateTypes(properties, reportBuilder);
-        if (annSrc != null) {
-            validateStableFields(annSrc, properties, reportBuilder);
-        }
 
         return reportBuilder.isEmpty();
     }
@@ -118,7 +117,10 @@ public abstract class AnnotationSourceInputValidator<T extends AnnotationSource>
         }
     }
 
-    protected abstract void validateStableFields(T annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder);
+    protected abstract boolean isImmutableFieldsValid(T annSrc, String text, ValidationReportBuilder reportBuilder);
 
     protected abstract Collection<String> getRequiredProperties();
+
+    public abstract boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder);
+
 }

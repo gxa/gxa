@@ -187,4 +187,8 @@ class MartServiceClientImpl implements MartServiceClient {
     public static MartServiceClientImpl create(HttpClient httpClient, BioMartAnnotationSource annSrc){
         return new MartServiceClientImpl(httpClient, annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
     }
+
+    public static MartServiceClientImpl create(HttpClient httpClient, String martUrl, String databaseName, String datasetName){
+        return new MartServiceClientImpl(httpClient, martUrl, databaseName, datasetName);
+    }
 }

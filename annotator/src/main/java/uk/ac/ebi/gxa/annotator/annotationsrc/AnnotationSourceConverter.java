@@ -32,7 +32,6 @@ import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
-import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.OrganismDAO;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
@@ -41,6 +40,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,48 +77,29 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     }
 
 
-    public T editOrCreateAnnotationSource(T annSrc, String text, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
-        AnnotationSourceProperties properties = new AnnotationSourceProperties();
-        properties.initFromText(text);
-//        if (!annotationSourceInputValidator.isValidInputText(annSrc, properties, reportBuilder)) return null;
+    public T editAnnotationSource(@Nonnull T annSrc, String text) throws AnnotationLoaderException {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
 
-        if (annSrc == null) {
-            annSrc = initAnnotationSource(properties);
-            if (annSrcExists(annSrc)) {
-                reportBuilder.addMessage("Annotation source  " + annSrc.getName() + " already exists. If you need to " +
-                        "change it use Edit button");
-                return null;
-            }
-        }
+//        if (annSrc == null) {
+//            annSrc = initAnnotationSource(properties);
+//            if (annSrcExists(annSrc)) {
+//                reportBuilder.addMessage("Annotation source  " + annSrc.getName() + " already exists. If you need to " +
+//                        "change it use Edit button");
+//                return null;
+//            }
+//        }
         updateAnnotationSource(properties, annSrc);
         return annSrc;
 
     }
 
-    public T editAnnotationSource(T annSrc, String text, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
-        AnnotationSourceProperties properties = new AnnotationSourceProperties();
-        properties.initFromText(text);
-//        if (!annotationSourceInputValidator.isValidInputText(annSrc, properties, reportBuilder)) return null;
-
-        if (annSrc == null) {
-            annSrc = initAnnotationSource(properties);
-            if (annSrcExists(annSrc)) {
-                reportBuilder.addMessage("Annotation source  " + annSrc.getName() + " already exists. If you need to " +
-                        "change it use Edit button");
-                return null;
-            }
-        }
-        updateAnnotationSource(properties, annSrc);
-        return annSrc;
-
-    }
 
 //    protected boolean isValidInputText(T annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
 //
 //        return annotationSourceInputValidator.isValidInputText(annSrc, properties, reportBuilder);
 //    }
 //
-//    protected abstract void validateStableFields(T annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder);
+//    protected abstract void isImmutableFieldsValid(T annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder);
 //
 //    private void validateRequiredFields(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
 //
@@ -256,7 +237,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
 
     protected abstract void writeExtraProperties(T annSrc, AnnotationSourceProperties properties);
 
-    protected abstract T initAnnotationSource(AnnotationSourceProperties properties);
+    protected abstract T initAnnotationSource(String text);
 
     protected abstract boolean annSrcExists(T annSrc);
 
@@ -283,5 +264,4 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     public void setArrayDesignService(ArrayDesignService arrayDesignService) {
         this.arrayDesignService = arrayDesignService;
     }
-
 }

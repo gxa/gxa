@@ -88,10 +88,30 @@ public class AnnotationSourceDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
+    public BioMartAnnotationSource findBioMartAnnotationSource(String softwareName, String softwareVersion, String organismName) {
+        String queryString = "from " + BioMartAnnotationSource.class.getSimpleName() + " where " +
+                "software.name = ? " +
+                "and software.version = ?  " +
+                "and organism.name = ?";
+
+        @SuppressWarnings("unchecked")
+        final List<BioMartAnnotationSource> results = template.find(queryString, softwareName, softwareVersion, organismName);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
     public GeneSigAnnotationSource findGeneSigAnnotationSource(Software software) {
         String queryString = "from " + GeneSigAnnotationSource.class.getSimpleName() + " where software = ?";
         @SuppressWarnings("unchecked")
         final List<GeneSigAnnotationSource> results = template.find(queryString, software);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
+    public GeneSigAnnotationSource findGeneSigAnnotationSource(String softwareName, String softwareVersion) {
+        String queryString = "from " + GeneSigAnnotationSource.class.getSimpleName() + " where " +
+                "software.name = ? " +
+                "and software.version = ?";
+        @SuppressWarnings("unchecked")
+        final List<GeneSigAnnotationSource> results = template.find(queryString, softwareName, softwareVersion);
         return results.isEmpty() ? null : results.get(0);
     }
 
