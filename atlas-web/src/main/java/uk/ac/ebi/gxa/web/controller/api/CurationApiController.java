@@ -56,7 +56,7 @@ public class CurationApiController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/properties/values/unused.json",
-            method = RequestMethod.GET)
+            method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void removeUnusedPropertyValues(@PathVariable("v") final ApiVersionType version,
                                                                 HttpServletResponse response) {
@@ -64,7 +64,7 @@ public class CurationApiController extends AtlasViewController {
     }
 
     @RequestMapping(value = "/properties/unused.json",
-            method = RequestMethod.GET)
+            method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void removeUnusedProperties(@PathVariable("v") final ApiVersionType version,
                                                            HttpServletResponse response) {
