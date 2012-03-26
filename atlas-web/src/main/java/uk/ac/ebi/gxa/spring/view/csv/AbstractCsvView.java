@@ -41,8 +41,25 @@ import java.util.Map;
  */
 public abstract class AbstractCsvView extends AbstractView {
 
+    private boolean disableCaching = true;
+
     public AbstractCsvView() {
         setContentType("text/csv");
+    }
+
+    public void setDisableCaching(boolean disableCaching) {
+        this.disableCaching = disableCaching;
+    }
+
+    @Override
+    protected void prepareResponse(HttpServletRequest request, HttpServletResponse response) {
+        response.setContentType(getContentType());
+        response.setCharacterEncoding("UTF-8");
+        if (disableCaching) {
+            response.addHeader("Pragma", "no-cache");
+            response.addHeader("Cache-Control", "no-cache, no-store, max-age=0");
+            response.addDateHeader("Expires", 1L);
+        }
     }
 
     @Override
