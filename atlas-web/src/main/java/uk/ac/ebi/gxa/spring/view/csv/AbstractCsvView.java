@@ -52,7 +52,6 @@ public abstract class AbstractCsvView extends AbstractView {
         response.setContentType(getContentType());
         ServletOutputStream out = response.getOutputStream();
         write(out, doc);
-        out.flush();
     }
 
     abstract protected CsvDocument buildDocument(Map<String, Object> model);
