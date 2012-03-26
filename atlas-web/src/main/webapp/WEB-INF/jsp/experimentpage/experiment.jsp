@@ -300,16 +300,17 @@
     <b>\${name}:</b> \${value}<br/>
 </script>
 
-        <div style="margin-bottom: 5px">
-            <div style="float:left">
-                <a class="export2TsvLink" target="_tab"
+        <div>
+            <div style="float:left; margin: 5px;">
+                <a class="export2TsvLink" target="_blank"
                    href="${pageContext.request.contextPath}/experimentTable?format=csv&eacc=${exp.accession}">Export to
                     TSV</a>
             </div>
-            <div id="topPagination" class="pagination_ie alignRight"></div>
+            <div id="topPagination" style="float:right;"class="pagination_ie alignRight"></div>
+            <div style="clear:both; width:100%; height:1px; padding:0; margin:0;" ></div>
         </div>
 
-        <div class="hrClear">
+        <div>
             <form id="expressionListFilterForm" action="javascript:alert('error');">
                 <table id="squery" class="atlas-grid experiment-stats">
                     <tr class="header">
