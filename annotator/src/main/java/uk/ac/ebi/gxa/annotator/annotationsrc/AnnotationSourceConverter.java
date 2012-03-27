@@ -80,42 +80,10 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     public T editAnnotationSource(@Nonnull T annSrc, String text) throws AnnotationLoaderException {
         AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
 
-//        if (annSrc == null) {
-//            annSrc = initAnnotationSource(properties);
-//            if (annSrcExists(annSrc)) {
-//                reportBuilder.addMessage("Annotation source  " + annSrc.getName() + " already exists. If you need to " +
-//                        "change it use Edit button");
-//                return null;
-//            }
-//        }
         updateAnnotationSource(properties, annSrc);
         return annSrc;
 
     }
-
-
-//    protected boolean isValidInputText(T annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) throws AnnotationLoaderException {
-//
-//        return annotationSourceInputValidator.isValidInputText(annSrc, properties, reportBuilder);
-//    }
-//
-//    protected abstract void isImmutableFieldsValid(T annSrc, AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder);
-//
-//    private void validateRequiredFields(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
-//
-//        annotationSourceInputValidator.validateRequiredFields(properties, reportBuilder);
-//    }
-//
-//    private void validateTypes(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
-//
-//        annotationSourceInputValidator.validateTypes(properties, reportBuilder);
-//    }
-//
-//    protected abstract Collection<String> getRequiredProperties();
-//
-//    private void validateURL(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
-//        annotationSourceInputValidator.validateURL(properties, reportBuilder);
-//    }
 
     protected void updateTypes(AnnotationSourceProperties properties, AnnotationSource annotationSource) throws AnnotationLoaderException {
         Set<BioEntityType> newTypes = new HashSet<BioEntityType>();
@@ -238,8 +206,6 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     protected abstract void writeExtraProperties(T annSrc, AnnotationSourceProperties properties);
 
     protected abstract T initAnnotationSource(String text);
-
-    protected abstract boolean annSrcExists(T annSrc);
 
     public void setAnnSrcDAO(AnnotationSourceDAO annSrcDAO) {
         this.annSrcDAO = annSrcDAO;

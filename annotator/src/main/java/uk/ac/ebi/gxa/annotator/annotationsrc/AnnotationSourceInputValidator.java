@@ -64,8 +64,11 @@ public abstract class AnnotationSourceInputValidator<T extends AnnotationSource>
         validateURL(properties, reportBuilder);
         validateTypes(properties, reportBuilder);
 
+        extraValidation(properties, reportBuilder);
         return reportBuilder.isEmpty();
     }
+
+    protected abstract void extraValidation(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder);
 
     protected void validateRequiredFields(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
         List<String> propertyNames = new ArrayList<String>(getRequiredProperties());

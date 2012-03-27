@@ -66,8 +66,14 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
-    public void update(AnnotationSource object) {
-        template.update(object);
+    public void update(AnnotationSource annSrc) {
+        template.update(annSrc);
+        template.flush();
+    }
+
+    public void saveOrUpdate(AnnotationSource annSrc) {
+        annSrc.setLoadDate(new Date());
+        template.saveOrUpdate(annSrc);
         template.flush();
     }
 

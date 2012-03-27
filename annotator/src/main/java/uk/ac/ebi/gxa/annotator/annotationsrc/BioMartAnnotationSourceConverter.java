@@ -46,11 +46,6 @@ class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMart
     }
 
     @Override
-    protected boolean annSrcExists(BioMartAnnotationSource annSrc) {
-        return annSrcDAO.findBioMartAnnotationSource(annSrc.getSoftware(), annSrc.getOrganism())!= null;
-    }
-
-    @Override
     protected void updateExtraProperties(AnnotationSourceProperties properties, BioMartAnnotationSource annotationSource) throws AnnotationLoaderException {
         annotationSource.setUrl(properties.getProperty(URL_PROPNAME));
         annotationSource.setDatabaseName(properties.getProperty(DATABASE_NAME_PROPNAME));

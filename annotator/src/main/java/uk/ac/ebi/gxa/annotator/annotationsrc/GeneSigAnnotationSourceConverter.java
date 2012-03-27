@@ -44,11 +44,6 @@ class GeneSigAnnotationSourceConverter extends AnnotationSourceConverter<GeneSig
     }
 
     @Override
-    protected boolean annSrcExists(GeneSigAnnotationSource annSrc) {
-        return annSrcDAO.findGeneSigAnnotationSource(annSrc.getSoftware()) != null;
-    }
-
-    @Override
     protected void updateExtraProperties(AnnotationSourceProperties properties, GeneSigAnnotationSource annotationSource) throws AnnotationLoaderException {
     }
 

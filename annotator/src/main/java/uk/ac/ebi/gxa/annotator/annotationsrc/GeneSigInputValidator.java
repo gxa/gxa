@@ -37,6 +37,7 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
  */
 public class GeneSigInputValidator extends AnnotationSourceInputValidator<GeneSigAnnotationSource> {
 
+
     @Override
     protected boolean isImmutableFieldsValid(GeneSigAnnotationSource annSrc, String text, ValidationReportBuilder reportBuilder) {
         AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
@@ -64,6 +65,10 @@ public class GeneSigInputValidator extends AnnotationSourceInputValidator<GeneSi
             return false;
         }
         return true;
+    }
+
+    @Override
+    protected void extraValidation(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
     }
 
 }

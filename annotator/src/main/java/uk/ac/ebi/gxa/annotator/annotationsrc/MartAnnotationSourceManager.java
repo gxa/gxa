@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*;
+
 /**
  * User: nsklyar
  * Date: 23/01/2012
@@ -61,7 +63,7 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
             if (!annSrc.getSoftware().getVersion().equals(newVersion)) {
                 Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
                 newSoftwares.add(newSoftware);
-                
+
                 BioMartAnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
                 annSrcDAO.save(newAnnSrc);
                 annSrc.setObsolete(true);
@@ -107,6 +109,14 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + BioMartAnnotationSource.class);
         }
+    }
+
+    @Override
+    protected BioMartAnnotationSource fetchAnnSrcByProperties(String text) {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        return annSrcDAO.findBioMartAnnotationSource(properties.getProperty(SOFTWARE_NAME_PROPNAME),
+                properties.getProperty(SOFTWARE_VERSION_PROPNAME),
+                properties.getProperty(ORGANISM_PROPNAME));
     }
 
     @Override

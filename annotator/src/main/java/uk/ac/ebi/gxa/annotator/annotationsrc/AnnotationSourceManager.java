@@ -51,16 +51,6 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     @Autowired
     protected SoftwareDAO softwareDAO;
 
-//    @Transactional
-//    public Collection<UpdatedAnnotationSource<T>> getCurrentAnnotationSources() {
-//        final Collection<UpdatedAnnotationSource<T>> result = new HashSet<UpdatedAnnotationSource<T>>();
-//        final Collection<T> currentAnnSrcs = getCurrentAnnSrcs();
-//        for (T currentAnnSrc : currentAnnSrcs) {
-//            result.add(createUpdatedAnnotationSource(currentAnnSrc));
-//        }
-//        return result;
-//    }
-
     public String getAnnSrcString(long id) throws RecordNotFoundException {
         return getAnnSrcString(getAnnSrc(id));
     }
@@ -80,17 +70,43 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     @Transactional
     public ValidationReportBuilder validateAndSaveAnnSrc(long id, String text) {
         final ValidationReportBuilder errors = new ValidationReportBuilder();
+        T annSrc = fetchAnnSrcById(id);
+        return validateAndSaveAnnSrc(text, annSrc, errors);
+    }
 
+    @Transactional
+    public ValidationReportBuilder updateLatestAnnotation(String text, String separator) throws AnnotationLoaderException {
+        final ValidationReportBuilder errors = new ValidationReportBuilder();
+        final Collection<String> stringSourcesOfType = AnnotationSourcesExporter.getStringSourcesOfType(text, getAnnSrcClass().getSimpleName(), separator);
+        for (String stringSource : stringSourcesOfType) {
+            T annSrc = fetchAnnSrcByProperties(stringSource);
+            validateAndSaveAnnSrc(text, annSrc, errors);
+        }
+        return errors;
+    }
+
+    public String getLatestAnnotationSourcesAsText(String separator) {
+
+        final Collection<T> sources = annSrcDAO.getLatestAnnotationSourcesOfType(getAnnSrcClass());
+        Collection<String> sourceStrings = Collections2.transform(sources, new Function<T, String>() {
+            @Override
+            public String apply(@Nullable T source) {
+                return getConverter().convertToString(source);
+            }
+        });
+
+        return AnnotationSourcesExporter.joinAsText(sourceStrings, getAnnSrcClass().getSimpleName(), separator);
+    }
+
+    private ValidationReportBuilder validateAndSaveAnnSrc(String text, T annSrc, ValidationReportBuilder errors) {
         try {
-            T annSrc = fetchAnnSrcById(id);
-
             //validate input form
             if (!getInputValidator().isValidInputText(text, errors)) return errors;
 
             if (annSrc == null) {
                 annSrc = createNewAnnotationSource(text, errors);
             } else {
-               editExistingAnnotationSource(annSrc, text, errors);
+                editExistingAnnotationSource(annSrc, text, errors);
             }
 
             if (!errors.isEmpty()) return errors;
@@ -126,31 +142,7 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     public abstract void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder);
 
-    public void validateProperties(long annSrcId, ValidationReportBuilder reportBuilder) {
-        validateProperties(fetchAnnSrcById(annSrcId), reportBuilder);
-    }
-
-    public String getLatestAnnotationSourcesAsText(String separator) {
-
-        final Collection<T> sources = annSrcDAO.getLatestAnnotationSourcesOfType(getAnnSrcClass());
-        Collection<String> sourceStrings = Collections2.transform(sources, new Function<T, String>() {
-            @Override
-            public String apply(@Nullable T source) {
-                return getConverter().convertToString(source);
-            }
-        });
-
-        return AnnotationSourcesExporter.joinAsText(sourceStrings, getAnnSrcClass().getSimpleName(), separator);
-    }
-
-    public void updateLatestAnnotation(String text, String separator) throws AnnotationLoaderException {
-        final Collection<String> stringSourcesOfType = AnnotationSourcesExporter.getStringSourcesOfType(text, getAnnSrcClass().getSimpleName(), separator);
-        for (String stringSource : stringSourcesOfType) {
-            final ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-            getConverter().editAnnotationSource(null, stringSource);
-        }
-
-    }
+    protected abstract T fetchAnnSrcByProperties(String text);
 
     protected abstract Class<T> getAnnSrcClass();
 
@@ -167,10 +159,6 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
 
     protected T fetchAnnSrcById(long id) {
         return annSrcDAO.getById(id, getClazz());
-    }
-
-    private Collection<T> getCurrentAnnSrcs() {
-        return annSrcDAO.getLatestAnnotationSourcesOfType(getAnnSrcClass());
     }
 
     protected abstract Class<T> getClazz();

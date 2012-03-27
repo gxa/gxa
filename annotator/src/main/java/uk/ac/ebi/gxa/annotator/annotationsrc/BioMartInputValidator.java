@@ -73,10 +73,7 @@ public class BioMartInputValidator extends AnnotationSourceInputValidator<BioMar
     public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder) {
         final AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
         Software software = new Software(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
-        final String onlineVersion = martVersionFinder.fetchOnLineVersion(
-                properties.getProperty(URL_PROPNAME),
-                properties.getProperty(DATABASE_NAME_PROPNAME),
-                properties.getProperty(DATASET_NAME_PROPNAME));
+        final String onlineVersion = fetchOnLineVersion(properties);
         if (!software.getVersion().equalsIgnoreCase(onlineVersion)) {
             reportBuilder.addMessage("Software version " + software.getVersion() + " does not corresponds to on-line version "
                     + onlineVersion);
@@ -94,4 +91,28 @@ public class BioMartInputValidator extends AnnotationSourceInputValidator<BioMar
         return true;
     }
 
+    @Override
+    protected void extraValidation(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
+        validateMartURL(properties, reportBuilder);
+    }
+
+    private void validateMartURL(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
+        try {
+            final String onlineVersion = fetchOnLineVersion(properties);
+            System.out.println("onlineVersion = " + onlineVersion);
+        } catch (Exception e) {
+            reportBuilder.addMessage("One of the properties is invalid: \n"
+                    + URL_PROPNAME + ": " + properties.getProperty(URL_PROPNAME) + " \n"
+                    + DATABASE_NAME_PROPNAME + ": " + properties.getProperty(DATABASE_NAME_PROPNAME) + " \n"
+                    + DATASET_NAME_PROPNAME + ": " + properties.getProperty(DATASET_NAME_PROPNAME) + " \n"
+            );
+        }
+    }
+
+    private String fetchOnLineVersion(AnnotationSourceProperties properties) {
+        return martVersionFinder.fetchOnLineVersion(
+                properties.getProperty(URL_PROPNAME),
+                properties.getProperty(DATABASE_NAME_PROPNAME),
+                properties.getProperty(DATASET_NAME_PROPNAME));
+    }
 }

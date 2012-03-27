@@ -120,6 +120,8 @@ public class AnnotationSourceController {
             return id;
         }
 
+        //The following methods are used in admin.js
+
         public String getTypeName() {
             return typeName;
         }
@@ -143,6 +145,8 @@ public class AnnotationSourceController {
         public String getId() {
             return String.valueOf(annSrc.getAnnotationSrcId());
         }
+
+        //The following methods are used in admin.js
 
         public String getOrganismName() {
             if (annSrc instanceof BioMartAnnotationSource) {
