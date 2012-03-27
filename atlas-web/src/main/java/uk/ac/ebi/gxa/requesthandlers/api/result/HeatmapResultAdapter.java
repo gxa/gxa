@@ -186,11 +186,11 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
                 Attribute attr = new EfoAttribute(efoItem.getId());
                 List<ExperimentResult> allExps = Lists.newArrayList();
                 if (getUpExperiments() > 0)
-                 allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP));
-                 if (getDownExperiments() > 0)
-                allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.DOWN));
+                    allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP));
+                if (getDownExperiments() > 0)
+                    allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.DOWN));
                 if (getNonDEExperiments() > 0)
-                allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
+                    allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
                 return allExps.iterator();
             }
         }
