@@ -29,6 +29,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
@@ -154,8 +155,13 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
             Iterator<ExperimentResult> expiter() {
                 EfvAttribute attr = new EfvAttribute(efefv.getEf(), efefv.getEfv());
-                List<ExperimentResult> allExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, UP_DOWN);
-                allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
+                List<ExperimentResult> allExps = Lists.newArrayList();
+                if (getUpExperiments() > 0)
+                    allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP));
+                if (getDownExperiments() > 0)
+                    allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.DOWN));
+                if (getNonDEExperiments() > 0)
+                    allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
                 return allExps.iterator();
             }
         }
@@ -178,7 +184,12 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
 
             Iterator<ExperimentResult> expiter() {
                 Attribute attr = new EfoAttribute(efoItem.getId());
-                List<ExperimentResult> allExps = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, UP_DOWN);
+                List<ExperimentResult> allExps = Lists.newArrayList();
+                if (getUpExperiments() > 0)
+                 allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP));
+                 if (getDownExperiments() > 0)
+                allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.DOWN));
+                if (getNonDEExperiments() > 0)
                 allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
                 return allExps.iterator();
             }
