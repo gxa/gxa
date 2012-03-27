@@ -109,8 +109,8 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
             "property.ortholog = human_ensembl_gene,cow_ensembl_gene\n" +
             "property.hgnc_symbol = hgnc_symbol\n" +
             "property.enstranscript = ensembl_transcript_id\n" +
-            "property.uniprot = uniprot_sptrembl,uniprot_swissprot_accession\n" +
             "property.go_id = go\n" +
+            "property.uniprot = uniprot_sptrembl,uniprot_swissprot_accession\n" +
             "arrayDesign.A-AFFY-45 = affy_moe430b";
 
     protected static final String ANN_SRC_DB =

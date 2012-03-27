@@ -12,8 +12,8 @@ CURAPI_USERNAME=$2
 CURAPI_PASSWORD=$3
 
 # Remove properties not found in any assay/sample
-curl -s -X GET -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties/unused.json"
+curl -s -X DELETE -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties/unused.json"
 
 # Remove property values not found in any assay/sample
-curl -s -X GET -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties/values/unused.json"
+curl -s -X DELETE -u ${CURAPI_USERNAME}:${CURAPI_PASSWORD} -v "${ATLAS_URL}/api/curators/v1/properties/values/unused.json"
 

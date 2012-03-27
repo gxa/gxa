@@ -97,43 +97,6 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     @Test
     @Transactional
-    public void testSaveOrUpdateBioMartSave() throws Exception {
-        Software software = softwareDAO.findOrCreate("plants", "8");
-        Organism organism = organismDAO.getByName("arabidopsis thaliana");
-
-        BioMartAnnotationSource annotationSource = new BioMartAnnotationSource(software, organism);
-        annotationSource.setDatabaseName("plant");
-        annotationSource.setDatasetName("athaliana_eg_gene");
-        annotationSource.setUrl("http://plants.ensembl.org/biomart/martservice?");
-
-        BioEntityProperty goterm = propertyDAO.findOrCreate("goterm");
-        assertNotNull(goterm);
-        annotationSource.addExternalProperty("name_1006", goterm);
-
-        annSrcDAO.saveOrUpdate(annotationSource);
-        assertNotNull(annotationSource.getAnnotationSrcId());
-
-    }
-
-    @Test
-    @Transactional
-    public void testSaveOrUpdateBioMartUpdate() throws Exception {
-        final BioMartAnnotationSource annotationSource = fetchAnnotationSource();
-        assertEquals("ensembl", annotationSource.getDatabaseName());
-        annotationSource.setDatabaseName("new");
-
-        BioEntityProperty goterm = propertyDAO.findOrCreate("new_propp");
-        assertNotNull(goterm);
-        annotationSource.addExternalProperty("new_name", goterm);
-        annSrcDAO.saveOrUpdate(annotationSource);
-
-        BioMartAnnotationSource newAnnotationSource = fetchAnnotationSource();
-        assertTrue(newAnnotationSource.getExternalPropertyNames().contains("new_name"));
-
-    }
-
-    @Test
-    @Transactional
     public void testSaveGineSig() throws Exception {
         Software software = softwareDAO.findOrCreate("genesigdb", "63");
 
@@ -260,19 +223,16 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testRemove() throws Exception {
-        removeAnnSrc();
-        Collection<BioMartAnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
-        assertEquals(1, sources.size());
-    }
-
     @Transactional
-    private void removeAnnSrc() {
+    public void testRemove() throws Exception {
+        Collection<BioMartAnnotationSource> sourcesOriginal = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         assertNotNull(annotationSource);
-
         annSrcDAO.remove(annotationSource);
+        Collection<BioMartAnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        assertEquals(sourcesOriginal.size() - 1, sources.size());
     }
+
 
     @Test
     public void testUpdate() throws Exception {

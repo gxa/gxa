@@ -71,12 +71,6 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
-    public void saveOrUpdate(AnnotationSource annSrc) {
-        annSrc.setLoadDate(new Date());
-        template.saveOrUpdate(annSrc);
-        template.flush();
-    }
-
     @SuppressWarnings("unchecked")
     public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
         return template.find("from " + type.getSimpleName() + " order by name asc");
