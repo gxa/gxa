@@ -23,34 +23,22 @@
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIUtils;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.util.Arrays.asList;
+import static uk.ac.ebi.gxa.annotator.loader.util.HttpClientHelper.*;
 
 /**
  * Ensembl uses biomart software v 0.7; but the latest is 0.8. The REST API changed significantly in v 0.8,
@@ -90,42 +78,23 @@ class MartServiceClientImpl implements MartServiceClient {
 
     @Override
     public Collection<String> runAttributesQuery() throws BioMartException, IOException {
-        final InputStream inputStream = httpPost(martUri, asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
+        final InputStream inputStream = httpPost(httpClient, martUri,
+                asList(new BasicNameValuePair("type", "attributes"), new BasicNameValuePair("dataset", datasetName)));
         return MartAttributes.parseAttributes(inputStream);
     }
 
     @Override
     public Collection<String> runDatasetListQuery() throws BioMartException, IOException {
-        final InputStream inputStream = httpPost(martUri, asList(new BasicNameValuePair("type", "datasets"), new BasicNameValuePair("mart", getMartName())));
+        final InputStream inputStream = httpPost(httpClient, martUri, asList(new BasicNameValuePair("type", "datasets"), new BasicNameValuePair("mart", getMartName())));
         return MartAttributes.parseDataSets(inputStream);
     }
 
     private InputStream runQuery(MartQuery query) throws BioMartException, IOException {
         log.debug(query.toString());
         log.debug(martUri.toString());
-        return httpPost(martUri, asList(new BasicNameValuePair("query", query.toString())));
+        return httpPost(httpClient, martUri, asList(new BasicNameValuePair("query", query.toString())));
     }
 
-    private InputStream httpGet(URI uri) throws IOException, BioMartException {
-        HttpGet httpget = new HttpGet(uri);
-        HttpResponse response = httpClient.execute(httpget);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode != HttpStatus.SC_OK) {
-            throw new BioMartException("Server returned invalid response: [status_code = " + statusCode + "; url = " + uri + "]");
-        }
-        return response.getEntity().getContent();
-    }
-
-    private InputStream httpPost(URI uri, List<? extends NameValuePair> params) throws IOException, BioMartException {
-        HttpPost httppost = new HttpPost(uri);
-        httppost.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-        HttpResponse response = httpClient.execute(httppost);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode != HttpStatus.SC_OK) {
-            throw new BioMartException("Server returned invalid response: [status_code = " + statusCode + "; url = " + uri + "]");
-        }
-        return response.getEntity().getContent();
-    }
 
     private String getVirtualSchemaName() throws BioMartException, IOException {
         return getMartLocation().getVirtualSchema();
@@ -150,7 +119,7 @@ class MartServiceClientImpl implements MartServiceClient {
     private MartRegistry fetchRegistry() throws IOException, BioMartException {
         InputStream in = null;
         try {
-            in = httpGet(getRegistryUri());
+            in = httpGet(httpClient, getRegistryUri());
             return MartRegistry.parse(in);
         } catch (SAXException e) {
             throw new BioMartException("Failed to parseAttributes BioMart registry response", e);
@@ -164,24 +133,6 @@ class MartServiceClientImpl implements MartServiceClient {
     private URI getRegistryUri() {
         return concatUri(martUri, asList(
                 new BasicNameValuePair("type", "registry")));
-    }
-
-    private URI concatUri(URI url, final List<? extends NameValuePair> params) {
-        List<NameValuePair> q = new ArrayList<NameValuePair>();
-        q.addAll(URLEncodedUtils.parse(url, HTTP.UTF_8));
-        q.addAll(params);
-
-        try {
-            return URIUtils.createURI(
-                    url.getScheme(),
-                    url.getHost(),
-                    url.getPort(),
-                    url.getPath(),
-                    URLEncodedUtils.format(q, HTTP.UTF_8),
-                    "");
-        } catch (URISyntaxException e) {
-            throw LogUtil.createUnexpected("Failed to re-assemble BioMart url: origin = " + url + ", params = " + params, e);
-        }
     }
 
     public static MartServiceClientImpl create(HttpClient httpClient, BioMartAnnotationSource annSrc){
