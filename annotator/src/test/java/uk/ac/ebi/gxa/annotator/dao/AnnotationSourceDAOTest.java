@@ -200,23 +200,20 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         final Software software = annSrcDAO.getSoftwareById(1000l);
         assertNotNull(software);
         assertNotNull(software.getSoftwareid());
-        assertEquals(10001L, software.getSoftwareid().longValue());
+        assertEquals(1000L, software.getSoftwareid().longValue());
     }
 
     @Test
-    public void testRemove() throws Exception {
-        removeAnnSrc();
-        Collection<BioMartAnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
-        assertEquals(0, sources.size());
-    }
-
     @Transactional
-    private void removeAnnSrc() {
+    public void testRemove() throws Exception {
+        Collection<BioMartAnnotationSource> sourcesOriginal = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
         BioMartAnnotationSource annotationSource = fetchAnnotationSource();
         assertNotNull(annotationSource);
-
         annSrcDAO.remove(annotationSource);
+        Collection<BioMartAnnotationSource> sources = annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        assertEquals(sourcesOriginal.size() - 1, sources.size());
     }
+
 
     @Test
     public void testUpdate() throws Exception {
