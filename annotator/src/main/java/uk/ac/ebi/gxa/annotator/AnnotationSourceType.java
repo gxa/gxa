@@ -74,15 +74,6 @@ public enum AnnotationSourceType {
         throw new IllegalArgumentException("There is no AnnotationSourceType with a name " + name);
     }
 
-    public static <T extends AnnotationSource> AnnotationSourceType getByClass(Class<T> clazz) {
-        for (AnnotationSourceType annotationSourceType : values()) {
-            if (annotationSourceType.getClazz().equals(clazz)) {
-                return annotationSourceType;
-            }
-        }
-        throw new IllegalArgumentException("There is no AnnotationSourceType with a class " + clazz);
-    }
-    
     public static <T extends AnnotationSource> AnnotationSourceType annSrcTypeOf(T annSrc) {
         for (AnnotationSourceType annotationSourceType : values()) {
             if (annotationSourceType.getClazz().equals(annSrc.getClass())) {
