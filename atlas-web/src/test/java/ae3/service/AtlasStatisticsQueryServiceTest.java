@@ -299,11 +299,12 @@ public class AtlasStatisticsQueryServiceTest {
         efAttr = new EfAttribute("organism_part");
         list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.UP);
         assertNotNull(list3);
-        assertEquals(0, list3.size());
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
         efAttr = new EfAttribute("organism_part");
         list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.DOWN);
-        assertNotNull(list3);
-        assertEquals(0, list3.size());
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
     }
 
     @Test

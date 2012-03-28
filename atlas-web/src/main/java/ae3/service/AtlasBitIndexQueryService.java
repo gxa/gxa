@@ -301,7 +301,26 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     *
+     * @param bioEntityId
+     * @param attributes
+     * @param statType    any of StatisticsType's apart from UP_DOWN
+     * @return List of ExperimentResult's corresponding to bioEntityId, attributes and statType, sorted by tStatRank/pval
+     */
+    private List<ExperimentResult> getBestExperiments(final Integer bioEntityId,
+                                                      final List<Attribute> attributes,
+                                                      final StatisticsType statType) {
+
+        if (statType == StatisticsType.UP_DOWN)
+            throw createUnexpected("Unexpected StatisticsType: " + statType);
+
+        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
+        statsQuery.and(getStatisticsOrQuery(attributes, statType, 1));
+
+        return new ArrayList<ExperimentResult>(getBestExperiments(statsQuery).values());
+    }
+
+
+    /**
      * @param bioEntityId BioEntity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
@@ -324,15 +343,13 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             attrs = Collections.singletonList(attribute);
         }
 
+        List<ExperimentResult> bestExperiments = Lists.newArrayList();
+        if (statType == StatisticsType.UP_DOWN) {
+            bestExperiments.addAll(getBestExperiments(bioEntityId, attrs, StatisticsType.UP));
+            bestExperiments.addAll(getBestExperiments(bioEntityId, attrs, StatisticsType.DOWN));
+        } else
+            bestExperiments.addAll(getBestExperiments(bioEntityId, attrs, statType));
 
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
-        statsQuery.and(getStatisticsOrQuery(attrs, statType, 1));
-
-        // retrieve experiments sorted by pValue/tRank for statsQuery
-        // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
-        Map<Long, ExperimentResult> bestExperimentsMap = getBestExperiments(statsQuery);
-
-        List<ExperimentResult> bestExperiments = new ArrayList<ExperimentResult>(bestExperimentsMap.values());
         // Sort bestExperiments by best pVal/tStat ranks first
         Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
             public int compare(ExperimentResult e1, ExperimentResult e2) {
