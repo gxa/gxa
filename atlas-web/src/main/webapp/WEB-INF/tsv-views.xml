@@ -6,7 +6,7 @@
        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
     <bean id="experimentTable"
-          class="uk.ac.ebi.gxa.web.view.csv.ExperimentTableView"/>
+          class="uk.ac.ebi.gxa.web.view.dsv.ExperimentTableTsvView"/>
 
     <!--bean id="experimentDesign"
           class="uk.ac.ebi.gxa.web.view.csv.ExperimentDesignView"/-->

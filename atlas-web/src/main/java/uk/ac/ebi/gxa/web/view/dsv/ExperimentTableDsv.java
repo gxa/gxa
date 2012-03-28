@@ -20,33 +20,25 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.view.csv;
+package uk.ac.ebi.gxa.web.view.dsv;
 
-import uk.ac.ebi.gxa.spring.view.csv.AbstractCsvView;
+import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
 import uk.ac.ebi.gxa.web.controller.ExperimentViewController;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
 /**
  * @author Olga Melnichuk
  */
-public class ExperimentTableView extends AbstractCsvView {
+public class ExperimentTableDsv {
 
-    @Override
-    protected CsvDocument buildDocument(Map<String, Object> model) {
+    public static DsvDocument createDsvDocument(Map<String, Object> model) {
         Iterable<ExperimentViewController.ExperimentTableRow> rows =
                 (Iterable<ExperimentViewController.ExperimentTableRow>) model.get("items");
         final Iterator<ExperimentViewController.ExperimentTableRow> iterator = rows.iterator();
-        
-        return new CsvDocument() {
-            @Override
-            public String[] getComments() {
-                return new String[]{
-                        "# Blah blah blah..."
-                };
-            }
+
+        return new DsvDocument() {
 
             @Override
             public String[] getHeader() {
@@ -64,32 +56,32 @@ public class ExperimentTableView extends AbstractCsvView {
 
             @Override
             public Iterator<String[]> getRowIterator() {
-                 return new Iterator<String[]>() {
-                     @Override
-                     public boolean hasNext() {
-                         return iterator.hasNext();
-                     }
+                return new Iterator<String[]>() {
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
 
-                     @Override
-                     public String[] next() {
-                         ExperimentViewController.ExperimentTableRow row = iterator.next();
-                         return new String[] {
-                                 row.getGeneName(),
-                                 row.getGeneIdentifier(),
-                                 row.getDeAccession(),
-                                 row.getFactor(),
-                                 row.getFactorValue(),
-                                 row.getUpDown(),
-                                 Float.toString(row.getFloatPValue()),
-                                 Float.toString(row.getFloatTValue())
-                         };
-                     }
+                    @Override
+                    public String[] next() {
+                        ExperimentViewController.ExperimentTableRow row = iterator.next();
+                        return new String[] {
+                                row.getGeneName(),
+                                row.getGeneIdentifier(),
+                                row.getDeAccession(),
+                                row.getFactor(),
+                                row.getFactorValue(),
+                                row.getUpDown(),
+                                Float.toString(row.getFloatPValue()),
+                                Float.toString(row.getFloatTValue())
+                        };
+                    }
 
-                     @Override
-                     public void remove() {
-                         iterator.remove();
-                     }
-                 };
+                    @Override
+                    public void remove() {
+                        iterator.remove();
+                    }
+                };
             }
         };
     }

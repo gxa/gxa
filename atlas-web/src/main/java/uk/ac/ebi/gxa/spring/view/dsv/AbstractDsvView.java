@@ -20,11 +20,12 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.spring.view.csv;
+package uk.ac.ebi.gxa.spring.view.dsv;
 
 
-import au.com.bytecode.opencsv.CSVWriter;
 import org.springframework.web.servlet.view.AbstractView;
+import uk.ac.ebi.gxa.utils.dsv.DsvFormat;
+import uk.ac.ebi.gxa.utils.dsv.DsvWriter;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -32,20 +33,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Iterator;
 import java.util.Map;
 
 /**
  * @author Olga Melnichuk
  */
-public abstract class AbstractCsvView extends AbstractView {
+public abstract class AbstractDsvView extends AbstractView {
 
     private boolean disableCaching = true;
-
-    public AbstractCsvView() {
-        setContentType("text/csv");
-    }
 
     public void setDisableCaching(boolean disableCaching) {
         this.disableCaching = disableCaching;
@@ -65,37 +61,22 @@ public abstract class AbstractCsvView extends AbstractView {
     @Override
     protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
                                            HttpServletResponse response) throws Exception {
-        CsvDocument doc = buildDocument(model);
-        response.setContentType(getContentType());
+        DsvDocument doc = buildDsvDocument(model);
         ServletOutputStream out = response.getOutputStream();
         write(out, doc);
     }
 
-    abstract protected CsvDocument buildDocument(Map<String, Object> model);
-
-    private void write(OutputStream out, CsvDocument doc) throws IOException {
-        Writer writer = new OutputStreamWriter(out);
-
-        String[] comments = doc.getComments();
-        for (String c : comments) {
-            writer.write(c);
-        }
-        
-        CSVWriter csvWriter = new CSVWriter(writer, '\t');
-        csvWriter.writeNext(doc.getHeader());
+    private void write(OutputStream out, DsvDocument doc) throws IOException {
+        DsvWriter dsvWriter = getDsvFormat().newWriter(new OutputStreamWriter(out));
+        dsvWriter.write(doc.getHeader());
         Iterator<String[]> rowIterator = doc.getRowIterator();
-        while(rowIterator.hasNext()) {
-            csvWriter.writeNext(rowIterator.next());
+        while (rowIterator.hasNext()) {
+            dsvWriter.write(rowIterator.next());
         }
-        csvWriter.flush();
+        dsvWriter.flush();
     }
 
-    protected static interface CsvDocument {
+    abstract DsvFormat getDsvFormat();
 
-        public String[] getComments();
-
-        public String[] getHeader();
-
-        public Iterator<String[]> getRowIterator();
-    }
+    abstract protected DsvDocument buildDsvDocument(Map<String, Object> model);
 }
