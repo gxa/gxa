@@ -416,6 +416,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         }
     }
 
+    private Object processSyncAnnotationSources() {
+        return validationResult(
+                annSrcController.updateLatestAnnotationSourcesFromMaster());
+    }
+
     private Object validationResult(ValidationReportBuilder errors) {
         return makeMap("validationErrors", errors.getMessages());
     }
@@ -505,6 +510,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processTestAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
         } else if ("updateAnnotSource".equals(op)) {
             return processUpdateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"), req.getStr("body"));
+        } else if ("syncAnnotationSources".equals(op)) {
+            return processSyncAnnotationSources();
         } else if ("activateSoftware".equals(op)) {
             return processActivateSoftware(req.getLong("softwareId"));
         } else if ("deleteSoftware".equals(op)) {

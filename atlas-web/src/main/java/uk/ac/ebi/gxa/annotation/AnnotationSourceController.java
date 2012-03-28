@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -27,6 +28,9 @@ public class AnnotationSourceController {
 
     @Autowired
     protected TopAnnotationSourceManager manager;
+
+    @Autowired
+    private AtlasProperties atlasProperties;
 
     public AnnotationSourceController() {
     }
@@ -93,6 +97,10 @@ public class AnnotationSourceController {
         } catch (RecordNotFoundException e) {
             throw new AnnotationSourceControllerException("Can't find annotation source to validate. See logs for details.", e);
         }
+    }
+
+    public ValidationReportBuilder updateLatestAnnotationSourcesFromMaster() {
+        return manager.updateLatestAnnotationSourcesFromUrl(atlasProperties.getAnnotationSourceList());
     }
 
     private AnnotationSourceType getType(String typeName) throws AnnotationSourceControllerException {

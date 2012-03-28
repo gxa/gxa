@@ -76,7 +76,7 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
     @Test
     public void testEditOrCreateAnnotationSourceCreate() throws Exception {
         ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-        FileBasedAnnotationSource annotationSource = converter.editAnnotationSource(null, ANN_SRC);
+        FileBasedAnnotationSource annotationSource = converter.editAnnotationSource(converter.initAnnotationSource(ANN_SRC), ANN_SRC);
         assertNotNull(annotationSource);
         assertEquals(new Software("GeneSigDB", "test"), annotationSource.getSoftware());
         assertEquals(1, annotationSource.getExternalBioEntityProperties().size());

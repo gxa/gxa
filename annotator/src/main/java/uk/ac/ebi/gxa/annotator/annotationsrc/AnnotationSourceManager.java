@@ -75,12 +75,11 @@ abstract class AnnotationSourceManager<T extends AnnotationSource> {
     }
 
     @Transactional
-    public ValidationReportBuilder updateLatestAnnotation(String text, String separator) throws AnnotationLoaderException {
-        final ValidationReportBuilder errors = new ValidationReportBuilder();
+    public ValidationReportBuilder updateLatestAnnotationSources(String text, String separator, ValidationReportBuilder errors ){
         final Collection<String> stringSourcesOfType = AnnotationSourcesExporter.getStringSourcesOfType(text, getAnnSrcClass().getSimpleName(), separator);
         for (String stringSource : stringSourcesOfType) {
             T annSrc = fetchAnnSrcByProperties(stringSource);
-            validateAndSaveAnnSrc(text, annSrc, errors);
+            validateAndSaveAnnSrc(stringSource, annSrc, errors);
         }
         return errors;
     }

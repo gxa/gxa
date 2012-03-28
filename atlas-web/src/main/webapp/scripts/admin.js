@@ -1000,6 +1000,9 @@ var annotSources = (function() {
         $(".createNewAnnotSource", _listId).click(function () {
             createNewAnnotSource($("#annotSourceType").val());
         });
+        $(".syncAnnotationSources", _listId).click(function () {
+            syncAnnotationSources();
+        });
     }
 
     function renderAnnotSources(obj, target) {
@@ -1100,6 +1103,13 @@ var annotSources = (function() {
     function createNewAnnotSource(type) {
         openEditor();
         renderAnnotSource({id:0, typeName: type, body: "CREATE NEW ANNOTATION SOURCE"});
+    }
+
+    function syncAnnotationSources() {
+        adminCall2({
+            op:"syncAnnotationSources",
+            params:{}
+        });
     }
 
     function saveAnnotSource() {

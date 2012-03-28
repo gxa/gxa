@@ -23,15 +23,22 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 
+import com.google.common.base.Joiner;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
+import uk.ac.ebi.gxa.annotator.loader.util.HttpClientHelper;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,18 +57,14 @@ public class TopAnnotationSourceManager {
     @Autowired
     private SoftwareDAO softwareDAO;
 
+    @Autowired
+    private HttpClient httpClient;
+
+    public static final String SEPARATOR = "\n$$$\n";
+
     public TopAnnotationSourceManager(List<AnnotationSourceManager<? extends AnnotationSource>> managers) {
         this.managers = managers;
     }
-
-//    public Collection<UpdatedAnnotationSource> getAllAnnotationSources() {
-//        Collection<UpdatedAnnotationSource> result = new HashSet<UpdatedAnnotationSource>();
-//        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-//            result.addAll(manager.getCurrentAnnotationSources());
-//        }
-//
-//        return result;
-//    }
 
     public Software getSoftware(long softwareId) throws RecordNotFoundException {
         Software software = annSrcDAO.getSoftwareById(softwareId);
@@ -99,6 +102,33 @@ public class TopAnnotationSourceManager {
 
     public ValidationReportBuilder validateAndSaveAnnSrc(long annSrcId, String text, AnnotationSourceType type) {
         return findManager(type).validateAndSaveAnnSrc(annSrcId, text);
+    }
+
+    public String getLatestAnnotationSourcesAsText() {
+        Collection<String> sourceStrings = new ArrayList<String>();
+        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+            sourceStrings.add(manager.getLatestAnnotationSourcesAsText(SEPARATOR));
+        }
+        return Joiner.on(SEPARATOR).join(sourceStrings);
+    }
+
+    public ValidationReportBuilder updateLatestAnnotationSourcesFromUrl(String url) {
+        final ValidationReportBuilder errors = new ValidationReportBuilder();
+        try {
+            final InputStream inputStream = HttpClientHelper.httpGet(httpClient, URI.create(url));
+            updateLatestAnnotationSources(IOUtils.toString(inputStream));
+        } catch (IOException e) {
+            errors.addMessage("Cannot update annotation sources from URL " + url + "Error: " + e.getMessage());
+        }
+        return errors;
+    }
+
+    protected ValidationReportBuilder updateLatestAnnotationSources(String text) {
+        final ValidationReportBuilder errors = new ValidationReportBuilder();
+        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+            manager.updateLatestAnnotationSources(text, SEPARATOR, errors);
+        }
+        return errors;
     }
 
     private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSource annSrc) {

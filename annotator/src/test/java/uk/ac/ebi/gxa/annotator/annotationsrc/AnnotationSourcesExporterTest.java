@@ -78,4 +78,59 @@ public class AnnotationSourcesExporterTest {
         assertEquals(1, genesig.size());
         assertEquals("first", genesig.iterator().next());
     }
+
+    @Test
+    public void testGetStringSourcesOfTypeReal() throws Exception {
+        final Collection<String> genesig = AnnotationSourcesExporter.getStringSourcesOfType(real, "BioMartAnnotationSource", "\n$$$\n");
+        assertEquals(2, genesig.size());
+    }
+
+    String real = "Type: BioMartAnnotationSource\n" +
+            "software.name = metazoa\n" +
+            "software.version = 13\n" +
+            "url = http://metazoa.ensembl.org/biomart/martservice?\n" +
+            "organism = anopheles gambiae\n" +
+            "databaseName = metazoa\n" +
+            "datasetName = agambiae_eg_gene\n" +
+            "mySqlDbName = anopheles_gambiae\n" +
+            "mySqlDbUrl = mysql.ebi.ac.uk:4157\n" +
+            "types = enstranscript,ensgene\n" +
+            "property.description = description\n" +
+            "property.ensgene = ensembl_gene_id\n" +
+            "property.ensprotein = ensembl_peptide_id\n" +
+            "property.enstranscript = ensembl_transcript_id\n" +
+            "property.entrezgene = entrezgene\n" +
+            "property.go = go_accession\n" +
+            "property.goterm = name_1006\n" +
+            "property.interpro = interpro\n" +
+            "property.interproterm = interpro_short_description\n" +
+            "property.refseq = refseq_peptide\n" +
+            "property.symbol = external_gene_id\n" +
+            "property.unigene = unigene\n" +
+            "property.uniprot = uniprot_sptrembl,uniprot_swissprot_accession\n" +
+            "arrayDesign.A-AFFY-102 = affy_plasmodium_anopheles\n" +
+            "$$$\n" +
+            "Type: BioMartAnnotationSource\n" +
+            "software.name = plants\n" +
+            "software.version = 13\n" +
+            "url = http://plants.ensembl.org/biomart/martservice?\n" +
+            "organism = arabidopsis thaliana\n" +
+            "databaseName = plants\n" +
+            "datasetName = athaliana_eg_gene\n" +
+            "mySqlDbName = arabidopsis_thaliana\n" +
+            "mySqlDbUrl = mysql.ebi.ac.uk:4157\n" +
+            "types = enstranscript,ensgene\n" +
+            "property.description = description\n" +
+            "property.ensgene = ensembl_gene_id\n" +
+            "property.ensprotein = ensembl_peptide_id\n" +
+            "property.enstranscript = ensembl_transcript_id\n" +
+            "property.entrezgene = entrezgene\n" +
+            "property.go = go_accession\n" +
+            "property.goterm = name_1006\n" +
+            "property.interpro = interpro\n" +
+            "property.interproterm = interpro_short_description\n" +
+            "property.refseq = refseq_peptide\n" +
+            "property.symbol = external_gene_id\n" +
+            "property.unigene = unigene\n" +
+            "arrayDesign.A-AFFY-2 = affy_ath1_121501";
 }
