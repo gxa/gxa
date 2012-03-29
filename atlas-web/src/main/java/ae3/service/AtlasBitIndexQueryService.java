@@ -330,15 +330,14 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
                 if (!uniqueBestExperiments.contains(experimentResult))
                     uniqueBestExperiments.add(experimentResult);
             }
-            bestExperiments.addAll(uniqueBestExperiments);
+            return new ArrayList<ExperimentResult>(uniqueBestExperiments);
 
         } else {
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
             statsQuery.and(getStatisticsOrQuery(attributes, statType, 1));
             bestExperiments.addAll(getBestExperiments(statsQuery).values());
+            return bestExperiments;
         }
-
-        return bestExperiments;
     }
 
     /**
