@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.collect.HashMultiset.create;
-import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -325,11 +324,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             // Now retain only one ExperimentResult per experiment - the one with the best pVal/tStat rank
             // e.g. if experiment was present twice in bestExperiments (once for UP and once for DOWN)
             // we want to choose the one occurrence with the better best pVal/tStat rank
-            Set<ExperimentResult> uniqueBestExperiments = new LinkedHashSet<ExperimentResult>();
-            for (ExperimentResult experimentResult : bestExperiments) {
-                if (!uniqueBestExperiments.contains(experimentResult))
-                    uniqueBestExperiments.add(experimentResult);
-            }
+            Set<ExperimentResult> uniqueBestExperiments = new LinkedHashSet<ExperimentResult>(bestExperiments);
+
             return new ArrayList<ExperimentResult>(uniqueBestExperiments);
 
         } else {
