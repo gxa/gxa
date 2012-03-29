@@ -1698,7 +1698,6 @@
         }
 
         function search() {
-            updatePageLinks();
             submitQuery(process);
         }
 
@@ -1804,6 +1803,7 @@
 
             updateTable(eAs);
             updateTableTooltips(geneToolTips);
+            updatePageLinks();
 
             if (expressionAnalysisOnly) {
                 dataDidLoad();
