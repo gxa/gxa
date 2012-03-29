@@ -48,7 +48,6 @@ import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.NON_D_E;
-import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 import static uk.ac.ebi.gxa.utils.CollectionUtil.makeMap;
 
 /**
@@ -135,6 +134,17 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             abstract Iterator<ExperimentResult> expiter();
+
+            protected Iterator<ExperimentResult> getExperimentResults(Attribute attr) {
+                List<ExperimentResult> allExps = Lists.newArrayList();
+                if (getUpExperiments() > 0)
+                    allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.UP));
+                if (getDownExperiments() > 0)
+                    allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(row.getGene().getGeneId(), attr, -1, -1, StatisticsType.DOWN));
+                if (getNonDEExperiments() > 0)
+                    allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(row.getGene().getGeneId(), attr, NON_D_E)));
+                return allExps.iterator();
+            }
         }
 
         public class EfvExp extends ResultRow.Expression {
@@ -154,8 +164,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<ExperimentResult> expiter() {
-                return getExperimentResults(new EfvAttribute(efefv.getEf(), efefv.getEfv()), row.getGene().getGeneId(),
-                        getUpExperiments(), getDownExperiments(), getNonDEExperiments());
+                return getExperimentResults(new EfvAttribute(efefv.getEf(), efefv.getEfv()));
             }
         }
 
@@ -176,8 +185,7 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             }
 
             Iterator<ExperimentResult> expiter() {
-                return getExperimentResults(new EfoAttribute(efoItem.getId()), row.getGene().getGeneId(),
-                        getUpExperiments(), getDownExperiments(), getNonDEExperiments());
+                return getExperimentResults(new EfoAttribute(efoItem.getId()));
             }
         }
 
@@ -245,16 +253,5 @@ public class HeatmapResultAdapter implements ApiQueryResults<HeatmapResultAdapte
             results.add(new ExperimentResult(ei, null, NONDE_PTRANK));
         }
         return results;
-    }
-
-    private Iterator<ExperimentResult> getExperimentResults(Attribute attr, int geneId, int upExperimentsCnt, int downExperimentsCnt, int nondeExperimentsCnt) {
-        List<ExperimentResult> allExps = Lists.newArrayList();
-        if (upExperimentsCnt > 0)
-            allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, -1, -1, StatisticsType.UP));
-        if (downExperimentsCnt > 0)
-            allExps.addAll(atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(geneId, attr, -1, -1, StatisticsType.DOWN));
-        if (nondeExperimentsCnt > 0)
-            allExps.addAll(toNonDEResults(atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(geneId, attr, NON_D_E)));
-        return allExps.iterator();
     }
 }
