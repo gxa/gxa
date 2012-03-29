@@ -577,7 +577,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
       *         statisticsQuery against statisticsStorage
       */
      private Map<Long, ExperimentResult> getBestExperiments(StatisticsQueryCondition statisticsQuery) {
-         Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
+         // Use LinkedHashMap to preserve the order to experiments - as they are populated from bit index
+         // in best-first order
+         Map<Long, ExperimentResult> bestExperimentsMap = new LinkedHashMap<Long, ExperimentResult>();
          getBestExperimentsRecursive(statisticsQuery, bestExperimentsMap);
          return bestExperimentsMap;
      }
