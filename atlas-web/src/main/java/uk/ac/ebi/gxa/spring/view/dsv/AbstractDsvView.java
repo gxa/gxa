@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ import java.util.Map;
  */
 public abstract class AbstractDsvView extends AbstractView {
 
-    private boolean disableCaching = true;
+    private boolean disableCaching;
 
     public void setDisableCaching(boolean disableCaching) {
         this.disableCaching = disableCaching;
@@ -55,6 +56,10 @@ public abstract class AbstractDsvView extends AbstractView {
             response.addHeader("Pragma", "no-cache");
             response.addHeader("Cache-Control", "no-cache, no-store, max-age=0");
             response.addDateHeader("Expires", 1L);
+        } else {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MONTH, 1);
+            response.addDateHeader("Expires", cal.getTimeInMillis());
         }
     }
 
@@ -62,8 +67,20 @@ public abstract class AbstractDsvView extends AbstractView {
     protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
                                            HttpServletResponse response) throws Exception {
         DsvDocument doc = buildDsvDocument(model);
+        response.setHeader( "Content-Disposition", "attachment;filename="
+                + generateFileName(request));
+
         ServletOutputStream out = response.getOutputStream();
         write(out, doc);
+    }
+
+    private String generateFileName(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        uri = uri.substring(uri.lastIndexOf("/") + 1);
+
+        String query = request.getQueryString();
+        query = query.replaceAll("(^.*?=)|(&.*?=)", "-");
+        return getDsvFormat().fileName(uri + query);
     }
 
     private void write(OutputStream out, DsvDocument doc) throws IOException {
