@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.collect.HashMultiset.create;
-import static com.google.common.collect.Maps.newHashMap;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 
 /**
@@ -301,7 +300,43 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
-     *
+     * @param bioEntityId
+     * @param attributes
+     * @param statType    any of StatisticsType's apart from UP_DOWN
+     * @return List of ExperimentResult's corresponding to bioEntityId, attributes and statType, sorted by tStatRank/pval in which each experiment occurs only once
+     */
+    private List<ExperimentResult> getBestExperiments(final Integer bioEntityId,
+                                                      final List<Attribute> attributes,
+                                                      final StatisticsType statType) {
+
+        List<ExperimentResult> bestExperiments = Lists.newArrayList();
+        if (statType == StatisticsType.UP_DOWN) {
+            bestExperiments = Lists.newArrayList();
+            bestExperiments.addAll(getBestExperiments(bioEntityId, attributes, StatisticsType.UP));
+            bestExperiments.addAll(getBestExperiments(bioEntityId, attributes, StatisticsType.DOWN));
+
+            // Sort bestExperiments by best pVal/tStat ranks first - across UP and DOWN
+            Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
+                public int compare(ExperimentResult e1, ExperimentResult e2) {
+                    return e1.getPValTStatRank().compareTo(e2.getPValTStatRank());
+                }
+            });
+            // Now retain only one ExperimentResult per experiment - the one with the best pVal/tStat rank
+            // e.g. if experiment was present twice in bestExperiments (once for UP and once for DOWN)
+            // we want to choose the one occurrence with the better best pVal/tStat rank
+            Set<ExperimentResult> uniqueBestExperiments = new LinkedHashSet<ExperimentResult>(bestExperiments);
+
+            return new ArrayList<ExperimentResult>(uniqueBestExperiments);
+
+        } else {
+            StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
+            statsQuery.and(getStatisticsOrQuery(attributes, statType, 1));
+            bestExperiments.addAll(getBestExperiments(statsQuery).values());
+            return bestExperiments;
+        }
+    }
+
+    /**
      * @param bioEntityId BioEntity of interest
      * @param attribute   Attribute
      * @param fromRow     Used for paginating of experiment plots on gene page
@@ -324,21 +359,8 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             attrs = Collections.singletonList(attribute);
         }
 
-
-        StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
-        statsQuery.and(getStatisticsOrQuery(attrs, statType, 1));
-
-        // retrieve experiments sorted by pValue/tRank for statsQuery
-        // Map: experiment id -> ExperimentInfo (used in getBestExperiments() for better than List efficiency of access)
-        Map<Long, ExperimentResult> bestExperimentsMap = getBestExperiments(statsQuery);
-
-        List<ExperimentResult> bestExperiments = new ArrayList<ExperimentResult>(bestExperimentsMap.values());
-        // Sort bestExperiments by best pVal/tStat ranks first
-        Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
-            public int compare(ExperimentResult e1, ExperimentResult e2) {
-                return e1.getPValTStatRank().compareTo(e2.getPValTStatRank());
-            }
-        });
+        // Get best experiments, sorted by pval/tStat rank in which each experiment occurs only once
+        List<ExperimentResult> bestExperiments = getBestExperiments(bioEntityId, attrs, statType);
 
         // Extract the correct chunk (Note that if toRow == fromRow == -1, the whole of bestExperiments is returned)
         int maxSize = bestExperiments.size();
@@ -551,7 +573,9 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
       *         statisticsQuery against statisticsStorage
       */
      private Map<Long, ExperimentResult> getBestExperiments(StatisticsQueryCondition statisticsQuery) {
-         Map<Long, ExperimentResult> bestExperimentsMap = newHashMap();
+         // Use LinkedHashMap to preserve the order to experiments - as they are populated from bit index
+         // in best-first order
+         Map<Long, ExperimentResult> bestExperimentsMap = new LinkedHashMap<Long, ExperimentResult>();
          getBestExperimentsRecursive(statisticsQuery, bestExperimentsMap);
          return bestExperimentsMap;
      }
