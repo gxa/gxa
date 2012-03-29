@@ -140,7 +140,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
 
                     getLog().info("   Processing ad: {}, # de's: {}, # uEFVs: {}",
                             new Object[]{ad.getAccession(), stats.getDeCount(), stats.getEfvCount()});
-                    final Map<EfAttribute, MinPMaxT> efToPTUpDown = new HashMap<EfAttribute, MinPMaxT>();
+                    final Map<EfAttribute, MinPMaxT> efToPTUp = new HashMap<EfAttribute, MinPMaxT>();
+                    final Map<EfAttribute, MinPMaxT> efToPTDown = new HashMap<EfAttribute, MinPMaxT>();
                     while (stats.nextEFV()) {
                         final Pair<String, String> efv = stats.getEfv();
 
@@ -152,13 +153,16 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                         final Set<Integer> noBioEntityIds = new FastSet();
 
                         // Initialise if necessary pval/tstat storage for ef
-                        MinPMaxT ptUpDownForEf = efToPTUpDown.get(efAttribute);
-                        if (ptUpDownForEf == null) {
-                            efToPTUpDown.put(efAttribute, ptUpDownForEf = new MinPMaxT());
+                        MinPMaxT ptUpForEf = efToPTUp.get(efAttribute);
+                        if (ptUpForEf == null) {
+                            efToPTUp.put(efAttribute, ptUpForEf = new MinPMaxT());
+                        }
+                        MinPMaxT ptDownForEf = efToPTDown.get(efAttribute);
+                        if (ptDownForEf == null) {
+                            efToPTDown.put(efAttribute, ptDownForEf = new MinPMaxT());
                         }
 
                         // Initialise pval/tstat storage for ef-efv
-                        final MinPMaxT ptUpDown = new MinPMaxT();
                         final MinPMaxT ptUp = new MinPMaxT();
                         final MinPMaxT ptDown = new MinPMaxT();
 
@@ -176,10 +180,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                     upBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up)
                                     ptUp.update(bioEntityId, pt);
-                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
-                                    ptUpDown.update(bioEntityId, pt);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
-                                    ptUpDownForEf.update(bioEntityId, pt);
+                                    ptUpForEf.update(bioEntityId, pt);
                                     break;
                                 }
                                 case DOWN: {
@@ -187,10 +189,8 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                     dnBioEntityIds.add(bioEntityId);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef-efv (down)
                                     ptDown.update(bioEntityId, pt);
-                                    // Store if the lowest pVal/highest absolute value of tStat for ef-efv (up/down)
-                                    ptUpDown.update(bioEntityId, pt);
                                     // Store if the lowest pVal/highest absolute value of tStat for ef  (up/down)
-                                    ptUpDownForEf.update(bioEntityId, pt);
+                                    ptDownForEf.update(bioEntityId, pt);
                                     break;
                                 }
                                 default:
@@ -206,8 +206,6 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                                 ptUp.storeStats(upStats, experimentInfo, efvAttribute);
                                 // Store rounded minimum down pVals per gene for ef-efv
                                 ptDown.storeStats(dnStats, experimentInfo, efvAttribute);
-                                // Store rounded minimum up/down pVals per gene for ef-efv
-                                ptUpDown.storeStats(updnStats, experimentInfo, efvAttribute);
                             }
                         });
 
@@ -237,10 +235,15 @@ public class GeneAtlasBitIndexBuilderService extends IndexBuilderService {
                     summarizer.submit(new Runnable() {
                         @Override
                         public void run() {
-                            // Store rounded minimum up/down pVals per gene for all efs/scs
-                            for (Map.Entry<EfAttribute, MinPMaxT> entry : efToPTUpDown.entrySet()) {
-                                // Store min up/down pVal for efv
-                                entry.getValue().storeStats(updnStats, experimentInfo, entry.getKey());
+                            // Store rounded minimum up pVals per gene for all efs
+                            for (Map.Entry<EfAttribute, MinPMaxT> entry : efToPTUp.entrySet()) {
+                                // Store min up pVal for ef
+                                entry.getValue().storeStats(upStats, experimentInfo, entry.getKey());
+                            }
+                            // Store rounded minimum down pVals per gene for all efs
+                            for (Map.Entry<EfAttribute, MinPMaxT> entry : efToPTDown.entrySet()) {
+                                // Store min down pVal for ef
+                                entry.getValue().storeStats(dnStats, experimentInfo, entry.getKey());
                             }
                         }
                     });
