@@ -27,7 +27,7 @@ public class HealthFilter implements Filter {
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        request.setAttribute("health", Boolean.TRUE);
+        request.setAttribute("health", true);
         chain.doFilter(request, response);
     }
 
