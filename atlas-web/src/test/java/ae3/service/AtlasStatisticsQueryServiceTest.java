@@ -249,6 +249,15 @@ public class AtlasStatisticsQueryServiceTest {
         assertNotNull(bestExperiment.getHighestRankAttribute().getEf());
         assertTrue(isSortedByPValTStatRank(list));
 
+        // If empty attribute is used, all scoring attributes are used for the query instead; but scoring attributes are stored in bit index for StatisticsType.UP_DOWN only
+        efvAttr = new EfvAttribute("", "");
+        list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efvAttr, -1, -1, StatisticsType.UP);
+        assertNotNull(list);
+        assertEquals(0, list.size());
+        list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efvAttr, -1, -1, StatisticsType.DOWN);
+        assertNotNull(list);
+        assertEquals(0, list.size());
+
         EfAttribute efAttr = new EfAttribute("");
         list = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.UP_DOWN);
         assertNotNull(list);
@@ -274,9 +283,26 @@ public class AtlasStatisticsQueryServiceTest {
         assertTrue(list3.size() > 0);
         assertTrue(isSortedByPValTStatRank(list3));
 
+        efvAttr = new EfvAttribute("organism_part", "liver");
+        list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efvAttr, -1, -1, StatisticsType.DOWN);
+        assertNotNull(list3);
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
+
         efAttr = new EfAttribute("organism_part");
         list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.UP_DOWN);
         assertNotNull(list3);
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
+
+        // For EfAttribute, we store pval/tstat ranks only for StatisticsType.UP_DOWN
+        efAttr = new EfAttribute("organism_part");
+        list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.UP);
+        assertNotNull(list3);
+        assertTrue(list3.size() > 0);
+        assertTrue(isSortedByPValTStatRank(list3));
+        efAttr = new EfAttribute("organism_part");
+        list3 = atlasStatisticsQueryService.getExperimentsSortedByPvalueTRank(bioEntityId, efAttr, -1, -1, StatisticsType.DOWN);
         assertTrue(list3.size() > 0);
         assertTrue(isSortedByPValTStatRank(list3));
     }
