@@ -33,10 +33,16 @@ public abstract class DsvFormat {
 
     private final char delimiter;
     private final String contentType;
+    private final String ext;
 
-    public DsvFormat(char delimiter, String contentType) {
+    public DsvFormat(char delimiter, String contentType, String ext) {
         this.delimiter = delimiter;
         this.contentType = contentType;
+        this.ext = ext;
+    }
+    
+    public DsvFormat(char delimiter, String contentType) {
+        this(delimiter, contentType, "");
     }
 
     public String getContentType() {
@@ -45,6 +51,10 @@ public abstract class DsvFormat {
 
     public DsvWriter newWriter(Writer writer) {
         return new DsvWriter(writer, this);
+    }
+
+    public String fileName(String fileName) {
+        return fileName + ext;
     }
 
     String joinValues(String[] values) {
@@ -63,5 +73,5 @@ public abstract class DsvFormat {
         return sb.toString();
     }
 
-    abstract String sanitizeFieldValue(String value);
+    abstract String sanitizeFieldValue(String value);    
 }

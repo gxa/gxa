@@ -33,7 +33,7 @@ public class CsvFormat extends DsvFormat {
     private boolean encloseInDblQuotes;
 
     public CsvFormat(boolean encloseInDblQuotes) {
-        super(',', "text/csv");
+        super(',', "text/csv", ".csv");
         this.encloseInDblQuotes = encloseInDblQuotes;
     }
 

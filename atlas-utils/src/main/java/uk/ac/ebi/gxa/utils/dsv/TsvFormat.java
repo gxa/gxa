@@ -37,7 +37,7 @@ public class TsvFormat extends DsvFormat {
     }
 
     public TsvFormat(boolean strict) {
-        super('\t', "text/tab-separated-values");
+        super('\t', "text/tab-separated-values", ".tsv");
         this.strict = strict;
     }
 
