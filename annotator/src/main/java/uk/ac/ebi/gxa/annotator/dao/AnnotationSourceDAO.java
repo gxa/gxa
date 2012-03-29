@@ -74,7 +74,12 @@ public class AnnotationSourceDAO {
 
     @SuppressWarnings("unchecked")
     public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
-        return template.find("from " + type.getSimpleName());
+        return template.find("from " + type.getSimpleName() + " order by name asc");
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends AnnotationSource> Collection<T> getLatestAnnotationSourcesOfType(Class<T> type) {
+        return template.find("from " + type.getSimpleName() + " where isObsolete = ? order by name asc", false);
     }
 
     public BioMartAnnotationSource findBioMartAnnotationSource(Software software, Organism organism) {
@@ -84,13 +89,27 @@ public class AnnotationSourceDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
-        public GeneSigAnnotationSource findGeneSigAnnotationSource(Software software) {
+    public GeneSigAnnotationSource findGeneSigAnnotationSource(Software software) {
         String queryString = "from " + GeneSigAnnotationSource.class.getSimpleName() + " where software = ?";
         @SuppressWarnings("unchecked")
         final List<GeneSigAnnotationSource> results = template.find(queryString, software);
         return results.isEmpty() ? null : results.get(0);
     }
 
+    public List<BioMartAnnotationSource> getBioMartAnnotationSourceForSoftware(Software software) {
+        String queryString = "from " + BioMartAnnotationSource.class.getSimpleName() + " where software = ?";
+        return template.find(queryString, software);
+    }
+
+    public List<AnnotationSource> getAnnotationSourceForSoftware(Software software) {
+        String queryString = "from " + AnnotationSource.class.getSimpleName() + " where software = ?";
+        return template.find(queryString, software);
+    }
+
+    public Software getSoftwareById(long id) {
+        return template.get(Software.class, id);
+    }
+    
     public void remove(AnnotationSource annSrc) {
 
         template.delete(annSrc);

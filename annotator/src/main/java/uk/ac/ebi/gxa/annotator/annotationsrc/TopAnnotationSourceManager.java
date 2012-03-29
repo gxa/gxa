@@ -23,10 +23,16 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
+import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +44,12 @@ import java.util.List;
 public class TopAnnotationSourceManager {
 
     private List<AnnotationSourceManager<? extends AnnotationSource>> managers;
+
+    @Autowired
+    private AnnotationSourceDAO annSrcDAO;
+
+    @Autowired
+    private SoftwareDAO softwareDAO;
 
     public TopAnnotationSourceManager(List<AnnotationSourceManager<? extends AnnotationSource>> managers) {
         this.managers = managers;
@@ -52,47 +64,58 @@ public class TopAnnotationSourceManager {
         return result;
     }
 
+    public Software getSoftware(long softwareId) throws RecordNotFoundException {
+        Software software = annSrcDAO.getSoftwareById(softwareId);
+        if (software == null) {
+            throw new RecordNotFoundException("Software not found: id = " + softwareId);
+        }
+        return software;
+    }
+
+    public Collection<AnnotationSource> getAnnotationSourcesBySoftware(Software software) {
+        return annSrcDAO.getAnnotationSourceForSoftware(software);
+    }
+
+    public List<Software> getAllSoftware() {
+        List<Software> result = new ArrayList<Software>();
+        final List<Software> softwares = softwareDAO.getAllButLegacySoftware();
+        result.addAll(softwares);
+        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+            result.addAll(manager.getNewVersionSoftware());
+        }
+        return result;
+    }
+
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(annSrc.getClass())) {
-                manager.validateProperties(annSrc, reportBuilder);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Cannot validate annotation source of class " + annSrc.getClass().getName());
-
+        findManager(annSrc).validateProperties(annSrc, reportBuilder);
     }
 
-    public String getAnnSrcString(String id, String typeName) {
-        final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())) {
-                return manager.getAnnSrcString(id);
-            }
-        }
-
-        throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
+    public AnnotationSource getAnnSrc(long id, AnnotationSourceType type) throws RecordNotFoundException {
+        return findManager(type).getAnnSrc(id);
     }
 
-    public ValidationReportBuilder saveAnnSrc(String id, String text, String typeName) {
-        final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())) {
-                return manager.saveAnnSrc(id, text);
-            }
-        }
-        throw new IllegalArgumentException("Annotation source manager is not available for type " + type);
+    public String getAnnSrcString(long id, AnnotationSourceType type) throws RecordNotFoundException {
+        return findManager(type).getAnnSrcString(id);
     }
 
-    public void validateProperties(String annSrcId, String typeName, ValidationReportBuilder reportBuilder) {
-        final AnnotationSourceType type = AnnotationSourceType.getByName(typeName);
+    public ValidationReportBuilder validateAndSaveAnnSrc(long annSrcId, String text, AnnotationSourceType type) {
+        return findManager(type).validateAndSaveAnnSrc(annSrcId, text);
+    }
+
+    private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSource annSrc) {
+        return findManager(annSrc.getClass());
+    }
+
+    private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSourceType type) {
+        return findManager(type.getClazz());
+    }
+
+    private AnnotationSourceManager<? extends AnnotationSource> findManager(Class<? extends AnnotationSource> clazz) {
         for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
-            if (manager.isForClass(type.getClazz())) {
-                manager.validateProperties(annSrcId, reportBuilder);
-                return;
+            if (manager.isForClass(clazz)) {
+                return manager;
             }
         }
-        throw new IllegalArgumentException("Cannot validate annotation source of class " + type);
-
+        throw new IllegalArgumentException("Annotation source manager is not available for class: " + clazz);
     }
 }

@@ -22,61 +22,79 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Nataliya Sklyar
  */
 public class BioMartDbDAOTest {
-    private BioMartDbDAO bioMartDbDAO;
-
-    @Before
-    public void setUp() throws Exception {
-        bioMartDbDAO = new BioMartDbDAO("ensembldb.ensembl.org:5306");
-    }
 
     @Test
-    public void testGetSynonyms() throws Exception {
-        Collection<Pair<String, String>> synonyms = bioMartDbDAO.getSynonyms("gallus_gallus", "63");
+    public void testGetSynonyms() throws BioMartException {
+        Collection<Pair<String, String>> synonyms = validBioMartDao().getSynonyms("gallus_gallus", "63");
         assertEquals(1030, synonyms.size());
     }
 
     @Test
-    public void testFindDBName() throws Exception {
-        String dbName = bioMartDbDAO.findSynonymsDBName("homo_sapiens", "63");
+    public void testFindDBName() {
+        String dbName = validBioMartDao().findSynonymsDBName("homo_sapiens", "63");
         assertEquals("homo_sapiens_core_63_37", dbName);
     }
 
     @Test
-    public void testValidateConnection1() throws Exception {
-        final BioMartDbDAO bioMartDbDAO1 = new BioMartDbDAO("ensembldb.ensem");
-        String message = bioMartDbDAO1.validateConnection("xenopus_tropicalis", "66");
-        assertFalse(message.isEmpty());
-        assertTrue("Fails with invalid URL", message.contains("Invalid url"));
-
-
-        final BioMartDbDAO bioMartDbDAO3 = new BioMartDbDAO("ensembldb.ensembl.org:5306");
-        message = bioMartDbDAO3.validateConnection("xenopus_tropicalis", "66");
-        assertTrue(message.isEmpty());
+    public void testInvalidDbUrl() {
+        assertInvalidDbUrl("ensembldb.ensem", "xenopus_tropicalis", "66");
     }
 
     @Test
-    public void testValidateConnection2() throws Exception {
-        String message = bioMartDbDAO.validateConnection("xenopus_tropis", "66");
-        assertFalse(message.isEmpty());
-        assertTrue("Fails with Invalid database name", message.contains("Invalid database name"));
+    public void testInvalidDbName() throws Exception {
+        assertInvalidDbName("xenopus_tropis", "66");
+        assertInvalidDbName("", "66");
+    }
 
-        message = bioMartDbDAO.validateConnection("", "66");
-        assertFalse(message.isEmpty());
-        assertTrue("Fails with Invalid database name", message.contains("Invalid database name"));
+    @Test
+    public void testDbConnectionTest() {
+        assertInvalidDbConnection("ensembldb.ensem", "xenopus_tropicalis", "66");
+        assertInvalidDbConnection("ensembldb.ensembl.org:5306", "xenopus_tropis", "66");
+        assertInvalidDbConnection("ensembldb.ensembl.org:5306", "", "66");
+    }
 
+    private static BioMartDbDAO validBioMartDao() {
+        return new BioMartDbDAO("ensembldb.ensembl.org:5306");
+    }
+
+    private static void assertInvalidDbUrl(String url, String dbName, String version) {
+        try {
+            (new BioMartDbDAO(url)).findSynonymsDBName(dbName, version);
+            fail("No DataAccessException thrown for invalid DB url: " + url);
+        } catch (DataAccessException e) {
+            // ok
+        }
+    }
+
+    private static void assertInvalidDbName(String dbName, String version) {
+        try {
+            validBioMartDao().findSynonymsDBName(dbName, version);
+            fail("No IncorrectResultSizeDataAccessException thrown for invalid DB name/version: " + dbName + "/" + version);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            // ok
+        }
+    }
+
+    private static void assertInvalidDbConnection(String url, String dbName, String version) {
+        try {
+            (new BioMartDbDAO(url)).testConnection(dbName, version);
+            fail("No BioMartException thrown for invalid DB settings: url=[" + url + "], dbName=[" + dbName + "], version=[" + version + "]");
+        }  catch (BioMartException e) {
+            // ok
+        }
     }
 }

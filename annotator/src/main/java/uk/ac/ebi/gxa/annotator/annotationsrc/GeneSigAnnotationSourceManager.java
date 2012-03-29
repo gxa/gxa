@@ -23,12 +23,14 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * User: nsklyar
@@ -45,6 +47,11 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Override
     protected Collection<GeneSigAnnotationSource> getCurrentAnnSrcs() {
         return annSrcDAO.getAnnotationSourcesOfType(GeneSigAnnotationSource.class);
+    }
+
+    @Override
+    public Collection<Software> getNewVersionSoftware() {
+        return Collections.emptySet();
     }
 
     @Override
@@ -65,7 +72,7 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Override
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         if (isForClass(annSrc.getClass())) {
-            geneSigValidator.getInvalidPropertyNames((GeneSigAnnotationSource) annSrc, reportBuilder);
+            geneSigValidator.validatePropertyNames((GeneSigAnnotationSource) annSrc, reportBuilder);
         } else {
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + GeneSigAnnotationSource.class);

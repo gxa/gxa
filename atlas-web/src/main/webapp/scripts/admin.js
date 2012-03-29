@@ -45,10 +45,7 @@ $.fn.vale = function() {
 var currentState = {};
 var atlas = { homeUrl: '' };
 var selectedExperiments = {};
-var selectedOrganisms = {};
-var selectedAnnSrcTypes = {};
 var selectAll = false;
-var selectAllOrg = false;
 var $time = {};
 var $tpl = {};
 var $tab = {};
@@ -62,9 +59,6 @@ var $options = {
     searchDelay: 500,
     tasklogPageSize: 20
 };
-
-var annSrcId;
-var annSrcType;
 
 var $msg = {
     taskType: {
@@ -167,17 +161,16 @@ function requireLogin(op, params, func) {
     });
 }
 
-function adminCall(op, params, func) {
-    $('.loadIndicator').css('visibility', 'visible');
+function adminCall(op, params, func, errorFunc, target) {
+    showLoadingIndicator(target, true);
     return $.ajax({
-        traditional: true,
         type: "POST",
         url: atlas.homeUrl + "admin",
         dataType: "json",
         traditional: true,
         data: $.extend(params, { op : op }),
         success: function (json) {
-            $('.loadIndicator').css('visibility', 'hidden');
+            showLoadingIndicator(target, false);
             if(json.notAuthenticated) {
                 requireLogin(op, params, func);
                 return;
@@ -194,9 +187,37 @@ function adminCall(op, params, func) {
                 func(json);
         },
         error: function() {
-            $('.loadIndicator').css('visibility', 'hidden');
+            showLoadingIndicator(target, false);
             alert('AJAX error for ' + op + ' ' + params);
+            if (errorFunc) {
+                errorFunc();
+            }
         }});
+}
+
+function adminCall2(obj) {
+    adminCall(
+        obj.op,
+        obj.params || {},
+        obj.success,
+        obj.error,
+        obj.target
+    );
+}
+
+function showLoadingIndicator(target, on) {
+    target = target || {};
+    if (on) {
+        $('.loadIndicator').css('visibility', 'visible');
+        if (target.addClass) {
+            target.addClass("loading");
+        }
+    } else {
+        $('.loadIndicator').css('visibility', 'hidden');
+        if (target.removeClass) {
+            target.removeClass("loading");
+        }
+    }
 }
 
 function switchToQueue() {
@@ -632,147 +653,8 @@ function updateArrayDesigns() {
     });
 }
 
-function updateAnnSrcs() {
-    adminCall('searchorg', {}, function (result) {
-
-        function updateOrgButtons() {
-            var cando = selectAllOrg;
-            for (var k in selectedOrganisms) {
-                cando = true;
-                break;
-            }
-            if (cando)
-                $('#orgList .orgbuttons input').removeAttr('disabled');
-            else
-                $('#orgList .orgbuttons input').attr('disabled', 'disabled');
-        }
-
-        renderTpl('orgList', result);
-
-        $('#orgList tr input.orgSelector').click(function () {
-            if ($(this).is(':checked'))
-                selectedOrganisms[this.value] = 1;
-            else
-                delete selectedOrganisms[this.value];
-            updateOrgButtons();
-        });
-
-        var newAccessions = {};
-        for (var i = 0; i < result.annSrcs.length; ++i)
-            newAccessions[result.annSrcs[i].id] = 1;
-        for (i in selectedOrganisms)
-            if (!newAccessions[i])
-                delete selectedOrganisms[i];
-        updateOrgButtons();
-
-        function startSelectedTasks(type, mode, title) {
-            var accessions = [];
-            for (var accession in selectedOrganisms)
-                accessions.push(accession);
-
-            if (accessions.length == 0 && !selectAllOrg)
-                return;
-
-            if (window.confirm('Do you really want to ' + title + ' '
-                    + (selectAllOrg ? result.numTotal : accessions.length)
-                    + ' organism(s)' + '?')) {
-
-                adminCall('schedule', {
-                    runMode: mode,
-                    accession: accessions,
-                    type: type,
-                    autoDepends: false
-                }, switchToQueue);
-
-
-                selectedOrganisms = {};
-                selectAllOrg = false;
-            }
-        }
-
-        $('#orgList .edit input').each(function (i, e) {
-            var li = result.annSrcs[i];
-
-            $(e).click(function() {
-               annSrcId = li.id;
-               annSrcType=li.annSrcType;
-               $('#tabs').tabs('select', $tab.annSrcEd);
-            });
-
-        });
-
-        $('#orgList .validate input').each(function (i, e) {
-            var li = result.annSrcs[i];
-
-            $(e).click(function() {
-                adminCall('validateannSrc', {
-                    annSrcId:li.id
-                    , type: li.annSrcType
-                }, function (result) {
-
-                    $('#validationMsg_' + li.id).text(result.validationMsg);
-
-                });
-            });
-
-        });
-
-
-        $('#orgList input.update').click(function () {
-            startSelectedTasks('orgupdate', 'RESTART', 'update annotations for organism ');
-        });
-
-        $('#orgList input.updateMapping').click(function () {
-            startSelectedTasks('mappingupdate', 'RESTART', 'update mappings for organism ');
-        });
-
-        $('#orgList input.newannsrc').click(function () {
-            annSrcType=$('#annSrcSelect').val();
-            $('#tabs').tabs('select', $tab.annSrcEd);
-        });
-        
-        bindHistoryExpands($('#orgList'), 'annSrc', result.annSrcs);
-    });
-}
-
-function editAnnSrc(id, type) {
-    adminCall('searchannSrc', {
-        annSrcId:id
-        , type: type
-    }, function (result) {
-
-        renderTpl('annSrcEd', result);
-
-        $('#annSrcEd input.saveannsrc').click(function () {
-            saveAnnSrc();
-        });
-
-         $('#cancelAnnSrcButton').click(function () {
-            annSrcId="";
-            annSrcType="";
-            $('#tabs').tabs('select', $tab.annSrc);
-        });
-    });
-}
-
-function saveAnnSrc() {
-    var asText = $('#txtAnnSrc').val();
-
-    function switchToAnnSrcList(result) {
-        if (result.isValid) {
-            annSrcId = "";
-            annSrcType = "";
-            $('#tabs').tabs('select', $tab.annSrc);
-        } else {
-            window.alert("Annotation Source cannot be saved! \n" + result.formValidationMessage);
-        }
-    }
-
-    adminCall('annSrcUpdate', {
-        asText: asText,
-        annSrcId:annSrcId,
-        type:annSrcType
-    }, switchToAnnSrcList);
+function openAnnotSourcesTab() {
+    annotSources.load();
 }
 
 function redrawCurrentState() {
@@ -811,11 +693,8 @@ function redrawCurrentState() {
         updateArrayDesigns();
         $('#tabs').tabs('select', $tab.ad);
     } else if(currentState['tab'] == $tab.annSrc) {
-        updateAnnSrcs();
+        openAnnotSourcesTab();
         $('#tabs').tabs('select', $tab.annSrc);
-    } else if(currentState['tab'] == $tab.annSrcEd) {
-        editAnnSrc(annSrcId, annSrcType);
-        $('#tabs').tabs('select', $tab.annSrcEd);
     } else if(currentState['tab'] == $tab.asys) {
         adminCall('aboutsys',{}, function (r) {
             $('#aboutSystem').autoRender(r);
@@ -919,29 +798,6 @@ function compileTemplates() {
         }
     });
 
-     compileTpl('orgList', {
-        'tbody tr': {
-            'annSrc <- annSrcs': {
-                'label.annSrcType': 'annSrc.annSrcType',
-                '.name': 'annSrc.organismName',
-                '.types': 'annSrc.beTypes',
-                '.currAnnSrc': 'annSrc.currName',
-                '.appliedAnn': 'annSrc.applied',
-                '.appliedMapping': 'annSrc.appliedMapping',
-//                '.validationMsg': 'annSrc.validation',
-                '.validationText@id+': 'annSrc.id',
-                '.validationText': 'annSrc.validation',
-                '.orgSelector@value': 'annSrc.id',
-                '.orgSelector@id+': 'annSrc.id'
-            }
-        }
-    });
-
-    compileTpl('annSrcEd', {
-        '.type':'type',
-        'textarea.value':'annSrcText'
-    });
-
     compileTpl('taskLogItems', {
         'tr' : {
             'litem <- items': {
@@ -1006,6 +862,357 @@ function compileTemplates() {
         }
     });
 }
+
+var annotSources = (function() {
+    var _this = {};
+    var _listId = "#annotSourceList",
+        _editorId = "#annotSourceEditor",
+        _editFormId = "#editAnnotSourceForm",
+        _tmpl = {
+            softwareGroups: function(softwareGroups) {
+                return $("#softwareGroupTmpl").tmpl({softwareGroups: softwareGroups});
+            },
+            annotSourceList: function(annotSources, software) {
+                return $("#annotSourceListTmpl").tmpl({annotSources: annotSources, software: software});
+            },
+            annotSourceEdit: function(annotSource) {
+                return $("#annotSourceEditTmpl").tmpl(annotSource);
+            },
+            annotSourceFormErrors: function(errors) {
+                return $("#annotSourceFormErrorsTmpl").tmpl({errors: errors});
+            },
+            annotSourceInlineErrors: function(errors) {
+                return $("#annotSourceInlineErrorsTmpl").tmpl({errors: errors});
+            }
+        };
+
+    function softwareEl(softwareId) {
+        return $("#software_" + softwareId);
+    }
+
+    function numericId(el) {
+        if (el.length > 1) {
+            var arr = [];
+            $.each(el, function(_, i) {
+                arr.push(numericId($(i)));
+            });
+            return arr;
+        }
+        var id = el.attr("id");
+        var m = /(\d+)/.exec(id||"");
+        return m.length > 1 ? m[1] : id;
+    }
+
+    function toSoftware(obj) {
+        if (!obj) return obj;
+        var arr = [].concat(obj),
+            res = [];
+        $.each(arr, function (i, s) {
+            res.push({
+                name:s.name || null,
+                version:s.version || null,
+                id:s.softwareid || null,
+                isActive:s.active || false,
+                isObsolete:s.obsolete || true
+            });
+        });
+        return obj.length >= 0 ? res : res[0];
+    }
+
+    function toAnnotSource(obj) {
+        if (!obj) return obj;
+        var arr = [].concat(obj),
+            res = [];
+        $.each(arr, function (i, s) {
+            res.push({
+                id:s.id || null,
+                type: s.type || null,
+                organism: s.organismName || null,
+                bioEntityTypes: s.bioEntityTypes || null,
+                mappingsLoaded: s.mappingsLoaded || null,
+                annotLoaded: s.annotationsLoaded || null,
+                isObsolete: s.obsolete || false
+            });
+        });
+        return obj.length >= 0 ? res : res[0];
+    }
+
+    function toEditableAnnotSource(obj) {
+        if (!obj) return obj;
+        var arr = [].concat(obj),
+            res = [];
+        $.each(arr, function (i, s) {
+            res.push({
+                id:s.id || null,
+                type:s.typeName || null,
+                body:s.body || "",
+                isObsolete: s.obsolete || false
+            });
+        });
+        return obj.length >= 0 ? res : res[0];
+    }
+
+    function openEditor() {
+        $(_listId).hide();
+    }
+
+    function closeEditor() {
+        $(_editorId).html("");
+        $(_listId).show();
+    }
+
+    function renderSoftwareVersions(softwares) {
+        softwares = softwares || [];
+        var groups = {};
+        for (var i = 0; i < softwares.length; i++) {
+            var s = softwares[i];
+            if (!groups.hasOwnProperty(s.name)) {
+                groups[s.name] = {
+                    name:s.name,
+                    id:s.name.replace(/[^\w\d]/g, ""),
+                    versions:[]};
+            }
+            (groups[s.name]).versions.push(toSoftware(s));
+        }
+
+        $(_listId).html(_tmpl.softwareGroups($.isEmptyObject(groups) ? null : groups));
+
+        for (var k in groups) {
+            if (groups.hasOwnProperty(k)) {
+                selectSoftwareVersion(softwareEl(groups[k].versions[0].id));
+            }
+        }
+
+        $("#batchActionButtons button", _listId).attr("disabled", "disabled");
+
+        $(".version", _listId).click(function (ev) {
+            selectSoftwareVersion($(ev.currentTarget));
+        });
+
+        $(".updateAnnotations", _listId).click(function () {
+            updateAnnotations();
+        });
+
+        $(".updateMappings", _listId).click(function () {
+            updateMappings();
+        });
+
+        $(".createNewAnnotSource", _listId).click(function () {
+            createNewAnnotSource($("#annotSourceType").val());
+        });
+    }
+
+    function renderAnnotSources(obj, target) {
+        obj = obj || {};
+
+        target.html(_tmpl.annotSourceList(toAnnotSource(obj.annotSources), toSoftware(obj.software)));
+
+        $(".edit", target).click(function (ev) {
+            var el = $(ev.currentTarget);
+            viewOrEdit(numericId(el), el.data("type"));
+            return false;
+        });
+
+        $(".test", target).click(function (ev) {
+            var el = $(ev.currentTarget);
+            test(numericId(el), el.data("type"));
+            return false;
+        });
+
+        $("input.selectAll:checkbox", target).click(function(ev) {
+            $("input.annotCheckbox", target).attr("checked", $(ev.target).is(":checked"));
+        });
+
+        $("input:checkbox", target).click(function(ev) {
+            var v = $(ev.target).is(':checked') ? 1 : 0;
+            var enabled = $("input:checked", _listId).length +  v > 0;
+            var buttons = $("#batchActionButtons button", _listId);
+            if (enabled) {
+                buttons.removeAttr("disabled");
+            } else {
+                buttons.attr("disabled", "disabled");
+            }
+        });
+
+        $(".activateSoftware", target).click(function(ev) {
+            ev.preventDefault();
+            activateSoftware(numericId($(ev.target)));
+        });
+
+        $(".deleteSoftware", target).click(function(ev) {
+            ev.preventDefault();
+            deleteSoftware(numericId($(ev.target)));
+        });
+    }
+
+    function renderAnnotSource(obj) {
+        obj = obj || {};
+        $(_editorId).html(_tmpl.annotSourceEdit(toEditableAnnotSource(obj)));
+
+        $(".saveAnnotSource", _editorId).click(function(ev) {
+            ev.preventDefault();
+            saveAnnotSource();
+        });
+
+        $(".cancelAnnotSource", _editorId).click(function(ev) {
+            ev.preventDefault();
+            closeEditor();
+        });
+    }
+
+    function selectSoftwareVersion(el) {
+        var groupEl = el.parents(".softwareGroup");
+        markSelectedSoftware(groupEl, el);
+
+        var target = $(".annotSourceList", groupEl);
+        loadAnnotSources(numericId(el), target);
+    }
+
+    function markSelectedSoftware(groupEl, el) {
+        $(".version.selected", groupEl).removeClass("selected");
+        el.addClass("selected");
+    }
+
+    function test(sourceId, type) {
+        var el = $("#annot_test_results_" + sourceId + " > div");
+        el.html("&nbsp;");
+
+        adminCall2({
+            op:"testAnnotSource",
+            params:{annotSourceId:sourceId, typeName:type},
+            target: el,
+            success:function (obj) {
+                el.html(_tmpl.annotSourceInlineErrors(obj.validationErrors || []));
+            }
+        });
+    }
+
+    function viewOrEdit(sourceId, type) {
+        openEditor();
+        adminCall2({
+            op:"getAnnotSource",
+            params:{annotSourceId:sourceId, typeName:type},
+            success:renderAnnotSource,
+            error:closeEditor
+        });
+    }
+
+    function createNewAnnotSource(type) {
+        openEditor();
+        renderAnnotSource({id:0, typeName: type, body: "CREATE NEW ANNOTATION SOURCE"});
+    }
+
+    function saveAnnotSource() {
+        clearFormValidationErrors();
+        var params = {};
+        $.each($(_editFormId).serializeArray(), function(_, kv) {
+            if (params.hasOwnProperty(kv.name)) {
+                params[kv.name] = [].concat(params[kv.name]);
+                params[kv.name].push(kv.value);
+            } else {
+                params[kv.name] = kv.value;
+            }
+        });
+        adminCall2({
+            op:"updateAnnotSource",
+            params:params,
+            success:function (obj) {
+                var errors = obj.validationErrors || [];
+                if (errors.length > 0) {
+                    showFormValidationErrors(errors);
+                } else {
+                    closeEditor();
+                    openAnnotSourcesTab();
+                }
+            }});
+    }
+
+    function clearFormValidationErrors() {
+        $(".validationErrors", _editFormId).html("");
+    }
+
+    function showFormValidationErrors(errors) {
+        $(".validationErrors", _editFormId).html(_tmpl.annotSourceFormErrors(errors));
+    }
+
+    function getSelectedAnnotSourceIds() {
+        return [].concat(numericId($("input.annotCheckbox:checked", _listId)));
+    }
+
+    function updateAnnotations() {
+        var ids = getSelectedAnnotSourceIds() || [];
+        if (ids.length >0 &&
+            window.confirm("Do you really want to update annotations for selected annotation source(s)?")) {
+            batchAction("orgupdate", ids);
+        }
+    }
+
+    function updateMappings() {
+        var ids = getSelectedAnnotSourceIds() || [];
+        if (ids.length >0 &&
+            window.confirm("Do you really want to update mappings for selected annotation source(s)?")) {
+            batchAction("mappingupdate", ids);
+        }
+    }
+
+    function batchAction(actionType, annotSourceIds) {
+        adminCall2({
+            op:"schedule",
+            params:{
+                runMode:"RESTART",
+                accession:annotSourceIds,
+                type:actionType,
+                autoDepends:false
+            },
+            success:switchToQueue
+        });
+    }
+
+    function loadSoftwareVersions() {
+        adminCall2({
+            op:"listAnnotSourceSoftware",
+            success:renderSoftwareVersions
+        });
+    }
+
+    function loadAnnotSources(softwareId, target) {
+        target.html("");
+        adminCall2({
+            op:"listAnnotSources",
+            params:{softwareId:softwareId},
+            target:target,
+            success:function (annotSources) {
+                renderAnnotSources(annotSources, target);
+            }
+        });
+    }
+
+    function activateSoftware(softwareId) {
+        if (window.confirm(
+            "The index will be automatically rebuilt just after this version become active. Do you really want to start using this version?")) {
+            adminCall2({
+                op:"activateSoftware",
+                params:{softwareId:softwareId},
+                success:loadSoftwareVersions
+            });
+        }
+    }
+
+    function deleteSoftware(softwareId) {
+        if (window.confirm("Do you really want to delete this version of annotations?")) {
+            adminCall2({
+                op:"deleteSoftware",
+                params:{softwareId:softwareId},
+                success:loadSoftwareVersions
+            });
+        }
+    }
+
+    _this.load = function() {
+        loadSoftwareVersions();
+    };
+    return _this;
+})();
 
 $(document).ready(function () {
 
