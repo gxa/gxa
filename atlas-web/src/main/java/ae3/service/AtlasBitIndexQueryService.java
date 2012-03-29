@@ -315,26 +315,31 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
             bestExperiments = Lists.newArrayList();
             bestExperiments.addAll(getBestExperiments(bioEntityId, attributes, StatisticsType.UP));
             bestExperiments.addAll(getBestExperiments(bioEntityId, attributes, StatisticsType.DOWN));
+
+            // Sort bestExperiments by best pVal/tStat ranks first - across UP and DOWN
+            Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
+                public int compare(ExperimentResult e1, ExperimentResult e2) {
+                    return e1.getPValTStatRank().compareTo(e2.getPValTStatRank());
+                }
+            });
+            // Now retain only one ExperimentResult per experiment - the one with the best pVal/tStat rank
+            // e.g. if experiment was present twice in bestExperiments (once for UP and once for DOWN)
+            // we want to choose the one occurrence with the better best pVal/tStat rank
+            Set<ExperimentResult> uniqueBestExperiments = new LinkedHashSet<ExperimentResult>();
+            for (ExperimentResult experimentResult : bestExperiments) {
+                if (!uniqueBestExperiments.contains(experimentResult))
+                    uniqueBestExperiments.add(experimentResult);
+            }
+            bestExperiments.addAll(uniqueBestExperiments);
+
         } else {
             StatisticsQueryCondition statsQuery = new StatisticsQueryCondition(Collections.singleton(bioEntityId), statType);
             statsQuery.and(getStatisticsOrQuery(attributes, statType, 1));
             bestExperiments.addAll(getBestExperiments(statsQuery).values());
         }
-        // Sort bestExperiments by best pVal/tStat ranks first
-        Collections.sort(bestExperiments, new Comparator<ExperimentResult>() {
-            public int compare(ExperimentResult e1, ExperimentResult e2) {
-                return e1.getPValTStatRank().compareTo(e2.getPValTStatRank());
-            }
-        });
-        // Now retain only one ExperimentResult per experiment - the one with the best pVal/tStat rank
-        Set<ExperimentResult> uniqueBestExperiments = new LinkedHashSet<ExperimentResult>();
-        for (ExperimentResult experimentResult : bestExperiments) {
-            if (!uniqueBestExperiments.contains(experimentResult))
-                uniqueBestExperiments.add(experimentResult);
-        }
-        return new ArrayList<ExperimentResult>(uniqueBestExperiments);
-    }
 
+        return bestExperiments;
+    }
 
     /**
      * @param bioEntityId BioEntity of interest
