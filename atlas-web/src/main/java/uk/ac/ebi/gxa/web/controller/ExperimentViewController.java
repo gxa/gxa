@@ -333,6 +333,10 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
             Model model
     ) throws ResourceNotFoundException, RecordNotFoundException, AtlasDataException, StatisticsNotFoundException {
+        if (limit > 200) {
+            log.warn("Page size is: {} {}", new String[] {String.valueOf(limit), accession});
+        }
+
         ExperimentWithData ewd = null;
         try {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
@@ -357,6 +361,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
             model.addAttribute("arrayDesign", res.getArrayDesignAccession());
             model.addAttribute("totalSize", res.getTotalSize());
+            model.addAttribute("pageSize", limit);
             model.addAttribute("items", Iterables.transform(res,
                     new Function<BestDesignElementsResult.Item, ExperimentTableRow>() {
                         public ExperimentTableRow apply(@Nullable BestDesignElementsResult.Item item) {

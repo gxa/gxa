@@ -1646,6 +1646,7 @@
             $("#geneFilter").val(_state.gid());
             $("#efvFilter").val(_state.efEfv());
             $("#updownFilter").val(_state.updown());
+            $("#experimentTablePageSize").val(_state.limit());
 
             $("#geneFilter").change(function() {
                 _state.gid($(this).val());
@@ -1664,6 +1665,17 @@
 
             $("#expressionListFilterForm").bind("submit", function() {
                 return false;
+            });
+
+            $("#experimentTablePageSize").change(function() {
+                var limit = $(this).val();
+                if (limit > 200) {
+                    limit = 200;
+                    $(this).val(limit);
+                }
+                _state.limit(limit);
+                _state.offset(0);
+                newSearch();
             });
         }
 
@@ -1695,10 +1707,19 @@
                     _state.eid(), _state.ad(), _state.gid(), _state.ef(), _state.efv(), _state.updown(), _state.offset(), _state.limit(), callback);
         }
 
-        function loadExpressionAnalysis(expAcc, ad, gene, ef, efv, updn, offset, limit, callback) {
+        function startLoading() {
             $("#divErrorMessage").css("visibility", "hidden");
-
+            $("#experimentTablePageSize").attr("disabled", "disabled");
             atlas.newWaiter2("#squery");
+        }
+
+        function stopLoading() {
+            $("#experimentTablePageSize").removeAttr("disabled");
+            atlas.removeWaiter2();
+        }
+
+        function loadExpressionAnalysis(expAcc, ad, gene, ef, efv, updn, offset, limit, callback) {
+            startLoading();
 
             var data = {
                 "format": "json",
@@ -1732,7 +1753,7 @@
         }
 
         function process(data, expressionAnalysisOnly) {
-            atlas.removeWaiter2();
+            stopLoading();
 
             var tableItems = {};
             var tableSize = 0;
@@ -1884,10 +1905,15 @@
                 el.attr("href", updateUrlParameters(href, state));
             });
 
-            $("a.export2TsvLink").each(function() {
+            $("a.export2TsvLink").each(function () {
                 var el = $(this);
                 var href = el.attr("href");
-                el.attr("href", updateUrlParameters(href, $.extend(true, state, {ad: _state.ad()})));
+                el.attr("href", updateUrlParameters(href,
+                    $.extend(true, state,
+                        {ad:_state.ad(),
+                            offset:_state.offset(),
+                            limit:_state.limit()
+                        })));
             });
         }
 

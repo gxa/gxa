@@ -303,7 +303,7 @@
         <div>
             <div style="float:left; margin: 5px;">
                 <a class="export2TsvLink" target="_blank"
-                   href="${pageContext.request.contextPath}/experimentTable?format=csv&eacc=${exp.accession}">Export to
+                   href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export to
                     TSV</a>
             </div>
             <div id="topPagination" style="float:right;"class="pagination_ie alignRight"></div>
@@ -363,6 +363,7 @@
                     </tbody>
                 </table>
 
+                <div class="pageSize" style="width:100%; text-align: right;">Page size: <input type="text" id="experimentTablePageSize" value="0" style="width:40px"/></div>
                 <div class="errorMessage" id="divErrorMessage">No matching results found. See <a
                      onclick="expPage.clearQuery(); return false;" href="#">all</a> genes.
                 </div>
