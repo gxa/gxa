@@ -35,13 +35,15 @@ import java.util.*;
  */
 public class ExperimentDesignUI {
     private final Experiment exp;
+    private final SortedSet<Property> expProperties;
 
     public ExperimentDesignUI(Experiment exp) {
         this.exp = exp;
+        this.expProperties = exp.getProperties();
     }
 
     public SortedSet<Property> getProperties() {
-        return exp.getProperties();
+        return expProperties;
     }
 
     public List<Assay> getAssays() {
@@ -68,7 +70,7 @@ public class ExperimentDesignUI {
 
             @Override
             protected Iterator<Property> keys() {
-                return exp.getProperties().iterator();
+                return expProperties.iterator();
             }
         };
     }
