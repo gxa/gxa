@@ -39,7 +39,7 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
  * User: nsklyar
  * Date: 21/03/2012
  */
-public class BioMartInputValidator extends AnnotationSourceInputValidator<BioMartAnnotationSource> {
+class BioMartInputValidator extends AnnotationSourceInputValidator<BioMartAnnotationSource> {
 
     @Autowired
     MartVersionFinder martVersionFinder;

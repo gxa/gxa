@@ -35,7 +35,7 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
  * User: nsklyar
  * Date: 21/03/2012
  */
-public class GeneSigInputValidator extends AnnotationSourceInputValidator<GeneSigAnnotationSource> {
+class GeneSigInputValidator extends AnnotationSourceInputValidator<GeneSigAnnotationSource> {
 
 
     @Override

@@ -38,7 +38,7 @@ import java.util.Collection;
  * User: nsklyar
  * Date: 19/03/2012
  */
-public class AnnotationSourcesExporter{
+class AnnotationSourcesExporter{
 
     private static String TYPE_NAME = "Type: ";
 

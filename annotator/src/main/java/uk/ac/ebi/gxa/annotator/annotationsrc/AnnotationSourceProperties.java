@@ -45,7 +45,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * User: nsklyar
  * Date: 19/03/2012
  */
-public class AnnotationSourceProperties {
+class AnnotationSourceProperties {
     public static final String SOFTWARE_NAME_PROPNAME = "software.name";
     public static final String SOFTWARE_VERSION_PROPNAME = "software.version";
     public static final String TYPES_PROPNAME = "types";
