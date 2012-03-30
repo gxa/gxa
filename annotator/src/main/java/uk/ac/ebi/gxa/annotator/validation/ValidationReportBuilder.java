@@ -22,23 +22,21 @@
 
 package uk.ac.ebi.gxa.annotator.validation;
 
-import com.google.common.base.Joiner;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * User: nsklyar
  * Date: 01/02/2012
  */
 public class ValidationReportBuilder {
-    private Collection<String> messages = new ArrayList<String>();
+
+    private final List<String> messages = new ArrayList<String>();
 
     public void addMessage(String message) {
-        if (!message.isEmpty()) {
-            messages.add(message);
-        }
+        messages.add(message);
     }
 
     public Collection<String> getMessages() {
@@ -48,19 +46,4 @@ public class ValidationReportBuilder {
     public boolean isEmpty() {
         return messages.isEmpty();
     }
-
-    public String getSummary(String headMessage, String separator) {
-        return getSummary("", headMessage, separator);
-    }
-
-    public String  getSummary(String messageIfValid, String headMessage, String separator) {
-        if (!isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(headMessage);
-            sb.append(": ");
-            return Joiner.on(separator).appendTo(sb, messages).toString();
-        }
-        return messageIfValid;
-    }
-
 }

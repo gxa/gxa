@@ -20,20 +20,18 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.loader.genesig;
-
-import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
-import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
-import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
+package uk.ac.ebi.gxa.annotation;
 
 /**
- * User: nsklyar
- * Date: 20/01/2012
+ * @author Olga Melnichuk
  */
-public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> {
+public class AnnotationSourceControllerException extends Exception {
 
-    @Override
-    public void validatePropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
+    public AnnotationSourceControllerException(String message) {
+        super(message);
+    }
 
+    public AnnotationSourceControllerException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

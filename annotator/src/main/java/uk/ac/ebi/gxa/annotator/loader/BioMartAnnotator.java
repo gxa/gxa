@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.loader;
 
+import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartAnnotationLoader;
 import uk.ac.ebi.gxa.annotator.loader.biomart.BioMartException;
@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 
 import java.io.IOException;
 
+import static com.google.common.base.Joiner.on;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -164,12 +165,13 @@ public class BioMartAnnotator extends Annotator {
     }
 
     private void validate(BioMartAnnotationSource annSrc) throws BioMartException {
-        ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
+        ValidationReportBuilder errors = new ValidationReportBuilder();
         MartPropertiesValidator validator = new MartPropertiesValidator(httpClient);
-        validator.getInvalidPropertyNames(annSrc, reportBuilder);
+        validator.validatePropertyNames(annSrc, errors);
 
-        final String summary = reportBuilder.getSummary("Cannot load annotations (mappings) - invalid properties ", ", ");
-        if (!summary.isEmpty())
-            throw new BioMartException(summary);
+        if (!errors.isEmpty()) {
+            throw new BioMartException("Cannot load annotations (mappings) - invalid properties: " +
+                    on(",").join(errors.getMessages()));
+        }
     }
 }

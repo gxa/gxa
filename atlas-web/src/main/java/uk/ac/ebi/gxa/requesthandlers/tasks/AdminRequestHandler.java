@@ -28,6 +28,8 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotation.AnnotationSourceController;
+import uk.ac.ebi.gxa.annotation.AnnotationSourceControllerException;
+import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.jmx.AtlasManager;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -38,6 +40,7 @@ import uk.ac.ebi.gxa.tasks.*;
 import uk.ac.ebi.gxa.utils.JoinIterator;
 import uk.ac.ebi.gxa.utils.MappingIterator;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -263,41 +266,6 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return makeMap("arraydesigns", results, "page", page, "numTotal", total);
     }
 
-    private Object processSearchOrganisms() {
-        List<Map> results = new ArrayList<Map>();
-        Collection<AnnotationSourceController.AnnotationSourceView> annSrcs = annSrcController.getAnnSrcViews();
-        for (AnnotationSourceController.AnnotationSourceView sourceView : annSrcs) {
-            results.add(
-                    makeMap("organismName", sourceView.getOrganismName()
-                            , "id", sourceView.getAnnSrcId()
-                            , "beTypes", sourceView.getBioEntityTypes()
-                            , "currName", sourceView.getSoftware()
-                            , "validation", sourceView.getValidationMessage()
-                            , "applied", sourceView.getApplied()
-                            , "appliedMapping", sourceView.getMappingsApplied()
-                            , "annSrcType", sourceView.getType()
-
-                    ));
-        }
-
-        return makeMap("annSrcs", results);
-    }
-
-    private Object processSearchAnnSrc(String annSrcId, String type) {
-        String annSrcString = "CREATE NEW ANNOTATION SOURCE ";
-        if (!StringUtils.EMPTY.equals(annSrcId)) {
-            annSrcString = annSrcController.getAnnSrcString(annSrcId, type);
-        }
-
-        return makeMap("annSrcText", annSrcString, "type", type);
-    }
-
-    private Object processValidateAnnSrc(String annSrcId, String type) {
-        String validationMsg = annSrcController.validate(annSrcId, type);
-
-        return makeMap("validationMsg", validationMsg);
-    }
-
     private Date parseDate(String toDateStr) {
         try {
             return IN_DATE_FORMAT.parse(StringUtils.trimToNull(toDateStr));
@@ -378,14 +346,78 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         return EMPTY;
     }
 
-    private Object processUpdateAnnSrc(String id, String type, String text){
-        final String validationMsg = annSrcController.saveAnnSrc(id, type, text);
-        boolean isValid = true;
-        if (!validationMsg.isEmpty()) {
-            isValid = false;
+    private Object annotSourceError(String msg, Exception e) {
+        log.error(msg, e);
+        return makeMap("error", msg + ": " + e.getMessage());
+    }
+
+    private Object processListAnnotSourceSoftware() {
+        return annSrcController.getAllSoftware();
+    }
+    
+    private Object processActivateSoftware(long softwareId) {
+        try {
+            Software software = annSrcController.getSoftware(softwareId);
+            //TODO
+            return makeMap("error", "Sorry, this functionality has not been implemented yet");
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting list of annotation sources for software", e);
         }
-        return makeMap("formValidationMessage", validationMsg,
-                "isValid", isValid);
+    }
+
+    private Object processDeleteSoftware(long softwareId) {
+        try {
+            Software software = annSrcController.getSoftware(softwareId);
+            if (software.isActive()) {
+                return makeMap("error", "Can't delete currently using version");
+            }
+            //TODO
+            return makeMap("error", "Sorry, this functionality has not been implemented yet");
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting list of annotation sources for software", e);
+        }
+    }
+
+    private Object processListAnnotSources(long softwareId) {
+        try {
+            Software software = annSrcController.getSoftware(softwareId);
+            return makeMap(
+                    "software", software,
+                    "annotSources", annSrcController.getAnnotationSourcesForSoftware(software)
+            );
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting list of annotation sources for software", e);
+        }
+    }
+
+    private Object processGetAnnotSource(long annSrcId, String typeName) {
+        try {
+            return annSrcController.getEditableAnnSrc(annSrcId, typeName);
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error getting editable annotation source", e);
+        }
+    }
+
+    private Object processTestAnnotSource(long annSrcId, String typeName) {
+        try {
+            return validationResult(
+                    annSrcController.validate(annSrcId, typeName));
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error validating annotation source", e);
+        }
+    }
+
+    private Object processUpdateAnnotSource(long annSrcId, String typeName, String text){
+        try {
+            return validationResult(
+                    annSrcController.validateAndSaveAnnSrc(annSrcId, typeName, text));
+        } catch (AnnotationSourceControllerException e) {
+            return annotSourceError("Error updating annotation source", e);
+        }
+    }
+
+    private Object validationResult(ValidationReportBuilder errors) {
+        return makeMap("validationErrors", errors.getMessages());
     }
 
     private Object processAboutSystem() {
@@ -429,16 +461,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return makeMap("notAuthenticated", true);
         }
 
-        if ("pause".equals(op))
+        if ("pause".equals(op)) {
             return processPause();
-
-        else if ("restart".equals(op))
+        } else if ("restart".equals(op)) {
             return processRestart();
-
-        else if ("tasklist".equals(op))
+        } else if ("tasklist".equals(op)) {
             return processTaskList(req.getInt("p"), req.getInt("n", 1, 1));
-
-        else if ("schedule".equals(op))
+        } else if ("schedule".equals(op)) {
             return processSchedule(
                     req.getStr("type"),
                     req.getStrArray("accession"),
@@ -447,16 +476,13 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     remoteId,
                     authenticatedUser,
                     req.getMultimap());
-
-        else if ("cancel".equals(op))
+        } else if ("cancel".equals(op)) {
             return processCancel(req.getStrArray("id"),
                     remoteId,
                     authenticatedUser);
-
-        else if ("cancelall".equals(op))
+        } else if ("cancelall".equals(op)) {
             return processCancelAll(remoteId, authenticatedUser);
-
-        else if ("searchexp".equals(op))
+        } else if ("searchexp".equals(op)) {
             return processSearchExperiments(
                     req.getStr("search"),
                     parseDate(req.getStr("fromDate")),
@@ -464,26 +490,26 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getEnum("pendingOnly", DbStorage.ExperimentIncompleteness.ALL),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-
-        else if ("searchad".equals(op))
+        } else if ("searchad".equals(op)) {
             return processSearchArrayDesigns(
                     req.getStr("search"),
                     req.getInt("p", 0, 0),
                     req.getInt("n", 1, 1));
-
-        else if ("searchorg".equals(op))
-            return processSearchOrganisms();
-
-        else if ("searchannSrc".equals(op)) {
-            return processSearchAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
-        }
-        else if ("validateannSrc".equals(op)) {
-            return processValidateAnnSrc(req.getStr("annSrcId"), req.getStr("type"));
-        }
-        else if ("annSrcUpdate".equals(op))
-            return processUpdateAnnSrc(req.getStr("annSrcId"), req.getStr("type"), req.getStr("asText"));
-
-        else if ("schedulesearchexp".equals(op))
+        } else if ("listAnnotSourceSoftware".equals(op)) {
+            return processListAnnotSourceSoftware();
+        } else if ("listAnnotSources".equals(op)) {
+            return processListAnnotSources(req.getLong("softwareId"));
+        } else if ("getAnnotSource".equals(op)) {
+            return processGetAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
+        } else if ("testAnnotSource".equals(op)) {
+            return processTestAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
+        } else if ("updateAnnotSource".equals(op)) {
+            return processUpdateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"), req.getStr("body"));
+        } else if ("activateSoftware".equals(op)) {
+            return processActivateSoftware(req.getLong("softwareId"));
+        } else if ("deleteSoftware".equals(op)) {
+            return processDeleteSoftware(req.getLong("softwareId"));
+        } else if ("schedulesearchexp".equals(op)) {
             return processScheduleSearchExperiments(
                     req.getStr("type"),
                     req.getStr("search"),
@@ -494,8 +520,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getBool("autoDepends"),
                     remoteId,
                     authenticatedUser);
-
-        else if ("tasklog".equals(op))
+        } else if ("tasklog".equals(op)) {
             return processTaskEventLog(
                     req.getEnumNullDefault("event", TaskEvent.class),
                     req.getStr("user"),
@@ -504,26 +529,27 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                     req.getInt("p", -1, -1),
                     req.getInt("n", 1, 1));
 
-        else if ("tasklogtag".equals(op))
+        } else if ("tasklogtag".equals(op)) {
             return processExperimentTaskEventLog(req.getEnum("type", TaskTagType.EXPERIMENT), req.getStr("accession"));
 
-        else if ("proplist".equals(op))
+        } else if ("proplist".equals(op)) {
             return processPropertyList();
 
-        else if ("propset".equals(op))
+        } else if ("propset".equals(op)) {
             return processPropertySet(req.getMap());
 
-        else if ("aboutsys".equals(op))
+        } else if ("aboutsys".equals(op)) {
             return processAboutSystem();
 
-        else if ("setincomplete".equals(op))
+        } else if ("setincomplete".equals(op)) {
             return processSetIncompleteNcdfAnalytics(req.getStr("accession"));
 
-        else if ("logout".equals(op)) {
+        } else if ("logout".equals(op)) {
             session.removeAttribute(SESSION_ADMINUSER);
             return EMPTY;
-        } else if ("getuser".equals(op))
+        } else if ("getuser".equals(op)) {
             return makeMap("userName", authenticatedUser.getUserName());
+        }
 
         return new ErrorResult("Unknown operation specified: " + op);
     }

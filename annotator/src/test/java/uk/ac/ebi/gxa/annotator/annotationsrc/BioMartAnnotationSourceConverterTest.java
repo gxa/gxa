@@ -37,9 +37,7 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * User: nsklyar
@@ -111,22 +109,22 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
             "property.ortholog = human_ensembl_gene,cow_ensembl_gene\n" +
             "property.hgnc_symbol = hgnc_symbol\n" +
             "property.enstranscript = ensembl_transcript_id\n" +
-            "property.uniprot = uniprot_sptrembl,uniprot_swissprot_accession\n" +
             "property.go_id = go\n" +
+            "property.uniprot = uniprot_sptrembl,uniprot_swissprot_accession\n" +
             "arrayDesign.A-AFFY-45 = affy_moe430b";
 
     protected static final String ANN_SRC_DB =
             "software.name = Ensembl\n" +
-            "software.version = 60\n" +
-            "url = http://www.ensembl.org/biomart/martservice?\n" +
-            "organism = homo sapiens\n" +
-            "databaseName = ensembl\n" +
-            "datasetName = hsapiens_gene_ensembl\n" +
-            "mySqlDbName = homo_sapiens\n" +
-            "mySqlDbUrl = ensembldb.ensembl.org:5306\n" +
-            "types = enstranscript,ensgene\n" +
-            "property.ensgene = ensembl_gene_id\n" +
-            "property.goterm = go_cellular_component__dm_name_1006,name_1006\n" +
-            "property.enstranscript = ensembl_transcript_id\n" +
-            "arrayDesign.A-AFFY-45 = affy_74a";
+                    "software.version = 60\n" +
+                    "url = http://www.ensembl.org/biomart/martservice?\n" +
+                    "organism = homo sapiens\n" +
+                    "databaseName = ensembl\n" +
+                    "datasetName = hsapiens_gene_ensembl\n" +
+                    "mySqlDbName = homo_sapiens\n" +
+                    "mySqlDbUrl = ensembldb.ensembl.org:5306\n" +
+                    "types = enstranscript,ensgene\n" +
+                    "property.ensgene = ensembl_gene_id\n" +
+                    "property.enstranscript = ensembl_transcript_id\n" +
+                    "property.goterm = go_cellular_component__dm_name_1006,name_1006\n" +
+                    "arrayDesign.A-AFFY-45 = affy_74a";
 }
