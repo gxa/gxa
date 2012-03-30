@@ -456,6 +456,11 @@
     </filter>
 
     <filter>
+        <filter-name>HealthFilter</filter-name>
+        <filter-class>uk.ac.ebi.gxa.web.filter.HealthFilter</filter-class>
+    </filter>
+
+    <filter>
         <filter-name>SimplePageFragmentCachingFilter</filter-name>
         <filter-class>net.sf.ehcache.constructs.web.filter.SimplePageFragmentCachingFilter</filter-class>
         <init-param>
@@ -467,6 +472,11 @@
             <param-value>SimplePageFragmentCachingFilter</param-value>
         </init-param>
     </filter>
+
+    <filter-mapping>
+        <filter-name>HealthFilter</filter-name>
+        <url-pattern>/webping</url-pattern>
+    </filter-mapping>
 
     <filter-mapping>
         <filter-name>NoCacheHeaderFilter</filter-name>
