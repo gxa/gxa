@@ -1108,7 +1108,8 @@ var annotSources = (function() {
     function syncAnnotationSources() {
         adminCall2({
             op:"syncAnnotationSources",
-            params:{}
+            params:{},
+            success:openAnnotSourcesTab
         });
     }
 
