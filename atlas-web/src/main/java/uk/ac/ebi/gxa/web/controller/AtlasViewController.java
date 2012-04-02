@@ -27,7 +27,7 @@ import static com.google.common.io.Closeables.closeQuietly;
 public class AtlasViewController {
     private static final Logger log = LoggerFactory.getLogger(AtlasViewController.class);
 
-    public static final String UNSUPPORTED_HTML_VIEW = "unsupported-html-view";
+    public static final String JSON_ONLY_VIEW = "json-only-view";
 
     private static final String ERROR = "error";
 
