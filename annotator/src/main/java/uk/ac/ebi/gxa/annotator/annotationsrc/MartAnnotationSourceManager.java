@@ -40,7 +40,7 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
  * User: nsklyar
  * Date: 23/01/2012
  */
-class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotationSource> {
+class MartAnnotationSourceManager extends AbstractAnnotationSourceManager<BioMartAnnotationSource> {
 
     @Autowired
     private BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter;

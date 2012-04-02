@@ -60,7 +60,7 @@
 
     <!-- main Managed is used by Controller -->
     <bean name="annotationSourceManager"
-          class="uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager">
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.CompositeAnnotationSourceManager">
         <constructor-arg>
             <list>
                 <ref bean="martSourceManager"/>
@@ -81,7 +81,7 @@
           class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartInputValidator"/>
 
     <bean name="fileBasedInputValidator"
-          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigInputValidator"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigDBInputValidator"/>
 
     <!-- Validators -->
     <bean name="martValidator"

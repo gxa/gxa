@@ -43,7 +43,7 @@ import java.util.Collection;
  * Date: 26/10/2011
  */
 @Service
-abstract class AnnotationSourceManager<T extends AnnotationSource> {
+abstract class AbstractAnnotationSourceManager<T extends AnnotationSource>{
 
     @Autowired
     protected AnnotationSourceDAO annSrcDAO;

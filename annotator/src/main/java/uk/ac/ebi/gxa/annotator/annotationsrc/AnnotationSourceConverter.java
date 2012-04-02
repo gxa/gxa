@@ -41,7 +41,6 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,7 +48,10 @@ import static com.google.common.collect.Sets.difference;
 import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*;
 
 /**
- * User: nsklyar
+ * Coverts annotation source objects to String representation (in a "property-value" format") and
+ * updates annotation sources with values from input text.
+ *
+ * author: nsklyar
  * Date: 10/11/2011
  */
 abstract class AnnotationSourceConverter<T extends AnnotationSource> {
@@ -67,6 +69,11 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
     @Autowired
     protected ArrayDesignService arrayDesignService;
 
+    /**
+     * Generates a String from a given annotation source in a "property-value" format
+     * @param annSrc - to convert to string
+     * @return a String representation of a given annotation source. The resulting string has a "property-value" format.
+     */
     public String convertToString(T annSrc) {
         if (annSrc == null) {
             return "";
@@ -76,13 +83,16 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         return properties.serializeToString();
     }
 
-
-    public T editAnnotationSource(@Nonnull T annSrc, String text) throws AnnotationLoaderException {
+    /**
+     * Sets fields of a given annotation source with corresponding values from input text.
+     * @param annSrc - new or existing (fetched from DB)annotation source
+     * @param text - String representation of annotation source in a "property-value" format.
+     * @throws AnnotationLoaderException - if update is failed.
+     */
+    public void editAnnotationSource(@Nonnull T annSrc, String text) throws AnnotationLoaderException {
         AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
 
         updateAnnotationSource(properties, annSrc);
-        return annSrc;
-
     }
 
     protected void updateTypes(AnnotationSourceProperties properties, AnnotationSource annotationSource) throws AnnotationLoaderException {
@@ -192,7 +202,7 @@ abstract class AnnotationSourceConverter<T extends AnnotationSource> {
         //Write bioentity types
         properties.addListProperties(TYPES_PROPNAME, Collections2.transform(annSrc.getTypes(), new Function<BioEntityType, String>() {
             @Override
-            public String apply(@Nullable BioEntityType bioEntityType) {
+            public String apply(BioEntityType bioEntityType) {
                 assert bioEntityType != null;
                 return bioEntityType.getName();
             }

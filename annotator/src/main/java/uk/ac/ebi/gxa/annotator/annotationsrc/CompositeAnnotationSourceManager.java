@@ -47,9 +47,9 @@ import java.util.List;
  * User: nsklyar
  * Date: 23/01/2012
  */
-public class TopAnnotationSourceManager {
+public class CompositeAnnotationSourceManager {
 
-    private List<AnnotationSourceManager<? extends AnnotationSource>> managers;
+    private List<AbstractAnnotationSourceManager<? extends AnnotationSource>> managers;
 
     @Autowired
     private AnnotationSourceDAO annSrcDAO;
@@ -62,7 +62,7 @@ public class TopAnnotationSourceManager {
 
     public static final String SEPARATOR = "\n$$$\n";
 
-    public TopAnnotationSourceManager(List<AnnotationSourceManager<? extends AnnotationSource>> managers) {
+    public CompositeAnnotationSourceManager(List<AbstractAnnotationSourceManager<? extends AnnotationSource>> managers) {
         this.managers = managers;
     }
 
@@ -82,7 +82,7 @@ public class TopAnnotationSourceManager {
         List<Software> result = new ArrayList<Software>();
         final List<Software> softwares = softwareDAO.getAllButLegacySoftware();
         result.addAll(softwares);
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+        for (AbstractAnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             result.addAll(manager.getNewVersionSoftware());
         }
         return result;
@@ -106,7 +106,7 @@ public class TopAnnotationSourceManager {
 
     public String getLatestAnnotationSourcesAsText() {
         Collection<String> sourceStrings = new ArrayList<String>();
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+        for (AbstractAnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             sourceStrings.add(manager.getLatestAnnotationSourcesAsText(SEPARATOR));
         }
         return Joiner.on(SEPARATOR).join(sourceStrings);
@@ -125,22 +125,22 @@ public class TopAnnotationSourceManager {
 
     protected ValidationReportBuilder updateLatestAnnotationSources(String text) {
         final ValidationReportBuilder errors = new ValidationReportBuilder();
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+        for (AbstractAnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             manager.updateLatestAnnotationSources(text, SEPARATOR, errors);
         }
         return errors;
     }
 
-    private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSource annSrc) {
+    private AbstractAnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSource annSrc) {
         return findManager(annSrc.getClass());
     }
 
-    private AnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSourceType type) {
+    private AbstractAnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSourceType type) {
         return findManager(type.getClazz());
     }
 
-    private AnnotationSourceManager<? extends AnnotationSource> findManager(Class<? extends AnnotationSource> clazz) {
-        for (AnnotationSourceManager<? extends AnnotationSource> manager : managers) {
+    private AbstractAnnotationSourceManager<? extends AnnotationSource> findManager(Class<? extends AnnotationSource> clazz) {
+        for (AbstractAnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             if (manager.isForClass(clazz)) {
                 return manager;
             }

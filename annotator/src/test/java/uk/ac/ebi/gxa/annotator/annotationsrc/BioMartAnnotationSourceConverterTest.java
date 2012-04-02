@@ -77,7 +77,8 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
     @Transactional
     public void testEditOrCreateAnnotationSourceCreate() throws Exception {
         ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-        BioMartAnnotationSource annotationSource = converter.editAnnotationSource(converter.initAnnotationSource(ANN_SRC), ANN_SRC);
+        final BioMartAnnotationSource annotationSource = converter.initAnnotationSource(ANN_SRC);
+        converter.editAnnotationSource(annotationSource, ANN_SRC);
         assertNotNull(annotationSource);
         assertTrue(reportBuilder.isEmpty());
         assertEquals("gallus gallus", annotationSource.getOrganism().getName());

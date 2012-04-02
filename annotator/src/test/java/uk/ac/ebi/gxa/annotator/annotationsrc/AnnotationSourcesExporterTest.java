@@ -35,14 +35,14 @@ import static org.junit.Assert.assertEquals;
  * Date: 19/03/2012
  */
 public class AnnotationSourcesExporterTest {
-    private static final String separator = "\n$$$\n";
+    private static final String SEPARATOR = "\n$$$\n";
 
     @Test
     public void testJoinAsText() throws Exception {
-        final String result = AnnotationSourcesExporter.joinAsText(Lists.newArrayList("first", "second"), "biomart", separator);
+        final String result = AnnotationSourcesExporter.joinAsText(Lists.newArrayList("first", "second"), "biomart", SEPARATOR);
         assertEquals("Type: biomart\n" +
                 "first" +
-                separator +
+                SEPARATOR +
                 "Type: biomart\n" +
                 "second", result);
     }
@@ -50,17 +50,17 @@ public class AnnotationSourcesExporterTest {
     @Test
     public void testJoinAll() throws Exception {
         final String s = AnnotationSourcesExporter.joinAll("\n$$$\n"
-                , AnnotationSourcesExporter.joinAsText(Lists.newArrayList("first", "second"), "biomart", separator)
-                , AnnotationSourcesExporter.joinAsText(Lists.newArrayList("first", "second"), "genesig", separator));
+                , AnnotationSourcesExporter.joinAsText(Lists.newArrayList("first", "second"), "biomart", SEPARATOR)
+                , AnnotationSourcesExporter.joinAsText(Lists.newArrayList("first", "second"), "genesig", SEPARATOR));
         assertEquals("Type: biomart\n" +
                 "first" +
-                separator +
+                SEPARATOR +
                 "Type: biomart\n" +
                 "second" +
-                separator +
+                SEPARATOR +
                 "Type: genesig\n" +
                 "first" +
-                separator +
+                SEPARATOR +
                 "Type: genesig\n" +
                 "second", s);
     }
@@ -69,12 +69,12 @@ public class AnnotationSourcesExporterTest {
     public void testGetStringSourcesOfType() throws Exception {
         final Collection<String> genesig = AnnotationSourcesExporter.getStringSourcesOfType("Type: biomart\n" +
                 "first" +
-                separator +
+                SEPARATOR +
                 "Type: biomart\n" +
                 "second" +
-                separator +
+                SEPARATOR +
                 "Type: genesig\n" +
-                "first", "genesig", separator);
+                "first", "genesig", SEPARATOR);
         assertEquals(1, genesig.size());
         assertEquals("first", genesig.iterator().next());
     }

@@ -31,8 +31,8 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * User: nsklyar
@@ -65,7 +65,7 @@ class AnnotationSourcesExporter{
     public static Collection<String> getStringSourcesOfType(String text, final String type, String separator) {
         final Iterable<String> split = Splitter.on(separator).split(text.trim());
 
-        final ArrayList<String> sourcesStrings = Lists.newArrayList(split);
+        final List<String> sourcesStrings = Lists.newArrayList(split);
         return Collections2.transform(Collections2.filter(sourcesStrings, new Predicate<String>() {
             @Override
             public boolean apply(@Nullable String s) {

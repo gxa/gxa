@@ -153,7 +153,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         BioMartAnnotationSource annotationSource = annSrcDAO.findBioMartAnnotationSource(software, organism);
         assertNotNull(annotationSource);
 
-        //Not existing ann src
+        //Non-existing ann src
         software = softwareDAO.findOrCreate("animals", "8");
         annotationSource = annSrcDAO.findBioMartAnnotationSource(software, organism);
         assertNull(annotationSource);
@@ -165,7 +165,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         BioMartAnnotationSource annotationSource = annSrcDAO.findBioMartAnnotationSource("Ensembl", "60", "homo sapiens");
         assertNotNull(annotationSource);
 
-        //Not existing ann src
+        //Non-existing ann src
         annotationSource = annSrcDAO.findBioMartAnnotationSource("animals", "8", "homo sapiens");
         assertNull(annotationSource);
     }

@@ -3,7 +3,7 @@ package uk.ac.ebi.gxa.annotation;
 import com.google.common.base.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
-import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
+import uk.ac.ebi.gxa.annotator.annotationsrc.CompositeAnnotationSourceManager;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
@@ -27,7 +27,7 @@ import static com.google.common.collect.Collections2.transform;
 public class AnnotationSourceController {
 
     @Autowired
-    protected TopAnnotationSourceManager manager;
+    protected CompositeAnnotationSourceManager manager;
 
     @Autowired
     private AtlasProperties atlasProperties;

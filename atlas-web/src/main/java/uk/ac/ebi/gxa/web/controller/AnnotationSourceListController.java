@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
+import uk.ac.ebi.gxa.annotator.annotationsrc.CompositeAnnotationSourceManager;
 
 /**
  * User: nsklyar
@@ -36,7 +36,7 @@ import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
 public class AnnotationSourceListController {
 
     @Autowired
-    private TopAnnotationSourceManager annotationSourceManager;
+    private CompositeAnnotationSourceManager annotationSourceManager;
 
     @RequestMapping(value = "/annSrcList")
     public String getAnnotationSourceList(Model model) {

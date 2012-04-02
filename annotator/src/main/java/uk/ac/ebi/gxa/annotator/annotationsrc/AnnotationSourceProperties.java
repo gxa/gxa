@@ -94,17 +94,6 @@ class AnnotationSourceProperties {
         }
     }
 
-    private void initFromText(String text) {
-        Reader input = new StringReader(text);
-        try {
-            this.properties.load(input);
-        } catch (ConfigurationException e) {
-            throw LogUtil.createUnexpected("Cannot read annotation properties", e);
-        } finally {
-            closeQuietly(input);
-        }
-    }
-
     public String serializeToString() {
         Writer writer = new StringWriter();
         try {

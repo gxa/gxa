@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -76,7 +75,8 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
     @Test
     public void testEditOrCreateAnnotationSourceCreate() throws Exception {
         ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-        FileBasedAnnotationSource annotationSource = converter.editAnnotationSource(converter.initAnnotationSource(ANN_SRC), ANN_SRC);
+        final GeneSigAnnotationSource annotationSource = converter.initAnnotationSource(ANN_SRC);
+         converter.editAnnotationSource(annotationSource, ANN_SRC);
         assertNotNull(annotationSource);
         assertEquals(new Software("GeneSigDB", "test"), annotationSource.getSoftware());
         assertEquals(1, annotationSource.getExternalBioEntityProperties().size());

@@ -39,7 +39,7 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.S
  * User: nsklyar
  * Date: 23/01/2012
  */
-class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnnotationSource> {
+class GeneSigAnnotationSourceManager extends AbstractAnnotationSourceManager<GeneSigAnnotationSource> {
 
     @Autowired
     private GeneSigAnnotationSourceConverter geneSigAnnotationSourceConverter;
