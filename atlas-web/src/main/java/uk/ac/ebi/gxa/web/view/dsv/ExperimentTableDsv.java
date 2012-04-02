@@ -49,8 +49,8 @@ public class ExperimentTableDsv {
                         "ExperimentalFactor",
                         "ExperimentalFactorValue",
                         "UpDownExpression",
-                        "PValue",
-                        "TStatistic"
+                        "TStatistic",
+                        "PValue"
                 };
             }
 
@@ -72,8 +72,8 @@ public class ExperimentTableDsv {
                                 row.getFactor(),
                                 row.getFactorValue(),
                                 row.getUpDown(),
-                                Float.toString(row.getFloatPValue()),
-                                Float.toString(row.getFloatTValue())
+                                Float.toString(row.getFloatTValue()),
+                                Float.toString(row.getFloatPValue())
                         };
                     }
 
