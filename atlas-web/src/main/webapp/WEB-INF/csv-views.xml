@@ -8,6 +8,6 @@
     <bean id="experimentTable"
           class="uk.ac.ebi.gxa.web.view.dsv.ExperimentTableCsvView"/>
 
-    <!--bean id="experimentDesign"
-          class="uk.ac.ebi.gxa.web.view.csv.ExperimentDesignView"/-->
+    <bean id="experimentDesignTable"
+          class="uk.ac.ebi.gxa.web.view.dsv.ExperimentDesignTableCsvView"/>
 </beans>

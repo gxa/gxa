@@ -57,7 +57,7 @@
             onNextBatch:renderNextBatch,
             onComplete:applySorting,
             totalCount: "experimentDesign.total"
-        }).load({eid:"${exp.accession}"}, "#loadingIndicator");
+        }).load({eacc:"${exp.accession}"}, "#loadingIndicator");
 
         function renderNextBatch(batchOffset, data) {
             data = data || {};
@@ -143,7 +143,12 @@
             <div style="clear:both; width:100%; height:1px; padding:0; margin:0;" ></div>
         </div>
 
-        <div id="loadingIndicator"></div>
+        <div id="loadingIndicator">&nbsp;</div>
+        <div style="float:left; margin: 5px;">
+            <a class="export2TsvLink" target="_blank" rel="nofollow"
+               href="${pageContext.request.contextPath}/experimentDesignTable?format=tsv&eacc=${exp.accession}">Export to
+                TSV</a>
+        </div>
         <div id="expDesignTable"></div>
     </div>
 </div>
