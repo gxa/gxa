@@ -22,13 +22,19 @@
 
 package uk.ac.ebi.gxa.web.controller;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import uk.ac.ebi.gxa.utils.LazyMap;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
+import javax.annotation.Nullable;
 import java.util.*;
+
+import static com.google.common.collect.Collections2.transform;
 
 /**
  * @author alf
@@ -36,29 +42,28 @@ import java.util.*;
 public class ExperimentDesignUI {
     private final Experiment exp;
     private final SortedSet<Property> expProperties;
+    private final Map<Property, Map<Assay, Collection<String>>> expValues;
 
-    public ExperimentDesignUI(Experiment exp) {
-        this.exp = exp;
-        this.expProperties = exp.getProperties();
-    }
+    private int limit = -1;
+    private int offset = -1;
 
-    public SortedSet<Property> getProperties() {
-        return expProperties;
-    }
-
-    public List<Assay> getAssays() {
-        return exp.getAssays();
-    }
-
-    public Map<Property, Map<Assay, Collection<PropertyValue>>> getValues() {
-        // we can rewrite it using Maps.uniqueIndex(), but it doesn't seems to be easier or more concise
-        return new LazyMap<Property, Map<Assay, Collection<PropertyValue>>>() {
+    public ExperimentDesignUI(Experiment experiment, int offset, int limit) {
+        this.offset = offset;
+        this.limit = limit;
+        this.exp = experiment;
+        this.expProperties = experiment.getProperties();
+        this.expValues = new LazyMap<Property, Map<Assay, Collection<String>>>() {
             @Override
-            protected Map<Assay, Collection<PropertyValue>> map(final Property property) {
-                return new LazyMap<Assay, Collection<PropertyValue>>() {
+            protected Map<Assay, Collection<String>> map(final Property property) {
+                return new LazyMap<Assay, Collection<String>>() {
                     @Override
-                    protected Collection<PropertyValue> map(Assay assay) {
-                        return assay.getEffectiveValues(property);
+                    protected Collection<String> map(Assay assay) {
+                        return transform(assay.getEffectiveValues(property), new Function<PropertyValue, String>() {
+                            @Override
+                            public String apply(@Nullable PropertyValue input) {
+                                return input.getDisplayValue();
+                            }
+                        });
                     }
 
                     @Override
@@ -73,5 +78,57 @@ public class ExperimentDesignUI {
                 return expProperties.iterator();
             }
         };
+    }
+
+    public Collection<String> getPropertyNames() {
+        return transform(expProperties, new Function<Property, String>() {
+            @Override
+            public String apply(@Nullable Property input) {
+                return input.getDisplayName();
+            }
+        });
+    }
+
+    public Collection<Row> getPropertyValues() {
+        return transform(getAssays(), new Function<Assay, Row>() {
+            @Override
+            public Row apply(@Nullable Assay input) {
+                return new Row(input);
+            }
+        });
+    }
+
+    public int getTotal() {
+        return exp.getAssays().size();
+    }
+    
+    private List<Assay> getAssays() {
+        List<Assay> assays = exp.getAssays();
+        return (offset >= 0 && limit >= 0) ?
+                assays.subList(offset, Math.min(offset + limit, assays.size())) : assays;
+    }
+
+    public class Row {
+        private final Assay assay;
+
+        public Row(Assay assay) {
+            this.assay = assay;
+        }
+
+        public String getAssayAcc() {
+            return assay.getAccession();
+        }
+
+        public String getArrayDesignAcc() {
+            return assay.getArrayDesign().getAccession();
+        }
+
+        public Collection<String> getPropertyValues() {
+            List<String> values = new ArrayList<String>();
+            for (Property p : expProperties) {
+                values.add(Joiner.on(",").join(expValues.get(p).get(assay)));
+            }
+            return values;
+        }
     }
 }

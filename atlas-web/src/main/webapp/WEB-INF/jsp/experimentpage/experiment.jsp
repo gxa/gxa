@@ -225,9 +225,15 @@
 
             </div>
 
-
             <div class="right-column">
-                <jsp:include page="experiment-header.jsp"/>
+                <div style="float:right">
+                    <jsp:include page="experiment-header.jsp"/>
+                    <div>
+                        <a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}"
+                           style="font-size:12px;font-weight:bold;">Experiment Design</a>
+                    </div>
+                    <jsp:include page="experiment-header-assets.jsp"/>
+                </div>
             </div>
 
             <div class="clean">&nbsp;</div>
