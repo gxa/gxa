@@ -96,14 +96,14 @@ class ArrayExpressConnection {
                 if (count++ > 10) break;
             }
         } catch (FileNotFoundException e) {
-            log.info("Cannot fetch ADF for array design " + accession, e);
+            log.warn("Cannot fetch ADF for array design " + accession, e.getMessage());
             setNonArrayExpressFields(accession);
 
         } catch (MalformedURLException e) {
-            log.info("Connection problem. Cannot fetch ADF for array design " + accession + " URL = " + url, e);
+            log.warn("Connection problem. Cannot fetch ADF for array design " + accession + " URL = " + url, e.getMessage());
             setFailedToFatchFields(accession);
         } catch (IOException e) {
-            log.info("Cannot fetch ADF for array design " + accession, e);
+            log.warn("Cannot fetch ADF for array design " + accession, e.getMessage());
             setFailedToFatchFields(accession);
         } finally {
             closeQuietly(csvReader);
