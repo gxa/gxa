@@ -75,10 +75,10 @@
     <rule>
         <note>
             experimentDesign page accessible by /experimentDesign/[ExperimentIdentifier]
-            rewritten with experimentDesign?eid=E-GEOD-5258
+            rewritten with experimentDesign?eacc=E-GEOD-5258
         </note>
         <from>/experimentDesign/([a-zA-Z0-9-]+)(.*)</from>
-        <to>/experimentDesign?eid=$1</to>
+        <to>/experimentDesign?eacc=$1</to>
     </rule>
 
 
