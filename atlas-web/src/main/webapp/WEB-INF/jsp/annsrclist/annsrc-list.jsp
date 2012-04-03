@@ -21,8 +21,5 @@
   --%>
 
 <jsp:useBean id="annSrcList" type="java.lang.String" scope="request"/>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
-<body>
-<pre>${annSrcList}</pre>
-</body>
-</html>
+<%@ page contentType="text/plain" %>
+${annSrcList}
