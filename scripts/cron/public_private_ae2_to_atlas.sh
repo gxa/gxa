@@ -4,9 +4,9 @@
 
 # This script serves to reflect in Atlas private/public experiment status switch on the AE2 side.
 
-if [ $# -eq 0 ]; then
-        echo "Usage: $0 ADMIN_USERNAME ADMIN_PASSWORD ATLAS_URL ATLAS_PORT ATLAS_ROOT ERROR_NOTIFICATION_EMAILADDRESS"
-        echo "e.g. $0 admin <pwd> lime 14032 gxa-load <notifcation_email_address>"
+if [ $# -ne 8 ]; then
+        echo "Usage: $0 ADMIN_USERNAME ADMIN_PASSWORD ATLAS_URL ATLAS_PORT ATLAS_ROOT AE2_URL AE2_PORT ERROR_NOTIFICATION_EMAILADDRESS "
+        echo "e.g. $0 admin <pwd> server1 8080 gxa-load server2 8080 <notifcation_email_address>"
         exit;
 fi
 
@@ -15,7 +15,10 @@ ADMIN_PASSWORD=$2
 ATLAS_URL=$3
 ATLAS_PORT=$4
 ATLAS_ROOT=$5
-ERROR_NOTIFICATION_EMAILADDRESS=$6
+AE2_URL=$6
+AE2_PORT=$7
+ERROR_NOTIFICATION_EMAILADDRESS=$8
+
 
 process_data="$3.$4.`eval date +%Y%m%d`"
 process_file="/tmp/privatepublic_ae2_to_atlas.$process_data"
@@ -44,7 +47,7 @@ if [ ! -f $all_atlas_experiments_file ]; then
 fi
 
 # Retrieve all AE2 experiments into $all_ae2_experiments_file (ssv)
-curl -X GET "http://www.ebi.ac.uk/arrayexpress/admin/privacy" > $all_ae2_experiments_file
+curl -X GET "http://${AE2_URL}:${AE2_PORT}/api/privacy.txt" > $all_ae2_experiments_file
 if [ ! -f $all_ae2_experiments_file ]; then
    err_msg="Updating private/public status of experiments on ${ATLAS_URL}:${ATLAS_PORT}/${ATLAS_ROOT}  was unsuccessful due failure to retrieve all AE2 experiments"
    echo $err_msg >> $process_file.log
@@ -66,8 +69,8 @@ while read line; do
        if [ ! -z $exp_accession ]; then
           # Now get the experiment's private/public status in AE2
           # E.g. line in $all_ae2_experiments_file: accession:E-MEXP-31 privacy:public releasedate:2004-03-01
-          ae2_experiment=`grep "accession:$exp_accession " $all_ae2_experiments_file`
-	      ae2_release_date=`echo $ae2_experiment | awk '{print $3}' | cut -d':' -f2`
+          ae2_experiment=`grep -P "accession:$exp_accession\t" $all_ae2_experiments_file`
+	      ae2_release_date=`echo $ae2_experiment | awk -F"\t" '{print $3}' | cut -d':' -f2`
           if [ ! -z "$ae2_experiment" ]; then
                ae2_public_status=`echo $ae2_experiment | grep -Po 'privacy:public'`
                ae2_private_status=`echo $ae2_experiment | grep -Po 'privacy:private'`
