@@ -28,11 +28,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
-import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
 import uk.ac.ebi.gxa.annotator.loader.util.HttpClientHelper;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
-import uk.ac.ebi.gxa.dao.SoftwareDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -52,10 +50,7 @@ public class CompositeAnnotationSourceManager {
     private List<AbstractAnnotationSourceManager<? extends AnnotationSource>> managers;
 
     @Autowired
-    private AnnotationSourceDAO annSrcDAO;
-
-    @Autowired
-    private SoftwareDAO softwareDAO;
+    private SoftwareManager softwareManager;
 
     @Autowired
     private HttpClient httpClient;
@@ -66,22 +61,13 @@ public class CompositeAnnotationSourceManager {
         this.managers = managers;
     }
 
-    public Software getSoftware(long softwareId) throws RecordNotFoundException {
-        Software software = annSrcDAO.getSoftwareById(softwareId);
-        if (software == null) {
-            throw new RecordNotFoundException("Software not found: id = " + softwareId);
-        }
-        return software;
-    }
-
     public Collection<AnnotationSource> getAnnotationSourcesBySoftware(Software software) {
-        return annSrcDAO.getAnnotationSourceForSoftware(software);
+        return softwareManager.getAnnotationSourcesBySoftware(software);
     }
 
     public List<Software> getAllSoftware() {
         List<Software> result = new ArrayList<Software>();
-        final List<Software> softwares = softwareDAO.getAllButLegacySoftware();
-        result.addAll(softwares);
+        result.addAll(softwareManager.getAllSoftware());
         for (AbstractAnnotationSourceManager<? extends AnnotationSource> manager : managers) {
             result.addAll(manager.getNewVersionSoftware());
         }
@@ -129,6 +115,14 @@ public class CompositeAnnotationSourceManager {
             manager.updateLatestAnnotationSources(text, SEPARATOR, errors);
         }
         return errors;
+    }
+
+    public Software getSoftware(long softwareId) throws RecordNotFoundException {
+        return softwareManager.getSoftware(softwareId);
+    }
+
+    public Software activateSoftware(long softwareId) throws RecordNotFoundException {
+        return softwareManager.activateSoftware(softwareId);
     }
 
     private AbstractAnnotationSourceManager<? extends AnnotationSource> findManager(AnnotationSource annSrc) {

@@ -357,9 +357,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     
     private Object processActivateSoftware(long softwareId) {
         try {
-            Software software = annSrcController.getSoftware(softwareId);
-            //TODO
-            return makeMap("error", "Sorry, this functionality has not been implemented yet");
+            Software software = annSrcController.activateSoftware(softwareId);
+            return makeMap("software", software);
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error getting list of annotation sources for software", e);
         }

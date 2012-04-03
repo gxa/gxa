@@ -58,6 +58,9 @@
     <bean name="geneSigSourceManager"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceManager"/>
 
+    <bean name="softwareManager"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.SoftwareManager"/>
+
     <!-- main Managed is used by Controller -->
     <bean name="annotationSourceManager"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.CompositeAnnotationSourceManager">

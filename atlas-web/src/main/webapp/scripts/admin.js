@@ -1199,14 +1199,14 @@ var annotSources = (function() {
     }
 
     function activateSoftware(softwareId) {
-        if (window.confirm(
-            "The index will be automatically rebuilt just after this version become active. Do you really want to start using this version?")) {
-            adminCall2({
-                op:"activateSoftware",
-                params:{softwareId:softwareId},
-                success:loadSoftwareVersions
-            });
-        }
+        window.alert(
+            "You need to rebuild index to see new annotations and mappings.");
+        adminCall2({
+            op:"activateSoftware",
+            params:{softwareId:softwareId},
+            success:loadSoftwareVersions
+        });
+
     }
 
     function deleteSoftware(softwareId) {

@@ -177,7 +177,7 @@
             SOFTWAREID="1001"
             NAME="Ensembl"
             VERSION="1"
-            ISACTIVE="T"
+            ISACTIVE="F"
             LEGACY="F"
             />
 

@@ -124,10 +124,6 @@ public class AnnotationSourceDAO {
         String queryString = "from " + AnnotationSource.class.getSimpleName() + " where software = ?";
         return template.find(queryString, software);
     }
-
-    public Software getSoftwareById(long id) {
-        return template.get(Software.class, id);
-    }
     
     public void remove(AnnotationSource annSrc) {
 

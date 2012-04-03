@@ -216,7 +216,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetSoftwareById() throws Exception {
-        final Software software = annSrcDAO.getSoftwareById(1000l);
+        final Software software = softwareDAO.getById(1000l);
         assertNotNull(software);
         assertNotNull(software.getSoftwareid());
         assertEquals(1000L, software.getSoftwareid().longValue());
