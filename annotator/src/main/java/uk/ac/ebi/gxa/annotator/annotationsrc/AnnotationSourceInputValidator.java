@@ -100,7 +100,7 @@ public abstract class AnnotationSourceInputValidator<T extends AnnotationSource>
 
         if (!valid) {
             final List<BioEntityType> all = typeDAO.getAll();
-            reportBuilder.addMessage("Valid biorntity types are: " +
+            reportBuilder.addMessage("Valid bioentity types are: " +
                     StringUtils.collectionToCommaDelimitedString(Collections2.transform(all, new Function<BioEntityType, String>() {
                         @Override
                         public String apply(BioEntityType bioEntityType) {
