@@ -258,6 +258,63 @@
     };
 
     /**
+     * @param opts {
+     *      {all ajaxLoader options}
+     *      limit - the batch size (optional)
+     *      onNextBatch - a function called for each batch
+     *      onComplete - a function called after all data is loaded
+     *      totalCount - field to read as total counter (optional)
+     * }
+     */
+    A.ajaxBatchLoader = function (opts) {
+        opts = opts || {};
+        opts.onSuccess = onBatchSuccess;
+        opts.onFailure = onBatchFailure;
+
+        var loader = A.ajaxLoader(opts),
+            limit = opts.limit || 200,
+            offset = 0,
+            _this = {},
+            _params = {},
+            _activityTarget = null;
+
+        function loadBatch() {
+            var p = $.extend(true, {offset:offset, limit:limit}, _params);
+            loader.load(p, _activityTarget);
+        }
+
+        function onBatchSuccess(data) {
+            if (opts.onNextBatch) {
+                opts.onNextBatch(offset, data);
+            }
+
+            var total = getTotal(data);
+            if (total > 0 && total - offset > limit) {
+                offset += limit;
+                loadBatch();
+            } else if (opts.onComplete){
+                opts.onComplete();
+            }
+        }
+
+        function onBatchFailure() {
+            //TODO ?
+        }
+
+        function getTotal(data) {
+            return opts.totalCount ? A.objProperty(data, opts.totalCount) : data.total;
+        }
+
+        return $.extend(true, _this, {
+            load:function(params, activityTarget) {
+                _params = params;
+                _activityTarget = activityTarget;
+                loadBatch();
+            }
+        });
+    };
+
+    /**
      * JQuery plugin: Checks if element ("<a>") has attribute "atlas-uri"; and if yes it adds application
      * context path to its "href" attribute value.
      */

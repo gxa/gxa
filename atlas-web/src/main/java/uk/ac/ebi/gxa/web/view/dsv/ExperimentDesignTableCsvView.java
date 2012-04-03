@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,20 @@
  * http://gxa.github.com/gxa
  */
 
-/* Experiment design table */
+package uk.ac.ebi.gxa.web.view.dsv;
 
-.experiment-design {
-    width: 100%;
-}
+import uk.ac.ebi.gxa.spring.view.dsv.AbstractCsvView;
+import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
 
-.experiment-design td {
-    padding-top: 5px;
-    padding-left: 5px;
-    padding-right: 5px;
-    vertical-align: top;
-}
+import java.util.Map;
 
-.experiment-design .assayName {
-    font-weight: bold;
+/**
+ * @author Olga Melnichuk
+ */
+public class ExperimentDesignTableCsvView extends AbstractCsvView {
+
+    @Override
+    protected DsvDocument buildDsvDocument(Map<String, Object> model) {
+        return ExperimentDesignTableDsv.createDsvDocument(model);
+    }
 }

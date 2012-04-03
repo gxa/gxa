@@ -93,7 +93,10 @@
     </group>
 
     <group name="bundle-gxa-page-experiment-design">
+        <css>/scripts/jquery-lightbox/css/lightbox.css</css>
+        <css>/experiment-view.css</css>
         <css>/experiment-design-view.css</css>
+        <js>/scripts/jquery-lightbox/jquery.lightbox.js</js>
     </group>
 
     <group name="bundle-gxa-page-gene-index">

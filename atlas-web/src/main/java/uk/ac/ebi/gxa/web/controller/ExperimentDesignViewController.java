@@ -25,13 +25,23 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
     public String getExperimentDesign(
-            @RequestParam("eid") String accession,
+            @RequestParam("eacc") String accession,
             Model model) throws ResourceNotFoundException, AtlasDataException {
 
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
-
-        model.addAttribute("experimentDesign", new ExperimentDesignUI(expPage.getExperiment()));
         return "experimentpage/experiment-design";
+    }
+
+    @RequestMapping(value = "/experimentDesignTable", method = RequestMethod.GET)
+    public String getExperimentDesignTable(
+            @RequestParam("eacc") String accession,
+            @RequestParam(value="limit", required = false, defaultValue = "-1") int limit,
+            @RequestParam(value="offset", required = false, defaultValue = "-1") int offset,
+            Model model) throws ResourceNotFoundException, AtlasDataException {
+
+        ExperimentPage expPage = createExperimentPage(accession);
+        model.addAttribute("experimentDesign", new ExperimentDesignUI(expPage.getExperiment(), offset, limit));
+        return "experimentDesignTable";
     }
 }
