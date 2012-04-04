@@ -24,7 +24,7 @@
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 <jsp:useBean id="expSpecies" type="java.util.Collection<java.lang.String>" scope="request"/>
 
-<div style="float:right;margin:0 20px;">
+<div style="margin-bottom:20px;">
     <a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
         class="page-title"
        style="vertical-align: baseline">${exp.accession}</a>
@@ -65,25 +65,6 @@
             </tr>
         </table>
     </div>
-    <ul style="padding-left:15px">
-        <li><a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}"
-               style="font-size:12px;font-weight:bold;">experiment design</a></li>
-        <!--
-        <li><a href="#" style="font-size:12px;font-weight:bold;">similiarity</a></li>
-        -->
-    </ul>
-    <ul style="padding-left:15px">
-        <c:if test="${empty experimentDesign}">
-            <c:forEach var="a" items="${exp.experiment.assets}" varStatus="status">
-                <li>
-                    <a href="${pageContext.request.contextPath}/assets?eid=${exp.accession}&amp;asset=${a.fileName}" rel="lightbox"
-                       class="lightbox" title="${a.description}" alt="${a.description}">
-                            ${a.name}
-                    </a>
-                </li>
-            </c:forEach>
-        </c:if>
-    </ul>
 </div>
 
 

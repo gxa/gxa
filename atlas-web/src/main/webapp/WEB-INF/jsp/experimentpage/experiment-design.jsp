@@ -23,8 +23,6 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
-<jsp:useBean id="experimentDesign"
-             type="uk.ac.ebi.gxa.web.controller.ExperimentDesignUI" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -52,14 +50,66 @@
 <tmpl:stringTemplateWrap name="page">
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $("#squery").tablesorter({
-            widgets: ['zebra'],
-            cssHeader: "sortable",
-            cssAsc: "order1",
-            cssDesc: "order2"
-        });
+    $(document).ready(function () {
+        atlas.ajaxBatchLoader({
+            url:"/experimentDesignTable",
+            limit:300,
+            onNextBatch:renderNextBatch,
+            onComplete:applySorting,
+            totalCount: "experimentDesign.total"
+        }).load({eacc:"${exp.accession}"}, "#loadingIndicator");
+
+        function renderNextBatch(batchOffset, data) {
+            data = data || {};
+            data = data.experimentDesign || {};
+
+            if (batchOffset == 0) {
+                $("#expDesignTable").html($("#expDesignTableTmpl").tmpl(data));
+            }
+            $("#expDesignTable tbody").append($("#expDesignTableRowsTmpl").tmpl(data));
+        }
+
+        function applySorting() {
+            $("#expDesignTable > table").tablesorter({
+                widgets:['zebra'],
+                cssHeader:"sortable",
+                cssAsc:"order1",
+                cssDesc:"order2"
+            });
+        }
     });
+</script>
+
+<script id="expDesignTableTmpl" type="text/x-jquery-tmpl">
+    <table class="atlas-grid sortable experiment-design">
+        <thead>
+        <tr>
+            <th>Assay</th>
+            <th>Array</th>
+            {{each propertyNames}}
+                <th>\${this}</th>
+            {{/each}}
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</script>
+
+<script id="expDesignTableRowsTmpl" type="text/x-jquery-tmpl">
+    {{each propertyValues}}
+    <tr>
+        <td class="padded assayName" style="border-left:none">
+            \${this.assayAcc}
+        </td>
+        <td><nobr>\${this.arrayDesignAcc}</nobr></td>
+        {{each this.propertyValues}}
+        <td class="padded wrapok">
+            \${this}
+        </td>
+        {{/each}}
+    </tr>
+    {{/each}}
 </script>
 
 <div class="contents" id="contents">
@@ -80,49 +130,26 @@
             </div>
 
             <div class="right-column">
-                <jsp:include page="experiment-header.jsp"/>
+                <div style="float:right">
+                    <jsp:include page="experiment-header.jsp"/>
+                    <div>
+                        <a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
+                           style="font-size:12px;font-weight:bold;">Experiment Analytics</a>
+                    </div>
+                    <jsp:include page="experiment-header-assets.jsp"/>
+                </div>
             </div>
 
-            <div class="clean">&nbsp;</div>
+            <div style="clear:both; width:100%; height:1px; padding:0; margin:0;" ></div>
         </div>
 
-        <table id="squery" class="atlas-grid sortable experiment-design">
-            <thead>
-            <tr>
-                <th>Assay</th>
-                <th>Array</th>
-                <c:forEach var="property" items="${experimentDesign.properties}" varStatus="r">
-                    <th>${f:escapeXml(property.displayName)}</th>
-                </c:forEach>
-            </tr>
-            </thead>
-
-            <tbody>
-            <c:forEach var="assay" items="${experimentDesign.assays}" varStatus="r">
-                <tr>
-                    <td class="padded assayName" style="border-left:none">
-                            ${assay.accession}
-                    </td>
-                    <td><nobr>${assay.arrayDesign.accession}</nobr></td>
-                    <c:forEach var="property" items="${experimentDesign.properties}">
-                        <td class="padded wrapok">
-                                <c:forEach var="value" items="${experimentDesign.values[property][assay]}" varStatus="r">
-                                    <%--
-                                        the line below checks that the value is of the type we need
-                                        and makes sure usage search works fine in case we want to rename or drop
-                                        the property
-                                     --%>
-                                    <jsp:useBean id="value" type="uk.ac.ebi.microarray.atlas.model.PropertyValue"/>
-                                    <c:out value="${value.displayValue}"/>
-                                    <c:if test="${not r.last}">,</c:if>
-                                </c:forEach>
-                        </td>
-                    </c:forEach>
-                </tr>
-            </c:forEach>
-            </tbody>
-        </table>
-
+        <div id="loadingIndicator">&nbsp;</div>
+        <div style="float:left; margin: 5px;">
+            <a class="export2TsvLink" target="_blank" rel="nofollow"
+               href="${pageContext.request.contextPath}/experimentDesignTable?format=tsv&eacc=${exp.accession}">Export to
+                TSV</a>
+        </div>
+        <div id="expDesignTable"></div>
     </div>
 </div>
 
