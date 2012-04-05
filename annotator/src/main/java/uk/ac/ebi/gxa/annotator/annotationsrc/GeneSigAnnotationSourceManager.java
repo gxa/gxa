@@ -32,11 +32,14 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 import java.util.Collection;
 import java.util.Collections;
 
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.SOFTWARE_NAME_PROPNAME;
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.SOFTWARE_VERSION_PROPNAME;
+
 /**
  * User: nsklyar
  * Date: 23/01/2012
  */
-class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnnotationSource> {
+class GeneSigAnnotationSourceManager extends AbstractAnnotationSourceManager<GeneSigAnnotationSource> {
 
     @Autowired
     private GeneSigAnnotationSourceConverter geneSigAnnotationSourceConverter;
@@ -44,10 +47,8 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     @Autowired
     private AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> geneSigValidator;
 
-    @Override
-    protected Collection<GeneSigAnnotationSource> getCurrentAnnSrcs() {
-        return annSrcDAO.getAnnotationSourcesOfType(GeneSigAnnotationSource.class);
-    }
+    @Autowired
+    private AnnotationSourceInputValidator<GeneSigAnnotationSource> fileBasedInputValidator;
 
     @Override
     public Collection<Software> getNewVersionSoftware() {
@@ -65,6 +66,11 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
     }
 
     @Override
+    public AnnotationSourceInputValidator<GeneSigAnnotationSource> getInputValidator() {
+        return fileBasedInputValidator;
+    }
+
+    @Override
     protected Class<GeneSigAnnotationSource> getClazz() {
         return GeneSigAnnotationSource.class;
     }
@@ -77,6 +83,18 @@ class GeneSigAnnotationSourceManager extends AnnotationSourceManager<GeneSigAnno
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + GeneSigAnnotationSource.class);
         }
+    }
+
+    @Override
+    protected GeneSigAnnotationSource fetchAnnSrcByProperties(String text) {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        return annSrcDAO.findGeneSigAnnotationSource(properties.getProperty(SOFTWARE_NAME_PROPNAME),
+                properties.getProperty(SOFTWARE_VERSION_PROPNAME));
+    }
+
+    @Override
+    protected Class<GeneSigAnnotationSource> getAnnSrcClass() {
+        return GeneSigAnnotationSource.class;
     }
 
     @Override

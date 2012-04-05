@@ -24,9 +24,8 @@ package uk.ac.ebi.gxa.annotator.loader.biomart;
 
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory;
-import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
+import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 
 import java.io.IOException;
@@ -35,22 +34,26 @@ import java.io.IOException;
  * User: nsklyar
  * Date: 23/01/2012
  */
-public class MartVersionFinder implements VersionFinder<BioMartAnnotationSource>{
+public class MartVersionFinder implements VersionFinder<BioMartAnnotationSource> {
 
     @Autowired
     private HttpClient httpClient;
 
     @Override
     public String fetchOnLineVersion(BioMartAnnotationSource annSrc) {
+        return fetchOnLineVersion(annSrc.getUrl(), annSrc.getDatabaseName(), annSrc.getDatasetName());
+    }
+
+    public String fetchOnLineVersion(String martUrl, String databaseName, String datasetName) {
 
         try {
-            MartServiceClientImpl martClient = MartServiceClientImpl.create(httpClient, annSrc);
+            MartServiceClientImpl martClient = MartServiceClientImpl.create(httpClient, martUrl, databaseName, datasetName);
             final String database = martClient.getMartLocation().getDatabase();
             return database.substring(database.lastIndexOf("_") + 1);
         } catch (BioMartException e) {
-            throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + annSrc.getName(), e);
+            throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + databaseName, e);
         } catch (IOException e) {
-            throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + annSrc.getName(), e);
+            throw LogUtil.createUnexpected("Problem when fetch on-line version for annotation source " + databaseName, e);
         }
     }
 }

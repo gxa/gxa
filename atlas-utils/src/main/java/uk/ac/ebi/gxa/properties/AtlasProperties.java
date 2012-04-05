@@ -494,4 +494,8 @@ public class AtlasProperties {
         return getIntProperty("atlas.bioentity.annotations.batchupdate.size");
     }
 
+    public String getAnnotationSourceList() {
+        return getProperty("atlas.annotationsource.list");
+    }
+
 }

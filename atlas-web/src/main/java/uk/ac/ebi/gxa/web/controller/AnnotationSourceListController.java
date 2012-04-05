@@ -20,26 +20,28 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.model;
+package uk.ac.ebi.gxa.web.controller;
 
-import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
-
-import javax.persistence.MappedSuperclass;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import uk.ac.ebi.gxa.annotator.annotationsrc.CompositeAnnotationSourceManager;
 
 /**
  * User: nsklyar
- * Date: 04/01/2012
+ * Date: 27/03/2012
  */
-@MappedSuperclass
-public abstract class FileBasedAnnotationSource extends AnnotationSource {
+@Controller
+public class AnnotationSourceListController {
 
-    FileBasedAnnotationSource() {
-        /*used by hibernate only*/
+    @Autowired
+    private CompositeAnnotationSourceManager annotationSourceManager;
+
+    @RequestMapping(value = "/annSrcList")
+    public String getAnnotationSourceList(Model model) {
+       model.addAttribute("annSrcList", annotationSourceManager.getLatestAnnotationSourcesAsText());
+       return "annsrclist/annsrc-list";
     }
 
-    FileBasedAnnotationSource(Software software) {
-        super(software, software.getFullName());
-    }
-
-    public abstract char getSeparator();
 }

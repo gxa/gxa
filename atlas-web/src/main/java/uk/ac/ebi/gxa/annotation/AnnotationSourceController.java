@@ -3,11 +3,12 @@ package uk.ac.ebi.gxa.annotation;
 import com.google.common.base.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
-import uk.ac.ebi.gxa.annotator.annotationsrc.TopAnnotationSourceManager;
+import uk.ac.ebi.gxa.annotator.annotationsrc.CompositeAnnotationSourceManager;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -18,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * User: nsklyar
@@ -26,7 +28,10 @@ import static com.google.common.collect.Collections2.transform;
 public class AnnotationSourceController {
 
     @Autowired
-    protected TopAnnotationSourceManager manager;
+    protected CompositeAnnotationSourceManager manager;
+
+    @Autowired
+    private AtlasProperties atlasProperties;
 
     public AnnotationSourceController() {
     }
@@ -60,13 +65,28 @@ public class AnnotationSourceController {
         }
     }
 
+    public Software activateSoftware(long softwareId) throws AnnotationSourceControllerException {
+        try {
+            return manager.activateSoftware(softwareId);
+        } catch (RecordNotFoundException e) {
+            throw new AnnotationSourceControllerException("Can't find annotation software to show. See logs for details.", e);
+        }
+    }
+
     public Collection<AnnotationSourceRow> getAnnotationSourcesForSoftware(Software software) {
-        return transform(manager.getAnnotationSourcesBySoftware(software), new Function<AnnotationSource, AnnotationSourceRow>() {
+        final List<AnnotationSourceRow> annotationSourceRows = newArrayList(transform(manager.getAnnotationSourcesBySoftware(software), new Function<AnnotationSource, AnnotationSourceRow>() {
             @Override
             public AnnotationSourceRow apply(@Nullable AnnotationSource input) {
                 return new AnnotationSourceRow(input);
             }
+        }));
+        Collections.sort(annotationSourceRows, new Comparator<AnnotationSourceRow>() {
+            @Override
+            public int compare(AnnotationSourceRow o, AnnotationSourceRow o1) {
+                return o.getOrganismName().compareTo(o1.getOrganismName());
+            }
         });
+        return annotationSourceRows;
     }
 
     public AnnotationSourceView getEditableAnnSrc(long id, String typeName) throws AnnotationSourceControllerException {
@@ -95,6 +115,10 @@ public class AnnotationSourceController {
         }
     }
 
+    public ValidationReportBuilder updateLatestAnnotationSourcesFromMaster() {
+        return manager.updateLatestAnnotationSourcesFromUrl(atlasProperties.getAnnotationSourceList());
+    }
+
     private AnnotationSourceType getType(String typeName) throws AnnotationSourceControllerException {
         try {
             return AnnotationSourceType.getByName(typeName);
@@ -120,6 +144,8 @@ public class AnnotationSourceController {
             return id;
         }
 
+        //The following methods are used in admin.js
+
         public String getTypeName() {
             return typeName;
         }
@@ -143,6 +169,8 @@ public class AnnotationSourceController {
         public String getId() {
             return String.valueOf(annSrc.getAnnotationSrcId());
         }
+
+        //The following methods are used in admin.js
 
         public String getOrganismName() {
             if (annSrc instanceof BioMartAnnotationSource) {

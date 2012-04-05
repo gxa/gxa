@@ -153,9 +153,20 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         BioMartAnnotationSource annotationSource = annSrcDAO.findBioMartAnnotationSource(software, organism);
         assertNotNull(annotationSource);
 
-        //Not existing ann src
+        //Non-existing ann src
         software = softwareDAO.findOrCreate("animals", "8");
         annotationSource = annSrcDAO.findBioMartAnnotationSource(software, organism);
+        assertNull(annotationSource);
+    }
+
+    @Test
+    public void testFindBioMartAnnotationSource() throws Exception {
+
+        BioMartAnnotationSource annotationSource = annSrcDAO.findBioMartAnnotationSource("Ensembl", "60", "homo sapiens");
+        assertNotNull(annotationSource);
+
+        //Non-existing ann src
+        annotationSource = annSrcDAO.findBioMartAnnotationSource("animals", "8", "homo sapiens");
         assertNull(annotationSource);
     }
 
@@ -165,6 +176,14 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         Software software = softwareDAO.findOrCreate("GeneSigDB", "4");
 
         GeneSigAnnotationSource annotationSource = annSrcDAO.findGeneSigAnnotationSource(software);
+        assertNotNull(annotationSource);
+
+    }
+
+    @Test
+    public void testFindAnnotationSourceGeneSig1() throws Exception {
+
+        GeneSigAnnotationSource annotationSource = annSrcDAO.findGeneSigAnnotationSource("GeneSigDB", "4");
         assertNotNull(annotationSource);
 
     }
@@ -197,7 +216,7 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
 
     @Test
     public void testGetSoftwareById() throws Exception {
-        final Software software = annSrcDAO.getSoftwareById(1000l);
+        final Software software = softwareDAO.getById(1000l);
         assertNotNull(software);
         assertNotNull(software.getSoftwareid());
         assertEquals(1000L, software.getSoftwareid().longValue());

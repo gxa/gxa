@@ -22,13 +22,12 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
-import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
-import java.util.*;
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*;
+
 
 /**
  * User: nsklyar
@@ -36,63 +35,27 @@ import java.util.*;
  */
 class BioMartAnnotationSourceConverter extends AnnotationSourceConverter<BioMartAnnotationSource> {
 
-    private static final String ORGANISM_PROPNAME = "organism";
-    private static final String MYSQLDBNAME_PROPNAME = "mySqlDbName";
-    private static final String MYSQLDBURL_PROPNAME = "mySqlDbUrl";
-    private static final String DATASET_NAME_PROPNAME = "datasetName";
-    private static final String DATABASE_NAME_PROPNAME = "databaseName";
-
-    private final static List<String> BM_PROPNAMES = Arrays.asList(ORGANISM_PROPNAME,
-            MYSQLDBNAME_PROPNAME,
-            MYSQLDBURL_PROPNAME,
-            DATASET_NAME_PROPNAME,
-            DATABASE_NAME_PROPNAME);
-
     @Override
-    protected BioMartAnnotationSource initAnnotationSource(Properties properties){
-        Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
-        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
+    protected BioMartAnnotationSource initAnnotationSource(String text){
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        
+        Organism organism = organismDAO.getOrCreateOrganism(properties.getProperty(ORGANISM_PROPNAME));
+        Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
 
         return new BioMartAnnotationSource(software, organism);
     }
 
     @Override
-    protected boolean annSrcExists(BioMartAnnotationSource annSrc) {
-        return annSrcDAO.findBioMartAnnotationSource(annSrc.getSoftware(), annSrc.getOrganism())!= null;
+    protected void updateExtraProperties(AnnotationSourceProperties properties, BioMartAnnotationSource annotationSource) throws AnnotationLoaderException {
+        annotationSource.setUrl(properties.getProperty(URL_PROPNAME));
+        annotationSource.setDatabaseName(properties.getProperty(DATABASE_NAME_PROPNAME));
+        annotationSource.setDatasetName(properties.getProperty(DATASET_NAME_PROPNAME));
+        annotationSource.setMySqlDbName(properties.getProperty(MYSQLDBNAME_PROPNAME));
+        annotationSource.setMySqlDbUrl(properties.getProperty(MYSQLDBURL_PROPNAME));
     }
 
     @Override
-    protected void validateStableFields(BioMartAnnotationSource annSrc, Properties properties, ValidationReportBuilder reportBuilder) {
-        Organism organism = organismDAO.getOrCreateOrganism(getProperty(ORGANISM_PROPNAME, properties));
-        Software software = softwareDAO.findOrCreate(getProperty(SOFTWARE_NAME_PROPNAME, properties), getProperty(SOFTWARE_VERSION_PROPNAME, properties));
-
-        if (!annSrc.getSoftware().equals(software)) {
-            reportBuilder.addMessage("Software should not be changed when editing Annotation Source!");
-        }
-
-        if (!annSrc.getOrganism().equals(organism)) {
-            reportBuilder.addMessage("Organism should not be changed when editing Annotation Source!");
-        }
-    }
-
-    @Override
-    protected Collection<String> getRequiredProperties() {
-        List<String> propertyNames = new ArrayList<String>(BM_PROPNAMES);
-        propertyNames.addAll(PROPNAMES);
-        return Collections.unmodifiableCollection(propertyNames);
-    }
-
-    @Override
-    protected void updateExtraProperties(Properties properties, BioMartAnnotationSource annotationSource) throws AnnotationLoaderException {
-        annotationSource.setUrl(getProperty(URL_PROPNAME, properties));
-        annotationSource.setDatabaseName(getProperty(DATABASE_NAME_PROPNAME, properties));
-        annotationSource.setDatasetName(getProperty(DATASET_NAME_PROPNAME, properties));
-        annotationSource.setMySqlDbName(getProperty(MYSQLDBNAME_PROPNAME, properties));
-        annotationSource.setMySqlDbUrl(getProperty(MYSQLDBURL_PROPNAME, properties));
-    }
-
-    @Override
-    protected void writeExtraProperties(BioMartAnnotationSource annSrc, PropertiesConfiguration properties) {
+    protected void writeExtraProperties(BioMartAnnotationSource annSrc, AnnotationSourceProperties properties) {
         properties.addProperty(ORGANISM_PROPNAME, annSrc.getOrganism().getName());
         properties.addProperty(DATABASE_NAME_PROPNAME, annSrc.getDatabaseName());
         properties.addProperty(DATASET_NAME_PROPNAME, annSrc.getDatasetName());

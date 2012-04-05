@@ -1000,6 +1000,9 @@ var annotSources = (function() {
         $(".createNewAnnotSource", _listId).click(function () {
             createNewAnnotSource($("#annotSourceType").val());
         });
+        $(".syncAnnotationSources", _listId).click(function () {
+            syncAnnotationSources();
+        });
     }
 
     function renderAnnotSources(obj, target) {
@@ -1102,6 +1105,23 @@ var annotSources = (function() {
         renderAnnotSource({id:0, typeName: type, body: "CREATE NEW ANNOTATION SOURCE"});
     }
 
+    function syncAnnotationSources() {
+        $("#syncProgress").html("&nbsp;");
+        adminCall2({
+            op:"syncAnnotationSources",
+            params:{},
+            success:function (obj) {
+                var errors = obj.validationErrors || [];
+                if (errors.length > 0) {
+                    showSyncAnnotErrors(errors);
+                } else {
+                    openAnnotSourcesTab();
+                }
+            },
+            target: $("#syncProgress")
+        });
+    }
+
     function saveAnnotSource() {
         clearFormValidationErrors();
         var params = {};
@@ -1135,6 +1155,9 @@ var annotSources = (function() {
         $(".validationErrors", _editFormId).html(_tmpl.annotSourceFormErrors(errors));
     }
 
+    function showSyncAnnotErrors(errors) {
+        $(".syncErrors").html(_tmpl.annotSourceFormErrors(errors));
+    }
     function getSelectedAnnotSourceIds() {
         return [].concat(numericId($("input.annotCheckbox:checked", _listId)));
     }
@@ -1188,14 +1211,14 @@ var annotSources = (function() {
     }
 
     function activateSoftware(softwareId) {
-        if (window.confirm(
-            "The index will be automatically rebuilt just after this version become active. Do you really want to start using this version?")) {
-            adminCall2({
-                op:"activateSoftware",
-                params:{softwareId:softwareId},
-                success:loadSoftwareVersions
-            });
-        }
+        window.alert(
+            "You need to rebuild index to see new annotations and mappings.");
+        adminCall2({
+            op:"activateSoftware",
+            params:{softwareId:softwareId},
+            success:loadSoftwareVersions
+        });
+
     }
 
     function deleteSoftware(softwareId) {
