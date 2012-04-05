@@ -66,6 +66,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatPValue;
+import static uk.ac.ebi.gxa.utils.NumberFormatUtil.formatTValue;
 import static uk.ac.ebi.gxa.utils.Pair.create;
 import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN_GENE;
 
@@ -540,7 +541,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         @JsonProperty("tVal")
         public String getTValue() {
-            return formatPValue(tValue);
+            return formatTValue(tValue);
         }
 
         public float getFloatPValue() {
