@@ -357,9 +357,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
     
     private Object processActivateSoftware(long softwareId) {
         try {
-            Software software = annSrcController.getSoftware(softwareId);
-            //TODO
-            return makeMap("error", "Sorry, this functionality has not been implemented yet");
+            Software software = annSrcController.activateSoftware(softwareId);
+            return makeMap("software", software);
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error getting list of annotation sources for software", e);
         }
@@ -414,6 +413,11 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
         } catch (AnnotationSourceControllerException e) {
             return annotSourceError("Error updating annotation source", e);
         }
+    }
+
+    private Object processSyncAnnotationSources() {
+        return validationResult(
+                annSrcController.updateLatestAnnotationSourcesFromMaster());
     }
 
     private Object validationResult(ValidationReportBuilder errors) {
@@ -505,6 +509,8 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
             return processTestAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"));
         } else if ("updateAnnotSource".equals(op)) {
             return processUpdateAnnotSource(req.getLong("annotSourceId"), req.getStr("typeName"), req.getStr("body"));
+        } else if ("syncAnnotationSources".equals(op)) {
+            return processSyncAnnotationSources();
         } else if ("activateSoftware".equals(op)) {
             return processActivateSoftware(req.getLong("softwareId"));
         } else if ("deleteSoftware".equals(op)) {

@@ -34,7 +34,6 @@ import uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityProperty;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 /**
  * @author Olga Melnichuk

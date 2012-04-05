@@ -28,7 +28,8 @@ import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 
 import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 

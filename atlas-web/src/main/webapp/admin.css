@@ -362,6 +362,10 @@ td.time {
     color: red;
 }
 
+.syncErrors {
+    color: red;
+}
+
 .inlineValidation {
     background-color: white;
 }

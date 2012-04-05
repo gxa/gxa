@@ -34,11 +34,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*;
+
 /**
  * User: nsklyar
  * Date: 23/01/2012
  */
-class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotationSource> {
+class MartAnnotationSourceManager extends AbstractAnnotationSourceManager<BioMartAnnotationSource> {
 
     @Autowired
     private BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter;
@@ -49,10 +51,8 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Autowired
     private VersionFinder<BioMartAnnotationSource> martVersionFinder;
 
-    @Override
-    protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
-        return annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
-    }
+    @Autowired
+    private AnnotationSourceInputValidator<BioMartAnnotationSource> bioMartInputValidator;
 
     @Override
     public Collection<Software> getNewVersionSoftware() {
@@ -63,7 +63,7 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
             if (!annSrc.getSoftware().getVersion().equals(newVersion)) {
                 Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
                 newSoftwares.add(newSoftware);
-                
+
                 BioMartAnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
                 annSrcDAO.save(newAnnSrc);
                 annSrc.setObsolete(true);
@@ -92,6 +92,10 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
         return bioMartAnnotationSourceConverter;
     }
 
+    public AnnotationSourceInputValidator<BioMartAnnotationSource> getInputValidator() {
+        return bioMartInputValidator;
+    }
+
     @Override
     protected Class<BioMartAnnotationSource> getClazz() {
         return BioMartAnnotationSource.class;
@@ -105,6 +109,19 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + BioMartAnnotationSource.class);
         }
+    }
+
+    @Override
+    protected BioMartAnnotationSource fetchAnnSrcByProperties(String text) {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        return annSrcDAO.findBioMartAnnotationSource(properties.getProperty(SOFTWARE_NAME_PROPNAME),
+                properties.getProperty(SOFTWARE_VERSION_PROPNAME),
+                properties.getProperty(ORGANISM_PROPNAME));
+    }
+
+    @Override
+    protected Class<BioMartAnnotationSource> getAnnSrcClass() {
+        return BioMartAnnotationSource.class;
     }
 
     @Override
