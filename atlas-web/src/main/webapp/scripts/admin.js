@@ -1106,10 +1106,19 @@ var annotSources = (function() {
     }
 
     function syncAnnotationSources() {
+        $("#syncProgress").html("&nbsp;");
         adminCall2({
             op:"syncAnnotationSources",
             params:{},
-            success:openAnnotSourcesTab
+            success:function (obj) {
+                var errors = obj.validationErrors || [];
+                if (errors.length > 0) {
+                    showSyncAnnotErrors(errors);
+                } else {
+                    openAnnotSourcesTab();
+                }
+            },
+            target: $("#syncProgress")
         });
     }
 
@@ -1146,6 +1155,9 @@ var annotSources = (function() {
         $(".validationErrors", _editFormId).html(_tmpl.annotSourceFormErrors(errors));
     }
 
+    function showSyncAnnotErrors(errors) {
+        $(".syncErrors").html(_tmpl.annotSourceFormErrors(errors));
+    }
     function getSelectedAnnotSourceIds() {
         return [].concat(numericId($("input.annotCheckbox:checked", _listId)));
     }
