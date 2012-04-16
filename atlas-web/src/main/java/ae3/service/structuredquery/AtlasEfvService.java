@@ -23,6 +23,8 @@
 package ae3.service.structuredquery;
 
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -131,7 +133,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 root = new PrefixNode();
                 try {
                     final Property p = propertyDAO.getByName(property);
-                    for (PropertyValue pv : p.getValues()) {
+                    for (PropertyValue pv : propertyDAO.getValues(p)) {
                         EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue());
                         int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
                         if (geneCount > 0) {
@@ -171,7 +173,17 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     }
 
     public Collection<AutoCompleteItem> autoCompleteValues(final String name, @Nonnull String prefix, final int limit, @Nullable Map<String, String> filters) {
-        return treeAutocomplete(getPropertyList(name), prefix.toLowerCase(), limit);
+        final List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+        for (Multiset.Entry<String> entry : treeAutocomplete(getPropertyList(name), prefix.toLowerCase(), limit).entrySet())
+            result.add(
+                    new AutoCompleteItem(
+                            null,
+                            entry.getElement(),
+                            entry.getElement(),
+                            (long) entry.getCount(),
+                            new Rank(1.0 * prefix.length() / entry.getElement().length())));
+
+        return result;
     }
 
     private Collection<Property> getPropertyList(String name) {
@@ -195,39 +207,25 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
         return !getOptionsFactors().contains(property);
     }
 
-    private Collection<AutoCompleteItem> treeAutocomplete(Collection<Property> properties, final @Nonnull String prefix, final int limit) {
-        final List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
+    private Multiset<String> treeAutocomplete(Collection<Property> properties, final @Nonnull String prefix, final int limit) {
+        final Multiset<String> result = HashMultiset.create();
 
         for (final Property property : properties) {
             PrefixNode root = treeGetOrLoad(property.getName());
             if (root != null) {
                 root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                     public void put(String name, int count) {
-                        result.add(
-                                new EfvAutoCompleteItem(
-                                        property.getName(),
-                                        property.getDisplayName(),
-                                        name,
-                                        (long) count,
-                                        new Rank(1.0 * prefix.length() / name.length())));
+                        result.add(name, count);
+
                     }
 
                     public boolean enough() {
-                        return limit >= 0 && result.size() >= limit;
+                        return limit >= 0 && result.elementSet().size() >= limit;
                     }
                 });
             }
         }
         return result;
-    }
-
-    private String curatedName(String name) {
-        try {
-            Property property = propertyDAO.getByName(name);
-            return property.getDisplayName();
-        } catch (RecordNotFoundException e) {
-            throw createUnexpected("Unknown property: " + name, e);
-        }
     }
 
     public void setIndexBuilder(IndexBuilder indexBuilder) {
