@@ -90,10 +90,12 @@ public class FactorValuesRequestHandler extends AbstractRestRequestHandler {
                         autoCompleteResult.add(item);
                 }
             }
-            List<AutoCompleteItem> res = new ACList();
-            res.addAll(autoCompleteResult.getResults(type));
+            List<AutoCompleteItem> res = autoCompleteResult.getResults(type);
             Collections.sort(res);
-            values.put(q != null ? q : "", res.subList(0, Math.min(nlimit, res.size())));
+
+            List<AutoCompleteItem> resultList = new ACList();
+            resultList.addAll(res.subList(0, Math.min(nlimit, res.size())));
+            values.put(q != null ? q : "", resultList);
         }
 
         return result;

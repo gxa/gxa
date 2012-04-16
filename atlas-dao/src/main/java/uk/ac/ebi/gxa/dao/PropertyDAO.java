@@ -6,6 +6,7 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class PropertyDAO extends AbstractDAO<Property> {
@@ -77,5 +78,14 @@ public class PropertyDAO extends AbstractDAO<Property> {
     public void removeUnusedProperties() {
         for (Property property : getUnusedProperties())
             delete(property);
+    }
+
+    /**
+     *
+     * @param property
+     * @return all values for property
+     */
+    public List<PropertyValue> getValues(Property property) {
+        return property.getValues();
     }
 }
