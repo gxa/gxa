@@ -330,6 +330,14 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="annotationCommandRunner" ref="annotationCommandRunner"/>
     </bean>
 
+    <!-- Download services -->
+
+    <bean name="downloadQueue" class="uk.ac.ebi.gxa.download.DownloadQueue">
+    </bean>
+
+    <bean name="experimentDownloadService" class="uk.ac.ebi.gxa.download.ExperimentDownloadData">
+    </bean>
+
     <!-- Servlets (actually, HttpRequestHandlers) -->
 
     <bean name="queryRequestHandler" class="uk.ac.ebi.gxa.requesthandlers.query.AtlasQueryRequestHandler">

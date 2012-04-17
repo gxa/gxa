@@ -71,7 +71,7 @@ public abstract class AbstractDsvView extends AbstractView {
                 + generateFileName(request));
 
         ServletOutputStream out = response.getOutputStream();
-        write(out, doc);
+        doc.write(getDsvFormat(), new OutputStreamWriter(out));
     }
 
     private String generateFileName(HttpServletRequest request) {
@@ -81,16 +81,6 @@ public abstract class AbstractDsvView extends AbstractView {
         String query = request.getQueryString();
         query = query.replaceAll("(^.*?=)|(&.*?=)", "-");
         return getDsvFormat().fileName(uri + query);
-    }
-
-    private void write(OutputStream out, DsvDocument doc) throws IOException {
-        DsvWriter dsvWriter = getDsvFormat().newWriter(new OutputStreamWriter(out));
-        dsvWriter.write(doc.getHeader());
-        Iterator<String[]> rowIterator = doc.getRowIterator();
-        while (rowIterator.hasNext()) {
-            dsvWriter.write(rowIterator.next());
-        }
-        dsvWriter.flush();
     }
 
     abstract DsvFormat getDsvFormat();

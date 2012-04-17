@@ -20,21 +20,10 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.view.dsv;
-
-import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
-import uk.ac.ebi.gxa.spring.view.dsv.AbstractTsvView;
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
-
-import java.util.Map;
+package uk.ac.ebi.gxa.service.experiment;
 
 /**
  * @author Olga Melnichuk
  */
-public class ExperimentTableTsvView extends AbstractTsvView {
-
-    @Override
-    protected DsvDocument buildDsvDocument(Map<String, Object> model) {
-        return ExperimentTableDsv.createDsvDocument(model);
-    }
+public class ExperimentDesign {
 }

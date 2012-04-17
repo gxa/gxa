@@ -1,15 +1,14 @@
 package uk.ac.ebi.gxa.web.controller;
 
-import ae3.dao.ExperimentSolrDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
+import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 
 /**
  * @author Olga Melnichuk
@@ -19,14 +18,14 @@ import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 public class ExperimentDesignViewController extends ExperimentViewControllerBase {
 
     @Autowired
-    public ExperimentDesignViewController(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {
-        super(experimentSolrDAO, atlasDAO);
+    public ExperimentDesignViewController(ExperimentDataService expDataService) {
+        super(expDataService);
     }
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
     public String getExperimentDesign(
             @RequestParam("eacc") String accession,
-            Model model) throws ResourceNotFoundException, AtlasDataException {
+            Model model) throws RecordNotFoundException, AtlasDataException {
 
         ExperimentPage expPage = createExperimentPage(accession);
         expPage.enhance(model);
@@ -36,9 +35,9 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
     @RequestMapping(value = "/experimentDesignTable", method = RequestMethod.GET)
     public String getExperimentDesignTable(
             @RequestParam("eacc") String accession,
-            @RequestParam(value="limit", required = false, defaultValue = "-1") int limit,
-            @RequestParam(value="offset", required = false, defaultValue = "-1") int offset,
-            Model model) throws ResourceNotFoundException, AtlasDataException {
+            @RequestParam(value = "limit", required = false, defaultValue = "-1") int limit,
+            @RequestParam(value = "offset", required = false, defaultValue = "-1") int offset,
+            Model model) throws RecordNotFoundException, AtlasDataException {
 
         ExperimentPage expPage = createExperimentPage(accession);
         model.addAttribute("experimentDesign", new ExperimentDesignUI(expPage.getExperiment(), offset, limit));

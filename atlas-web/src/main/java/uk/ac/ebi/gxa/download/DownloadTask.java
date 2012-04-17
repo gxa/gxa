@@ -20,21 +20,15 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.view.dsv;
+package uk.ac.ebi.gxa.download;
 
-import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
-import uk.ac.ebi.gxa.spring.view.dsv.AbstractTsvView;
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
-
-import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * @author Olga Melnichuk
  */
-public class ExperimentTableTsvView extends AbstractTsvView {
+public interface DownloadTask extends Callable<DownloadTaskResult> {
 
-    @Override
-    protected DsvDocument buildDsvDocument(Map<String, Object> model) {
-        return ExperimentTableDsv.createDsvDocument(model);
-    }
+    public String getToken();
+
 }

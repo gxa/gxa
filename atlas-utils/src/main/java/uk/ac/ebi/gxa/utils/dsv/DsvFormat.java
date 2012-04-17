@@ -73,5 +73,13 @@ public abstract class DsvFormat {
         return sb.toString();
     }
 
-    abstract String sanitizeFieldValue(String value);    
+    abstract String sanitizeFieldValue(String value);
+
+    public static TsvFormat tsv() {
+        return new TsvFormat();
+    }
+
+    public static CsvFormat csv() {
+        return new CsvFormat();
+    }
 }

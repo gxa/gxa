@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.web.view.dsv;
 
+import uk.ac.ebi.gxa.export.dsv.ExperimentDesignTableDsv;
 import uk.ac.ebi.gxa.spring.view.dsv.AbstractCsvView;
 import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
 

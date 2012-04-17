@@ -20,8 +20,9 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.view.dsv;
+package uk.ac.ebi.gxa.export.dsv;
 
+import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
 import uk.ac.ebi.gxa.web.controller.ExperimentViewController;
 
@@ -33,10 +34,13 @@ import java.util.Map;
  */
 public class ExperimentTableDsv {
 
+    @SuppressWarnings("unchecked")
     public static DsvDocument createDsvDocument(Map<String, Object> model) {
-        Iterable<ExperimentViewController.ExperimentTableRow> rows =
-                (Iterable<ExperimentViewController.ExperimentTableRow>) model.get("items");
-        final Iterator<ExperimentViewController.ExperimentTableRow> iterator = rows.iterator();
+        return createDsvDocument((Iterable<ExperimentAnalytics.TableRow>) model.get("items"));
+    }
+
+    public static DsvDocument createDsvDocument(Iterable<ExperimentAnalytics.TableRow> rows) {
+        final Iterator<ExperimentAnalytics.TableRow> iterator = rows.iterator();
 
         return new DsvDocument() {
 
@@ -64,7 +68,7 @@ public class ExperimentTableDsv {
 
                     @Override
                     public String[] next() {
-                        ExperimentViewController.ExperimentTableRow row = iterator.next();
+                        ExperimentAnalytics.TableRow row = iterator.next();
                         return new String[] {
                                 row.getGeneName(),
                                 row.getGeneIdentifier(),

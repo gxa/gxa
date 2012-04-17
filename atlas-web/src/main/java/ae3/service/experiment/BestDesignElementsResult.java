@@ -14,7 +14,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class BestDesignElementsResult implements Iterable<BestDesignElementsResult.Item> {
 
     private String adAccession;
-    private long total = 0;
+    private int total = 0;
     private final List<AtlasGene> genes = new ArrayList<AtlasGene>();
     private List<DesignElementStatistics> stats = newArrayList();
 
@@ -34,7 +34,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         genes.add(gene);
     }
 
-    void setTotalSize(long total) {
+    void setTotalSize(int total) {
         this.total = total;
     }
 
@@ -42,7 +42,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         return new Item(genes.get(i), stats.get(i));
     }
 
-    public long getTotalSize() {
+    public int getTotalSize() {
         return total;
     }
 

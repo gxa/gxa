@@ -1317,7 +1317,7 @@
             });
 
             $(target).bind("mouseleave", function() {
-                tooltip.remove();
+                tooltip.hide();
             });
 
         };

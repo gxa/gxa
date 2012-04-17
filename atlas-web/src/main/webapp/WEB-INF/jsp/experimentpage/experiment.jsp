@@ -120,6 +120,8 @@
         }
 
         window.expPage = new ExperimentPage(${u:toJson(jsMap)});
+
+        $(".downloadLink").downloadLink();
     });
 </script>
 
@@ -230,7 +232,7 @@
                     <jsp:include page="experiment-header.jsp"/>
                     <div>
                         <a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}"
-                           style="font-size:12px;font-weight:bold;">Experiment Design</a>
+                           style="font-size:12px;font-weight:bold;">View experiment design&nbsp;&rsaquo;&rsaquo;</a>
                     </div>
                     <jsp:include page="experiment-header-assets.jsp"/>
                 </div>

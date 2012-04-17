@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.view.dsv;
+package uk.ac.ebi.gxa.export.dsv;
 
 import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
