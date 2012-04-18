@@ -120,6 +120,18 @@ public class GenePageGene {
                     fieldUrlTemplates.get(field),
                     geneProperties.get(field)));
         }
+
+        // add extra properties, for example emage_id
+        final Map<String, String> extraGeneProperties = atlasProperties.getExtraGeneProperties();
+        for (String extraProp : extraGeneProperties.keySet()) {
+            fields.add(new GeneField(
+                    extraProp,
+                    curatedFieldNames.get(extraProp),
+                    defaultFields.contains(extraProp),
+                    fieldUrlTemplates.get(extraProp),
+                    geneProperties.get(extraGeneProperties.get(extraProp))));
+        }
+
         return fields;
     }
 
