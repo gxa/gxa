@@ -169,10 +169,6 @@
                     <select id="factors" style="width:320px">
                         <option value="" selected="selected">Experimental factor</option>
                         <option value="">(any)</option>
-                        <option value="efo">EFO</option>
-                        <c:forEach var="factor" items="${atlasQueryService.experimentalFactorOptions}">
-                            <option value="${factor.name}">${f:escapeXml(factor.displayName)}</option>
-                        </c:forEach>
                     </select>
                 </td>
                 <td>
