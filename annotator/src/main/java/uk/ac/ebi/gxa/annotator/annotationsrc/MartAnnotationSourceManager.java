@@ -23,20 +23,24 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.annotator.validation.VersionFinder;
-import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*;
 
 /**
  * User: nsklyar
  * Date: 23/01/2012
  */
-class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotationSource> {
+class MartAnnotationSourceManager extends AbstractAnnotationSourceManager<BioMartAnnotationSource> {
 
     @Autowired
     private BioMartAnnotationSourceConverter bioMartAnnotationSourceConverter;
@@ -47,9 +51,26 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Autowired
     private VersionFinder<BioMartAnnotationSource> martVersionFinder;
 
+    @Autowired
+    private AnnotationSourceInputValidator<BioMartAnnotationSource> bioMartInputValidator;
+
     @Override
-    protected Collection<BioMartAnnotationSource> getCurrentAnnSrcs() {
-        return annSrcDAO.getAnnotationSourcesOfType(BioMartAnnotationSource.class);
+    public Collection<Software> getNewVersionSoftware() {
+        Set<Software> newSoftwares = new HashSet<Software>();
+        final Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getLatestAnnotationSourcesOfType(BioMartAnnotationSource.class);
+        for (BioMartAnnotationSource annSrc : currentAnnSrcs) {
+            String newVersion = martVersionFinder.fetchOnLineVersion(annSrc);
+            if (!annSrc.getSoftware().getVersion().equals(newVersion)) {
+                Software newSoftware = softwareDAO.findOrCreate(annSrc.getSoftware().getName(), newVersion);
+                newSoftwares.add(newSoftware);
+
+                BioMartAnnotationSource newAnnSrc = annSrc.createCopyForNewSoftware(newSoftware);
+                annSrcDAO.save(newAnnSrc);
+                annSrc.setObsolete(true);
+                annSrcDAO.update(annSrc);
+            }
+        }
+        return newSoftwares;
     }
 
     @Override
@@ -71,6 +92,10 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
         return bioMartAnnotationSourceConverter;
     }
 
+    public AnnotationSourceInputValidator<BioMartAnnotationSource> getInputValidator() {
+        return bioMartInputValidator;
+    }
+
     @Override
     protected Class<BioMartAnnotationSource> getClazz() {
         return BioMartAnnotationSource.class;
@@ -79,11 +104,24 @@ class MartAnnotationSourceManager extends AnnotationSourceManager<BioMartAnnotat
     @Override
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
         if (isForClass(annSrc.getClass())) {
-            martValidator.getInvalidPropertyNames((BioMartAnnotationSource) annSrc, reportBuilder);
+            martValidator.validatePropertyNames((BioMartAnnotationSource) annSrc, reportBuilder);
         } else {
             throw new IllegalArgumentException("Cannot validate annotation source " + annSrc.getClass() +
                     ". Class casting problem " + BioMartAnnotationSource.class);
         }
+    }
+
+    @Override
+    protected BioMartAnnotationSource fetchAnnSrcByProperties(String text) {
+        AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
+        return annSrcDAO.findBioMartAnnotationSource(properties.getProperty(SOFTWARE_NAME_PROPNAME),
+                properties.getProperty(SOFTWARE_VERSION_PROPNAME),
+                properties.getProperty(ORGANISM_PROPNAME));
+    }
+
+    @Override
+    protected Class<BioMartAnnotationSource> getAnnSrcClass() {
+        return BioMartAnnotationSource.class;
     }
 
     @Override

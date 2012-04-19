@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO;
-import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -76,28 +75,19 @@ public class GeneSigAnnotationSourceConverterTest extends AtlasDAOTestCase {
     @Test
     public void testEditOrCreateAnnotationSourceCreate() throws Exception {
         ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-        FileBasedAnnotationSource annotationSource = converter.editOrCreateAnnotationSource(null, ANN_SRC, reportBuilder);
+        final GeneSigAnnotationSource annotationSource = converter.initAnnotationSource(ANN_SRC);
+         converter.editAnnotationSource(annotationSource, ANN_SRC);
         assertNotNull(annotationSource);
         assertEquals(new Software("GeneSigDB", "test"), annotationSource.getSoftware());
         assertEquals(1, annotationSource.getExternalBioEntityProperties().size());
         assertTrue(reportBuilder.isEmpty());
     }
-
-    @Test
-    public void testEditOrCreateAnnotationSourceEditWithException() throws Exception {
-        final GeneSigAnnotationSource annSrc = annSrcDAO.getById(1001, GeneSigAnnotationSource.class);
-        assertNotNull(annSrc);
-        ValidationReportBuilder reportBuilder = new ValidationReportBuilder();
-        final GeneSigAnnotationSource newAnnSrc = converter.editOrCreateAnnotationSource(annSrc, ANN_SRC, reportBuilder);
-        assertNull(newAnnSrc);
-        assertEquals(1, reportBuilder.getMessages().size());
-    }
-
+    
     //ToDo: the test fails in the end because there are some problems with sequences.
 //    @Test
 //    @Transactional
 //    public void testEditOrCreateAnnotationSourceEdit() throws Exception {
-//        GeneSigAnnotationSource annotationSource = converter.editOrCreateAnnotationSource("1001", ANN_SRC_EDITED);
+//        GeneSigAnnotationSource annotationSource = converter.editAnnotationSource("1001", ANN_SRC_EDITED);
 //        assertNotNull(annotationSource);
 //
 //    }

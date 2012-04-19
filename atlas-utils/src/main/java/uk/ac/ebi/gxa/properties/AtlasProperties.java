@@ -246,6 +246,16 @@ public class AtlasProperties {
         return getListProperty("atlas.gene.properties.genepage.displaydefault");
     }
 
+    public Map<String, String> getExtraGeneProperties() {
+        final String prefix = "geneproperty.extra.";
+        Map<String, String> result = new HashMap<String, String>();
+        for (String property : getAvailablePropertyNames()) {
+            if (property.startsWith(prefix))
+                result.put(property.substring(prefix.length()), getProperty(property));
+        }
+        return result;
+    }
+
     public String getGenePropertyLink(String property) {
         return getProperty("geneproperty.link." + property);
     }
@@ -492,6 +502,10 @@ public class AtlasProperties {
 
     public Integer getBatchUpdateSize() {
         return getIntProperty("atlas.bioentity.annotations.batchupdate.size");
+    }
+
+    public String getAnnotationSourceList() {
+        return getProperty("atlas.annotationsource.list");
     }
 
 }

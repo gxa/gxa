@@ -37,6 +37,12 @@ public class Software {
     private String name;
     private String version;
 
+    @org.hibernate.annotations.Type(type="true_false")
+    private boolean isActive = false;
+
+    @org.hibernate.annotations.Type(type="true_false")
+    private boolean legacy = false;
+
     Software() {
     }
 
@@ -63,6 +69,14 @@ public class Software {
         return version;
     }
 
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
     public String getFullName(){
         StringBuilder sb = new StringBuilder();
         sb.append(name).append(" v.").append(version);
@@ -75,6 +89,7 @@ public class Software {
                 "softwareid=" + softwareid +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
+                ", isActive=" + isActive +
                 '}';
     }
 
