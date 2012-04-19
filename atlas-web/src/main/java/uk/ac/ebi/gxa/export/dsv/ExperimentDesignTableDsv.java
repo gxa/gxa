@@ -52,6 +52,10 @@ public class ExperimentDesignTableDsv {
                 return asArray(expDesign.getPropertyNames(), "assay", "array");
             }
 
+            public String[] getColumnsDescription() {
+                return null;
+            }
+
             @Override
             public Iterator<String[]> getRowIterator() {
                 return new Iterator<String[]>() {

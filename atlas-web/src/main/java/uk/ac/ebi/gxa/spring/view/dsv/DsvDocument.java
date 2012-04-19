@@ -36,11 +36,15 @@ public abstract class DsvDocument {
 
     public abstract String[] getHeader();
 
+    public abstract String[] getColumnsDescription();
+
     public abstract Iterator<String[]> getRowIterator();
 
     public void write(DsvFormat format, Writer writer) throws IOException {
         DsvWriter dsvWriter = format.newWriter(writer);
         dsvWriter.write(getHeader());
+        if (getColumnsDescription() != null)
+            dsvWriter.write(getColumnsDescription());
         Iterator<String[]> rowIterator = getRowIterator();
         while (rowIterator.hasNext()) {
             dsvWriter.write(rowIterator.next());
