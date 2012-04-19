@@ -355,8 +355,8 @@ public class TestCurationService extends AtlasDAOTestCase {
         assertTrue("Property : " + PROP3 + ":" + VALUE004 + " not found in sample properties",
                 propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
 
-        curationService.deletePropertyValue(CELL_TYPE, VALUE007);
-        curationService.deletePropertyValue(PROP3, VALUE004);
+        curationService.deletePropertyOrValue(CELL_TYPE, VALUE007);
+        curationService.deletePropertyOrValue(PROP3, VALUE004);
 
         assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
                 propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
@@ -374,7 +374,7 @@ public class TestCurationService extends AtlasDAOTestCase {
     public void testDeleteProperty() throws Exception {
         Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
         assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
-        curationService.deleteProperty(CELL_TYPE);
+        curationService.deletePropertyOrValue(CELL_TYPE, null);
         propertyNames = curationService.getPropertyNames();
         assertFalse("Property: " + CELL_TYPE + " not removed", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
 
