@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.service;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
@@ -216,19 +218,25 @@ public class CurationService {
     }
 
     /**
-     * Delete property value from PropertyValue table (thus deleting it from all assays/samples it occurs in)
+     * If propertyValue is not null and non-empty, delete propertyName:propertyValue from PropertyValue table (thus deleting it from all assays/samples it occurs in);
+     * otherwise remove propertyName (with all its values)
      *
      * @param propertyName
      * @param propertyValue
      * @throws ResourceNotFoundException
      */
     @Transactional
-    public void deletePropertyValue(final String propertyName,
-                                    final String propertyValue) throws ResourceNotFoundException {
+    public void deletePropertyOrValue(@Nonnull final String propertyName,
+                                      @Nullable final String propertyValue) throws ResourceNotFoundException {
         try {
-            Property property = propertyDAO.getByName(propertyName);
-            PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
-            propertyDAO.delete(property, propValue);
+
+            if (Strings.isNullOrEmpty(propertyValue))
+                deleteProperty(propertyName);
+            else {
+                Property property = propertyDAO.getByName(propertyName);
+                PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
+                propertyDAO.delete(property, propValue);
+            }
         } catch (RecordNotFoundException e) {
             throw convert(e);
         }
