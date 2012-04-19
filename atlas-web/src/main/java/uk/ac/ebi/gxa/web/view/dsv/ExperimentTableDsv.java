@@ -55,6 +55,20 @@ public class ExperimentTableDsv {
             }
 
             @Override
+            public String[] getColumnsDescription() {
+                return new String[]{
+                        "# Name of gene",
+                        "# Gene identifier",
+                        "# Probe set name for which expression was measured on the array",
+                        "# Assay or Sample attribute that is an experimental factor",
+                        "# Value for the experimental factor",
+                        "# Type of differential expression reported",
+                        "# Statistical measure of confidence in the differential expression call",
+                        "# Statistical measure of confidence in the differential expression call"
+                };
+            }
+
+            @Override
             public Iterator<String[]> getRowIterator() {
                 return new Iterator<String[]>() {
                     @Override

@@ -53,6 +53,11 @@ public class ExperimentDesignTableDsv {
             }
 
             @Override
+            public String[] getColumnsDescription() {
+                return null;
+            }
+
+            @Override
             public Iterator<String[]> getRowIterator() {
                 return new Iterator<String[]>() {
                     @Override
