@@ -86,6 +86,8 @@ public abstract class AbstractDsvView extends AbstractView {
     private void write(OutputStream out, DsvDocument doc) throws IOException {
         DsvWriter dsvWriter = getDsvFormat().newWriter(new OutputStreamWriter(out));
         dsvWriter.write(doc.getHeader());
+        if (doc.getColumnsDescription() != null)
+            dsvWriter.write(doc.getColumnsDescription());
         Iterator<String[]> rowIterator = doc.getRowIterator();
         while (rowIterator.hasNext()) {
             dsvWriter.write(rowIterator.next());
