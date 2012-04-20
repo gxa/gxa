@@ -167,7 +167,7 @@
                 </td>
                 <td>
                     <select id="factors" style="width:320px">
-                        <option value="" selected="selected">Experimental factor</option>
+                        <option value="" selected="selected">Condition</option>
                         <option value="">(any)</option>
                     </select>
                 </td>
