@@ -31,5 +31,7 @@ public interface DsvDocument {
 
     public String[] getHeader();
 
-    public Iterator<String[]> getRowIterator();
+    public String[] getColumnsDescription();
+
+    public abstract Iterator<String[]> getRowIterator();
 }
