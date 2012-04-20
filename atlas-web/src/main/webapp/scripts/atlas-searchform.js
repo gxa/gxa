@@ -532,7 +532,6 @@ var atlas = atlas || {};
         ];
 
         function addExpFactor(factor, expression, minexps, values) {
-            var selopt = $('#factors').get(0).options;
             var factorLabel = factor;
 
             sequence.nextVal();
