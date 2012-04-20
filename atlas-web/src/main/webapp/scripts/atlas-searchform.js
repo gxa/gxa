@@ -532,17 +532,7 @@ var atlas = atlas || {};
         ];
 
         function addExpFactor(factor, expression, minexps, values) {
-            var selopt = $('#factors').get(0).options;
             var factorLabel = factor;
-            for (var i = 0; i < selopt.length; ++i) {
-                if (selopt[i].value == factor) {
-                    factorLabel = selopt[i].text.toLowerCase();
-                }
-            }
-
-            if (factor == "") {
-                factorLabel = "any condition";
-            }
 
             sequence.nextVal();
 
