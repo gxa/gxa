@@ -68,7 +68,7 @@ var atlas = atlas || {};
             formatListItem: function(item, q, i) {
                 var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
                 var title = item.value;
-                var id = item.property === "efo" ? item.id : (item.factorName || "");
+                var id = item.property === "efo" ? item.id : (item.value || "");
 
                 if (item.alternativeTerms && item.alternativeTerms.length > 0) {
                     for (var i = 0; i < item.alternativeTerms.length; i++) {
@@ -87,7 +87,7 @@ var atlas = atlas || {};
                 var span = $("<span>");
                 span.attr("title", title);
                 span.html(text.join(" "));
-                span.append($("<em>").text(" (" + item.count + " genes) " + id));
+                span.append($("<em>").text(" (" + item.count + " genes) "));
                 return $("<div>").append(span).html();
             },
 
