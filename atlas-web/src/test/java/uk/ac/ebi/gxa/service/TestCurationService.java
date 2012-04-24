@@ -26,6 +26,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
     private static final String CELL_TYPE = "cell_type";
     private static final String PROP3 = "prop3";
+    private static final String ROP = "rop";
     private static final String VALUE = "value";
     private static final String VALUE007 = "value007";
     private static final String VALUE004 = "value004";
@@ -123,6 +124,26 @@ public class TestCurationService extends AtlasDAOTestCase {
                 curationService.getOntologyMappingsByPropertyValue(PROP3.toUpperCase(), VALUE.toUpperCase(), false).size() > 0);
         assertTrue("Some assays or samples should contain property value as a substring: " + VALUE.toUpperCase(),
                 curationService.getOntologyMappingsByPropertyValue(null, VALUE.toUpperCase(), false).size() > 0);
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyExactMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property: " + PROP3.toUpperCase(),
+                curationService.getOntologyMappingsByProperty(PROP3.toUpperCase(), true).size() > 0);
+
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyPartialMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property as a substring: " + ROP.toUpperCase(),
+                curationService.getOntologyMappingsByProperty(ROP.toUpperCase(), false).size() > 0);
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByOntologyTerm() throws Exception {
+        assertTrue("Some assays or samples should contain property values mapped to ontology term: " + EFO_0000827,
+                curationService.getOntologyMappingsByOntologyTerm(EFO_0000827).size() > 0);
+
     }
 
     @Test
@@ -228,7 +249,7 @@ public class TestCurationService extends AtlasDAOTestCase {
                 Set<ApiOntologyTerm> newTerms = property.getTerms();
                 assertEquals(1, newTerms.size());
                 assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); 
+                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828)));
             }
         }
     }
