@@ -216,6 +216,16 @@
         });
     };
 
+
+    /**
+     * @param opts {
+     *      url
+     *      params
+     *      success
+     *      error
+     *      target
+     * }
+     */
     A.ajaxReq = function(opts) {
         function startActivity(el) {
             if (el) {
@@ -223,13 +233,9 @@
             }
         }
 
-        function stopActivity(func, el) {
-            if (!el) {
-                return func;
-            }
-            return function() {
+        function stopActivity(el) {
+            if (el) {
                 el.children(":last").remove();
-                func(arguments);
             }
         }
 
@@ -260,13 +266,17 @@
         opts = opts || {};
         var activity = A.$(opts.target);
         startActivity(activity);
+
         $.ajax({
-            url: A.fullPathFor(opts.url),
-            data: filter(opts.params),
-            dataType: opts.dataType || "json",
-            success: stopActivity(opts.success, activity),
-            error: stopActivity(opts.error, activity)
-        });
+            url:A.fullPathFor(opts.url),
+            data:filter(opts.params),
+            dataType:opts.dataType || "json"
+        })
+            .done(function () {
+                stopActivity(activity);
+            })
+            .success(opts.success)
+            .error(opts.error);
     };
 
     /**
