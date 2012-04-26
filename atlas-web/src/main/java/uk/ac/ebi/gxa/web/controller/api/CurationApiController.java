@@ -177,7 +177,7 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public void deleteAssayProperties(@PathVariable("v") final ApiVersionType version,
                                       @PathVariable(value = "experimentAccession") final String experimentAccession,
                                       @PathVariable(value = "assayAccession") final String assayAccession,
@@ -199,7 +199,7 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public void deleteSampleProperties(@PathVariable("v") final ApiVersionType version,
                                        @PathVariable(value = "experimentAccession") String experimentAccession,
                                        @PathVariable(value = "sampleAccession") String sampleAccession,
