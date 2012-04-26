@@ -6,37 +6,50 @@ import uk.ac.ebi.microarray.atlas.model.Ontology;
  * @author Misha Kapushesky
  */
 public class ApiOntology {
-    private Ontology ontology;
+    private String name;
+    private String sourceUri;
+    private String description;
+    private String version;
 
-    public ApiOntology() {
-    }
+    public ApiOntology() {}
 
     public ApiOntology(final Ontology ontology) {
-        this.ontology = ontology;
+        this.name = ontology.getName();
+        this.sourceUri = ontology.getSourceUri();
+        this.description = ontology.getDescription();
+        this.version = ontology.getVersion();
     }
 
     public String getName() {
-        return ontology.getName();
+        return name;
     }
 
     public void setName(String name) {
-        this.ontology.setName(name);
+        this.name = name;
     }
 
     public String getSourceUri() {
-        return ontology.getSourceUri();
+        return sourceUri;
+    }
+
+    public void setSourceUri(String sourceUri) {
+        this.sourceUri = sourceUri;
     }
 
     public String getDescription() {
-        return ontology.getDescription();
+        return description;
     }
 
     public void setDescription(String description) {
-        this.ontology.setDescription(description);
+        this.description = description;
     }
 
     public String getVersion() {
-        return ontology.getVersion();
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     @Override
