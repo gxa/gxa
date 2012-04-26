@@ -629,21 +629,6 @@ public class CurationService {
     }
 
     /**
-     * @param ontologyTermAcc
-     * @return ApiOntologyTerm corresponding to ontologyTerm
-     * @throws ResourceNotFoundException if ontology term: ontologyTerm was not found
-     */
-    public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws ResourceNotFoundException {
-
-        try {
-            OntologyTerm ontologyTerm = ontologyTermDAO.getByName(ontologyTermAcc);
-            return new ApiOntologyTerm(ontologyTerm);
-        } catch (RecordNotFoundException e) {
-            throw convert(e);
-        }
-    }
-
-    /**
      * Add (or update mappings to Ontology for) apiOntologyTerms
      *
      * @param apiOntologyTerms
