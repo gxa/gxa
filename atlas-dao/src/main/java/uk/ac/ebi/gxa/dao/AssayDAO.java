@@ -8,6 +8,7 @@ import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public class AssayDAO extends AbstractDAO<Assay> {
@@ -36,7 +37,19 @@ public class AssayDAO extends AbstractDAO<Assay> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propName, String propValue, boolean exactValueMatch, boolean caseInsensitive) {
+    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propName, boolean exactValueMatch, boolean caseInsensitive) {
+        if (Strings.isNullOrEmpty(propName))
+            throw LogUtil.createUnexpected("PropertyName has not been passed as an argument");
+
+        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
+        String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
+        return template.find("select p from Assay t left join t.properties p " +
+                "where " + propertyNameColumn + (exactValueMatch ? " = '" + propertyName + "' " : " like '%" + propertyName + "%' "));
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propName, @Nonnull String propValue, boolean exactValueMatch, boolean caseInsensitive) {
         if (Strings.isNullOrEmpty(propValue)) {
             throw LogUtil.createUnexpected("propertyValue has not been passed as an argument");
         }
@@ -53,6 +66,14 @@ public class AssayDAO extends AbstractDAO<Assay> {
         }
         return template.find("select p from Assay t  left join t.properties p " +
                 "where " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<AssayProperty> getAssayPropertiesByOntologyTerm(@Nonnull String ontologyTerm) {
+        if (Strings.isNullOrEmpty(ontologyTerm))
+            throw LogUtil.createUnexpected("ontologyTerm has not been passed as an argument");
+
+        return template.find("select p from Assay t left join t.properties p left join p.terms t where t.accession = ? ", ontologyTerm);
     }
 
     @Override

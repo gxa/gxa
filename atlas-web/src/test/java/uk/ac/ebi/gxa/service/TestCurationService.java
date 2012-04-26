@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.microarray.atlas.api.*;
+import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,6 +28,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
     private static final String CELL_TYPE = "cell_type";
     private static final String PROP3 = "prop3";
+    private static final String ROP = "rop";
     private static final String VALUE = "value";
     private static final String VALUE007 = "value007";
     private static final String VALUE004 = "value004";
@@ -126,6 +129,26 @@ public class TestCurationService extends AtlasDAOTestCase {
     }
 
     @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyExactMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property: " + PROP3.toUpperCase(),
+                curationService.getOntologyMappingsByProperty(PROP3.toUpperCase(), true).size() > 0);
+
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByPropertyPartialMatch() throws Exception {
+        assertTrue("Some assays or samples should contain property as a substring: " + ROP.toUpperCase(),
+                curationService.getOntologyMappingsByProperty(ROP.toUpperCase(), false).size() > 0);
+    }
+
+    @Test
+    public void testGetPropertyValueOntologyMappingsByOntologyTerm() throws Exception {
+        assertTrue("Some assays or samples should contain property values mapped to ontology term: " + EFO_0000827,
+                curationService.getOntologyMappingsByOntologyTerm(EFO_0000827).size() > 0);
+
+    }
+
+    @Test
     public void testReplacePropertyInAssays() throws Exception {
         // Test replace VALUE007 (already a property of ASSAY_ACC) with VALUE010 (not a property of ASSAY_ACC)
         Collection<ApiProperty> assayProperties = curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC);
@@ -151,7 +174,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         // First add VALUE004 to ASSAY_ACC properties
         Set<ApiOntologyTerm> terms = Sets.newHashSet();
-        terms.add(curationService.getOntologyTerm(EFO_0000828));
+        terms.add(getOntologyTerm(EFO_0000828));
         ApiProperty apiProperty = new ApiProperty(new ApiPropertyValue(new ApiPropertyName(PROP3), MICROGLIAL_CELL), terms);
         ApiProperty[] newProps = new ApiProperty[1];
         newProps[0] = apiProperty;
@@ -173,10 +196,10 @@ public class TestCurationService extends AtlasDAOTestCase {
                 assertEquals(2, newTerms.size());
                 // Set of terms in the retained VALUE004 property should be a superset of terms assigned
                 // to the replaced VALUE010 and to the replacing VALUE004
-                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000827),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000827))); // from property VALUE010
-                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); // from property VALUE004
+                assertTrue(newTerms + " doesn't contain " + getOntologyTerm(EFO_0000827),
+                        newTerms.contains(getOntologyTerm(EFO_0000827))); // from property VALUE010
+                assertTrue(newTerms + " doesn't contain " + getOntologyTerm(EFO_0000828),
+                        newTerms.contains(getOntologyTerm(EFO_0000828))); // from property VALUE004
             }
         }
     }
@@ -207,7 +230,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         // First add VALUE004 to ASSAY_ACC properties
         Set<ApiOntologyTerm> terms = Sets.newHashSet();
-        terms.add(curationService.getOntologyTerm(EFO_0000828));
+        terms.add(getOntologyTerm(EFO_0000828));
         ApiProperty apiProperty = new ApiProperty(new ApiPropertyValue(new ApiPropertyName(CELL_TYPE), VALUE004), terms);
         ApiProperty[] newProps = new ApiProperty[1];
         newProps[0] = apiProperty;
@@ -227,8 +250,8 @@ public class TestCurationService extends AtlasDAOTestCase {
                     VALUE004.equals(property.getPropertyValue().getValue())) {
                 Set<ApiOntologyTerm> newTerms = property.getTerms();
                 assertEquals(1, newTerms.size());
-                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); 
+                assertTrue(newTerms + " doesn't contain " + getOntologyTerm(EFO_0000828),
+                        newTerms.contains(getOntologyTerm(EFO_0000828)));
             }
         }
     }
@@ -263,7 +286,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         // First add VALUE004 to ASSAY_ACC properties
         Set<ApiOntologyTerm> terms = Sets.newHashSet();
-        terms.add(curationService.getOntologyTerm(EFO_0000828));
+        terms.add(getOntologyTerm(EFO_0000828));
         ApiProperty apiProperty = new ApiProperty(new ApiPropertyValue(new ApiPropertyName(CELL_TYPE), VALUE004), terms);
         ApiProperty[] newProps = new ApiProperty[1];
         newProps[0] = apiProperty;
@@ -284,10 +307,10 @@ public class TestCurationService extends AtlasDAOTestCase {
                 assertEquals(2, newTerms.size());
                 // Set of terms in the retained VALUE004 property should be a superset of terms assigned
                 // to the replaced VALUE010 and to the replacing VALUE004
-                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000827),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000827))); // from property VALUE010
-                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); // from property VALUE004
+                assertTrue(newTerms + " doesn't contain " + getOntologyTerm(EFO_0000827),
+                        newTerms.contains(getOntologyTerm(EFO_0000827))); // from property VALUE010
+                assertTrue(newTerms + " doesn't contain " + getOntologyTerm(EFO_0000828),
+                        newTerms.contains(getOntologyTerm(EFO_0000828))); // from property VALUE004
             }
         }
     }
@@ -320,7 +343,7 @@ public class TestCurationService extends AtlasDAOTestCase {
 
         // First add VALUE010 to SAMPLE_ACC properties
         Set<ApiOntologyTerm> terms = Sets.newHashSet();
-        terms.add(curationService.getOntologyTerm(EFO_0000828));
+        terms.add(getOntologyTerm(EFO_0000828));
         ApiProperty apiProperty = new ApiProperty(new ApiPropertyValue(new ApiPropertyName(PROP3), VALUE010), terms);
         ApiProperty[] newProps = new ApiProperty[1];
         newProps[0] = apiProperty;
@@ -341,8 +364,8 @@ public class TestCurationService extends AtlasDAOTestCase {
                 assertEquals(1, newTerms.size());
                 // Set of terms in the retained VALUE004 property should be a superset of terms assigned
                 // to the replaced VALUE010 and to the replacing VALUE004
-                assertTrue(newTerms + " doesn't contain " + curationService.getOntologyTerm(EFO_0000828),
-                        newTerms.contains(curationService.getOntologyTerm(EFO_0000828))); // from property VALUE010
+                assertTrue(newTerms + " doesn't contain " + getOntologyTerm(EFO_0000828),
+                        newTerms.contains(getOntologyTerm(EFO_0000828))); // from property VALUE010
             }
         }
     }
@@ -455,5 +478,15 @@ public class TestCurationService extends AtlasDAOTestCase {
                 found = true;
         }
         return found;
+    }
+
+    /**
+     * @param ontologyTermAcc
+     * @return ApiOntologyTerm corresponding to ontologyTerm
+     * @throws RecordNotFoundException if ontology term: ontologyTerm was not found
+     */
+    private ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws RecordNotFoundException {
+        OntologyTerm ontologyTerm = ontologyTermDAO.getByName(ontologyTermAcc);
+        return new ApiOntologyTerm(ontologyTerm);
     }
 }
