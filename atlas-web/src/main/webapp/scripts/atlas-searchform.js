@@ -213,9 +213,7 @@ var atlas = atlas || {};
         this.addCondition = function (condition) {
             var v = (condition.value = trim(condition.value || ""));
             var f = (condition.factor || "");
-            if (v.length || f.length) {
-                q.conditions.push(condition);
-            }
+            q.conditions.push(condition);
         };
 
         this.addSpecies = function (value) {

@@ -447,6 +447,7 @@ public class AtlasStructuredQueryService {
         private final EfoTree<ColumnInfo> efos = new EfoTree<ColumnInfo>(getEfo());
         private final Set<Long> experiments = new HashSet<Long>();
         private final Set<String> scoringEfos = new HashSet<String>();
+        private QueryExpression queryExpression;
 
         /**
          * Column numberer factory used to add new EFV columns into heatmap
@@ -562,6 +563,14 @@ public class AtlasStructuredQueryService {
          */
         public boolean hasQueryEfoEfvs() {
             return efvs.getNumEfvs() > 0 || efos.getNumEfos() > 0;
+        }
+
+        public QueryExpression getQueryExpression() {
+            return queryExpression;
+        }
+
+        public void setQueryExpression(QueryExpression queryExpression) {
+            this.queryExpression = queryExpression;
         }
 
         /**
@@ -803,7 +812,11 @@ public class AtlasStructuredQueryService {
 
         for (ExpFactorQueryCondition c : query.getConditions()) {
             if (statsQuery.getStatisticsType() == null) {
+                // statsQuery.getStatisticsType() dictates the way in which bit index will be searched;
+                // qstate.getQueryExpression() represents expression type chosen by the user on the search page and is
+                // used to decide which (up/down/non-de) counts should be displayed in each heatmap cell.
                 statsQuery.setStatisticsType(getStatisticsTypeForExpression(c.getExpression()));
+                qstate.setQueryExpression(c.getExpression());
             }
 
             List<Attribute> orAttributes = null;
@@ -1186,7 +1199,7 @@ public class AtlasStructuredQueryService {
             EfvAttribute attr = attrCount.getElement();
             if ((autoFactors.isEmpty() || autoFactors.contains(attr.getEf())) && !Strings.isNullOrEmpty(attr.getEfv())) {
                 EfAttribute efAttr = new EfAttribute(attr.getEf());
-                qstate.addEfv(attr.getEf(), attr.getEfv(), 1, QueryExpression.valueOf(statisticType.toString()));
+                qstate.addEfv(attr.getEf(), attr.getEfv(), 1, qstate.getQueryExpression());
                 efAttrCounts.add(efAttr);
             }
         }
