@@ -190,7 +190,9 @@ var atlas = atlas || {};
         }
 
         function isValid() {
-            return (q.geneConditions.length > 0 || q.conditions.length > 0);
+            // For gene-only queries an empty (experiment) condition may be passed in order to add to the query
+            // user's expression-type selection.
+            return q.geneConditions.length > 0 || (q.conditions.length > 0 && q.conditions[0].value != '');
         }
 
         // condition => {
@@ -211,11 +213,7 @@ var atlas = atlas || {};
         //   minExperiments - optional (default is 1)
         // }
         this.addCondition = function (condition) {
-            var v = (condition.value = trim(condition.value || ""));
-            var f = (condition.factor || "");
-            if (v.length || f.length) {
-                q.conditions.push(condition);
-            }
+            q.conditions.push(condition);
         };
 
         this.addSpecies = function (value) {
