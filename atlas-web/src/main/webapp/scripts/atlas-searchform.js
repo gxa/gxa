@@ -190,7 +190,9 @@ var atlas = atlas || {};
         }
 
         function isValid() {
-            return (q.geneConditions.length > 0 || q.conditions.length > 0);
+            // For gene-only queries an empty (experiment) condition may be passed in order to add to the query
+            // user's expression-type selection.
+            return q.geneConditions.length > 0 || (q.conditions.length > 0 && q.conditions[0].value != '');
         }
 
         // condition => {
