@@ -213,8 +213,6 @@ var atlas = atlas || {};
         //   minExperiments - optional (default is 1)
         // }
         this.addCondition = function (condition) {
-            var v = (condition.value = trim(condition.value || ""));
-            var f = (condition.factor || "");
             q.conditions.push(condition);
         };
 
