@@ -655,6 +655,7 @@ public class AtlasStructuredQueryService {
         Collection<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
         if (statsQuery.getStatisticsType() == null) {
             statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
+            qstate.setQueryExpression(QueryExpression.UP_DOWN);
         }
 
         int mappingCount = 0;
