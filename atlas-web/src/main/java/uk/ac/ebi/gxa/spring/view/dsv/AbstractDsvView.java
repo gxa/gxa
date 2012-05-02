@@ -24,17 +24,15 @@ package uk.ac.ebi.gxa.spring.view.dsv;
 
 
 import org.springframework.web.servlet.view.AbstractView;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocumentWriter;
 import uk.ac.ebi.gxa.utils.dsv.DsvFormat;
-import uk.ac.ebi.gxa.utils.dsv.DsvWriter;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -71,7 +69,9 @@ public abstract class AbstractDsvView extends AbstractView {
                 + generateFileName(request));
 
         ServletOutputStream out = response.getOutputStream();
-        doc.write(getDsvFormat(), new OutputStreamWriter(out));
+        DsvDocumentWriter writer = new DsvDocumentWriter(
+                getDsvFormat().newWriter(new OutputStreamWriter(out)));
+        writer.write(doc);
     }
 
     private String generateFileName(HttpServletRequest request) {

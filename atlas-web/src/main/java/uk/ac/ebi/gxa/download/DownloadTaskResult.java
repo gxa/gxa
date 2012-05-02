@@ -31,11 +31,13 @@ public class DownloadTaskResult {
 
     private final File tmpFile;
 
-    private final Exception exception;
+    private final Throwable exception;
+    private final String contentType;
 
-    private DownloadTaskResult(File file, Exception e) {
+    private DownloadTaskResult(File file, String contentType, Throwable e) {
         this.tmpFile = file;
         this.exception = e;
+        this.contentType = contentType;
     }
 
     public boolean hasErrors() {
@@ -46,11 +48,15 @@ public class DownloadTaskResult {
         return tmpFile;
     }
 
-    public static DownloadTaskResult success(File file) {
-        return new DownloadTaskResult(file, null);
+    public static DownloadTaskResult success(File file, String contentType) {
+        return new DownloadTaskResult(file, contentType, null);
     }
 
-    public static DownloadTaskResult error(Exception e) {
-        return new DownloadTaskResult(null, e);
+    public static DownloadTaskResult error(Throwable e) {
+        return new DownloadTaskResult(null, null, e);
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 }

@@ -47,7 +47,7 @@ public class ExperimentAnalytics {
         this.bestResults = bestResults;
     }
 
-    public Iterable<TableRow> asRows() {
+    public Iterable<TableRow> getRows() {
         return transform(bestResults, new Function<BestDesignElementsResult.Item, TableRow>() {
             @Override
             public TableRow apply(@Nullable BestDesignElementsResult.Item input) {
@@ -56,6 +56,9 @@ public class ExperimentAnalytics {
         });
     }
 
+    public int size() {
+        return bestResults.size();
+    }
     public int getTotalSize() {
         return bestResults.getTotalSize();
     }

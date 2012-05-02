@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.export.dsv;
 
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
 
 import java.util.*;
@@ -38,7 +38,9 @@ public class ExperimentDesignTableDsv {
         final ExperimentDesignUI expDesign =
                 (ExperimentDesignUI) model.get("experimentDesign");
 
-        final Iterator<ExperimentDesignUI.Row> iterator = expDesign.getPropertyValues().iterator();
+        Collection<ExperimentDesignUI.Row> rows = expDesign.getPropertyValues();
+        final Iterator<ExperimentDesignUI.Row> iterator = rows.iterator();
+        final int size = rows.size();
 
         return new DsvDocument() {
             private String[] asArray(Collection<String> values, String... other) {
@@ -71,6 +73,11 @@ public class ExperimentDesignTableDsv {
                         iterator.remove();
                     }
                 };
+            }
+
+            @Override
+            public int getTotalRowCount() {
+                return size;
             }
         };
     }

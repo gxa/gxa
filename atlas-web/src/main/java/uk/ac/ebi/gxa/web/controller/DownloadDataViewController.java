@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryParser;
+import com.google.common.io.Files;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,10 +32,17 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import uk.ac.ebi.gxa.download.DownloadTaskResult;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.service.DownloadDataService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+import static ae3.util.FileDownloadServer.processRequest;
 
 /**
  * @author Olga Melnichuk
@@ -65,7 +73,7 @@ public class DownloadDataViewController extends AtlasViewController {
     @RequestMapping(value = "/download/experimentAnalytics", method = RequestMethod.GET)
     public String downloadExperimentAnalytics(
             @RequestParam("eacc") String expAcc,
-            @RequestParam("ad") String adAcc,
+            @RequestParam(value = "ad", required = false) String adAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) {
         return taskToken(downloadService.addExperimentAnalyticsTask(expAcc, adAcc, cookie), model);
@@ -87,13 +95,25 @@ public class DownloadDataViewController extends AtlasViewController {
         return taskToken(downloadService.addExperimentDesignTask(expAcc, cookie), model);
     }
 
-    @RequestMapping(value = "/download/status", method = RequestMethod.GET)
+    @RequestMapping(value = "/download/progress", method = RequestMethod.GET)
     public String getDownloadStatus(
             @RequestParam("token") String token,
             Model model) {
-        // TODO
-        model.addAttribute("test");
+        model.addAttribute("token", token);
+        model.addAttribute("progress", downloadService.getProgress(token));
         return JSON_ONLY_VIEW;
+    }
+
+    @RequestMapping(value = "/download/result", method = RequestMethod.GET)
+    public void getDownloadResult(
+            @RequestParam("token") String token,
+            HttpServletRequest request,
+            HttpServletResponse response) throws ResourceNotFoundException, IOException {
+        DownloadTaskResult result = downloadService.getResult(token);
+        if (result == null || result.hasErrors()) {
+            throw new ResourceNotFoundException("No download result found; token=" + token);
+        }
+        processRequest(result.getFile(), result.getContentType(), request, response);
     }
 
     @RequestMapping(value = "/download/cancel", method = RequestMethod.GET)

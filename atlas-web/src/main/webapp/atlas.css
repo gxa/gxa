@@ -343,3 +343,18 @@ padding: 0;
     cursor: pointer;
     color: red;
 }
+
+/* animated progress bar */
+
+.progressBar.anim {
+    background-image: url(images/pbar-ani.gif);
+}
+
+/*icons*/
+
+.cancel-icon {
+    padding-left:16px;
+    padding-top:16px;
+    background: url(images/cancel.png) no-repeat;
+    cursor: pointer;
+}

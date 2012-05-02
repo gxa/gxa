@@ -332,7 +332,29 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
 
     <!-- Download services -->
 
-    <bean name="downloadQueue" class="uk.ac.ebi.gxa.download.DownloadQueue">
+    <bean id="downloadJanitorService" class="uk.ac.ebi.gxa.download.JanitorService">
+        <constructor-arg name="schedulerService">
+            <bean id="downloadTaskResultWatcher" class="java.util.concurrent.Executors"
+                  factory-method="newScheduledThreadPool"
+                  destroy-method="shutdown">
+                <constructor-arg type="int" value="10"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="startDelay" value="2"/>
+        <constructor-arg name="repeatInterval" value="1"/>
+        <property name="startDelayTimeUnit" value="HOURS"/>
+        <property name="repeatIntervalTimeUnit" value="HOURS"/>
+    </bean>
+
+    <bean name="downloadQueue" class="uk.ac.ebi.gxa.download.DownloadQueue"
+          destroy-method="shutdown">
+        <constructor-arg name="taskExecutor">
+            <bean class="java.util.concurrent.Executors"
+                  factory-method="newFixedThreadPool">
+                <constructor-arg type="int" value="10"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="janitorService" ref="downloadJanitorService"/>
     </bean>
 
     <bean name="experimentDownloadService" class="uk.ac.ebi.gxa.download.ExperimentDownloadData">

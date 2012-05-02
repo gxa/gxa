@@ -121,7 +121,7 @@
 
         window.expPage = new ExperimentPage(${u:toJson(jsMap)});
 
-        $(".downloadLink").downloadLink();
+        $(".inlineDownloadLink").inlineDownloadLink();
     });
 </script>
 

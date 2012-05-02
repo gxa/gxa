@@ -23,8 +23,7 @@
 package uk.ac.ebi.gxa.export.dsv;
 
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
-import uk.ac.ebi.gxa.web.controller.ExperimentViewController;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -36,11 +35,12 @@ public class ExperimentTableDsv {
 
     @SuppressWarnings("unchecked")
     public static DsvDocument createDsvDocument(Map<String, Object> model) {
-        return createDsvDocument((Iterable<ExperimentAnalytics.TableRow>) model.get("items"));
+        return createDsvDocument((ExperimentAnalytics) model.get("analytics"));
     }
 
-    public static DsvDocument createDsvDocument(Iterable<ExperimentAnalytics.TableRow> rows) {
-        final Iterator<ExperimentAnalytics.TableRow> iterator = rows.iterator();
+    public static DsvDocument createDsvDocument(ExperimentAnalytics analytics) {
+        final Iterator<ExperimentAnalytics.TableRow> iterator = analytics.getRows().iterator();
+        final int size = analytics.size();
 
         return new DsvDocument() {
 
@@ -86,6 +86,11 @@ public class ExperimentTableDsv {
                         iterator.remove();
                     }
                 };
+            }
+
+            @Override
+            public int getTotalRowCount() {
+                return size;
             }
         };
     }

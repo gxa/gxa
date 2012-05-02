@@ -101,7 +101,7 @@ public class ExperimentDesignUI {
     public int getTotal() {
         return exp.getAssays().size();
     }
-    
+
     private List<Assay> getAssays() {
         List<Assay> assays = exp.getAssays();
         return (offset >= 0 && limit >= 0) ?

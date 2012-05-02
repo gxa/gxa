@@ -20,15 +20,18 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.download;
-
-import java.util.concurrent.Callable;
+package uk.ac.ebi.gxa.download.dsv;
 
 /**
  * @author Olga Melnichuk
  */
-public interface DownloadTask extends Callable<DownloadTaskResult> {
+public class DsvDocumentCreateException extends Exception {
 
-    public String getToken();
+    public DsvDocumentCreateException(String message) {
+        super(message);
+    }
 
+    public DsvDocumentCreateException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.web.view.dsv;
 
 import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
 import uk.ac.ebi.gxa.spring.view.dsv.AbstractCsvView;
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
 
 import java.util.Map;
 

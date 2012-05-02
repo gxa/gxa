@@ -23,7 +23,6 @@
 package uk.ac.ebi.gxa.web.controller;
 
 import ae3.model.AtlasGene;
-import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -292,10 +291,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
 
         ExperimentAnalytics analytics = expDataService.getExperimentAnalytics(accession, adAcc, gid, ef, efv, updown, offset, limit);
 
-        model.addAttribute("arrayDesign", analytics.getArrayDesignAccession());
-        model.addAttribute("totalSize", analytics.getTotalSize());
+        model.addAttribute("analytics", analytics);
         model.addAttribute("pageSize", limit);
-        model.addAttribute("items", analytics.asRows());
         model.addAttribute("geneToolTips", getGeneTooltips(analytics.getGenes()));
         return "experimentTable";
     }

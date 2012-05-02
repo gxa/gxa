@@ -46,7 +46,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
         return total;
     }
 
-    int getPageSize() {
+    public int size() {
         return genes.size();
     }
 
@@ -55,7 +55,7 @@ public class BestDesignElementsResult implements Iterable<BestDesignElementsResu
             private int i = 0;
 
             public boolean hasNext() {
-                return i < getPageSize();
+                return i < size();
             }
 
             public Item next() {

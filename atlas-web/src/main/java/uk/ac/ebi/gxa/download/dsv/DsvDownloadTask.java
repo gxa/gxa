@@ -22,15 +22,16 @@
 
 package uk.ac.ebi.gxa.download.dsv;
 
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
-import uk.ac.ebi.gxa.utils.dsv.DsvFormat;
-import uk.ac.ebi.gxa.download.DownloadTask;
 import uk.ac.ebi.gxa.download.DownloadTaskResult;
+import uk.ac.ebi.gxa.download.TaskProgressListener;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocumentWriter;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -38,48 +39,67 @@ import static com.google.common.io.Closeables.closeQuietly;
 import static java.io.File.createTempFile;
 import static uk.ac.ebi.gxa.download.DownloadTaskResult.error;
 import static uk.ac.ebi.gxa.download.DownloadTaskResult.success;
+import static uk.ac.ebi.gxa.utils.dsv.DsvFormat.tsv;
 
 /**
  * @author Olga Melnichuk
  */
-public class DsvDownloadTask implements DownloadTask {
+public class DsvDownloadTask implements Callable<DownloadTaskResult> {
+
+    private static final String CONTENT_TYPE = "application/octet-stream";
 
     private final String token;
     private final DsvDocumentCreator creator;
+    private final TaskProgressListener listener;
 
-    public DsvDownloadTask(String token, DsvDocumentCreator creator) {
+    public DsvDownloadTask(String token, DsvDocumentCreator creator, TaskProgressListener listener) {
         this.token = token;
         this.creator = creator;
-    }
-
-    public String getToken() {
-        return token;
+        this.listener = listener;
     }
 
     public DownloadTaskResult call() {
         try {
             return success(
-                    write(createDsvDocument(), createTempFile(token, "tmp")));
-        } catch (Exception e) {
+                    write(createDsvDocument(), createTempFile(token, ".zip")),
+                    CONTENT_TYPE);
+        } catch (IOException e) {
+            //TODO log error
+            return error(e);
+        } catch (DsvDocumentCreateException e) {
             //TODO log error
             return error(e);
         }
     }
 
-    private DsvDocument createDsvDocument() throws Exception {
+    private void notifyTaskProgress(int curr, int max) {
+        if (listener != null) {
+            listener.onTaskProgress(curr, max);
+        }
+    }
+
+    private DsvDocument createDsvDocument() throws DsvDocumentCreateException {
        return creator.create();
     }
 
     private File write(DsvDocument doc, File file) throws IOException {
-        ZipOutputStream zout = null;
+        DsvDocumentWriter writer = null;
         try {
-            zout = new ZipOutputStream(new FileOutputStream(file));
+            ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(file));
             zout.putNextEntry(new ZipEntry("data.tab"));
-            doc.write(DsvFormat.tsv(), new OutputStreamWriter(zout));
+
+            writer = new DsvDocumentWriter(tsv().newWriter(new OutputStreamWriter(zout)), new DsvDocumentWriter.ProgressListener() {
+                @Override
+                public void setProgress(int curr, int max) {
+                    notifyTaskProgress(max + curr, 2 * max);
+                }
+            });
+            writer.write(doc);
+
             zout.closeEntry();
             return file;
         } finally {
-            closeQuietly(zout);
+            closeQuietly(writer);
         }
     }
 }

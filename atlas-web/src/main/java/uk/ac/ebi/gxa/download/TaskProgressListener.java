@@ -20,31 +20,12 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.spring.view.dsv;
-
-import uk.ac.ebi.gxa.utils.dsv.DsvFormat;
-import uk.ac.ebi.gxa.utils.dsv.DsvWriter;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Iterator;
+package uk.ac.ebi.gxa.download;
 
 /**
  * @author Olga Melnichuk
  */
-public abstract class DsvDocument {
+public interface TaskProgressListener {
 
-    public abstract String[] getHeader();
-
-    public abstract Iterator<String[]> getRowIterator();
-
-    public void write(DsvFormat format, Writer writer) throws IOException {
-        DsvWriter dsvWriter = format.newWriter(writer);
-        dsvWriter.write(getHeader());
-        Iterator<String[]> rowIterator = getRowIterator();
-        while (rowIterator.hasNext()) {
-            dsvWriter.write(rowIterator.next());
-        }
-        dsvWriter.flush();
-    }
+    public void onTaskProgress(int curr, int max);
 }

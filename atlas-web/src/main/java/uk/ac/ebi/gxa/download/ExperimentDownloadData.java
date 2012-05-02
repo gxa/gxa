@@ -26,11 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
+import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
 
 /**
  * @author Olga Melnichuk
@@ -44,21 +45,33 @@ public class ExperimentDownloadData {
         this.expDataService = expDataService;
     }
 
-    public DsvDocumentCreator expAnalyticsAsDsv(final String expAcc, final String adAcc) {
+    public DsvDocumentCreator newDsvCreatorForAnalytics(final String expAcc, final String adAcc) {
         return new DsvDocumentCreator(){
             @Override
-            public DsvDocument create() throws Exception{
-                return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc).asRows());
+            public DsvDocument create() throws DsvDocumentCreateException {
+                try {
+                    return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc));
+                } catch (AtlasDataException e) {
+                    throw documentCreateException(e);
+                } catch (RecordNotFoundException e) {
+                    throw documentCreateException(e);
+                } catch (StatisticsNotFoundException e) {
+                    throw documentCreateException(e);
+                }
+            }
+
+            private DsvDocumentCreateException documentCreateException(Exception e) {
+                return new DsvDocumentCreateException("Can't get analytics for experiment: acc = " + expAcc + ", ad = " + adAcc, e);
             }
         };
     }
 
-    public DsvDocumentCreator expExpressionsAsDsv(String expAcc) {
+    public DsvDocumentCreator newDsvCreatorForExpressions(String expAcc) {
         //TODO
         return null;
     }
 
-    public DsvDocumentCreator expDesignAsDsv(String expAcc) {
+    public DsvDocumentCreator newDsvCreatorForDesign(String expAcc) {
         //TODO
         return null;
     }

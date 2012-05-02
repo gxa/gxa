@@ -30,6 +30,7 @@ import ae3.service.experiment.BestDesignElementsResult;
 import com.google.common.base.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
@@ -62,15 +63,19 @@ import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN
 @Service
 public class ExperimentDataService {
 
-    private final ExperimentSolrDAO experimentSolrDAO;
+    private ExperimentSolrDAO experimentSolrDAO;
 
-    private final AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAO;
 
-    private final AtlasDataDAO atlasDataDAO;
+    private AtlasDataDAO atlasDataDAO;
 
-    private final GeneSolrDAO geneSolrDAO;
+    private GeneSolrDAO geneSolrDAO;
 
-    private final AtlasExperimentAnalyticsViewService expAnalyticsService;
+    private AtlasExperimentAnalyticsViewService expAnalyticsService;
+
+    public ExperimentDataService() {
+        //default constructor required by AOP
+    }
 
     @Autowired
     public ExperimentDataService(ExperimentSolrDAO experimentSolrDAO,
@@ -85,7 +90,7 @@ public class ExperimentDataService {
         this.expAnalyticsService = expAnalyticsService;
     }
 
-    public final AtlasExperiment getExperimentFromSolr(String accession) throws RecordNotFoundException {
+    public AtlasExperiment getExperimentFromSolr(String accession) throws RecordNotFoundException {
         AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(accession);
         if (exp == null) {
             throw new RecordNotFoundException("Solr: No experiment found with accession=" + accession);
@@ -93,19 +98,23 @@ public class ExperimentDataService {
         return exp;
     }
 
-    public final Experiment getExperiment(String accession) throws RecordNotFoundException {
+    @Transactional
+    public Experiment getExperiment(String accession) throws RecordNotFoundException {
         return atlasDAO.getExperimentByAccession(accession);
     }
 
-    public final ExperimentWithData getExperimentWithData(String accession) throws RecordNotFoundException {
+    @Transactional
+    public ExperimentWithData getExperimentWithData(String accession) throws RecordNotFoundException {
         return getExperimentWithData(getExperiment(accession));
     }
 
-    public final ExperimentWithData getExperimentWithData(Experiment experiment) {
+    @Transactional
+    public ExperimentWithData getExperimentWithData(Experiment experiment) {
         return atlasDataDAO.createExperimentWithData(experiment);
     }
 
-    public final File getAssetFile(String accession, String fileName) throws ResourceNotFoundException, RecordNotFoundException {
+    @Transactional
+    public File getAssetFile(String accession, String fileName) throws ResourceNotFoundException, RecordNotFoundException {
         Experiment experiment = getExperiment(accession);
 
         Asset asset = experiment.getAsset(fileName);
@@ -124,13 +133,15 @@ public class ExperimentDataService {
         return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
 
-    public final ExperimentAnalytics getExperimentAnalytics(String expAccession, String adAccession)
+    @Transactional
+    public ExperimentAnalytics getExperimentAnalytics(String expAccession, String adAccession)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
         //TODO
-        return getExperimentAnalytics(expAccession, adAccession, null, null, null, UpDownCondition.CONDITION_ANY, 0, 10);
+        return getExperimentAnalytics(expAccession, adAccession, null, null, null, UpDownCondition.CONDITION_ANY, 0, -1);
     }
 
-    public final ExperimentAnalytics getExperimentAnalytics(
+    @Transactional
+    public ExperimentAnalytics getExperimentAnalytics(
             @Nonnull String accession,
             String adAcc,
             String gid,

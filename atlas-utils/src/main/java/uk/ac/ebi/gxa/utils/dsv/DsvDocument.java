@@ -20,21 +20,20 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.view.dsv;
+package uk.ac.ebi.gxa.utils.dsv;
 
-import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
-import uk.ac.ebi.gxa.spring.view.dsv.AbstractTsvView;
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
-
-import java.util.Map;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Iterator;
 
 /**
  * @author Olga Melnichuk
  */
-public class ExperimentTableTsvView extends AbstractTsvView {
+public interface DsvDocument {
 
-    @Override
-    protected DsvDocument buildDsvDocument(Map<String, Object> model) {
-        return ExperimentTableDsv.createDsvDocument(model);
-    }
+    public String[] getHeader();
+
+    public Iterator<String[]> getRowIterator();
+
+    public int getTotalRowCount();
 }

@@ -25,9 +25,7 @@ package uk.ac.ebi.gxa.service;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.ac.ebi.gxa.download.DownloadQueue;
-import uk.ac.ebi.gxa.download.DownloadTask;
-import uk.ac.ebi.gxa.download.ExperimentDownloadData;
+import uk.ac.ebi.gxa.download.*;
 import uk.ac.ebi.gxa.download.dsv.DsvDownloadTask;
 
 import static com.google.common.base.Joiner.on;
@@ -50,20 +48,27 @@ public class DownloadDataService {
     }
 
     public String addExperimentAnalyticsTask(String expAcc, String adAcc, String cookie) {
-        String token = newToken(expAcc, adAcc, cookie);
-        addTask(new DsvDownloadTask(token, expDownloadData.expAnalyticsAsDsv(expAcc, adAcc)));
+        String token = newToken(expAcc, adAcc == null ? "" : adAcc, cookie);
+        downloadQueue.addDsvDownloadTask(
+                token,
+                expDownloadData.newDsvCreatorForAnalytics(expAcc, adAcc));
         return token;
     }
 
     public String addExperimentExpressionsTask(String expAcc, String cookie) {
         String token = newToken(expAcc, cookie);
-        addTask(new DsvDownloadTask(token, expDownloadData.expExpressionsAsDsv(expAcc)));
+        downloadQueue.addDsvDownloadTask(
+                token,
+                expDownloadData.newDsvCreatorForExpressions(expAcc)
+        );
         return token;
     }
 
     public String addExperimentDesignTask(String expAcc, String cookie) {
         String token = newToken(expAcc, cookie);
-        //TODO
+        downloadQueue.addDsvDownloadTask(
+                token,
+                expDownloadData.newDsvCreatorForDesign(expAcc));
         return token;
     }
 
@@ -73,18 +78,20 @@ public class DownloadDataService {
         return token;
     }
 
-    private <T extends DownloadTask> void addTask(T task) {
-       downloadQueue.add(task);
-    }
-
     private String newToken(String... parts) {
         //TODO proper token generation needed
         return on("").join(parts);
     }
 
     public void cancelTask(String token) {
-        //TODO should it return anything ?
-        downloadQueue.cancelTask(token);
+        downloadQueue.cancel(token);
     }
 
+    public int getProgress(String token) {
+        return downloadQueue.getProgress(token);
+    }
+
+    public DownloadTaskResult getResult(String token) {
+        return downloadQueue.getResult(token);
+    }
 }

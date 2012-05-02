@@ -22,38 +22,131 @@
 
 package uk.ac.ebi.gxa.download;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
+import uk.ac.ebi.gxa.download.dsv.DsvDownloadTask;
+
+import java.util.concurrent.*;
 
 /**
  * @author Olga Melnichuk
  */
 public class DownloadQueue {
 
-    private final ExecutorService executorService;
-    private final Map<String, Future<DownloadTaskResult>> futures = new HashMap<String, Future<DownloadTaskResult>>();
+    private final ExecutorService taskExecutor;
+    private final JanitorService janitorService;
 
-    public DownloadQueue() {
-        this.executorService = Executors.newFixedThreadPool(10);
+    private final ConcurrentMap<String, FutureTaskResult> results = new ConcurrentHashMap<String, FutureTaskResult>();
+
+    public DownloadQueue(ExecutorService taskExecutor, JanitorService janitorService) {
+        this.taskExecutor = taskExecutor;
+        this.janitorService = janitorService;
     }
 
-    public void cancelTask(String jobId) {
-        Future<DownloadTaskResult> future = futures.get(jobId);
-        if (future == null) {
+    public void shutdown() {
+        taskExecutor.shutdown();
+    }
+
+    public DownloadTaskResult getResult(String token) {
+        FutureTaskResult result = results.get(token);
+        if (result == null) {
+            return null;
+        }
+        return result.getResult();
+    }
+
+    public int getProgress(String token) {
+        FutureTaskResult result = results.get(token);
+        if (result == null) {
+            return -1;
+        }
+        return result.getProgress();
+    }
+
+    public void cancel(String token) {
+        FutureTaskResult result = results.get(token);
+        if (result == null) {
             return;
         }
-        if (!future.isDone()) {
-            if (!future.cancel(true)) {
-                //TODO log.warn("Can not cancel the job: " + jobId);
-            }
-        }
-        futures.remove(jobId);
+        result.cancel();
+        results.remove(token, result);
     }
 
-    public <T extends DownloadTask> void add(T task) {
-        futures.put(task.getToken(), executorService.submit(task));
+    private boolean expired(String token) {
+        FutureTaskResult result = results.get(token);
+        if (result == null) {
+            return false;
+        }
+        long ago = System.currentTimeMillis() - result.getLastAccess();
+        if (ago > 60*60*1000) { //TODO an hour
+            cancel(token);
+            //TODO should we remove temporary fileS?
+            return true;
+        }
+        return false;
+    }
+
+    public void addDsvDownloadTask(final String token, DsvDocumentCreator dsvDocumentCreator) {
+        TaskProgress progress = new TaskProgress();
+        DsvDownloadTask task = new DsvDownloadTask(token,
+                dsvDocumentCreator,
+                progress);
+
+        results.putIfAbsent(token, new FutureTaskResult(taskExecutor.submit(task), progress));
+        janitorService.schedule(new JanitorService.Janitor() {
+            public boolean keepOnCleaning() {
+                return !expired(token);
+            }
+        });
+    }
+
+    private static class FutureTaskResult {
+        private final Future<DownloadTaskResult> future;
+        private final TaskProgress progress;
+        private volatile long lastAccess;
+
+        public FutureTaskResult(Future<DownloadTaskResult> future, TaskProgress progress) {
+            this.future = future;
+            this.progress = progress;
+            this.lastAccess = System.currentTimeMillis();
+        }
+
+        public void cancel() {
+            if (!future.isDone()) {
+                future.cancel(true);
+            }
+        }
+
+        public int getProgress() {
+            return progress.getPercentage();
+        }
+
+        public long getLastAccess() {
+            return lastAccess;
+        }
+
+        public DownloadTaskResult getResult() {
+            try {
+                lastAccess = System.currentTimeMillis();
+                return future.get();
+            } catch (InterruptedException e) {
+                //TODO interrupted status ???
+                return DownloadTaskResult.error(e);
+            } catch (ExecutionException e) {
+                return DownloadTaskResult.error(e.getCause());
+            }
+        }
+    }
+
+    private static class TaskProgress implements TaskProgressListener {
+        private volatile int percentage;
+
+        @Override
+        public void onTaskProgress(int curr, int max) {
+            percentage = curr * 100 / max;
+        }
+
+        public int getPercentage() {
+            return percentage;
+        }
     }
 }

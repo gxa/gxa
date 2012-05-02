@@ -22,12 +22,13 @@
 
 package uk.ac.ebi.gxa.download.dsv;
 
-import uk.ac.ebi.gxa.spring.view.dsv.DsvDocument;
+
+import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
 
 /**
  * @author Olga Melnichuk
  */
 public interface DsvDocumentCreator {
 
-    public DsvDocument create() throws Exception;
+    public DsvDocument create() throws DsvDocumentCreateException;
 }
