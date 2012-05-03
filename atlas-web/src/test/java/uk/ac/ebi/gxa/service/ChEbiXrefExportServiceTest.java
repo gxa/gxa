@@ -38,7 +38,7 @@ import static org.junit.Assert.assertTrue;
  * User: nsklyar
  * Date: 02/05/2012
  */
-public class ChEbiExportServiceTest {
+public class ChEbiXrefExportServiceTest {
     @Test
     public void testExportChEbiEntries() throws Exception {
         ChEbiXrefExportService service = new ChEbiXrefExportService();
@@ -46,9 +46,9 @@ public class ChEbiExportServiceTest {
         final String xml = service.exportChEbiEntries();
 
         Diff myDiff = new Diff(EXPECTED_OUT, xml);
-        assertXMLEqual(EXPECTED_OUT, xml);
-
         assertTrue(myDiff.similar());
+
+        assertXMLEqual(EXPECTED_OUT, xml);
     }
 
     private AtlasDAO getAtlasDAO() {
