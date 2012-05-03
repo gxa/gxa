@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 public class ChEbiExportServiceTest {
     @Test
     public void testExportChEbiEntries() throws Exception {
-        ChEbiExportService service = new ChEbiExportService();
+        ChEbiXrefExportService service = new ChEbiXrefExportService();
         service.setAtlasDAO(getAtlasDAO());
         final String xml = service.exportChEbiEntries();
 

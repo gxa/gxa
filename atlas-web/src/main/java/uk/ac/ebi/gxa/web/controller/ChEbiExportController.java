@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import uk.ac.ebi.gxa.service.ChEbiExportService;
+import uk.ac.ebi.gxa.service.ChEbiXrefExportService;
 
 /**
  * User: nsklyar
@@ -36,7 +36,7 @@ import uk.ac.ebi.gxa.service.ChEbiExportService;
 public class ChEbiExportController {
 
     @Autowired
-    private ChEbiExportService chEbiExportService;
+    private ChEbiXrefExportService chEbiExportService;
 
     @RequestMapping(value = "/chEbiExport")
     public String getAnnotationSourceList(Model model) {

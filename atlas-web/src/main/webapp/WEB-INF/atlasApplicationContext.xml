@@ -508,7 +508,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
-    <bean name="chEbiExportService" class="uk.ac.ebi.gxa.service.ChEbiExportService">
+    <bean name="chEbiExportService" class="uk.ac.ebi.gxa.service.ChEbiXrefExportService">
     </bean>
 
     <!--Configure R workbench -->
