@@ -27,10 +27,14 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
+import ae3.service.structuredquery.GeneQueryCondition;
+import ae3.service.structuredquery.QueryCondition;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +49,7 @@ import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Pair;
@@ -115,10 +120,14 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         this.atlasExperimentAnalyticsViewService = atlasExperimentAnalyticsViewService;
     }
 
-    protected List<Long> findGeneIds(Collection<String> geneQuery) {
-        return geneSolrDAO.findGeneIds(geneQuery);
+    private Collection<Long> findGeneIds(Collection<QueryCondition> geneConditions) {
+        return Collections2.transform(geneSolrDAO.getGenesByGeneConditions(geneConditions),
+                new Function<Integer, Long>() {
+                    public Long apply(@Nonnull Integer geneId) {
+                        return (long) geneId;
+                    }
+                });
     }
-
     /**
      * Handles experiment page requests with known experiment accession.<br/>
      * Gene identifier and experimental factor parameters are optional.<br/>
@@ -311,7 +320,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      *
      * @param accession an experiment accession to find out the required data
      * @param adAcc     an array design accession to find out the required data
-     * @param gid       a gene param to search with
+     * @param geneConditions a gene param to search with
      * @param ef        an experiment factor param to search with
      * @param efv       an experiment factor value param to search with
      * @param updown    an up/down condition to search with
@@ -325,7 +334,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public String getExperimentTable(
             @RequestParam("eacc") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
-            @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "geneConditions[]", required = false) String[] geneConditions,
             @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "updown", required = false, defaultValue = "CONDITION_ANY") UpDownCondition updown,
@@ -342,18 +351,32 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             final Experiment experiment = atlasDAO.getExperimentByAccession(accession);
             ewd = atlasDataDAO.createExperimentWithData(experiment);
 
-            final Predicate<Long> geneIdPredicate = genePredicate(gid);
+            List<String> genesConditionsArr = (geneConditions == null ? Collections.<String>emptyList() : Arrays.asList(geneConditions));
+            List<QueryCondition> geneQueryConditions = Lists.newArrayList();
+
+            if (genesConditionsArr.size() % 2 != 0) {
+                throw LogUtil.createUnexpected("Incorrect gene conditions were passed for experimentTable: " + genesConditionsArr);
+            }
+
+            for (int i = 0; i < genesConditionsArr.size() - 1; i += 2) {
+                QueryCondition geneQueryCondition = new GeneQueryCondition();
+                geneQueryCondition.setFactor(genesConditionsArr.get(i));
+                geneQueryCondition.setFactorValues(Collections.singletonList(genesConditionsArr.get(i + 1)));
+                geneQueryConditions.add(geneQueryCondition);
+            }
+
+            final Predicate<Long> geneIdsPredicate = geneIdsPredicate(geneQueryConditions);
 
             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
             if (!isNullOrEmpty(adAcc)) {
                 criteria.hasArrayDesignAccession(adAcc);
             } else {
-                criteria.containsAtLeastOneGene(geneIdPredicate);
+                criteria.containsAtLeastOneGene(geneIdsPredicate);
             }
 
             BestDesignElementsResult res = atlasExperimentAnalyticsViewService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
-                    geneIdPredicate, updown,
+                    geneIdsPredicate, updown,
                     createFactorCriteria(ef, efv),
                     offset,
                     limit
@@ -386,11 +409,11 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         }
     }
 
-    private Predicate<Long> genePredicate(String gid) {
-        if (isNullOrEmpty(gid))
+    private Predicate<Long> geneIdsPredicate(Collection<QueryCondition> geneConditions) {
+        if (geneConditions.isEmpty())
             return ANY_KNOWN_GENE;
 
-        return in(findGeneIds(Arrays.asList(gid.trim())));
+        return in(findGeneIds(geneConditions));
     }
 
     private Map<String, GeneToolTip> getGeneTooltips(Collection<AtlasGene> genes) {
@@ -422,7 +445,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         jsMapModel
                 .addJsAttribute("eid", page.getExperiment().getAccession())
                 .addJsAttribute("gid", gid)
-                .addJsAttribute("ef", ef);
+                .addJsAttribute("ef", ef)
+                .addJsAttribute("arrayDesigns", Joiner.on(" ").join(page.getArrayDesigns()));
 
         if (page.isExperimentInCuration()) {
             return "experimentpage/experiment-incuration";

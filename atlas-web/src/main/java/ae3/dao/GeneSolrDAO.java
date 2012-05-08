@@ -23,12 +23,16 @@
 package ae3.dao;
 
 import ae3.model.AtlasGene;
+import ae3.service.structuredquery.AtlasGenePropertyService;
+import ae3.service.structuredquery.Constants;
+import ae3.service.structuredquery.QueryCondition;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -54,12 +58,18 @@ public class GeneSolrDAO {
 
     private SolrServer geneSolr;
 
+    private AtlasGenePropertyService genePropService;
+
     public void setGeneSolr(SolrServer geneSolr) {
         this.geneSolr = geneSolr;
     }
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
         this.atlasProperties = atlasProperties;
+    }
+
+    public void setGenePropService(AtlasGenePropertyService genePropService) {
+        this.genePropService = genePropService;
     }
 
     /**
@@ -368,5 +378,84 @@ public class GeneSolrDAO {
             }
         }
         return genes;
+    }
+
+    public Set<Integer> getGenesByGeneConditions(Collection<QueryCondition> geneConditions) {
+        Set<Integer> geneIds = new HashSet<Integer>();
+        SolrQuery q = getFastGeneSolrQuery(geneConditions);
+        if (q == null)
+            return geneIds;
+
+        try {
+            long start = System.currentTimeMillis();
+            QueryResponse qr = geneSolr.query(q);
+            if (qr.getFacetFields().get(0).getValues() != null) {
+                for (FacetField.Count ffc : qr.getFacetFields().get(0).getValues()) {
+                    geneIds.add(Integer.parseInt(ffc.getName()));
+                }
+            }
+            log.info("Gene query: " + q.toString() + " returned " + geneIds.size() + " gene ids in " + (System.currentTimeMillis() - start) + " ms");
+        } catch (SolrServerException e) {
+            throw createUnexpected("Failed to fetch genes by conditions and species using query: '" + q.toString() + "'", e);
+        }
+
+        return geneIds;
+
+    }
+
+    /**
+     *
+     * @param geneConditions A Collection of OR gene conditions
+     * @return String representation of Solr query for geneConditions - to search gene index with
+     */
+
+    private String getGeneORQuery(Collection<QueryCondition> geneConditions) {
+        StringBuilder solrq = new StringBuilder();
+        for (QueryCondition geneQuery : geneConditions) {
+            String escapedQ = geneQuery.getSolrEscapedFactorValues();
+            if (geneQuery.isAnyFactor()) {
+                solrq.append(" ");
+                solrq.append("(name:(").append(escapedQ).append(") species:(").append(escapedQ)
+                        .append(") identifier:(").append(escapedQ).append(") id:(").append(escapedQ).append(")");
+                for (String p : genePropService.getIdNameDescProperties())
+                    solrq.append(" property_").append(p).append(":(").append(escapedQ).append(")");
+                solrq.append(") ");
+            } else if (Constants.GENE_PROPERTY_NAME.equals(geneQuery.getFactor())) {
+                solrq.append(" ");
+                solrq.append("(name:(").append(escapedQ).append(") ");
+                solrq.append("identifier:(").append(escapedQ).append(") ");
+                solrq.append("id:(").append(escapedQ).append(") ");
+                for (String nameProp : genePropService.getNameProperties())
+                    solrq.append("property_" + nameProp + ":(").append(escapedQ).append(") ");
+                solrq.append(")");
+            } else if (genePropService.getDescProperties().contains(geneQuery.getFactor())
+                    || genePropService.getIdProperties().contains(geneQuery.getFactor())) {
+                solrq.append(" ");
+                String field = "property_" + geneQuery.getFactor();
+                solrq.append(field).append(":(").append(escapedQ).append(")");
+            }
+        }
+        return solrq.toString();
+    }
+
+    /**
+     * @param geneConditions A Collection of OR gene conditions
+     * @return Solr query for geneConditions - to search gene index with
+     */
+    private SolrQuery getFastGeneSolrQuery(Collection<QueryCondition> geneConditions) {
+        String solrq = getGeneORQuery(geneConditions);
+        if (Strings.isNullOrEmpty(solrq))
+            return null;
+
+        SolrQuery q = new SolrQuery(solrq);
+
+        q.addFacetField("id");
+        q.setRows(0);
+        q.setFacet(true);
+        q.setFacetLimit(-1);
+        q.setFacetMinCount(1);
+        log.info("Simple gene query: " + solrq);
+        log.info("Expanded simple gene query: " + q.toString());
+        return q;
     }
 }

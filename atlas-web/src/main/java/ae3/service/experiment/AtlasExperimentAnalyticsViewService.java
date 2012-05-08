@@ -37,7 +37,7 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      *
      * @param expPart         experiment part to retrieve data from
-     * @param geneIdPredicate a gene (id) filter
+     * @param geneIdsPredicate a gene (ids) filter
      * @param upDownPredicate an up/down expression filter
      * @param fvPredicate     an experiment factor filter
      * @param offset          Start position within the result set
@@ -48,7 +48,7 @@ public class AtlasExperimentAnalyticsViewService {
      */
     public BestDesignElementsResult findBestGenesForExperiment(
             final @Nullable ExperimentPart expPart,
-            final @Nonnull Predicate<Long> geneIdPredicate,
+            final @Nonnull Predicate<Long> geneIdsPredicate,
             final @Nonnull Predicate<UpDownExpression> upDownPredicate,
             final @Nonnull Predicate<Pair<String, String>> fvPredicate,
             final int offset,
@@ -56,7 +56,7 @@ public class AtlasExperimentAnalyticsViewService {
         if (expPart == null)
             return new BestDesignElementsResult();
 
-        StatisticsCursor stats = expPart.getStatisticsIterator(geneIdPredicate, fvPredicate);
+        StatisticsCursor stats = expPart.getStatisticsIterator(geneIdsPredicate, fvPredicate);
 
         List<StatisticsSnapshot> result = newArrayList();
         while (stats.nextBioEntity()) {

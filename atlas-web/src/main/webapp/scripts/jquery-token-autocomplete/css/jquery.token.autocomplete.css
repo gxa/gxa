@@ -11,7 +11,7 @@
 
 ul.tokeninput {
     position: relative;
-    width: 150px;
+    width: 99%;
     overflow: hidden;
     height: auto !important;
     cursor: text;

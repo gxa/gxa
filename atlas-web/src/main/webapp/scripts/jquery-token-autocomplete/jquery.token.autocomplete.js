@@ -112,6 +112,7 @@ $.TokenList = function (input, settings) {
     // Create a new text input an attach keyup events
     var input_box = $("<input type='text'>")
         .attr('autocomplete', 'off')
+        .attr('id', settings.extraParams.type)
         .val(previousValue = (settings.defaultValue ? settings.defaultValue : ''))
         .focus(function () {
             if(settings.defaultValue && $(this).val() == settings.defaultValue)
@@ -123,7 +124,7 @@ $.TokenList = function (input, settings) {
             if(prevent_blur) {
                 $(this).focus();
                 return false;
-            }        
+            }
 
             if(settings.defaultValue && $(this).val() == '' && token_list.find('.' + settings.classes.token).length == 0)
                 $(this).val(settings.defaultValue);
@@ -138,7 +139,7 @@ $.TokenList = function (input, settings) {
                     if(resultsVisible())
                         hide_dropdown(false);
                     break;
-            
+
                 case KEY.LEFT:
                 case KEY.RIGHT:
                     if(!$(this).val()) {
@@ -375,7 +376,7 @@ $.TokenList = function (input, settings) {
     }
 
     function resultsVisible() {
-        return dropdown && dropdown.is(":visible");        
+        return dropdown && dropdown.is(":visible");
     }
 
     function dropdown_add_hidetext() {

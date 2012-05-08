@@ -308,6 +308,9 @@
 
         <div>
             <div style="float:left; margin: 5px;">
+                 <button id="findBestAnalytics">Find Best Analytics</button>
+            </div>
+            <div style="float:left; margin: 5px;">
                 <a class="export2TsvLink" target="_blank" rel="nofollow"
                    href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export to
                     TSV</a>
@@ -324,8 +327,8 @@
                 <table id="squery" class="atlas-grid experiment-stats">
                     <tr class="header">
                         <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
+                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD"><label class="label" id="simple_genes_tip">Gene</label></th>
+                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD"><label class="label" id="simple_de_tip">Design Element</label></th>
                         <c:if test="${exp.typeString=='RNA_SEQ'}">
                             <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Genome View</th>
                         </c:if>
@@ -372,8 +375,8 @@
                     </tbody>
                 </table>
 
-                <div class="errorMessage" id="divErrorMessage">No matching results found. See <a
-                     onclick="expPage.clearQuery(); return false;" href="#">all</a> genes.
+                <div class="errorMessage" id="divErrorMessage">No matching results found. Try searching with <a
+                     onclick="expPage.clearQuery(); return false;" href="#">no gene restriction</a> and browse or download the results for further analysis.
                 </div>
 
             </form>
