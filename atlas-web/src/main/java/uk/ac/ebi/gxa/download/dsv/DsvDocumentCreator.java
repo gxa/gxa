@@ -30,5 +30,7 @@ import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
  */
 public interface DsvDocumentCreator {
 
+    public String getName();
+
     public DsvDocument create() throws DsvDocumentCreateException;
 }

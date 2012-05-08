@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.download;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
@@ -34,11 +36,21 @@ import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
 import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
+import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
+import uk.ac.ebi.microarray.atlas.model.Experiment;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * @author Olga Melnichuk
  */
 public class ExperimentDownloadData {
+
+    protected final static Logger log = LoggerFactory.getLogger(ExperimentDownloadData.class);
 
     private final ExperimentDataService expDataService;
 
@@ -47,56 +59,117 @@ public class ExperimentDownloadData {
         this.expDataService = expDataService;
     }
 
-    public DsvDocumentCreator newDsvCreatorForAnalytics(final String expAcc, final String adAcc) {
-        return new DsvDocumentCreator(){
-            @Override
-            public DsvDocument create() throws DsvDocumentCreateException {
-                try {
-                    return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc));
-                } catch (AtlasDataException e) {
-                    throw documentCreateException(e);
-                } catch (RecordNotFoundException e) {
-                    throw documentCreateException(e);
-                } catch (StatisticsNotFoundException e) {
-                    throw documentCreateException(e);
-                }
-            }
-
-            private DsvDocumentCreateException documentCreateException(Throwable e) {
-                return new DsvDocumentCreateException("Can't get analytics for experiment: acc = " + expAcc + ", ad = " + adAcc, e);
-            }
-        };
+    public Collection<? extends DsvDocumentCreator> newDsvCreatorForAnalytics(final String expAcc) throws RecordNotFoundException {
+        Experiment exp  = expDataService.getExperiment(expAcc);
+        List<DsvDocumentCreator> creators = new ArrayList<DsvDocumentCreator>();
+        for(final ArrayDesign ad: exp.getArrayDesigns()) {
+           log.debug("new ExperimentAnalyticsDocCreator(eacc=" + expAcc + ", ad=" + ad.getAccession() + ")");
+           creators.add(new ExperimentAnalyticsDocCreator(expAcc, ad.getAccession()));
+        }
+        return creators;
     }
 
-    public DsvDocumentCreator newDsvCreatorForExpressions(String expAcc) {
-        //TODO
-        return null;
+    public Collection<? extends DsvDocumentCreator> newDsvCreatorForExpressions(String expAcc) throws RecordNotFoundException {
+        Experiment exp  = expDataService.getExperiment(expAcc);
+        List<DsvDocumentCreator> creators = new ArrayList<DsvDocumentCreator>();
+        for(final ArrayDesign ad: exp.getArrayDesigns()) {
+            log.debug("new ExperimentExpressionsDocCreator(eacc=" + expAcc + ", ad=" + ad.getAccession() + ")");
+            creators.add(new ExperimentExpressionsDocCreator(expAcc, ad.getAccession()));
+        }
+        return creators;
     }
 
-    public DsvDocumentCreator newDsvCreatorForDesign(final String expAcc) {
-        return new DsvDocumentCreator() {
-            @Override
-            public DsvDocument create() throws DsvDocumentCreateException {
-                try {
-                    return ExperimentDesignTableDsv.createDsvDocument(getExperimentDesignUI(expAcc));
-                } catch (RecordNotFoundException e) {
-                    throw documentCreateException(e);
-                }
-            }
-
-            private DsvDocumentCreateException documentCreateException(Throwable e) {
-                return new DsvDocumentCreateException("Can't get analytics for experiment: acc = " + expAcc, e);
-            }
-        };
+    public Collection<? extends DsvDocumentCreator> newDsvCreatorForDesign(final String expAcc) {
+        log.debug("new ExperimentDesignDocCreator(eacc=" + expAcc + ")");
+        return asList(new ExperimentDesignDocCreator(expAcc));
     }
 
-    private ExperimentAnalytics getExperimentAnalytics(String expAccession, String adAccession)
+    private ExperimentAnalytics getExperimentAnalytics(String expAcc, String adAcc)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
-        return expDataService.getExperimentAnalytics(expAccession, adAccession);
+        return expDataService.getExperimentAnalytics(expAcc, adAcc);
     }
 
     private ExperimentDesignUI getExperimentDesignUI(String expAccession) throws RecordNotFoundException {
         return expDataService.getExperimentDesignUI(expAccession);
+    }
+
+    private class ExperimentDesignDocCreator implements DsvDocumentCreator {
+        private final String expAcc;
+
+        private ExperimentDesignDocCreator(String expAcc) {
+            this.expAcc = expAcc;
+        }
+
+        @Override
+        public String getName() {
+            return expAcc;
+        }
+
+        @Override
+        public DsvDocument create() throws DsvDocumentCreateException {
+            try {
+                return ExperimentDesignTableDsv.createDsvDocument(getExperimentDesignUI(expAcc));
+            } catch (RecordNotFoundException e) {
+                throw documentCreateException(e);
+            }
+        }
+
+        private DsvDocumentCreateException documentCreateException(Throwable e) {
+            return new DsvDocumentCreateException("Can't create experiment design dsv doc: acc = " + expAcc, e);
+        }
+    }
+
+    private class ExperimentAnalyticsDocCreator implements DsvDocumentCreator {
+        private final String expAcc;
+        private final String adAcc;
+
+        private ExperimentAnalyticsDocCreator(String expAcc, String adAcc) {
+            this.adAcc = adAcc;
+            this.expAcc = expAcc;
+        }
+
+        @Override
+        public String getName() {
+            return expAcc + "_" + adAcc;
+        }
+
+        @Override
+        public DsvDocument create() throws DsvDocumentCreateException {
+            try {
+                return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc));
+            } catch (AtlasDataException e) {
+                throw documentCreateException(e);
+            } catch (RecordNotFoundException e) {
+                throw documentCreateException(e);
+            } catch (StatisticsNotFoundException e) {
+                throw documentCreateException(e);
+            }
+        }
+
+        private DsvDocumentCreateException documentCreateException(Throwable e) {
+            return new DsvDocumentCreateException("Can't create experiment analytics dsv doc: acc = " + expAcc + ", ad = " + adAcc, e);
+        }
+    }
+
+    private class ExperimentExpressionsDocCreator implements DsvDocumentCreator {
+        private final String expAcc;
+        private final String adAcc;
+
+        private ExperimentExpressionsDocCreator(String expAcc, String adAcc) {
+            this.adAcc = adAcc;
+            this.expAcc = expAcc;
+        }
+
+        @Override
+        public String getName() {
+            return expAcc + "_" + adAcc;
+        }
+
+        @Override
+        public DsvDocument create() throws DsvDocumentCreateException {
+            //TODO
+            return null;
+        }
     }
 
 }

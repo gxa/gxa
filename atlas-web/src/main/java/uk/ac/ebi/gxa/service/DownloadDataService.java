@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.service;
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.download.*;
 import uk.ac.ebi.gxa.download.dsv.DsvDownloadTask;
 
@@ -47,15 +48,15 @@ public class DownloadDataService {
         this.downloadQueue = downloadQueue;
     }
 
-    public String addExperimentAnalyticsTask(String expAcc, String adAcc, String cookie) {
-        String token = newToken(expAcc, adAcc == null ? "" : adAcc, cookie);
+    public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException {
+        String token = newToken(expAcc, cookie);
         downloadQueue.addDsvDownloadTask(
                 token,
-                expDownloadData.newDsvCreatorForAnalytics(expAcc, adAcc));
+                expDownloadData.newDsvCreatorForAnalytics(expAcc));
         return token;
     }
 
-    public String addExperimentExpressionsTask(String expAcc, String cookie) {
+    public String addExperimentExpressionsTask(String expAcc, String cookie) throws RecordNotFoundException {
         String token = newToken(expAcc, cookie);
         downloadQueue.addDsvDownloadTask(
                 token,

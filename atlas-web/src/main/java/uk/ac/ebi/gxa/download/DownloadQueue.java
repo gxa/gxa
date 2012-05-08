@@ -22,9 +22,12 @@
 
 package uk.ac.ebi.gxa.download;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.download.dsv.DsvDownloadTask;
 
+import java.util.Collection;
 import java.util.concurrent.*;
 
 /**
@@ -32,10 +35,12 @@ import java.util.concurrent.*;
  */
 public class DownloadQueue {
 
+    protected final static Logger log = LoggerFactory.getLogger(DownloadQueue.class);
+
     private final ExecutorService taskExecutor;
     private final JanitorService janitorService;
 
-    private final ConcurrentMap<String, FutureTaskResult> results = new ConcurrentHashMap<String, FutureTaskResult>();
+    private final ConcurrentMap<String, FutureTaskKeeper> results = new ConcurrentHashMap<String, FutureTaskKeeper>();
 
     public DownloadQueue(ExecutorService taskExecutor, JanitorService janitorService) {
         this.taskExecutor = taskExecutor;
@@ -47,37 +52,38 @@ public class DownloadQueue {
     }
 
     public DownloadTaskResult getResult(String token) {
-        FutureTaskResult result = results.get(token);
-        if (result == null) {
+        FutureTaskKeeper keeper = results.get(token);
+        if (keeper == null) {
             return null;
         }
-        return result.getResult();
+        return keeper.getResult();
     }
 
     public int getProgress(String token) {
-        FutureTaskResult result = results.get(token);
-        if (result == null) {
+        FutureTaskKeeper keeper = results.get(token);
+        if (keeper == null) {
             return -1;
         }
-        return result.getProgress();
+        return keeper.getProgress();
     }
 
     public void cancel(String token) {
-        FutureTaskResult result = results.get(token);
-        if (result == null) {
+        FutureTaskKeeper keeper = results.get(token);
+        if (keeper == null) {
             return;
         }
-        result.cancel();
-        results.remove(token, result);
+        keeper.cancel();
+        results.remove(token, keeper);
     }
 
     private boolean expired(String token) {
-        FutureTaskResult result = results.get(token);
-        if (result == null) {
+        FutureTaskKeeper keeper = results.get(token);
+        if (keeper == null) {
             return false;
         }
-        long ago = System.currentTimeMillis() - result.getLastAccess();
+        long ago = System.currentTimeMillis() - keeper.getLastAccess();
         if (ago > 60*60*1000) { //TODO an hour
+            log.debug("Task result expired; sweep.. " + token);
             cancel(token);
             //TODO should we remove temporary fileS?
             return true;
@@ -85,26 +91,32 @@ public class DownloadQueue {
         return false;
     }
 
-    public void addDsvDownloadTask(final String token, DsvDocumentCreator dsvDocumentCreator) {
+    public void addDsvDownloadTask(final String token, Collection<? extends DsvDocumentCreator> dsvDocumentCreators) {
         TaskProgress progress = new TaskProgress();
         DsvDownloadTask task = new DsvDownloadTask(token,
-                dsvDocumentCreator,
+                dsvDocumentCreators,
                 progress);
 
-        results.putIfAbsent(token, new FutureTaskResult(taskExecutor.submit(task), progress));
-        janitorService.schedule(new JanitorService.Janitor() {
-            public boolean keepOnCleaning() {
-                return !expired(token);
-            }
-        });
+        Future<DownloadTaskResult> f = taskExecutor.submit(task);
+        FutureTaskKeeper keeper = new FutureTaskKeeper(f, progress);
+        if (results.putIfAbsent(token, keeper) == null) {
+            janitorService.schedule(new JanitorService.Janitor() {
+                public boolean keepOnCleaning() {
+                    return !expired(token);
+                }
+            });
+        } else {
+            f.cancel(true);
+        }
+        //TODO return false ?
     }
 
-    private static class FutureTaskResult {
+    private static class FutureTaskKeeper {
         private final Future<DownloadTaskResult> future;
         private final TaskProgress progress;
         private volatile long lastAccess;
 
-        public FutureTaskResult(Future<DownloadTaskResult> future, TaskProgress progress) {
+        public FutureTaskKeeper(Future<DownloadTaskResult> future, TaskProgress progress) {
             this.future = future;
             this.progress = progress;
             this.lastAccess = System.currentTimeMillis();

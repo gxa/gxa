@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.download.dsv;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.download.DownloadTaskResult;
 import uk.ac.ebi.gxa.download.TaskProgressListener;
 import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
@@ -31,6 +33,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -46,60 +51,82 @@ import static uk.ac.ebi.gxa.utils.dsv.DsvFormat.tsv;
  */
 public class DsvDownloadTask implements Callable<DownloadTaskResult> {
 
+    protected final static Logger log = LoggerFactory.getLogger(DsvDownloadTask.class);
+
     private static final String CONTENT_TYPE = "application/octet-stream";
 
     private final String token;
-    private final DsvDocumentCreator creator;
+    private final List<DsvDocumentCreator> creators = new ArrayList<DsvDocumentCreator>();
     private final TaskProgressListener listener;
 
-    public DsvDownloadTask(String token, DsvDocumentCreator creator, TaskProgressListener listener) {
+    public DsvDownloadTask(String token, Collection<? extends DsvDocumentCreator> creators, TaskProgressListener listener) {
         this.token = token;
-        this.creator = creator;
+        this.creators.addAll(creators);
         this.listener = listener;
     }
 
     public DownloadTaskResult call() {
         try {
-            return success(
-                    write(createDsvDocument(), createTempFile(token, ".zip")),
-                    CONTENT_TYPE);
+            return success(createZip(createTempFile(token, ".zip")), CONTENT_TYPE);
         } catch (IOException e) {
-            //TODO log error
+            log.error("DSV download task execution I/O error", e);
             return error(e);
         } catch (DsvDocumentCreateException e) {
-            //TODO log error
-            return error(e);
+            log.error("DSV download task execution error", e);
+            return error(e.getCause());
         }
     }
 
     private void notifyTaskProgress(int curr, int max) {
+        log.debug("notifyTaskProgress({},{})", curr, max);
         if (listener != null) {
             listener.onTaskProgress(curr, max);
         }
     }
 
-    private DsvDocument createDsvDocument() throws DsvDocumentCreateException {
-       return creator.create();
-    }
-
-    private File write(DsvDocument doc, File file) throws IOException {
-        DsvDocumentWriter writer = null;
+    private File createZip(File file) throws IOException, DsvDocumentCreateException {
+        ZipOutputStream zout = null;
         try {
-            ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(file));
-            zout.putNextEntry(new ZipEntry("data.tab"));
+            zout = new ZipOutputStream(new FileOutputStream(file));
+            MultiDocProgressListener listener = new MultiDocProgressListener(creators.size());
 
-            writer = new DsvDocumentWriter(tsv().newWriter(new OutputStreamWriter(zout)), new DsvDocumentWriter.ProgressListener() {
-                @Override
-                public void setProgress(int curr, int max) {
-                    notifyTaskProgress(max + curr, 2 * max);
-                }
-            });
-            writer.write(doc);
+            for (DsvDocumentCreator docCreator : creators) {
+                DsvDocument doc = docCreator.create();
+                zout.putNextEntry(new ZipEntry(docCreator.getName() + ".tab"));
 
+                (new DsvDocumentWriter(tsv().newWriter(new OutputStreamWriter(zout)), listener.next())).write(doc);
+            }
             zout.closeEntry();
+            listener.done();
             return file;
         } finally {
-            closeQuietly(writer);
+            closeQuietly(zout);
+        }
+    }
+
+    private class MultiDocProgressListener implements DsvDocumentWriter.ProgressListener{
+        private final int size;
+        private final int globalMax = 100;
+        private int idx = -1;
+
+        private MultiDocProgressListener(int size) {
+            this.size = size;
+        }
+
+        public DsvDocumentWriter.ProgressListener next() {
+            idx++;
+            return this;
+        }
+
+        @Override
+        public void setProgress(int curr, int max) {
+            double from = 1.0 / size * idx;
+            int c = (int) Math.floor(globalMax *(from + 1.0 * curr / size / max));
+            notifyTaskProgress(c, globalMax);
+        }
+
+        public void done() {
+            notifyTaskProgress(globalMax, globalMax);
         }
     }
 }
