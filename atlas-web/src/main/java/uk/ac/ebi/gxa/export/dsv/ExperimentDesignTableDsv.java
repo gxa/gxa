@@ -34,10 +34,12 @@ import static java.util.Arrays.asList;
  */
 public class ExperimentDesignTableDsv {
 
+    @SuppressWarnings("unchecked")
     public static DsvDocument createDsvDocument(Map<String, Object> model) {
-        final ExperimentDesignUI expDesign =
-                (ExperimentDesignUI) model.get("experimentDesign");
+        return createDsvDocument((ExperimentDesignUI) model.get("experimentDesign"));
+    }
 
+    public static DsvDocument createDsvDocument(final ExperimentDesignUI expDesign) {
         Collection<ExperimentDesignUI.Row> rows = expDesign.getPropertyValues();
         final Iterator<ExperimentDesignUI.Row> iterator = rows.iterator();
         final int size = rows.size();

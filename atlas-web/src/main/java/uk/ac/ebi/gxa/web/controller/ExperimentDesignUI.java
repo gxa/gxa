@@ -47,6 +47,10 @@ public class ExperimentDesignUI {
     private int limit = -1;
     private int offset = -1;
 
+    public ExperimentDesignUI(Experiment experiment) {
+        this(experiment, -1, -1);
+    }
+
     public ExperimentDesignUI(Experiment experiment, int offset, int limit) {
         this.offset = offset;
         this.limit = limit;

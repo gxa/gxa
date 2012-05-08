@@ -38,6 +38,7 @@ import uk.ac.ebi.gxa.data.*;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.Pair;
+import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
 import uk.ac.ebi.microarray.atlas.model.Asset;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.UpDownCondition;
@@ -133,10 +134,13 @@ public class ExperimentDataService {
         return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
 
+    public ExperimentDesignUI getExperimentDesignUI(String expAccession) throws RecordNotFoundException {
+        return new ExperimentDesignUI(getExperiment(expAccession));
+    }
+
     @Transactional
     public ExperimentAnalytics getExperimentAnalytics(String expAccession, String adAccession)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
-        //TODO
         return getExperimentAnalytics(expAccession, adAccession, null, null, null, UpDownCondition.CONDITION_ANY, 0, -1);
     }
 

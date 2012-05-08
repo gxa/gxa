@@ -27,11 +27,13 @@ import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
+import uk.ac.ebi.gxa.export.dsv.ExperimentDesignTableDsv;
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
 import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
 
 /**
  * @author Olga Melnichuk
@@ -60,7 +62,7 @@ public class ExperimentDownloadData {
                 }
             }
 
-            private DsvDocumentCreateException documentCreateException(Exception e) {
+            private DsvDocumentCreateException documentCreateException(Throwable e) {
                 return new DsvDocumentCreateException("Can't get analytics for experiment: acc = " + expAcc + ", ad = " + adAcc, e);
             }
         };
@@ -71,15 +73,30 @@ public class ExperimentDownloadData {
         return null;
     }
 
-    public DsvDocumentCreator newDsvCreatorForDesign(String expAcc) {
-        //TODO
-        return null;
-    }
+    public DsvDocumentCreator newDsvCreatorForDesign(final String expAcc) {
+        return new DsvDocumentCreator() {
+            @Override
+            public DsvDocument create() throws DsvDocumentCreateException {
+                try {
+                    return ExperimentDesignTableDsv.createDsvDocument(getExperimentDesignUI(expAcc));
+                } catch (RecordNotFoundException e) {
+                    throw documentCreateException(e);
+                }
+            }
 
+            private DsvDocumentCreateException documentCreateException(Throwable e) {
+                return new DsvDocumentCreateException("Can't get analytics for experiment: acc = " + expAcc, e);
+            }
+        };
+    }
 
     private ExperimentAnalytics getExperimentAnalytics(String expAccession, String adAccession)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
         return expDataService.getExperimentAnalytics(expAccession, adAccession);
+    }
+
+    private ExperimentDesignUI getExperimentDesignUI(String expAccession) throws RecordNotFoundException {
+        return expDataService.getExperimentDesignUI(expAccession);
     }
 
 }
