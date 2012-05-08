@@ -172,19 +172,19 @@ http://www.springframework.org/schema/util/spring-util.xsd">
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <property name="services">
             <util:list>
-                <!--<ref bean="indexBuilderServiceProperties"/>-->
-                <!--<ref bean="indexBuilderServiceExperiments"/>-->
+                <ref bean="indexBuilderServiceProperties"/>
+                <ref bean="indexBuilderServiceExperiments"/>
                 <ref bean="indexBuilderServiceGenes"/>
-                <!--<ref bean="bitIndexBuilderServiceGenes"/>-->
+                <ref bean="bitIndexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
         <property name="includeIndexes">
             <util:list>
-                <!--<value>properties</value>-->
-                <!--<value>experiments</value>-->
+                <value>properties</value>
+                <value>experiments</value>
                 <value>genes</value>
-                <!--<value>bitstats</value>-->
+                <value>bitstats</value>
             </util:list>
         </property>
         <property name="executor" ref="threadPool"/>
