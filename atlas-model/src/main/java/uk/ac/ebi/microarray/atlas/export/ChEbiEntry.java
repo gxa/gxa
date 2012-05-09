@@ -60,7 +60,7 @@ public class ChEbiEntry {
                 '}';
     }
 
-    public class ExperimentInfo {
+    public static class ExperimentInfo {
         private String accession;
         private String description;
 
