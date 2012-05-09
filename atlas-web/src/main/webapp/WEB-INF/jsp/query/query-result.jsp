@@ -348,7 +348,7 @@
                     <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
                     <c:choose>
                         <c:when test="${u:isIn(query.expandColumns, c.ef)}">
-                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;<c:if test="${f:length(c.efvs) > 1}">&nbsp;fewer</c:if></a>
+                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}&amp;searchMode=${param.searchMode}">&#0171;<c:if test="${f:length(c.efvs) > 1}">&nbsp;fewer</c:if></a>
                         </c:when>
                         <c:when test="${u:isIn(result.expandableEfs, c.ef)}">
                             <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}&amp;searchMode=${param.searchMode}"><c:if test="${f:length(c.efvs) > 1}">more&nbsp;</c:if>&#0187;</a>
