@@ -30,9 +30,8 @@ import java.io.File;
 public class DownloadTaskResult {
 
     private final File tmpFile;
-
-    private final Throwable exception;
     private final String contentType;
+    private final Throwable exception;
 
     private DownloadTaskResult(File file, String contentType, Throwable e) {
         this.tmpFile = file;
