@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web.controller;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.utils.LazyMap;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -104,6 +105,18 @@ public class ExperimentDesignUI {
 
     public int getTotal() {
         return exp.getAssays().size();
+    }
+
+    /**
+     * A quick workaround for using the object outside of the session; calling for all lazy methods.
+     * @return the current instance of {@link ExperimentDesignUI}
+     */
+    public ExperimentDesignUI unlazy() {
+        getPropertyNames();
+        for(Row r: getPropertyValues()) {
+            r.getPropertyValues();
+        }
+        return this;
     }
 
     private List<Assay> getAssays() {

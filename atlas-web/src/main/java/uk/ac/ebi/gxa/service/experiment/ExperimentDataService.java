@@ -134,8 +134,9 @@ public class ExperimentDataService {
         return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
     }
 
+    @Transactional
     public ExperimentDesignUI getExperimentDesignUI(String expAccession) throws RecordNotFoundException {
-        return new ExperimentDesignUI(getExperiment(expAccession));
+        return new ExperimentDesignUI(getExperiment(expAccession)).unlazy();
     }
 
     @Transactional
