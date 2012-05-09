@@ -28,9 +28,11 @@ import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.export.ChEbiEntry;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.AtlasStatistics;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -38,7 +40,10 @@ import uk.ac.ebi.microarray.atlas.model.OntologyMapping;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A data access object designed for retrieving common sorts of data from the atlas database.  This DAO should be
@@ -159,6 +164,32 @@ public class AtlasDAO {
         ));
 
         return stats;
+    }
+
+    public Collection<ChEbiEntry> getChEbiEntries() {
+        final Map<String, ChEbiEntry> entries= new HashMap<String, ChEbiEntry>();
+        template.query("SELECT DISTINCT OT.ACCESSION, E.ACCESSION, E.DESCRIPTION\n" +
+                "from a2_ontologyterm ot  \n" +
+                "  join a2_assaypvontology apo on apo.ONTOLOGYTERMID = ot.ONTOLOGYTERMID\n" +
+                "  join a2_assaypv apv on apv.ASSAYPVID = apo.ASSAYPVID\n" +
+                "  join a2_assay a on apv.ASSAYID = a.ASSAYID\n" +
+                "  JOIN A2_EXPERIMENT E ON A.EXPERIMENTID = E.EXPERIMENTID\n" +
+                "  where ot.accession like 'CHEBI:%' order by OT.ACCESSION",
+                new RowCallbackHandler(){
+
+                    @Override
+                    public void processRow(ResultSet rs) throws SQLException {
+                        final String chebiAcc = rs.getString(1);
+                        if (entries.containsKey(chebiAcc)) {
+                            final ChEbiEntry chEbiEntry = entries.get(chebiAcc);
+                            chEbiEntry.addExperimentInfo(rs.getString(2), rs.getString(3));
+                        } else {
+                            entries.put(chebiAcc, new ChEbiEntry(chebiAcc, rs.getString(2), rs.getString(3)));
+                        }
+                    }
+                });
+
+        return entries.values();
     }
 
     private static class ExperimentPropertyMapper implements RowMapper<OntologyMapping> {
