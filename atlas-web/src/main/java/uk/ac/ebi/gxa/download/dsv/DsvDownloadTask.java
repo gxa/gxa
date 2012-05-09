@@ -42,6 +42,7 @@ import java.util.zip.ZipOutputStream;
 
 import static com.google.common.io.Closeables.closeQuietly;
 import static java.io.File.createTempFile;
+import static java.lang.Math.min;
 import static uk.ac.ebi.gxa.download.DownloadTaskResult.error;
 import static uk.ac.ebi.gxa.download.DownloadTaskResult.success;
 import static uk.ac.ebi.gxa.utils.dsv.DsvFormat.tsv;
@@ -67,7 +68,8 @@ public class DsvDownloadTask implements Callable<DownloadTaskResult> {
 
     public DownloadTaskResult call() {
         try {
-            return success(createZip(createTempFile(token, ".zip")), CONTENT_TYPE);
+            File file = createTempFile(token.substring(0, min(token.length(), 30)), ".zip");
+            return success(createZip(file), CONTENT_TYPE);
         } catch (IOException e) {
             log.error("DSV download task execution I/O error", e);
             return error(e);

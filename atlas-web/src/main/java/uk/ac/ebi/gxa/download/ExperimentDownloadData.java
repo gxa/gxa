@@ -102,7 +102,7 @@ public class ExperimentDownloadData {
 
         @Override
         public String getName() {
-            return expAcc;
+            return "ExpDesign-" + expAcc;
         }
 
         @Override
@@ -130,7 +130,7 @@ public class ExperimentDownloadData {
 
         @Override
         public String getName() {
-            return expAcc + "_" + adAcc;
+            return "ExpAnalysedData-" + expAcc + "-" + adAcc;
         }
 
         @Override
@@ -162,7 +162,7 @@ public class ExperimentDownloadData {
 
         @Override
         public String getName() {
-            return expAcc + "_" + adAcc;
+            return "ExpRawData-"+ expAcc + "-" + adAcc;
         }
 
         @Override
