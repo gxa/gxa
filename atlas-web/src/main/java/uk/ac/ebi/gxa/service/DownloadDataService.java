@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.service;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
@@ -37,6 +39,8 @@ import static com.google.common.base.Joiner.on;
 @Service
 public class DownloadDataService {
 
+    protected final static Logger log = LoggerFactory.getLogger(DownloadDataService.class);
+
     private final ExperimentDownloadData expDownloadData;
 
     private final DownloadQueue downloadQueue;
@@ -49,7 +53,8 @@ public class DownloadDataService {
     }
 
     public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException {
-        String token = newToken(expAcc, cookie);
+        String token = newToken("ExpAnalysedData-", expAcc, cookie);
+        log.debug("addExperimentAnalyticsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
                 expDownloadData.newDsvCreatorForAnalytics(expAcc));
@@ -57,16 +62,17 @@ public class DownloadDataService {
     }
 
     public String addExperimentExpressionsTask(String expAcc, String cookie) throws RecordNotFoundException {
-        String token = newToken(expAcc, cookie);
+        String token = newToken("ExpRawData-", expAcc, cookie);
+        log.debug("addExperimentExpressionsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
-                expDownloadData.newDsvCreatorForExpressions(expAcc)
-        );
+                expDownloadData.newDsvCreatorForExpressions(expAcc));
         return token;
     }
 
     public String addExperimentDesignTask(String expAcc, String cookie) {
-        String token = newToken(expAcc, cookie);
+        String token = newToken("ExpDesign-", expAcc, cookie);
+        log.debug("addExperimentDesignTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
                 expDownloadData.newDsvCreatorForDesign(expAcc));
@@ -74,7 +80,8 @@ public class DownloadDataService {
     }
 
     public String addGeneSearchTask(AtlasStructuredQuery atlasQuery, String cookie) {
-        String token = newToken(atlasQuery.toString(), cookie);
+        String token = newToken("GeneSearch-", atlasQuery.toString(), cookie);
+        log.debug("addGeneSearchTask(token={})", token);
         //TODO
         return token;
     }
@@ -85,6 +92,7 @@ public class DownloadDataService {
     }
 
     public void cancelTask(String token) {
+        log.debug("cancelTask(token={})", token);
         downloadQueue.cancel(token);
     }
 

@@ -53,8 +53,6 @@ import static ae3.util.FileDownloadServer.processRequest;
 @Controller
 public class DownloadDataViewController extends AtlasViewController {
 
-    protected final static Logger log = LoggerFactory.getLogger(DownloadDataViewController.class);
-
     private AtlasProperties atlasProperties;
     private DownloadDataService downloadService;
 
@@ -79,7 +77,6 @@ public class DownloadDataViewController extends AtlasViewController {
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) throws RecordNotFoundException {
-        log.debug("downloadExperimentAnalytics(eacc={})", expAcc);
         return taskToken(downloadService.addExperimentAnalyticsTask(expAcc, cookie), model);
     }
 
@@ -88,7 +85,6 @@ public class DownloadDataViewController extends AtlasViewController {
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) throws RecordNotFoundException {
-        log.debug("downloadExperimentExpressions(eacc={})", expAcc);
         return taskToken(downloadService.addExperimentExpressionsTask(expAcc, cookie), model);
     }
 
@@ -97,7 +93,6 @@ public class DownloadDataViewController extends AtlasViewController {
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) {
-        log.debug("downloadExperimentDesign(eacc={})", expAcc);
         return taskToken(downloadService.addExperimentDesignTask(expAcc, cookie), model);
     }
 
@@ -126,7 +121,6 @@ public class DownloadDataViewController extends AtlasViewController {
     public String cancelDownload(
             @RequestParam("token") String token,
             Model model) {
-        log.debug("cancelDownload(token=" + token + ")");
         // TODO add model attributes
         downloadService.cancelTask(token);
         return JSON_ONLY_VIEW;
