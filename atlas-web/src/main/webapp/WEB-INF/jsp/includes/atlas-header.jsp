@@ -37,7 +37,6 @@
             </a>
         </td>
         <td align="right" valign="bottom">
-            <a href="#">downloads(0)</a> |
             <c:if test="${! isHomePage}">
                 <a href="${pageContext.request.contextPath}/">home</a> |
             </c:if>
