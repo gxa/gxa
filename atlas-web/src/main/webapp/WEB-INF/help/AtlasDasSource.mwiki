@@ -28,7 +28,7 @@ More information about DAS can be found at
 
 It is easy to enable the display of Gene Expression Atlas gene expression
 analytics annotations in the Ensembl Genome Browser, by adding/enabling the
-Atlas DAS source in the http://www.ensemble.org portal:
+Atlas DAS source in the http://www.ensembl.org portal:
 
 1. Go to http://www.ensembl.org and navigate to a gene page by searching for a
 gene or via a direct link, for example, for human gene BRCA2:
