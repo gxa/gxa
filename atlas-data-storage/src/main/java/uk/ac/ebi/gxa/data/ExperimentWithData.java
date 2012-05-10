@@ -206,7 +206,7 @@ public class ExperimentWithData implements Closeable {
     }
 
     public FloatMatrixProxy getExpressionValues(ArrayDesign arrayDesign, int[] deIndices) throws AtlasDataException {
-        return getProxy(arrayDesign).getExpressionValues(deIndices);
+        return getProxy(arrayDesign).getExpressionData(deIndices);
     }
 
     public float[] getExpressionDataForDesignElementAtIndex(ArrayDesign arrayDesign, int designElementIndex) throws AtlasDataException {
