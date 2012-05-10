@@ -69,6 +69,12 @@
             ACCESSION="unused"
             />
 
+    <A2_PROPERTY
+            PROPERTYID="5"
+            NAME="prop5"
+            ACCESSION="PropAcc5"
+            />
+
     <A2_PROPERTYVALUE
             PROPERTYVALUEID="1"
             PROPERTYID="1"
@@ -131,7 +137,7 @@
 
     <A2_PROPERTYVALUE
             PROPERTYVALUEID="11"
-            PROPERTYID="4"
+            PROPERTYID="5"
             NAME="aspirin"
             />
 
@@ -202,7 +208,7 @@
             ISACTIVE="F"
             LEGACY="F"
             />
-    
+
     <A2_GENEPROPERTY
             GENEPROPERTYID="1"
             NAME="goterm"
@@ -808,8 +814,8 @@
             ORGANISMID="1000"
             BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
             DATABASENAME="ensembl"
-            MYSQLDBNAME = "homo_sapiens"
-            MYSQLDBURL = "ensembldb.ensembl.org:5306"
+            MYSQLDBNAME="homo_sapiens"
+            MYSQLDBURL="ensembldb.ensembl.org:5306"
             />
 
     <A2_ANNOTATIONSRC
@@ -829,8 +835,8 @@
             ORGANISMID="1000"
             BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
             DATABASENAME="ensembl"
-            MYSQLDBNAME = "homo_sapiens"
-            MYSQLDBURL = "ensembldb.ensembl.org:5306"
+            MYSQLDBNAME="homo_sapiens"
+            MYSQLDBURL="ensembldb.ensembl.org:5306"
             />
 
 
@@ -890,11 +896,11 @@
             />
 
     <A2_EXTERNAL_BEPROPERTY
-             EXTBEPROPERTYID="3001"
-             ANNOTATIONSRCID="1001"
-             BIOENTITYPROPERTYID="400"
-             NAME="genesigdbid"
-             />
+            EXTBEPROPERTYID="3001"
+            ANNOTATIONSRCID="1001"
+            BIOENTITYPROPERTYID="400"
+            NAME="genesigdbid"
+            />
 
     <A2_EXTERNAL_ARRAYDESIGN
             EXTARRAYDESIGNID="1000"
