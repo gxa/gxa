@@ -31,7 +31,6 @@ import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * interface class for read access to NetCDF files
