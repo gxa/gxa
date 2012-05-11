@@ -1895,6 +1895,9 @@
         function clearForm() {
             _state.clear();
             $("#geneFilter").val("");
+            $("#geneFilter").get(0).geneProperties = [] // clear stored tokenized values
+            $("#expressionListFilterForm").find('input[id="gene"]').val(""); // clear non-tokenized values
+            $("#expressionListFilterForm").find('li[class="tokeninput"]').remove(); // remove tokenized values visible to the user
             $("#efvFilter").attr("selectedIndex", 0);
             $("#updownFilter").attr("selectedIndex", 0);
             $("#divErrorMessage").css("visibility", "hidden");
