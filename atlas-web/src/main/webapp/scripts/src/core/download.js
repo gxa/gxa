@@ -70,7 +70,7 @@
                 },
                 error:function (error) {
                     handleError(error);
-                    notifyError("Sorry, could not start download. Please try later.");
+                    notifyError();
                 }
             });
         }
@@ -94,6 +94,10 @@
                             notifySuccess();
                             clear();
                         }
+                    },
+                    error:function (error) {
+                        handleError(error);
+                        notifyError();
                     }
                 });
             }, 3000);
@@ -117,9 +121,9 @@
             }
         }
 
-        function notifyError(error) {
+        function notifyError() {
             if (handler.error) {
-                handler.error(error);
+                handler.error("Sorry, a server error occurred. Please try again later.");
             }
         }
 
@@ -153,7 +157,7 @@
 
             $('<div style="position:relative;" class="inlineDownload" id="' + id + '"></div>')
                 .html(['<p class="message">Preparing...</p>',
-                '<div style="float:left;margin-right:4px;margin-top:4px;" class="cancel-icon cancel"></div>',
+                '<div style="float:left;margin-right:4px;margin-top:4px;" class="cancel-icon cancel" title="Cancel"></div>',
                 '<div style="height:10px;margin-top:4px;" class="progressBar anim"></div>',
                 '<div style="clear:both;"></div>'].join(""))
                 .insertAfter(target);
@@ -194,8 +198,9 @@
         }
 
         function onError(error) {
-            el(".message").css("color: red")
-                .text(error);
+            var bar = el(".progressBar"),
+                w = bar.width();
+            bar.replaceWith('<div style="color:red; width:' + w + 'px;">' + error + '</div>');
         }
 
         function onCancel() {

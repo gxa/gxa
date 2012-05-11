@@ -24,9 +24,6 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.service.structuredquery.AtlasStructuredQuery;
 import ae3.service.structuredquery.AtlasStructuredQueryParser;
-import com.google.common.io.Files;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.download.DownloadTaskResult;
+import uk.ac.ebi.gxa.download.TaskExecutionException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.service.DownloadDataService;
@@ -44,6 +42,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import static ae3.util.FileDownloadServer.processRequest;
 
@@ -101,7 +101,12 @@ public class DownloadDataViewController extends AtlasViewController {
             @RequestParam("token") String token,
             Model model) {
         model.addAttribute("token", token);
-        model.addAttribute("progress", downloadService.getProgress(token));
+        try {
+            model.addAttribute("progress", downloadService.getProgress(token));
+        } catch (TaskExecutionException e) {
+            Throwable cause = e.getCause();
+            model.addAttribute("error", cause.getClass().getName() + ": " + cause.getMessage());
+        }
         return JSON_ONLY_VIEW;
     }
 

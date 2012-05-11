@@ -275,7 +275,15 @@
             .done(function () {
                 stopActivity(activity);
             })
-            .success(opts.success)
+            .success(function(data) {
+                if (data.error) {
+                    if (opts.error) {
+                        opts.error(data.error);
+                    }
+                } else if (opts.success) {
+                    opts.success(data);
+                }
+            })
             .error(opts.error);
     };
 
