@@ -1542,7 +1542,7 @@
                 return {
                     eid: s.eid || null,
                     ad: s.ad || null,
-                    gid: s.gid || null,
+                    gid: null,
                     arrayDesigns: s.arrayDesigns || null,
                     ef:null, efv:null, updown:null, offset:0, limit:10};
             }

@@ -397,8 +397,7 @@
     </table>
 
     <div class="errorMessage" id="divErrorMessage">No matching results found. Try searching with <a
-            onclick="expPage.clearQuery(); return false;" href="#">no gene restriction</a> and browse or download the
-        results for further analysis.
+            onclick="expPage.clearQuery(); return false;" href="#">no restrictions</a>.
     </div>
 </div>
 
