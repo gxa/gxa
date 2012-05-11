@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.download.*;
-import uk.ac.ebi.gxa.download.dsv.DsvDownloadTask;
 
 import static com.google.common.base.Joiner.on;
 
@@ -96,7 +95,7 @@ public class DownloadDataService {
         downloadQueue.cancel(token);
     }
 
-    public int getProgress(String token) {
+    public int getProgress(String token) throws TaskExecutionException {
         return downloadQueue.getProgress(token);
     }
 

@@ -59,7 +59,7 @@ public class DownloadQueue {
         return keeper.getResult();
     }
 
-    public int getProgress(String token) {
+    public int getProgress(String token) throws TaskExecutionException {
         FutureTaskKeeper keeper = results.get(token);
         if (keeper == null) {
             return -1;
@@ -128,7 +128,10 @@ public class DownloadQueue {
             }
         }
 
-        public int getProgress() {
+        public int getProgress() throws TaskExecutionException {
+            if (future.isDone()) {
+                getResult().checkNoErrors();
+            }
             return progress.getPercentage();
         }
 
@@ -144,6 +147,7 @@ public class DownloadQueue {
                 //TODO interrupted status ???
                 return DownloadTaskResult.error(e);
             } catch (ExecutionException e) {
+                log.error("Task execution error:", e.getCause());
                 return DownloadTaskResult.error(e.getCause());
             }
         }

@@ -58,4 +58,10 @@ public class DownloadTaskResult {
     public String getContentType() {
         return contentType;
     }
+
+    public void checkNoErrors() throws TaskExecutionException {
+        if (exception != null) {
+            throw new TaskExecutionException("Task execution error", exception);
+        }
+    }
 }
