@@ -39,13 +39,13 @@
 
             var indices = [];
             var i = 0, j = 0;
-            while(indices.length < length) {
-               if (i === usedIndices[j]) {
-                   j++;
-               } else {
-                   indices.push(i);
-               }
-               i++;
+            while (indices.length < length) {
+                if (i === usedIndices[j]) {
+                    j++;
+                } else {
+                    indices.push(i);
+                }
+                i++;
             }
             return indices;
         }
@@ -295,7 +295,7 @@
                         }
 
                         data.push(
-                                $.extend(true, {}, boxAndWhisker[deIndex][ef.efvOffset + efvIndex], {x: (efvIndex * deStep) + j}));
+                            $.extend(true, {}, boxAndWhisker[deIndex][ef.efvOffset + efvIndex], {x: (efvIndex * deStep) + j}));
                     }
 
                     series.push(addSeriesOptions(data, deIndex, {
@@ -363,7 +363,7 @@
                 var result = [];
                 for (var i = 0; i < efvs.length; i++) {
                     var arr = efEfvAssays[efInfo.index][i];
-                    numberOfAssays +=  arr.length;
+                    numberOfAssays += arr.length;
                     result.push([].concat(arr));
                 }
 
@@ -398,8 +398,8 @@
                     var intr = efvInterest[efvIdx];
 
                     var assayIndicesLength = Math.min(
-                            Math.round(1.0 + iAssayCount[intr] * intr * koef / iEfvCount[intr]),
-                            assayIndices.length);
+                        Math.round(1.0 + iAssayCount[intr] * intr * koef / iEfvCount[intr]),
+                        assayIndices.length);
 
                     var selectedAssays = [];
                     var step = Math.ceil(assayIndices.length / assayIndicesLength);
@@ -411,7 +411,7 @@
                 }
 
                 atlasLog("Optimized assay distribution (MAX_POINTS=" + MAX_POINTS + "): " +
-                        numberOfAssays + " -> " + n + " in " + ((new Date).getTime() - startTime) + "ms");
+                    numberOfAssays + " -> " + n + " in " + ((new Date).getTime() - startTime) + "ms");
                 return result;
             }
 
@@ -486,7 +486,7 @@
             function getAssayIndex(x) {
                 var assayDistribution = cache.assayDistribution || [];
                 var offset = 0;
-                for(var i=0; i<assayDistribution.length; i++) {
+                for (var i = 0; i < assayDistribution.length; i++) {
                     if (x >= offset + assayDistribution[i].length) {
                         offset += assayDistribution[i].length;
                         continue;
@@ -599,16 +599,16 @@
 
         var controls = this;
         controls.hide = function() {
-          $("#" + target).hide();
+            $("#" + target).hide();
         };
 
         controls.show = function() {
-          $("#" + target).show();
+            $("#" + target).show();
         };
 
         draw({
-           canZoom: opts.canZoom || false,
-           canPan: opts.canPan || false
+            canZoom: opts.canZoom || false,
+            canPan: opts.canPan || false
         });
 
         function draw(mode) {
@@ -714,7 +714,9 @@
         var target = "#" + (opts.target || "undefined");
         var targetOverview = "#" + (opts.targetOverview || "undefined");
         var targetLegend = "#" + (opts.targetLegend || "undefined");
-        var labelFormatter = (opts.labelFormatter || function(label) { return label.deIndex });
+        var labelFormatter = (opts.labelFormatter || function(label) {
+            return label.deIndex
+        });
 
         var initialWidth = $(target).width() || 500;
         var canZoom = opts.canZoom || false;
@@ -867,8 +869,8 @@
             function refinePlotWidthAndSelection(width, plotData, selection) {
                 var xRange = selection ? selection.xaxis : null;
                 var numberOfPoints =
-                        xRange ? Math.abs(xRange.from - xRange.to) :
-                                basePlot.getMaxX(plotData);
+                    xRange ? Math.abs(xRange.from - xRange.to) :
+                        basePlot.getMaxX(plotData);
 
                 xRange = xRange == null ? {from:basePlot.getMinX(plotData), to:numberOfPoints} : xRange;
 
@@ -894,22 +896,22 @@
             $(targetOverview).width(initialWidth);
 
             $.extend(true, data.options,
-            {
-                legend: {
-                    labelFormatter: labelFormatter,
-                    container: targetLegend,
-                    show: true
-                },
-                yaxis: {
-                    labelWidth:40
-                },
-                selection: {
-                    mode: canZoom ? "x" : null
-                },
-                scroll: {
-                    mode: canPan && !canZoom ? "x" : null
-                }
-            });
+                {
+                    legend: {
+                        labelFormatter: labelFormatter,
+                        container: targetLegend,
+                        show: true
+                    },
+                    yaxis: {
+                        labelWidth:40
+                    },
+                    selection: {
+                        mode: canZoom ? "x" : null
+                    },
+                    scroll: {
+                        mode: canPan && !canZoom ? "x" : null
+                    }
+                });
 
             if (canPan || canZoom) {
                 var widthAndSelection = refinePlotWidthAndSelection($(target).width(), data);
@@ -928,26 +930,26 @@
 
         function createPlotOverview(ranges) {
             flotOverview = $.plot(targetOverview, data.series, $.extend(true, {}, data.options,
-            {
-                yaxis: {
-                    ticks: 0,
-                    labelWidth: 40
-                },
-                series:{
-                    points:{
-                        show: false
-                    }
-                },
-                grid:{
-                    backgroundColor:'#F2F2F2',
-                    markings:null,
-                    autoHighlight: false
-                },
-                legend:{
-                    show:false
-                },
-                colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']
-            }));
+                {
+                    yaxis: {
+                        ticks: 0,
+                        labelWidth: 40
+                    },
+                    series:{
+                        points:{
+                            show: false
+                        }
+                    },
+                    grid:{
+                        backgroundColor:'#F2F2F2',
+                        markings:null,
+                        autoHighlight: false
+                    },
+                    legend:{
+                        show:false
+                    },
+                    colors:['#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3','#999999','#D3D3D3']
+                }));
 
             $(targetOverview + " #plotHeader").remove();
 
@@ -986,15 +988,15 @@
                  ranges.yaxis.to = ranges.yaxis.from + min;*/
 
                 o = $.extend(true, {}, o,
-                {
-                    xaxis: {
-                        min: ranges.xaxis.from,
-                        max: ranges.xaxis.to
-                    },
-                    scroll: {
-                        mode: null
-                    }
-                });
+                    {
+                        xaxis: {
+                            min: ranges.xaxis.from,
+                            max: ranges.xaxis.to
+                        },
+                        scroll: {
+                            mode: null
+                        }
+                    });
             }
 
             $.extend(true, o, {
@@ -1197,30 +1199,30 @@
 
         base.bindToolTip = function(target) {
             var tooltip = base.createToolTip("lineplot",
-                    function(x) {
-                        var assayProps = DataSeriesProvider.getAssayProperties(x);
-                        if (!assayProps) {
-                            return;
-                        }
+                function(x) {
+                    var assayProps = DataSeriesProvider.getAssayProperties(x);
+                    if (!assayProps) {
+                        return;
+                    }
 
-                        var props = [];
-                        for (var i = 0; i < assayProps.length; i++) {
-                            props.push({pname:assayProps[i][0], pvalue:assayProps[i][1]});
-                        }
+                    var props = [];
+                    for (var i = 0; i < assayProps.length; i++) {
+                        props.push({pname:assayProps[i][0], pvalue:assayProps[i][1]});
+                    }
 
-                        var div = $("<div/>").append(
-                                $.tmpl("plotTooltipTempl", {properties:props}));
-                        return div.html();
-                    });
+                    var div = $("<div/>").append(
+                        $.tmpl("plotTooltipTempl", {properties:props}));
+                    return div.html();
+                });
 
             $(target).bind("plothover", (
-                    function(event, pos, item) {
-                        if (item) {
-                            tooltip.show(item.pageX, item.pageY, item.dataIndex, item.dataIndex);
-                        } else {
-                            tooltip.hide();
-                        }
-                    }));
+                function(event, pos, item) {
+                    if (item) {
+                        tooltip.show(item.pageX, item.pageY, item.dataIndex, item.dataIndex);
+                    } else {
+                        tooltip.hide();
+                    }
+                }));
 
             $(target).bind('mouseleave', function () {
                 tooltip.hide();
@@ -1264,7 +1266,7 @@
 
         base.getMaxX = function(plotData) {
             return plotData.series && plotData.series.length > 0 ?
-                    plotData.series.length * plotData.series[0].data.length : 0;
+                plotData.series.length * plotData.series[0].data.length : 0;
         };
 
         base.getMinX = function(plotData) {
@@ -1274,39 +1276,39 @@
         base.bindToolTip = function(target) {
 
             var tooltip = this.createToolTip("boxplot",
-                    function(x) {
-                        var boxProps = DataSeriesProvider.getBoxProperties(x);
-                        if (!boxProps) {
-                            return;
+                function(x) {
+                    var boxProps = DataSeriesProvider.getBoxProperties(x);
+                    if (!boxProps) {
+                        return;
+                    }
+
+                    var box = boxProps.box;
+                    var efv = boxProps.efv;
+                    var boxName = utils ? utils.deInfo(boxProps.deIndex) : boxProps.deIndex;
+
+                    var titles = [
+                        ["Max", box.max],
+                        ["Upper quartile", box.uq],
+                        ["Median", box.median],
+                        ["Lower quartile", box.lq],
+                        ["Min", box.min],
+                        ["Expression", box.up ? "up in " + efv : null],
+                        ["Expression", box.down ? "down in " + efv : null]
+                    ];
+
+                    var props = [];
+
+                    for (var p in titles) {
+                        var t = titles[p];
+                        if (t[1] != null) {
+                            props.push({pname: t[0], pvalue: t[1]});
                         }
+                    }
 
-                        var box = boxProps.box;
-                        var efv = boxProps.efv;
-                        var boxName = utils ? utils.deInfo(boxProps.deIndex) : boxProps.deIndex;
-
-                        var titles = [
-                            ["Max", box.max],
-                            ["Upper quartile", box.uq],
-                            ["Median", box.median],
-                            ["Lower quartile", box.lq],
-                            ["Min", box.min],
-                            ["Expression", box.up ? "up in " + efv : null],
-                            ["Expression", box.down ? "down in " + efv : null]
-                        ];
-
-                        var props = [];
-
-                        for (var p in titles) {
-                            var t = titles[p];
-                            if (t[1] != null) {
-                                props.push({pname: t[0], pvalue: t[1]});
-                            }
-                        }
-
-                        var div = $("<div/>").append(
-                                $.tmpl("plotTooltipTempl", {properties:props, title: boxName}));
-                        return div.html();
-                    });
+                    var div = $("<div/>").append(
+                        $.tmpl("plotTooltipTempl", {properties:props, title: boxName}));
+                    return div.html();
+                });
 
             $(target).bind("boxhover", function(event, e, x) {
                 tooltip.show(e.pageX, e.pageY, x, x);
@@ -1359,19 +1361,19 @@
             if (!plot) {
                 plot = _plotTypes[_plotType]({
                     utils: {
-                            deByIndex: function(deIndex) {
-                                for (var i in _designElements) {
-                                    if (_designElements[i].deIndex == deIndex) {
-                                        return _designElements[i];
-                                    }
+                        deByIndex: function(deIndex) {
+                            for (var i in _designElements) {
+                                if (_designElements[i].deIndex == deIndex) {
+                                    return _designElements[i];
                                 }
-                                return null;
-                            },
-                            deInfo: function(deIndex) {
-                                var de = this.deByIndex(deIndex);
-                                return de ? de.geneName + ":" + de.deAcc : deIndex;
                             }
+                            return null;
+                        },
+                        deInfo: function(deIndex) {
+                            var de = this.deByIndex(deIndex);
+                            return de ? de.geneName + ":" + de.deAcc : deIndex;
                         }
+                    }
                 });
                 _plots[_plotType] = plot;
             }
@@ -1411,12 +1413,12 @@
                 var ef = efs[i];
                 if (ef.name != _ef)
                     root.append($('<div/>').append($('<a/>').text(ef.curatedName).click(
-                                    (function(eff) {
-                                        return function (event) {
-                                            _expPlot.changeCurrentEf(eff);
-                                        }
-                                    }(ef.name))
-                            )));
+                        (function(eff) {
+                            return function (event) {
+                                _expPlot.changeCurrentEf(eff);
+                            }
+                        }(ef.name))
+                    )));
                 else
                     root.append($('<div/>').text(ef.curatedName).addClass('current'));
             }
@@ -1512,7 +1514,7 @@
 
                 for (var o in opts) {
                     if (s.hasOwnProperty(o)) {
-                         populateValuesForProperty(s, o, opts[o]);
+                        populateValuesForProperty(s, o, opts[o]);
                     }
                 }
             }
@@ -1782,7 +1784,7 @@
             }
 
             // Now add to geneConditions all non-tokenized values (with empty==(any) property)
-            nonTokenizedVals =  trim(inputBox.val());
+            nonTokenizedVals = trim(inputBox.val());
             if (nonTokenizedVals != '' && nonTokenizedVals != '(all genes)') {
                 var nonTokenizedGeneConditions = nonTokenizedVals.split(" ");
                 for (i = 0; i < nonTokenizedGeneConditions.length; i++) {
@@ -1795,9 +1797,14 @@
         }
 
         function initFormTips() {
-            var autocompleteTip = "Please enter a gene or design element name, synonym, Ensembl or UniProt identifier, GO category, etc. Start typing and autosuggest will help you narrow down your choice.";
-            $("#simple_genes_tip").qMarkTip(autocompleteTip);
-            $("#simple_de_tip").qMarkTip(autocompleteTip);
+            $("#genes_tip").qMarkTip("Please enter a gene or design element name, synonym, Ensembl or UniProt identifier, GO category, etc. Start typing and autosuggest will help you narrow down your choice.");
+            $("#conditions_tip").qMarkTip("Please select an experimental factor value you want to search for");
+            $("#search_tip").qMarkTip("You can search the experiment by any combination of genes/design elements, differential expression type and an experimental factor value.");
+            $("#search_results_tip").qMarkTip("The search results by default contain 10 design elements with the strongest differential expression confidence across all experimental conditions.");
+            $("#export_results_tip").qMarkTip("Click this button to export the current page of search results in tab-delimited format.");
+            $("#page_size_tip").qMarkTip("Modify this value (maximum: 200) to change the number of design elements being shown on one page of the search results");
+
+
         }
 
         function initForm() {
@@ -1856,12 +1863,10 @@
 
             $("#efvFilter").change(function() {
                 populateStateWithQueryConditions($("#geneFilter"), $("#efvFilter"));
-                newSearch();
             });
 
             $("#updownFilter").change(function() {
                 populateStateWithQueryConditions($("#geneFilter"), $("#updownFilter"));
-                newSearch();
             });
 
             $("#geneFilter").bind("bestAnalyticsSearch", function() {
@@ -1886,7 +1891,6 @@
                 _state.limit(limit);
                 _state.offset(0);
                 populateStateWithQueryConditions($("#geneFilter"));
-                newSearch();
             });
         }
 
@@ -1914,7 +1918,7 @@
 
         function submitQuery(callback) {
             loadExpressionAnalysis(
-                    _state.eid(), _state.ad(), _state.gid(), _state.ef(), _state.efv(), _state.updown(), _state.offset(), _state.limit(), callback);
+                _state.eid(), _state.ad(), _state.gid(), _state.ef(), _state.efv(), _state.updown(), _state.offset(), _state.limit(), callback);
         }
 
         function startLoading() {
@@ -1944,7 +1948,7 @@
             };
 
             //TODO this is already done in ajaxLoader
-            for(p in data) {
+            for (p in data) {
                 if (data.hasOwnProperty(p)) {
                     var v = data[p];
                     if (v === null || v === "" || v === undefined) {
