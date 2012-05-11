@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.download;
 /**
  * @author Olga Melnichuk
  */
-public class TaskExecutionException extends  Exception {
+public class TaskExecutionException extends Exception {
 
     public TaskExecutionException(String message, Throwable cause) {
         super(message, cause);
