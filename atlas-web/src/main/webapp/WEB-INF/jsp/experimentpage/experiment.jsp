@@ -45,203 +45,203 @@
     <wro4j:all name="bundle-gxa-grid-support"/>
     <wro4j:all name="bundle-gxa-page-experiment"/>
 
-    <script type="text/javascript">
-        $(function() {
-            $("a.lightbox").lightbox({
-                fileLoadingImage: "${contextPath}/scripts/jquery-lightbox/images/loading.gif",
-                fileBottomNavCloseImage: "${contextPath}/scripts/jquery-lightbox/images/closelabel.gif"
-            });
+<script type="text/javascript">
+    $(function() {
+        $("a.lightbox").lightbox({
+            fileLoadingImage: "${contextPath}/scripts/jquery-lightbox/images/loading.gif",
+		    fileBottomNavCloseImage: "${contextPath}/scripts/jquery-lightbox/images/closelabel.gif"
         });
-    </script>
+    });
+</script>
 
-    <script id="source" type="text/javascript">
-        <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
-        curatedEFs['${ef.name}'] = '${u:escapeJS(ef.displayName)}';
-        </c:forEach>
+<script id="source" type="text/javascript">
+    <c:forEach var="ef" varStatus="s" items="${exp.experimentFactors}">
+    curatedEFs['${ef.name}'] = '${u:escapeJS(ef.displayName)}';
+    </c:forEach>
 
-        $(document).ready(function() {
+    $(document).ready(function() {
 
-            initPlotTabs({
-                selected: "box",
-                onchange: function(tabId) {
-                    expPage.changePlotType(tabId);
-                }
-            });
+        initPlotTabs({
+            selected: "box",
+            onchange: function(tabId) {
+                expPage.changePlotType(tabId);
+            }
+        });
 
-            function initPlotTabs(opts) {
-                var tabs = {
-                    curr: null,
+        function initPlotTabs(opts) {
+            var tabs = {
+                curr: null,
 
-                    select: function(tabId) {
-                        if (!tabId) {
-                            var sel = $(".btabs .sel")[0];
-                            if (sel) {
-                                tabId = sel.id.split("_")[1];
-                            }
+                select: function(tabId) {
+                    if (!tabId) {
+                        var sel = $(".btabs .sel")[0];
+                        if (sel) {
+                            tabId = sel.id.split("_")[1];
                         }
-
-                        if (this.curr == tabId) {
-                            return;
-                        }
-
-                        if (this.curr) {
-                            this.tabEl(this.curr).removeClass("sel");
-                            this.tabContentEl(this.curr).hide();
-                        }
-
-                        this.tabEl(tabId).addClass("sel");
-                        this.tabContentEl(tabId).show();
-
-                        if (this.curr && opts.onchange) {
-                            opts.onchange.call(this, tabId);
-                        }
-
-                        this.curr = tabId;
-                    },
-
-                    tabEl: function(tabId) {
-                        return $(".btabs #tab_" + tabId);
-                    },
-
-                    tabContentEl: function(tabId) {
-                        return $("#tab_content_" + tabId);
                     }
 
-                };
+                    if (this.curr == tabId) {
+                        return;
+                    }
 
-                tabs.select(opts.selected);
+                    if (this.curr) {
+                        this.tabEl(this.curr).removeClass("sel");
+                        this.tabContentEl(this.curr).hide();
+                    }
 
-                $(".btabs li").each(function() {
-                    $(this).bind("click", function() {
-                        tabs.select(this.id.split("_")[1]);
-                    });
+                    this.tabEl(tabId).addClass("sel");
+                    this.tabContentEl(tabId).show();
+
+                    if (this.curr && opts.onchange) {
+                        opts.onchange.call(this, tabId);
+                    }
+
+                    this.curr = tabId;
+                },
+
+                tabEl: function(tabId) {
+                    return $(".btabs #tab_" + tabId);
+                },
+
+                tabContentEl: function(tabId) {
+                    return $("#tab_content_" + tabId);
+                }
+
+            };
+
+            tabs.select(opts.selected);
+
+            $(".btabs li").each(function() {
+                $(this).bind("click", function() {
+                    tabs.select(this.id.split("_")[1]);
                 });
+            });
 
-            }
-
-            window.expPage = new ExperimentPage(${u:toJson(jsMap)});
-        });
-    </script>
-
-
-    <style type="text/css">
-        @media print {
-            body, .contents, .header, .contentsarea, .head {
-                position: relative;
-            }
         }
-    </style>
+
+        window.expPage = new ExperimentPage(${u:toJson(jsMap)});
+    });
+</script>
+
+
+<style type="text/css">
+    @media print {
+        body, .contents, .header, .contentsarea, .head {
+            position: relative;
+        }
+    }
+</style>
 </head>
 
 <tmpl:stringTemplateWrap name="page">
 
 <div class="contents" id="contents">
-<div class="ae_pagecontainer">
+    <div class="ae_pagecontainer">
 
-<jsp:include page="../includes/atlas-header.jsp"/>
+        <jsp:include page="../includes/atlas-header.jsp"/>
 
-<div class="column-container exp-page">
-    <div class="left-column">
+        <div class="column-container exp-page">
+            <div class="left-column">
 
-        <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
+                <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
 
-        <p>
-            <c:import url="../includes/apilinks.jsp">
-                <c:param name="apiUrl" value="experiment=${exp.accession}"/>
-                <c:param name="callback" value="expPage.getApiLink"/>
-            </c:import>
-        </p>
+                <p>
+                    <c:import url="../includes/apilinks.jsp">
+                        <c:param name="apiUrl" value="experiment=${exp.accession}"/>
+                        <c:param name="callback" value="expPage.getApiLink"/>
+                    </c:import>
+                </p>
 
-        <p>
-                ${exp.abstract}
-            <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
-                target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
-        </p>
+                <p>
+                        ${exp.abstract}
+                    <c:if test="${exp.pubmedId!=null}">(<a href="http://www.ncbi.nlm.nih.gov/pubmed/${exp.pubmedId}"
+                        target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
+                </p>
 
-        <c:choose>
-            <c:when test="${isRNASeq}">
-                <h3>High-throughput sequencing experiment, analyzed with the <a
-                        href="http://bioinformatics.oxfordjournals.org/content/early/2011/01/13/bioinformatics.btr012.short">ArrayExpressHTS</a>
-                    pipeline.</h3>
-            </c:when>
-            <c:otherwise>
-                <span class="section-header-2">Data shown for array design: <span id="arrayDesign"></span></span>
-            </c:otherwise>
-        </c:choose>
+                <c:choose>
+                    <c:when test="${isRNASeq}">
+                        <h3>High-throughput sequencing experiment, analyzed with the <a
+                                href="http://bioinformatics.oxfordjournals.org/content/early/2011/01/13/bioinformatics.btr012.short">ArrayExpressHTS</a>
+                            pipeline.</h3>
+                    </c:when>
+                    <c:otherwise>
+                        <h3>Data shown for array design: <span id="arrayDesign"></span></h3>
+                    </c:otherwise>
+                </c:choose>
 
-        <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
+                <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
 
-            <div style="padding-bottom:5px;"><span class="section-header-2">Experimental Factors</span></div>
+                <div style="padding-bottom:5px;"><span class="section-header-2">Experimental Factors</span></div>
 
-            <div>
-                <div id="EFpagination" class="pagination_ef"></div>
-                <div class="clean"></div>
+                    <div>
+                        <div id="EFpagination" class="pagination_ef"></div>
+                        <div class="clean"></div>
+                    </div>
+
+                    <div style="position:relative;width:100%; margin-top:10px;">
+
+                        <div id="tab_content_large" style="display:none">
+                            <table cellpadding="0" cellspacing="0" style="padding:0;">
+                                <tr>
+                                    <td>
+
+                                        <div id="plot_large" class="bigplot"
+                                             style="width:700px;height:150px;padding:0;"></div>
+                                        <div id="plot_overview_large"
+                                             style="width:700px;height:60px;padding:0;"></div>
+                                        <div id="legend_large"></div>
+                                    </td>
+                                    <td valign="bottom">
+                                        <div id="zoomControls_large"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div id="tab_content_box" style="display:none">
+                            <table cellpadding="0" cellspacing="0" style="padding:0;">
+                                <tr>
+                                    <td>
+                                        <div id="plot_box" class="bigplot"
+                                             style="width:700px;height:150px;padding:0;"></div>
+                                        <div id="plot_overview_box"
+                                             style="width:700px;height:60px;padding:0;"></div>
+                                        <div id="legend_box"></div>
+                                    </td>
+                                    <td valign="bottom">
+                                        <div id="zoomControls_box"></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="btabs" style="width:100%;margin-top:10px">
+                            <ul>
+                                <li id="tab_box">box plot</li>
+                                <li id="tab_large">line plot</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
 
-            <div style="position:relative;width:100%; margin-top:10px;">
-
-                <div id="tab_content_large" style="display:none">
-                    <table cellpadding="0" cellspacing="0" style="padding:0;">
-                        <tr>
-                            <td>
-
-                                <div id="plot_large" class="bigplot"
-                                     style="width:700px;height:150px;padding:0;"></div>
-                                <div id="plot_overview_large"
-                                     style="width:700px;height:60px;padding:0;"></div>
-                                <div id="legend_large"></div>
-                            </td>
-                            <td valign="bottom">
-                                <div id="zoomControls_large"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div id="tab_content_box" style="display:none">
-                    <table cellpadding="0" cellspacing="0" style="padding:0;">
-                        <tr>
-                            <td>
-                                <div id="plot_box" class="bigplot"
-                                     style="width:700px;height:150px;padding:0;"></div>
-                                <div id="plot_overview_box"
-                                     style="width:700px;height:60px;padding:0;"></div>
-                                <div id="legend_box"></div>
-                            </td>
-                            <td valign="bottom">
-                                <div id="zoomControls_box"></div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="btabs" style="width:100%;margin-top:10px">
-                    <ul>
-                        <li id="tab_box">box plot</li>
-                        <li id="tab_large">line plot</li>
-                    </ul>
-                </div>
-
-            </div>
-        </div>
-
-    </div>
-
-    <div class="right-column">
-        <div style="float:right">
-            <jsp:include page="experiment-header.jsp"/>
-            <div>
+            <div class="right-column">
+                <div style="float:right">
+                    <jsp:include page="experiment-header.jsp"/>
+                    <div>
                 <span class="section-header-2"><a
                         href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}">Experiment
                     Design</a></span>
+                    </div>
+                    <jsp:include page="experiment-header-assets.jsp"/>
+                </div>
             </div>
-            <jsp:include page="experiment-header-assets.jsp"/>
+
+            <div class="clean">&nbsp;</div>
+
         </div>
-    </div>
-
-    <div class="clean">&nbsp;</div>
-
-</div>
 
 <script id="expressionValueTableRowTemplate1" type="text/x-jquery-tmpl">
     <tr style="height:25px;">
@@ -254,40 +254,39 @@
         </td>
         <td class="padded">\${deAcc}</td>
         <c:if test="${exp.typeString == 'RNA_SEQ'}">
-            <c:choose>
-                <c:when test="${expSpecies[0] == 'homo sapiens'}">
-                    <c:set var="ensembl_organism" value="Homo_sapiens"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'mus musculus'}">
-                    <c:set var="ensembl_organism" value="Mus_musculus"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'drosophila melanogaster'}">
-                    <c:set var="ensembl_organism" value="Drosophila_melanogaster"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'saccharomyces cerevisiae'}">
-                    <c:set var="ensembl_organism" value="Saccharomyces_cerevisiae"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'rattus norvegicus'}">
-                    <c:set var="ensembl_organism" value="Rattus_norvegicus"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'gallus gallus'}">
-                    <c:set var="ensembl_organism" value="Gallus_gallus"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'equus caballus'}">
-                    <c:set var="ensembl_organism" value="Equus_caballus"/>
-                </c:when>
-                <c:when test="${expSpecies[0] == 'sus scrofa'}">
-                    <c:set var="ensembl_organism" value="Sus_scrofa"/>
-                </c:when>
+          <c:choose>
+              <c:when test="${expSpecies[0] == 'homo sapiens'}">
+                  <c:set var="ensembl_organism" value="Homo_sapiens"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'mus musculus'}">
+                  <c:set var="ensembl_organism" value="Mus_musculus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'drosophila melanogaster'}">
+                  <c:set var="ensembl_organism" value="Drosophila_melanogaster"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'saccharomyces cerevisiae'}">
+                  <c:set var="ensembl_organism" value="Saccharomyces_cerevisiae"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'rattus norvegicus'}">
+                  <c:set var="ensembl_organism" value="Rattus_norvegicus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'gallus gallus'}">
+                  <c:set var="ensembl_organism" value="Gallus_gallus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'equus caballus'}">
+                  <c:set var="ensembl_organism" value="Equus_caballus"/>
+              </c:when>
+              <c:when test="${expSpecies[0] == 'sus scrofa'}">
+                  <c:set var="ensembl_organism" value="Sus_scrofa"/>
+              </c:when>
 
 
-                <c:otherwise>
+              <c:otherwise>
                     <c:set var="ensembl_organism" value="Homo_sapiens"/>
-                </c:otherwise>
-            </c:choose>
+            </c:otherwise>
+          </c:choose>
             <td class="padded wiggle"><a target="_blank"
-                                         href="http://www.ensembl.org/${ensembl_organism}/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome
-                View</a></td>
+                                         href="http://www.ensembl.org/${ensembl_organism}/Location/View?g=\${geneIdentifier};contigviewbottom=url:http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/wiggle/\${geneIdentifier}_${exp.accession}_\${ef_enc}_\${efv_enc}.wig">Genome View</a></td>
         </c:if>
         <td class="padded">\${ef}</td>
         <td class="padded">\${efv}</td>
@@ -297,23 +296,13 @@
     </tr>
 </script>
 
-<
-script
-id = "geneToolTipTemplate"
-type = "text/x-jquery-tmpl" >
-        < div >
-        < div
-class = "genename" >
-        < b >\${name} < /b> \${identifiers}
-        < /div>
-{
-    {
-        tmpl(properties)
-        "#geneToolTipPropertyTemplate"
-    }
-}
-<
-/div>
+<script id="geneToolTipTemplate" type="text/x-jquery-tmpl">
+    <div>
+      <div class="genename">
+        <b>\${name}</b> \${identifiers}
+       </div>
+        {{tmpl(properties) "#geneToolTipPropertyTemplate"}}
+    </div>
 </script>
 
 <script id="geneToolTipPropertyTemplate" type="text/x-jquery-tmpl">
