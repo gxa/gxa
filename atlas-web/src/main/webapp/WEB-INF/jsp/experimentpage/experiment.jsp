@@ -310,15 +310,11 @@
 </script>
 
 <div>
+    <div>
+       <label class="section-header-2" id="search_tip">&nbsp;Search this experiment for:</label>
+    </div>
     <form id="expressionListFilterForm" action="javascript:alert('error');">
         <table>
-            <tr>
-                <td><label class="section-header-2" id="search_tip">Search this experiment for:</label></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
             <tr>
                 <td><label class="section-header-2" id="genes_tip">Genes/Design Elements</label></td>
                 <td></td>
@@ -326,9 +322,8 @@
                 <td></td>
                 <td></td>
             </tr>
-
             <tr>
-                <td class="padded"><input type="text" class="value" id="geneFilter" style="width:99%;"/></td>
+                <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;"/></td>
                 <td class="padded">
                     <select id="updownFilter" style="width:100%;">
                         <option value="CONDITION_UP_OR_DOWN">up/down in</option>
@@ -360,7 +355,7 @@
         </table>
     </form>
     <div>
-        <div style="float:left; margin: 5px; width: 185px">
+        <div style="float:left; margin: 5px; width: 165px">
             <label class="section-header-2" id="search_results_tip">Search Results:</label>
         </div>
         <div style="float:left; margin: 5px;">
