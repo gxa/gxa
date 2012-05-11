@@ -73,6 +73,14 @@ public class ExperimentWithData implements Closeable {
         return new StatisticsCursor(getProxy(ad), ANY_KNOWN_GENE, ANY_EFV, deIndices);
     }
 
+    public ExpressionDataCursor getExpressionData(ArrayDesign ad, int[] deIndices) throws AtlasDataException {
+        return new ExpressionDataCursor(getProxy(ad), deIndices);
+    }
+
+    public ExpressionDataCursor getExpressionData(ArrayDesign ad) throws AtlasDataException {
+        return new ExpressionDataCursor(getProxy(ad));
+    }
+
     public Experiment getExperiment() {
         return experiment;
     }

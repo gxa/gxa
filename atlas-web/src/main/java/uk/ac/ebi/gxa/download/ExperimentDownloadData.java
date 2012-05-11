@@ -27,9 +27,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.data.ExperimentPart;
+import uk.ac.ebi.gxa.data.ExpressionDataCursor;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.export.dsv.ExperimentDesignTableDsv;
+import uk.ac.ebi.gxa.export.dsv.ExperimentExpressionDataTableDsv;
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
@@ -89,8 +93,14 @@ public class ExperimentDownloadData {
         return expDataService.getExperimentAnalytics(expAcc, adAcc);
     }
 
-    private ExperimentDesignUI getExperimentDesignUI(String expAccession) throws RecordNotFoundException {
-        return expDataService.getExperimentDesignUI(expAccession);
+    private ExperimentDesignUI getExperimentDesignUI(String expAcc) throws RecordNotFoundException {
+        return expDataService.getExperimentDesignUI(expAcc);
+    }
+
+
+    private ExpressionDataCursor getExperimentExpressionData(String expAcc, String adAcc)
+            throws AtlasDataException, ResourceNotFoundException, RecordNotFoundException {
+        return expDataService.getExperimentExpressionData(expAcc, adAcc);
     }
 
     private class ExperimentDesignDocCreator implements DsvDocumentCreator {
@@ -167,8 +177,19 @@ public class ExperimentDownloadData {
 
         @Override
         public DsvDocument create() throws DsvDocumentCreateException {
-            //TODO
-            return null;
+            try {
+                return ExperimentExpressionDataTableDsv.createDsvDocument(getExperimentExpressionData(expAcc, adAcc));
+            } catch (AtlasDataException e) {
+                throw documentCreateException(e);
+            } catch (ResourceNotFoundException e) {
+                throw documentCreateException(e);
+            } catch (RecordNotFoundException e) {
+                throw documentCreateException(e);
+            }
+        }
+
+        private DsvDocumentCreateException documentCreateException(Throwable e) {
+            return new DsvDocumentCreateException("Can't create experiment expression data dsv doc: acc = " + expAcc + ", ad = " + adAcc, e);
         }
     }
 

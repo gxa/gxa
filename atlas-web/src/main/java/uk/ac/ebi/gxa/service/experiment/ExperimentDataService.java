@@ -51,6 +51,7 @@ import java.util.List;
 import static com.google.common.base.Predicates.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
+import static uk.ac.ebi.gxa.data.ExperimentPart.find;
 import static uk.ac.ebi.gxa.utils.Pair.create;
 import static uk.ac.ebi.microarray.atlas.model.DesignElementStatistics.ANY_KNOWN_GENE;
 
@@ -87,22 +88,22 @@ public class ExperimentDataService {
         this.expAnalyticsService = expAnalyticsService;
     }
 
-    public AtlasExperiment getExperimentFromSolr(String accession) throws RecordNotFoundException {
-        AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(accession);
+    public AtlasExperiment getExperimentFromSolr(String expAcc) throws RecordNotFoundException {
+        AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(expAcc);
         if (exp == null) {
-            throw new RecordNotFoundException("Solr: No experiment found with accession=" + accession);
+            throw new RecordNotFoundException("Solr: No experiment found with expAcc=" + expAcc);
         }
         return exp;
     }
 
     @Transactional
-    public Experiment getExperiment(String accession) throws RecordNotFoundException {
-        return atlasDAO.getExperimentByAccession(accession);
+    public Experiment getExperiment(String expAcc) throws RecordNotFoundException {
+        return atlasDAO.getExperimentByAccession(expAcc);
     }
 
     @Transactional
-    public ExperimentWithData getExperimentWithData(String accession) throws RecordNotFoundException {
-        return getExperimentWithData(getExperiment(accession));
+    public ExperimentWithData getExperimentWithData(String expAcc) throws RecordNotFoundException {
+        return getExperimentWithData(getExperiment(expAcc));
     }
 
     @Transactional
@@ -111,8 +112,8 @@ public class ExperimentDataService {
     }
 
     @Transactional
-    public File getAssetFile(String accession, String fileName) throws ResourceNotFoundException, RecordNotFoundException {
-        Experiment experiment = getExperiment(accession);
+    public File getAssetFile(String expAcc, String fileName) throws ResourceNotFoundException, RecordNotFoundException {
+        Experiment experiment = getExperiment(expAcc);
 
         Asset asset = experiment.getAsset(fileName);
         if (asset == null) {
@@ -126,24 +127,30 @@ public class ExperimentDataService {
         return assetFile;
     }
 
-    private static ResourceNotFoundException assetNotFound(String accession, String assetFileName) {
-        return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + accession);
+    private static ResourceNotFoundException assetNotFound(String expAcc, String assetFileName) {
+        return new ResourceNotFoundException("Asset: " + assetFileName + " not found for experiment: " + expAcc);
     }
 
     @Transactional
-    public ExperimentDesignUI getExperimentDesignUI(String expAccession) throws RecordNotFoundException {
-        return new ExperimentDesignUI(getExperiment(expAccession)).unlazy();
+    public ExperimentDesignUI getExperimentDesignUI(String expAcc) throws RecordNotFoundException {
+        return new ExperimentDesignUI(getExperiment(expAcc)).unlazy();
     }
 
     @Transactional
-    public ExperimentAnalytics getExperimentAnalytics(String expAccession, String adAccession)
+    public ExperimentAnalytics getExperimentAnalytics(String expAcc, String adAcc)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
-        return getExperimentAnalytics(expAccession, adAccession, null, null, null, UpDownCondition.CONDITION_ANY, 0, -1);
+        return getExperimentAnalytics(expAcc, adAcc, null, null, null, UpDownCondition.CONDITION_ANY, 0, -1);
+    }
+
+    @Transactional
+    public ExpressionDataCursor getExperimentExpressionData(String expAcc, String adAcc)
+            throws RecordNotFoundException, ResourceNotFoundException, AtlasDataException {
+        return find(getExperimentWithData(expAcc), adAcc).getExpressionData();
     }
 
     @Transactional
     public ExperimentAnalytics getExperimentAnalytics(
-            @Nonnull String accession,
+            @Nonnull String expAcc,
             String adAcc,
             String gid,
             String ef,
@@ -154,7 +161,7 @@ public class ExperimentDataService {
 
         ExperimentWithData ewd = null;
         try {
-            ewd = getExperimentWithData(accession);
+            ewd = getExperimentWithData(expAcc);
 
             final Predicate<Long> geneIdPredicate = genePredicate(gid);
 
@@ -207,5 +214,4 @@ public class ExperimentDataService {
             }
         };
     }
-
 }
