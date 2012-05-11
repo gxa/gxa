@@ -388,7 +388,6 @@ class = "genename" >
         </div>
         <div style="clear:both; width:100%; height:1px; padding:0; margin:0;"></div>
     </div>
-    <div style="clear:both; width:100%; height:1px; padding:0; margin:0;"></div>
 </div>
 
 <div>
