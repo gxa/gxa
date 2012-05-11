@@ -223,9 +223,16 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <!-- Web interface component -->
 
-    <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">
+    <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO"
+            destroy-method="shutdown">
         <property name="geneSolr" ref="solrServerAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="executorService">
+            <bean class="java.util.concurrent.Executors"
+                  factory-method="newFixedThreadPool">
+                <constructor-arg type="int" value="10"/>
+            </bean>
+        </property>
     </bean>
 
     <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">
