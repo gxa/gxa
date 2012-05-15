@@ -29,7 +29,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
 import javax.annotation.Nullable;
-
 import java.util.Collection;
 
 import static com.google.common.collect.Iterables.transform;
@@ -59,6 +58,7 @@ public class ExperimentAnalytics {
     public int size() {
         return bestResults.size();
     }
+
     public int getTotalSize() {
         return bestResults.getTotalSize();
     }
@@ -83,15 +83,35 @@ public class ExperimentAnalytics {
         private final float tValue;
 
         public TableRow(BestDesignElementsResult.Item item) {
-            geneName = item.getGene().getGeneName();
-            geneIdentifier = item.getGene().getGeneIdentifier();
-            deAccession = item.getDeAccession();
-            deIndex = item.getDeIndex();
-            factor = item.getEf();
-            factorValue = item.getEfv();
-            pValue = item.getPValue();
-            tValue = item.getTValue();
-            upDown = UpDownExpression.valueOf(item.getPValue(), item.getTValue());
+            this(item.getGene().getGeneName(),
+                    item.getGene().getGeneIdentifier(),
+                    item.getDeAccession(),
+                    item.getDeIndex(),
+                    item.getEf(),
+                    item.getEfv(),
+                    item.getPValue(),
+                    item.getTValue(),
+                    UpDownExpression.valueOf(item.getPValue(), item.getTValue()));
+        }
+
+        public TableRow(String geneName,
+                        String geneIdentifier,
+                        String deAccession,
+                        Integer deIndex,
+                        String factor,
+                        String factorValue,
+                        float pValue,
+                        float tValue,
+                        UpDownExpression upDown) {
+            this.geneName = geneName;
+            this.geneIdentifier = geneIdentifier;
+            this.deAccession = deAccession;
+            this.deIndex = deIndex;
+            this.factor = factor;
+            this.factorValue = factorValue;
+            this.pValue = pValue;
+            this.tValue = tValue;
+            this.upDown = upDown;
         }
 
         @JsonProperty("geneName")
