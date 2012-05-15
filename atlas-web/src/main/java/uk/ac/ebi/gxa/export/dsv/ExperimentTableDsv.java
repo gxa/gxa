@@ -23,75 +23,107 @@
 package uk.ac.ebi.gxa.export.dsv;
 
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvColumn;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
 import java.util.Iterator;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 /**
  * @author Olga Melnichuk
  */
 public class ExperimentTableDsv {
 
+    private static enum Column implements DsvColumn<ExperimentAnalytics.TableRow> {
+        GeneName("GeneName", "Name of gene") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return row.getGeneName();
+            }
+        },
+        GeneIdentifier("GeneIdentifier", "Gene identifier") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return row.getGeneIdentifier();
+            }
+        },
+        DesignElementAcc("DesignElementAccession", "Probe set name for which expression was measured on the array") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return row.getDeAccession();
+            }
+        },
+        ExperimentalFactor("ExperimentalFactor", "Assay or Sample attribute that is an experimental factor") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return row.getFactor();
+            }
+        },
+        ExperimentalFactorValue("ExperimentalFactorValue", "Value for the experimental factor") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return row.getFactorValue();
+            }
+        },
+        UpDownExpression("UpDownExpression", "Type of differential expression reported") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return row.getUpDown();
+            }
+        },
+        TSatistic("TStatistic", "Statistical measure of confidence in the differential expression call") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return Float.toString(row.getFloatTValue());
+            }
+        },
+        PValue("PValue", "Statistical measure of confidence in the differential expression call") {
+            @Override
+            public String convert(ExperimentAnalytics.TableRow row) {
+                return Float.toString(row.getFloatPValue());
+            }
+        };
+
+        private final String name;
+        private final String description;
+
+        private Column(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public abstract String convert(ExperimentAnalytics.TableRow row);
+    }
+
     @SuppressWarnings("unchecked")
-    public static DsvDocument createDsvDocument(Map<String, Object> model) {
+    public static DsvRowIterator<ExperimentAnalytics.TableRow> createDsvDocument(Map<String, Object> model) {
         return createDsvDocument((ExperimentAnalytics) model.get("analytics"));
     }
 
-    public static DsvDocument createDsvDocument(ExperimentAnalytics analytics) {
-        final Iterator<ExperimentAnalytics.TableRow> iterator = analytics.getRows().iterator();
-        final int size = analytics.size();
+    public static DsvRowIterator<ExperimentAnalytics.TableRow> createDsvDocument(ExperimentAnalytics analytics) {
+        Iterator<ExperimentAnalytics.TableRow> iterator = analytics.getRows().iterator();
+        int size = analytics.size();
 
-        return new DsvDocument() {
+        return new DsvRowIterator<ExperimentAnalytics.TableRow>(iterator, size)
+                .addColumns(asList(Column.GeneName,
+                        Column.GeneIdentifier,
+                        Column.DesignElementAcc,
+                        Column.ExperimentalFactor,
+                        Column.ExperimentalFactorValue,
+                        Column.UpDownExpression,
+                        Column.TSatistic,
+                        Column.PValue)
+                );
 
-            @Override
-            public String[] getHeader() {
-                return new String[]{
-                        "GeneName",
-                        "GeneIdentifier",
-                        "DesignElementAccession",
-                        "ExperimentalFactor",
-                        "ExperimentalFactorValue",
-                        "UpDownExpression",
-                        "TStatistic",
-                        "PValue"
-                };
-            }
-
-            @Override
-            public Iterator<String[]> getRowIterator() {
-                return new Iterator<String[]>() {
-                    @Override
-                    public boolean hasNext() {
-                        return iterator.hasNext();
-                    }
-
-                    @Override
-                    public String[] next() {
-                        ExperimentAnalytics.TableRow row = iterator.next();
-                        return new String[] {
-                                row.getGeneName(),
-                                row.getGeneIdentifier(),
-                                row.getDeAccession(),
-                                row.getFactor(),
-                                row.getFactorValue(),
-                                row.getUpDown(),
-                                Float.toString(row.getFloatTValue()),
-                                Float.toString(row.getFloatPValue())
-                        };
-                    }
-
-                    @Override
-                    public void remove() {
-                        iterator.remove();
-                    }
-                };
-            }
-
-            @Override
-            public int getTotalRowCount() {
-                return size;
-            }
-        };
     }
 }

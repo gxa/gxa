@@ -57,10 +57,6 @@ public abstract class DsvFormat {
         return fileName + ext;
     }
 
-    String joinValues(String[] values) {
-        return joinValues(Arrays.asList(values));
-    }
-
     String joinValues(Iterable<String> values) {
         StringBuilder sb = new StringBuilder();
         Iterator<String> iterator = values.iterator();

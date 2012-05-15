@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static com.google.common.collect.Collections2.transform;
 import static com.google.common.collect.Lists.newArrayList;
@@ -26,7 +27,7 @@ public class ApiPropertyValueMappings {
     private boolean exactMatch;
 
 
-    public ApiPropertyValueMappings(String propertyName, String propertyValue, boolean caseInsensitive, boolean exactMatch) {
+    public ApiPropertyValueMappings(String propertyName, @Nullable String propertyValue, boolean caseInsensitive, boolean exactMatch) {
         this.propertyName = propertyName;
         this.propertyValue = propertyValue;
         this.caseInsensitive = caseInsensitive;

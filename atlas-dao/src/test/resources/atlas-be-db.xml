@@ -69,6 +69,12 @@
             ACCESSION="unused"
             />
 
+    <A2_PROPERTY
+            PROPERTYID="5"
+            NAME="prop5"
+            ACCESSION="PropAcc5"
+            />
+
     <A2_PROPERTYVALUE
             PROPERTYVALUEID="1"
             PROPERTYID="1"
@@ -123,10 +129,16 @@
             NAME="value009"
             />
 
-        <A2_PROPERTYVALUE
+    <A2_PROPERTYVALUE
             PROPERTYVALUEID="10"
             PROPERTYID="4"
             NAME="unused_val"
+            />
+
+    <A2_PROPERTYVALUE
+            PROPERTYVALUEID="11"
+            PROPERTYID="5"
+            NAME="aspirin"
             />
 
     <A2_BIOENTITYTYPE
@@ -196,7 +208,7 @@
             ISACTIVE="F"
             LEGACY="F"
             />
-    
+
     <A2_GENEPROPERTY
             GENEPROPERTYID="1"
             NAME="goterm"
@@ -303,6 +315,13 @@
             ARRAYDESIGNID="2"
             />
 
+    <A2_ASSAY
+            ASSAYID="3"
+            ACCESSION="xyz:XYZabc:AnotherThing:6789.XYZ789"
+            EXPERIMENTID="2"
+            ARRAYDESIGNID="2"
+            />
+
     <A2_SAMPLE
             SAMPLEID="1"
             EXPERIMENTID="174501824"
@@ -381,6 +400,12 @@
             ASSAYPVID="9"
             ASSAYID="1"
             PROPERTYVALUEID="9"
+            />
+
+    <A2_ASSAYPV
+            ASSAYPVID="11"
+            ASSAYID="3"
+            PROPERTYVALUEID="11"
             />
 
     <A2_SAMPLEPV
@@ -789,8 +814,8 @@
             ORGANISMID="1000"
             BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
             DATABASENAME="ensembl"
-            MYSQLDBNAME = "homo_sapiens"
-            MYSQLDBURL = "ensembldb.ensembl.org:5306"
+            MYSQLDBNAME="homo_sapiens"
+            MYSQLDBURL="ensembldb.ensembl.org:5306"
             />
 
     <A2_ANNOTATIONSRC
@@ -810,8 +835,8 @@
             ORGANISMID="1000"
             BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
             DATABASENAME="ensembl"
-            MYSQLDBNAME = "homo_sapiens"
-            MYSQLDBURL = "ensembldb.ensembl.org:5306"
+            MYSQLDBNAME="homo_sapiens"
+            MYSQLDBURL="ensembldb.ensembl.org:5306"
             />
 
 
@@ -871,11 +896,11 @@
             />
 
     <A2_EXTERNAL_BEPROPERTY
-             EXTBEPROPERTYID="3001"
-             ANNOTATIONSRCID="1001"
-             BIOENTITYPROPERTYID="400"
-             NAME="genesigdbid"
-             />
+            EXTBEPROPERTYID="3001"
+            ANNOTATIONSRCID="1001"
+            BIOENTITYPROPERTYID="400"
+            NAME="genesigdbid"
+            />
 
     <A2_EXTERNAL_ARRAYDESIGN
             EXTARRAYDESIGNID="1000"
@@ -903,6 +928,12 @@
             ACCESSION="EFO_0000828"
             DESCRIPTION="Another term"/>
 
+    <A2_ONTOLOGYTERM
+            ONTOLOGYTERMID="3"
+            ONTOLOGYID="1"
+            ACCESSION="CHEBI:15367"
+            DESCRIPTION=""/>
+
     <A2_ASSAYPVONTOLOGY
             ONTOLOGYTERMID="1"
             ASSAYPVID="1"/>
@@ -914,4 +945,12 @@
     <A2_ASSAYPVONTOLOGY
             ONTOLOGYTERMID="1"
             ASSAYPVID="8"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ONTOLOGYTERMID="3"
+            ASSAYPVID="8"/>
+
+    <A2_ASSAYPVONTOLOGY
+            ONTOLOGYTERMID="3"
+            ASSAYPVID="11"/>
 </dataset>

@@ -29,7 +29,7 @@ import uk.ac.ebi.gxa.utils.dsv.DsvFormat;
 /**
  * @author Olga Melnichuk
  */
-public abstract class AbstractCsvView extends AbstractDsvView {
+public abstract class AbstractCsvView<T> extends AbstractDsvView<T> {
 
     private final CsvFormat format;
 

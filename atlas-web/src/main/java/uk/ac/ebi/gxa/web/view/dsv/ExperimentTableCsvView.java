@@ -23,18 +23,19 @@
 package uk.ac.ebi.gxa.web.view.dsv;
 
 import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
+import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.spring.view.dsv.AbstractCsvView;
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
 import java.util.Map;
 
 /**
  * @author Olga Melnichuk
  */
-public class ExperimentTableCsvView extends AbstractCsvView {
+public class ExperimentTableCsvView extends AbstractCsvView<ExperimentAnalytics.TableRow> {
 
     @Override
-    protected DsvDocument buildDsvDocument(Map<String, Object> model) {
+    protected DsvRowIterator<ExperimentAnalytics.TableRow> buildDsvDocument(Map<String, Object> model) {
         return ExperimentTableDsv.createDsvDocument(model);
     }
 }

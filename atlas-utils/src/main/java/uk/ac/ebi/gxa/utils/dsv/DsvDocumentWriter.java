@@ -24,7 +24,6 @@ package uk.ac.ebi.gxa.utils.dsv;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Iterator;
 
 /**
  * @author Olga Melnichuk
@@ -45,14 +44,13 @@ public class DsvDocumentWriter implements Closeable {
         this.dsvWriter = dsvWriter;
     }
 
-    public final void write(DsvDocument doc) throws IOException {
-        dsvWriter.write(doc.getHeader());
-        Iterator<String[]> rowIterator = doc.getRowIterator();
-
-        int max = doc.getTotalRowCount();
+    public final <T> void write(DsvRowIterator<T> iter) throws IOException {
+        dsvWriter.writeLine(iter.getColumnNames());
+        dsvWriter.writeLine(iter.getColumnDescriptions());
+        int max = iter.getTotalRowCount();
         int processed = 0;
-        while (rowIterator.hasNext()) {
-            dsvWriter.write(rowIterator.next());
+        while (iter.hasNext()) {
+            dsvWriter.writeLine(iter.next());
             notifyProgress(processed++, max);
         }
         dsvWriter.flush();

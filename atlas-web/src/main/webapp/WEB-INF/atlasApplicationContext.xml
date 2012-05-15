@@ -545,6 +545,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
+    <bean name="chEbiExportService" class="uk.ac.ebi.gxa.service.ChEbiXrefExportService">
+    </bean>
+
     <!--Configure R workbench -->
     <bean name="atlasRFactory" class="uk.ac.ebi.gxa.R.DynamicAtlasRFactory" init-method="init" destroy-method="destroy">
         <property name="atlasProperties" ref="atlasProperties"/>

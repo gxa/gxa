@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.service;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
@@ -170,6 +172,25 @@ public class CurationService {
 
     /**
      * @param propertyName
+     * @param exactValueMatch if true, only experiments with assays/samples containing a property matching propertyName exactly will be considered;
+     *                        otherwise all experiments with assays/samples containing a property of which propertyName is a substring will be considered.
+     * @return List of ApiShallowProperty's containing propertyName-propertyValue
+     */
+    public Collection<ApiShallowProperty> getOntologyMappingsByProperty(final String propertyName, boolean exactValueMatch) {
+        boolean caseInsensitive = true;
+        ApiPropertyValueMappings pvMappings = new ApiPropertyValueMappings(propertyName, null, caseInsensitive, exactValueMatch);
+        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByProperty(propertyName, exactValueMatch, caseInsensitive)) {
+            pvMappings.add(new ApiProperty(assayProperty));
+        }
+        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByProperty(propertyName, exactValueMatch, caseInsensitive)) {
+            pvMappings.add(new ApiProperty(sampleProperty));
+        }
+
+        return pvMappings.getAll();
+    }
+
+    /**
+     * @param propertyName
      * @param propertyValue
      * @param exactValueMatch if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
      *                        otherwise all experiments with assays/samples containing a property value of which propertyValue is a substring will be considered.
@@ -181,7 +202,23 @@ public class CurationService {
         for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
             pvMappings.add(new ApiProperty(assayProperty));
         }
-        for (SampleProperty sampleProperty : sampleDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
+        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
+            pvMappings.add(new ApiProperty(sampleProperty));
+        }
+
+        return pvMappings.getAll();
+    }
+
+
+    /**
+     * @return List of ApiShallowProperty's containing propertyName-propertyValue
+     */
+    public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@Nonnull final String ontologyTerm) {
+        ApiPropertyValueMappings pvMappings = new ApiPropertyValueMappings(null, null, true, false);
+        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByOntologyTerm(ontologyTerm)) {
+            pvMappings.add(new ApiProperty(assayProperty));
+        }
+        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByOntologyTerm(ontologyTerm)) {
             pvMappings.add(new ApiProperty(sampleProperty));
         }
 
@@ -216,19 +253,25 @@ public class CurationService {
     }
 
     /**
-     * Delete property value from PropertyValue table (thus deleting it from all assays/samples it occurs in)
+     * If propertyValue is not null and non-empty, delete propertyName:propertyValue from PropertyValue table (thus deleting it from all assays/samples it occurs in);
+     * otherwise remove propertyName (with all its values)
      *
      * @param propertyName
      * @param propertyValue
      * @throws ResourceNotFoundException
      */
     @Transactional
-    public void deletePropertyValue(final String propertyName,
-                                    final String propertyValue) throws ResourceNotFoundException {
+    public void deletePropertyOrValue(@Nonnull final String propertyName,
+                                      @Nullable final String propertyValue) throws ResourceNotFoundException {
         try {
-            Property property = propertyDAO.getByName(propertyName);
-            PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
-            propertyDAO.delete(property, propValue);
+
+            if (Strings.isNullOrEmpty(propertyValue))
+                deleteProperty(propertyName);
+            else {
+                Property property = propertyDAO.getByName(propertyName);
+                PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
+                propertyDAO.delete(property, propValue);
+            }
         } catch (RecordNotFoundException e) {
             throw convert(e);
         }
@@ -583,21 +626,6 @@ public class CurationService {
         }
 
         sampleDAO.save(sample);
-    }
-
-    /**
-     * @param ontologyTermAcc
-     * @return ApiOntologyTerm corresponding to ontologyTerm
-     * @throws ResourceNotFoundException if ontology term: ontologyTerm was not found
-     */
-    public ApiOntologyTerm getOntologyTerm(final String ontologyTermAcc) throws ResourceNotFoundException {
-
-        try {
-            OntologyTerm ontologyTerm = ontologyTermDAO.getByName(ontologyTermAcc);
-            return new ApiOntologyTerm(ontologyTerm);
-        } catch (RecordNotFoundException e) {
-            throw convert(e);
-        }
     }
 
     /**

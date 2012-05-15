@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.download.DownloadTaskResult;
 import uk.ac.ebi.gxa.download.TaskProgressListener;
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 import uk.ac.ebi.gxa.utils.dsv.DsvDocumentWriter;
 
 import java.io.File;
@@ -93,7 +93,7 @@ public class DsvDownloadTask implements Callable<DownloadTaskResult> {
             MultiDocProgressListener listener = new MultiDocProgressListener(creators.size());
 
             for (DsvDocumentCreator docCreator : creators) {
-                DsvDocument doc = docCreator.create();
+                DsvRowIterator doc = docCreator.create();
                 zout.putNextEntry(new ZipEntry(docCreator.getName() + ".tab"));
 
                 (new DsvDocumentWriter(tsv().newWriter(new OutputStreamWriter(zout)), listener.next())).write(doc);

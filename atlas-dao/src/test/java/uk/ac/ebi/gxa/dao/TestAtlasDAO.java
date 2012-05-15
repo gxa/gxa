@@ -27,8 +27,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.microarray.atlas.export.ChEbiEntry;
 import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -220,6 +222,13 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
         checkRemovalResults(propertyValue);
     }
 
+    @Test
+    public void testGetChEbiEntries(){
+        final Collection<ChEbiEntry> chEbiEntries = atlasDAO.getChEbiEntries();
+        assertEquals(1, chEbiEntries.size());
+        assertEquals("CHEBI:15367", chEbiEntries.iterator().next().getChebiAcc());
+        assertEquals(2, chEbiEntries.iterator().next().getExperimentInfos().size());
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void checkRemovalResults(PropertyValue propertyValue) throws RecordNotFoundException {

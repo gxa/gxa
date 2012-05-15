@@ -22,12 +22,14 @@
 
 package uk.ac.ebi.gxa.export.dsv;
 
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import com.google.common.base.Function;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
 
-import java.util.*;
-
-import static java.util.Arrays.asList;
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Olga Melnichuk
@@ -35,51 +37,42 @@ import static java.util.Arrays.asList;
 public class ExperimentDesignTableDsv {
 
     @SuppressWarnings("unchecked")
-    public static DsvDocument createDsvDocument(Map<String, Object> model) {
+    public static DsvRowIterator<ExperimentDesignUI.Row> createDsvDocument(Map<String, Object> model) {
         return createDsvDocument((ExperimentDesignUI) model.get("experimentDesign"));
     }
 
-    public static DsvDocument createDsvDocument(final ExperimentDesignUI expDesign) {
+    public static DsvRowIterator<ExperimentDesignUI.Row> createDsvDocument(final ExperimentDesignUI expDesign) {
         Collection<ExperimentDesignUI.Row> rows = expDesign.getPropertyValues();
-        final Iterator<ExperimentDesignUI.Row> iterator = rows.iterator();
-        final int size = rows.size();
+        Iterator<ExperimentDesignUI.Row> iterator = rows.iterator();
+        int size = rows.size();
 
-        return new DsvDocument() {
-            private String[] asArray(Collection<String> values, String... other) {
-                List<String> headers = new ArrayList<String>(asList(other));
-                headers.addAll(values);
-                return headers.toArray(new String[headers.size()]);
-            }
+        DsvRowIterator<ExperimentDesignUI.Row> dsvIterator = new DsvRowIterator<ExperimentDesignUI.Row>(iterator, size);
+        int i = 0;
+        for (String propName : expDesign.getPropertyNames()) {
+            dsvIterator.addColumn(propName, "", propertyValueConverter(i++));
+        }
 
-            @Override
-            public String[] getHeader() {
-                return asArray(expDesign.getPropertyNames(), "assay", "array");
-            }
-
-            @Override
-            public Iterator<String[]> getRowIterator() {
-                return new Iterator<String[]>() {
+        dsvIterator
+                .addColumn("assay", "", new Function<ExperimentDesignUI.Row, String>() {
                     @Override
-                    public boolean hasNext() {
-                        return iterator.hasNext();
+                    public String apply(@Nullable ExperimentDesignUI.Row row) {
+                        return row.getAssayAcc();
                     }
-
+                })
+                .addColumn("array", "", new Function<ExperimentDesignUI.Row, String>() {
                     @Override
-                    public String[] next() {
-                        ExperimentDesignUI.Row row = iterator.next();
-                        return asArray(row.getPropertyValues(), row.getAssayAcc(), row.getArrayDesignAcc());
+                    public String apply(@Nullable ExperimentDesignUI.Row row) {
+                        return row.getArrayDesignAcc();
                     }
+                });
+        return dsvIterator;
+    }
 
-                    @Override
-                    public void remove() {
-                        iterator.remove();
-                    }
-                };
-            }
-
+    private static Function<ExperimentDesignUI.Row, String> propertyValueConverter(final int index) {
+        return new Function<ExperimentDesignUI.Row, String>() {
             @Override
-            public int getTotalRowCount() {
-                return size;
+            public String apply(@Nullable ExperimentDesignUI.Row row) {
+                return row.getPropertyValues().get(index);
             }
         };
     }

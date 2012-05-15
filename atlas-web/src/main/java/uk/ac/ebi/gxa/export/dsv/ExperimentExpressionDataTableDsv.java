@@ -22,55 +22,56 @@
 
 package uk.ac.ebi.gxa.export.dsv;
 
+import com.google.common.base.Function;
 import uk.ac.ebi.gxa.data.ExpressionDataCursor;
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
-
-import static com.google.common.collect.ObjectArrays.concat;
 
 /**
  * @author Olga Melnichuk
  */
 public class ExperimentExpressionDataTableDsv {
 
-    public static DsvDocument createDsvDocument(final ExpressionDataCursor cursor) {
-        return new DsvDocument() {
+    public static DsvRowIterator createDsvDocument(final ExpressionDataCursor cursor) {
+        DsvRowIterator<ExpressionDataCursor> dsvIterator = new DsvRowIterator<ExpressionDataCursor>(new Iterator<ExpressionDataCursor>() {
             @Override
-            public String[] getHeader() {
-                return concat("DesignElementAccession", cursor.getAssayAccessions());
+            public boolean hasNext() {
+                return cursor.hasNextDE();
             }
 
             @Override
-            public Iterator<String[]> getRowIterator() {
-                return new Iterator<String[]>() {
-                    @Override
-                    public boolean hasNext() {
-                        return cursor.hasNextDE();
-                    }
-
-                    @Override
-                    public String[] next() {
-                        cursor.nextDE();
-                        float [] values = cursor.getValues();
-                        String[] converted = new String[values.length + 1];
-                        converted[0] = cursor.getDeAccession();
-                        for(int i=0; i<values.length; i++) {
-                            converted[i + 1] = Float.toString(values[i]);
-                        }
-                        return converted;
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException("Remove operation is not supported");
-                    }
-                };
+            public ExpressionDataCursor next() {
+                cursor.nextDE();
+                return cursor;
             }
 
             @Override
-            public int getTotalRowCount() {
-                return cursor.getDeCount();
+            public void remove() {
+                throw new UnsupportedOperationException("Remove operation not supported");
+            }
+        }, cursor.getDeCount());
+
+        dsvIterator.addColumn("DesignElementAccession", "", new Function<ExpressionDataCursor, String>() {
+            @Override
+            public String apply(@Nullable ExpressionDataCursor input) {
+                return cursor.getDeAccession();
+            }
+        });
+
+        int i = 0;
+        for (String assayAcc : cursor.getAssayAccessions()) {
+            dsvIterator.addColumn(assayAcc, "", assayValueConverter(i++));
+        }
+        return dsvIterator;
+    }
+
+    private static Function<ExpressionDataCursor, String> assayValueConverter(final int index) {
+        return new Function<ExpressionDataCursor, String>() {
+            @Override
+            public String apply(@Nullable ExpressionDataCursor cursor) {
+                return Float.toString(cursor.getValues()[index]);
             }
         };
     }

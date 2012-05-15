@@ -20,10 +20,17 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.service.experiment;
+package uk.ac.ebi.gxa.utils.dsv;
 
 /**
  * @author Olga Melnichuk
  */
-public class ExperimentExpressions {
+
+public interface DsvColumn<T> {
+
+    public String convert(T value);
+
+    public String getName();
+
+    public String getDescription();
 }

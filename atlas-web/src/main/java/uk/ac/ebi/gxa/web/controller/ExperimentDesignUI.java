@@ -109,11 +109,12 @@ public class ExperimentDesignUI {
 
     /**
      * A quick workaround for using the object outside of the session; calling for all lazy methods.
+     *
      * @return the current instance of {@link ExperimentDesignUI}
      */
     public ExperimentDesignUI unlazy() {
         getPropertyNames();
-        for(Row r: getPropertyValues()) {
+        for (Row r : getPropertyValues()) {
             r.getPropertyValues();
         }
         return this;
@@ -127,6 +128,7 @@ public class ExperimentDesignUI {
 
     public class Row {
         private final Assay assay;
+        private List<String> values;
 
         public Row(Assay assay) {
             this.assay = assay;
@@ -140,12 +142,14 @@ public class ExperimentDesignUI {
             return assay.getArrayDesign().getAccession();
         }
 
-        public Collection<String> getPropertyValues() {
-            List<String> values = new ArrayList<String>();
-            for (Property p : expProperties) {
-                values.add(Joiner.on(",").join(expValues.get(p).get(assay)));
+        public List<String> getPropertyValues() {
+            if (values == null) {
+                values = new ArrayList<String>();
+                for (Property p : expProperties) {
+                    values.add(Joiner.on(",").join(expValues.get(p).get(assay)));
+                }
             }
-            return values;
+            return Collections.unmodifiableList(values);
         }
     }
 }

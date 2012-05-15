@@ -20,20 +20,29 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.utils.dsv;
+package uk.ac.ebi.gxa.web.controller;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Iterator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import uk.ac.ebi.gxa.service.ChEbiXrefExportService;
 
 /**
- * @author Olga Melnichuk
+ * User: nsklyar
+ * Date: 02/05/2012
  */
-public interface DsvDocument {
+@Controller
+public class ChEbiExportController {
 
-    public String[] getHeader();
+    @Autowired
+    private ChEbiXrefExportService chEbiExportService;
 
-    public Iterator<String[]> getRowIterator();
+    @RequestMapping(value = "/chEbiExport")
+    public String getAnnotationSourceList(Model model) {
+       model.addAttribute("chEbiEntries", chEbiExportService.exportChEbiEntries());
+       return "chEbiExport/chEbi-Export";
+    }
 
-    public int getTotalRowCount();
 }
+

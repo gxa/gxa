@@ -23,7 +23,7 @@
 package uk.ac.ebi.gxa.download.dsv;
 
 
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
 /**
  * @author Olga Melnichuk
@@ -32,5 +32,5 @@ public interface DsvDocumentCreator {
 
     public String getName();
 
-    public DsvDocument create() throws DsvDocumentCreateException;
+    public DsvRowIterator create() throws DsvDocumentCreateException;
 }

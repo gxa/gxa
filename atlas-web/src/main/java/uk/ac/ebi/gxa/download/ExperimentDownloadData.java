@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
-import uk.ac.ebi.gxa.data.ExperimentPart;
 import uk.ac.ebi.gxa.data.ExpressionDataCursor;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
@@ -38,7 +37,7 @@ import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
-import uk.ac.ebi.gxa.utils.dsv.DsvDocument;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -116,7 +115,7 @@ public class ExperimentDownloadData {
         }
 
         @Override
-        public DsvDocument create() throws DsvDocumentCreateException {
+        public DsvRowIterator create() throws DsvDocumentCreateException {
             try {
                 return ExperimentDesignTableDsv.createDsvDocument(getExperimentDesignUI(expAcc));
             } catch (RecordNotFoundException e) {
@@ -144,7 +143,7 @@ public class ExperimentDownloadData {
         }
 
         @Override
-        public DsvDocument create() throws DsvDocumentCreateException {
+        public DsvRowIterator create() throws DsvDocumentCreateException {
             try {
                 return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc));
             } catch (AtlasDataException e) {
@@ -176,7 +175,7 @@ public class ExperimentDownloadData {
         }
 
         @Override
-        public DsvDocument create() throws DsvDocumentCreateException {
+        public DsvRowIterator create() throws DsvDocumentCreateException {
             try {
                 return ExperimentExpressionDataTableDsv.createDsvDocument(getExperimentExpressionData(expAcc, adAcc));
             } catch (AtlasDataException e) {
