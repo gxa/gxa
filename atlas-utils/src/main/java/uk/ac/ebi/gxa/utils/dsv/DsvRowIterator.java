@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.transform;
 
@@ -63,12 +62,12 @@ public class DsvRowIterator<T> implements Iterator<List<String>> {
         return this;
     }
 
-
     public List<String> getColumnNames() {
         return transform(columns, new Function<DsvColumn<T>, String>() {
             @Override
             public String apply(@Nullable DsvColumn<T> column) {
-                return checkNotNull(column.getName(), "Null column name in CSV/TSV");
+                String name = column.getName();
+                return isNullOrEmpty(name) ? "" : name;
             }
         });
     }
