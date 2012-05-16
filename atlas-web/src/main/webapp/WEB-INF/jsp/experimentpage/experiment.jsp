@@ -310,9 +310,6 @@
 </script>
 
 <div>
-    <div>
-       <label class="section-header-2" id="search_tip">&nbsp;Search this experiment for:</label>
-    </div>
     <form id="expressionListFilterForm" action="javascript:alert('error');">
         <table>
             <tr>
@@ -346,7 +343,7 @@
                     </select>
                 </td>
                 <td>
-                    <button id="findBestAnalytics">Search</button>
+                    <button id="findBestAnalytics">Search Experiment</button><label id="search_tip" />
                 </td>
                 <td class="padded" colspan="2">
                     <input type="submit" value="SEARCH" style="visibility:hidden"/>
@@ -357,11 +354,6 @@
     <div>
         <div style="float:left; margin: 5px; width: 165px">
             <label class="section-header-2" id="search_results_tip">Search Results:</label>
-        </div>
-        <div style="float:left; margin: 5px;">
-            <a class="export2TsvLink" target="_blank" rel="nofollow"
-               href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}"><label
-                    class="section-header-2" id="export_results_tip">Export to TSV</label></a>
         </div>
         <div class="pageSize" style="float:right;">
             <span><label class="section-header-2" id="page_size_tip">Page size:</label>&nbsp;&nbsp;<input type="text"
@@ -398,6 +390,12 @@
 
     <div class="errorMessage" id="divErrorMessage">No matching results found. Try searching with <a
             onclick="expPage.clearQuery(); return false;" href="#">no restrictions</a>.
+    </div>
+
+    <div style="float:left; margin: 5px;">
+        <a class="export2TsvLink" target="_blank" rel="nofollow"
+           href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export to
+            TSV</a>
     </div>
 </div>
 
