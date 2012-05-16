@@ -1799,7 +1799,6 @@
             $("#conditions_tip").qMarkTip("Please select an experimental factor value you want to search for");
             $("#search_tip").qMarkTip("You can search the experiment by any combination of genes/design elements, differential expression type and an experimental factor value.");
             $("#search_results_tip").qMarkTip("The search results by default contain 10 design elements with the strongest differential expression confidence across all experimental conditions.");
-            $("#export_results_tip").qMarkTip("Click this button to export the current page of search results in tab-delimited format.");
             $("#page_size_tip").qMarkTip("Modify this value (maximum: 200) to change the number of design elements being shown on one page of the search results");
 
 
@@ -1889,6 +1888,7 @@
                 _state.limit(limit);
                 _state.offset(0);
                 populateStateWithQueryConditions($("#geneFilter"));
+                newSearch();
             });
         }
 

@@ -394,8 +394,7 @@
 
     <div style="float:left; margin: 5px;">
         <a class="export2TsvLink" target="_blank" rel="nofollow"
-           href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export to
-            TSV</a>
+           href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export Search Results Page as Tab-Delimited file</a>
     </div>
 </div>
 
