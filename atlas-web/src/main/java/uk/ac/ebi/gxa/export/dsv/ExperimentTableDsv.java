@@ -73,7 +73,7 @@ public class ExperimentTableDsv {
                 return row.getUpDown();
             }
         },
-        TSatistic("TStatistic", "Statistical measure of confidence in the differential expression call") {
+        TStatistic("TStatistic", "Statistical measure of confidence in the differential expression call") {
             @Override
             public String convert(ExperimentAnalytics.TableRow row) {
                 return Float.toString(row.getFloatTValue());
@@ -121,7 +121,7 @@ public class ExperimentTableDsv {
                         Column.ExperimentalFactor,
                         Column.ExperimentalFactorValue,
                         Column.UpDownExpression,
-                        Column.TSatistic,
+                        Column.TStatistic,
                         Column.PValue)
                 );
 
