@@ -25,7 +25,6 @@ package ae3.dao;
 import ae3.model.AtlasGene;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.yammer.metrics.annotation.Timed;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -79,7 +78,6 @@ public class GeneSolrDAO {
      * @param id gene id
      * @return atlas gene result
      */
-    @Timed(group="geneById")
     public AtlasGeneResult getGeneById(final long id) {
         return futureWrap(new Callable<AtlasGeneResult>() {
             @Override
@@ -94,7 +92,6 @@ public class GeneSolrDAO {
      *
      * @return total number of indexed genes
      */
-    @Timed(group="geneCount")
     public long getGeneCount() {
         return futureWrap(new Callable<Long>() {
             @Override
@@ -116,7 +113,6 @@ public class GeneSolrDAO {
      * @param geneIds Collection of ids
      * @return List<AtlasGene>
      */
-    @Timed(group="genesByIds")
     public List<AtlasGene> getGenesByIds(final Collection<Integer> geneIds) {
         return futureWrap(new Callable<List<AtlasGene>>() {
             @Override
@@ -143,7 +139,6 @@ public class GeneSolrDAO {
      * @param geneIdentifier primary identifier
      * @return AtlasGene
      */
-    @Timed(group="geneByIdentifier")
     public AtlasGeneResult getGeneByIdentifier(final String geneIdentifier) {
         return futureWrap(new Callable<AtlasGeneResult>() {
             @Override
@@ -159,7 +154,6 @@ public class GeneSolrDAO {
      * @param atlasGene specified gene to look orthologs for
      * @return list of ortholog genes
      */
-    @Timed(group="orthoGenes")
     public List<AtlasGene> getOrthoGenes(final AtlasGene atlasGene) {
         return futureWrap(new Callable<List<AtlasGene>>() {
             @Override
@@ -188,7 +182,6 @@ public class GeneSolrDAO {
      * @param additionalIds   additional properties to search for
      * @return atlas gene search result
      */
-    @Timed(group="geneByAnyIdentifier")
     public AtlasGeneResult getGeneByAnyIdentifier(final String gene_identifier, final List<String> additionalIds) {
         return futureWrap(new Callable<AtlasGeneResult>() {
             @Override
@@ -207,7 +200,6 @@ public class GeneSolrDAO {
      *
      * @return Iterable<AtlasGene>
      */
-    @Timed(group="allGenes")
     public Iterable<AtlasGene> getAllGenes() {
         return createIteratorForQuery(new SolrQuery("*:*"));
     }
@@ -216,7 +208,6 @@ public class GeneSolrDAO {
      * @param name name of genes to search for
      * @return Iterable of AtlasGenes matching (gene) name in Solr gene index
      */
-    @Timed(group="genesByName")
     public Iterable<AtlasGene> getGenesByName(String name) {
         return createIteratorForQuery(new SolrQuery(" name:" + escapeSolr(name)));
     }
