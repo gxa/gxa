@@ -26,10 +26,10 @@ import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.utils.dsv.DsvColumn;
 import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author Olga Melnichuk
@@ -114,16 +114,17 @@ public class ExperimentTableDsv {
         Iterator<ExperimentAnalytics.TableRow> iterator = analytics.getRows().iterator();
         int size = analytics.size();
 
-        return new DsvRowIterator<ExperimentAnalytics.TableRow>(iterator, size)
-                .addColumns(asList(Column.GeneName,
-                        Column.GeneIdentifier,
-                        Column.DesignElementAcc,
-                        Column.ExperimentalFactor,
-                        Column.ExperimentalFactorValue,
-                        Column.UpDownExpression,
-                        Column.TStatistic,
-                        Column.PValue)
-                );
+        return new DsvRowIterator<ExperimentAnalytics.TableRow>(iterator, size).addColumns(permanentColumns());
+    }
 
+    static List<DsvColumn<ExperimentAnalytics.TableRow>> permanentColumns() {
+        return Arrays.<DsvColumn<ExperimentAnalytics.TableRow>>asList(Column.GeneName,
+                Column.GeneIdentifier,
+                Column.DesignElementAcc,
+                Column.ExperimentalFactor,
+                Column.ExperimentalFactorValue,
+                Column.UpDownExpression,
+                Column.TStatistic,
+                Column.PValue);
     }
 }

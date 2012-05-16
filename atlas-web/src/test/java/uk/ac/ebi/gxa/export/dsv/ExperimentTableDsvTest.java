@@ -22,16 +22,23 @@
 
 package uk.ac.ebi.gxa.export.dsv;
 
+import com.google.common.base.Function;
 import org.junit.Test;
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
+import uk.ac.ebi.gxa.utils.dsv.DsvColumn;
 import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 import uk.ac.ebi.microarray.atlas.model.UpDownExpression;
 
+import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 
+import static com.google.common.collect.Lists.transform;
 import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv.permanentColumns;
 
 /**
  * @author Olga Melnichuk
@@ -51,20 +58,33 @@ public class ExperimentTableDsvTest {
     );
 
     @Test
-    public void testOneRow() {
-        ExperimentAnalytics analytics = createMock(ExperimentAnalytics.class);
-        expect(analytics.size())
-                .andReturn(1)
-                .anyTimes();
-        expect(analytics.getRows())
-                .andReturn(asList(row));
-        replay(analytics);
+    public void testEmptyRows() {
+        DsvRowIterator<ExperimentAnalytics.TableRow> iter =
+                ExperimentTableDsv.createDsvDocument(mockAnalytics(
+                        Collections.<ExperimentAnalytics.TableRow>emptyList()));
 
-        DsvRowIterator<ExperimentAnalytics.TableRow> iter = ExperimentTableDsv.createDsvDocument(analytics);
-        assertTrue(iter.hasNext());
-
-        assertTrue(!iter.getColumnNames().isEmpty());
+        assertListEquals(permanentColumnNames(), iter.getColumnNames());
         assertEquals(0, iter.getColumnNames().size() - iter.getColumnDescriptions().size());
+        assertEquals(0, iter.getTotalRowCount());
+        assertFalse(iter.hasNext());
+
+        try {
+            iter.next();
+            fail("Iterator should throw NoSuchElementException if there are no more elements");
+        } catch (NoSuchElementException e) {
+            //OK
+        }
+    }
+
+    @Test
+    public void testOneRow() {
+        DsvRowIterator<ExperimentAnalytics.TableRow> iter =
+                ExperimentTableDsv.createDsvDocument(mockAnalytics(asList(row)));
+
+        assertListEquals(permanentColumnNames(), iter.getColumnNames());
+        assertEquals(0, iter.getColumnNames().size() - iter.getColumnDescriptions().size());
+        assertEquals(1, iter.getTotalRowCount());
+        assertTrue(iter.hasNext());
 
         List<String> values = iter.next();
         String[] expected = new String[]{
@@ -79,5 +99,30 @@ public class ExperimentTableDsvTest {
 
         assertArrayEquals(expected, values.toArray(new String[values.size()]));
         assertFalse(iter.hasNext());
+    }
+
+    private ExperimentAnalytics mockAnalytics(List<ExperimentAnalytics.TableRow> rows) {
+        ExperimentAnalytics analytics = createMock(ExperimentAnalytics.class);
+        expect(analytics.size())
+                .andReturn(rows.size())
+                .anyTimes();
+        expect(analytics.getRows())
+                .andReturn(rows);
+        replay(analytics);
+        return analytics;
+    }
+
+    private List<String> permanentColumnNames() {
+        return transform(permanentColumns(),
+                new Function<DsvColumn<ExperimentAnalytics.TableRow>, String>() {
+                    @Override
+                    public String apply(@Nullable DsvColumn<ExperimentAnalytics.TableRow> column) {
+                        return column.getName();
+                    }
+                });
+    }
+
+    private static void assertListEquals(List<String> list1, List<String> list2) {
+        assertArrayEquals(list1.toArray(), list2.toArray());
     }
 }
