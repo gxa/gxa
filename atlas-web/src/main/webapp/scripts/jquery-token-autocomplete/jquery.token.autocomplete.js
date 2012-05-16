@@ -111,6 +111,7 @@ $.TokenList = function (input, settings) {
 
     // Create a new text input an attach keyup events
     var input_box = $("<input type='text'>")
+        .attr('id', settings.extraParams.type)
         .attr('autocomplete', 'off')
         .val(previousValue = (settings.defaultValue ? settings.defaultValue : ''))
         .focus(function () {
