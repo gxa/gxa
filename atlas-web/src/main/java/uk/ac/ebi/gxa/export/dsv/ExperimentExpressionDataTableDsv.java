@@ -23,18 +23,25 @@
 package uk.ac.ebi.gxa.export.dsv;
 
 import com.google.common.base.Function;
+import org.hibernate.annotations.Columns;
 import uk.ac.ebi.gxa.data.ExpressionDataCursor;
+import uk.ac.ebi.gxa.utils.dsv.DsvColumn;
 import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+
+import static java.util.Arrays.asList;
 
 /**
  * @author Olga Melnichuk
  */
 public class ExperimentExpressionDataTableDsv {
 
-    public static DsvRowIterator createDsvDocument(final ExpressionDataCursor cursor) {
+    public static DsvRowIterator<ExpressionDataCursor> createDsvDocument(final ExpressionDataCursor cursor) {
         DsvRowIterator<ExpressionDataCursor> dsvIterator = new DsvRowIterator<ExpressionDataCursor>(new Iterator<ExpressionDataCursor>() {
             @Override
             public boolean hasNext() {
@@ -53,12 +60,7 @@ public class ExperimentExpressionDataTableDsv {
             }
         }, cursor.getDeCount());
 
-        dsvIterator.addColumn("DesignElementAccession", "", new Function<ExpressionDataCursor, String>() {
-            @Override
-            public String apply(@Nullable ExpressionDataCursor input) {
-                return cursor.getDeAccession();
-            }
-        });
+        dsvIterator.addColumns(permanentColumns());
 
         int i = 0;
         for (String assayAcc : cursor.getAssayAccessions()) {
@@ -74,5 +76,27 @@ public class ExperimentExpressionDataTableDsv {
                 return Float.toString(cursor.getValues()[index]);
             }
         };
+    }
+
+    static Collection<DsvColumn<ExpressionDataCursor>> permanentColumns() {
+        return new ArrayList<DsvColumn<ExpressionDataCursor>>() {{
+            add(new DsvColumn<ExpressionDataCursor>() {
+
+                @Override
+                public String convert(ExpressionDataCursor cursor) {
+                    return cursor.getDeAccession();
+                }
+
+                @Override
+                public String getName() {
+                    return "DesignElementAccession";
+                }
+
+                @Override
+                public String getDescription() {
+                    return "";
+                }
+            });
+        }};
     }
 }
