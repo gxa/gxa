@@ -20,6 +20,8 @@ package uk.ac.ebi.gxa.data;/*
  * http://gxa.github.com/gxa
  */
 
+import static java.lang.Math.min;
+
 /**
  * @author Olga Melnichuk
  */
@@ -65,11 +67,11 @@ public class ExpressionDataCursor {
     }
 
     public float[] getValues() {
-        return dii < getDeCount() ? rawExpressions.getRow(dii) : null;
+        return dii >= 0 && dii < getDeCount() ? rawExpressions.getRow(dii) : null;
     }
 
     public int getDeCount() {
-        return des == null ? deAccessions.length : des.length;
+        return des == null ? deAccessions.length : min(des.length, deAccessions.length);
     }
 
     private int de() {
