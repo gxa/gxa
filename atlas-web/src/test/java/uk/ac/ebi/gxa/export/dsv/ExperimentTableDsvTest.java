@@ -63,7 +63,7 @@ public class ExperimentTableDsvTest {
                 ExperimentTableDsv.createDsvDocument(mockAnalytics(
                         Collections.<ExperimentAnalytics.TableRow>emptyList()));
 
-        assertListEquals(permanentColumnNames(), iter.getColumnNames());
+        assertEquals(permanentColumnNames(), iter.getColumnNames());
         assertEquals(0, iter.getColumnNames().size() - iter.getColumnDescriptions().size());
         assertEquals(0, iter.getTotalRowCount());
         assertFalse(iter.hasNext());
@@ -81,7 +81,7 @@ public class ExperimentTableDsvTest {
         DsvRowIterator<ExperimentAnalytics.TableRow> iter =
                 ExperimentTableDsv.createDsvDocument(mockAnalytics(asList(row)));
 
-        assertListEquals(permanentColumnNames(), iter.getColumnNames());
+        assertEquals(permanentColumnNames(), iter.getColumnNames());
         assertEquals(0, iter.getColumnNames().size() - iter.getColumnDescriptions().size());
         assertEquals(1, iter.getTotalRowCount());
         assertTrue(iter.hasNext());
@@ -101,7 +101,7 @@ public class ExperimentTableDsvTest {
         assertFalse(iter.hasNext());
     }
 
-    private ExperimentAnalytics mockAnalytics(List<ExperimentAnalytics.TableRow> rows) {
+    private static ExperimentAnalytics mockAnalytics(List<ExperimentAnalytics.TableRow> rows) {
         ExperimentAnalytics analytics = createMock(ExperimentAnalytics.class);
         expect(analytics.size())
                 .andReturn(rows.size())
@@ -112,7 +112,7 @@ public class ExperimentTableDsvTest {
         return analytics;
     }
 
-    private List<String> permanentColumnNames() {
+    private static List<String> permanentColumnNames() {
         return transform(permanentColumns(),
                 new Function<DsvColumn<ExperimentAnalytics.TableRow>, String>() {
                     @Override
@@ -120,9 +120,5 @@ public class ExperimentTableDsvTest {
                         return column.getName();
                     }
                 });
-    }
-
-    private static void assertListEquals(List<String> list1, List<String> list2) {
-        assertArrayEquals(list1.toArray(), list2.toArray());
     }
 }
