@@ -128,7 +128,7 @@ public class ExperimentDesignTableDsvTest {
         return values;
     }
 
-    private Experiment mockExperiment(SortedSet<Property> properties, List<Assay> assays) {
+    private static Experiment mockExperiment(SortedSet<Property> properties, List<Assay> assays) {
         Experiment experiment = EasyMock.createMock(Experiment.class);
         expect(experiment.getProperties())
                 .andReturn(properties)
@@ -142,7 +142,7 @@ public class ExperimentDesignTableDsvTest {
         return experiment;
     }
 
-    private List<String> permanentColumnNames() {
+    private static List<String> permanentColumnNames() {
         return transform(permanentColumns(),
                 new Function<DsvColumn<ExperimentDesignUI.Row>, String>() {
                     @Override
@@ -152,7 +152,7 @@ public class ExperimentDesignTableDsvTest {
                 });
     }
 
-    private Collection<String> getPropertyNames(Collection<Property> properties) {
+    private static Collection<String> getPropertyNames(Collection<Property> properties) {
          return Collections2.transform(properties, new Function<Property, String>() {
             @Override
             public String apply(@Nullable Property prop) {
