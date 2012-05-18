@@ -25,17 +25,22 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jee="http://www.springframework.org/schema/jee"
        xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="
 http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/jee
 http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
-http://www.springframework.org/schema/util/spring-util.xsd">
+http://www.springframework.org/schema/util/spring-util.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotationCommandContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/web/hibernate/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
+
+    <context:component-scan base-package="uk.ac.ebi.gxa.service"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
