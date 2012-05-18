@@ -77,6 +77,8 @@
                 cssDesc:"order2"
             });
         }
+
+        $(".inlineDownloadLink").inlineDownloadLink();
     });
 </script>
 
