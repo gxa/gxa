@@ -347,7 +347,7 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
                 <constructor-arg type="int" value="10"/>
             </bean>
         </constructor-arg>
-        <constructor-arg name="startDelay" value="2"/>
+        <constructor-arg name="startDelay" value="1"/>
         <constructor-arg name="repeatInterval" value="1"/>
         <property name="startDelayTimeUnit" value="HOURS"/>
         <property name="repeatIntervalTimeUnit" value="HOURS"/>
