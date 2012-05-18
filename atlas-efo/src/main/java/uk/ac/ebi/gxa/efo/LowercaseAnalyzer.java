@@ -23,6 +23,8 @@
 package uk.ac.ebi.gxa.efo;
 
 import org.apache.lucene.analysis.*;
+import org.apache.lucene.util.AttributeSource;
+import org.apache.lucene.util.Version;
 
 import java.io.Reader;
 import java.io.IOException;
@@ -31,29 +33,42 @@ import java.io.IOException;
  * @author pashky
 */
 class LowercaseAnalyzer extends Analyzer {
-    private static class LowercaseTokenizer extends WhitespaceTokenizer
+   /* private static class LowercaseTokenizer extends CharTokenizer
     {
-        public LowercaseTokenizer(Reader in)
-        {
-            super(in);
+        private LowercaseTokenizer(Version matchVersion, Reader input) {
+            super(matchVersion, input);
         }
 
-        protected char normalize(char c)
+        private LowercaseTokenizer(Version matchVersion, AttributeSource source, Reader input) {
+            super(matchVersion, source, input);
+        }
+
+        private LowercaseTokenizer(Version matchVersion, AttributeFactory factory, Reader input) {
+            super(matchVersion, factory, input);
+        }
+
+        @Override
+        protected int normalize(int c)
         {
             return Character.toLowerCase(c);
         }
-    }
+
+        @Override
+        protected boolean isTokenChar(int c) {
+            return
+        }
+    }*/
 
     public TokenStream tokenStream(String fieldName, Reader reader)
     {
-        return new LowercaseTokenizer(reader);
+        return new LowerCaseTokenizer(Version.LUCENE_31, reader);
     }
 
     public TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException
     {
         Tokenizer tokenizer = (Tokenizer)getPreviousTokenStream();
         if (tokenizer == null) {
-            tokenizer = new LowercaseTokenizer(reader);
+            tokenizer = new LowerCaseTokenizer(Version.LUCENE_31, reader);
             setPreviousTokenStream(tokenizer);
         } else
             tokenizer.reset(reader);
