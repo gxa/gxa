@@ -68,7 +68,7 @@ var atlas = atlas || {};
             formatListItem: function(item, q, i) {
                 var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
                 var title = item.value;
-                var id = item.property === "efo" ? item.id : (item.factorName || "");
+                var id = item.property === "efo" ? item.id : (item.value || "");
 
                 if (item.alternativeTerms && item.alternativeTerms.length > 0) {
                     for (var i = 0; i < item.alternativeTerms.length; i++) {
@@ -87,7 +87,7 @@ var atlas = atlas || {};
                 var span = $("<span>");
                 span.attr("title", title);
                 span.html(text.join(" "));
-                span.append($("<em>").text(" (" + item.count + " genes) " + id));
+                span.append($("<em>").text(" (" + item.count + " genes) "));
                 return $("<div>").append(span).html();
             },
 
@@ -190,7 +190,9 @@ var atlas = atlas || {};
         }
 
         function isValid() {
-            return (q.geneConditions.length > 0 || q.conditions.length > 0);
+            // For gene-only queries an empty (experiment) condition may be passed in order to add to the query
+            // user's expression-type selection.
+            return q.geneConditions.length > 0 || (q.conditions.length > 0 && q.conditions[0].value != '');
         }
 
         // condition => {
@@ -211,11 +213,7 @@ var atlas = atlas || {};
         //   minExperiments - optional (default is 1)
         // }
         this.addCondition = function (condition) {
-            var v = (condition.value = trim(condition.value || ""));
-            var f = (condition.factor || "");
-            if (v.length || f.length) {
-                q.conditions.push(condition);
-            }
+            q.conditions.push(condition);
         };
 
         this.addSpecies = function (value) {
@@ -532,17 +530,7 @@ var atlas = atlas || {};
         ];
 
         function addExpFactor(factor, expression, minexps, values) {
-            var selopt = $('#factors').get(0).options;
             var factorLabel = factor;
-            for (var i = 0; i < selopt.length; ++i) {
-                if (selopt[i].value == factor) {
-                    factorLabel = selopt[i].text.toLowerCase();
-                }
-            }
-
-            if (factor == "") {
-                factorLabel = "any condition";
-            }
 
             sequence.nextVal();
 

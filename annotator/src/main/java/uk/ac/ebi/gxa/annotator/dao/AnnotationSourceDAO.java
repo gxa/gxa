@@ -25,7 +25,6 @@ package uk.ac.ebi.gxa.annotator.dao;
 import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate3.HibernateTemplate;
-import uk.ac.ebi.gxa.annotator.AnnotationSourceType;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
@@ -67,14 +66,19 @@ public class AnnotationSourceDAO {
         template.flush();
     }
 
-    public void update(AnnotationSource object) {
-        template.update(object);
+    public void update(AnnotationSource annSrc) {
+        template.update(annSrc);
         template.flush();
     }
 
     @SuppressWarnings("unchecked")
     public <T extends AnnotationSource> Collection<T> getAnnotationSourcesOfType(Class<T> type) {
-        return template.find("from " + type.getSimpleName());
+        return template.find("from " + type.getSimpleName() + " order by name asc");
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends AnnotationSource> Collection<T> getLatestAnnotationSourcesOfType(Class<T> type) {
+        return template.find("from " + type.getSimpleName() + " where isObsolete = ? order by name asc", false);
     }
 
     public BioMartAnnotationSource findBioMartAnnotationSource(Software software, Organism organism) {
@@ -84,13 +88,43 @@ public class AnnotationSourceDAO {
         return results.isEmpty() ? null : results.get(0);
     }
 
-        public GeneSigAnnotationSource findGeneSigAnnotationSource(Software software) {
+    public BioMartAnnotationSource findBioMartAnnotationSource(String softwareName, String softwareVersion, String organismName) {
+        String queryString = "from " + BioMartAnnotationSource.class.getSimpleName() + " where " +
+                "software.name = ? " +
+                "and software.version = ?  " +
+                "and organism.name = ?";
+
+        @SuppressWarnings("unchecked")
+        final List<BioMartAnnotationSource> results = template.find(queryString, softwareName, softwareVersion, organismName);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
+    public GeneSigAnnotationSource findGeneSigAnnotationSource(Software software) {
         String queryString = "from " + GeneSigAnnotationSource.class.getSimpleName() + " where software = ?";
         @SuppressWarnings("unchecked")
         final List<GeneSigAnnotationSource> results = template.find(queryString, software);
         return results.isEmpty() ? null : results.get(0);
     }
 
+    public GeneSigAnnotationSource findGeneSigAnnotationSource(String softwareName, String softwareVersion) {
+        String queryString = "from " + GeneSigAnnotationSource.class.getSimpleName() + " where " +
+                "software.name = ? " +
+                "and software.version = ?";
+        @SuppressWarnings("unchecked")
+        final List<GeneSigAnnotationSource> results = template.find(queryString, softwareName, softwareVersion);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
+    public List<BioMartAnnotationSource> getBioMartAnnotationSourceForSoftware(Software software) {
+        String queryString = "from " + BioMartAnnotationSource.class.getSimpleName() + " where software = ?";
+        return template.find(queryString, software);
+    }
+
+    public List<AnnotationSource> getAnnotationSourceForSoftware(Software software) {
+        String queryString = "from " + AnnotationSource.class.getSimpleName() + " where software = ?";
+        return template.find(queryString, software);
+    }
+    
     public void remove(AnnotationSource annSrc) {
 
         template.delete(annSrc);

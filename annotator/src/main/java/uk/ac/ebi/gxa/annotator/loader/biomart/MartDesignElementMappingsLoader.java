@@ -22,9 +22,9 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.loader.util.CSVBasedReader;
 import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
-import uk.ac.ebi.gxa.annotator.loader.data.DesignElementMappingData;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntityType;

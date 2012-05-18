@@ -25,14 +25,12 @@ package uk.ac.ebi.gxa.annotator.validation;
 
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 
-import java.util.Collection;
-
 /**
  * User: nsklyar
  * Date: 19/01/2012
  */
 public interface AnnotationSourcePropertiesValidator<T extends AnnotationSource> {
 
-    public void getInvalidPropertyNames(T annotationSource, ValidationReportBuilder reportBuilder);
+    public void validatePropertyNames(T annotationSource, ValidationReportBuilder reportBuilder);
 
 }
