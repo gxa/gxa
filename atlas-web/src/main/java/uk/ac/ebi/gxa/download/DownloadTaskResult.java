@@ -22,12 +22,16 @@
 
 package uk.ac.ebi.gxa.download;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 
 /**
  * @author Olga Melnichuk
  */
 public class DownloadTaskResult {
+    protected final static Logger log = LoggerFactory.getLogger(DownloadQueue.class);
 
     private final File tmpFile;
     private final String contentType;
@@ -62,6 +66,15 @@ public class DownloadTaskResult {
     public void checkNoErrors() throws TaskExecutionException {
         if (exception != null) {
             throw new TaskExecutionException("Task execution error", exception);
+        }
+    }
+
+    public void clearResources() {
+        if (tmpFile != null && tmpFile.exists()) {
+            log.debug("Removing {}...", tmpFile);
+            if (!tmpFile.delete()) {
+                log.warn("Can't remove: {}", tmpFile);
+            }
         }
     }
 }

@@ -37,6 +37,8 @@ public class DownloadQueue {
 
     protected final static Logger log = LoggerFactory.getLogger(DownloadQueue.class);
 
+    private static final long ONE_HOUR = 60*60*1000;
+
     private final ExecutorService taskExecutor;
     private final JanitorService janitorService;
 
@@ -82,10 +84,9 @@ public class DownloadQueue {
             return false;
         }
         long ago = System.currentTimeMillis() - keeper.getLastAccess();
-        if (ago > 60*60*1000) { //TODO an hour
+        if (ago > ONE_HOUR) {
             log.debug("Task result expired; sweep.. " + token);
             cancel(token);
-            //TODO should we remove temporary fileS?
             return true;
         }
         return false;
@@ -108,7 +109,6 @@ public class DownloadQueue {
         } else {
             f.cancel(true);
         }
-        //TODO return false ?
     }
 
     private static class FutureTaskKeeper {
@@ -125,6 +125,8 @@ public class DownloadQueue {
         public void cancel() {
             if (!future.isDone()) {
                 future.cancel(true);
+            } else {
+                getResult().clearResources();
             }
         }
 
