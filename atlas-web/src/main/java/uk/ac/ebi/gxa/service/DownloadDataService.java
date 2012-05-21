@@ -52,8 +52,8 @@ public class DownloadDataService {
     }
 
     public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException {
-        String token = newToken("ExpAnalysedData-", expAcc, cookie);
-        log.debug("addExperimentAnalyticsTask(token={})", token);
+        String token = newToken("ExpAnalysedData-", expAcc, "-", cookie);
+        log.info("addExperimentAnalyticsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
                 expDownloadData.newDsvCreatorForAnalytics(expAcc));
@@ -61,8 +61,8 @@ public class DownloadDataService {
     }
 
     public String addExperimentExpressionsTask(String expAcc, String cookie) throws RecordNotFoundException {
-        String token = newToken("ExpRawData-", expAcc, cookie);
-        log.debug("addExperimentExpressionsTask(token={})", token);
+        String token = newToken("ExpRawData-", expAcc, "-", cookie);
+        log.info("addExperimentExpressionsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
                 expDownloadData.newDsvCreatorForExpressions(expAcc));
@@ -70,8 +70,8 @@ public class DownloadDataService {
     }
 
     public String addExperimentDesignTask(String expAcc, String cookie) {
-        String token = newToken("ExpDesign-", expAcc, cookie);
-        log.debug("addExperimentDesignTask(token={})", token);
+        String token = newToken("ExpDesign-", expAcc, "-", cookie);
+        log.info("addExperimentDesignTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
                 expDownloadData.newDsvCreatorForDesign(expAcc));
@@ -79,7 +79,7 @@ public class DownloadDataService {
     }
 
     public String addGeneSearchTask(AtlasStructuredQuery atlasQuery, String cookie) {
-        String token = newToken("GeneSearch-", atlasQuery.toString(), cookie);
+        String token = newToken("GeneSearch-", atlasQuery.toString(), "-", cookie);
         log.debug("addGeneSearchTask(token={})", token);
         //TODO
         return token;
