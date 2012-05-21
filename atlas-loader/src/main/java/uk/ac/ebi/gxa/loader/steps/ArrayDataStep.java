@@ -134,7 +134,12 @@ public class ArrayDataStep {
         }
     }
 
-    public boolean readArrayData(@Nonnull AtlasComputeService computeService, MAGETABInvestigation investigation, AtlasLoaderServiceListener listener, AtlasLoadCache cache, LoaderDAO dao) throws AtlasLoaderException {
+    public boolean readArrayData(@Nonnull AtlasComputeService computeService,
+                                 MAGETABInvestigation investigation,
+                                 AtlasLoaderServiceListener listener,
+                                 AtlasLoadCache cache,
+                                 LoaderDAO dao,
+                                 @Nonnull String normalizationLibrary) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -256,7 +261,7 @@ public class ArrayDataStep {
 
             listener.setProgress("Processing data in R");
             for (Map.Entry<String, RawData> entry : dataByArrayDesign.entrySet()) {
-                final DataNormalizer normalizer = new DataNormalizer(entry.getValue());
+                final DataNormalizer normalizer = new DataNormalizer(entry.getValue(), normalizationLibrary);
                 // this method returns null if computation was finished successfully
                 // or an instance of "try-error" R class in case of failure
                 // currently we receive instances of "try-error" as RChar objects
@@ -303,11 +308,13 @@ public class ArrayDataStep {
         public final ArrayList<String> fileNames = new ArrayList<String>();
         public final String pathPrefix;
         public final String mergedFilePath;
+        public final String normalizationMode;
 
-        public DataNormalizer(RawData data) {
+        public DataNormalizer(RawData data, String normalizationMode) {
             this.data = data;
             pathPrefix = data.dataDir.getAbsolutePath() + "/";
             mergedFilePath = pathPrefix + "merged.txt";
+            this.normalizationMode = normalizationMode;
         }
 
         public RObject compute(RServices R) throws RemoteException {
@@ -336,15 +343,18 @@ public class ArrayDataStep {
             scans.append(")");
             log.info(files.toString());
             log.info(scans.toString());
+            log.info("mode :" + normalizationMode);
             log.info("outFile = '" + mergedFilePath + "'");
             R.sourceFromBuffer(files.toString());
             R.sourceFromBuffer(scans.toString());
             R.sourceFromBuffer("outFile = '" + mergedFilePath + "'");
+            R.sourceFromBuffer("mode = '" + normalizationMode + "'");
             R.sourceFromBuffer(RUtil.getRCodeFromResource("R/normalizeOneExperiment.R"));
-            final RObject result = R.getObject("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, parallel = FALSE)");
+            final RObject result = R.getObject("normalizeOneExperiment(files = files, outFile = outFile, scans = scans, mode = mode)");
             R.sourceFromBuffer("rm(outFile)");
             R.sourceFromBuffer("rm(scans)");
             R.sourceFromBuffer("rm(files)");
+            R.sourceFromBuffer("rm(mode)");
             R.sourceFromBuffer(RUtil.getRCodeFromResource("R/cleanupNamespace.R"));
             return result;
         }
