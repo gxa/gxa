@@ -37,5 +37,7 @@ public class ApiPropertyValue {
         this.value = value;
     }
 
-
+    public String toString() {
+        return "ApiPropertyValue{" + "property='" + getProperty() + "', value='" + getValue() + "'}";
+    }
 }

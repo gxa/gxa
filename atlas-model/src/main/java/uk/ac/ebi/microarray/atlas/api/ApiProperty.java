@@ -58,4 +58,8 @@ public class ApiProperty {
     public void setTerms(Set<ApiOntologyTerm> terms) {
         this.terms = terms;
     }
+
+        public String toString() {
+        return "ApiProperty{" + "propertyValue='" + getPropertyValue() + "', terms='" + getTerms() + "'}";
+    }
 }
