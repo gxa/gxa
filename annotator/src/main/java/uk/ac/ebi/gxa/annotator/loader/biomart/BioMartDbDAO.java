@@ -53,11 +53,11 @@ class BioMartDbDAO {
             final String dbName = findSynonymsDBName(dbNameTemplate, version);
             final JdbcTemplate template = createTemplate(dbName);
             return template.query(
-                    "SELECT DISTINCT gene.gene_id, external_synonym.synonym \n" +
+                    "SELECT DISTINCT gene.stable_id, external_synonym.synonym \n" +
                             "FROM gene, xref, external_synonym \n" +
                             "WHERE gene.display_xref_id = xref.xref_id \n" +
                             "AND external_synonym.xref_id = xref.xref_id \n" +
-                            "ORDER BY gene.gene_id; ",
+                            "ORDER BY gene.stable_id; ",
                     new RowMapper<Pair<String, String>>() {
                         @Override
                         public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
