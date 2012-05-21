@@ -35,7 +35,7 @@ import java.util.*;
  */
 public class ExperimentDesignTableDsv {
 
-    private static enum Columns implements DsvColumn<ExperimentDesignUI.Row>{
+    private static enum Columns implements DsvColumn<ExperimentDesignUI.Row> {
         Assay("assay", "") {
             @Override
             public String convert(ExperimentDesignUI.Row row) {
@@ -82,12 +82,12 @@ public class ExperimentDesignTableDsv {
         int size = rows.size();
 
         DsvRowIterator<ExperimentDesignUI.Row> dsvIterator = new DsvRowIterator<ExperimentDesignUI.Row>(iterator, size);
+        dsvIterator.addColumns(permanentColumns());
+
         int i = 0;
         for (String propName : expDesign.getPropertyNames()) {
             dsvIterator.addColumn(propName, "", propertyValueConverter(i++));
         }
-
-        dsvIterator.addColumns(permanentColumns());
         return dsvIterator;
     }
 
