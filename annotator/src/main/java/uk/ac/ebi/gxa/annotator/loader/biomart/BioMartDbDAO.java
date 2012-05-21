@@ -66,7 +66,7 @@ class BioMartDbDAO {
                     });
         } catch (DataAccessException e) {
             log.error("Cannot fetch synonyms! URL: " + url + "/ name: " + dbNameTemplate, e);
-            throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
+            throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration", e);
         }
     }
 
