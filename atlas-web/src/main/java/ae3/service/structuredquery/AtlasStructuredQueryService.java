@@ -817,7 +817,8 @@ public class AtlasStructuredQueryService {
                 // qstate.getQueryExpression() represents expression type chosen by the user on the search page and is
                 // used to decide which (up/down/non-de) counts should be displayed in each heatmap cell.
                 statsQuery.setStatisticsType(getStatisticsTypeForExpression(c.getExpression()));
-                qstate.setQueryExpression(c.getExpression());
+                if (qstate != null)
+                    qstate.setQueryExpression(c.getExpression());
             }
 
             List<Attribute> orAttributes = null;
