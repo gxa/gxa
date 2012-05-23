@@ -155,8 +155,11 @@
         function transformUI() {
             $(target).hide();
 
+            var msg = $(target).text();
+            msg = msg.replace("Download","Preparing") + "...";
+
             $('<div style="position:relative;background-color:#E6F0F0;padding:3px 4px;" class="inlineDownload" id="' + id + '"></div>')
-                .html(['<div class="message">Preparing...</div>',
+                .html(['<div class="message">' + msg + '</div>',
                 '<div style="float:left;margin-right:4px;margin-top:4px;" class="cancel-icon cancel" title="Cancel"></div>',
                 '<div style="height:10px;margin-top:4px;" class="progressBar anim"></div>',
                 '<div style="clear:both;"></div>'].join(""))
