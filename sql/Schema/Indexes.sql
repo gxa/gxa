@@ -201,6 +201,7 @@
   ALTER TABLE "A2_ARRAYDESIGN"
   ADD CONSTRAINT "UQ_ARRAYDESIGN_ACCESSION"
     UNIQUE("ACCESSION")
+    /*INDEX_TABLESPACE*/
     ENABLE;
 
 --------------------------------------------------------
@@ -261,6 +262,7 @@
   ALTER TABLE "A2_PROPERTY"
   ADD CONSTRAINT "UQ_PROPERTY_NAME"
     UNIQUE("NAME")
+   /*INDEX_TABLESPACE*/
     ENABLE;
 
 --------------------------------------------------------
@@ -314,6 +316,7 @@
   ALTER TABLE "A2_EXPERIMENT"
   ADD CONSTRAINT "UQ_EXPERIMENT_ACCESSION"
     UNIQUE("ACCESSION")
+    /*INDEX_TABLESPACE*/
     ENABLE;
 
 --------------------------------------------------------
@@ -776,6 +779,7 @@ CREATE INDEX "IDX_SAMPLE_EXPERIMENT"
   ALTER TABLE "A2_BIOENTITYBEPV"
   ADD CONSTRAINT "UQ_BIOENTITY_BEPV_SW"
     UNIQUE("BIOENTITYID","BEPROPERTYVALUEID", "SOFTWAREID")
+    /*INDEX_TABLESPACE*/
     ENABLE;
 
 --------------------------------------------------------
