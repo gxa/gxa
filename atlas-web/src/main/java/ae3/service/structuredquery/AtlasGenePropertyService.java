@@ -22,7 +22,9 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Multiset;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -273,11 +275,11 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
     private Collection<GeneAutoCompleteItem> searchInGeneNames(String prefix, int speciesFilter, int limit) {
         List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
-        Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, speciesFilter, limit);
+        Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, speciesFilter);
         for (GeneAutoCompleteItem item : items) {
             result.add(new GeneAutoCompleteItem(item, geneRanking.getRank(item)));
         }
-        return result;
+        return result.subList(0, Math.min(limit >= 0 ? limit : result.size(), result.size()));
     }
 
     private int safeParse(String s, int def) {
@@ -289,7 +291,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         }
     }
 
-    private List<GeneAutoCompleteItem> joinGeneNames(final String query, final int speciesFilter, final int limit) {
+    private List<GeneAutoCompleteItem> joinGeneNames(final String query, final int speciesFilter) {
         final List<GeneAutoCompleteItem> res = new ArrayList<GeneAutoCompleteItem>();
         final Set<String> ids = new HashSet<String>();
         final Set<String> speciesInAutocompleteSoFar = new HashSet<String>();
@@ -312,7 +314,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 }
 
                 public boolean enough() {
-                    return limit >= 0 && (res.size() >= limit);
+                    return false;
                 }
             });
         }
@@ -324,10 +326,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         }
 
         Collections.sort(res);
-        List<GeneAutoCompleteItem> autoCompleteItems =
-                applyPerSpeciesLimits(res, speciesInAutocompleteSoFar);
-
-        return autoCompleteItems.subList(0, Math.min(limit >= 0 ? limit : autoCompleteItems.size(), autoCompleteItems.size()));
+        return applyPerSpeciesLimits(res, speciesInAutocompleteSoFar);
     }
 
 
@@ -345,7 +344,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         // Map to count the number of Autocomplete items per species - used to restrict the number of items
         // per species when items associated with many species are present
         // (c.f. atlas.gene.autocomplete.names.per_species.limit in atlas.properties)
-        final Map<String, Integer> species2AutoCompleteItemCounts = new HashMap<String, Integer>();
+        final Multiset<String> speciesCounts =  HashMultiset.create();
         final List<GeneAutoCompleteItem> res = new ArrayList<GeneAutoCompleteItem>();
 
         if (speciesInAutocompleteList.size() > 1) {
@@ -354,16 +353,11 @@ public class AtlasGenePropertyService implements AutoCompleter,
             for (GeneAutoCompleteItem item : autoCompleteItems) {
                 String species = item.getSpecies();
                 if (species != null) {
-                    Integer count = species2AutoCompleteItemCounts.get(species);
-                    // Initialise count if species encountered first time in autoCompleteItems
-                    if (count == null) {
-                        count = 1;
-                    }
-                    if (count <= atlasProperties.getGeneAutocompleteNamesPerSpeciesLimit()) {
+                    if (speciesCounts.count(species) <= atlasProperties.getGeneAutocompleteNamesPerSpeciesLimit()) {
                         // If an item has an associated species, add it to the res only if the amount of items
                         // associated with that species that are already in res has not exceeded
                         // atlasProperties.getGeneAutocompleteNamesPerSpeciesLimit()
-                        species2AutoCompleteItemCounts.put(species, count + 1);
+                        speciesCounts.add(species);
                         res.add(item);
                     }
                 } else {
