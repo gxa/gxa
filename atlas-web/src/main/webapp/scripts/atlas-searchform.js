@@ -241,6 +241,8 @@ var atlas = atlas || {};
 
     var simpleForm = (function() {
 
+        var timeout;
+
         function geneConditionsField(form) {
             return $('input[name=genes]', form);
         }
@@ -257,17 +259,59 @@ var atlas = atlas || {};
             return $("select[name=specie_0]", form);
         }
 
+        // Store non-tokenized values in the input field that autocomplete created for
+        // entering raw values
+        function populateNonTokenizedVals(nonTokenizedVals, form) {
+            if (nonTokenizedVals && nonTokenizedVals.length > 0) {
+                $('input[id="gene"]', form).val(nonTokenizedVals);
+            }
+        }
+
         function initGeneConditions(form, query) {
             var conditionsField = geneConditionsField(form);
+            // geneProperties array contains tokenized property-values;
+            conditionsField.get(0).geneProperties = []
 
-            var geneConditions = query.geneConditions || [];
-            if (geneConditions.length > 0) {
-                conditionsField.val(geneConditions[0].jointFactorValues);
+            var nonTokenizedVals = "";
+            var tokenizedVals = "";
+            for (var i = 0; i < query.geneConditions.length; ++i) {
+                var prop = query.geneConditions[i].factor;
+                var val =  query.geneConditions[i].jointFactorValues;
+                if (prop && prop.length > 0) {
+                    // Note that due to some race conditions in  jquery.token.autocomplete.js a delay (c.f. timeout below)
+                    // is needed to prevent the same property-value being added again every time the user presses a search button.
+                    // To test this, remove the delay below then
+                    // 1. search for autocompleted go term: 'BRCA1-A complex', on heatmap page click on advanced interface and
+                    //    observe one 'goterm:BRCA1-A complex' gene condition
+                    // 2. Click on 'search' again and agaon on heatmap page click on advanced interface and now
+                    //    observe not one but two 'goterm:BRCA1-A complex' gene conditions.
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        conditionsField.get(0).geneProperties.push({
+                            value: val,
+                            property: prop
+                        })
+                    }, 100);
+                    tokenizedVals = tokenizedVals + " " + val;
+                } else {
+                    nonTokenizedVals = nonTokenizedVals + " " + val;
+                }
             }
-
-            conditionsField.get(0).geneProperties = [];
-
+            // Values conditionsField.val() together with property-values in conditionsField.get(0).geneProperties
+            // are used by atlas.tokenizeGeneInput() to generate autocomplete tokens, visible to the user in the genes input field
+            conditionsField.val($.trim(tokenizedVals));
             atlas.tokenizeGeneInput(conditionsField, '', '(all genes)');
+
+            // Now that the genes input field has been enabled for autocompletion, enter non-autocompleted gene conditions into the
+            // special field created by autocomplete to enter such raw values (c.f.  var input_box in jquery.token.autocomplete.js)
+            // Note that due to some race conditions within jquery.token.autocomplete.js populateNonTokenizedVals will not work unless
+            // the delay is imposed (see timeout below)
+            clearTimeout(timeout);
+            // Note: nonTokenizedVals = null; form = null - due to a 'memory leak in IE' issue reported in:
+            // http://www.makemineatriple.com/2007/10/passing-parameters-to-a-function-called-with-settimeout
+            timeout = setTimeout(function(){
+                populateNonTokenizedVals($.trim(nonTokenizedVals), form); nonTokenizedVals = null; form = null}, 300);
+
 
             conditionsField.bind("addResult", function(event, geneToken) {
                 var props = event.target.geneProperties;
@@ -332,31 +376,42 @@ var atlas = atlas || {};
             );
         }
 
+        function optionalQuote(s) {
+            return (s.indexOf(' ') >= 0 && !(s.charAt(0) == '"' && s.charAt(s.length-1) == '"')) ? '"' + s.replace(/["]/g, '\\"') + '"' : s;
+        }
+
         function asQuery(form) {
-            flushTokenizedValues(form);
 
             var qBuilder = new QueryBuilder();
 
-            var field = geneConditionsField(form);
-            var value0 = field.val();
-            var prop0 = ""; // prop0 <= any
+            var conditionsField = geneConditionsField(form); // field containing tokenized property-values;
+            var inputBox = $('input[id="gene"]'); // field containing non-tokenized values
 
-            var props = field.get(0).geneProperties;
-            if (props) {    // find best fit
-                for (var i = 0; i < props.length; i++) {
-                    if (prop0.length == 0) {
-                        prop0 = props[i].property;
-                    } else if (prop0 != props[i].property) {
-                        prop0 = "";
-                        break;
-                    }
+            // For 'BRCA1' and 'BRCA1-A complex' values chosen from autocomplete and 'aspm' value entered raw, the following holds:
+            // conditionsField.get(0).geneProperties =
+            //      [ Object { value="BRCA1", property="interproterm"}, Object { value="BRCA1-A complex", property="goterm"}]
+            // conditionsField.val() =
+            //      'BRCA1 "BRCA1-A complex" aspm'
+            // inputBox.val() =
+            //      "aspm"
+
+            var tokenizedPropsVals = conditionsField.get(0).geneProperties;
+            for (var i = 0; i < tokenizedPropsVals.length; i++) {
+                if (tokenizedPropsVals[i].property.length != 0) {
+                    var val = optionalQuote($.trim(tokenizedPropsVals[i].value));
+                    qBuilder.addGeneCondition({
+                        value: val,
+                        property: tokenizedPropsVals[i].property
+                    });
                 }
             }
-
-            qBuilder.addGeneCondition({
-                value: value0,
-                property: prop0
-            });
+            var nonTokenizedVals = $.trim(inputBox.val())
+            if (nonTokenizedVals && nonTokenizedVals.length > 0) {
+                qBuilder.addGeneCondition({
+                    value: nonTokenizedVals,
+                    property: ""
+                });
+            }
 
             qBuilder.addCondition({
                 expression: expressionField(form).val(),
