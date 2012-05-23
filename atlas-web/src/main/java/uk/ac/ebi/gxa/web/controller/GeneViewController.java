@@ -26,6 +26,7 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasGene;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import org.apache.batik.transcoder.TranscoderException;
 import org.slf4j.Logger;
@@ -55,12 +56,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
+import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
 
 /**
  * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
@@ -270,6 +270,25 @@ public class GeneViewController extends AtlasViewController {
     }
 
     /**
+     * @param genes
+     * @return true genes has either just one element, no elements, or contains more than one element - but only one
+     *         of these elements is UP_DOWN scoring across all efo's; false otherwise
+     */
+    private boolean isNullOrSingleGene(List<AtlasGene> genes) {
+        if (genes.size() <= 1)
+            return true;
+
+        int scoringGenesCnt = 0;
+        for (AtlasGene gene : genes) {
+            if (atlasStatisticsQueryService.isScoringBioEntity(UP_DOWN, gene.getGeneId()))
+                scoringGenesCnt++;
+            if (scoringGenesCnt > 1)
+                return false;
+        }
+        return true;
+    }
+
+    /**
      * A gene page handler utility. If the experiment with the given geneId exists it fills the model with the
      * appropriate values and returns the corresponding view. E.g. /ENSG00000136487/organism_part
      * Note that ef is optional.
@@ -281,8 +300,12 @@ public class GeneViewController extends AtlasViewController {
      * @throws ResourceNotFoundException
      */
     private String getGene(final Model model, final String geneId, @Nullable final String ef) throws ResourceNotFoundException {
-        GeneSolrDAO.AtlasGeneResult result = geneSolrDAO.getGeneByAnyIdentifier(geneId, atlasProperties.getGeneAutocompleteIdFields());
-        if (result.isMulti()) {
+        List<AtlasGene> genes = Lists.newArrayList(geneSolrDAO.getGenesByAnyIdentifiers(Collections.singletonList(geneId),
+                atlasProperties.getGeneAutocompleteIdFields()));
+
+        if (!isNullOrSingleGene(genes)) {
+            // if heatmap will display more than one results row for geneid (because geneid matches more than one scoring gene),
+            // then re-direct the query to the heatmap
             model.addAttribute("gprop_0", "")
                     .addAttribute("gval_0", geneId)
                     .addAttribute("fexp_0", "UP_DOWN")
@@ -293,11 +316,11 @@ public class GeneViewController extends AtlasViewController {
             return "redirect:/qrs";
         }
 
-        if (!result.isFound()) {
+        if (genes.isEmpty()) {
             throw new ResourceNotFoundException("No results were found");
         }
 
-        AtlasGene gene = result.getGene();
+        AtlasGene gene = genes.get(0);
         Anatomogram an = anatomogramFactory.getAnatomogram(gene);
         model.addAttribute("gene", GenePageGene.create(gene, atlasProperties, geneSolrDAO, atlasStatisticsQueryService))
                 .addAttribute("differentiallyExpressedFactors", gene.getDifferentiallyExpressedFactors(atlasProperties.getGeneHeatmapIgnoredEfs(), ef, atlasStatisticsQueryService))
