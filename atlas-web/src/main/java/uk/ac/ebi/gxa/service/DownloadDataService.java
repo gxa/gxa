@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.download.*;
 
+import java.io.IOException;
+
 import static com.google.common.base.Joiner.on;
 
 /**
@@ -44,6 +46,10 @@ public class DownloadDataService {
 
     private final DownloadQueue downloadQueue;
 
+    public final static String EXPERIMENT_DESIGN = "experimentDesign";
+    public final static String EXPERIMENT_EXPRESSIONS = "experimentExpressions";
+    public final static String EXPERIMENT_ANALYTICS = "experimentAnalytics";
+
     @Autowired
     public DownloadDataService(ExperimentDownloadData expDownloadData,
                                DownloadQueue downloadQueue) {
@@ -51,8 +57,8 @@ public class DownloadDataService {
         this.downloadQueue = downloadQueue;
     }
 
-    public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException {
-        String token = newToken("ExpAnalysedData-", expAcc, "-", cookie);
+    public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException, IOException {
+        String token = newToken(EXPERIMENT_ANALYTICS, "_", expAcc, "_", cookie);
         log.info("addExperimentAnalyticsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
@@ -60,8 +66,8 @@ public class DownloadDataService {
         return token;
     }
 
-    public String addExperimentExpressionsTask(String expAcc, String cookie) throws RecordNotFoundException {
-        String token = newToken("ExpRawData-", expAcc, "-", cookie);
+    public String addExperimentExpressionsTask(String expAcc, String cookie) throws RecordNotFoundException, IOException  {
+        String token = newToken(EXPERIMENT_EXPRESSIONS, "_", expAcc, "_", cookie);
         log.info("addExperimentExpressionsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,
@@ -69,8 +75,8 @@ public class DownloadDataService {
         return token;
     }
 
-    public String addExperimentDesignTask(String expAcc, String cookie) {
-        String token = newToken("ExpDesign-", expAcc, "-", cookie);
+    public String addExperimentDesignTask(String expAcc, String cookie) throws IOException {
+        String token = newToken(EXPERIMENT_DESIGN,"_", expAcc, "_", cookie);
         log.info("addExperimentDesignTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
                 token,

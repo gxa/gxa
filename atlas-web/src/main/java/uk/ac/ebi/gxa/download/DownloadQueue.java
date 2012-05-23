@@ -26,9 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.download.dsv.DsvDownloadTask;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.*;
+
+import static java.io.File.createTempFile;
+import static java.lang.Math.min;
 
 /**
  * @author Olga Melnichuk
@@ -75,26 +81,26 @@ public class DownloadQueue {
             return;
         }
         keeper.cancel();
-        results.remove(token, keeper);
     }
 
-    private boolean expired(String token) {
+    private boolean expired(String token, File file) {
         FutureTaskKeeper keeper = results.get(token);
         if (keeper == null) {
-            return false;
+            throw LogUtil.createUnexpected("FutureTaskKeeper was null");
         }
         long ago = System.currentTimeMillis() - keeper.getLastAccess();
         if (ago > ONE_HOUR) {
-            log.debug("Task result expired; sweep.. " + token);
-            cancel(token);
+            tidyUp(token, file);
             return true;
         }
         return false;
     }
 
-    public void addDsvDownloadTask(final String token, Collection<? extends DsvDocumentCreator> dsvDocumentCreators) {
+    public void addDsvDownloadTask(final String token, Collection<? extends DsvDocumentCreator> dsvDocumentCreators) throws IOException {
         TaskProgress progress = new TaskProgress();
-        DsvDownloadTask task = new DsvDownloadTask(token,
+        final File file = createTmpFile(token);
+
+        DsvDownloadTask task = new DsvDownloadTask(file,
                 dsvDocumentCreators,
                 progress);
 
@@ -103,7 +109,7 @@ public class DownloadQueue {
         if (results.putIfAbsent(token, keeper) == null) {
             janitorService.schedule(new JanitorService.Janitor() {
                 public boolean keepOnCleaning() {
-                    return !expired(token);
+                    return !expired(token, file);
                 }
             });
         } else {
@@ -125,8 +131,6 @@ public class DownloadQueue {
         public void cancel() {
             if (!future.isDone()) {
                 future.cancel(true);
-            } else {
-                getResult().clearResources();
             }
         }
 
@@ -166,5 +170,25 @@ public class DownloadQueue {
         public int getPercentage() {
             return percentage;
         }
+    }
+
+    private File createTmpFile(String token) throws IOException {
+        return createTempFile(token.substring(0, min(token.length(), 40)), ".zip");
+    }
+
+    private void clear(File file) {
+        if (file != null && file.exists()) {
+            log.debug("Removing {}...", file);
+            if (!file.delete()) {
+                log.warn("Can't remove: {}", file);
+            }
+        }
+    }
+
+    private void tidyUp(String token, File file) {
+        log.debug("Task result expired; sweep.. " + token);
+        cancel(token);
+        results.remove(token, results.get(token));
+        clear(file);
     }
 }

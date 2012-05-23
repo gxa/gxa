@@ -378,7 +378,9 @@ public class GeneSolrDAO {
             return f.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw createUnexpected("InterruptedException happened.");
+            // InterruptedException can happen due to a cancel action by the user downloading
+            // e.g. analytics off the experiment page
+            return null;
         } catch (ExecutionException e) {
             throw createUnexpected("Getting gene data from solr failure", e.getCause());
         }

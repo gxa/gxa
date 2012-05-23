@@ -56,19 +56,18 @@ public class DsvDownloadTask implements Callable<DownloadTaskResult> {
 
     private static final String CONTENT_TYPE = "application/octet-stream";
 
-    private final String token;
+    private final File file;
     private final List<DsvDocumentCreator> creators = new ArrayList<DsvDocumentCreator>();
     private final TaskProgressListener listener;
 
-    public DsvDownloadTask(String token, Collection<? extends DsvDocumentCreator> creators, TaskProgressListener listener) {
-        this.token = token;
+    public DsvDownloadTask(File file, Collection<? extends DsvDocumentCreator> creators, TaskProgressListener listener) {
+        this.file = file;
         this.creators.addAll(creators);
         this.listener = listener;
     }
 
     public DownloadTaskResult call() {
         try {
-            File file = createTempFile(token.substring(0, min(token.length(), 30)), ".zip");
             return success(createZip(file), CONTENT_TYPE);
         } catch (IOException e) {
             log.error("DSV download task execution I/O error", e);
@@ -88,6 +87,7 @@ public class DsvDownloadTask implements Callable<DownloadTaskResult> {
 
     private File createZip(File file) throws IOException, DsvDocumentCreateException {
         ZipOutputStream zout = null;
+        boolean emptyZip = true;
         try {
             zout = new ZipOutputStream(new FileOutputStream(file));
             MultiDocProgressListener listener = new MultiDocProgressListener(creators.size());
@@ -99,16 +99,18 @@ public class DsvDownloadTask implements Callable<DownloadTaskResult> {
                 (new DsvDocumentWriter(tsv().newWriter(new OutputStreamWriter(zout)), listener.next())).write(doc);
             }
             zout.closeEntry();
+            emptyZip = false;
             listener.done();
             return file;
         } finally {
-            closeQuietly(zout);
+            if (!emptyZip)
+                closeQuietly(zout);
         }
     }
 
     private class MultiDocProgressListener implements DsvDocumentWriter.ProgressListener{
         private final int size;
-        private final int globalMax = 100;
+        private static final int globalMax = 100;
         private int idx = -1;
 
         private MultiDocProgressListener(int size) {

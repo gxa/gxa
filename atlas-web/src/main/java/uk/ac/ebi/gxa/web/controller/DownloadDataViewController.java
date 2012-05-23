@@ -69,28 +69,43 @@ public class DownloadDataViewController extends AtlasViewController {
         return taskToken(downloadService.addGeneSearchTask(atlasQuery, cookie), model);
     }
 
-    @RequestMapping(value = "/download/experimentAnalytics", method = RequestMethod.GET)
+    @RequestMapping(value = "/download/" + DownloadDataService.EXPERIMENT_ANALYTICS, method = RequestMethod.GET)
     public String downloadExperimentAnalytics(
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) throws RecordNotFoundException {
-        return taskToken(downloadService.addExperimentAnalyticsTask(expAcc, cookie), model);
+        try {
+            return taskToken(downloadService.addExperimentAnalyticsTask(expAcc, cookie), model);
+        } catch (IOException e) {
+            addError(e, model);
+        }
+        return JSON_ONLY_VIEW;
     }
 
-    @RequestMapping(value = "/download/experimentExpressions", method = RequestMethod.GET)
+    @RequestMapping(value = "/download/" + DownloadDataService.EXPERIMENT_EXPRESSIONS, method = RequestMethod.GET)
     public String downloadExperimentExpressions(
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) throws RecordNotFoundException {
-        return taskToken(downloadService.addExperimentExpressionsTask(expAcc, cookie), model);
+        try {
+            return taskToken(downloadService.addExperimentExpressionsTask(expAcc, cookie), model);
+        } catch (IOException e) {
+            addError(e, model);
+        }
+        return JSON_ONLY_VIEW;
     }
 
-    @RequestMapping(value = "/download/experimentDesign", method = RequestMethod.GET)
+    @RequestMapping(value = "/download/" + DownloadDataService.EXPERIMENT_DESIGN, method = RequestMethod.GET)
     public String downloadExperimentDesign(
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
             Model model) {
-        return taskToken(downloadService.addExperimentDesignTask(expAcc, cookie), model);
+        try {
+            return taskToken(downloadService.addExperimentDesignTask(expAcc, cookie), model);
+        } catch (IOException e) {
+            addError(e, model);
+        }
+        return JSON_ONLY_VIEW;
     }
 
     @RequestMapping(value = "/download/progress", method = RequestMethod.GET)
@@ -101,8 +116,7 @@ public class DownloadDataViewController extends AtlasViewController {
         try {
             model.addAttribute("progress", downloadService.getProgress(token));
         } catch (TaskExecutionException e) {
-            Throwable cause = e.getCause();
-            model.addAttribute("error", cause.getClass().getName() + ": " + cause.getMessage());
+            addError(e, model);
         }
         return JSON_ONLY_VIEW;
     }
@@ -131,5 +145,10 @@ public class DownloadDataViewController extends AtlasViewController {
     private String taskToken(String token, Model model) {
         model.addAttribute("token", token);
         return JSON_ONLY_VIEW;
+    }
+
+    private void addError(Exception e, Model model) {
+        Throwable cause = e.getCause();
+        model.addAttribute("error", cause.getClass().getName() + ": " + cause.getMessage());
     }
 }
