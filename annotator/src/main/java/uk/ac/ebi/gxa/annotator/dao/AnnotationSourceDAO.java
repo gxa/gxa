@@ -63,10 +63,12 @@ public class AnnotationSourceDAO {
     public void save(AnnotationSource annSrc) {
         annSrc.setLoadDate(new Date());
         template.save(annSrc);
+        template.flush();
     }
 
     public void update(AnnotationSource annSrc) {
         template.update(annSrc);
+        template.flush();
     }
 
     @SuppressWarnings("unchecked")
@@ -126,7 +128,7 @@ public class AnnotationSourceDAO {
     public void remove(AnnotationSource annSrc) {
 
         template.delete(annSrc);
-//        template.flush();
+        template.flush();
     }
 
     public boolean isAnnSrcAppliedForArrayDesignMapping(final Software software, final ArrayDesign arrayDesign) {
