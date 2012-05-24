@@ -452,7 +452,9 @@ public class CurationService {
                     PropertyValue newPropertyValue =
                             propertyValueDAO.getOrCreatePropertyValue(newProperty, oldSampleProperty.getPropertyValue().getValue());
                     if (sample.getProperty(newPropertyValue) == null) {
-                         pvsToAdd.add(Pair.create(newPropertyValue, oldSampleProperty.getTerms()));
+                        // If newPropertyName:newPropertyValue don't exist in this sample, add it together with ontology mappings
+                        // assigned to oldSampleProperty.getPropertyValue().getValue()
+                        pvsToAdd.add(Pair.create(newPropertyValue, oldSampleProperty.getTerms()));
                     }
                     pvsToDelete.add(oldSampleProperty.getPropertyValue());
                 }
