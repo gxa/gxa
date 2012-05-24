@@ -179,7 +179,7 @@
         opts = opts || {};
 
         var url = opts.url,
-            type = opts.type || "json",
+            type = opts.type,
             defaultParams = opts.defaultParams || {},
             _this = {},
             context = opts.context || _this;
@@ -201,19 +201,41 @@
             }
         }
 
+        return $.extend(true, _this, {
+            load:function (params, activityTarget) {
+                params = $.extend(true, {}, defaultParams, params);
+                A.ajaxReq({
+                    url:url,
+                    params:params,
+                    dataType:type,
+                    target:activityTarget,
+                    success:successHandler,
+                    error:failureHandler
+                });
+            }
+        });
+    };
+
+
+    /**
+     * @param opts {
+     *      url
+     *      params
+     *      success
+     *      error
+     *      target
+     * }
+     */
+    A.ajaxReq = function(opts) {
         function startActivity(el) {
             if (el) {
                 el.append("<div><span class='loading'>&nbsp;</span></div>");
             }
         }
 
-        function stopActivity(func, el) {
-            if (!el) {
-                return func;
-            }
-            return function() {
+        function stopActivity(el) {
+            if (el) {
                 el.children(":last").remove();
-                func.apply(context, arguments);
             }
         }
 
@@ -241,20 +263,28 @@
             return params;
         }
 
-        return $.extend(true, _this, {
-            load: function(params, activityTarget) {
-                params = $.extend(true, {}, defaultParams, params);
-                var activityElem = A.$(activityTarget);
-                startActivity(activityElem);
-                $.ajax({
-                    url: A.fullPathFor(url),
-                    data: filter(params),
-                    dataType: type,
-                    success: stopActivity(successHandler, activityElem),
-                    error: stopActivity(failureHandler, activityElem)
-                });
-            }
-        });
+        opts = opts || {};
+        var activity = A.$(opts.target);
+        startActivity(activity);
+
+        $.ajax({
+            url:A.fullPathFor(opts.url),
+            data:filter(opts.params),
+            dataType:opts.dataType || "json"
+        })
+            .done(function () {
+                stopActivity(activity);
+            })
+            .success(function(data) {
+                if (data.error) {
+                    if (opts.error) {
+                        opts.error(data.error);
+                    }
+                } else if (opts.success) {
+                    opts.success(data);
+                }
+            })
+            .error(opts.error);
     };
 
     /**
