@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.service;
+package uk.ac.ebi.gxa.service.export;
 
 import com.jamesmurty.utils.XMLBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +36,12 @@ import java.util.Collection;
  * User: nsklyar
  * Date: 01/05/2012
  */
-public class ChEbiXrefExportService {
+public class ChEbiXrefExporter implements DataExporter{
 
     @Autowired
     private AtlasDAO atlasDAO;
 
-    public String exportChEbiEntries() {
+    public String generateDataAsString() {
         final Collection<ChEbiEntry> chEbiEntries = atlasDAO.getChEbiEntries();
         try {
             XMLBuilder xmlBuilder = XMLBuilder.create("doc")

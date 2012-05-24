@@ -85,6 +85,7 @@ public class PropertyDAO extends AbstractDAO<Property> {
      * @param property
      * @return all values for property
      */
+    //ToDo: to get rid of this method use propertyValueDAO.findValuesForProperty(property)
     public List<PropertyValue> getValues(Property property) {
         return property.getValues();
     }

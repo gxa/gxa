@@ -133,6 +133,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 root = new PrefixNode();
                 try {
                     final Property p = propertyDAO.getByName(property);
+                    //ToDo: to get rid of propertyDAO.getValues() method use propertyValueDAO.findValuesForProperty(property)
                     for (PropertyValue pv : propertyDAO.getValues(p)) {
                         EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue());
                         int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);

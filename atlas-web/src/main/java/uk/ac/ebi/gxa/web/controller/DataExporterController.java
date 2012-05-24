@@ -25,25 +25,41 @@ package uk.ac.ebi.gxa.web.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.service.export.ChEbiXrefExporter;
+import uk.ac.ebi.gxa.service.export.CompoundExporter;
 
 /**
  * User: nsklyar
  * Date: 02/05/2012
- *
- * @deprecated
  */
 @Controller
-public class ChEbiExportController {
+public class DataExporterController {
 
     @Autowired
     private ChEbiXrefExporter chEbiExporter;
 
-    @RequestMapping(value = "/chEbiExport")
-    public String getAnnotationSourceList(Model model) {
-       model.addAttribute("chEbiEntries", chEbiExporter.generateDataAsString());
-       return "chEbiExport/chEbi-Export";
+    @Autowired
+    private CompoundExporter compoundExporter;
+
+    public static final String COMPOUND = "compound";
+
+    public static final String CHEBI = "chebi";
+
+    @RequestMapping(value = "/dataExport/{type}")
+    public String getAnnotationSourceList(@PathVariable("type") String type,
+                                          Model model) throws ResourceNotFoundException {
+
+        if (COMPOUND.equalsIgnoreCase(type)) {
+            model.addAttribute("exportText", compoundExporter.generateDataAsString());
+        } else if (CHEBI.equalsIgnoreCase(type)) {
+            model.addAttribute("exportText", chEbiExporter.generateDataAsString());
+        } else {
+            throw new ResourceNotFoundException("Cannot export data of type " + type);
+        }
+        return "dataExport/data-Export";
     }
 
 }
