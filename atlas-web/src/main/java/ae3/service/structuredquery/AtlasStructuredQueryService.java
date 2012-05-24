@@ -655,6 +655,7 @@ public class AtlasStructuredQueryService {
         Collection<ExpFactorResultCondition> conditions = appendEfvsQuery(query, qstate, statsQuery);
         if (statsQuery.getStatisticsType() == null) {
             statsQuery.setStatisticsType(StatisticsType.UP_DOWN);
+            qstate.setQueryExpression(QueryExpression.UP_DOWN);
         }
 
         int mappingCount = 0;
@@ -816,7 +817,8 @@ public class AtlasStructuredQueryService {
                 // qstate.getQueryExpression() represents expression type chosen by the user on the search page and is
                 // used to decide which (up/down/non-de) counts should be displayed in each heatmap cell.
                 statsQuery.setStatisticsType(getStatisticsTypeForExpression(c.getExpression()));
-                qstate.setQueryExpression(c.getExpression());
+                if (qstate != null)
+                    qstate.setQueryExpression(c.getExpression());
             }
 
             List<Attribute> orAttributes = null;

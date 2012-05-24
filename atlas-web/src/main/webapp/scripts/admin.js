@@ -1288,6 +1288,7 @@ $(document).ready(function () {
     $('#loadButton').click(function () {
         var url = $('#loadUrl').val().replace(/^\s+/,'').replace(/\s+$/,'').split(/\s+/);
         var type = $('#loadType').val();
+        var normalizationMode = $('#normalizationMode').val();
         var autoDep = $('#loadAutodep').is(':checked');
         var useRawData = $('#useRawData').is(':checked');
         var private = $('#private').is(':checked');
@@ -1313,6 +1314,7 @@ $(document).ready(function () {
                     type: 'loadexperiment',
                     autoDepends: autoDep,
                     useRawData: useRawData,
+                    normalizationMode : normalizationMode,
                     private: private
                 }, updateQueueAndLog);
 

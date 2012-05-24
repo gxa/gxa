@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
@@ -55,6 +56,7 @@ class MartAnnotationSourceManager extends AbstractAnnotationSourceManager<BioMar
     private AnnotationSourceInputValidator<BioMartAnnotationSource> bioMartInputValidator;
 
     @Override
+    @Transactional(rollbackFor = Exception.class) //ToDo: roll back doesn't work, investigate more
     public Collection<Software> getNewVersionSoftware() {
         Set<Software> newSoftwares = new HashSet<Software>();
         final Collection<BioMartAnnotationSource> currentAnnSrcs = annSrcDAO.getLatestAnnotationSourcesOfType(BioMartAnnotationSource.class);
@@ -73,7 +75,11 @@ class MartAnnotationSourceManager extends AbstractAnnotationSourceManager<BioMar
         return newSoftwares;
     }
 
+    /**
+     * @deprecated
+     */
     @Override
+    @Transactional
     protected UpdatedAnnotationSource<BioMartAnnotationSource> createUpdatedAnnotationSource(BioMartAnnotationSource annSrc) {
         final String newVersion = martVersionFinder.fetchOnLineVersion(annSrc);
         if (annSrc.getSoftware().getVersion().equals(newVersion)) {
