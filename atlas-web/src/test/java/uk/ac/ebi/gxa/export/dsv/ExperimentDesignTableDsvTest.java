@@ -98,7 +98,7 @@ public class ExperimentDesignTableDsvTest {
                 ExperimentDesignTableDsv.createDsvDocument(expDesign);
 
         String[] expectedColumnNames = concat(
-                toStringArray(getPropertyNames(twoProperties)), toStringArray(permanentColumnNames()), String.class);
+                toStringArray(permanentColumnNames()), toStringArray(getPropertyNames(twoProperties)), String.class);
         assertArrayEquals(expectedColumnNames, toStringArray(iter.getColumnNames()));
 
         assertEquals(1, iter.getTotalRowCount());
