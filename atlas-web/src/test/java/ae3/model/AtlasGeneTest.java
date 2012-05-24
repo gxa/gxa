@@ -35,6 +35,7 @@ import uk.ac.ebi.gxa.statistics.*;
 import uk.ac.ebi.gxa.utils.EfvTree;
 
 import java.util.*;
+import java.util.concurrent.Executors;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -50,6 +51,7 @@ public class AtlasGeneTest extends AbstractOnceIndexTest {
     public void initGene() throws Exception {
         GeneSolrDAO geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(new EmbeddedSolrServer(getContainer(), "atlas"));
+        geneSolrDAO.setExecutorService(Executors.newFixedThreadPool(5));
         gene = geneSolrDAO.getGeneByIdentifier("ENSMUSG00000020275").getGene();
     }
 

@@ -33,6 +33,7 @@ import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
@@ -47,6 +48,7 @@ public class TestAtlasSolrDAO extends AbstractOnceIndexTest {
     public void initDao() {
         geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(new EmbeddedSolrServer(getContainer(), "atlas"));
+        geneSolrDAO.setExecutorService(Executors.newFixedThreadPool(5));
         ExperimentDAO experimentDAO = EasyMock.createMock(ExperimentDAO.class);
         EasyMock.expect(experimentDAO.getById(EasyMock.anyLong())).andReturn(new Experiment(EXPERIMENT_ID, E_MEXP_2058));
         EasyMock.replay(experimentDAO);

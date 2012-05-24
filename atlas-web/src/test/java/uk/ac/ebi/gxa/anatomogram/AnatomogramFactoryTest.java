@@ -15,6 +15,7 @@ import uk.ac.ebi.gxa.statistics.EfoAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 
 import java.util.*;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -33,6 +34,7 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
         EmbeddedSolrServer solrServerAtlas = new EmbeddedSolrServer(getContainer(), "atlas");
         geneSolrDAO = new GeneSolrDAO();
         geneSolrDAO.setGeneSolr(solrServerAtlas);
+        geneSolrDAO.setExecutorService(Executors.newFixedThreadPool(5));
 
         // List of efo terms displayable on a mouse anatomogram
         String[] efoTermsArr = {

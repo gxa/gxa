@@ -193,7 +193,7 @@ public class StatisticsCursor implements DesignElementStatistics {
         try {
             final int de = de();
             if (de != cachedFor) {
-                cachedExpression = dataProxy.getExpressionDataForDesignElementAtIndex(de);
+                cachedExpression = dataProxy.getExpressionData(new int[]{de}).getRow(0);
                 cachedFor = de;
             }
             return copySelected(cachedExpression, getAssaysForEFV(getEfv()));

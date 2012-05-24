@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.utils.dsv;
 import java.io.IOException;
 import java.io.Writer;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * @author Olga Melnichuk
  */
@@ -39,9 +41,17 @@ public class DsvWriter {
         this.writer = writer;
     }
 
-    public void write(String[] values) throws IOException {
-        writer.write(dsvFormat.joinValues(values));
-        writer.write("\n");
+    public void writeLine(Iterable<String> values) throws IOException {
+        for(String v: values) {
+            if (!isNullOrEmpty(v)) {
+                writeLine(dsvFormat.joinValues(values));
+                break;
+            }
+        }
+    }
+
+    public void writeLine(String line) throws IOException {
+        writer.write(line + "\n");
     }
 
     public void flush() throws IOException {
