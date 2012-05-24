@@ -315,8 +315,7 @@ public class CurationService {
 
     /**
      * Replaces oldValue of property: propertyName with newValue in all assays in which propertyName-oldValue exists.
-     * In cases when a given assay contains both oldValue and newValue, the retained newValue gets mapped to the superset of OntologyTerms
-     * assigned to oldValue and newValue.
+     * In cases when a given assay contains both oldValue and newValue, oldValue assay property is simply deleted
      *
      * @param propertyName
      * @param oldValue
@@ -336,14 +335,13 @@ public class CurationService {
 
             List<Assay> assays = assayDAO.getAssaysByPropertyValue(propertyName, oldValue);
             for (Assay assay : assays) {
-                AssayProperty oldAssayProperty = assay.getProperty(oldPropertyValue);
                 AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
-                List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldAssayProperty.getTerms());
                 assay.deleteProperty(oldPropertyValue);
-                if (newAssayProperty != null) {
-                    terms.addAll(newAssayProperty.getTerms());
+                if (newAssayProperty == null) {
+                    // Note that since we are eliminating oldValue we don't preserve its old ontology mappings
+                    // as they are likely to be either non-existent or simply wrong
+                    assay.addOrUpdateProperty(newPropertyValue, Collections.<OntologyTerm>emptyList());
                 }
-                assay.addOrUpdateProperty(newPropertyValue, terms);
                 assayDAO.save(assay);
             }
         } catch (RecordNotFoundException e) {
@@ -353,8 +351,7 @@ public class CurationService {
 
     /**
      * Replaces oldValue of property: propertyName with newValue in all samples in which propertyName-oldValue exists.
-     * In cases when a given sample contains both oldValue and newValue, the retained newValue gets mapped to the superset of OntologyTerms
-     * assigned to oldValue and newValue.
+     * In cases when a given assay contains both oldValue and newValue, oldValue sample property is simply deleted
      *
      * @param propertyName
      * @param oldValue
@@ -374,14 +371,13 @@ public class CurationService {
 
             List<Sample> samples = sampleDAO.getSamplesByPropertyValue(propertyName, oldValue);
             for (Sample sample : samples) {
-                SampleProperty oldSampleProperty = sample.getProperty(oldPropertyValue);
                 SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
-                List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldSampleProperty.getTerms());
                 sample.deleteProperty(oldPropertyValue);
-                if (newSampleProperty != null) {
-                    terms.addAll(newSampleProperty.getTerms());
+                if (newSampleProperty == null) {
+                    // Note that since we are eliminating oldValue we don't preserve its old ontology mappings
+                    // as they are likely to be either non-existent or simply wrong
+                    sample.addOrUpdateProperty(newPropertyValue, Collections.<OntologyTerm>emptyList());
                 }
-                sample.addOrUpdateProperty(newPropertyValue, terms);
                 sampleDAO.save(sample);
             }
         } catch (RecordNotFoundException e) {
@@ -412,15 +408,13 @@ public class CurationService {
             for (AssayProperty oldAssayProperty : assay.getProperties()) {
                 if (oldAssayProperty.getName().equals(oldPropertyName)) {
 
-                    // Collate ontology terms into newAssayProperty
-                    List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldAssayProperty.getTerms());
                     PropertyValue newPropertyValue =
                             propertyValueDAO.getOrCreatePropertyValue(newProperty, oldAssayProperty.getPropertyValue().getValue());
-                    AssayProperty newAssayProperty = assay.getProperty(newPropertyValue);
-                    if (newAssayProperty != null)
-                        terms.addAll(newAssayProperty.getTerms());
-
-                    pvsToAdd.add(Pair.create(newPropertyValue, terms));
+                    if (assay.getProperty(newPropertyValue) == null) {
+                        // If newPropertyName:newPropertyValue don't exist in this assay, add it together with ontology mappings
+                        // assigned to oldAssayProperty.getPropertyValue().getValue()
+                        pvsToAdd.add(Pair.create(newPropertyValue, oldAssayProperty.getTerms()));
+                    }
                     pvsToDelete.add(oldAssayProperty.getPropertyValue());
                 }
             }
@@ -452,23 +446,19 @@ public class CurationService {
         for (Sample sample : samples) {
             pvsToAdd = new ArrayList<Pair<PropertyValue, List<OntologyTerm>>>();
             pvsToDelete = new ArrayList<PropertyValue>();
-
             for (SampleProperty oldSampleProperty : sample.getProperties()) {
                 if (oldSampleProperty.getName().equals(oldPropertyName)) {
 
-                    // Collate ontology terms into newSampleProperty
-                    List<OntologyTerm> terms = new ArrayList<OntologyTerm>(oldSampleProperty.getTerms());
                     PropertyValue newPropertyValue =
                             propertyValueDAO.getOrCreatePropertyValue(newProperty, oldSampleProperty.getPropertyValue().getValue());
-                    SampleProperty newSampleProperty = sample.getProperty(newPropertyValue);
-                    if (newSampleProperty != null)
-                        terms.addAll(newSampleProperty.getTerms());
-
-                    pvsToAdd.add(Pair.create(newPropertyValue, terms));
+                    if (sample.getProperty(newPropertyValue) == null) {
+                        // If newPropertyName:newPropertyValue don't exist in this sample, add it together with ontology mappings
+                        // assigned to oldSampleProperty.getPropertyValue().getValue()
+                        pvsToAdd.add(Pair.create(newPropertyValue, oldSampleProperty.getTerms()));
+                    }
                     pvsToDelete.add(oldSampleProperty.getPropertyValue());
                 }
             }
-
             for (PropertyValue pv : pvsToDelete)
                 sample.deleteProperty(pv);
             for (Pair<PropertyValue, List<OntologyTerm>> pvToTerms : pvsToAdd)

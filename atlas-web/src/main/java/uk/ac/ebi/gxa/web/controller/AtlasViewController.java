@@ -47,6 +47,14 @@ public class AtlasViewController {
                 .addObject("errorClass", e.getClass().getName());
     }
 
+    public static void send(HttpServletResponse response, File file) throws ResourceNotFoundException, IOException {
+        ResourceType type = ResourceType.getByFileName(file.getName());
+        if (type == null) {
+            throw new ResourceNotFoundException("Can't find appropriate content type for file: " + file.getName());
+        }
+        send(response, file, type);
+    }
+
     public static void send(HttpServletResponse response, File file, ResourceType contentType) throws ResourceNotFoundException, IOException {
         if (!file.exists()) {
             log.warn("send() - unknown file requested: {} as {}", file, contentType);

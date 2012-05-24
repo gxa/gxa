@@ -23,8 +23,12 @@
 
 <jsp:useBean id="exp" type="ae3.model.AtlasExperiment" scope="request"/>
 
+<p><a href="${pageContext.request.contextPath}/download/experimentDesign?eacc=${exp.accession}" class="inlineDownloadLink">Download Experiment Design</a></p>
+<p><a href="${pageContext.request.contextPath}/download/experimentExpressions?eacc=${exp.accession}" class="inlineDownloadLink">Download Expression Data</a></p>
+<p><a href="${pageContext.request.contextPath}/download/experimentAnalytics?eacc=${exp.accession}" class="inlineDownloadLink">Download Analytics</a></p>
+
 <c:if test="${not empty exp.experiment.assets}">
-    <p>Figures:</p>
+    <p>Assets:</p>
     <ul>
         <c:forEach var="a" items="${exp.experiment.assets}" varStatus="status">
             <li>

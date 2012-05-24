@@ -25,6 +25,7 @@ package uk.ac.ebi.gxa.web.controller;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.utils.LazyMap;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
@@ -46,6 +47,10 @@ public class ExperimentDesignUI {
 
     private int limit = -1;
     private int offset = -1;
+
+    public ExperimentDesignUI(Experiment experiment) {
+        this(experiment, -1, -1);
+    }
 
     public ExperimentDesignUI(Experiment experiment, int offset, int limit) {
         this.offset = offset;
@@ -101,7 +106,20 @@ public class ExperimentDesignUI {
     public int getTotal() {
         return exp.getAssays().size();
     }
-    
+
+    /**
+     * A quick workaround for using the object outside of the session; calling for all lazy methods.
+     *
+     * @return the current instance of {@link ExperimentDesignUI}
+     */
+    public ExperimentDesignUI unlazy() {
+        getPropertyNames();
+        for (Row r : getPropertyValues()) {
+            r.getPropertyValues();
+        }
+        return this;
+    }
+
     private List<Assay> getAssays() {
         List<Assay> assays = exp.getAssays();
         return (offset >= 0 && limit >= 0) ?
@@ -110,6 +128,7 @@ public class ExperimentDesignUI {
 
     public class Row {
         private final Assay assay;
+        private List<String> values;
 
         public Row(Assay assay) {
             this.assay = assay;
@@ -123,12 +142,14 @@ public class ExperimentDesignUI {
             return assay.getArrayDesign().getAccession();
         }
 
-        public Collection<String> getPropertyValues() {
-            List<String> values = new ArrayList<String>();
-            for (Property p : expProperties) {
-                values.add(Joiner.on(",").join(expValues.get(p).get(assay)));
+        public List<String> getPropertyValues() {
+            if (values == null) {
+                values = new ArrayList<String>();
+                for (Property p : expProperties) {
+                    values.add(Joiner.on(",").join(expValues.get(p).get(assay)));
+                }
             }
-            return values;
+            return Collections.unmodifiableList(values);
         }
     }
 }
