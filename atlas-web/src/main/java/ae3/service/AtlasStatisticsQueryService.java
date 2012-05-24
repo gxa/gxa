@@ -221,4 +221,12 @@ public interface AtlasStatisticsQueryService extends IndexBuilderEventHandler, D
      */
     public int getMappingsCountForEfo(String efoTerm);
 
+    /**
+     *
+     * @param statisticsType
+     * @param bioEntityId
+     * @return true if bioEntityId has any scores across all EFO's for statisticsType; false otherwise
+     */
+    public boolean isScoringBioEntity(StatisticsType statisticsType, Integer bioEntityId);
+
 }

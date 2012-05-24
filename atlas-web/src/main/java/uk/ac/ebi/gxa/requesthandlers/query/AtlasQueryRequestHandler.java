@@ -101,6 +101,13 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
             }
 
             atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
+            // if one scoring gene only found and user didn't restrict the search, skip through to gene page
+            if (atlasResult.getSize() == 1 && !atlasQuery.isRestricted()) {
+                StructuredResultRow row = atlasResult.getResults().iterator().next();
+                String url = "gene/" + row.getGene().getGeneIdentifier();
+                response.sendRedirect(url);
+                return;
+            }
         } else {
             atlasResult = new AtlasStructuredQueryResult(0, 0, 0);
         }

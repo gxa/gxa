@@ -53,12 +53,11 @@ class BioMartDbDAO {
             final String dbName = findSynonymsDBName(dbNameTemplate, version);
             final JdbcTemplate template = createTemplate(dbName);
             return template.query(
-                    "SELECT DISTINCT gene_stable_id.stable_id, external_synonym.synonym \n" +
-                            "FROM gene_stable_id, gene, xref, external_synonym \n" +
-                            "WHERE gene_stable_id.gene_id = gene.gene_id \n" +
-                            "AND gene.display_xref_id = xref.xref_id \n" +
+                    "SELECT DISTINCT gene.stable_id, external_synonym.synonym \n" +
+                            "FROM gene, xref, external_synonym \n" +
+                            "WHERE gene.display_xref_id = xref.xref_id \n" +
                             "AND external_synonym.xref_id = xref.xref_id \n" +
-                            "ORDER BY gene_stable_id.stable_id; ",
+                            "ORDER BY gene.stable_id; ",
                     new RowMapper<Pair<String, String>>() {
                         @Override
                         public Pair<String, String> mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -67,7 +66,7 @@ class BioMartDbDAO {
                     });
         } catch (DataAccessException e) {
             log.error("Cannot fetch synonyms! URL: " + url + "/ name: " + dbNameTemplate, e);
-            throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration");
+            throw new BioMartException("Cannot find database name to fetch synonyms. Please check Annotation Source configuration", e);
         }
     }
 

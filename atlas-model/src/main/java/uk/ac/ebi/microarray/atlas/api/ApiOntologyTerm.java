@@ -1,6 +1,5 @@
 package uk.ac.ebi.microarray.atlas.api;
 
-import uk.ac.ebi.microarray.atlas.model.Ontology;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 /**
@@ -8,13 +7,17 @@ import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
  */
 public class ApiOntologyTerm {
     private ApiOntology ontology;
-    private OntologyTerm ontologyTerm;
+    private String accession;
+    private String description;
+    private String term;
 
     public ApiOntologyTerm() {
     }
 
     public ApiOntologyTerm(final OntologyTerm ontologyTerm) {
-        this.ontologyTerm = ontologyTerm;
+        this.accession = ontologyTerm.getAccession();
+        this.description = ontologyTerm.getDescription();
+        this.term = ontologyTerm.getTerm();
         this.ontology = new ApiOntology(ontologyTerm.getOntology());
     }
 
@@ -22,26 +25,33 @@ public class ApiOntologyTerm {
         return ontology;
     }
 
+    public void setOntology(ApiOntology ontology) {
+        this.ontology = ontology;
+    }
+
     public String getAccession() {
-        return ontologyTerm.getAccession();
+        return accession;
     }
 
     public void setAccession(String accession) {
-        this.ontologyTerm.setAccession(accession);
+        this.accession = accession;
     }
 
     public String getDescription() {
-        return ontologyTerm.getDescription();
+        return description;
     }
 
     public void setDescription(String description) {
-        this.ontologyTerm.setDescription(description);
+        this.description = description;
     }
 
     public String getTerm() {
-        return ontologyTerm.getTerm();
+        return term;
     }
 
+    public void setTerm(String term) {
+        this.term = term;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -63,7 +73,7 @@ public class ApiOntologyTerm {
         return "ApiOntologyTerm{" +
                 "accession=" + getAccession() +
                 ", description='" + getDescription() + "'" +
-                ", ontology=" + ontology +
+                ", ontology=" + getOntology() +
                 ", term=" + getTerm() +
                 '}';
     }

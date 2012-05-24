@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.web.controller.api;
 
+import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -103,8 +104,10 @@ public class CurationApiController extends AtlasViewController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValueExactMatch(@PathVariable("v") final ApiVersionType version,
                                                                                        @PathVariable("propertyName") final String propertyName,
-                                                                                       @RequestParam(value = "propertyValue", required = true) String propertyValue,
+                                                                                       @RequestParam(value = "propertyValue", required = false) String propertyValue,
                                                                                        HttpServletResponse response) throws ResourceNotFoundException {
+        if (Strings.isNullOrEmpty(propertyValue))
+            return curationService.getOntologyMappingsByProperty(propertyName, true);
         return curationService.getOntologyMappingsByPropertyValue(propertyName, propertyValue, true);
     }
 
@@ -113,8 +116,10 @@ public class CurationApiController extends AtlasViewController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValuePartialMatch(@PathVariable("v") final ApiVersionType version,
                                                                                          @PathVariable("propertyName") final String propertyName,
-                                                                                         @RequestParam(value = "propertyValue", required = true) String propertyValue,
+                                                                                         @RequestParam(value = "propertyValue", required = false) String propertyValue,
                                                                                          HttpServletResponse response) throws ResourceNotFoundException {
+        if (Strings.isNullOrEmpty(propertyValue))
+            return curationService.getOntologyMappingsByProperty(propertyName, false);
         return curationService.getOntologyMappingsByPropertyValue(propertyName, propertyValue, false);
     }
 
@@ -125,6 +130,15 @@ public class CurationApiController extends AtlasViewController {
                                                                                        @RequestParam(value = "propertyValue", required = true) String propertyValue,
                                                                                        HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getOntologyMappingsByPropertyValue(null, propertyValue, true);
+    }
+
+    @RequestMapping(value = "/propertyvaluemappings/{ontologyTerm}.json",
+            method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
+                                                                                      @PathVariable("ontologyTerm") final String ontologyTerm,
+                                                                                      HttpServletResponse response) throws ResourceNotFoundException {
+        return curationService.getOntologyMappingsByOntologyTerm(ontologyTerm);
     }
 
     @RequestMapping(value = "/propertyvaluemappings/partialmatch.json",
@@ -177,7 +191,7 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public void deleteAssayProperties(@PathVariable("v") final ApiVersionType version,
                                       @PathVariable(value = "experimentAccession") final String experimentAccession,
                                       @PathVariable(value = "assayAccession") final String assayAccession,
@@ -199,7 +213,7 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
             method = RequestMethod.DELETE)
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public void deleteSampleProperties(@PathVariable("v") final ApiVersionType version,
                                        @PathVariable(value = "experimentAccession") String experimentAccession,
                                        @PathVariable(value = "sampleAccession") String sampleAccession,

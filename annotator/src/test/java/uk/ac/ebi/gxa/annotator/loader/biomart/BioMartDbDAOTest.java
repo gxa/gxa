@@ -29,6 +29,7 @@ import uk.ac.ebi.gxa.utils.Pair;
 
 import java.util.Collection;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -39,8 +40,8 @@ public class BioMartDbDAOTest {
 
     @Test
     public void testGetSynonyms() throws BioMartException {
-        Collection<Pair<String, String>> synonyms = validBioMartDao().getSynonyms("gallus_gallus", "63");
-        assertEquals(1030, synonyms.size());
+        Collection<Pair<String, String>> synonyms = validBioMartDao().getSynonyms("gallus_gallus", "67");
+        assertTrue(synonyms.size() > 15000);
     }
 
     @Test
