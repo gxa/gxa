@@ -1317,7 +1317,7 @@
             });
 
             $(target).bind("mouseleave", function() {
-                tooltip.remove();
+                tooltip.hide();
             });
 
         };
@@ -1970,24 +1970,28 @@
         function process(data, expressionAnalysisOnly) {
             stopLoading();
 
-            var tableItems = {};
-            var tableSize = 0;
-            var geneToolTips = {};
-            var arrayDesign = null;
+            data = data || {};
 
-            if (!data || data.totalSize == 0) {
+            var tableItems = {},
+                tableSize = 0,
+                geneToolTips = {},
+                arrayDesign = null;
+
+            var analytics = data.analytics;
+
+            if ((analytics.totalSize || 0) == 0) {
                 $("#divErrorMessage").css("visibility", "visible");
                 $("#expressionTableBody").empty();
                 data = null;
             } else {
-                tableItems = data.items;
-                tableSize = data.totalSize;
+                tableItems = analytics.rows || [];
+                tableSize = analytics.totalSize || 0;
                 geneToolTips = data.geneToolTips;
-                $('#arrayDesign').html(data.arrayDesign);
-                arrayDesign = data.arrayDesign;
+                $('#arrayDesign').html(analytics.arrayDesignAccession);
+                arrayDesign = analytics.arrayDesignAccession;
             }
 
-            $("#expressionTableBody").data("json", data);
+            $("#expressionTableBody").data("json", analytics);
 
             var eAs = [];
             _designElements = [];

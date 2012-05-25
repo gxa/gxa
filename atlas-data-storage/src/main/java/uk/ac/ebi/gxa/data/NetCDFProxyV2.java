@@ -222,7 +222,7 @@ final class NetCDFProxyV2 extends NetCDFProxy {
      *                            if the file doesn't contain given deIndices
      */
     @Override
-    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException {
+    public FloatMatrixProxy getExpressionData(int[] deIndices) throws AtlasDataException {
         return readFloatValuesForRowIndices(dataNetCDF, deIndices, "BDC");
     }
 

@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.utils.dsv;
 
 import org.junit.Test;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -40,6 +41,6 @@ public class DsvFormatTest {
             }
         };
 
-        assertEquals("a,b,c", dsvFormat.joinValues(new String[]{"a", "b", "c"}));
+        assertEquals("a,b,c", dsvFormat.joinValues(asList("a", "b", "c")));
     }
 }

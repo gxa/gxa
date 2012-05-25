@@ -28,7 +28,7 @@ import uk.ac.ebi.gxa.utils.dsv.TsvFormat;
 /**
  * @author Olga Melnichuk
  */
-public abstract class AbstractTsvView extends AbstractDsvView {
+public abstract class AbstractTsvView<T> extends AbstractDsvView<T> {
 
     private final TsvFormat format;
 

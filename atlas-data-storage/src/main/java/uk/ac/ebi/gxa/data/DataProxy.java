@@ -102,7 +102,7 @@ interface DataProxy extends Closeable {
      * @throws AtlasDataException if the expression data could not be read from the netCDF file
      *                            or the file doesn't contain given deIndices
      */
-    FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException;
+    FloatMatrixProxy getExpressionData(int[] deIndices) throws AtlasDataException;
 
     FloatMatrixProxy getAllExpressionData() throws AtlasDataException;
 

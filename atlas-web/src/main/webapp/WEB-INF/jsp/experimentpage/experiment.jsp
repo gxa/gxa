@@ -120,6 +120,8 @@
         }
 
         window.expPage = new ExperimentPage(${u:toJson(jsMap)});
+
+        $(".inlineDownloadLink").inlineDownloadLink();
     });
 </script>
 
@@ -231,9 +233,9 @@
                 <div style="float:right">
                     <jsp:include page="experiment-header.jsp"/>
                     <div>
-                <span class="section-header-2"><a
-                        href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}">Experiment
-                    Design</a></span>
+                       <span class="section-header-2">
+                          <a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}">View experiment design&nbsp;&rsaquo;&rsaquo;</a>
+                        </span>   
                     </div>
                     <jsp:include page="experiment-header-assets.jsp"/>
                 </div>

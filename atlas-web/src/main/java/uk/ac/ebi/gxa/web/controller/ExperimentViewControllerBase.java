@@ -8,8 +8,8 @@ import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
-import uk.ac.ebi.gxa.dao.AtlasDAO;
-import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
@@ -26,16 +26,14 @@ class ExperimentViewControllerBase extends AtlasViewController {
 
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewControllerBase.class);
 
-    private final ExperimentSolrDAO experimentSolrDAO;
-    protected final AtlasDAO atlasDAO;
+    private final ExperimentDataService expDataService;
 
-    public ExperimentViewControllerBase(ExperimentSolrDAO experimentSolrDAO, AtlasDAO atlasDAO) {
-        this.experimentSolrDAO = experimentSolrDAO;
-        this.atlasDAO = atlasDAO;
+    ExperimentViewControllerBase(ExperimentDataService expDataService) {
+        this.expDataService = expDataService;
     }
 
-    protected ExperimentPage createExperimentPage(String expAccession) throws ResourceNotFoundException {
-        AtlasExperiment exp = getExperimentByAccession(expAccession);
+    protected ExperimentPage createExperimentPage(String expAccession) throws RecordNotFoundException {
+        AtlasExperiment exp = expDataService.getExperimentFromSolr(expAccession);
 
         return new ExperimentPage(
                 exp,
@@ -47,15 +45,6 @@ class ExperimentViewControllerBase extends AtlasViewController {
                                 return ad.getAccession();
                             }
                         }));
-    }
-
-    protected AtlasExperiment getExperimentByAccession(String accession) throws ResourceNotFoundException {
-        final AtlasExperiment exp = experimentSolrDAO.getExperimentByAccession(accession);
-
-        if (exp == null) {
-            throw new ResourceNotFoundException("There are no records for experiment " + accession);
-        }
-        return exp;
     }
 
     public static class ExperimentPage {

@@ -5,7 +5,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
@@ -24,6 +27,7 @@ import static org.junit.Assert.*;
 /**
  * @author Robert Petryszak
  */
+@ContextConfiguration
 public class TestCurationService extends AtlasDAOTestCase {
 
     private static final String CELL_TYPE = "cell_type";
