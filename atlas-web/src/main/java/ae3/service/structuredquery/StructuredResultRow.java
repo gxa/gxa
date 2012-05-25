@@ -125,13 +125,14 @@ public class StructuredResultRow implements Comparable<StructuredResultRow> {
                 return o.getTotalUpDnStudies() - getTotalUpDnStudies();
             }
         }
-
-        if (getGene().getGeneName() == null) {
+        if (getGene() != null) {
+            if (o.getGene() != null) {
+                return getGene().getGeneId() - o.getGene().getGeneId();
+            } else
+                return -1;
+        } else {
             return 1;
-        } else if (o.getGene().getGeneName() == null) {
-            return -1;
-        } else
-            return getGene().getGeneName().compareTo(o.getGene().getGeneName());
+        }
     }
 
     @Override
