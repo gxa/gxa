@@ -23,7 +23,6 @@ import java.util.List;
  *         Date: 18/03/2011
  */
 class ExperimentViewControllerBase extends AtlasViewController {
-
     protected final static Logger log = LoggerFactory.getLogger(ExperimentViewControllerBase.class);
 
     private final ExperimentDataService expDataService;

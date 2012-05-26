@@ -689,7 +689,7 @@ public class AtlasStructuredQueryService {
             try {
 
                 controlCache();
-
+                appendSpeciesQuery(query.getSpecies(), qstate.getSolrq());
                 SolrQuery q = setupSolrQuery(query.getRowsPerPage(), qstate);
                 if (qstate.isEmpty()) {
                     q.setQuery("*:*");
@@ -1530,7 +1530,7 @@ public class AtlasStructuredQueryService {
                     overallDataAccessTimeForListView += queryTimes.getSecond();
                 }
             }
-            log.debug("Processed gene: " + gene.getGeneName() + " in: " + (System.currentTimeMillis() - hmRowStart) + "; bit stats time: " + overallBitStatsProcessingTimeForHeatMapRow);
+            log.debug("Processed gene: " + gene.getGeneName() +" : " + gene.getGeneId() + " : " + gene.getGeneSpecies() + " : " + gene.getGeneIdentifier() + " in: " + (System.currentTimeMillis() - hmRowStart) + "; bit stats time: " + overallBitStatsProcessingTimeForHeatMapRow);
         }
 
         // So far we accumulated rows of counters for all efos into unsortedHeatmapRows
