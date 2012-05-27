@@ -240,7 +240,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         prefix = prefix.toLowerCase();
 
-        String arrayDesignsFilter = filters.get("arrayDesigns");
+        String arrayDesignsFilter = filters == null ? null : filters.get("arrayDesigns");
 
         boolean everywhere = isNullOrEmpty(property);
 
