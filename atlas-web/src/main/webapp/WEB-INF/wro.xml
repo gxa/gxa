@@ -89,8 +89,9 @@
     <group name="bundle-gxa-page-experiment">
         <css>/scripts/jquery-lightbox/css/lightbox.css</css>
         <css>/experiment-view.css</css>
-
+        <css>/scripts/jquery-token-autocomplete/css/jquery.token.autocomplete.css</css>
         <js>/scripts/jquery-lightbox/jquery.lightbox.js</js>
+        <js>/scripts/jquery-token-autocomplete/jquery.token.autocomplete.js</js>
         <js>/scripts/experiment.js</js>
     </group>
 

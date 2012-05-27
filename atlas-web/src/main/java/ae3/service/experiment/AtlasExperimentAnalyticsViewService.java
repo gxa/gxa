@@ -37,7 +37,7 @@ public class AtlasExperimentAnalyticsViewService {
      * - Filling any parameter narrows one of the search dimensions.
      *
      * @param expPart         experiment part to retrieve data from
-     * @param geneIdPredicate a gene (id) filter
+     * @param geneIdsPredicate a gene (ids) filter
      * @param upDownPredicate an up/down expression filter
      * @param fvPredicate     an experiment factor filter
      * @param offset          Start position within the result set
@@ -47,17 +47,16 @@ public class AtlasExperimentAnalyticsViewService {
      * @throws StatisticsNotFoundException if there's no P/T stats in the data
      */
     public BestDesignElementsResult findBestGenesForExperiment(
-            @Nullable ExperimentPart expPart,
-            @Nonnull Predicate<Long> geneIdPredicate,
-            @Nonnull Predicate<UpDownExpression> upDownPredicate,
-            @Nonnull Predicate<Pair<String, String>> fvPredicate,
-            int offset,
-            int limit) throws AtlasDataException, StatisticsNotFoundException {
-
+             @Nullable ExperimentPart expPart,
+             @Nonnull Predicate<Long> geneIdsPredicate,
+             @Nonnull Predicate<UpDownExpression> upDownPredicate,
+             @Nonnull Predicate<Pair<String, String>> fvPredicate,
+             int offset,
+             int limit) throws AtlasDataException, StatisticsNotFoundException {
         if (expPart == null)
             return new BestDesignElementsResult();
 
-        StatisticsCursor stats = expPart.getStatisticsIterator(geneIdPredicate, fvPredicate);
+        StatisticsCursor stats = expPart.getStatisticsIterator(geneIdsPredicate, fvPredicate);
 
         List<StatisticsSnapshot> result = newArrayList();
         while (stats.nextBioEntity()) {

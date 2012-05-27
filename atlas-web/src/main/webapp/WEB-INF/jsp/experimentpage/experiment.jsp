@@ -173,6 +173,8 @@
 
                 <div id="result_cont" style="margin-top:20px; margin-bottom:10px;">
 
+                <div style="padding-bottom:5px;"><span class="section-header-2">Experimental Factors</span></div>
+
                     <div>
                         <div id="EFpagination" class="pagination_ef"></div>
                         <div class="clean"></div>
@@ -231,8 +233,9 @@
                 <div style="float:right">
                     <jsp:include page="experiment-header.jsp"/>
                     <div>
-                        <a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}"
-                           style="font-size:12px;font-weight:bold;">View experiment design&nbsp;&rsaquo;&rsaquo;</a>
+                       <span class="section-header-2">
+                          <a href="${pageContext.request.contextPath}/experimentDesign/${exp.accession}">View experiment design&nbsp;&rsaquo;&rsaquo;</a>
+                        </span>   
                     </div>
                     <jsp:include page="experiment-header-assets.jsp"/>
                 </div>
@@ -308,81 +311,97 @@
     <b>\${name}:</b> \${value}<br/>
 </script>
 
-        <div>
-            <div style="float:left; margin: 5px;">
-                <a class="export2TsvLink" target="_blank" rel="nofollow"
-                   href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export to
-                    TSV</a>
-            </div>
-            <div class="pageSize" style="float:right;">
-                <span>Page size: <input type="text" id="experimentTablePageSize" value="0" style="width:40px"/>&nbsp;</span>
-                <span id="topPagination" class="pagination_ie alignRight"></span>
-            </div>
-            <div style="clear:both; width:100%; height:1px; padding:0; margin:0;" ></div>
-        </div>
-
-        <div>
-            <form id="expressionListFilterForm" action="javascript:alert('error');">
-                <table id="squery" class="atlas-grid experiment-stats">
-                    <tr class="header">
-                        <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
-                        <c:if test="${exp.typeString=='RNA_SEQ'}">
-                            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Genome View</th>
-                        </c:if>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
-
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">T-Statistic</th>
-                        <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">P-Value</th>
-                    </tr>
-
-                    <tr>
-                        <td class="padded" width="20">&nbsp;</td>
-                        <td class="padded" colspan="${exp.typeString == 'RNA_SEQ' ? 3 :  2}">
-                            <input type="text" class="value" id="geneFilter" style="width:99%;"/>
-                        </td>
-                        <td class="padded" colspan="2">
-                            <select id="efvFilter" style="width:100%;">
-                                <option value="||">All factor values</option>
-                                <c:forEach var="EF" items="${exp.experimentFactors}">
-                                    <optgroup label="${f:escapeXml(EF.displayName)}">
-                                        <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
-                                            <option value='${EF.name}||${f:escapeXml(EFV)}'>${f:escapeXml(EFV)}</option>
-                                        </c:forEach>
-                                    </optgroup>
+<div>
+    <form id="expressionListFilterForm" action="javascript:alert('error');">
+        <table>
+            <tr>
+                <td><label class="section-header-2" id="genes_tip">Genes/Design Elements</label></td>
+                <td></td>
+                <td><label class="section-header-2" id="conditions_tip">Conditions</label></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="padded"><input type="text" class="value" id="geneFilter" style="width:100%;"/></td>
+                <td class="padded">
+                    <select id="updownFilter" style="width:100%;">
+                        <option value="CONDITION_UP_OR_DOWN">up/down in</option>
+                        <option value="CONDITION_UP">up in</option>
+                        <option value="CONDITION_DOWN">down in</option>
+                        <option value="CONDITION_NONDE">non-d.e. in</option>
+                        <option value="CONDITION_ANY">up/down/non-d.e. in</option>
+                    </select>
+                </td>
+                <td class="padded">
+                    <select id="efvFilter" style="width:100%;">
+                        <option value="||">(all conditions)</option>
+                        <c:forEach var="EF" items="${exp.experimentFactors}">
+                            <optgroup label="${f:escapeXml(EF.displayName)}">
+                                <c:forEach var="EFV" items="${exp.factorValuesForEF[EF]}">
+                                    <option value='${EF.name}||${f:escapeXml(EFV)}'>${f:escapeXml(EFV)}</option>
                                 </c:forEach>
-                            </select>
-                        </td>
-                        <td class="padded">
-                            <select id="updownFilter" style="width:100%;">
-                                <option value="CONDITION_ANY">All expressions</option>
-                                <option value="CONDITION_UP_OR_DOWN">up or down</option>
-                                <option value="CONDITION_UP">up</option>
-                                <option value="CONDITION_DOWN">down</option>
-                                <option value="CONDITION_NONDE">non d.e.</option>
-                            </select>
-                        </td>
-                        <td class="padded" colspan="2">
-                            <input type="submit" value="SEARCH" style="visibility:hidden"/>
-                        </td>
-                    </tr>
-
-                    <tbody id="expressionTableBody">
-                    </tbody>
-                </table>
-
-                <div class="errorMessage" id="divErrorMessage">No matching results found. See <a
-                     onclick="expPage.clearQuery(); return false;" href="#">all</a> genes.
-                </div>
-
-            </form>
+                            </optgroup>
+                        </c:forEach>
+                    </select>
+                </td>
+                <td>
+                    <button id="findBestAnalytics">Search Experiment</button><label id="search_tip" />
+                </td>
+                <td class="padded" colspan="2">
+                    <input type="submit" value="SEARCH" style="visibility:hidden"/>
+                </td>
+            </tr>
+        </table>
+    </form>
+    <div>
+        <div style="float:left; margin: 5px; width: 165px">
+            <label class="section-header-2" id="search_results_tip">Search Results:</label>
         </div>
-
+        <div class="pageSize" style="float:right;">
+            <span><label class="section-header-2" id="page_size_tip">Page size:</label>&nbsp;&nbsp;<input type="text"
+                                                                                                          id="experimentTablePageSize"
+                                                                                                          value="0"
+                                                                                                          style="width:40px"/>&nbsp;</span>
+            <span id="topPagination" class="pagination_ie alignRight"></span>
+        </div>
+        <div style="clear:both; width:100%; height:1px; padding:0; margin:0;"></div>
     </div>
-    <!-- ae_pagecontainer -->
+</div>
+
+<div>
+    <table id="squery" class="atlas-grid experiment-stats">
+        <tr class="header">
+            <th align="left" width="20" class="padded" style="border-bottom:1px solid #CDCDCD">&nbsp;</th>
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Gene</th>
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Design Element</th>
+            <c:if test="${exp.typeString=='RNA_SEQ'}">
+                <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Genome View</th>
+            </c:if>
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Experimental Factor</th>
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">Factor Value</th>
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">UP/DOWN</th>
+
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">T-Statistic</th>
+            <th align="left" class="padded" style="border-bottom:1px solid #CDCDCD">P-Value</th>
+        </tr>
+
+
+        <tbody id="expressionTableBody">
+        </tbody>
+    </table>
+
+    <div class="errorMessage" id="divErrorMessage">No matching results found. Try searching with <a
+            onclick="expPage.clearQuery(); return false;" href="#">no restrictions</a>.
+    </div>
+
+    <div style="float:left; margin: 5px;">
+        <a class="export2TsvLink" target="_blank" rel="nofollow"
+           href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export Search Results Page as Tab-Delimited file</a>
+    </div>
+</div>
+
+</div>
+<!-- ae_pagecontainer -->
 </div>
 <!-- /id="contents" -->
 

@@ -27,13 +27,19 @@ import ae3.dao.GeneSolrDAO;
 import ae3.model.AtlasExperiment;
 import ae3.service.experiment.AtlasExperimentAnalyticsViewService;
 import ae3.service.experiment.BestDesignElementsResult;
+import ae3.service.structuredquery.GeneQueryCondition;
+import ae3.service.structuredquery.QueryCondition;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.*;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
@@ -46,6 +52,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Predicates.*;
@@ -152,7 +159,7 @@ public class ExperimentDataService {
     public ExperimentAnalytics getExperimentAnalytics(
             @Nonnull String expAcc,
             String adAcc,
-            String gid,
+            String[] geneConditions,
             String ef,
             String efv,
             UpDownCondition updown,
@@ -163,18 +170,31 @@ public class ExperimentDataService {
         try {
             ewd = getExperimentWithData(expAcc);
 
-            final Predicate<Long> geneIdPredicate = genePredicate(gid);
+            List<String> genesConditionsArr = (geneConditions == null ? Collections.<String>emptyList() : Arrays.asList(geneConditions));
+            List<QueryCondition> geneQueryConditions = Lists.newArrayList();
+
+            if (genesConditionsArr.size() % 2 != 0) {
+                throw LogUtil.createUnexpected("Incorrect gene conditions were passed for experimentTable: " + genesConditionsArr);
+            }
+            for (int i = 0; i < genesConditionsArr.size() - 1; i += 2) {
+                QueryCondition geneQueryCondition = new GeneQueryCondition();
+                geneQueryCondition.setFactor(genesConditionsArr.get(i));
+                geneQueryCondition.setFactorValues(Collections.singletonList(genesConditionsArr.get(i + 1)));
+                geneQueryConditions.add(geneQueryCondition);
+            }
+            final Predicate<Long> geneIdsPredicate = geneIdsPredicate(geneQueryConditions);
+
 
             ExperimentPartCriteria criteria = ExperimentPartCriteria.experimentPart();
             if (!isNullOrEmpty(adAcc)) {
                 criteria.hasArrayDesignAccession(adAcc);
             } else {
-                criteria.containsAtLeastOneGene(geneIdPredicate);
+                criteria.containsAtLeastOneGene(geneIdsPredicate);
             }
 
             BestDesignElementsResult res = expAnalyticsService.findBestGenesForExperiment(
                     criteria.retrieveFrom(ewd),
-                    geneIdPredicate, updown,
+                    geneIdsPredicate, updown,
                     createFactorCriteria(ef, efv),
                     offset,
                     limit
@@ -185,11 +205,20 @@ public class ExperimentDataService {
         }
     }
 
-    private Predicate<Long> genePredicate(String gid) {
-        if (isNullOrEmpty(gid))
+    private Predicate<Long> geneIdsPredicate(Collection<QueryCondition> geneConditions) {
+        if (geneConditions.isEmpty())
             return ANY_KNOWN_GENE;
 
-        return in(findGeneIds(Arrays.asList(gid.trim())));
+        return in(findGeneIds(geneConditions));
+    }
+
+    private Collection<Long> findGeneIds(Collection<QueryCondition> geneConditions) {
+        return Collections2.transform(geneSolrDAO.getGeneIdsByGeneConditions(geneConditions),
+                new Function<Integer, Long>() {
+                    public Long apply(@Nonnull Integer geneId) {
+                        return (long) geneId;
+                    }
+                });
     }
 
     private List<Long> findGeneIds(Collection<String> geneQuery) {

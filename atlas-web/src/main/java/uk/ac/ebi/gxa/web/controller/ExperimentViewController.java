@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
@@ -263,7 +264,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      *
      * @param accession an experiment accession to find out the required data
      * @param adAcc     an array design accession to find out the required data
-     * @param gid       a gene param to search with
+     * @param geneConditions a gene param to search with
      * @param ef        an experiment factor param to search with
      * @param efv       an experiment factor value param to search with
      * @param updown    an up/down condition to search with
@@ -277,7 +278,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public String getExperimentTable(
             @RequestParam("eacc") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
-            @RequestParam(value = "gid", required = false) String gid,
+            @RequestParam(value = "geneConditions[]", required = false) String[] geneConditions,
             @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "updown", required = false, defaultValue = "CONDITION_ANY") UpDownCondition updown,
@@ -289,7 +290,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             log.warn("Page size is: {} {}", new String[]{String.valueOf(limit), accession});
         }
 
-        ExperimentAnalytics analytics = expDataService.getExperimentAnalytics(accession, adAcc, gid, ef, efv, updown, offset, limit);
+        ExperimentAnalytics analytics = expDataService.getExperimentAnalytics(accession, adAcc, geneConditions, ef, efv, updown, offset, limit);
 
         model.addAttribute("analytics", analytics);
         model.addAttribute("pageSize", limit);
@@ -326,7 +327,8 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
         jsMapModel
                 .addJsAttribute("eid", page.getExperiment().getAccession())
                 .addJsAttribute("gid", gid)
-                .addJsAttribute("ef", ef);
+                .addJsAttribute("ef", ef)
+                .addJsAttribute("arrayDesigns", Joiner.on(" ").join(page.getArrayDesigns()));
 
         if (page.isExperimentInCuration()) {
             return "experimentpage/experiment-incuration";

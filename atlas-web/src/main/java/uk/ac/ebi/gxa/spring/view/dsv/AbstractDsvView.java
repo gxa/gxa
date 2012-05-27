@@ -65,7 +65,7 @@ public abstract class AbstractDsvView<T> extends AbstractView {
     protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
                                            HttpServletResponse response) throws Exception {
         DsvRowIterator<T> doc = buildDsvDocument(model);
-        response.setHeader( "Content-Disposition", "attachment;filename="
+        response.setHeader("Content-Disposition", "attachment;filename="
                 + generateFileName(request));
 
         ServletOutputStream out = response.getOutputStream();
