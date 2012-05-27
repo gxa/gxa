@@ -222,16 +222,17 @@ http://www.springframework.org/schema/context/spring-context.xsd">
 
     <bean id="httpClient"
           class="org.apache.http.client.HttpClient"
-            factory-bean="httpClientFactoryBean"
-            factory-method="createInstance">
+          factory-bean="httpClientFactoryBean"
+          factory-method="createInstance">
     </bean>
 
     <!-- Web interface component -->
 
     <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO"
-            destroy-method="shutdown">
+          destroy-method="shutdown">
         <property name="geneSolr" ref="solrServerAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="genePropService" ref="atlasGenePropertyService"/>
         <property name="executorService">
             <bean class="java.util.concurrent.Executors"
                   factory-method="newFixedThreadPool">
