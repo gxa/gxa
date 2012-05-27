@@ -1899,7 +1899,9 @@
             $("#expressionListFilterForm").find('input[id="gene"]').val(""); // clear non-tokenized values
             $("#expressionListFilterForm").find('li[class="tokeninput"]').remove(); // remove tokenized values visible to the user
             $("#efvFilter").attr("selectedIndex", 0);
+            $("#efvFilter").val("||");
             $("#updownFilter").attr("selectedIndex", 0);
+            $("#updownFilter").val("CONDITION_UP_OR_DOWN");
             $("#divErrorMessage").css("visibility", "hidden");
         }
 
