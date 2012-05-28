@@ -77,10 +77,10 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         /**
          * Calculates the rank for gene auto-complete item.
-         *
+         * <p/>
          * - The rank for genes without species is defined by its property, so two genes of the
          * same property have the same rank; the earlier the property is used the higher rank it has.
-         *
+         * <p/>
          * - The rank for genes with species is defined by its property's rank and by species order.
          *
          * @param item an gene auto-complete item
@@ -337,7 +337,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
         // Map to count the number of Autocomplete items per species - used to restrict the number of items
         // per species when items associated with many species are present
         // (c.f. atlas.gene.autocomplete.names.per_species.limit in atlas.properties)
-        final Multiset<String> speciesCounts =  HashMultiset.create();
+        final Multiset<String> speciesCounts = HashMultiset.create();
         final List<GeneAutoCompleteItem> res = new ArrayList<GeneAutoCompleteItem>();
 
         if (speciesInAutocompleteList.size() > 1) {
@@ -387,10 +387,10 @@ public class AtlasGenePropertyService implements AutoCompleter,
                 String geneId = (String) doc.getFieldValue("identifier");
 
                 List<String> names = new ArrayList<String>();
-                for (String s : doc.getFieldNames())
-                    if (!s.equals("species")) {
+                for (String geneProperty : doc.getFieldNames())
+                    if (!geneProperty.equals("species")) {
                         @SuppressWarnings("unchecked")
-                        Collection<String> c = (Collection) doc.getFieldValues(s);
+                        Collection<String> c = (Collection) doc.getFieldValues(geneProperty);
                         if (c != null)
                             for (String v : c) {
                                 if (name == null && v.toLowerCase().startsWith(prefix)) {
@@ -398,8 +398,18 @@ public class AtlasGenePropertyService implements AutoCompleter,
                                 } else if (name != null && v.toLowerCase().startsWith(prefix) && v.toLowerCase().length() < name.length()) {
                                     names.add(name);
                                     name = v;
-                                } else if (!v.equals(name) && !names.contains(v))
-                                    names.add(v);
+                                } else if (!v.equals(name) && !names.contains(v)) {
+                                    // Make sure that gene name always comes at the beginning of names - so that it is
+                                    // displayed as a tokenized value in gene input box - irrespective of whether the
+                                    // autocompleted item was a gene name or any other gene property (e.g. identifier).
+                                    // Before this check was put in place, gene name was displayed only if a gene name
+                                    // was being autocompleted; whereas when e.g. a gene identifier was being autocompleted,
+                                    // the resulting token displayed the first gene synonym instead. This was confusing to the user.
+                                    if (geneProperty.equals("name"))
+                                        names.add(0, v);
+                                    else
+                                        names.add(v);
+                                }
                             }
                     }
 
