@@ -54,118 +54,118 @@ var atlas = atlas || {};
         }
 
         fvalfield.tokenInput(atlas.fullPathFor("fval"), $.extend(true, {}, commonTokenOptions,
-        {
-            extraParams: {
-                factor: factor,
-                type: actype,
-                limit: 15
-            },
+            {
+                extraParams: {
+                    factor: factor,
+                    type: actype,
+                    limit: 15
+                },
 
-            treeMode: true,
+                treeMode: true,
 
-            defaultValue: defaultvalue,
+                defaultValue: defaultvalue,
 
-            formatListItem: function(item, q, i) {
-                var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
-                var title = item.value;
-                var id = item.property === "efo" ? item.id : (item.value || "");
+                formatListItem: function(item, q, i) {
+                    var text = [$.highlightTerm(ellipsis(item.value, 50), q, 'b')];
+                    var title = item.value;
+                    var id = item.property === "efo" ? item.id : (item.value || "");
 
-                if (item.alternativeTerms && item.alternativeTerms.length > 0) {
-                    for (var i = 0; i < item.alternativeTerms.length; i++) {
-                        var at = item.alternativeTerms[i];
-                        var hat = $.highlightTerm(at, q, 'b');
-                        if (hat != at) {
-                            text.push(" [" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
-                            title += " [" + at + "]";
-                            break;
+                    if (item.alternativeTerms && item.alternativeTerms.length > 0) {
+                        for (var i = 0; i < item.alternativeTerms.length; i++) {
+                            var at = item.alternativeTerms[i];
+                            var hat = $.highlightTerm(at, q, 'b');
+                            if (hat != at) {
+                                text.push(" [" + $.highlightTerm(ellipsis(at, 50), q, 'b') + "]");
+                                title += " [" + at + "]";
+                                break;
+                            }
                         }
                     }
-                }
 
-                title += " [" + id + "]";
+                    title += " [" + id + "]";
 
-                var span = $("<span>");
-                span.attr("title", title);
-                span.html(text.join(" "));
-                span.append($("<em>").text(" (" + item.count + " genes) "));
-                return $("<div>").append(span).html();
-            },
+                    var span = $("<span>");
+                    span.attr("title", title);
+                    span.html(text.join(" "));
+                    span.append($("<em>").text(" (" + item.count + " genes) "));
+                    return $("<div>").append(span).html();
+                },
 
-            formatToken: function(row) {
-                if (row.property == 'efo' && row.id == 'Other')
-                    return 'more...';
-                return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
-            },
+                formatToken: function(row) {
+                    if (row.property == 'efo' && row.id == 'Other')
+                        return 'more...';
+                    return row.value.length > 20 ? row.value.substr(0, 20) + '...' : row.value;
+                },
 
-            formatId: function(res) {
-                if (res.property == 'efo')
-                    return res.id;
-                else
-                    return res.value;
-            },
+                formatId: function(res) {
+                    if (res.property == 'efo')
+                        return res.id;
+                    else
+                        return res.value;
+                },
 
-            browser: factor == "" || factor == "efo" ? function (onResult, lastId, values) {
-                return $('<div/>').addClass('tree').efoTree({ slideSpeed: 200, downTo: lastId, highlight: values }, function(dc) {
-                    onResult({ id: dc.id,  count: dc.count, property: 'efo', value: dc.term, depth: dc.depth });
-                });
-            } : null
-        }));
+                browser: factor == "" || factor == "efo" ? function (onResult, lastId, values) {
+                    return $('<div/>').addClass('tree').efoTree({ slideSpeed: 200, downTo: lastId, highlight: values }, function(dc) {
+                        onResult({ id: dc.id,  count: dc.count, property: 'efo', value: dc.term, depth: dc.depth });
+                    });
+                } : null
+            }));
     };
 
     atlas.tokenizeGeneInput = function (fvalfield, property, defaultvalue) {
         fvalfield.tokenInput(atlas.fullPathFor("fval"), $.extend(true, {}, commonTokenOptions,
-        {
-            extraParams: {
-                factor: property,
-                type: "gene",
-                limit: 15
-            },
+            {
+                extraParams: {
+                    factor: property,
+                    type: "gene",
+                    limit: 15
+                },
 
-            defaultValue: defaultvalue,
+                defaultValue: defaultvalue,
 
-            formatListItem: function(row, q, i) {
-                var text = $.highlightTerm(ellipsis(row.value, 50), q, 'b');
-                var title = row.value;
-                var prop = property ? "" : (row.property || "").toLowerCase();
-                var ext = "";
-                var count = row.count || 0;
+                formatListItem: function(row, q, i) {
+                    var text = $.highlightTerm(ellipsis(row.value, 50), q, 'b');
+                    var title = row.value;
+                    var prop = property ? "" : (row.property || "").toLowerCase();
+                    var ext = "";
+                    var count = row.count || 0;
 
-                if (prop == "gene") {
-                    var otherNames = row.otherNames || [];
-                    ext = otherNames.length > 0 ? "(" + otherNames.join(",") + ") " : "";
-                    ext += row.species;
-                    title += " " + ext;
+                    if (prop == "gene") {
+                        var otherNames = row.otherNames || [];
+                        ext = otherNames.length > 0 ? "(" + otherNames.join(",") + ") " : "";
+                        ext += row.species;
+                        title += " " + ext;
+                    }
+
+                    var span = $("<span>");
+                    span.attr("title", title);
+                    if (prop) {
+                        span.append($("<em>").html(prop + ":"));
+                    }
+                    span.append("&nbsp;" + text);
+                    if (ext) {
+                        span.append($("<em>").html("&nbsp;" + ext));
+                    }
+                    if (count > 0) {
+                        span.append($("<em>").html("&nbsp;(" + count + ")"));
+                    }
+                    return $("<div>").append(span).html();
+                },
+
+                formatToken: function(row) {
+                    var text = row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                    return text.length > 20 ? text.substr(0, 20) + '...' : text;
+                },
+
+                formatTokenTooltip: function(row) {
+                    return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                },
+
+                formatId: function(res) {
+                    return res.property == "gene" ? res.id : res.value;
                 }
 
-                var span = $("<span>");
-                span.attr("title", title);
-                if (prop) {
-                    span.append($("<em>").html(prop + ":"));
-                }
-                span.append("&nbsp;" + text);
-                if (ext) {
-                    span.append($("<em>").html("&nbsp;" + ext));
-                }
-                if (count > 0) {
-                    span.append($("<em>").html("&nbsp;(" + count + ")"));
-                }
-                return $("<div>").append(span).html();
-            },
-
-            formatToken: function(row) {
-                var text = row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
-                return text.length > 20 ? text.substr(0, 20) + '...' : text;
-            },
-
-            formatTokenTooltip: function(row) {
-                return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
-            },
-
-            formatId: function(res) {
-                return res.property == "gene" ? res.id : res.value;
-            }
-
-        }));
+            }));
     };
 
     /**
@@ -276,7 +276,7 @@ var atlas = atlas || {};
             var tokenizedVals = "";
             for (var i = 0; i < query.geneConditions.length; ++i) {
                 var prop = query.geneConditions[i].factor;
-                var val =  query.geneConditions[i].jointFactorValues;
+                var val = query.geneConditions[i].jointFactorValues;
                 if (prop && prop.length > 0) {
                     // Note that due to some race conditions in  jquery.token.autocomplete.js a delay (c.f. timeout below)
                     // is needed to prevent the same property-value being added again every time the user presses a search button.
@@ -309,8 +309,11 @@ var atlas = atlas || {};
             clearTimeout(timeout);
             // Note: nonTokenizedVals = null; form = null - due to a 'memory leak in IE' issue reported in:
             // http://www.makemineatriple.com/2007/10/passing-parameters-to-a-function-called-with-settimeout
-            timeout = setTimeout(function(){
-                populateNonTokenizedVals($.trim(nonTokenizedVals), form); nonTokenizedVals = null; form = null}, 300);
+            timeout = setTimeout(function() {
+                populateNonTokenizedVals($.trim(nonTokenizedVals), form);
+                nonTokenizedVals = null;
+                form = null
+            }, 300);
 
 
             conditionsField.bind("addResult", function(event, geneToken) {
@@ -377,7 +380,22 @@ var atlas = atlas || {};
         }
 
         function optionalQuote(s) {
-            return (s.indexOf(' ') >= 0 && !(s.charAt(0) == '"' && s.charAt(s.length-1) == '"')) ? '"' + s.replace(/["]/g, '\\"') + '"' : s;
+            return (s.indexOf(' ') >= 0 && !(s.charAt(0) == '"' && s.charAt(s.length - 1) == '"')) ? '"' + s.replace(/["]/g, '\\"') + '"' : s;
+        }
+
+        // if properties for all values in conditionsField.get(0).geneProperties are either the same or unspecified,
+        // assume property for the first value applies to all values; otherwise assume 'any' property for all values.
+        function findCommonGeneProperty(tokenizedPropsVals) {
+            var commonProp = ""; // common <= any
+            for (var i = 0; i < tokenizedPropsVals.length; i++) {
+                if (commonProp.length == 0) {
+                    commonProp = tokenizedPropsVals[i].property;
+                } else if (commonProp != tokenizedPropsVals[i].property) {
+                    commonProp = "";
+                    break;
+                }
+            }
+            return commonProp;
         }
 
         function asQuery(form) {
@@ -396,22 +414,19 @@ var atlas = atlas || {};
             //      "aspm"
 
             var tokenizedPropsVals = conditionsField.get(0).geneProperties;
-            for (var i = 0; i < tokenizedPropsVals.length; i++) {
-                if (tokenizedPropsVals[i].property.length != 0) {
-                    var val = optionalQuote($.trim(tokenizedPropsVals[i].value));
-                    qBuilder.addGeneCondition({
-                        value: val,
-                        property: tokenizedPropsVals[i].property
-                    });
-                }
-            }
             var nonTokenizedVals = $.trim(inputBox.val())
-            if (nonTokenizedVals && nonTokenizedVals.length > 0) {
-                qBuilder.addGeneCondition({
-                    value: nonTokenizedVals,
-                    property: ""
-                });
-            }
+            var commonProp = findCommonGeneProperty(tokenizedPropsVals);
+            var val = $.trim(conditionsField.val() + " " + nonTokenizedVals);
+            // TODO When Atlas can handle OR logic for values of different properties, e.g. prop1:val1 OR prop2:val2, where prop1 != prop2,
+            // the code should:
+            // 1. Loop through tokenizedPropsVals and add the following OR condition to qBuilder:
+            //    {value: optionalQuote($.trim(tokenizedPropsVals[i].value, property: tokenizedPropsVals[i].property }
+            // 2. Then loop through nonTokenizedVals and add the following OR condition to qBuilder:
+            //    {value: nonTokenizedVals, property: "" }
+            qBuilder.addGeneCondition({
+                value: val,
+                property: commonProp
+            });
 
             qBuilder.addCondition({
                 expression: expressionField(form).val(),
@@ -544,26 +559,26 @@ var atlas = atlas || {};
             }
             var value = $('<td class="specval value">' + or + specie + '<input class="specval" type="hidden" name="specie_' + sequence.currVal() + '" value="' + specie + '"></td>');
             var remove = createRemoveButton(
-                                           function () {
-                                               var tr = $(this).parents('tr:first');
-                                               var rmvalue = $('input.specval', tr).val();
-                                               var tbody = tr.parents('tbody:first');
-                                               var specs = $('tr.speccond', tbody);
-                                               if (specs.length > 1 && specs.index(tr.get(0)) == 0) {
-                                                   var nextr = tr.next('tr');
-                                                   $('td.specval', tr).replaceWith($('td.specval', nextr));
-                                                   nextr.remove();
-                                               } else {
-                                                   tr.remove();
-                                                   queryConditionsChanged();
-                                               }
-                                               var i;
-                                               var sel = $('#species').get(0);
-                                               for (i = 0; i < sel.options.length; ++i)
-                                                   if (sel.options[i].value >= rmvalue)
-                                                       break;
-                                               sel.options.add(new Option(rmvalue, rmvalue), i);
-                                           });
+                function () {
+                    var tr = $(this).parents('tr:first');
+                    var rmvalue = $('input.specval', tr).val();
+                    var tbody = tr.parents('tbody:first');
+                    var specs = $('tr.speccond', tbody);
+                    if (specs.length > 1 && specs.index(tr.get(0)) == 0) {
+                        var nextr = tr.next('tr');
+                        $('td.specval', tr).replaceWith($('td.specval', nextr));
+                        nextr.remove();
+                    } else {
+                        tr.remove();
+                        queryConditionsChanged();
+                    }
+                    var i;
+                    var sel = $('#species').get(0);
+                    for (i = 0; i < sel.options.length; ++i)
+                        if (sel.options[i].value >= rmvalue)
+                            break;
+                    sel.options.add(new Option(rmvalue, rmvalue), i);
+                });
 
             var tbody = $('#conditions');
             var tr = $('tr.speccond:last', tbody);
@@ -571,7 +586,7 @@ var atlas = atlas || {};
                 tr.after($('<tr class="speccond"><td class="left"></td></tr>').append(value).append(remove));
             } else {
                 tbody.prepend($('<tr class="speccond"><td class="left">organism</td></tr>')
-                        .append(value).append(remove));
+                    .append(value).append(remove));
             }
             queryConditionsChanged();
         }
@@ -595,28 +610,28 @@ var atlas = atlas || {};
             }
 
             var input = $('<input type="text" class="value"/>')
-                    .attr('name', "fval_" + sequence.currVal())
-                    .val(values != null ? values : "");
+                .attr('name', "fval_" + sequence.currVal())
+                .val(values != null ? values : "");
 
             var tr = $('<tr class="efvcond" />')
-                    .append($('<td class="left" />')
-                    .append(' in at least ')
-                    .append(createSelect("fmex_" + sequence.currVal(), minexpoptions, false, minexps != null ? minexps : 1))
-                    .append(' is ')
-                    .append(createSelect("fexp_" + sequence.currVal(),
-                    (factor == "" || factor == "efo") ? options['expressions'] : options['onlyexpressions'], false, expression))
-                    .append(' in ')
-                    .append('&nbsp;&nbsp;&nbsp;')
-                    .append(factorLabel)
-                    .append($('<input type="hidden" name="fact_' + sequence.currVal() + '" value="' + factor + '">')))
-                    .append($('<td class="value" />').append(input))
-                    .append(createRemoveButton(
-                                              function () {
-                                                  var tr = $(this).parents('tr:first');
-                                                  var tbody = tr.parents('tbody:first').get(0);
-                                                  tr.remove();
-                                                  queryConditionsChanged();
-                                              }));
+                .append($('<td class="left" />')
+                .append(' in at least ')
+                .append(createSelect("fmex_" + sequence.currVal(), minexpoptions, false, minexps != null ? minexps : 1))
+                .append(' is ')
+                .append(createSelect("fexp_" + sequence.currVal(),
+                (factor == "" || factor == "efo") ? options['expressions'] : options['onlyexpressions'], false, expression))
+                .append(' in ')
+                .append('&nbsp;&nbsp;&nbsp;')
+                .append(factorLabel)
+                .append($('<input type="hidden" name="fact_' + sequence.currVal() + '" value="' + factor + '">')))
+                .append($('<td class="value" />').append(input))
+                .append(createRemoveButton(
+                function () {
+                    var tr = $(this).parents('tr:first');
+                    var tbody = tr.parents('tbody:first').get(0);
+                    tr.remove();
+                    queryConditionsChanged();
+                }));
 
             atlas.tokenizeConditionInput(input, factor, '(all ' + (factor != '' ? factorLabel : 'condition') + 's)');
 
@@ -648,23 +663,23 @@ var atlas = atlas || {};
 
             var label = getPropLabel(property);
             var input = $('<input type="text" class="value"/>')
-                    .attr('name', "gval_" + sequence.currVal())
-                    .val(values != null ? values : "");
+                .attr('name', "gval_" + sequence.currVal())
+                .val(values != null ? values : "");
 
             var tr = $('<tr class="genecond" />')
-                    .append($('<td class="left" />')
-                    .append($('<select  name="' + ('gnot_' + sequence.currVal()) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
-                    + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
-                    .append('&nbsp;&nbsp;&nbsp;')
-                    .append($('<span class="gprop" />').text(label))
-                    .append($('<input type="hidden" name="gprop_' + sequence.currVal() + '" value="' + property + '">')))
-                    .append($('<td class="value" />').append(input))
-                    .append(createRemoveButton(
-                                              function () {
-                                                  var tr = $(this).parents('tr:first');
-                                                  tr.remove();
-                                                  queryConditionsChanged();
-                                              }));
+                .append($('<td class="left" />')
+                .append($('<select  name="' + ('gnot_' + sequence.currVal()) + '"><option ' + (not ? '' : 'selected="selected"') + 'value="">has</option><option'
+                + (not ? ' selected="selected"' : '') + ' value="1">hasn&#39;t</option></select>'))
+                .append('&nbsp;&nbsp;&nbsp;')
+                .append($('<span class="gprop" />').text(label))
+                .append($('<input type="hidden" name="gprop_' + sequence.currVal() + '" value="' + property + '">')))
+                .append($('<td class="value" />').append(input))
+                .append(createRemoveButton(
+                function () {
+                    var tr = $(this).parents('tr:first');
+                    tr.remove();
+                    queryConditionsChanged();
+                }));
 
             $('#conditions').append(tr);
 
@@ -685,9 +700,9 @@ var atlas = atlas || {};
             if (query.conditions && query.conditions.length) {
                 for (var i = 0; i < query.conditions.length; ++i) {
                     addExpFactor(query.conditions[i].factor,
-                            query.conditions[i].expression,
-                            query.conditions[i].minExperiments,
-                            query.conditions[i].jointFactorValues);
+                        query.conditions[i].expression,
+                        query.conditions[i].minExperiments,
+                        query.conditions[i].jointFactorValues);
                 }
             }
         }
@@ -696,8 +711,8 @@ var atlas = atlas || {};
             if (query && query.geneConditions.length) {
                 for (var i = 0; i < query.geneConditions.length; ++i) {
                     addGeneQuery(query.geneConditions[i].factor,
-                            query.geneConditions[i].jointFactorValues,
-                            query.geneConditions[i].negated);
+                        query.geneConditions[i].jointFactorValues,
+                        query.geneConditions[i].negated);
                 }
             }
         }
@@ -734,13 +749,13 @@ var atlas = atlas || {};
             $('#conditions tr.genecond').each(function() {
                 var condition = {};
                 $('input,select', this).each(function() {
-                     if (contains(this.name, "gprop_")) {
-                         condition.property = this.value;
-                     } else if (contains(this.name, "gnot_")) {
-                         condition.not = this.value;
-                     } else if (contains(this.name, "gval_")) {
-                         condition.value = this.value;
-                     }
+                    if (contains(this.name, "gprop_")) {
+                        condition.property = this.value;
+                    } else if (contains(this.name, "gnot_")) {
+                        condition.not = this.value;
+                    } else if (contains(this.name, "gval_")) {
+                        condition.value = this.value;
+                    }
                 });
                 qBuilder.addGeneCondition(condition);
             });
@@ -755,31 +770,31 @@ var atlas = atlas || {};
                 query = query || {};
 
                 $('#geneprops').change(
-                                      function () {
-                                          if (this.selectedIndex >= 1) {
-                                              var property = this.options[this.selectedIndex].value;
-                                              addGeneQuery(property);
-                                          }
-                                          this.selectedIndex = 0;
-                                      });
+                    function () {
+                        if (this.selectedIndex >= 1) {
+                            var property = this.options[this.selectedIndex].value;
+                            addGeneQuery(property);
+                        }
+                        this.selectedIndex = 0;
+                    });
 
                 $('#species').change(
-                                    function () {
-                                        if (this.selectedIndex >= 1) {
-                                            var specie = this.options[this.selectedIndex].value;
-                                            addSpecie(specie);
-                                        }
-                                        this.selectedIndex = 0;
-                                    });
+                    function () {
+                        if (this.selectedIndex >= 1) {
+                            var specie = this.options[this.selectedIndex].value;
+                            addSpecie(specie);
+                        }
+                        this.selectedIndex = 0;
+                    });
 
                 $('#factors').change(
-                                    function () {
-                                        if (this.selectedIndex >= 1) {
-                                            var factor = this.options[this.selectedIndex].value;
-                                            addExpFactor(factor);
-                                        }
-                                        this.selectedIndex = 0;
-                                    });
+                    function () {
+                        if (this.selectedIndex >= 1) {
+                            var factor = this.options[this.selectedIndex].value;
+                            addExpFactor(factor);
+                        }
+                        this.selectedIndex = 0;
+                    });
 
                 initSpecies(query);
                 initExpConditions(query);
@@ -788,9 +803,9 @@ var atlas = atlas || {};
                 var form = $('#structform');
                 form.bind('submit', function () {
                     try {
-                         submitForm(asQuery(form), form, {
-                             failureMsg: "Please specify at least one gene property or experimental factor condition"
-                         });
+                        submitForm(asQuery(form), form, {
+                            failureMsg: "Please specify at least one gene property or experimental factor condition"
+                        });
                     } catch(e) {
                         if (window.console) {
                             window.console.log(e);
@@ -808,7 +823,7 @@ var atlas = atlas || {};
                     this.selectedIndex = 0;
                 });
             }
-       }
+        }
     })();
 
     /**
@@ -832,24 +847,24 @@ var atlas = atlas || {};
         if (query) {
             showSearchingIndicator(form);
             submitQuery(query, form);
-        } else if (msg){
+        } else if (msg) {
             showFormNotice(form, msg.failureMsg || "Can't submit empty query");
         }
     }
 
     function showFormNotice(form, msg) {
         var notice = $('#formNotice');
-            if (notice.length == 0) {
-                $('body').prepend(
+        if (notice.length == 0) {
+            $('body').prepend(
                 '<div id="formNotice" style=" color: red; background-color:#fff; position:absolute; z-index: 1000"></div>');
             notice = $('#formNotice').html(msg);
-            }
+        }
 
         var pos = $(form).offset();
-            var height = $(form).height();
+        var height = $(form).height();
         notice.css({ "left":pos.left + "px", "top":(pos.top + height + 10) + "px" });
         notice.fadeIn().delay(6000).fadeOut('slow');
-        }
+    }
 
     function submitQuery(query, form) {
         form = form || $('#simpleform:visible, #structform:visible');
@@ -914,7 +929,7 @@ var atlas = atlas || {};
         simpleForm.init(query);
 
         if (viewMode === "advanced") {
-        advancedForm.init(query);
+            advancedForm.init(query);
         }
     };
 
