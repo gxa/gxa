@@ -135,7 +135,13 @@ public class AtlasMAGETABLoader {
                 Collection<String> useRawData = cmd.getUserData().get("useRawData");
                 if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
                     logProgress(listener, 5, ArrayDataStep.displayName());
-                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao);
+                    String normalizationMode;
+                    Collection<String> libs = cmd.getUserData().get("normalizationMode");
+                    if (libs == null || libs.isEmpty())
+                        normalizationMode = "oligo";
+                    else
+                        normalizationMode = libs.iterator().next();
+                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao, normalizationMode);
                 }
 
                 logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());

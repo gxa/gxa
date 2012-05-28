@@ -280,6 +280,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <field name="name_f" type="string" indexed="true" stored="false" />
 
         <field name="orthologs" type="string" indexed="true" stored="true" multiValued="true"/>
+        <field name="arraydesigns" type="string" indexed="true" stored="true" multiValued="true"/>
 
         <field name="properties" type="string" indexed="true" stored="true" multiValued="true" />
         <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true" />

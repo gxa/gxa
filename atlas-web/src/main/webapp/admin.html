@@ -31,7 +31,7 @@
     <meta name="verify-v1" content="uHglWFjjPf/5jTDDKDD7GVCqTmAXOK7tqu9wUnQkals="/>
     <meta name="y_key" content="fcb0c3c66fb1ff11">
     <title>Atlas Administration - Gene Expression Atlas</title>
-    <script type="text/javascript" src="scripts/jquery-1.5.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="scripts/jquery-ui/jquery-ui-1.7.2.atlas.min.js"></script>
     <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
     <script type="text/javascript" src="scripts/jquery.tmpl.min.js"></script>
@@ -442,6 +442,16 @@
                 <td>
                     <input type="checkbox" id="useRawData" checked="checked">
                     <label for="useRawData">Use raw experimental data if possible</label>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td> Use:
+                    <select id="normalizationMode">
+                        <option value="oligo">oligo</option>
+                        <option value="affy">affy</option>
+                    </select>
+                    mode for experiment normalisation
                 </td>
                 <td style="text-align:right">
                     <input type="button" value="Load" id="loadButton">

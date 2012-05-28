@@ -77,6 +77,8 @@
                 cssDesc:"order2"
             });
         }
+
+        $(".inlineDownloadLink").inlineDownloadLink();
     });
 </script>
 
@@ -134,7 +136,7 @@
                     <jsp:include page="experiment-header.jsp"/>
                     <div>
                         <a href="${pageContext.request.contextPath}/experiment/${exp.accession}"
-                           style="font-size:12px;font-weight:bold;">Experiment Analytics</a>
+                           style="font-size:12px;font-weight:bold;">View experiment analytics&nbsp;&rsaquo;&rsaquo;</a>
                     </div>
                     <jsp:include page="experiment-header-assets.jsp"/>
                 </div>
@@ -146,8 +148,7 @@
         <div id="loadingIndicator">&nbsp;</div>
         <div style="float:left; margin: 5px;">
             <a class="export2TsvLink" target="_blank" rel="nofollow"
-               href="${pageContext.request.contextPath}/experimentDesignTable?format=tsv&eacc=${exp.accession}">Export to
-                TSV</a>
+               href="${pageContext.request.contextPath}/experimentDesignTable?format=tsv&eacc=${exp.accession}">Export Experiment Design as Tab-Delimited file</a>
         </div>
         <div id="expDesignTable"></div>
     </div>

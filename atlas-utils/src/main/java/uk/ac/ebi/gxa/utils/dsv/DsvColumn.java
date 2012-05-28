@@ -20,18 +20,17 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.spring.view.dsv;
-
-import java.util.Iterator;
+package uk.ac.ebi.gxa.utils.dsv;
 
 /**
  * @author Olga Melnichuk
  */
-public interface DsvDocument {
 
-    public String[] getHeader();
+public interface DsvColumn<T> {
 
-    public String[] getColumnsDescription();
+    public String convert(T value);
 
-    public abstract Iterator<String[]> getRowIterator();
+    public String getName();
+
+    public String getDescription();
 }
