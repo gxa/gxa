@@ -25,8 +25,4 @@ public class ApiPropertyName {
     public void setName(String name) {
         this.name = name;
     }
-
-    public String toString() {
-       return "ApiPropertyName{" +"name='" + getName() + "'}";
-    }
 }
