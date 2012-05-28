@@ -1,6 +1,7 @@
 package uk.ac.ebi.gxa.web.controller.api;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import java.util.Collection;
 public class CurationApiController extends AtlasViewController {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
+    Gson gson = new Gson();
 
     @Autowired
     private CurationService curationService;
@@ -57,7 +59,7 @@ public class CurationApiController extends AtlasViewController {
                                            HttpServletRequest request,
                                            HttpServletResponse response) {
         curationService.removeUnusedPropertyValues();
-        log.info("User: " + request.getRemoteUser() + " : removed unused property values");
+        log.info("User: '" + request.getRemoteUser() + "' removed unused property values");
     }
 
     @RequestMapping(value = "/properties/unused.json",
@@ -67,7 +69,7 @@ public class CurationApiController extends AtlasViewController {
                                        HttpServletRequest request,
                                        HttpServletResponse response) {
         curationService.removeUnusedPropertyNames();
-        log.info("User: " + request.getRemoteUser() + " : removed unused properties and their values");
+        log.info("User: '" + request.getRemoteUser() + "' removed unused properties and their values");
     }
 
     @RequestMapping(value = "/properties/{propertyName}",
@@ -81,8 +83,8 @@ public class CurationApiController extends AtlasViewController {
             HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.deletePropertyOrValue(propertyName, propertyValue);
-        log.info("User: " + request.getRemoteUser() +
-                " deleted property name: '" + propertyName +
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted property: '" + propertyName +
                 "'" + (!Strings.isNullOrEmpty(propertyValue) ? " and value: '" + propertyValue + "'" : ""));
     }
 
@@ -98,8 +100,8 @@ public class CurationApiController extends AtlasViewController {
             HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.replacePropertyValueInExperiments(propertyName, oldPropertyValue, newPropertyValue);
-        log.info("User: " + request.getRemoteUser() +
-                " replaced property value: '" + oldPropertyValue + "' with new value: '" + newPropertyValue +
+        log.info("User: '" + request.getRemoteUser() +
+                "' replaced property value: '" + oldPropertyValue + "' with new value: '" + newPropertyValue +
                 "' for property: '" + propertyName + "' in all experiments");
     }
 
@@ -114,8 +116,8 @@ public class CurationApiController extends AtlasViewController {
             HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.replacePropertyInExperiments(oldPropertyName, newPropertyName);
-        log.info("User: " + request.getRemoteUser() +
-                " replaced property: '" + oldPropertyName + "' with new property: '" + newPropertyName + "' in all experiments");
+        log.info("User: '" + request.getRemoteUser() +
+                "' replaced property: '" + oldPropertyName + "' with new property: '" + newPropertyName + "' in all experiments");
     }
 
     @RequestMapping(value = "/propertyvaluemappings/exactmatch/{propertyName}.json",
@@ -207,9 +209,9 @@ public class CurationApiController extends AtlasViewController {
                                    HttpServletRequest request,
                                    HttpServletResponse response) throws ResourceNotFoundException {
         curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties);
-        log.info("User: " + request.getRemoteUser() +
-                " added/updated the following properties-values in experiment: '" +
-                experimentAccession + "' and assay: '" + assayAccession + "' : " + assayProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties-values in experiment: '" +
+                experimentAccession + "' and assay: '" + assayAccession + "' : " + gson.toJson(assayProperties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
@@ -222,9 +224,9 @@ public class CurationApiController extends AtlasViewController {
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws ResourceNotFoundException {
         curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
-        log.info("User: " + request.getRemoteUser() +
-                " deleted the following properties-values in experiment: '" +
-                experimentAccession + "' and assay: '" + assayAccession + "' : " + assayProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted the following properties-values from experiment: '" +
+                experimentAccession + "' and assay: '" + assayAccession + "' : " + gson.toJson(assayProperties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
@@ -237,9 +239,9 @@ public class CurationApiController extends AtlasViewController {
                                     HttpServletRequest request,
                                     HttpServletResponse response) throws ResourceNotFoundException {
         curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties);
-        log.info("User: " + request.getRemoteUser() +
-                " added/updated the following properties-values in experiment: '" +
-                experimentAccession + "' and sample: '" + sampleAccession + "' : " + sampleProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties-values in experiment: '" +
+                experimentAccession + "' and sample: '" + sampleAccession + "' : " + gson.toJson(sampleProperties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
@@ -252,9 +254,9 @@ public class CurationApiController extends AtlasViewController {
                                        HttpServletRequest request,
                                        HttpServletResponse response) throws ResourceNotFoundException {
         curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
-        log.info("User: " + request.getRemoteUser() +
-                " deleted the following properties-values in experiment: '" +
-                experimentAccession + "' and sample: '" + sampleAccession + "' : " + sampleProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted the following properties-values from experiment: '" +
+                experimentAccession + "' and sample: '" + sampleAccession + "' : " + gson.toJson(sampleProperties));
     }
 
     @RequestMapping(value = "/ontologyterms",
@@ -265,6 +267,6 @@ public class CurationApiController extends AtlasViewController {
                                  HttpServletRequest request,
                                  HttpServletResponse response) {
         curationService.putOntologyTerms(apiOntologyTerms);
-        log.info("User: " + request.getRemoteUser() + " created the following ontology terms: " + apiOntologyTerms);
+        log.info("User: '" + request.getRemoteUser() + "' created the following ontology terms: " + gson.toJson(apiOntologyTerms));
     }
 }
