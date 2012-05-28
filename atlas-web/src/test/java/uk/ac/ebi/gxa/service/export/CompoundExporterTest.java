@@ -26,6 +26,8 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.dao.PropertyValueDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
@@ -56,24 +58,24 @@ public class CompoundExporterTest {
         CUT_TO_FULL_PROPERTY_VALUES.put("atf", new PropertyValue(null, Property.createProperty("compound"), "atf 5 kg per day"));
     }
 
-    private static String RESULT = "ATF\n" +
-            "indole-3-acetic acid + dexamethasone\n" +
-            "siVFp(-992)m1\n" +
-            "test 5 bla\n" +
-            "TGF beta 1\n" +
-            "triiodothyronine\n" +
-            "wortmannin";
-
     private CompoundExporter service = new CompoundExporter();
 
     @Before
     public void setUp() throws Exception {
         service.setPropertyValueDAO(getPropertyValueDAO());
+        service.setAtlasProperties(getAtlasProperties());
     }
 
     @Test
     public void testGenerateDataAsString() throws Exception {
-        assertEquals(RESULT, service.generateDataAsString());
+        String result = "ATF\n" +
+                "indole-3-acetic acid + dexamethasone\n" +
+                "siVFp(-992)m1\n" +
+                "test 5 bla\n" +
+                "TGF beta 1\n" +
+                "triiodothyronine\n" +
+                "wortmannin";
+        assertEquals(result, service.generateDataAsString());
     }
 
     @Test
@@ -91,6 +93,7 @@ public class CompoundExporterTest {
         assertFalse(service.filter("untreated"));
         assertFalse(service.filter("N/A"));
         assertFalse(service.filter(""));
+        assertFalse(service.filter("-"));
     }
 
     private PropertyValueDAO getPropertyValueDAO() {
@@ -98,6 +101,14 @@ public class CompoundExporterTest {
         EasyMock.expect(mock.findValuesForProperty("compound")).andReturn(new ArrayList<PropertyValue>(CUT_TO_FULL_PROPERTY_VALUES.values())).anyTimes();
         EasyMock.replay(mock);
         return mock;
+    }
+
+    private AtlasProperties getAtlasProperties() {
+        ResourceFileStorage storage = new ResourceFileStorage();
+        storage.setResourcePath("atlas.properties");
+        AtlasProperties atlasProperties = new AtlasProperties();
+        atlasProperties.setStorage(storage);
+        return  atlasProperties;
     }
 
 }

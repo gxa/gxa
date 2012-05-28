@@ -30,9 +30,9 @@ import com.google.common.collect.Collections2;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.dao.PropertyValueDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -45,16 +45,6 @@ import java.util.regex.Pattern;
  */
 public class CompoundExporter implements DataExporter {
 
-    private final static List<String> EXCLUDE = Arrays.asList(
-            "-"
-            , "n/a"
-            , "compound"
-            , "None"
-            , "not specified"
-            , "unknown"
-            , "Unpaired"
-            , "untreated"
-    );
     private final static String COMPOUND = "compound";
 
     //Regexp to match numbers corresponding to dose and unit, e.g. " 10 molar", " 0.666 nanograms per milliliter"
@@ -62,6 +52,9 @@ public class CompoundExporter implements DataExporter {
 
     @Autowired
     private PropertyValueDAO propertyValueDAO;
+
+    @Autowired
+    private AtlasProperties atlasProperties;
 
     public String generateDataAsString() {
 
@@ -91,7 +84,12 @@ public class CompoundExporter implements DataExporter {
         if (Strings.isNullOrEmpty(s)) {
             return false;
         }
-        for (String exclude : EXCLUDE) {
+        for (String match : atlasProperties.getExportExcludeCompoundsMatch()) {
+            if(match.equalsIgnoreCase(s)) {
+                return false;
+            }
+        }
+        for (String exclude : atlasProperties.getExportExcludeCompoundsContain()) {
             if (StringUtils.containsIgnoreCase(s, exclude)) {
                 return false;
             }
@@ -114,5 +112,9 @@ public class CompoundExporter implements DataExporter {
 
     protected void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
         this.propertyValueDAO = propertyValueDAO;
+    }
+
+    protected void setAtlasProperties(AtlasProperties atlasProperties) {
+        this.atlasProperties = atlasProperties;
     }
 }
