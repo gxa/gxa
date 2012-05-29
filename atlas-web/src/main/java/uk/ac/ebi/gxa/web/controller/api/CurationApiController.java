@@ -103,6 +103,10 @@ public class CurationApiController extends AtlasViewController {
         log.info("User: '" + request.getRemoteUser() +
                 "' replaced property value: '" + oldPropertyValue + "' with new value: '" + newPropertyValue +
                 "' for property: '" + propertyName + "' in all experiments");
+        curationService.deletePropertyOrValue(propertyName, oldPropertyValue);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted property: '" + propertyName +
+                "'" + (!Strings.isNullOrEmpty(oldPropertyValue) ? " and value: '" + oldPropertyValue + "'" : ""));
     }
 
     @RequestMapping(value = "/properties/{oldPropertyName}/{newPropertyName}",
@@ -118,6 +122,8 @@ public class CurationApiController extends AtlasViewController {
         curationService.replacePropertyInExperiments(oldPropertyName, newPropertyName);
         log.info("User: '" + request.getRemoteUser() +
                 "' replaced property: '" + oldPropertyName + "' with new property: '" + newPropertyName + "' in all experiments");
+        curationService.deletePropertyOrValue(oldPropertyName, null);
+        log.info("User: '" + request.getRemoteUser() + "' deleted property: '" + oldPropertyName);
     }
 
     @RequestMapping(value = "/propertyvaluemappings/exactmatch/{propertyName}.json",

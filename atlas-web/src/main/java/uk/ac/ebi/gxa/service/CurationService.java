@@ -246,7 +246,7 @@ public class CurationService {
      * @throws ResourceNotFoundException
      */
     @Transactional
-    public void deleteProperty(final String propertyName) throws ResourceNotFoundException {
+    private void deleteProperty(final String propertyName) throws ResourceNotFoundException {
         try {
             Property property = propertyDAO.getByName(propertyName);
             propertyDAO.delete(property);
