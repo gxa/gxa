@@ -66,7 +66,7 @@ public class CompoundExporter implements DataExporter {
                         Collections2.transform(propertyValues, new Function<PropertyValue, String>() {
                             @Override
                             public String apply(PropertyValue propertyValue) {
-                                return cutOfDoseAndUnit(propertyValue.getValue());
+                                return cutOffDoseAndUnit(propertyValue.getValue());
                             }
                         }),
                         new Predicate<String>() {
@@ -97,7 +97,7 @@ public class CompoundExporter implements DataExporter {
         return true;
     }
 
-    protected String cutOfDoseAndUnit(String value) {
+    protected String cutOffDoseAndUnit(String value) {
         final Pattern pattern = Pattern.compile(DOSE_PATTERN);
         final Matcher matcher = pattern.matcher(value);
 

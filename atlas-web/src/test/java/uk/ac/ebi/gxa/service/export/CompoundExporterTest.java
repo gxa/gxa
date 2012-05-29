@@ -81,7 +81,7 @@ public class CompoundExporterTest {
     @Test
     public void testCutOfDoseAndUnit() throws Exception {
         for (Map.Entry<String, PropertyValue> entry : CUT_TO_FULL_PROPERTY_VALUES.entrySet()) {
-            assertEquals(entry.getKey(), service.cutOfDoseAndUnit(entry.getValue().getValue()));
+            assertEquals(entry.getKey(), service.cutOffDoseAndUnit(entry.getValue().getValue()));
         }
 
     }
