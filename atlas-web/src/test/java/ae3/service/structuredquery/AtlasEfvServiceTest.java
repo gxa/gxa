@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.statistics.EfvAttribute;
@@ -42,12 +43,16 @@ public class AtlasEfvServiceTest {
         Property prop2 = Property.createProperty("cell_type");
 
         PropertyDAO propertyDAO = createMock(PropertyDAO.class);
+
         expect(propertyDAO.getAll()).andReturn(Arrays.asList(prop1, prop2)).anyTimes();
         expect(propertyDAO.getByName("biopsy_tissue")).andReturn(prop1).anyTimes();
         expect(propertyDAO.getByName("cell_type")).andReturn(prop2).anyTimes();
-        expect(propertyDAO.getValues(prop1)).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "lung"))).anyTimes();
-        expect(propertyDAO.getValues(prop2)).andReturn(Collections.singletonList(new PropertyValue(1L, prop2, "lung"))).anyTimes();
         replay(propertyDAO);
+
+        PropertyValueDAO propertyValueDAO = createMock(PropertyValueDAO.class);
+        expect(propertyValueDAO.findValuesForProperty("biopsy_tissue")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "lung"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("cell_type")).andReturn(Collections.singletonList(new PropertyValue(1L, prop2, "lung"))).anyTimes();
+        replay(propertyValueDAO);
 
         AtlasStatisticsQueryService atlasStatisticsQueryService = createMock(AtlasStatisticsQueryService.class);
         expect(atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(new EfvAttribute("biopsy_tissue", "lung"), StatisticsType.UP_DOWN)).andReturn(1).anyTimes();
@@ -57,6 +62,7 @@ public class AtlasEfvServiceTest {
         efvService.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
         efvService.setAtlasProperties(atlasProperties);
         efvService.setPropertyDAO(propertyDAO);
+        efvService.setPropertyValueDAO(propertyValueDAO);
     }
 
     @Test

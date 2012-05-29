@@ -251,6 +251,7 @@ http://www.springframework.org/schema/context/spring-context.xsd">
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="propertyDAO" ref="propertyDAO"/>
+        <property name="propertyValueDAO" ref="propertyValueDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -551,7 +552,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
-    <bean name="chEbiExportService" class="uk.ac.ebi.gxa.service.ChEbiXrefExportService">
+    <bean name="chEbiExporter" class="uk.ac.ebi.gxa.service.export.ChEbiXrefExporter">
+    </bean>
+
+    <bean name="compoundExporter" class="uk.ac.ebi.gxa.service.export.CompoundExporter">
     </bean>
 
     <!--Configure R workbench -->
