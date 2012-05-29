@@ -275,7 +275,6 @@ public class CurationService {
                     log.warn("Not removing property: " + propertyName + " as still used in assays or samples");
             else {
                 if (!propertyValueDAO.isPropertyValueUsed(propertyName, propertyValue)) {
-
                     Property property = propertyDAO.getByName(propertyName);
                     PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
                     propertyDAO.delete(property, propValue);
