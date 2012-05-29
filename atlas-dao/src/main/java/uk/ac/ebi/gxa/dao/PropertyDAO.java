@@ -86,13 +86,4 @@ public class PropertyDAO extends AbstractDAO<Property> {
         for (Property property : getUnusedProperties())
             delete(property);
     }
-
-    /**
-     *
-     * @param property
-     * @return all values for property
-     */
-    public List<PropertyValue> getValues(Property property) {
-        return property.getValues();
-    }
 }

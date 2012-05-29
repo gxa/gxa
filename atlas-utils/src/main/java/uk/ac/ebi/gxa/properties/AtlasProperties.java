@@ -508,4 +508,11 @@ public class AtlasProperties {
         return getProperty("atlas.annotationsource.list");
     }
 
+    public List<String> getExportExcludeCompoundsContain() {
+        return getListProperty("atlas.export.exclude.compound.contain");
+    }
+
+    public List<String> getExportExcludeCompoundsMatch() {
+        return getListProperty("atlas.export.exclude.compound.exact");
+    }
 }

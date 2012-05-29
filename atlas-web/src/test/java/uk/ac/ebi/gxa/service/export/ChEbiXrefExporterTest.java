@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.service;
+package uk.ac.ebi.gxa.service.export;
 
 import org.custommonkey.xmlunit.Diff;
 import org.easymock.EasyMock;
@@ -38,12 +38,12 @@ import static org.junit.Assert.assertTrue;
  * User: nsklyar
  * Date: 02/05/2012
  */
-public class ChEbiXrefExportServiceTest {
+public class ChEbiXrefExporterTest {
     @Test
     public void testExportChEbiEntries() throws Exception {
-        ChEbiXrefExportService service = new ChEbiXrefExportService();
+        ChEbiXrefExporter service = new ChEbiXrefExporter();
         service.setAtlasDAO(getAtlasDAO());
-        final String xml = service.exportChEbiEntries();
+        final String xml = service.generateDataAsString();
 
         Diff myDiff = new Diff(EXPECTED_OUT, xml);
         assertTrue(myDiff.similar());
