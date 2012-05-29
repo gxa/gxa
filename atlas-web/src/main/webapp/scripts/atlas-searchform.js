@@ -153,21 +153,12 @@ var atlas = atlas || {};
             },
 
             formatToken: function(row) {
-                var text;
-                if (row.property) {
-                    text = row.property + ":";
-                }
-                var text = text + (row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value);
+                var text = row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
                 return text.length > 20 ? text.substr(0, 20) + '...' : text;
             },
 
             formatTokenTooltip: function(row) {
-                var text;
-                if (row.property) {
-                    text = row.property + ":";
-                }
-                var text = text + (row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value);
-                return text;
+                return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
             },
 
             formatId: function(res) {
@@ -434,9 +425,11 @@ var atlas = atlas || {};
                 property: commonProp
             });
 
+            inputBox = $('input[id="efoefv"]'); // field containing non-tokenized experimental condition values
+            var expConditions = $.trim(expConditionField(form).val() + " " + inputBox.val());
             qBuilder.addCondition({
                 expression: expressionField(form).val(),
-                value: expConditionField(form).val()
+                value: expConditions
             });
 
             qBuilder.addSpecies(speciesField(form).val());
