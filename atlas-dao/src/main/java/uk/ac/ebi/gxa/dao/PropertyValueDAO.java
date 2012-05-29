@@ -78,4 +78,8 @@ public class PropertyValueDAO extends AbstractDAO<PropertyValue> {
         for (PropertyValue propertyValue : getUnusedPropertyValues())
             delete(propertyValue);
     }
+
+    public List<PropertyValue> findValuesForProperty(String propertyName) {
+        return template.find("from PropertyValue pv where property.name = ?", propertyName);
+    }
 }
