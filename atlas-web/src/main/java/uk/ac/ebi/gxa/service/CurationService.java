@@ -12,6 +12,8 @@ import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.api.*;
 import uk.ac.ebi.microarray.atlas.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,6 +28,7 @@ import static com.google.common.collect.Collections2.transform;
  */
 @Service
 public class CurationService {
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private AtlasDAO atlasDAO;
 
@@ -243,7 +246,7 @@ public class CurationService {
      * @throws ResourceNotFoundException
      */
     @Transactional
-    public void deleteProperty(final String propertyName) throws ResourceNotFoundException {
+    private void deleteProperty(final String propertyName) throws ResourceNotFoundException {
         try {
             Property property = propertyDAO.getByName(propertyName);
             propertyDAO.delete(property);
@@ -266,11 +269,19 @@ public class CurationService {
         try {
 
             if (Strings.isNullOrEmpty(propertyValue))
-                deleteProperty(propertyName);
+                if (!propertyDAO.isPropertyUsed(propertyName))
+                    deleteProperty(propertyName);
+                else
+                    log.warn("Not removing property: " + propertyName + " as still used in assays or samples");
             else {
-                Property property = propertyDAO.getByName(propertyName);
-                PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
-                propertyDAO.delete(property, propValue);
+                if (!propertyValueDAO.isPropertyValueUsed(propertyName, propertyValue)) {
+                    Property property = propertyDAO.getByName(propertyName);
+                    PropertyValue propValue = propertyValueDAO.find(property, propertyValue);
+                    propertyDAO.delete(property, propValue);
+                } else {
+                    log.warn("Not removing property: " + propertyName +
+                            " and propertyValue: " + propertyValue + " as still used in assays or samples");
+                }
             }
         } catch (RecordNotFoundException e) {
             throw convert(e);
