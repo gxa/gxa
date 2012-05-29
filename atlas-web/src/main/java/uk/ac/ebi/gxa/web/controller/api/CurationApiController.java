@@ -1,6 +1,9 @@
 package uk.ac.ebi.gxa.web.controller.api;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -10,6 +13,7 @@ import uk.ac.ebi.gxa.service.CurationService;
 import uk.ac.ebi.gxa.web.controller.AtlasViewController;
 import uk.ac.ebi.microarray.atlas.api.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 
@@ -21,6 +25,9 @@ import java.util.Collection;
 @Controller
 @RequestMapping("/api/curators/{v}")
 public class CurationApiController extends AtlasViewController {
+
+    final private Logger log = LoggerFactory.getLogger(this.getClass());
+    Gson gson = new Gson();
 
     @Autowired
     private CurationService curationService;
@@ -34,7 +41,6 @@ public class CurationApiController extends AtlasViewController {
             throws ResourceNotFoundException {
         return curationService.getPropertyNames();
     }
-
 
     @RequestMapping(value = "/properties/{propertyName}.json",
             method = RequestMethod.GET)
@@ -50,16 +56,20 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void removeUnusedPropertyValues(@PathVariable("v") final ApiVersionType version,
-                                                                HttpServletResponse response) {
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) {
         curationService.removeUnusedPropertyValues();
+        log.info("User: '" + request.getRemoteUser() + "' removed unused property values");
     }
 
     @RequestMapping(value = "/properties/unused.json",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void removeUnusedProperties(@PathVariable("v") final ApiVersionType version,
-                                                           HttpServletResponse response) {
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) {
         curationService.removeUnusedPropertyNames();
+        log.info("User: '" + request.getRemoteUser() + "' removed unused properties and their values");
     }
 
     @RequestMapping(value = "/properties/{propertyName}",
@@ -69,9 +79,13 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("v") final ApiVersionType version,
             @PathVariable("propertyName") final String propertyName,
             @RequestParam(value = "propertyValue", required = false) String propertyValue,
+            HttpServletRequest request,
             HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.deletePropertyOrValue(propertyName, propertyValue);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted property: '" + propertyName +
+                "'" + (!Strings.isNullOrEmpty(propertyValue) ? " and value: '" + propertyValue + "'" : ""));
     }
 
     @RequestMapping(value = "/properties/{propertyName}",
@@ -82,9 +96,13 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("propertyName") final String propertyName,
             @RequestParam(value = "oldPropertyValue", required = true) String oldPropertyValue,
             @RequestParam(value = "newPropertyValue", required = true) String newPropertyValue,
+            HttpServletRequest request,
             HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.replacePropertyValueInExperiments(propertyName, oldPropertyValue, newPropertyValue);
+        log.info("User: '" + request.getRemoteUser() +
+                "' replaced property value: '" + oldPropertyValue + "' with new value: '" + newPropertyValue +
+                "' for property: '" + propertyName + "' in all experiments");
     }
 
     @RequestMapping(value = "/properties/{oldPropertyName}/{newPropertyName}",
@@ -94,9 +112,12 @@ public class CurationApiController extends AtlasViewController {
             @PathVariable("v") final ApiVersionType version,
             @PathVariable("oldPropertyName") final String oldPropertyName,
             @PathVariable("newPropertyName") final String newPropertyName,
+            HttpServletRequest request,
             HttpServletResponse response)
             throws ResourceNotFoundException {
         curationService.replacePropertyInExperiments(oldPropertyName, newPropertyName);
+        log.info("User: '" + request.getRemoteUser() +
+                "' replaced property: '" + oldPropertyName + "' with new property: '" + newPropertyName + "' in all experiments");
     }
 
     @RequestMapping(value = "/propertyvaluemappings/exactmatch/{propertyName}.json",
@@ -136,8 +157,8 @@ public class CurationApiController extends AtlasViewController {
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@PathVariable("v") final ApiVersionType version,
-                                                                                      @PathVariable("ontologyTerm") final String ontologyTerm,
-                                                                                      HttpServletResponse response) throws ResourceNotFoundException {
+                                                                            @PathVariable("ontologyTerm") final String ontologyTerm,
+                                                                            HttpServletResponse response) throws ResourceNotFoundException {
         return curationService.getOntologyMappingsByOntologyTerm(ontologyTerm);
     }
 
@@ -185,8 +206,12 @@ public class CurationApiController extends AtlasViewController {
                                    @PathVariable(value = "experimentAccession") final String experimentAccession,
                                    @PathVariable(value = "assayAccession") final String assayAccession,
                                    @RequestBody final ApiProperty[] assayProperties,
+                                   HttpServletRequest request,
                                    HttpServletResponse response) throws ResourceNotFoundException {
         curationService.putAssayProperties(experimentAccession, assayAccession, assayProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties-values in experiment: '" +
+                experimentAccession + "' and assay: '" + assayAccession + "' : " + gson.toJson(assayProperties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
@@ -196,8 +221,12 @@ public class CurationApiController extends AtlasViewController {
                                       @PathVariable(value = "experimentAccession") final String experimentAccession,
                                       @PathVariable(value = "assayAccession") final String assayAccession,
                                       @RequestBody final ApiProperty[] assayProperties,
+                                      HttpServletRequest request,
                                       HttpServletResponse response) throws ResourceNotFoundException {
         curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted the following properties-values from experiment: '" +
+                experimentAccession + "' and assay: '" + assayAccession + "' : " + gson.toJson(assayProperties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
@@ -207,8 +236,12 @@ public class CurationApiController extends AtlasViewController {
                                     @PathVariable(value = "experimentAccession") final String experimentAccession,
                                     @PathVariable(value = "sampleAccession") final String sampleAccession,
                                     @RequestBody final ApiProperty[] sampleProperties,
+                                    HttpServletRequest request,
                                     HttpServletResponse response) throws ResourceNotFoundException {
         curationService.putSampleProperties(experimentAccession, sampleAccession, sampleProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties-values in experiment: '" +
+                experimentAccession + "' and sample: '" + sampleAccession + "' : " + gson.toJson(sampleProperties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
@@ -218,8 +251,12 @@ public class CurationApiController extends AtlasViewController {
                                        @PathVariable(value = "experimentAccession") String experimentAccession,
                                        @PathVariable(value = "sampleAccession") String sampleAccession,
                                        @RequestBody ApiProperty[] sampleProperties,
+                                       HttpServletRequest request,
                                        HttpServletResponse response) throws ResourceNotFoundException {
         curationService.deleteSampleProperties(experimentAccession, sampleAccession, sampleProperties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted the following properties-values from experiment: '" +
+                experimentAccession + "' and sample: '" + sampleAccession + "' : " + gson.toJson(sampleProperties));
     }
 
     @RequestMapping(value = "/ontologyterms",
@@ -227,8 +264,9 @@ public class CurationApiController extends AtlasViewController {
     @ResponseStatus(HttpStatus.CREATED)
     public void putOntologyTerms(@PathVariable("v") final ApiVersionType version,
                                  @RequestBody final ApiOntologyTerm[] apiOntologyTerms,
+                                 HttpServletRequest request,
                                  HttpServletResponse response) {
         curationService.putOntologyTerms(apiOntologyTerms);
-
+        log.info("User: '" + request.getRemoteUser() + "' created the following ontology terms: " + gson.toJson(apiOntologyTerms));
     }
 }

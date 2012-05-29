@@ -114,7 +114,7 @@ public class BioEntityDAO {
 
     public ArrayListMultimap<Long, DesignElement> getAllDesignElementsForGene() {
 
-        ArrayListMultimap<Long, DesignElement> beToDe = ArrayListMultimap.create(350000, 200);
+        ArrayListMultimap<Long, DesignElement> beToDe = ArrayListMultimap.create(550000, 200);
 
         GeneDesignElementMapper mapper = new GeneDesignElementMapper(beToDe);
 
@@ -132,6 +132,26 @@ public class BioEntityDAO {
                 mapper);
         return beToDe;
     }
+
+    public ArrayListMultimap<Long, String> getAllArrayDesignsByGene() {
+         ArrayListMultimap<Long, String> arrayDesignsByBeID = ArrayListMultimap.create(550000, 200);
+
+        GeneArrayDesignMapper mapper = new GeneArrayDesignMapper(arrayDesignsByBeID);
+
+        String query = "SELECT distinct " + GeneArrayDesignMapper.FIELDS + "\n" +
+                "  FROM a2_designelement de\n" +
+                "  join a2_arraydesign ad on ad.arraydesignid = de.arraydesignid\n" +
+                "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid \n" +
+                "  JOIN a2_bioentity be ON be.bioentityid = debe.bioentityid\n" +
+                "  join a2_software sw on sw.softwareid = debe.softwareid\n" +
+                "  JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid \n" +
+                "  WHERE bet.ID_FOR_INDEX = 1\n" +
+                "  and sw.isactive = 'T'";
+
+        template.query(query, mapper);
+        return arrayDesignsByBeID;
+    }
+
 
     BioEntityType findOrCreateBioEntityType(final String name) {
         if (beTypeCache.containsKey(name)) {
@@ -448,6 +468,22 @@ public class BioEntityDAO {
 
             if (designElementsByBeID.size() % 10000 == 0)
                 log.debug("designElementsByBeID = " + designElementsByBeID.size());
+        }
+    }
+
+    private static class GeneArrayDesignMapper implements RowCallbackHandler {
+        public static final String FIELDS = "be.bioentityid, ad.accession";
+        private ArrayListMultimap<Long, String> arrayDesignsByBeID;
+
+        public GeneArrayDesignMapper(ArrayListMultimap<Long, String> arrayDesignsByBeID) {
+            this.arrayDesignsByBeID = arrayDesignsByBeID;
+        }
+
+        @Override
+        public void processRow(ResultSet rs) throws SQLException {
+            long geneID = rs.getLong(1);
+            String arrayDesignAcc = rs.getString(2);
+            arrayDesignsByBeID.put(geneID, arrayDesignAcc);
         }
     }
 

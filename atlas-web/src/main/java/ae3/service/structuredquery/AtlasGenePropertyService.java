@@ -22,6 +22,7 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
@@ -239,18 +240,18 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         prefix = prefix.toLowerCase();
 
-        int speciesFilter = filters == null ? -1 : safeParse(filters.get("species"), -1);
+        String arrayDesignsFilter = filters == null ? null : filters.get("arrayDesigns");
 
         boolean everywhere = isNullOrEmpty(property);
 
         List<AutoCompleteItem> result = new ArrayList<AutoCompleteItem>();
 
         if (everywhere) {
-            result.addAll(searchInGeneNames(prefix, speciesFilter, atlasProperties.getGeneAutocompleteNameLimit()));
+            result.addAll(searchInGeneNames(prefix, arrayDesignsFilter, atlasProperties.getGeneAutocompleteNameLimit()));
             result.addAll(searchInGeneProperties(prefix, idProperties, atlasProperties.getGeneAutocompleteIdLimit()));
             result.addAll(searchInGeneProperties(prefix, descProperties, limit > 0 ? limit - result.size() : -1));
         } else if (GENE_PROPERTY_NAME.equals(property)) {
-            result.addAll(searchInGeneNames(prefix, -1, limit));
+            result.addAll(searchInGeneNames(prefix, null, limit));
         } else if (idProperties.contains(property) || descProperties.contains(property)) {
             result.addAll(searchInGeneProperties(prefix, Arrays.asList(property), limit));
         }
@@ -273,25 +274,16 @@ public class AtlasGenePropertyService implements AutoCompleter,
         return result;
     }
 
-    private Collection<GeneAutoCompleteItem> searchInGeneNames(String prefix, int speciesFilter, int limit) {
+    private Collection<GeneAutoCompleteItem> searchInGeneNames(String prefix, String arrayDesignsFilter, int limit) {
         List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
-        Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, speciesFilter);
+        Collection<GeneAutoCompleteItem> items = joinGeneNames(prefix, arrayDesignsFilter, limit);
         for (GeneAutoCompleteItem item : items) {
             result.add(new GeneAutoCompleteItem(item, geneRanking.getRank(item)));
         }
         return result.subList(0, Math.min(limit >= 0 ? limit : result.size(), result.size()));
     }
 
-    private int safeParse(String s, int def) {
-        try {
-            return Integer.valueOf(s);
-        } catch (NumberFormatException ignored) {
-            log.debug("Invalid number {}", s);
-            return def;
-        }
-    }
-
-    private List<GeneAutoCompleteItem> joinGeneNames(final String query, final int speciesFilter) {
+    private List<GeneAutoCompleteItem> joinGeneNames(final String query, final String arrayDesignsFilter, final int limit) {
         final List<GeneAutoCompleteItem> res = new ArrayList<GeneAutoCompleteItem>();
         final Set<String> ids = new HashSet<String>();
         final Set<String> speciesInAutocompleteSoFar = new HashSet<String>();
@@ -304,13 +296,14 @@ public class AtlasGenePropertyService implements AutoCompleter,
                     if (sb.length() > 0)
                         sb.append(" ");
                     sb.append(field).append(":").append(EscapeUtil.escapeSolr(name));
-                    if (sb.length() > 800) {
-                        if (speciesFilter >= 0) {
-                            sb.insert(0, "(").append(") AND species_id:").append(speciesFilter);
-                        }
-                        findAutoCompleteGenes(sb.toString(), query, res, ids, speciesInAutocompleteSoFar);
-                        sb.setLength(0);
+                    if (!Strings.isNullOrEmpty(arrayDesignsFilter)) {
+                        sb.insert(0, "(").append(") AND arraydesigns:(");
+                        for (String ad : arrayDesignsFilter.split(" "))
+                            sb.append(EscapeUtil.escapeSolr(ad));
+                        sb.append(")");
                     }
+                    findAutoCompleteGenes(sb.toString(), query, res, ids, speciesInAutocompleteSoFar);
+                    sb.setLength(0);
                 }
 
                 public boolean enough() {
@@ -320,8 +313,8 @@ public class AtlasGenePropertyService implements AutoCompleter,
         }
 
         if (sb.length() > 0) {
-            if (speciesFilter >= 0)
-                sb.insert(0, "(").append(") AND species_id:").append(speciesFilter);
+            if (!Strings.isNullOrEmpty(arrayDesignsFilter))
+                sb.insert(0, "(").append(") AND arraydesigns:").append(arrayDesignsFilter);
             findAutoCompleteGenes(sb.toString(), query, res, ids, speciesInAutocompleteSoFar);
         }
 
