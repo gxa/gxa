@@ -37,6 +37,8 @@ public class TestCurationService extends AtlasDAOTestCase {
     private static final String VALUE007 = "value007";
     private static final String VALUE004 = "value004";
     private static final String VALUE010 = "value010";
+    private static final String UNUSED_PROPERTY = "unused";
+    private static final String UNUSED_PROPERTYVALUE = "unused_val";
     private static final String MICROGLIAL_CELL = "microglial cell";
     private static final String E_MEXP_420 = "E-MEXP-420";
     private static final String ASSAY_ACC = "abc:ABCxyz:SomeThing:1234.ABC123";
@@ -477,16 +479,31 @@ public class TestCurationService extends AtlasDAOTestCase {
         curationService.deletePropertyOrValue(CELL_TYPE, VALUE007);
         curationService.deletePropertyOrValue(PROP3, VALUE004);
 
-        assertFalse("Property : " + CELL_TYPE + ":" + VALUE007 + " not removed from assay properties",
+        assertTrue("Property : " + CELL_TYPE + ":" + VALUE007 + " was removed from assay properties",
                 propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), CELL_TYPE, VALUE007));
-        assertFalse("Property : " + PROP3 + ":" + VALUE004 + " not removed from sample properties",
+        assertTrue("Property : " + PROP3 + ":" + VALUE004 + " was removed from sample properties",
                 propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), PROP3, VALUE004));
 
+        // The removal of CELL_TYPE:VALUE007 and PROP3:VALUE004 dit not succeed because they were still being used in some assays or samples
         Collection<ApiPropertyValue> propertyValues = curationService.getPropertyValues(CELL_TYPE);
-        assertFalse("Property value: " + VALUE007 + " found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE007));
-
+        assertTrue("Property value: " + VALUE007 + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE007));
         propertyValues = curationService.getPropertyValues(PROP3);
-        assertFalse("Property value: " + VALUE004 + " found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE004));
+        assertTrue("Property value: " + VALUE004 + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(VALUE004));
+    }
+
+    @Test
+    public void testDeletePropertyValue1() throws Exception {
+        assertFalse("Property : " + UNUSED_PROPERTY + ":" + UNUSED_PROPERTYVALUE + " found in assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), UNUSED_PROPERTY, UNUSED_PROPERTYVALUE));
+        assertFalse("Property : " + UNUSED_PROPERTYVALUE + ":" + UNUSED_PROPERTYVALUE + " found in sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), UNUSED_PROPERTY, UNUSED_PROPERTYVALUE));
+
+        curationService.deletePropertyOrValue(UNUSED_PROPERTY, UNUSED_PROPERTYVALUE);
+
+        // The removal of UNUSED_PROPERTY:UNUSED_PROPERTYVALUE succeeded as it had not been used in any assays or samples
+        Collection<ApiPropertyValue> propertyValues = curationService.getPropertyValues(UNUSED_PROPERTY);
+        assertFalse("Property value: " + UNUSED_PROPERTYVALUE + " not found", Collections2.transform(propertyValues, PROPERTY_VALUE_FUNC).contains(UNUSED_PROPERTYVALUE));
+
     }
 
     @Test
@@ -494,9 +511,24 @@ public class TestCurationService extends AtlasDAOTestCase {
         Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
         assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
         curationService.deletePropertyOrValue(CELL_TYPE, null);
+        // The removal of property CELL_TYPE was unsuccessful as it was still being used in some assays or samples
         propertyNames = curationService.getPropertyNames();
-        assertFalse("Property: " + CELL_TYPE + " not removed", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
+        assertTrue("Property: " + CELL_TYPE + " was incorrectly removed", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(CELL_TYPE));
+    }
 
+    @Test
+    public void testDeleteProperty1() throws Exception {
+        assertFalse("Property : " + UNUSED_PROPERTY + ":" + UNUSED_PROPERTYVALUE + " found in assay properties",
+                propertyPresent(curationService.getAssayProperties(E_MEXP_420, ASSAY_ACC), UNUSED_PROPERTY, UNUSED_PROPERTYVALUE));
+        assertFalse("Property : " + UNUSED_PROPERTYVALUE + ":" + UNUSED_PROPERTYVALUE + " found in sample properties",
+                propertyPresent(curationService.getSampleProperties(E_MEXP_420, SAMPLE_ACC), UNUSED_PROPERTY, UNUSED_PROPERTYVALUE));
+
+        Collection<ApiPropertyName> propertyNames = curationService.getPropertyNames();
+        assertTrue("Property: " + CELL_TYPE + " not found", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(UNUSED_PROPERTY));
+        curationService.deletePropertyOrValue(CELL_TYPE, null);
+        // The removal of UNUSED_PROPERTY succeeded as it had not been used in any assays or samples
+        propertyNames = curationService.getPropertyNames();
+        assertTrue("Property: " + UNUSED_PROPERTY + " was not removed", Collections2.transform(propertyNames, PROPERTY_NAME_FUNC).contains(UNUSED_PROPERTY));
     }
 
     @Test
