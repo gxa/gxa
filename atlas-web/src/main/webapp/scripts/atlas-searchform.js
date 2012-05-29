@@ -153,12 +153,21 @@ var atlas = atlas || {};
             },
 
             formatToken: function(row) {
-                var text = row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                var text;
+                if (row.property) {
+                    text = row.property + ":";
+                }
+                var text = text + (row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value);
                 return text.length > 20 ? text.substr(0, 20) + '...' : text;
             },
 
             formatTokenTooltip: function(row) {
-                return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                var text;
+                if (row.property) {
+                    text = row.property + ":";
+                }
+                var text = text + (row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value);
+                return text;
             },
 
             formatId: function(res) {
