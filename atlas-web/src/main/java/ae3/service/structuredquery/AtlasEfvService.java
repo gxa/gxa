@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.index.builder.IndexBuilder;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderEventHandler;
@@ -67,6 +68,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
     private IndexBuilder indexBuilder;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
     private PropertyDAO propertyDAO;
+    private PropertyValueDAO propertyValueDAO;
 
     final private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -87,6 +89,10 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
 
     public void setPropertyDAO(PropertyDAO propertyDAO) {
         this.propertyDAO = propertyDAO;
+    }
+
+    public void setPropertyValueDAO(PropertyValueDAO propertyValueDAO) {
+        this.propertyValueDAO = propertyValueDAO;
     }
 
     public Set<Property> getOptionsFactors() {
@@ -134,7 +140,7 @@ public class AtlasEfvService implements AutoCompleter, IndexBuilderEventHandler,
                 try {
                     final Property p = propertyDAO.getByName(property);
                     //ToDo: to get rid of propertyDAO.getValues() method use propertyValueDAO.findValuesForProperty(property)
-                    for (PropertyValue pv : propertyDAO.getValues(p)) {
+                    for (PropertyValue pv : propertyValueDAO.findValuesForProperty(property)) {
                         EfvAttribute attr = new EfvAttribute(pv.getDefinition().getName(), pv.getValue());
                         int geneCount = atlasStatisticsQueryService.getBioEntityCountForEfvAttribute(attr, StatisticsType.UP_DOWN);
                         if (geneCount > 0) {

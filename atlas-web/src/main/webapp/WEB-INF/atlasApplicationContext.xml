@@ -250,6 +250,7 @@ http://www.springframework.org/schema/context/spring-context.xsd">
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="propertyDAO" ref="propertyDAO"/>
+        <property name="propertyValueDAO" ref="propertyValueDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
