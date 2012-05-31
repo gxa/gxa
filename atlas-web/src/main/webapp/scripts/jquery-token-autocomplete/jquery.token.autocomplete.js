@@ -113,7 +113,6 @@ $.TokenList = function (input, settings) {
     var input_box = $("<input type='text'>")
         .attr('id', settings.extraParams.type)
         .attr('autocomplete', 'off')
-        .attr('id', settings.extraParams.type)
         .val(previousValue = (settings.defaultValue ? settings.defaultValue : ''))
         .focus(function () {
             if(settings.defaultValue && $(this).val() == settings.defaultValue)
