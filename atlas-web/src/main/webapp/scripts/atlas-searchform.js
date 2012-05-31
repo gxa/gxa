@@ -158,7 +158,12 @@ var atlas = atlas || {};
             },
 
             formatTokenTooltip: function(row) {
-                return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                var text;
+                if (row.property) {
+                    text = row.property + ":";
+                }
+                var text = text + (row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value);
+                return text;
             },
 
             formatId: function(res) {
@@ -259,14 +264,6 @@ var atlas = atlas || {};
             return $("select[name=specie_0]", form);
         }
 
-        // Store non-tokenized values in the input field that autocomplete created for
-        // entering raw values
-        function populateNonTokenizedVals(nonTokenizedVals, form) {
-            if (nonTokenizedVals && nonTokenizedVals.length > 0) {
-                $('input[id="gene"]', form).val(nonTokenizedVals);
-            }
-        }
-
         function initGeneConditions(form, query) {
             var conditionsField = geneConditionsField(form);
             // geneProperties array contains tokenized property-values;
@@ -277,8 +274,8 @@ var atlas = atlas || {};
             for (var i = 0; i < query.geneConditions.length; ++i) {
                 var prop = query.geneConditions[i].factor;
                 var val =  query.geneConditions[i].jointFactorValues;
-                if (prop && prop.length > 0) {
-                    // Note that due to some race conditions in  jquery.token.autocomplete.js a delay (c.f. timeout below)
+                if (prop) {
+                    // Note that due to some race conditions in jquery.token.autocomplete.js a delay (c.f. timeout below)
                     // is needed to prevent the same property-value being added again every time the user presses a search button.
                     // To test this, remove the delay below then
                     // 1. search for autocompleted go term: 'BRCA1-A complex', on heatmap page click on advanced interface and
@@ -297,8 +294,7 @@ var atlas = atlas || {};
                     nonTokenizedVals = nonTokenizedVals + " " + val;
                 }
             }
-            // Values conditionsField.val() together with property-values in conditionsField.get(0).geneProperties
-            // are used by atlas.tokenizeGeneInput() to generate autocomplete tokens, visible to the user in the genes input field
+            // Property-values in conditionsField.get(0).geneProperties are used by atlas.tokenizeGeneInput() to generate autocomplete tokens, visible to the user in the genes input field
             conditionsField.val($.trim(tokenizedVals));
             atlas.tokenizeGeneInput(conditionsField, '', '(all genes)');
 
@@ -307,11 +303,12 @@ var atlas = atlas || {};
             // Note that due to some race conditions within jquery.token.autocomplete.js populateNonTokenizedVals will not work unless
             // the delay is imposed (see timeout below)
             clearTimeout(timeout);
-            // Note: nonTokenizedVals = null; form = null - due to a 'memory leak in IE' issue reported in:
-            // http://www.makemineatriple.com/2007/10/passing-parameters-to-a-function-called-with-settimeout
-            timeout = setTimeout(function(){
-                populateNonTokenizedVals($.trim(nonTokenizedVals), form); nonTokenizedVals = null; form = null}, 300);
-
+            nonTokenizedVals = $.trim(nonTokenizedVals);
+            if (nonTokenizedVals) {
+                timeout = setTimeout(function() {
+                    $('input[id="gene"]').val(nonTokenizedVals)
+                }, 300);
+            }
 
             conditionsField.bind("addResult", function(event, geneToken) {
                 var props = event.target.geneProperties;
@@ -473,6 +470,8 @@ var atlas = atlas || {};
      */
 
     var advancedForm = (function() {
+
+        var timeout;
 
         var sequence = (function() {
             var seq = 0;
@@ -661,9 +660,14 @@ var atlas = atlas || {};
             sequence.nextVal();
 
             var label = getPropLabel(property);
+            var nonTokenizedVals = "";
             var input = $('<input type="text" class="value"/>')
-                    .attr('name', "gval_" + sequence.currVal())
-                    .val(values != null ? values : "");
+                .attr('name', "gval_" + sequence.currVal());
+            if (property) {
+                input.val(values != null ? values : "");
+            } else {
+                nonTokenizedVals = $.trim(values);
+            }
 
             var tr = $('<tr class="genecond" />')
                     .append($('<td class="left" />')
@@ -683,6 +687,17 @@ var atlas = atlas || {};
             $('#conditions').append(tr);
 
             atlas.tokenizeGeneInput(input, property, '(all ' + (property != "" ? label.toLowerCase() : 'gene') + 's)');
+
+            // Now that the genes input field has been enabled for autocompletion, enter non-autocompleted gene conditions into the
+            // special field created by autocomplete to enter such raw values (c.f.  var input_box in jquery.token.autocomplete.js)
+            // Note that due to some race conditions within jquery.token.autocomplete.js populateNonTokenizedVals will not work unless
+            // the delay is imposed (see timeout below)
+            clearTimeout(timeout);
+            if (nonTokenizedVals) {
+                timeout = setTimeout(function() {
+                    $('input[name="gval_' + sequence.currVal() + '"]').val(nonTokenizedVals)
+                }, 300);
+            }
 
             queryConditionsChanged();
         }
