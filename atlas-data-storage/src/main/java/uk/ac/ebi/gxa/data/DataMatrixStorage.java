@@ -35,6 +35,7 @@ public class DataMatrixStorage {
     private final int width;
     private final int initialSize;
     private final int growSize;
+    public static final float NA_VAL = -1000000F;
 
     public DataMatrixStorage(int width, int initialSize, int growSize) {
         this.width = width;
@@ -76,7 +77,7 @@ public class DataMatrixStorage {
             try {
                 return Float.parseFloat(line[refMap.get(ref)]);
             } catch (Exception e) {
-                return -1000000F;
+                return NA_VAL;
             }
         }
     }

@@ -22,6 +22,8 @@
 
 package uk.ac.ebi.gxa.web.ui.plot;
 
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.jackson.annotate.JsonProperty;
 import uk.ac.ebi.gxa.data.StatisticsCursor;
@@ -47,7 +49,7 @@ public class BoxAndWhisker {
         Arrays.sort(data);
         this.median = percentile(data, 0.5);
         this.max = percentile(data, 1.0);
-        this.min = percentile(data, 0.0);
+        this.min = getMin(data);
         this.upperQuartile = percentile(data, 0.75);
         this.lowerQuartile = percentile(data, 0.25);
         expression = upDown;
@@ -99,5 +101,13 @@ public class BoxAndWhisker {
     @JsonProperty("down")
     public boolean isDown() {
         return expression.isDown();
+    }
+
+    private float getMin(float[] data) {
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] != DataMatrixStorage.NA_VAL)
+                return data[i];
+        }
+        return Float.NaN;
     }
 }
