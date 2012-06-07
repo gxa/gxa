@@ -457,6 +457,11 @@
 
     <repositories>
         <repository>
+            <id>ebi-nexus</id>
+            <name>Nexus</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/public</url>
+        </repository>
+        <repository>
             <id>ebi-repo</id>
             <name>The EBI internal repository</name>
             <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
@@ -471,63 +476,6 @@
 
          Please download and install those yourself.
          -->
-        <repository>
-            <id>java.net</id>
-            <url>http://download.java.net/maven/2/</url>
-        </repository>
-        <repository>
-            <id>apache.releases</id>
-            <url>https://repository.apache.org/content/repositories/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>apache.snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>jboss-public</id>
-            <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-        </repository>
-        <repository>
-            <id>MyDAS</id>
-            <url>http://mydas.googlecode.com/svn/repository/</url>
-        </repository>
-        <repository>
-            <id>ulisse</id>
-            <url>http://ulisse.pin.unifi.it:8081/nexus/content/groups/open.repos</url>
-        </repository>
-        <repository>
-            <id>limpopo-repo</id>
-            <name>Limpopo Mini-SF Repository</name>
-            <url>http://limpopo.sourceforge.net/maven/repo</url>
-        </repository>
-        <repository>
-            <id>erroritem</id>
-            <name>erroritem repo</name>
-            <url>http://erroritem.sourceforge.net/maven/repo</url>
-        </repository>
-        <repository>
-            <id>info-bliki-repository</id>
-            <url>http://gwtwiki.googlecode.com/svn/maven-repository/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>c5-public-repository</id>
-            <url>http://mvn.carbonfive.com/public</url>
-            <snapshots>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
         <repository>
             <id>hasbanana</id>
             <url>http://www.hasbanana.com/maven/repo</url>
