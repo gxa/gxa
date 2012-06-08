@@ -294,7 +294,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             log.warn("Page size is: {} {}", new String[]{String.valueOf(limit), accession});
         }
 
-        //ToDo: maybe there is a way to fix it on the js site.
+        //ToDo: maybe there is a way to fix it on the js side.
         if (geneConditions == null && gid != null) {
             final List<String> conditions = Lists.newArrayList(Splitter.on(',').split(gid));
             geneConditions = new String[conditions.size()];
