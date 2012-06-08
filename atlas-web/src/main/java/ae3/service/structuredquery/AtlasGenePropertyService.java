@@ -177,14 +177,48 @@ public class AtlasGenePropertyService implements AutoCompleter,
         }
     }
 
-    private Collection<GeneAutoCompleteItem> treeAutocomplete(final String property, final String prefix, final int limit) {
+    /**
+     *
+     * @param property
+     * @param name
+     * @param arrayDesignsFilter
+     * @return true if at least one gene in array designs specified in arrayDesignsFilter contains property:value
+     * in gene Solr index; false otherwise
+     */
+    private boolean inArrayDesigns(
+            final String property,
+            final String name,
+            final String arrayDesignsFilter) {
+        if (!Strings.isNullOrEmpty(arrayDesignsFilter)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("property_f_" + property).append(":").append(EscapeUtil.escapeSolr(name));
+            appendArrayDesigns(arrayDesignsFilter, sb);
+            SolrQuery q = new SolrQuery(sb.toString());
+            q.setStart(0);
+            q.setRows(1);
+            try {
+                return solrServerAtlas.query(q).getResults().getNumFound() > 0;
+            } catch (SolrServerException e) {
+                throw createUnexpected("General Solr problem", e);
+            }
+        }
+        return true;
+    }
+
+
+    private Collection<GeneAutoCompleteItem> treeAutocomplete(
+            final String property,
+            final String arrayDesignsFilter,
+            final String prefix,
+            final int limit) {
         PrefixNode root = treeGetOrLoad("property_f_" + property);
 
         final List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
         if (root != null) {
             root.walk(prefix, 0, "", new PrefixNode.WalkResult() {
                 public void put(String name, int count) {
-                    result.add(new GeneAutoCompleteItem(property, name, (long) count));
+                    if (inArrayDesigns(property, name, arrayDesignsFilter))
+                        result.add(new GeneAutoCompleteItem(property, name, (long) count));
                 }
 
                 public boolean enough() {
@@ -248,21 +282,25 @@ public class AtlasGenePropertyService implements AutoCompleter,
 
         if (everywhere) {
             result.addAll(searchInGeneNames(prefix, arrayDesignsFilter, atlasProperties.getGeneAutocompleteNameLimit()));
-            result.addAll(searchInGeneProperties(prefix, idProperties, atlasProperties.getGeneAutocompleteIdLimit()));
-            result.addAll(searchInGeneProperties(prefix, descProperties, limit > 0 ? limit - result.size() : -1));
+            result.addAll(searchInGeneProperties(prefix, arrayDesignsFilter, idProperties, atlasProperties.getGeneAutocompleteIdLimit()));
+            result.addAll(searchInGeneProperties(prefix, arrayDesignsFilter, descProperties, limit > 0 ? limit - result.size() : -1));
         } else if (GENE_PROPERTY_NAME.equals(property)) {
             result.addAll(searchInGeneNames(prefix, null, limit));
         } else if (idProperties.contains(property) || descProperties.contains(property)) {
-            result.addAll(searchInGeneProperties(prefix, Arrays.asList(property), limit));
+            result.addAll(searchInGeneProperties(prefix, arrayDesignsFilter, Arrays.asList(property), limit));
         }
 
         return result;
     }
 
-    private Collection<GeneAutoCompleteItem> searchInGeneProperties(String prefix, Collection<String> properties, int limit) {
+    private Collection<GeneAutoCompleteItem> searchInGeneProperties(
+            String prefix,
+            final String arrayDesignsFilter,
+            Collection<String> properties,
+            int limit) {
         List<GeneAutoCompleteItem> result = new ArrayList<GeneAutoCompleteItem>();
         for (String property : properties) {
-            Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, prefix, limit);
+            Collection<GeneAutoCompleteItem> items = treeAutocomplete(property, arrayDesignsFilter, prefix, limit);
             for (GeneAutoCompleteItem item : items) {
                 result.add(new GeneAutoCompleteItem(item, geneRanking.getRank(item)));
             }
@@ -283,12 +321,21 @@ public class AtlasGenePropertyService implements AutoCompleter,
         return result.subList(0, Math.min(limit >= 0 ? limit : result.size(), result.size()));
     }
 
+    private void appendArrayDesigns(String arrayDesignsFilter, StringBuilder sb) {
+        if (!Strings.isNullOrEmpty(arrayDesignsFilter)) {
+            sb.insert(0, "(").append(") AND arraydesigns:(");
+            for (String ad : arrayDesignsFilter.split(" "))
+                sb.append(EscapeUtil.escapeSolr(ad));
+            sb.append(")");
+        }
+    }
+
     private List<GeneAutoCompleteItem> joinGeneNames(final String query, final String arrayDesignsFilter, final int limit) {
         final List<GeneAutoCompleteItem> res = new ArrayList<GeneAutoCompleteItem>();
         final Set<String> ids = new HashSet<String>();
         final Set<String> speciesInAutocompleteSoFar = new HashSet<String>();
 
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
 
         for (final String field : nameFields) {
             treeGetOrLoad(field).walk(query, 0, "", new PrefixNode.WalkResult() {
@@ -296,12 +343,7 @@ public class AtlasGenePropertyService implements AutoCompleter,
                     if (sb.length() > 0)
                         sb.append(" ");
                     sb.append(field).append(":").append(EscapeUtil.escapeSolr(name));
-                    if (!Strings.isNullOrEmpty(arrayDesignsFilter)) {
-                        sb.insert(0, "(").append(") AND arraydesigns:(");
-                        for (String ad : arrayDesignsFilter.split(" "))
-                            sb.append(EscapeUtil.escapeSolr(ad));
-                        sb.append(")");
-                    }
+                    appendArrayDesigns(arrayDesignsFilter, sb);
                     findAutoCompleteGenes(sb.toString(), query, res, ids, speciesInAutocompleteSoFar);
                     sb.setLength(0);
                 }
