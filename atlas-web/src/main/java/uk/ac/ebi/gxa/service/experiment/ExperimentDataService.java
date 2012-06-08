@@ -159,7 +159,7 @@ public class ExperimentDataService {
     public ExperimentAnalytics getExperimentAnalytics(
             @Nonnull String expAcc,
             String adAcc,
-            String[] geneConditions,
+            String geneConditions,
             String ef,
             String efv,
             UpDownCondition updown,
@@ -170,7 +170,7 @@ public class ExperimentDataService {
         try {
             ewd = getExperimentWithData(expAcc);
 
-            List<String> genesConditionsArr = (geneConditions == null ? Collections.<String>emptyList() : Arrays.asList(geneConditions));
+            List<String> genesConditionsArr = (geneConditions == null ? Collections.<String>emptyList() : Arrays.asList(geneConditions.split(",")));
             List<QueryCondition> geneQueryConditions = Lists.newArrayList();
 
             if (genesConditionsArr.size() % 2 != 0) {
