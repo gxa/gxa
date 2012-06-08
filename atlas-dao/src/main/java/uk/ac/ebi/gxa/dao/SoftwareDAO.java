@@ -3,6 +3,7 @@ package uk.ac.ebi.gxa.dao;
 import org.hibernate.SessionFactory;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
+import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
 import java.util.List;
@@ -27,11 +28,7 @@ public class SoftwareDAO {
         try {
             @SuppressWarnings("unchecked")
             final List<Software> softwares = template.find("from Software where name = ? and version = ?", name, version);
-            if (softwares.size() == 1) {
-                return softwares.get(0);
-            } else {
-                throw new RecordNotFoundException(Software.class.getName() + ": " + softwares.size() + " objects returned; expected 1)");
-            }
+            return getFirst(softwares);
         } catch (RecordNotFoundException e) {
             Software software = new Software(name, version);
             save(software);
@@ -52,5 +49,22 @@ public class SoftwareDAO {
     @SuppressWarnings("unchecked")
     public List<Software> getAllButLegacySoftware() {
         return template.find("from Software where legacy = 'F'");
+    }
+
+    public String getEnsemblVersion() {
+        final List<Software> softwares = template.find("from Software where name = 'Ensembl' and isactive = 'T'");
+        if (softwares.size() == 1) {
+            return softwares.get(0).getVersion();
+        } else {
+            throw LogUtil.createUnexpected("Cannot find version for Ensembl");
+        }
+    }
+
+    private Software getFirst(List<Software> softwares) throws RecordNotFoundException {
+        if (softwares.size() == 1) {
+            return softwares.get(0);
+        } else {
+            throw new RecordNotFoundException(Software.class.getName() + ": " + softwares.size() + " objects returned; expected 1)");
+        }
     }
 }

@@ -52,6 +52,7 @@
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="assayDAO"/>
+        <constructor-arg ref="softwareDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">

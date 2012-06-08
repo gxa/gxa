@@ -32,6 +32,7 @@ public class AtlasStatistics {
     private int geneCount;
     private long newExperimentCount;
     private int factorValueCount;
+    private String ensemblVersion;
 
     public long getExperimentCount() {
         return experimentCount;
@@ -79,5 +80,13 @@ public class AtlasStatistics {
 
     public int getFactorValueCount() {
         return factorValueCount;
+    }
+
+    public String getEnsemblVersion() {
+        return ensemblVersion;
+    }
+
+    public void setEnsemblVersion(String ensemblVersion) {
+        this.ensemblVersion = ensemblVersion;
     }
 }
