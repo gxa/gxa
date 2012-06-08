@@ -345,7 +345,7 @@
                     </select>
                 </td>
                 <td>
-                    <button id="findBestAnalytics">Search Experiment</button><label id="search_tip" />
+                    <button id="findBestAnalytics">Search in Experiment</button><label id="search_tip" />
                 </td>
                 <td class="padded" colspan="2">
                     <input type="submit" value="SEARCH" style="visibility:hidden"/>
