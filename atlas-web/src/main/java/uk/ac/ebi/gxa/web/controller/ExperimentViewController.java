@@ -58,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Joiner.on;
@@ -264,7 +265,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
      *
      * @param accession an experiment accession to find out the required data
      * @param adAcc     an array design accession to find out the required data
-     * @param geneConditions a gene param to search with
+     * @param geneConditions a gene param to search with (comma-separated list of alternating gene properties and values)
      * @param ef        an experiment factor param to search with
      * @param efv       an experiment factor value param to search with
      * @param updown    an up/down condition to search with
@@ -278,7 +279,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public String getExperimentTable(
             @RequestParam("eacc") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
-            @RequestParam(value = "geneConditions[]", required = false) String[] geneConditions,
+            @RequestParam(value = "gid", required = false) String geneConditions,
             @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "updown", required = false, defaultValue = "CONDITION_ANY") UpDownCondition updown,
