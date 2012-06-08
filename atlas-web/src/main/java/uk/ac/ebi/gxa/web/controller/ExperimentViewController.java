@@ -25,7 +25,9 @@ package uk.ac.ebi.gxa.web.controller;
 import ae3.model.AtlasGene;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Joiner.on;
@@ -279,6 +282,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam("eacc") String accession,
             @RequestParam(value = "ad", required = false) String adAcc,
             @RequestParam(value = "geneConditions[]", required = false) String[] geneConditions,
+            @RequestParam(value = "gid", required = false) String gid,
             @RequestParam(value = "ef", required = false) String ef,
             @RequestParam(value = "efv", required = false) String efv,
             @RequestParam(value = "updown", required = false, defaultValue = "CONDITION_ANY") UpDownCondition updown,
@@ -290,6 +294,12 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             log.warn("Page size is: {} {}", new String[]{String.valueOf(limit), accession});
         }
 
+        //ToDo: maybe there is a way to fix it on the js site.
+        if (geneConditions == null && gid != null) {
+            final List<String> conditions = Lists.newArrayList(Splitter.on(',').split(gid));
+            geneConditions = new String[conditions.size()];
+            geneConditions = conditions.toArray(geneConditions);
+        }
         ExperimentAnalytics analytics = expDataService.getExperimentAnalytics(accession, adAcc, geneConditions, ef, efv, updown, offset, limit);
 
         model.addAttribute("analytics", analytics);
