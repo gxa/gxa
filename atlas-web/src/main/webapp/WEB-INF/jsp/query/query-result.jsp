@@ -230,7 +230,7 @@
 <td class="column" id="resultpane" width="900px">
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
-    Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
+    Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : (result.page * result.rowsPerPage)+1}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
     <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
         <span>(you can <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
