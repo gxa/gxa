@@ -235,6 +235,7 @@ public class GeneSolrDAO {
 
         StringBuilder sb = new StringBuilder();
         for (String id : ids) {
+            id = escapeSolr(id);
             sb.append(" id:").append(id).append(" identifier:").append(id);
             for (String idprop : additionalIds)
                 sb.append(" property_").append(idprop).append(":").append(id);
