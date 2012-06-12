@@ -462,6 +462,11 @@
             <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/public</url>
         </repository>
         <repository>
+            <id>ebi-atlas</id>
+            <name>Atlas</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/atlas-repos</url>
+        </repository>
+        <repository>
             <id>ebi-repo</id>
             <name>The EBI internal repository</name>
             <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
@@ -476,10 +481,6 @@
 
          Please download and install those yourself.
          -->
-        <repository>
-            <id>hasbanana</id>
-            <url>http://www.hasbanana.com/maven/repo</url>
-        </repository>
     </repositories>
 
     <distributionManagement>
