@@ -70,7 +70,20 @@ public class AnatomogramFactoryTest extends AbstractOnceIndexTest {
                 if (null == atlasGene)
                     continue;
 
-                Anatomogram an = anatomogramFactory.getAnatomogram(type, atlasGene);
+                Anatomogram an = anatomogramFactory.getAnatomogram(type, atlasGene, AnatomogramFactory.AnatomogramFormat.png);
+                assertEquals(mapEntry.getValue(), !an.isEmpty());
+                success = true;
+            }
+            assertTrue(success);
+
+            for (AnatomogramFactory.AnatomogramType type : new AnatomogramFactory.AnatomogramType[]{AnatomogramFactory.AnatomogramType.Web, AnatomogramFactory.AnatomogramType.Das}) {
+
+                mockObjects();
+
+                if (null == atlasGene)
+                    continue;
+
+                Anatomogram an = anatomogramFactory.getAnatomogram(type, atlasGene, AnatomogramFactory.AnatomogramFormat.txt);
                 assertEquals(mapEntry.getValue(), !an.isEmpty());
                 success = true;
             }

@@ -61,6 +61,8 @@ import java.util.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
 import static uk.ac.ebi.gxa.statistics.StatisticsType.UP_DOWN;
+import static uk.ac.ebi.gxa.anatomogram.AnatomogramFactory.AnatomogramFormat;
+import static uk.ac.ebi.gxa.anatomogram.AnatomogramFactory.AnatomogramType;
 
 /**
  * The code is originally from GenePageRequestHandler, AnatomogramRequestHandler and ExperimentsListRequestHandler.
@@ -176,13 +178,37 @@ public class GeneViewController extends AtlasViewController {
 
         GeneSolrDAO.AtlasGeneResult geneResult = geneSolrDAO.getGeneByIdentifier(geneId);
         if (geneResult.isFound()) {
-            an = anatomogramFactory.getAnatomogram(anatomogramType, geneResult.getGene());
+            an = anatomogramFactory.getAnatomogram(
+                    anatomogramType, geneResult.getGene(), AnatomogramFormat.png);
         }
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try {
             an.writePngToStream(bytes);
             return bytes.toByteArray();
+        } finally {
+            Closeables.closeQuietly(bytes);
+        }
+    }
+
+    @RequestMapping(value = "/tsvanatomogram", method = RequestMethod.GET)
+    @ResponseBody
+    public String getAnatomogram(
+            @RequestParam("gid") String geneId
+    ) throws IOException, TranscoderException {
+        Anatomogram an = anatomogramFactory.getEmptyAnatomogram();
+
+        GeneSolrDAO.AtlasGeneResult geneResult = geneSolrDAO.getGeneByIdentifier(geneId);
+        if (geneResult.isFound()) {
+            an = anatomogramFactory.getAnatomogram(
+                    AnatomogramType.Das, geneResult.getGene(), AnatomogramFormat.txt);
+        }
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try {
+            an.writeTsvToStream(bytes);
+            return bytes.toString();
+
         } finally {
             Closeables.closeQuietly(bytes);
         }

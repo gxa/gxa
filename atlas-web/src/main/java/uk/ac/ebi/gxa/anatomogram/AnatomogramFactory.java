@@ -57,6 +57,10 @@ public class AnatomogramFactory {
         Das, Web
     }
 
+    public static enum AnatomogramFormat {
+        png, txt
+    };
+
     private Map<AnatomogramType, Map<String, Document>> templateDocuments = new HashMap<AnatomogramType, Map<String, Document>>(); //organism->template
     private Anatomogram emptyAnatomogram;
     private Efo efo;
@@ -117,10 +121,10 @@ public class AnatomogramFactory {
     }
 
     public Anatomogram getAnatomogram(AtlasGene gene) {
-        return getAnatomogram(AnatomogramType.Web, gene);
+        return getAnatomogram(AnatomogramType.Web, gene, AnatomogramFormat.png);
     }
 
-    public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene) {
+    public Anatomogram getAnatomogram(AnatomogramType anatomogramType, AtlasGene gene, AnatomogramFormat format) {
         Document doc = findDocument(anatomogramType, gene.getGeneSpecies());
 
         Collection<Anatomogram.OrganismPart> parts = new ArrayList<Anatomogram.OrganismPart>();
@@ -148,7 +152,7 @@ public class AnatomogramFactory {
 
         if (!parts.isEmpty()) {
             an = createAnatomogram(doc);
-            an.addOrganismParts(parts);
+            an.addOrganismParts(parts, format);
         }
 
         log.debug("Retrieved stats from bit index for {}'s anatomogram in: {} ms", gene.getGeneName(), bitIndexAccessTime);

@@ -65,6 +65,15 @@
         <to>/anatomogram?gid=$1&amp;type=web</to>
     </rule>
 
+    <rule>
+        <note>
+            gene anatomogram, accessible by /anatomogram/[GeneIdentifier]
+            rewritten with anatomogram?gid=ENSG00000171227
+        </note>
+        <from>/tsvanatomogram/([a-zA-Z0-9-._]+).txt</from>
+        <to>/tsvanatomogram?gid=$1</to>
+    </rule>
+
 
     <rule>
         <note>Experiment Index</note>

@@ -29,17 +29,22 @@ import uk.ac.ebi.gxa.anatomogram.svgutil.Editor;
 import uk.ac.ebi.gxa.anatomogram.svgutil.ImageFormat;
 import uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil;
 import uk.ac.ebi.gxa.anatomogram.svgutil.SvgViewport;
+import uk.ac.ebi.gxa.export.dsv.AnatomogramDsv;
+import uk.ac.ebi.gxa.utils.dsv.DsvDocumentWriter;
+import uk.ac.ebi.gxa.utils.dsv.TsvFormat;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.*;
 
 import static uk.ac.ebi.gxa.anatomogram.svgutil.SvgUtil.getCenterPoint;
+import static uk.ac.ebi.gxa.anatomogram.AnatomogramFactory.AnatomogramFormat;
 
 public class Anatomogram {
 
-    static class OrganismPart implements Comparable<OrganismPart> {
+    public static class OrganismPart implements Comparable<OrganismPart> {
         final String id;
         final String caption;
         final int up;
@@ -52,6 +57,18 @@ public class Anatomogram {
             this.up = up;
             this.dn = dn;
             total = up + dn;
+        }
+
+        public String getCaption() {
+            return caption;
+        }
+
+        public int getUp() {
+            return up;
+        }
+
+        public int getDn() {
+            return dn;
         }
 
         /**
@@ -113,10 +130,20 @@ public class Anatomogram {
         writeToStream(ImageFormat.PNG, outputStream);
     }
 
+    public void writeTsvToStream(OutputStream outputStream) throws IOException, TranscoderException {
+        DsvDocumentWriter writer = new DsvDocumentWriter(
+                (new TsvFormat()).newWriter(new OutputStreamWriter(outputStream)));
+        writer.write(AnatomogramDsv.createDsvDocument(this));
+    }
+
     public void writeToStream(ImageFormat encoding, OutputStream outputStream) throws IOException, TranscoderException {
         if (outputStream != null) {
             encoding.writeSvg(svgDocument, outputStream);
         }
+    }
+
+    public List<OrganismPart> getOrganismParts() {
+        return organismParts;
     }
 
     public Collection<AnatomogramArea> getAreaMap() {
@@ -144,9 +171,10 @@ public class Anatomogram {
         return organismParts.isEmpty();
     }
 
-    void addOrganismParts(Collection<OrganismPart> parts) {
+    void addOrganismParts(Collection<OrganismPart> parts, AnatomogramFormat format) {
         organismParts.addAll(parts);
-        prepareDocument();
+        if (format != AnatomogramFormat.txt)
+            prepareDocument();
     }
 
     private void prepareDocument() {
