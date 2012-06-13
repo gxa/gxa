@@ -59,6 +59,10 @@ public class Anatomogram {
             total = up + dn;
         }
 
+        public String getId() {
+            return id;
+        }
+
         public String getCaption() {
             return caption;
         }

@@ -38,10 +38,16 @@ import java.util.Map;
 public class AnatomogramDsv {
 
     private static enum Column implements DsvColumn<Anatomogram.OrganismPart> {
-        OrganismPartEfo("Organism Part", "Organism Part") {
+        OrganismPart("OrganismPart", "Organism Part") {
             @Override
             public String convert(Anatomogram.OrganismPart row) {
                 return row.getCaption();
+            }
+        },
+        OrganismPartEfo("EfoTerm", "Organism Part EFO term") {
+            @Override
+            public String convert(Anatomogram.OrganismPart row) {
+                return row.getId();
             }
         },
         UpCounts("UpExperimentCounts", "Number of experiments in which this gene was up differentially expressed") {
@@ -84,7 +90,9 @@ public class AnatomogramDsv {
     }
 
     static List<DsvColumn<Anatomogram.OrganismPart>> permanentColumns() {
-        return Arrays.<DsvColumn<Anatomogram.OrganismPart>>asList(Column.OrganismPartEfo,
+        return Arrays.<DsvColumn<Anatomogram.OrganismPart>>asList(
+                Column.OrganismPart,
+                Column.OrganismPartEfo,
                 Column.UpCounts,
                 Column.DownCounts);
     }
