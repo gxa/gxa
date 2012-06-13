@@ -145,7 +145,7 @@
             current_page: ${result.page},
             num_edge_entries: 1,
             items_per_page: ${result.rowsPerPage},
-            link_to: '${pageUrl}&p=__id__',
+            link_to: '${pageUrl}&searchMode=${param.searchMode}&p=__id__',
             next_text: "&raquo;",
             prev_text: "&laquo;",
             callback: function(page) { return true; }
