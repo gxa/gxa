@@ -66,14 +66,16 @@ public class AtlasDAO {
     private final JdbcTemplate template;
     private final ExperimentDAO experimentDAO;
     private final AssayDAO assayDAO;
+    private final SoftwareDAO softwareDAO;
 
     public AtlasDAO(ArrayDesignDAO arrayDesignDAO, BioEntityDAO bioEntityDAO, JdbcTemplate template,
-                    ExperimentDAO experimentDAO, AssayDAO assayDAO) {
+                    ExperimentDAO experimentDAO, AssayDAO assayDAO, SoftwareDAO softwareDAO) {
         this.arrayDesignDAO = arrayDesignDAO;
         this.bioEntityDAO = bioEntityDAO;
         this.template = template;
         this.experimentDAO = experimentDAO;
         this.assayDAO = assayDAO;
+        this.softwareDAO = softwareDAO;
 
         CacheManager cacheManager = CacheManager.getInstance();
         if (!cacheManager.cacheExists(AD_CACHE))
@@ -162,6 +164,7 @@ public class AtlasDAO {
         stats.setFactorValueCount(template.queryForInt(
                 "SELECT COUNT(DISTINCT propertyvalueid) FROM a2_assayPV"
         ));
+        stats.setEnsemblVersion(softwareDAO.getEnsemblVersion());
 
         return stats;
     }

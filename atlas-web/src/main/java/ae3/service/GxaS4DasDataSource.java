@@ -163,7 +163,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
                     Collections.singleton(notes),
-                    Collections.singletonMap(new URL(getDasBaseUrl() + "/gene/" + gene.getGeneIdentifier()),
+                    Collections.singletonMap(new URL(getDasBaseUrl() + "/../gene/" + gene.getGeneIdentifier()),
                             "View in Gene Expression Atlas"),
                     null,
                     null,
@@ -218,7 +218,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     Collections.singleton(efStudiedForGene ? notes.toString() : "Not studied for this gene"),
                     efStudiedForGene ?
                             Collections.singletonMap(
-                                    new URL(getDasBaseUrl() + "/gene/" + atlasGene.getGeneIdentifier() + "?ef=" + property.getName()),
+                                    new URL(getDasBaseUrl() + "/../gene/" + atlasGene.getGeneIdentifier() + "?ef=" + property.getName()),
                                     "View all") :
                             Collections.<URL, String>emptyMap(),
                     null,
@@ -266,7 +266,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             // LinkedHashMap is used for storing links because the order of links is significant to the
             // way they are interpreted by s4
             Map<URL, String> links = new LinkedHashMap<URL, String>();
-            links.put(new URL(getDasBaseUrl() + "/anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), ANATOMOGRAM_LEGEND);
+            links.put(new URL(getDasBaseUrl() + "/../anatomogram/" + atlasGene.getGeneIdentifier() + ".png"), ANATOMOGRAM_LEGEND);
             return new DasFeature(
                     "Anatomogram" //String featureId,
                     , atlasGene.getGeneIdentifier()//String featureLabel,
