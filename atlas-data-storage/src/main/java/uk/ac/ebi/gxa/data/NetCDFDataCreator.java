@@ -429,23 +429,24 @@ public class NetCDFDataCreator {
         // store design elements one by one
         int i = 0;
         ArrayChar deName = new ArrayChar.D2(1, maxDesignElementLength);
-        ArrayInt deIds = new ArrayInt.D1(totalDesignElements);
         ArrayInt gnIds = new ArrayInt.D1(totalDesignElements);
         boolean deMapped = false;
         boolean geneMapped = false;
+        int unmappedDeCount = 0;
         for (String de : mergedDesignElements) {
             deName.setString(0, de);
             netCdf.write("DEacc", new int[]{i, 0}, deName);
             Long deId = arrayDesign.getDesignElement(de);
             if (deId != null) {
                 deMapped = true;
-                deIds.setLong(i, deId);
                 List<Long> gnId = arrayDesign.getGeneId(deId);
                 // TODO: currently, we only have one gene per DE; we may want to change it later on
                 if (gnId != null && !gnId.isEmpty()) {
                     gnIds.setLong(i, gnId.get(0));
                     geneMapped = true;
                 }
+            } else {
+                unmappedDeCount++;
             }
             ++i;
         }
@@ -456,6 +457,9 @@ public class NetCDFDataCreator {
             warnings.add("No design element mappings were found");
         if (!geneMapped)
             warnings.add("No gene mappings were found");
+        if(unmappedDeCount > 0) {
+            log.info("There were " + unmappedDeCount + " unmapped design elements out of " + i);
+        }
     }
 
     private void writeAssayAccessions(NetcdfFileWriteable netCdf) throws IOException, InvalidRangeException {
