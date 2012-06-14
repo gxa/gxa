@@ -63,6 +63,17 @@
                 Experiments loaded in the Gene Expression Atlas
             </div>
 
+            <div class="expSearch">
+                <form id="experimentFilterForm" action="javascript:alert('error');">
+                    <table>
+                        <tr>
+                            <td><input type="text" class="value" id="expFilter"/></td>
+                            <td><input type="submit" value="SEARCH" /></td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
                            defaultsort="2" defaultorder="descending"
                            requestURIcontext="false" id="experiment"
