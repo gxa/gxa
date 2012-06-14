@@ -1317,7 +1317,7 @@
             });
 
             $(target).bind("mouseleave", function() {
-                tooltip.remove();
+                tooltip.hide();
             });
 
         };
@@ -1505,21 +1505,44 @@
                             continue;
                         }
                         if (s.hasOwnProperty(p[0])) {
-                            s[p[0]] = decodeURIComponent(p[1]);
+                            populateValuesForProperty(s, p[0], decodeURIComponent(p[1]));
                         }
                     }
                 }
 
                 for (var o in opts) {
                     if (s.hasOwnProperty(o)) {
-                        s[o] = opts[o];
+                        populateValuesForProperty(s, o, opts[o]);
                     }
+                }
+            }
+
+            function populateValuesForProperty(state, prop, valuesStr) {
+                if (prop == 'gid' && valuesStr != null && valuesStr != '') {
+                    // Note that state stores property-values in a single array, that has
+                    // an even number of elements. For each elements, first at an even index i
+                    // and the second at index i+1, geneConditions[i] is a gene property,
+                    // and geneConditions[i+1] is a value for property geneConditions[i].
+                    var geneConditions = [];
+                    var vals = valuesStr.split(" ");
+                    for (i = 0; i < vals.length; i++) {
+                        geneConditions.push(""); // (any) property
+                        geneConditions.push(vals[i]); // single condition value
+                    }
+                    state[prop] = geneConditions;
+                } else {
+                    state[prop] = valuesStr;
                 }
             }
 
             function newState(s) {
                 s = s || {};
-                return {eid: s.eid || null, ad: s.ad || null,  gid:null, ef:null, efv:null, updown:null, offset:0, limit:10};
+                return {
+                    eid: s.eid || null,
+                    ad: s.ad || null,
+                    gid: null,
+                    arrayDesigns: s.arrayDesigns || null,
+                    ef:null, efv:null, updown:null, offset:0, limit:10};
             }
 
             return {
@@ -1533,6 +1556,10 @@
 
                 gid: function() {
                     return getOrSetValue("gid", arguments);
+                },
+
+                arrayDesigns: function() {
+                    return getOrSetValue("arrayDesigns", arguments);
                 },
 
                 ad: function() {
@@ -1588,6 +1615,23 @@
 
         var _designElements = [];
 
+        var commonTokenOptions = {
+            hideText: "hide suggestions",
+            noResultsText: "no results found",
+
+            getItemList:  function (json, query) {
+                return json.completions[query];
+            },
+
+            formatToken: function(row) {
+                return row.value.length > 100 ? row.value.substr(0, 100) + '...' : row.value;
+            },
+
+            formatTokenTooltip: function(row) {
+                return row.value;
+            }
+        };
+
         var _expPlot = new ExperimentPlot();
         $(_expPlot).bind("dataDidLoad", dataDidLoad);
 
@@ -1642,25 +1686,193 @@
             search();
         }
 
-        function initForm(opts) {
-            $("#geneFilter").val(_state.gid());
+        function ellipsis(val, n) {
+            return val.length > n ? val.substr(0, n) + '...' : val
+        }
+
+        function tokenizeGeneInput(fvalfield, property, defaultvalue, arrayDesigns) {
+            fvalfield.tokenInput(atlas.fullPathFor("fval"), $.extend(true, {}, commonTokenOptions,
+                {
+                    extraParams: {
+                        factor: property,
+                        type: "gene",
+                        limit: 15,
+                        f:"arrayDesigns",
+                        arrayDesigns:arrayDesigns
+                    },
+
+                    defaultValue: defaultvalue,
+
+                    formatListItem: function(row, q, i) {
+                        var text = $.highlightTerm(ellipsis(row.value, 50), q, 'b');
+                        var title = row.value;
+                        var prop = property ? "" : (row.property || "").toLowerCase();
+                        var ext = "";
+                        var count = row.count || 0;
+
+                        if (prop == "gene") {
+                            var otherNames = row.otherNames || [];
+                            ext = otherNames.length > 0 ? "(" + otherNames.join(",") + ") " : "";
+                            ext += row.species;
+                            title += " " + ext;
+                        }
+
+                        var span = $("<span>");
+                        span.attr("title", title);
+                        if (prop) {
+                            span.append($("<em>").html(prop + ":"));
+                        }
+                        span.append("&nbsp;" + text);
+                        if (ext) {
+                            span.append($("<em>").html("&nbsp;" + ext));
+                        }
+                        if (count > 0) {
+                            span.append($("<em>").html("&nbsp;(" + count + ")"));
+                        }
+                        return $("<div>").append(span).html();
+                    },
+
+                    formatToken: function(row) {
+                        var text = row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                        return text.length > 20 ? text.substr(0, 20) + '...' : text;
+                    },
+
+                    formatTokenTooltip: function(row) {
+                        return row.property == "gene" && row.value == row.id && row.otherNames.length > 0 ? row.otherNames[0] : row.value;
+                    },
+
+                    formatId: function(res) {
+                        return res.property == "gene" ? res.id : res.value;
+                    }
+
+                }));
+        }
+
+        function populateStateWithQueryConditions() {
+            for (var i = 0; i < arguments.length; i++) {
+                var fieldName = arguments[i].selector;
+                if (fieldName == "#geneFilter") {
+                    populateStateWithGeneConditions();
+                } else if (fieldName == "#efvFilter") {
+                    _state.efEfv(arguments[i].val());
+                } else if (fieldName == "#updownFilter") {
+                    _state.updown(arguments[i].val());
+                }
+            }
+        }
+
+        function trim(value) {
+            return $.trim(value || "");
+        }
+
+
+        function populateStateWithGeneConditions() {
+            hiddenInput = $("#expressionListFilterForm").find('input:hidden'); // field containing tokenized values
+            inputBox = $("#expressionListFilterForm").find('input[id="gene"]'); // field containing non-tokenized values
+            var geneConditions = [];
+            // Add to geneConditions all tokenized (i.e. autocompleted) values, along with their corresponding property
+            // e.g. tokenizedGeneConditions:
+            // [Object { value="ENSG00000136487", property="gene"}, Object { value="ENSG00000221826", property="gene"}]
+            var tokenizedGeneConditions = hiddenInput.get(0).geneProperties;
+            if (tokenizedGeneConditions) {
+                for (var i = 0; i < tokenizedGeneConditions.length; i++) {
+                    geneConditions.push(tokenizedGeneConditions[i].property);
+                    geneConditions.push(trim(tokenizedGeneConditions[i].value));
+                }
+            }
+
+            // Now add to geneConditions all non-tokenized values (with empty==(any) property)
+            nonTokenizedVals = trim(inputBox.val());
+            if (nonTokenizedVals != '' && nonTokenizedVals != '(all genes)') {
+                var nonTokenizedGeneConditions = nonTokenizedVals.split(" ");
+                for (i = 0; i < nonTokenizedGeneConditions.length; i++) {
+                    geneConditions.push("");
+                    geneConditions.push(trim(nonTokenizedGeneConditions[i]));
+                }
+            }
+
+            _state.gid(geneConditions);
+        }
+
+        function initFormTips() {
+            $("#genes_tip").qMarkTip("Please enter a gene or design element name, synonym, Ensembl or UniProt identifier, GO category, etc. Start typing and autosuggest will help you narrow down your choice.");
+            $("#conditions_tip").qMarkTip("Please select an experimental factor value you want to search for");
+            $("#search_tip").qMarkTip("You can search the experiment by any combination of genes/design elements, differential expression type and an experimental factor value.");
+            $("#search_results_tip").qMarkTip("The search results by default contain 10 design elements with the strongest differential expression confidence across all experimental conditions.");
+            $("#page_size_tip").qMarkTip("Modify this value (maximum: 200) to change the number of design elements being shown on one page of the search results");
+
+
+        }
+
+        function initForm() {
+            initFormTips();
+
+            // Populate geneFilter input field with values from the experiment page's URL
+            if (_state.gid() != null) {
+                var geneConditions = _state.gid();
+                var geneVals = "";
+                for (var i = 1; i < geneConditions.length; i += 2) {
+                    if (geneVals != '') {
+                        geneVals += " ";
+                    }
+                    geneVals += geneConditions[i];
+                }
+                $("#geneFilter").val(geneVals);
+            }
+
+            $("#geneFilter").get(0).geneProperties = [];
+
+            // Attach to geneFilter field the autocomplete functionality for gene properties
+            tokenizeGeneInput($("#geneFilter"), '', '(all genes)', _state.arrayDesigns());
+
+            $("#geneFilter").bind("addResult", function(event, geneToken) {
+                var props = event.target.geneProperties;
+
+                if (!props) {
+                    return;
+                }
+
+                props.push({
+                    value: geneToken.id,
+                    property: geneToken.property
+                });
+            });
+
+            $("#geneFilter").bind("removeResult", function(event, geneToken) {
+                var props = event.target.geneProperties;
+
+                if (!props) {
+                    return;
+                }
+
+                for (var i = 0; i < props.length; i++) {
+                    var gene = props[i];
+                    if (gene.value == geneToken.id) {
+                        props.splice(i, 1);
+                        break;
+                    }
+                }
+            });
+
             $("#efvFilter").val(_state.efEfv());
             $("#updownFilter").val(_state.updown());
             $("#experimentTablePageSize").val(_state.limit());
 
-            $("#geneFilter").change(function() {
-                _state.gid($(this).val());
-                newSearch();
-            });
-
             $("#efvFilter").change(function() {
-                _state.efEfv($(this).val());
-                newSearch();
+                populateStateWithQueryConditions($("#geneFilter"), $("#efvFilter"));
             });
 
             $("#updownFilter").change(function() {
-                _state.updown($(this).val());
+                populateStateWithQueryConditions($("#geneFilter"), $("#updownFilter"));
+            });
+
+            $("#geneFilter").bind("bestAnalyticsSearch", function() {
+                populateStateWithQueryConditions($("#geneFilter"));
                 newSearch();
+            });
+
+            $("#findBestAnalytics").click(function () {
+                $("#geneFilter").trigger("bestAnalyticsSearch");
             });
 
             $("#expressionListFilterForm").bind("submit", function() {
@@ -1675,6 +1887,7 @@
                 }
                 _state.limit(limit);
                 _state.offset(0);
+                populateStateWithQueryConditions($("#geneFilter"));
                 newSearch();
             });
         }
@@ -1682,8 +1895,13 @@
         function clearForm() {
             _state.clear();
             $("#geneFilter").val("");
+            $("#geneFilter").get(0).geneProperties = [] // clear stored tokenized values
+            $("#expressionListFilterForm").find('input[id="gene"]').val(""); // clear non-tokenized values
+            $("#expressionListFilterForm").find('li[class="tokeninput"]').remove(); // remove tokenized values visible to the user
             $("#efvFilter").attr("selectedIndex", 0);
+            $("#efvFilter").val("||");
             $("#updownFilter").attr("selectedIndex", 0);
+            $("#updownFilter").val("CONDITION_UP_OR_DOWN");
             $("#divErrorMessage").css("visibility", "hidden");
         }
 
@@ -1703,7 +1921,7 @@
 
         function submitQuery(callback) {
             loadExpressionAnalysis(
-                    _state.eid(), _state.ad(), _state.gid(), _state.ef(), _state.efv(), _state.updown(), _state.offset(), _state.limit(), callback);
+                _state.eid(), _state.ad(), _state.gid(), _state.ef(), _state.efv(), _state.updown(), _state.offset(), _state.limit(), callback);
         }
 
         function startLoading() {
@@ -1717,13 +1935,13 @@
             atlas.removeWaiter2();
         }
 
-        function loadExpressionAnalysis(expAcc, ad, gene, ef, efv, updn, offset, limit, callback) {
+        function loadExpressionAnalysis(expAcc, ad, geneConditions, ef, efv, updn, offset, limit, callback) {
             startLoading();
 
             var data = {
                 "format": "json",
                 "eacc": expAcc,
-                "gid": gene,
+                "gid": geneConditions != null ? geneConditions.join(",") : geneConditions,
                 "ad": ad ,
                 "ef": ef ,
                 "efv": efv ,
@@ -1733,7 +1951,7 @@
             };
 
             //TODO this is already done in ajaxLoader
-            for(p in data) {
+            for (p in data) {
                 if (data.hasOwnProperty(p)) {
                     var v = data[p];
                     if (v === null || v === "" || v === undefined) {
@@ -1754,24 +1972,28 @@
         function process(data, expressionAnalysisOnly) {
             stopLoading();
 
-            var tableItems = {};
-            var tableSize = 0;
-            var geneToolTips = {};
-            var arrayDesign = null;
+            data = data || {};
 
-            if (!data || data.totalSize == 0) {
+            var tableItems = {},
+                tableSize = 0,
+                geneToolTips = {},
+                arrayDesign = null;
+
+            var analytics = data.analytics;
+
+            if ((analytics.totalSize || 0) == 0) {
                 $("#divErrorMessage").css("visibility", "visible");
                 $("#expressionTableBody").empty();
                 data = null;
             } else {
-                tableItems = data.items;
-                tableSize = data.totalSize;
+                tableItems = analytics.rows || [];
+                tableSize = analytics.totalSize || 0;
                 geneToolTips = data.geneToolTips;
-                $('#arrayDesign').html(data.arrayDesign);
-                arrayDesign = data.arrayDesign;
+                $('#arrayDesign').html(analytics.arrayDesignAccession);
+                arrayDesign = analytics.arrayDesignAccession;
             }
 
-            $("#expressionTableBody").data("json", data);
+            $("#expressionTableBody").data("json", analytics);
 
             var eAs = [];
             _designElements = [];

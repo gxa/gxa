@@ -203,7 +203,7 @@ final class NetCDFProxyV1 extends NetCDFProxy {
      * @throws AtlasDataException if the expression data could not be read from the netCDF file,
      *                            or if the file doesn't contain given deIndices
      */
-    public FloatMatrixProxy getExpressionValues(int[] deIndices) throws AtlasDataException {
+    public FloatMatrixProxy getExpressionData(int[] deIndices) throws AtlasDataException {
         return readFloatValuesForRowIndices(netCDF, deIndices, "BDC");
     }
 

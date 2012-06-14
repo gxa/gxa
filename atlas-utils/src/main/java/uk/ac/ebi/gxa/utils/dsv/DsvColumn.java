@@ -20,29 +20,17 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.web.controller;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import uk.ac.ebi.gxa.service.ChEbiXrefExportService;
+package uk.ac.ebi.gxa.utils.dsv;
 
 /**
- * User: nsklyar
- * Date: 02/05/2012
+ * @author Olga Melnichuk
  */
-@Controller
-public class ChEbiExportController {
 
-    @Autowired
-    private ChEbiXrefExportService chEbiExportService;
+public interface DsvColumn<T> {
 
-    @RequestMapping(value = "/chEbiExport")
-    public String getAnnotationSourceList(Model model) {
-       model.addAttribute("chEbiEntries", chEbiExportService.exportChEbiEntries());
-       return "chEbiExport/chEbi-Export";
-    }
+    public String convert(T value);
 
+    public String getName();
+
+    public String getDescription();
 }
-

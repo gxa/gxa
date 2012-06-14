@@ -25,17 +25,22 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jee="http://www.springframework.org/schema/jee"
        xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="
 http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/jee
 http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 http://www.springframework.org/schema/util
-http://www.springframework.org/schema/util/spring-util.xsd">
+http://www.springframework.org/schema/util/spring-util.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd">
     <import resource="classpath*:uk/ac/ebi/gxa/dao/daoContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/annotator/annotationCommandContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/web/hibernate/hibernateContext.xml"/>
     <import resource="classpath*:uk/ac/ebi/gxa/loader/loaderContext.xml"/>
+
+    <context:component-scan base-package="uk.ac.ebi.gxa.service"/>
 
     <bean id="threadPool" class="java.util.concurrent.Executors" factory-method="newFixedThreadPool"
           destroy-method="shutdown">
@@ -217,15 +222,23 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="httpClient"
           class="org.apache.http.client.HttpClient"
-            factory-bean="httpClientFactoryBean"
-            factory-method="createInstance">
+          factory-bean="httpClientFactoryBean"
+          factory-method="createInstance">
     </bean>
 
     <!-- Web interface component -->
 
-    <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO">
+    <bean name="geneSolrDAO" class="ae3.dao.GeneSolrDAO"
+          destroy-method="shutdown">
         <property name="geneSolr" ref="solrServerAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="genePropService" ref="atlasGenePropertyService"/>
+        <property name="executorService">
+            <bean class="java.util.concurrent.Executors"
+                  factory-method="newFixedThreadPool">
+                <constructor-arg type="int" value="10"/>
+            </bean>
+        </property>
     </bean>
 
     <bean name="experimentSolrDAO" class="ae3.dao.ExperimentSolrDAO">
@@ -238,6 +251,7 @@ http://www.springframework.org/schema/util/spring-util.xsd">
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasStatisticsQueryService" ref="atlasStatisticsQueryService"/>
         <property name="propertyDAO" ref="propertyDAO"/>
+        <property name="propertyValueDAO" ref="propertyValueDAO"/>
         <!-- needs it for cache updates -->
         <property name="indexBuilder" ref="indexBuilder"/>
     </bean>
@@ -328,6 +342,36 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="annotationCommandRunner" ref="annotationCommandRunner"/>
+    </bean>
+
+    <!-- Download services -->
+
+    <bean id="downloadJanitorService" class="uk.ac.ebi.gxa.download.JanitorService">
+        <constructor-arg name="schedulerService">
+            <bean id="downloadTaskResultWatcher" class="java.util.concurrent.Executors"
+                  factory-method="newScheduledThreadPool"
+                  destroy-method="shutdown">
+                <constructor-arg type="int" value="10"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="startDelay" value="1"/>
+        <constructor-arg name="repeatInterval" value="1"/>
+        <property name="startDelayTimeUnit" value="HOURS"/>
+        <property name="repeatIntervalTimeUnit" value="HOURS"/>
+    </bean>
+
+    <bean name="downloadQueue" class="uk.ac.ebi.gxa.download.DownloadQueue"
+          destroy-method="shutdown">
+        <constructor-arg name="taskExecutor">
+            <bean class="java.util.concurrent.Executors"
+                  factory-method="newFixedThreadPool">
+                <constructor-arg type="int" value="10"/>
+            </bean>
+        </constructor-arg>
+        <constructor-arg name="janitorService" ref="downloadJanitorService"/>
+    </bean>
+
+    <bean name="experimentDownloadService" class="uk.ac.ebi.gxa.download.ExperimentDownloadData">
     </bean>
 
     <!-- Servlets (actually, HttpRequestHandlers) -->
@@ -508,7 +552,10 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="annSrcController" class="uk.ac.ebi.gxa.annotation.AnnotationSourceController">
     </bean>
 
-    <bean name="chEbiExportService" class="uk.ac.ebi.gxa.service.ChEbiXrefExportService">
+    <bean name="chEbiExporter" class="uk.ac.ebi.gxa.service.export.ChEbiXrefExporter">
+    </bean>
+
+    <bean name="compoundExporter" class="uk.ac.ebi.gxa.service.export.CompoundExporter">
     </bean>
 
     <!--Configure R workbench -->

@@ -42,7 +42,6 @@
     <tx:annotation-driven transaction-manager="atlasTxManager"/>
 
     <context:component-scan base-package="uk.ac.ebi.gxa.dao"/>
-    <context:component-scan base-package="uk.ac.ebi.gxa.service"/>
     <context:annotation-config/>
 
     <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
@@ -53,6 +52,7 @@
         <constructor-arg ref="bioEntityDAO"/>
         <constructor-arg ref="experimentDAO"/>
         <constructor-arg ref="assayDAO"/>
+        <constructor-arg ref="softwareDAO"/>
     </bean>
 
     <bean name="arrayDesignDAO" class="uk.ac.ebi.gxa.dao.ArrayDesignDAO">

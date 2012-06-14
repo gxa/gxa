@@ -24,6 +24,7 @@ package uk.ac.ebi.gxa.data;
 
 import com.google.common.base.Predicate;
 import com.google.common.primitives.Longs;
+import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.ExpressionAnalysis;
@@ -50,6 +51,19 @@ public class ExperimentPart {
                                                   Predicate<Pair<String, String>> efvPredicate)
             throws AtlasDataException, StatisticsNotFoundException {
         return ewd.getStatistics(arrayDesign, bePredicate, efvPredicate);
+    }
+
+    public StatisticsCursor getStatisticsIterator(int[] deIndices)
+            throws AtlasDataException, StatisticsNotFoundException {
+        return ewd.getStatistics(arrayDesign, deIndices);
+    }
+
+    public ExpressionDataCursor getExpressionData() throws AtlasDataException {
+        return ewd.getExpressionData(arrayDesign);
+    }
+
+    public ExpressionDataCursor getExpressionData(int[] deIndices) throws AtlasDataException {
+        return ewd.getExpressionData(arrayDesign, deIndices);
     }
 
     public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForGeneIds(Collection<Long> geneIds)
@@ -113,6 +127,14 @@ public class ExperimentPart {
 
     public ArrayDesign getArrayDesign() {
         return arrayDesign;
+    }
+
+    public static ExperimentPart find(ExperimentWithData ewd, String adAcc) throws ResourceNotFoundException {
+        ArrayDesign ad = ewd.getExperiment().getArrayDesign(adAcc);
+        if (ad == null) {
+            throw new ResourceNotFoundException("Experiment doesn't have arrayDesign: " + adAcc);
+        }
+        return new ExperimentPart(ewd, ad);
     }
 
     boolean hasEfEfv(String ef, String efv) throws AtlasDataException, StatisticsNotFoundException {

@@ -5,7 +5,9 @@
         xsi:schemaLocation="http://www.isdc.ro/wro wro.xsd">
 
     <group name="bundle-jquery">
-        <js minimize="false">/scripts/jquery-1.5.min.js</js>
+        <js minimize="false">/scripts/jquery-1.7.1.min.js</js>
+        <js minimize="false">/scripts/jquery-ui/jquery-ui-1.8.18.custom.min.js</js>
+        <css minimize="false">/scripts/jquery-ui/css/custom-theme/jquery-ui-1.8.18.custom.css</css>
     </group>
 
     <group name="bundle-jquery-flot">
@@ -29,7 +31,6 @@
         <js>/scripts/jquery.address-1.4.js</js>
         <js>/scripts/jquery.tooltip.js</js>
         <js>/scripts/jquery.cookie.js</js>
-        <js>/scripts/jquery.dimensions.js</js>
         <js>/scripts/jquery.tmpl.min.js</js>
         <js>/scripts/pure2.js</js>
     </group>
@@ -46,6 +47,7 @@
         <js>/scripts/src/core/tooltips.js</js>
         <js>/scripts/src/core/geneExperimentList.js</js>
         <js>/scripts/src/core/genePage.js</js>
+        <js>/scripts/src/core/download.js</js>
         <js>/scripts/common-query.js</js>
         <js>/scripts/feedback.js</js>
     </group>
@@ -87,8 +89,9 @@
     <group name="bundle-gxa-page-experiment">
         <css>/scripts/jquery-lightbox/css/lightbox.css</css>
         <css>/experiment-view.css</css>
-
+        <css>/scripts/jquery-token-autocomplete/css/jquery.token.autocomplete.css</css>
         <js>/scripts/jquery-lightbox/jquery.lightbox.js</js>
+        <js>/scripts/jquery-token-autocomplete/jquery.token.autocomplete.js</js>
         <js>/scripts/experiment.js</js>
     </group>
 

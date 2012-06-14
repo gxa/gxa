@@ -20,18 +20,14 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.spring.view.dsv;
-
-import java.util.Iterator;
+package uk.ac.ebi.gxa.download;
 
 /**
  * @author Olga Melnichuk
  */
-public interface DsvDocument {
+public class TaskExecutionException extends Exception {
 
-    public String[] getHeader();
-
-    public String[] getColumnsDescription();
-
-    public abstract Iterator<String[]> getRowIterator();
+    public TaskExecutionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

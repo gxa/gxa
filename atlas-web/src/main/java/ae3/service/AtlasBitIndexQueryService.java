@@ -566,6 +566,16 @@ public class AtlasBitIndexQueryService implements AtlasStatisticsQueryService {
     }
 
     /**
+     *
+     * @param statisticsType
+     * @param bioEntityId
+     * @return true if bioEntityId has any scores across all EFO's for statisticsType; false otherwise
+     */
+    public boolean isScoringBioEntity(StatisticsType statisticsType, Integer bioEntityId) {
+        return StatisticsQueryUtils.getScoresAcrossAllEfos(statisticsType, statisticsStorage).contains(bioEntityId);
+    }
+
+    /**
       * Populate bestExperimentsSoFar with an (unsorted) list of experiments with best pval/tstat rank, for statisticsQuery
       *
       * @param statisticsQuery

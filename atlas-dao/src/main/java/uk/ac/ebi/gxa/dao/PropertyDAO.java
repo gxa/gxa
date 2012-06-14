@@ -72,20 +72,18 @@ public class PropertyDAO extends AbstractDAO<Property> {
         return results;
     }
 
+    public boolean isPropertyUsed(String propertyName) {
+        if (!template.find("from Assay a left join a.properties p where p.propertyValue.property.name = ?", propertyName).isEmpty() ||
+                !template.find("from Sample s left join s.properties p where p.propertyValue.property.name = ?", propertyName).isEmpty())
+            return true;
+        return false;
+    }
+
     /**
      * Remove all properties that are not referenced in any assay/sample
      */
     public void removeUnusedProperties() {
         for (Property property : getUnusedProperties())
             delete(property);
-    }
-
-    /**
-     *
-     * @param property
-     * @return all values for property
-     */
-    public List<PropertyValue> getValues(Property property) {
-        return property.getValues();
     }
 }

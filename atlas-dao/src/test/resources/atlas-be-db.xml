@@ -814,8 +814,8 @@
             ORGANISMID="1000"
             BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
             DATABASENAME="ensembl"
-            MYSQLDBNAME="homo_sapiens"
-            MYSQLDBURL="ensembldb.ensembl.org:5306"
+            MYSQLDBNAME = "homo_sapiens"
+            MYSQLDBURL = "ensembldb.ensembl.org:5306"
             />
 
     <A2_ANNOTATIONSRC
@@ -835,8 +835,8 @@
             ORGANISMID="1000"
             BIOMARTORGANISMNAME="hsapiens_gene_ensembl"
             DATABASENAME="ensembl"
-            MYSQLDBNAME="homo_sapiens"
-            MYSQLDBURL="ensembldb.ensembl.org:5306"
+            MYSQLDBNAME = "homo_sapiens"
+            MYSQLDBURL = "ensembldb.ensembl.org:5306"
             />
 
 
@@ -953,4 +953,8 @@
     <A2_ASSAYPVONTOLOGY
             ONTOLOGYTERMID="3"
             ASSAYPVID="11"/>
+
+    <A2_SAMPLEPVONTOLOGY
+            ONTOLOGYTERMID="1"
+            SAMPLEPVID="1"/>
 </dataset>

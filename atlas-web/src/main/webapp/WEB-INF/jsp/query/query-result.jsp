@@ -145,7 +145,7 @@
             current_page: ${result.page},
             num_edge_entries: 1,
             items_per_page: ${result.rowsPerPage},
-            link_to: '${pageUrl}&p=__id__',
+            link_to: '${pageUrl}&searchMode=${param.searchMode}&p=__id__',
             next_text: "&raquo;",
             prev_text: "&laquo;",
             callback: function(page) { return true; }
@@ -192,7 +192,7 @@
                     <c:set var="efname">${f:escapeXml(atlasProperties.curatedEfs[ef.ef])}</c:set>
                     <div class="name">${efname}</div>
                     <ul><c:forEach var="efv" items="${ef.efvs}" varStatus="s">
-                        <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="ftot" title="Filter for genes up or down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>
+                        <li><nobr><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP_DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}&amp;searchMode=${param.searchMode}" class="ftot" title="Filter for genes up or down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${u:truncate(efv.efv, 30)}"/></a>
                             (<c:if test="${efv.payload.up > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=UP&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fup" title="Filter for genes up in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${efv.payload.up}"/>&#8593;</a></c:if><c:if test="${efv.payload.up > 0 && efv.payload.down > 0}">&nbsp;</c:if><c:if test="${efv.payload.down > 0}"><a href="${pageUrl}&amp;fact_${cn}=${u:escapeURL(ef.ef)}&amp;fexp_${cn}=DOWN&amp;fval_${cn}=${u:escapeURL(u:optionalQuote(efv.efv))}" class="fdn" title="Filter for genes down in ${efname}: ${f:escapeXml(efv.efv)}"><c:out value="${efv.payload.down}"/>&#8595;</a></c:if>)
                         </nobr></li>
                     </c:forEach></ul>
@@ -204,7 +204,7 @@
                     <div class="name">Organism</div>
                     <ul>
                         <c:forEach var="sp" items="${result.geneFacets['species']}" varStatus="s">
-                            <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}" class="ftot" title="Filter by organism ${f:escapeXml(sp.name)}"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
+                            <li><nobr><a href="${pageUrl}&amp;specie_${sn}=${u:escapeURL(sp.name)}&amp;searchMode=${param.searchMode}" class="ftot" title="Filter by organism ${f:escapeXml(sp.name)}"><c:out value="${f:toUpperCase(f:substring(sp.name, 0, 1))}${f:toLowerCase(f:substring(sp.name, 1, -1))}"/></a>&nbsp;(<c:out value="${sp.count}"/>)</nobr></li>
                         </c:forEach>
                     </ul>
                 </div>
@@ -216,7 +216,7 @@
                         <div class="name">${gpname}</div>
                         <ul>
                             <c:forEach var="fv" items="${facet.value}" varStatus="s">
-                                <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}" title="Filter for genes with ${gpname}: ${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
+                                <li><nobr><a href="${pageUrl}&amp;gval_${gn}=${u:escapeURL(u:optionalQuote(fv.name))}&amp;gprop_${gn}=${u:escapeURL(facet.key)}&amp;searchMode=${param.searchMode}" title="Filter for genes with ${gpname}: ${f:escapeXml(fv.name)}" class="ftot"><c:out value="${u:truncate(fv.name, 30)}"/></a>&nbsp;(<c:out value="${fv.count}"/>)</nobr></li>
                             </c:forEach>
                         </ul>
                     </div>
@@ -230,7 +230,7 @@
 <td class="column" id="resultpane" width="900px">
 <div id="summary">
     <span id="pagetop" class="pagination_ie page_long"></span>
-    Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : result.page * result.rowsPerPage}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
+    Genes <c:out value="${result.page * result.rowsPerPage == 0 ? 1 : (result.page * result.rowsPerPage)+1}"/>-<c:out value="${(result.page + 1) * result.rowsPerPage > result.total ? result.total : (result.page + 1) * result.rowsPerPage }"/> of <b><c:out value="${result.total}" /></b> total found
     <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">
         <span>(you can <a href="#" onclick="$('#drilldowns').animate({width:'show'});$(this).parent().remove();return false;">refine your query</a>)</span>
     </c:if>
@@ -348,10 +348,10 @@
                     <div style="width:${f:length(c.efvs) * 27 - 1}px;">${eftitle}</div>
                     <c:choose>
                         <c:when test="${u:isIn(query.expandColumns, c.ef)}">
-                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}">&#0171;<c:if test="${f:length(c.efvs) > 1}">&nbsp;fewer</c:if></a>
+                            <a title="Collapse factor values for ${eftitle}" href="${pageUrl}&amp;p=${result.page}&amp;searchMode=${param.searchMode}">&#0171;<c:if test="${f:length(c.efvs) > 1}">&nbsp;fewer</c:if></a>
                         </c:when>
                         <c:when test="${u:isIn(result.expandableEfs, c.ef)}">
-                            <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}"><c:if test="${f:length(c.efvs) > 1}">more&nbsp;</c:if>&#0187;</a>
+                            <a title="Show more factor values for ${eftitle}..." href="${pageUrl}&amp;p=${result.page}&amp;fexp=${c.ef}&amp;searchMode=${param.searchMode}"><c:if test="${f:length(c.efvs) > 1}">more&nbsp;</c:if>&#0187;</a>
                         </c:when>
                     </c:choose>
                 </th>

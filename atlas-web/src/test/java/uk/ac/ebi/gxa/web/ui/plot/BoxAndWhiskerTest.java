@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.web.ui.plot;
 
 import org.junit.Test;
+import uk.ac.ebi.gxa.data.DataMatrixStorage;
 
 import java.util.Random;
 
@@ -64,7 +65,7 @@ public class BoxAndWhiskerTest {
         );
 
         checkBoxAndWhisker(
-                newBoxAndWhisker(1.0f, 1.0f, 2.0f, 2.0f),
+                newBoxAndWhisker(1.0f, 1.0f, 2.0f, 2.0f, DataMatrixStorage.NA_VAL),
                 1.0, 1.0, 1.0, 2.0, 2.0
         );
     }
