@@ -33,12 +33,6 @@ read.atlas.nc <<- function (filename) {
 	# column in the SDRF.
 	assayScanNames = as.vector(get.var.ncdf(netCDF, "ASacc"))
 	
-	# Under "BSacc" are accessions/names from "Source Name" column in SDRF.
-	bioSourceNames = as.vector(get.var.ncdf(netCDF, "BSacc"))
-
-	# b2a: mapping between the values in assayScanNames and bioSourceNames.
-	b2a = fixMatrix(get.var.ncdf(netCDF, "BS2AS"), nRows = length(assayScanNames), nCols = length(bioSourceNames))
-
 	# designElements -- vector of the design element (a.k.a probe set names),
 	# under "DEacc" in data NetCDF.
 	designElements = as.vector(get.var.ncdf(netCDF, "DEacc"))
@@ -75,47 +69,19 @@ read.atlas.nc <<- function (filename) {
 		print(paste("Read in EFV:", nrow(factorValues), "x", ncol(factorValues)))
 	}
 
-	# See if we've got sample characteristics
-	if ("SC" %in% names(netCDF$dim)) {
-		
-		# sampleCharNames -- vector of sample characteristic names (from
-		# Characteristics[] in MAGE-TAB).
-		sampleCharNames = get.var.ncdf(netCDF, "SC")
-		
-		# sampleCharValues -- matrix of sample characteristic values. Each
-		# column is a characteristic; each row is a sample.
-		sampleCharValues = get.var.ncdf(netCDF, "SCV")
-		
-		# Set row and column names, make it into a dataframe, print how many
-		# characteristics and samples we have
-		colnames(sampleCharValues) = sampleCharNames
-		rownames(sampleCharValues) = bioSourceNames
-		sampleCharValues = data.frame(sampleCharValues)
-		print(paste("Read in SCV:", nrow(sampleCharValues), "x", ncol(sampleCharValues)))
-	}
 	
-
 	# geneIDs -- a vector of internal Atlas gene IDs, stored under "GN" in
 	# NetCDF.
 	geneIDs = get.var.ncdf(netCDF, "GN")
 
-
-	# Some experiment information
-	# accnum is experiment accession, e.g. 'E-MEXP-3392'.
-	accnum = att.get.ncdf(netCDF,varid = 0,"experiment_accession")$value
-	# qt is quantitation type. 
-	# TODO: review use of quantitation types (no longer stored in NetCDF).
-	qt = att.get.ncdf(netCDF,varid = 0,"quantitationType")$value
-	# arrayDesignAcc is array design accession, e.g. "A-AFFY-99".
-	arrayDesignAcc = att.get.ncdf(netCDF,varid = 0,"ADaccession")$value
-	# arrayDesignName is probably array name from manufacturer e.g. "RaEx-1_0-st-v1".
-	# TODO: review use of array design name (no longer stored in NetCDF).
-	arrayDesignName = att.get.ncdf(netCDF,varid = 0,"ADname")$value
+	# exptAccession is experiment accession, e.g. 'E-MEXP-3392'.
+	exptAccession = att.get.ncdf(netCDF,varid = 0,"experiment_accession")$value
 
 	# Close the NetCDF now we don't need it.
 	close.ncdf(netCDF)
 	
-	# Replaces placeholders for missing expression values in NetCDF with 'NA'.
+	
+	# Replace placeholders for missing expression values in NetCDF with 'NA'.
 	normalizedExpressions = replaceMissingValues(normalizedExpressions)
 
 	# The normalized data matrix is stored in the NetCDF with each row
@@ -133,22 +99,15 @@ read.atlas.nc <<- function (filename) {
 		normalizedExpressions = t(normalizedExpressions)
 	}
 
-	# Set row and column names for the normalized data matrix and 'b2a'.
+	# Set row and column names for the normalized data matrix.
 	rownames(normalizedExpressions) = designElements
 	colnames(normalizedExpressions) = assayScanNames
 
-	rownames(b2a) = assayScanNames
-	colnames(b2a) = bioSourceNames
-	
 	# Log which experiment we're looking at and how big the normalized data
 	# matrix is.
-	print(paste("Read in", accnum))
+	print(paste("Read in", exptAccession))
 	print(paste("Read in normalized data matrix:", nrow(normalizedExpressions), "x", ncol(normalizedExpressions)))
 
-	# Get the experiment and array design accessions from the NetCDF filename.
-	ncinfo = unlist(strsplit(basename(filename),"_|[.]"))
-	ncExptAcc = ncinfo[1]
-	ncArrayDesignAcc = ncinfo[2]
 
 	# Create factorsForEset data frame. If we've got a data frame of factors
 	# already, use this. If not, make an empty one with row names from the
@@ -165,34 +124,12 @@ read.atlas.nc <<- function (filename) {
 	# fDataFrame is a mapping between the gene IDs and design element (probe set) names.
 	fDataFrame = data.frame(geneIDs = geneIDs, designElements = designElements)
 	fData = new("AnnotatedDataFrame", data = fDataFrame)
-	
 	# Set feature names to the design element names
 	featureNames(fData) = designElements
 
 	# pData contains the factor info.
 	pData = new("AnnotatedDataFrame", data = factorsForEset)
 
-
-	# eData is a Biobase MIAME object containing experiment info.
-	# Add accessions and quantitation type to the 'other' slot.
-	eData = new("MIAME",
-		other = list(accession = accnum,
-			experimentid = ncExptAcc,
-			arraydesignid = ncArrayDesignAcc,
-			qt = qt,
-			arraydesignaccnum = arrayDesignAcc,
-			arraydesignname = arrayDesignName
-		)
-	)
-
-	# If we've got sample characteristics, add them to the eData object under
-	# attribute 'sampleCharValues' (renamed from 'scv').
-	if (exists("sampleCharValues")) {
-	  attr(eData, "sampleCharValues") <- sampleCharValues
-	}
-
-	# Also add 'b2a' to the eData object
-	attr(eData, "b2a") <- b2a
 
 	# Create a Biobase AssayData object containing the normalized summarized
 	# expression values (from normalized data matrix).
@@ -209,9 +146,9 @@ read.atlas.nc <<- function (filename) {
 	print(paste("Computed phenoData for", paste(varLabels(pData),collapse = ", "), nrow(pData), "x", ncol(pData)))
 	
 	# Create and return a Biobase ExpressionSet object containing the
-	# normalized summarized expressions, factors, design element accesions and
-	# gene IDs, and experiment metadata (accessions etc).
-	return(new("ExpressionSet", assayData = aData, phenoData = pData, featureData = fData, experimentData = eData))
+	# normalized summarized expressions, factors, design element accessions and
+	# gene IDs.
+	return(new("ExpressionSet", assayData = aData, phenoData = pData, featureData = fData))
 }
 
 
@@ -240,8 +177,7 @@ log2.safe <- function(x) {
 	# Make a new matrix with the log2'ed values in
 	tmp = log2(x + 1e-10)
 
-	# Replace any non-finite (NA, NaN, Inf, -Inf) produced during the log2()
-	# with 0.
+	# Replace any non-finite values produced during the log2() with 0.
 	# Keep NAs that were already present in normalized data matrix.
 	tmp[!(is.finite(tmp) | is.na(x))] <- 0
 
@@ -466,48 +402,14 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 
 
 
-### Atlas analytics processing driver: read the data, compute the linear fit, post-hoc test, adjust and write to tab-delim files
-process.atlas.nc<-
-  function (netCDF) {
-
-    eset = read.atlas.nc(netCDF)
-    info = otherInfo(experimentData(eset))
-    proc = allupdn(eset)
-
-    print("Writing out the results")
-    for (varLabel in varLabels(eset)) {
-      if (!is.null(proc[[varLabel, exact = TRUE]]$contr.fit)) {
-        fitfile <- paste(info$accession, "_", info$experimentid, "_", info$arraydesignid, "_", varLabel, "_", "fit.tab", sep = "")
-        tab <- list()
-        tab$A <- proc[[varLabel, exact = TRUE]]$Amean
-        # tab$Coef <- proc[[varLabel, exact = TRUE]]$contr.fit$coef
-        tab$t <- proc[[varLabel, exact = TRUE]]$contr.fit$t
-        tab$p.value <- as.matrix(proc[[varLabel, exact = TRUE]]$contr.fit$p.value)
-
-        pv = tab$p.value
-        o = !is.na(tab$p.value)
-        pv[o] = p.adjust(pv[o], method = "fdr")
-
-        tab$p.value.adj = pv
-        tab$Res <- unclass(proc[[varLabel, exact = TRUE]]$boolupdn)
-        tab$F <- proc[[varLabel, exact = TRUE]]$F
-        tab$F.p.value <- proc[[varLabel, exact = TRUE]]$F.p.value
-        tab$F.p.value.adj = proc[[varLabel, exact = TRUE]]$F.p.value.adj
-        tab$Genes <- proc[[varLabel, exact = TRUE]]$genes
-        tab <- data.frame(tab, check.names = FALSE)
-        write.table(tab, file = fitfile, quote = FALSE, row.names = FALSE, sep = "\t")
-        print(paste("Wrote",fitfile))
-      }
-    }
-  }
-
-
-
-
-
-
 # computeAnalytics()
-# 	- Atlas analytics, returns instead of writing.
+# 	- Atlas analytics.
+# 	- Calls allupdn() to fit linear models and contrasts for all factors.
+# 	- Writes t-statistics and p-values to statistics NetCDF.
+# 	- Calles updateStatOrder() to rank genes based on differential expression.
+# 	- Returns a vector of the result for each factor ("OK" for those where
+# 	statistics were calculated successfully, "NOK" for those where they
+# 	weren't).
 # ARGUMENTS:
 # 	- data_ncdf <- filename of NetCDF with experiment data.
 # 	- statistics_ncdf <- filename of NetCDF with statistics data (calculated here).
