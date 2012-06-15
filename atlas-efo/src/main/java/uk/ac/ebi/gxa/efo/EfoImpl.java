@@ -23,11 +23,14 @@
 package uk.ac.ebi.gxa.efo;
 
 import com.google.common.io.Closeables;
+import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
+import org.apache.lucene.analysis.LowerCaseTokenizer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.*;
@@ -304,10 +307,13 @@ public class EfoImpl implements Efo {
     }
 
     private void rebuildIndex() {
-        CloseableIndexWriter writer = null;
+        IndexWriter writer = null;
         try {
             indexDirectory = new RAMDirectory();
-            writer = new CloseableIndexWriter(indexDirectory, new LowercaseAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
+            LimitTokenCountAnalyzer analyzer = new LimitTokenCountAnalyzer(new LowercaseAnalyzer(), IndexWriter.MaxFieldLength.LIMITED.getLimit());
+            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,  analyzer);
+            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+            writer = new IndexWriter(indexDirectory, config);
             writer.deleteDocuments(new MatchAllDocsQuery());
 
             for (EfoNode n : getMap().values()) {
