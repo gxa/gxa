@@ -132,27 +132,11 @@ normalizeOneExperiment <- function(files, outFile, scans, mode) {
 		# (filename in 'outFile').
 		
 		# First make some headers for the columns.
-		
 		# How many columns do we need
 		len <- length(sampleNames(eSet))
-		
-		# The scan names after sorting
+		# Write the scan names after sorting
 		write(c("Scan REF", scansSorted), outFile, ncolumns = len+1, sep = "\t")
 		
-		# Not sure why we need this row. Repeats "GEO:AFFYMETRIX_VALUE" for
-		# each column. Don't know what happens to this textfile between its
-		# creation here and analytics.R -- maybe it's needed then or something
-		# (or does analytics.R expect it? can't remember).
-		write(c("Composite Element REF", rep("GEO:AFFYMETRIX_VALUE", len)), outFile, ncolumns = len+1, sep="\t", append=TRUE)
-
-
-		# This line was commented out.
-		# Seems that it adds "Affymetrix:CompositeSequence:HG-U133_Plus_2:" to
-		# the beginning of each probe set ID in the eSet.
-		# Leaving in for now, but not sure that we need to keep it?
-		#featureNames(eSet) = paste("Affymetrix:CompositeSequence:HG-U133_Plus_2:", featureNames(eSet), sep = "")
-
-
 		# Now write the normalized and summarized expression values (accessed
 		# via 'exprs(eSet)') to the outFile. The left-most column is the
 		# probe set IDs. Leave out the column names (col.names=FALSE) as we
