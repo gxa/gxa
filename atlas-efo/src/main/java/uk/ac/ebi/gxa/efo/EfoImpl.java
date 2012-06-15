@@ -311,7 +311,7 @@ public class EfoImpl implements Efo {
         try {
             indexDirectory = new RAMDirectory();
             LimitTokenCountAnalyzer analyzer = new LimitTokenCountAnalyzer(new LowercaseAnalyzer(), IndexWriter.MaxFieldLength.LIMITED.getLimit());
-            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_31,  analyzer);
+            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,  analyzer);
             config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
             writer = new IndexWriter(indexDirectory, config);
             writer.deleteDocuments(new MatchAllDocsQuery());

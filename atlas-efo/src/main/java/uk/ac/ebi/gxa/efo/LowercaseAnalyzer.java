@@ -31,44 +31,32 @@ import java.io.IOException;
 
 /**
  * @author pashky
-*/
+ */
 class LowercaseAnalyzer extends Analyzer {
-   /* private static class LowercaseTokenizer extends CharTokenizer
-    {
-        private LowercaseTokenizer(Version matchVersion, Reader input) {
+    private static class LowerCaseWhiteSpaceTokenizer extends CharTokenizer {
+        private LowerCaseWhiteSpaceTokenizer(Version matchVersion, Reader input) {
             super(matchVersion, input);
         }
 
-        private LowercaseTokenizer(Version matchVersion, AttributeSource source, Reader input) {
-            super(matchVersion, source, input);
-        }
-
-        private LowercaseTokenizer(Version matchVersion, AttributeFactory factory, Reader input) {
-            super(matchVersion, factory, input);
-        }
-
         @Override
-        protected int normalize(int c)
-        {
+        protected int normalize(int c) {
             return Character.toLowerCase(c);
         }
 
         @Override
         protected boolean isTokenChar(int c) {
-            return
+            return !Character.isWhitespace(c);
         }
-    }*/
-
-    public TokenStream tokenStream(String fieldName, Reader reader)
-    {
-        return new LowerCaseTokenizer(Version.LUCENE_31, reader);
     }
 
-    public TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException
-    {
-        Tokenizer tokenizer = (Tokenizer)getPreviousTokenStream();
+    public final TokenStream tokenStream(String fieldName, Reader reader) {
+        return new LowerCaseWhiteSpaceTokenizer(Version.LUCENE_36, reader);
+    }
+
+    public final TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException {
+        Tokenizer tokenizer = (Tokenizer) getPreviousTokenStream();
         if (tokenizer == null) {
-            tokenizer = new LowerCaseTokenizer(Version.LUCENE_31, reader);
+            tokenizer = new LowerCaseWhiteSpaceTokenizer(Version.LUCENE_36, reader);
             setPreviousTokenStream(tokenizer);
         } else
             tokenizer.reset(reader);
