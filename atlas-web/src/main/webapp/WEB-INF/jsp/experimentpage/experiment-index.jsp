@@ -64,11 +64,14 @@
             </div>
 
             <div class="expSearch">
-                <form id="experimentFilterForm" action="javascript:alert('error');">
+                <form id="experimentFilterForm" name="experimentFilterForm" action="index.html" method="get">
                     <table>
                         <tr>
-                            <td><input type="text" class="value" id="expFilter"/></td>
-                            <td><input type="submit" value="SEARCH" /></td>
+                            <td><input type="text" class="value" id="expFilter" name="q"/></td>
+                            <td><input type="submit" value="SEARCH" onclick="function searchSubmit() {
+                                 experimentFilterForm.submit();
+                            }
+                            searchSubmit()"/></td>
                         </tr>
                     </table>
                 </form>
