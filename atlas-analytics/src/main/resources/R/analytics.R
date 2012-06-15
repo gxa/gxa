@@ -118,13 +118,17 @@ read.atlas.nc <<- function (filename) {
 	# Replaces placeholders for missing expression values in NetCDF with 'NA'.
 	normalizedExpressions = replaceMissingValues(normalizedExpressions)
 
+	# The normalized data matrix is stored in the NetCDF with each row
+	# corresponding to an assay, and each column to a design element. For
+	# addition to the eSet and further analysis with BioConductor packages, we
+	# need it to be the other way round, so here we transpose it.
 	# If there's only one assay (unlikely), I think the behaviour is that R
-	# decides 'normalizedExpressions' and 'b2a' should be vectors instead of matrices. We need
-	# them to be matrices so fix them here.
-	# Otherwise (if >1 assay), just transpose the normalized data matrix.
+	# decides 'normalizedExpressions' should be a vector instead of matrices.
+	# We need it to be a matrix so we fix it here. Specifying number of rows
+	# equal to the number of elements in the vector (i.e.
+	# length(designElements)) will produce a matrix with a single column.
 	if (length(assayScanNames) == 1) {
 		normalizedExpressions = matrix(normalizedExpressions, nrow = length(designElements))
-		b2a = matrix(b2a, nrow = 1)
 	} else {
 		normalizedExpressions = t(normalizedExpressions)
 	}
@@ -139,7 +143,7 @@ read.atlas.nc <<- function (filename) {
 	# Log which experiment we're looking at and how big the normalized data
 	# matrix is.
 	print(paste("Read in", accnum))
-	print(paste("Read in BDC:", nrow(normalizedExpressions), "x", ncol(normalizedExpressions)))
+	print(paste("Read in normalized data matrix:", nrow(normalizedExpressions), "x", ncol(normalizedExpressions)))
 
 	# Get the experiment and array design accessions from the NetCDF filename.
 	ncinfo = unlist(strsplit(basename(filename),"_|[.]"))
@@ -633,7 +637,11 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 
 		
 		# Put the contents (transposed) of tstat and pval into the statistics
-		# ncdf object.
+		# ncdf file.
+		# Transposition of matrices for the NetCDFs is required because they are
+		# stored in the NetCDF with each row corresponding to each assay, but
+		# BioConductor packages output them so that each row corresponds to a
+		# design element.
 		print(paste("Writing tstat and pval to NetCDF:", ncol(tstat), "x", nrow(tstat)))
 		put.var.ncdf(statistics_nc, "TSTAT", t(tstat))
 		put.var.ncdf(statistics_nc, "PVAL", t(pval))
@@ -680,8 +688,9 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 updateStatOrder <<- function(data_nc, statistics_nc) {
 	
 	# Now we are reading the p-values and t-statistics from the NetCDF file and
-	# we transposed them before putting them in there. So we need to transpose
-	# them back again first.
+	# we transposed them before putting them in there. We need to transpose
+	# them back again first, so that each row corresponds to a design element.
+	
 	# How many columns should they have? This is equal to the number of
 	# property name entries in the NetCDF, which is equal to the total number
 	# of factor name/value pairs (e.g. 'compound:none', 'compound:NaCl',
@@ -835,6 +844,10 @@ replaceMissingValues <<- function(m) {
 # transposeMatrix()
 # 	- Returns a matrix: if given a matrix, just transposes it with t(); if not,
 # 	creates a matrix with whatever it's given and returns that.
+# 	- Transposition of matrices from the NetCDFs is required because they are
+# 	stored in the NetCDF with each row corresponding to each assay, but for
+# 	analysis with BioConductor packages we require each row to correspond to a
+# 	design element.
 # ARGUMENTS:
 # 	- m <- a matrix (or vector).
 # 	- nCols <- number of columns the returned matrix should have.
