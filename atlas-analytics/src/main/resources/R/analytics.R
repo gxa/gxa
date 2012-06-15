@@ -325,7 +325,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# t-statistics using limma.
 			thisFit = fstat.eset(esetForVariable, factorName = fName)
 			
-			# Create the contrasts matrix. This is a matrix decribing the
+			# Create the contrasts matrix. This is a matrix describing the
 			# comparisons (contrasts) we want to make between the samples.
 			# E.g., is gene x significantly differentially expressed in
 			# 'normal' samples when compared with 'cancer' samples?
@@ -362,25 +362,14 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# differentially expressed.
 			contr.fit = eBayes(contr.fit)
 			
-			# Use decideTests() to call each gene significantly differentially
-			# expressed (or not). Based on t-statistics and p-values, it
-			# decides whether to call a gene 'up', 'down', or not
-			# differentially expressed.
-			# method="global" treats the entire matrix of t-statistics as a
-			# single vector of unrelated tests. We use default p-value of 0.05.
-			#
-			# Adjusted p-values are calculated using Benjamini and Hochberg
-			# (1995) method (fdr) to correct for multiple testing by
-			# controlling the false discovery rate.
-			#
-			# Where do the results of this actually get used?
-			dec = decideTests(contr.fit, method = "global", adjust.method = "fdr")
-			# name the columns of the matrix output of decideTests with factor values.
-			colnames(dec) = levels(esetForVariable[[fName, exact = TRUE]])
 			
-			# Add the matrix output by decideTests to thisFit (an MArrayLM
-			# object, seems to be like an R list object).
-			thisFit$boolupdn = dec
+			# Make a vector of factor values to use in computeAnalytics for
+			# naming columns.
+			factorValues = levels(esetForVariable[[fName, exact = TRUE]])
+			
+			# Add this vector to thisFit
+			thisFit$factorValues = factorValues
+		
 
 			# Add the contrasts fit object to thisFit as well.
 			thisFit$contr.fit = contr.fit
@@ -406,7 +395,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 # 	- Atlas analytics.
 # 	- Calls allupdn() to fit linear models and contrasts for all factors.
 # 	- Writes t-statistics and p-values to statistics NetCDF.
-# 	- Calles updateStatOrder() to rank genes based on differential expression.
+# 	- Calls updateStatOrder() to rank genes based on differential expression.
 # 	- Returns a vector of the result for each factor ("OK" for those where
 # 	statistics were calculated successfully, "NOK" for those where they
 # 	weren't).
@@ -444,7 +433,7 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 		# estimated coefficients and standard errors for the contrasts (i.e.
 		# comparisons between factor values), moderated t-statistics and
 		# adjusted p-values.
-		proc = allupdn(eset)
+		allFits = allupdn(eset)
 		
 		# Get propertyNAME (factor name) and propertyVALUE (factor value) information from the NetCDF.
 		propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
@@ -484,54 +473,40 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 				# If we do not see results from applying the contrasts matrix
 				# for this factor, we don't have any statistics for it, so this
 				# factor is "Not OK".
-				if (is.null(proc[[factorName, exact = TRUE]]$contr.fit)) {
+				if (is.null(allFits[[factorName, exact = TRUE]]$contr.fit)) {
 					return("NOK")
 				}
 				
-				# Empty list called tab.
-				tab <- list()
-
-				# Get the mean log-intensities from proc (proc$Amean) and put
-				# them in tab under tab$A.
-				tab$A <- proc[[factorName, exact = TRUE]]$Amean
-				# Get the t-statistics and put them under tab$t.
-				tab$t <- proc[[factorName, exact = TRUE]]$contr.fit$t
-				# Get the p-values from the contrasts fit and put them (as a
-				# matrix) in tab under tab$p.value.
-				tab$p.value <- as.matrix(proc[[factorName, exact = TRUE]]$contr.fit$p.value)
+			
+				# Get the t-statistics from the contrasts fit.
+				tStatistics <- allFits[[factorName, exact = TRUE]]$contr.fit$t
 				
-				# Another copy of the p-values
-				pv = tab$p.value
-				# Which ones aren't 'NA'
-				o = !is.na(tab$p.value)
+				# Get the p-values from the contrasts fit.
+				pValues <- as.matrix(allFits[[factorName, exact = TRUE]]$contr.fit$p.value)
+			
+				# Which p-values are not NA?
+				nonNaPvals = !is.na(pValues)
+			
 				# Run Benjamini and Hochberg fdr correction on the non-NA p-values.
-				pv[o] = p.adjust(pv[o], method = "fdr")
-				# Add the adjusted p-values to tab
-				tab$p.value.adj = pv
+				pValues[nonNaPvals] = p.adjust(pValues[nonNaPvals], method = "fdr")
 				
-				# Put the calls from decideTests() (-1 = 'down'; 0 =
-				# non-significant; 1 = 'up') in tab under tab$Res. What happens
-				# next with these?
-				tab$Res <- unclass(proc[[factorName, exact = TRUE]]$boolupdn)
+				# Make the column headings we want using the factor name and
+				# the vector of factor values.
+				namesForCols <- make.names(paste(factorName,allFits[[factorName, exact=TRUE]]$factorValues,sep = "||"))
 				
-				# I think that 'genes' gets the design element names? Put these in tab.
-				tab$Genes <- proc[[factorName, exact = TRUE]]$genes
-				
-				# Name the columns of Res with the factor names and values.
-				colnames(tab$Res) <- make.names(paste(factorName,colnames(tab$Res),sep = "||"))
-				
-				# Copy these column names to t-statistic and p-value matrices too.
-				colnames(tab$t) <- colnames(tab$Res)
-				colnames(tab$p.value.adj) <- colnames(tab$Res)
-				
+				# Set the column names for tStatistics and pValues.
+				colnames(tStatistics) <- namesForCols
+				colnames(pValues) <- namesForCols
+
 				# Now fill each column in tstat whose name matches a column in
-				# tab$t with the contents of the matching column in tab$t.
-				tstat[,which(colnames(tstat) %in% colnames(tab$t))] <<- tab$t[,colnames(tstat)[which(colnames(tstat) %in% colnames(tab$t))]]
+				# tStatistics with the contents of the matching column in tStatistics.
+				tstat[,which(colnames(tstat) %in% colnames(tStatistics))] <<- tStatistics[,colnames(tstat)[which(colnames(tstat) %in% colnames(tStatistics))]]
+
 				# Likewise, fill each column in pval whose name matches a column in
-				# tab$p.value.adj with the contents of the matching column in
-				# tab$p.value.adj.
-				pval[,which(colnames(pval) %in% colnames(tab$p.value.adj))] <<- tab$p.value.adj[,colnames(pval)[which(colnames(pval) %in% colnames(tab$p.value.adj))]]
-				
+				# pValues with the contents of the matching column in pValues.
+				pval[,which(colnames(pval) %in% colnames(pValues))] <<- pValues[,colnames(pval)[which(colnames(pval) %in% colnames(pValues))]]
+			
+
 				# Now we've stored the info we need, return "OK" for this factor.
 				return("OK")
 			}
