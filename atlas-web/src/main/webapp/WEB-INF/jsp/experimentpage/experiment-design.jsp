@@ -146,7 +146,7 @@
         </div>
 
         <div id="loadingIndicator">&nbsp;</div>
-        <div style="float:left; margin: 5px;">
+        <div style="margin: 5px;">
             <a class="export2TsvLink" target="_blank" rel="nofollow"
                href="${pageContext.request.contextPath}/experimentDesignTable?format=tsv&eacc=${exp.accession}">Export Experiment Design as Tab-Delimited file</a>
         </div>

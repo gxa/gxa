@@ -1941,7 +1941,7 @@
             var data = {
                 "format": "json",
                 "eacc": expAcc,
-                "geneConditions": geneConditions,
+                "gid": geneConditions != null ? geneConditions.join(",") : geneConditions,
                 "ad": ad ,
                 "ef": ef ,
                 "efv": efv ,
