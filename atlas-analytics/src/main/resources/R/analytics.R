@@ -209,7 +209,7 @@ fstat.eset <- function(eset, factorName) {
 
 	# Create the experiment design matrix for this factor. 
 	# Each row in the design matrix corresponds to an array in the experiment;
-	# each column corresponds to a factor value (a.k.a. coefficient).
+	# each column corresponds to a factor value.
 	# 
 	# Here is an example SDRF:
 	# 		Array	FactorValue[compound]
@@ -241,17 +241,33 @@ fstat.eset <- function(eset, factorName) {
 	# Run lmFit() on the data in eset using the design matrix.
 	# lmFit() fits a linear model for each probe set on the array:
 	#
-	# 	Y_{i} = b_{0} + b_{1}X_{i} + e_{i}
+	# 	Y_{i} = b_{0} + b_{1}X_{i}
+	#
+	# In an example comparing 'normal' samples with 'tumor' samples:
+	# 	- Assuming X{i} = 0 for 'normal' samples: 
+	# 		Y_{N} = b_{0}
+	# 	- Assuming X{i} = 1 for 'tumor' samples:
+	# 		Y_{T} = b_{0} + b_{1}
+	# 	- The coefficient b_{0} is the average log-intensity for 'normal' samples;
+	# 	- The coefficient b_{1} is the change in average log-intensity
+	# 	associated with 'tumor' samples; i.e. the gradient of the line when you
+	# 	go from 'normal' log-intensity to 'tumor' log-intensity. If we want to
+	# 	see if there is a significant difference between 'normal' and 'tumor'
+	# 	expression, we are essentially going to ask if b_{1} is significantly
+	# 	different from 0. Is it just a flat line or is there a gradient?
 	# 
-	# Where Y_{i} is expression from arrays with one factor value and X_{i} is
-	# expression in arrays with the other.
+	# This line is fit for every design element summarized on the array. For
+	# some genes the line's gradient will be positive, i.e. an increase in
+	# log-intensity i.e. expression. For other genes the line's gradient will
+	# be negative i.e. a decrease in log-intensity i.e. expression.
+	# The results are stored in 'fit', a limma MArrayLM object. 
     fit = lmFit(eset, designMatrix)
 
 	# Compute moderated t-test using eBayes().
 	# This is a robust version of the t-test which reduces the false discovery
 	# rate. Standard errors are moderated across genes (shrunk towards a common
 	# value). A gene that has a large variance is less likely to actually be
-	# differentially expressed.
+	# differentially expressed. 
     fit = eBayes(fit)
 
     return(fit)
@@ -343,10 +359,16 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# [2,] -0.3333333  0.6666667 -0.3333333
 			# [3,] -0.3333333 -0.3333333  0.6666667
 			# 
-			# So with this matrix we are asking e.g. for row 1: is the
-			# expression of samples with factor value 1 significantly different
-			# from the average expression of samples with all other factor
-			# values.
+			# This a complete pairwise-comparisons contrast matrix (equivalent
+			# to one-way Analysis of Variance) for an omnibus test of
+			# differential expression across all factor values in the selected
+			# factor. With this matrix we can compute t-statistics and
+			# p-values to enable us to accept or reject the null hypothesis of
+			# ‘equal means for all groups’. 
+			# This essentially means we will ask for each gene, is the mean
+			# expression level in each factor value significantly different
+			# from its overall mean expression across all factor values (cf.
+			# Kapushesky et al. (2010) doi: 10.1093/nar/gkp936).
 			contrastsMatrix = diag(n) - 1/n
 
 			# Now we apply the contrasts matrix to the linear model fits using
@@ -355,11 +377,13 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# contrasts.
 			contr.fit = contrasts.fit(thisFit, contrastsMatrix)
 			
-			# Calculate moderated t-statistics again using eBayes().
+			# Calculate moderated t-statistics with eBayes(), using estimated
+			# coefficients and standard errors in contr.fit.
 			# This is a robust version of the t-test which reduces the false discovery
 			# rate. Standard errors are moderated across genes (shrunk towards a common
 			# value). A gene that has a large variance is less likely to actually be
-			# differentially expressed.
+			# differentially expressed. The moderated t-statistic is also known
+			# as the B-statistic.
 			contr.fit = eBayes(contr.fit)
 			
 			
@@ -383,7 +407,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 	
 	# Return the allFits list. This contains, for each factor, all the data
 	# from the linear model fit, the results of applying the contrasts matrix,
-	# and the moderated t-statistics and adjusted p-values.
+	# with the moderated t-statistics and associated p-values.
     allFits
 }
 
@@ -428,11 +452,10 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 		}
 		
 		# Process the experiment data using allupdn() function.
-		# This returns is a list object where each element is an MArrayLM
+		# This returns is a list object where each element is a limma MArrayLM
 		# object containing (for a single factor) the linear model fit,
-		# estimated coefficients and standard errors for the contrasts (i.e.
-		# comparisons between factor values), moderated t-statistics and
-		# adjusted p-values.
+		# estimated coefficients and standard errors for the contrasts,
+		# moderated t-statistics and associated p-values.
 		allFits = allupdn(eset)
 		
 		# Get propertyNAME (factor name) and propertyVALUE (factor value) information from the NetCDF.
@@ -478,7 +501,7 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 				}
 				
 			
-				# Get the t-statistics from the contrasts fit.
+				# Get the moderated t-statistics from the contrasts fit.
 				tStatistics <- allFits[[factorName, exact = TRUE]]$contr.fit$t
 				
 				# Get the p-values from the contrasts fit.
@@ -487,7 +510,8 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 				# Which p-values are not NA?
 				nonNaPvals = !is.na(pValues)
 			
-				# Run Benjamini and Hochberg fdr correction on the non-NA p-values.
+				# Run Benjamini and Hochberg (1995) fdr correction on the
+				# non-NA p-values.
 				pValues[nonNaPvals] = p.adjust(pValues[nonNaPvals], method = "fdr")
 				
 				# Make the column headings we want using the factor name and
