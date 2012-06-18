@@ -588,7 +588,6 @@ public class AtlasStructuredQueryService {
     /**
      * Creates SOLR query from atlas query
      *
-     *
      * @param solrq
      * @param facedField
      * @return solr query object
@@ -751,8 +750,6 @@ public class AtlasStructuredQueryService {
             } catch (SolrServerException e) {
                 log.error("Error in structured query!", e);
             }
-        } else if (genesByGeneConditionsAndSpecies.size() == 1) {
-//            result.addResult(new StructuredResultRow());
         }
 
         return result;
