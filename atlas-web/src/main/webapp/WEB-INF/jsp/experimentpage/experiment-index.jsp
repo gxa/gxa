@@ -27,6 +27,7 @@
              scope="request"/>
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
+<jsp:useBean id="query" type="java.lang.String" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -67,7 +68,7 @@
                 <form id="experimentFilterForm" name="experimentFilterForm" action="index.html" method="get">
                     <table>
                         <tr>
-                            <td><input type="text" class="value" id="expFilter" name="q"/></td>
+                            <td><input type="text" class="value" id="expFilter" name="q" value="${query}"/></td>
                             <td><input type="submit" value="SEARCH" onclick="function searchSubmit() {
                                  experimentFilterForm.submit();
                             }

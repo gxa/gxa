@@ -2,6 +2,7 @@ package uk.ac.ebi.gxa.web.controller;
 
 import ae3.dao.ExperimentSolrDAO;
 import com.google.common.base.Function;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.displaytag.tags.TableTagParameters;
 import org.displaytag.util.ParamEncoder;
@@ -27,19 +28,22 @@ public class ExperimentIndexViewController extends AtlasViewController {
     // TODO: 4alf: migrate it to ExperimentDAO?
     private final ExperimentSolrDAO experimentSolrDAO;
 
+    private static final String SEARCH_ALL = "*:*";
+
     @Autowired
     public ExperimentIndexViewController(ExperimentSolrDAO experimentSolrDAO) {
         this.experimentSolrDAO = experimentSolrDAO;
     }
 
     @RequestMapping(value = "/experimentIndex", method = RequestMethod.GET)
-    public String getGeneIndex(@RequestParam(value = "q", defaultValue = "*:*") String query,
+    public String getGeneIndex(@RequestParam(value = "q", defaultValue = SEARCH_ALL) String query,
                                @RequestParam(value = PAGE_PARAM, defaultValue = "1") int page,
                                @RequestParam(value = SORT_PARAM, defaultValue = "loaddate") String sort,
                                @RequestParam(value = DIR_PARAM, defaultValue = "2") int dir,
                                Model model) {
+
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
-                experimentSolrDAO.getExperimentsByQuery(query,
+                experimentSolrDAO.getExperimentsByQuery(queryForSearch(query),
                         (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
         model.addAttribute("experiments", transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
             @Override
@@ -49,6 +53,7 @@ public class ExperimentIndexViewController extends AtlasViewController {
         }));
         model.addAttribute("total", experiments.getTotalResults());
         model.addAttribute("count", PAGE_SIZE);
+        model.addAttribute("query", queryForView(query));
         return "experimentpage/experiment-index";
     }
 
@@ -72,5 +77,19 @@ public class ExperimentIndexViewController extends AtlasViewController {
         assert PAGE_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_PAGE));
         assert SORT_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_SORT));
         assert DIR_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_ORDER));
+    }
+
+    private static String queryForSearch(String query) {
+        if (StringUtils.EMPTY.endsWith(query)) {
+            query = SEARCH_ALL;
+        }
+        return query;
+    }
+
+    private static String queryForView(String query) {
+        if (SEARCH_ALL.equals(query)) {
+            query = StringUtils.EMPTY;
+        }
+        return query;
     }
 }
