@@ -19,9 +19,7 @@ read.atlas.nc <<- function (filename) {
 	library(ncdf)
 	library(Biobase)
 
-	#--------------------------------------------------
-	# library(gtools)	# don't see any gtools functions used
-	#-------------------------------------------------- 
+	library(gtools)
 
 	# Read from the data NetCDF file and store in netCDF object
 	netCDF = open.ncdf(filename)
@@ -314,28 +312,50 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# are 'levels'.
 			esetForVariable[[fName, exact = TRUE]] = factor(esetForVariable[[fName, exact = TRUE]])
 
-			# Count the number of levels i.e. distinct factor values.
-			numVariableFactorLevels <- nlevels(esetForVariable[[fName, exact=TRUE]])
 
-			# If the number of factor values (levels) is equal to the number of
-			# samples (ncol(exprs(esetForVariable))), this means that there are no
-			# replicates, so we cannot reliably calculate statistics.
-			# If the number of factor values is less than 2 (i.e. every sample is
-			# identical for this factor), it doesn't make sense to look for
-			# differential expression.
-			#
 			# In Kapushesky et al. 2010
-			# (http://nar.oxfordjournals.org/content/38/suppl_1/D690.full), it is
-			# stated that "each EFV should be tested in at least two
+			# (http://nar.oxfordjournals.org/content/38/suppl_1/D690.full), it
+			# is stated that "each EFV should be tested in at least two
 			# replicates". Benilton Carvalho (biostatistician and contributor
 			# to BioConductor) recommends at least four replicates per factor.
-			if (numVariableFactorLevels == ncol(exprs(esetForVariable)) || numVariableFactorLevels < 2) {
+			# We will go with a minimum of 3 replicates per factor value for
+			# now.
+
+			# Vector of factor values
+			factorValues = levels(esetForVariable[[fName, exact = TRUE]])
+			
+			# Set this to true if any factor values have less than 3 replicates.
+			notEnoughReps = FALSE
+			
+			# For each factor value, test if the number of samples with that
+			# factor value is less than 3. If so, log that it has too few
+			# replcates and set notEnoughReps to TRUE. We can only proceed with
+			# this factor as long as ALL values have >=3 replicates, so even if
+			# just one value has <3 we have to leave it.
+			for(fValue in factorValues) {
+				
+				if(length(which(pData(esetForVariable)[[fName, exact = TRUE]] == fValue)) < 3) {
+					
+					print(paste(fName, fValue, "has too few replicates"))
+					notEnoughReps = TRUE
+				}
+			}
+			
+			# Count the number of levels i.e. distinct factor values.
+			numVariableFactorLevels <- nlevels(esetForVariable[[fName, exact=TRUE]])
+			
+			# If (a) there aren't >=3 replicates for every factor value, or (b)
+			# there are <2 factor values, log that we can't calculate
+			# statistics and go to the next factor.
+			if (notEnoughReps || numVariableFactorLevels < 2) {
 				
 				print("Can't compute statistics for poorly conditioned data: too few or too many factor levels.")
 				
-				# Break out and go to the next factor in the eset.
+				# Break out and go to the next factor in the eset without
+				# calculating statistics.
 				next
 			}
+
 
 			# Fit the linear model for this factor and calculate moderated
 			# t-statistics using limma.
@@ -387,11 +407,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			contr.fit = eBayes(contr.fit)
 			
 			
-			# Make a vector of factor values to use in computeAnalytics for
-			# naming columns.
-			factorValues = levels(esetForVariable[[fName, exact = TRUE]])
-			
-			# Add this vector to thisFit
+			# Add the vector of factor values to thisFit
 			thisFit$factorValues = factorValues
 		
 
