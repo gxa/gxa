@@ -588,13 +588,15 @@ public class AtlasStructuredQueryService {
     /**
      * Creates SOLR query from atlas query
      *
+     *
      * @param solrq
+     * @param facedField
      * @return solr query object
      */
-    private SolrQuery getFastGeneSolrQuery(SolrQueryBuilder solrq) {
+    private SolrQuery getFastGeneSolrQuery(SolrQueryBuilder solrq, String facedField) {
         SolrQuery q = new SolrQuery(solrq.toString());
 
-        q.addFacetField("id");
+        q.addFacetField(facedField);
         q.setRows(0);
         q.setFacet(true);
         q.setFacetLimit(-1);
@@ -604,15 +606,32 @@ public class AtlasStructuredQueryService {
         return q;
     }
 
+    public Set<Integer> getGenesByGeneConditionsAndSpecies(final AtlasStructuredQuery query) {
+        return getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
+    }
+
+    public String getGeneIdentifier(final AtlasStructuredQuery query) {
+        SolrQueryBuilder solrq = createSolrQueryBuilder(query.getGeneConditions(), query.getSpecies());
+        SolrQuery q = getFastGeneSolrQuery(solrq, "identifier");
+        q.setRows(1);
+        try {
+            QueryResponse qr = solrServerAtlas.query(q);
+            if (qr.getFacetFields().get(0).getValues() != null) {
+                return qr.getFacetFields().get(0).getValues().get(0).getName();
+            }
+        } catch (SolrServerException e) {
+            throw createUnexpected("Failed to fetch genes by conditions and species using query: '" + solrq.toString() + "'", e);
+        }
+        return "";
+    }
+
     public Set<Integer> getGenesByGeneConditionsAndSpecies(Collection<GeneQueryCondition> geneConditions, Collection<String> species) {
         Set<Integer> geneIds = new HashSet<Integer>();
-        SolrQueryBuilder solrq = new SolrQueryBuilder();
-        appendGeneQuery(geneConditions, solrq);
-        appendSpeciesQuery(species, solrq);
+        SolrQueryBuilder solrq = createSolrQueryBuilder(geneConditions, species);
         if (solrq.isEmpty()) {
             return geneIds;
         }
-        SolrQuery q = getFastGeneSolrQuery(solrq);
+        SolrQuery q = getFastGeneSolrQuery(solrq, "id");
 
         try {
             long start = System.currentTimeMillis();
@@ -629,6 +648,13 @@ public class AtlasStructuredQueryService {
 
         return geneIds;
 
+    }
+
+    private SolrQueryBuilder createSolrQueryBuilder(Collection<GeneQueryCondition> geneConditions, Collection<String> species) {
+        SolrQueryBuilder solrq = new SolrQueryBuilder();
+        appendGeneQuery(geneConditions, solrq);
+        appendSpeciesQuery(species, solrq);
+        return solrq;
     }
 
     /**
@@ -725,6 +751,8 @@ public class AtlasStructuredQueryService {
             } catch (SolrServerException e) {
                 log.error("Error in structured query!", e);
             }
+        } else if (genesByGeneConditionsAndSpecies.size() == 1) {
+//            result.addResult(new StructuredResultRow());
         }
 
         return result;
@@ -802,8 +830,8 @@ public class AtlasStructuredQueryService {
     /**
      * Appends conditions part of the query to query state. Finds matching EFVs/EFOs and appends them to SOLR query string.
      *
-     * @param query  query
-     * @param qstate state
+     * @param query      query
+     * @param qstate     state
      * @param statsQuery
      * @return iterable conditions resulted from this append
      */
@@ -1152,7 +1180,6 @@ public class AtlasStructuredQueryService {
     }
 
     /**
-     *
      * @param attributes
      * @return collection of experimental factors in each element of attributes
      */
@@ -1285,13 +1312,13 @@ public class AtlasStructuredQueryService {
     /**
      * Processes SOLR query response and generates Atlas structured query result
      *
-     * @param response                  SOLR response
-     * @param result                    ATlas result
-     * @param qstate                    query state
-     * @param query                     query itself
+     * @param response        SOLR response
+     * @param result          ATlas result
+     * @param qstate          query state
+     * @param query           query itself
      * @param numOfResults
-     * @param statisticsQuery           specified in user's query (if the user has not chosen any efv/efo conditions,
-     *                                  the statistics type in this query will be used to find out scoring Attributes for that statistic type)
+     * @param statisticsQuery specified in user's query (if the user has not chosen any efv/efo conditions,
+     *                        the statistics type in this query will be used to find out scoring Attributes for that statistic type)
      * @throws SolrServerException
      */
     private void processResultGenes(QueryResponse response,
@@ -1530,7 +1557,7 @@ public class AtlasStructuredQueryService {
                     overallDataAccessTimeForListView += queryTimes.getSecond();
                 }
             }
-            log.debug("Processed gene: " + gene.getGeneName() +" : " + gene.getGeneId() + " : " + gene.getGeneSpecies() + " : " + gene.getGeneIdentifier() + " in: " + (System.currentTimeMillis() - hmRowStart) + "; bit stats time: " + overallBitStatsProcessingTimeForHeatMapRow);
+            log.debug("Processed gene: " + gene.getGeneName() + " : " + gene.getGeneId() + " : " + gene.getGeneSpecies() + " : " + gene.getGeneIdentifier() + " in: " + (System.currentTimeMillis() - hmRowStart) + "; bit stats time: " + overallBitStatsProcessingTimeForHeatMapRow);
         }
 
         // So far we accumulated rows of counters for all efos into unsortedHeatmapRows
@@ -1604,7 +1631,7 @@ public class AtlasStructuredQueryService {
         log.debug("Resulting EFVs are: " + resultEfvs.getNameSortedList().size());
         log.debug("Resulting EFOs are: " + resultEfos.getMarkedSubTreeList().size());
 
-            }
+    }
 
     /**
      * Loads experiments data for list view, where each list row corresponds to a single gene-ef-efv combination and each gene
@@ -1704,7 +1731,7 @@ public class AtlasStructuredQueryService {
                 closeQuietly(ewd);
             }
         }
-        
+
         if (showNonDEData) {
             // Now retrieve experiments in which geneId-ef-efv have NON_D_E expression
             scoringExps = atlasStatisticsQueryService.getScoringExperimentsForBioEntityAndAttribute(gene.getGeneId(), attr, StatisticsType.NON_D_E);

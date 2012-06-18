@@ -100,8 +100,16 @@ public class AtlasQueryRequestHandler implements HttpRequestHandler, IndexBuilde
                 return;
             }
 
+            //if only one gene found and user didn't restrict the search, skip through to gene page
+            if (queryService.getGenesByGeneConditionsAndSpecies(atlasQuery).size() == 1 && !atlasQuery.isRestricted()) {
+                String url = "gene/" + queryService.getGeneIdentifier(atlasQuery);
+                response.sendRedirect(url);
+                return;
+            }
+
             atlasResult = queryService.doStructuredAtlasQuery(atlasQuery);
             // if one scoring gene only found and user didn't restrict the search, skip through to gene page
+            // this check is not redundant because more then 1 gene might be found initially, but only one is scoring
             if (atlasResult.getSize() == 1 && !atlasQuery.isRestricted()) {
                 StructuredResultRow row = atlasResult.getResults().iterator().next();
                 String url = "gene/" + row.getGene().getGeneIdentifier();
