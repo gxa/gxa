@@ -218,7 +218,7 @@ public class Download implements Runnable {
         query.setFullHeatmap(true);
 
         // Get gene ids by Gene Conditions and Species - will be empty if user is querying by factor conditions only
-        Set<Integer> geneIds = atlasStructuredQueryService.getGenesByGeneConditionsAndSpecies(query.getGeneConditions(), query.getSpecies());
+        Set<Integer> geneIds = atlasStructuredQueryService.getGenesByGeneConditionsAndSpecies(query);
         log.debug("Called getGenesByGeneConditionsAndSpecies() - size: {}", geneIds.size());
 
         // Populate statsQuery with factor conditions
