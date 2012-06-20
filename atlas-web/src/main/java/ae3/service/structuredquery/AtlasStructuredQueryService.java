@@ -624,7 +624,7 @@ public class AtlasStructuredQueryService {
         return "";
     }
 
-    public Set<Integer> getGenesByGeneConditionsAndSpecies(Collection<GeneQueryCondition> geneConditions, Collection<String> species) {
+    private Set<Integer> getGenesByGeneConditionsAndSpecies(Collection<GeneQueryCondition> geneConditions, Collection<String> species) {
         Set<Integer> geneIds = new HashSet<Integer>();
         SolrQueryBuilder solrq = createSolrQueryBuilder(geneConditions, species);
         if (solrq.isEmpty()) {
