@@ -1941,6 +1941,8 @@ public class AtlasStructuredQueryService {
             for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
                 Map<Long, List<Integer>> geneIdToDEIndexes = ewd.getGeneIdToDesignElementIndexes(arrayDesign, geneIds);
 
+                Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
+                        ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes);
                 for (Pair<StatisticsType, EfAttribute> statTypeAttr : statsAttrs) {
                     StatisticsType statType = statTypeAttr.getKey();
                     EfAttribute attr = statTypeAttr.getValue();
@@ -1949,17 +1951,18 @@ public class AtlasStructuredQueryService {
                         continue;
                     }
 
-                    Map<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdsToEfToEfvToEA =
-                            ewd.getExpressionAnalysesForDesignElementIndexes(arrayDesign, geneIdToDEIndexes,
-                                    attr.getEf(), ((EfvAttribute) attr).getEfv(), UpDownCondition.CONDITION_ANY);
-
                     for (Map.Entry<Long, Map<String, Map<String, ExpressionAnalysis>>> geneIdToEfToEfvToEA : geneIdsToEfToEfvToEA.entrySet()) {
 
                         for (Map.Entry<String, Map<String, ExpressionAnalysis>> efToEfvToEA : geneIdToEfToEfvToEA.getValue().entrySet()) {
                             String ef = efToEfvToEA.getKey();
+                            if (!ef.equals(attr.getEf()))
+                                continue;
 
                             for (Map.Entry<String, ExpressionAnalysis> efvToEA : efToEfvToEA.getValue().entrySet()) {
                                 String efv = efvToEA.getKey();
+                                if (!efv.equals(((EfvAttribute) attr).getEfv()))
+                                    continue;
+
                                 ExpressionAnalysis ea = efvToEA.getValue();
 
                                 if (statTypesMatch(statType, ea.getExpression())) {

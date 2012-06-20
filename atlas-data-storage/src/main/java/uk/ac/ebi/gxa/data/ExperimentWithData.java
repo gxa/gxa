@@ -267,7 +267,7 @@ public class ExperimentWithData implements Closeable {
      * @throws AtlasDataException          in case of I/O errors
      * @throws StatisticsNotFoundException
      */
-    private Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
+    public Map<Long, Map<String, Map<String, ExpressionAnalysis>>> getExpressionAnalysesForDesignElementIndexes(
             ArrayDesign arrayDesign,
             Map<Long, List<Integer>> geneIdsToDEIndexes
     ) throws AtlasDataException, StatisticsNotFoundException {
