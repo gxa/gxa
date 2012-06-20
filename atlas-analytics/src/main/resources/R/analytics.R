@@ -19,8 +19,6 @@ read.atlas.nc <<- function (filename) {
 	library(ncdf)
 	library(Biobase)
 
-	library(gtools)
-
 	# Read from the data NetCDF file and store in netCDF object
 	netCDF = open.ncdf(filename)
 
@@ -63,8 +61,8 @@ read.atlas.nc <<- function (filename) {
 		# AnnotatedDataFrame objects.
 		factorValues = data.frame(factorValues)
 
-		# Log numbers of factors and factor values.
-		print(paste("Read in EFV:", nrow(factorValues), "x", ncol(factorValues)))
+		# Log numbers of factors and assays.
+		print(paste("Read in experimental factors:", nrow(factorValues), "assays and", ncol(factorValues), "factors"))
 	}
 
 	
@@ -103,8 +101,8 @@ read.atlas.nc <<- function (filename) {
 
 	# Log which experiment we're looking at and how big the normalized data
 	# matrix is.
-	print(paste("Read in", exptAccession))
-	print(paste("Read in normalized data matrix:", nrow(normalizedExpressions), "x", ncol(normalizedExpressions)))
+	print(paste("Finished reading", exptAccession))
+	print(paste("Normalized data matrix:", nrow(normalizedExpressions), "design elements and", ncol(normalizedExpressions), "assays"))
 
 
 	# Create factorsForEset data frame. If we've got a data frame of factors
@@ -128,6 +126,14 @@ read.atlas.nc <<- function (filename) {
 	# pData contains the factor info.
 	pData = new("AnnotatedDataFrame", data = factorsForEset)
 
+	# Get array design accession from NetCDF filename (need it later in
+	# allupdn() for logs.
+	ncinfo = unlist(strsplit(basename(filename),"_|[.]"))
+	arrayDesAcc = ncinfo[2]
+
+	# Put accession info into eData, to go into the ExpressionSet
+	eData = new("MIAME", other = list(exptAcc = exptAccession, arrayDesAcc = arrayDesAcc))
+
 
 	# Create a Biobase AssayData object containing the normalized summarized
 	# expression values (from normalized data matrix).
@@ -141,12 +147,12 @@ read.atlas.nc <<- function (filename) {
 	
 	# Log what factors we have and how many. Factor names are accessed via
 	# varLabels() function from the pData object.
-	print(paste("Computed phenoData for", paste(varLabels(pData),collapse = ", "), nrow(pData), "x", ncol(pData)))
+	print(paste("Experimental factors are:", paste(varLabels(pData),collapse = ", "),":", nrow(pData), "assays and", ncol(pData), "factors"))
 	
 	# Create and return a Biobase ExpressionSet object containing the
 	# normalized summarized expressions, factors, design element accessions and
 	# gene IDs.
-	return(new("ExpressionSet", assayData = aData, phenoData = pData, featureData = fData))
+	return(new("ExpressionSet", assayData = aData, phenoData = pData, featureData = fData, experimentData = eData))
 }
 
 
@@ -284,6 +290,10 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 	# Load limma.
     library(limma)
 
+	# get the experiment and array design accessions here
+	exptAcc = otherInfo(experimentData(eset))$exptAcc
+	arrayDesAcc = otherInfo(experimentData(eset))$arrayDesAcc
+
 	# Get the normalized summarized expressions and log2 them if they need it
 	# with log2.safe() function.
     exprs = exprs(eset)
@@ -297,8 +307,8 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 	for(fName in factorNames){
 
 		try({
-
-			print(paste("Calculating lmFit and F-stats for", fName))
+			
+			print(paste("Checking for sufficient factor values and replicates for", fName))
 			
 			# Find out the samples in eset for which this factor is not
 			# NULL. Using isEmptyEFV() function.
@@ -327,36 +337,54 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# Set this to true if any factor values have less than 3 replicates.
 			notEnoughReps = FALSE
 			
+			# A list to put info for values with too few replicates in
+			notEnoughList = list()
+
 			# For each factor value, test if the number of samples with that
 			# factor value is less than 3. If so, log that it has too few
-			# replcates and set notEnoughReps to TRUE. We can only proceed with
+			# replicates and set notEnoughReps to TRUE. We can only proceed with
 			# this factor as long as ALL values have >=3 replicates, so even if
 			# just one value has <3 we have to leave it.
 			for(fValue in factorValues) {
 				
 				if(length(which(pData(esetForVariable)[[fName, exact = TRUE]] == fValue)) < 3) {
 					
-					print(paste(fName, fValue, "has too few replicates"))
+					# Add a string to notEnoughList containing experiment and
+					# array design accessions, factor name and factor value.
+					notEnoughList[[fValue]] = paste(exptAcc, ", ", arrayDesAcc, ", ", fName, ", ", fValue, sep="")
+					
 					notEnoughReps = TRUE
 				}
 			}
-			
+
+
 			# Count the number of levels i.e. distinct factor values.
 			numVariableFactorLevels <- nlevels(esetForVariable[[fName, exact=TRUE]])
 			
-			# If (a) there aren't >=3 replicates for every factor value, or (b)
-			# there are <2 factor values, log that we can't calculate
-			# statistics and go to the next factor.
-			if (notEnoughReps || numVariableFactorLevels < 2) {
+			# If there are't enough replicates for any factor values, log which
+			# ones they are and skip to the next factor in the eset.
+			if(notEnoughReps) {
 				
-				print("Can't compute statistics for poorly conditioned data: too few or too many factor levels.")
+				print(paste("The following factor values have fewer than three replicates:"))
+				
+				for(i in names(notEnoughList)) { print(notEnoughList[[i]]) }
+
+				print(paste("Will not calculate statistics for", fName))
 				
 				# Break out and go to the next factor in the eset without
 				# calculating statistics.
 				next
 			}
 
+			# We also can't sensibly look for differential expression if all
+			# assays have the same factor value (i.e. factor has <2 levels).
+			else if(numVariableFactorLevels < 2) {
+				print(paste("There are fewer than 2 factor values for", fName, "! Can't assess differential expression."))
+				next
+			}
 
+
+			print(paste("Fitting linear model and calculating differential expression statistics for", fName))
 			# Fit the linear model for this factor and calculate moderated
 			# t-statistics using limma.
 			thisFit = fstat.eset(esetForVariable, factorName = fName)
@@ -507,7 +535,7 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 			# factorName is renamed from 'varLabel'
 			function(factorName) {
 				
-				print(paste("Processing",factorName))
+				print(paste("Creating t-statistic and p-value matrices for",factorName))
 				
 				# If we do not see results from applying the contrasts matrix
 				# for this factor, we don't have any statistics for it, so this
@@ -559,7 +587,7 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 		# stored in the NetCDF with each row corresponding to each assay, but
 		# BioConductor packages output them so that each row corresponds to a
 		# design element.
-		print(paste("Writing tstat and pval to NetCDF:", ncol(tstat), "x", nrow(tstat)))
+		print(paste("Writing t-statistic and p-value matrices to NetCDF:", ncol(tstat), "factor values and", nrow(tstat), "design elements"))
 		put.var.ncdf(statistics_nc, "TSTAT", t(tstat))
 		put.var.ncdf(statistics_nc, "PVAL", t(pval))
 		
@@ -603,6 +631,8 @@ computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
 # 	- data_nc <- filename of NetCDF file with experiment data.
 # 	- statistics_nc <- filename of NetCDF file with statistics data.
 updateStatOrder <<- function(data_nc, statistics_nc) {
+
+	print("Ranking genes in order of differential expression significance")
 	
 	# Now we are reading the p-values and t-statistics from the NetCDF file and
 	# we transposed them before putting them in there. We need to transpose
@@ -624,8 +654,8 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 	# Log how much data we've just read in. Number of rows is equal to number
 	# of design elements; number of columns is equal to number of factor
 	# name/value pairs.
-	print(paste("T(rows:", nrow(tstat), "cols:", ncol(tstat), ")"))
-	print(paste("P(rows:", nrow(pval), "cols:", ncol(pval), ")"))
+	print(paste("Read in t-statistics matrix from NetCDF:", nrow(tstat), "rows and", ncol(tstat), "columns"))
+	print(paste("Read in p-value matrix from NetCDF:", nrow(pval), "rows and", ncol(pval), "columns"))
 
 	# Replace placeholders for missing expression values in NetCDF with 'NA'.
 	tstat <- replaceMissingValues(tstat)
@@ -634,7 +664,7 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 	# Find row indices of gene IDs that are 0. These are design elements with
 	# no mapped gene, which we don't display information for.
 	zeroGnIdxs <- (geneIDs == 0)
-	print(paste("length( Zero GN rows ):", length(which(zeroGnIdxs))))
+	print(paste(length(which(zeroGnIdxs)), "rows with zero gene IDs"))
 	
 	# Find the indices of rows in tstat and pval where all values are NA.
 	# naIdxsT and naIdxsP are vectors of TRUEs and FALSEs for each row in tstat
@@ -647,7 +677,7 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 	naIdxs <- apply(cbind(naIdxsT, naIdxsP), 1, function(x){ x[1] || x[2]})
 	
 	# Log how many NA rows we found in pval.
-	print(paste("length( NA rows ):", length(which(naIdxsP))))
+	print(paste(length(which(naIdxsP)), "rows with all NA values in p-value matrix"))
 
 	# allBadIdxs is a vector with TRUE if pval or tstat was NA or the
 	# corresponding gene name was 0 for that row.
@@ -679,7 +709,7 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 		pvalGood <- filterMatrix(pval, 1, !badIdxs)
 
 		# Log what we're doing now.
-		print(paste("Sorting/filtering tstat and pval by filter:", statfilter))
+		print(paste("Sorting/filtering t-statistics and p-values by filter:", statfilter))
 	
 		# idxs is a vector of numbers from 1 to the number of rows in tstat.
 		idxs <- c(1:nrow(tstat))
@@ -695,7 +725,7 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 		res <- orderByStatfilter(statfilter, tstatGood, pvalGood)
 		
 		# Log how many p-values we've got back.
-		print(paste("length( result ):", length(res$rowidxs)))
+		print(paste(length(res$rowidxs), "design elements ranked for filter", statfilter))
 
 		# initial is a vector of the indices of all the non-NA values from idxs
 		# (i.e., all the ones that have a gene name and (unless we're on "ANY")
@@ -724,7 +754,7 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 		# Write the ranking order for this statfilter to the statistics NetCDF
 		# object. Print the error if it doesn't work.
 		tryCatch({
-			print(paste(vname, "written..."))
+			print(paste(vname, "written to NetCDF"))
 			put.var.ncdf(statistics_nc, vname, filtered)
 		}, error = function(e) print(e))
 	
