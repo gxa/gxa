@@ -817,10 +817,9 @@ public class AtlasStructuredQueryService {
      * each containing one factor from atlasProperties.getDasFactors() and the expression type from the empty condition.
      */
     private List<ExpFactorQueryCondition> getQueryConditions(final AtlasStructuredQuery query) {
-        List<ExpFactorQueryCondition> queryConditions = new ArrayList(query.getConditions());
         if (hasEmptyCondition(query)) {
-            QueryExpression expression =  queryConditions.get(0).getExpression();
-            queryConditions.clear();
+            QueryExpression expression =  query.getConditions().iterator().next().getExpression();
+            List<ExpFactorQueryCondition> queryConditions = Lists.newArrayList();
             for (String factor : atlasProperties.getDasFactors()) {
                 ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
                 condition.setExpression(expression);
@@ -830,7 +829,7 @@ public class AtlasStructuredQueryService {
                 queryConditions.add(condition);
             }
         }
-        return queryConditions;
+        return new ArrayList(query.getConditions());
 
 
 
