@@ -4,6 +4,175 @@
 
 (function() {
 
+
+# computeAnalytics()
+# 	- Atlas analytics.
+# 	- Calls read.atlas.nc() to read data from data NetCDF and build a Biobase
+# 	ExpressionSet.
+# 	- Calls allupdn() to fit linear models and contrasts for all factors.
+# 	- Writes t-statistics and p-values to statistics NetCDF.
+# 	- Calls updateStatOrder() to rank genes based on differential expression.
+# 	- Returns a vector of the result for each factor ("OK" for those where
+# 	statistics were calculated successfully, "NOK" for those where they
+# 	weren't).
+# ARGUMENTS:
+# 	- data_ncdf <- filename of NetCDF with experiment data.
+# 	- statistics_ncdf <- filename of NetCDF with statistics data (calculated here).
+computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
+	
+	e <- try({
+		
+		# eset is an ExpressionSet object containing normalized summarized
+		# expressions and experimental data such as factors and their values.
+		eset = read.atlas.nc(data_ncdf)
+		
+		# data_nc is an ncdf object with experiment data.
+		data_nc = open.ncdf(data_ncdf)
+		# statistics_nc is an ncdf object for statistics data to be written to.
+		# The statistics NetCDF file is created just before analytics are
+		# calcluated.
+		statistics_nc = open.ncdf(statistics_ncdf, write = TRUE)
+		
+		# How many samples are there? If there is only one, we can't do
+		# anything sensible with this experiment so return here without going
+		# any further.
+		if (dim(eset)[2] == 1) {
+			
+			# Return a vector of the factor names as 'names' and "NOK" as the
+			# value for each.
+			return(sapply(varLabels(eset), function(i) "NOK"))
+		}
+		
+		# Process the experiment data using allupdn() function.
+		# This returns is a list object where each element is a limma MArrayLM
+		# object containing (for a single factor) the linear model fit,
+		# estimated coefficients and standard errors for the contrasts,
+		# moderated t-statistics and associated p-values.
+		allFits = allupdn(eset)
+		
+		# Get propertyNAME (factor name) and propertyVALUE (factor value) information from the NetCDF.
+		propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
+		propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
+
+		# Stick them together with paste :)
+		# pairs is a vector with strings "factor name||factor value" for every
+		# factor name/value pair in the experiment.
+		pairs <- paste(propertyNAME, propertyVALUE, sep = "||")
+
+		# Create two matrices called tstat and pval and fill with 'NA's. The
+		# number of rows is equal to the number of design elements/probe sets;
+		# the number of columns is equal to the number of factor name/value pairs.
+		tstat = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset));
+		pval = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset));
+		
+		# Name columns with the factor name/value pairs.
+		colnames(tstat) <- make.names(pairs)
+		colnames(pval) <- make.names(pairs)
+
+		# The function applied by sapply() returns a vector of the factor names
+		# as 'names' and "OK" or "NOK" as the value for each one depending on
+		# whether we managed to get stats OK or not. That's what goes into 'result'.
+		# 
+		# For each factor name (accessed by varLabels(eset)):
+		# 	- check if we have stats (factor is "NOK" if not);
+		# 	- Pull out adjusted p-values and moderated t-statistics for this
+		# 	factor and put them in the appropriate columns in pval and tstat
+		# 	matrices.
+		result <- sapply(varLabels(eset),
+			
+			# factorName is renamed from 'varLabel'
+			function(factorName) {
+				
+				print(paste("Creating t-statistic and p-value matrices for",factorName))
+				
+				# If we do not see results from applying the contrasts matrix
+				# for this factor, we don't have any statistics for it, so this
+				# factor is "Not OK".
+				if (is.null(allFits[[factorName, exact = TRUE]]$contr.fit)) {
+					return("NOK")
+				}
+				
+			
+				# Get the moderated t-statistics from the contrasts fit.
+				tStatistics <- allFits[[factorName, exact = TRUE]]$contr.fit$t
+				
+				# Get the p-values from the contrasts fit.
+				pValues <- as.matrix(allFits[[factorName, exact = TRUE]]$contr.fit$p.value)
+			
+				# Which p-values are not NA?
+				nonNaPvals = !is.na(pValues)
+			
+				# Run Benjamini and Hochberg (1995) fdr correction on the
+				# non-NA p-values.
+				pValues[nonNaPvals] = p.adjust(pValues[nonNaPvals], method = "fdr")
+				
+				# Make the column headings we want using the factor name and
+				# the vector of factor values.
+				namesForCols <- make.names(paste(factorName,allFits[[factorName, exact=TRUE]]$factorValues,sep = "||"))
+				
+				# Set the column names for tStatistics and pValues.
+				colnames(tStatistics) <- namesForCols
+				colnames(pValues) <- namesForCols
+
+				# Now fill each column in tstat whose name matches a column in
+				# tStatistics with the contents of the matching column in tStatistics.
+				tstat[,which(colnames(tstat) %in% colnames(tStatistics))] <<- tStatistics[,colnames(tstat)[which(colnames(tstat) %in% colnames(tStatistics))]]
+
+				# Likewise, fill each column in pval whose name matches a column in
+				# pValues with the contents of the matching column in pValues.
+				pval[,which(colnames(pval) %in% colnames(pValues))] <<- pValues[,colnames(pval)[which(colnames(pval) %in% colnames(pValues))]]
+			
+
+				# Now we've stored the info we need, return "OK" for this factor.
+				return("OK")
+			}
+		)
+
+		
+		# Put the contents (transposed) of tstat and pval into the statistics
+		# ncdf file.
+		# Transposition of matrices for the NetCDFs is required because they are
+		# stored in the NetCDF with each row corresponding to each assay, but
+		# BioConductor packages output them so that each row corresponds to a
+		# design element.
+		print(paste("Writing t-statistic and p-value matrices to NetCDF:", ncol(tstat), "factor values and", nrow(tstat), "design elements"))
+		put.var.ncdf(statistics_nc, "TSTAT", t(tstat))
+		put.var.ncdf(statistics_nc, "PVAL", t(pval))
+		
+		# Get the factor names from the NetCDF.
+		factorNames = get.var.ncdf(data_nc, "EF")
+	
+		# Write the statistics NetCDF file.
+		sync.ncdf(statistics_nc)
+
+		# Update the ranking order of the genes based on the p-values and
+		# t-statistics, with most significantly differentially expressed gene
+		# first.
+		updateStatOrder(data_nc, statistics_nc)
+
+		# Close open files.
+		close.ncdf(data_nc)
+		close.ncdf(statistics_nc)
+
+		# Name the elements in the results vector with the factor names in efsc.
+		names(result) <- factorNames
+		
+		# Return the result vector. This looks like e.g.:
+    	# 
+		# compound disease_state 
+        #     "OK"         "NOK" 
+		#
+		return(result)
+	})
+	
+	# Return the result or a try-error.
+	return(e)
+}
+
+
+
+
+
 # read.atlas.nc()
 # 	- Reads data from Atlas NetCDF file and builds a Biobase ExpressionSet
 # 	object from it.
@@ -155,127 +324,6 @@ read.atlas.nc <<- function (filename) {
 	return(new("ExpressionSet", assayData = aData, phenoData = pData, featureData = fData, experimentData = eData))
 }
 
-
-
-
-
-# log2.safe()
-#	- Log function that does not return NAs
-# ARGUMENTS:
-# 	- x <- matrix of normalized summarized expressions
-log2.safe <- function(x) {
-	
-	# Assumption is, expression levels are > 0 unless someone has _already_ applied log.
-	# If the levels are < 1000, we're fine without log: moreover, that may as well mean
-	# all the expression levels were > 1 (why not?), and someone has already applied log.
-	# If the values are more than 1000, then log definitely was not used before, as 2^1000
-	# is just way too much for expression level value.
-	if (min(x, na.rm = TRUE) < 0 || max(x, na.rm = TRUE) < 1000) { return(x) }
-
-	# Otherwise, log2 the normalized values
-	print("Taking log2 of the expression matrix")
-
-	# For most values, 1e-10 is far smaller than the precision expected, so we can add it and be (almost) sure
-	# we've got rid of zeros without disturbing the stats.
-	
-	# Make a new matrix with the log2'ed values in
-	tmp = log2(x + 1e-10)
-
-	# Replace any non-finite values produced during the log2() with 0.
-	# Keep NAs that were already present in normalized data matrix.
-	tmp[!(is.finite(tmp) | is.na(x))] <- 0
-
-	# return tmp
-	tmp
-}
-
-
-
-
-# isEmptyEFV()
-#	- function to check if factor value is empty.
-#	- returns TRUE if value is NULL.
-isEmptyEFV <- function(value) return (is.null(value))
-
-
-
-
-# fstat.eset() 
-#	- Omnibus one-way ANOVA (with moderated t) F-statistic computation.
-# ARGUMENTS:
-# 	- eset <- an ExpressionSet object containing normalized summarized
-# 	expression data and factor data.
-# 	- factorName <- a factor name.
-fstat.eset <- function(eset, factorName) {
-    
-	# Log which factor we're looking at.
-	print(paste("Calculating design matrix for", factorName))
-
-	# Create the experiment design matrix for this factor. 
-	# Each row in the design matrix corresponds to an array in the experiment;
-	# each column corresponds to a factor value.
-	# 
-	# Here is an example SDRF:
-	# 		Array	FactorValue[compound]
-	#		array1	a
-	#		array2	a
-	#		array3	b
-	#		array4	b
-	# 
-	# Our coefficients are 'a' and 'b'.
-	# Here is the corresponding design matrix:
-	# 		Array	a	b
-	# 		array1	1	0
-	# 		array2	1	0
-	# 		array3	0	1
-	# 		array4	0	1
-	#
-	# The design matrix is created from the data in the ExpressionSet for the
-	# factor in question by model.matrix().
-	# as.formula() returns the string created by paste() as a formula object.
-	# The "0+" part removes the intercept column so that we get a column for
-	# each factor value instead of intercept plus all but one factor value. The
-	# "0+" part can also be written as "-1+", there is no difference to the
-	# resulting design matrix.
-	# (model.matrix() doesn't work on a string).
-    designMatrix = model.matrix(as.formula(paste("~0+", factorName)), data = eset)
-
-    print("Fitting model...")
-
-	# Run lmFit() on the data in eset using the design matrix.
-	# lmFit() fits a linear model for each probe set on the array:
-	#
-	# 	Y_{i} = b_{0} + b_{1}X_{i}
-	#
-	# In an example comparing 'normal' samples with 'tumor' samples:
-	# 	- Assuming X{i} = 0 for 'normal' samples: 
-	# 		Y_{N} = b_{0}
-	# 	- Assuming X{i} = 1 for 'tumor' samples:
-	# 		Y_{T} = b_{0} + b_{1}
-	# 	- The coefficient b_{0} is the average log-intensity for 'normal' samples;
-	# 	- The coefficient b_{1} is the change in average log-intensity
-	# 	associated with 'tumor' samples; i.e. the gradient of the line when you
-	# 	go from 'normal' log-intensity to 'tumor' log-intensity. If we want to
-	# 	see if there is a significant difference between 'normal' and 'tumor'
-	# 	expression, we are essentially going to ask if b_{1} is significantly
-	# 	different from 0. Is it just a flat line or is there a gradient?
-	# 
-	# This line is fit for every design element summarized on the array. For
-	# some genes the line's gradient will be positive, i.e. an increase in
-	# log-intensity i.e. expression. For other genes the line's gradient will
-	# be negative i.e. a decrease in log-intensity i.e. expression.
-	# The results are stored in 'fit', a limma MArrayLM object. 
-    fit = lmFit(eset, designMatrix)
-
-	# Compute moderated t-test using eBayes().
-	# This is a robust version of the t-test which reduces the false discovery
-	# rate. Standard errors are moderated across genes (shrunk towards a common
-	# value). A gene that has a large variance is less likely to actually be
-	# differentially expressed. 
-    fit = eBayes(fit)
-
-    return(fit)
-}
 
 
 
@@ -459,173 +507,88 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 
 
 
-# computeAnalytics()
-# 	- Atlas analytics.
-# 	- Calls allupdn() to fit linear models and contrasts for all factors.
-# 	- Writes t-statistics and p-values to statistics NetCDF.
-# 	- Calls updateStatOrder() to rank genes based on differential expression.
-# 	- Returns a vector of the result for each factor ("OK" for those where
-# 	statistics were calculated successfully, "NOK" for those where they
-# 	weren't).
+# fstat.eset() 
+#	- Omnibus one-way ANOVA (with moderated t) F-statistic computation.
 # ARGUMENTS:
-# 	- data_ncdf <- filename of NetCDF with experiment data.
-# 	- statistics_ncdf <- filename of NetCDF with statistics data (calculated here).
-computeAnalytics <<- function (data_ncdf, statistics_ncdf) {
-	
-	e <- try({
-		
-		# eset is an ExpressionSet object containing normalized summarized
-		# expressions and experimental data such as factors and their values.
-		eset = read.atlas.nc(data_ncdf)
-		
-		# data_nc is an ncdf object with experiment data.
-		data_nc = open.ncdf(data_ncdf)
-		# statistics_nc is an ncdf object for statistics data to be written to.
-		# The statistics NetCDF file is created just before analytics are
-		# calcluated.
-		statistics_nc = open.ncdf(statistics_ncdf, write = TRUE)
-		
-		# How many samples are there? If there is only one, we can't do
-		# anything sensible with this experiment so return here without going
-		# any further.
-		if (dim(eset)[2] == 1) {
-			
-			# Return a vector of the factor names as 'names' and "NOK" as the
-			# value for each.
-			return(sapply(varLabels(eset), function(i) "NOK"))
-		}
-		
-		# Process the experiment data using allupdn() function.
-		# This returns is a list object where each element is a limma MArrayLM
-		# object containing (for a single factor) the linear model fit,
-		# estimated coefficients and standard errors for the contrasts,
-		# moderated t-statistics and associated p-values.
-		allFits = allupdn(eset)
-		
-		# Get propertyNAME (factor name) and propertyVALUE (factor value) information from the NetCDF.
-		propertyNAME = get.var.ncdf(statistics_nc, "propertyNAME")
-		propertyVALUE = get.var.ncdf(statistics_nc, "propertyVALUE")
+# 	- eset <- an ExpressionSet object containing normalized summarized
+# 	expression data and factor data.
+# 	- factorName <- a factor name.
+fstat.eset <- function(eset, factorName) {
+    
+	# Log which factor we're looking at.
+	print(paste("Calculating design matrix for", factorName))
 
-		# Stick them together with paste :)
-		# pairs is a vector with strings "factor name||factor value" for every
-		# factor name/value pair in the experiment.
-		pairs <- paste(propertyNAME, propertyVALUE, sep = "||")
+	# Create the experiment design matrix for this factor. 
+	# Each row in the design matrix corresponds to an array in the experiment;
+	# each column corresponds to a factor value.
+	# 
+	# Here is an example SDRF:
+	# 		Array	FactorValue[compound]
+	#		array1	a
+	#		array2	a
+	#		array3	b
+	#		array4	b
+	# 
+	# Our coefficients are 'a' and 'b'.
+	# Here is the corresponding design matrix:
+	# 		Array	a	b
+	# 		array1	1	0
+	# 		array2	1	0
+	# 		array3	0	1
+	# 		array4	0	1
+	#
+	# The design matrix is created from the data in the ExpressionSet for the
+	# factor in question by model.matrix().
+	# as.formula() returns the string created by paste() as a formula object.
+	# The "0+" part removes the intercept column so that we get a column for
+	# each factor value instead of intercept plus all but one factor value. The
+	# "0+" part can also be written as "-1+", there is no difference to the
+	# resulting design matrix.
+	# (model.matrix() doesn't work on a string).
+    designMatrix = model.matrix(as.formula(paste("~0+", factorName)), data = eset)
 
-		# Create two matrices called tstat and pval and fill with 'NA's. The
-		# number of rows is equal to the number of design elements/probe sets;
-		# the number of columns is equal to the number of factor name/value pairs.
-		tstat = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset));
-		pval = matrix(NA, ncol = length(propertyNAME), nrow = nrow(eset));
-		
-		# Name columns with the factor name/value pairs.
-		colnames(tstat) <- make.names(pairs)
-		colnames(pval) <- make.names(pairs)
+    print("Fitting model...")
 
-		# The function applied by sapply() returns a vector of the factor names
-		# as 'names' and "OK" or "NOK" as the value for each one depending on
-		# whether we managed to get stats OK or not. That's what goes into 'result'.
-		# 
-		# For each factor name (accessed by varLabels(eset)):
-		# 	- check if we have stats (factor is "NOK" if not);
-		# 	- Pull out adjusted p-values and moderated t-statistics for this
-		# 	factor and put them in the appropriate columns in pval and tstat
-		# 	matrices.
-		result <- sapply(varLabels(eset),
-			
-			# factorName is renamed from 'varLabel'
-			function(factorName) {
-				
-				print(paste("Creating t-statistic and p-value matrices for",factorName))
-				
-				# If we do not see results from applying the contrasts matrix
-				# for this factor, we don't have any statistics for it, so this
-				# factor is "Not OK".
-				if (is.null(allFits[[factorName, exact = TRUE]]$contr.fit)) {
-					return("NOK")
-				}
-				
-			
-				# Get the moderated t-statistics from the contrasts fit.
-				tStatistics <- allFits[[factorName, exact = TRUE]]$contr.fit$t
-				
-				# Get the p-values from the contrasts fit.
-				pValues <- as.matrix(allFits[[factorName, exact = TRUE]]$contr.fit$p.value)
-			
-				# Which p-values are not NA?
-				nonNaPvals = !is.na(pValues)
-			
-				# Run Benjamini and Hochberg (1995) fdr correction on the
-				# non-NA p-values.
-				pValues[nonNaPvals] = p.adjust(pValues[nonNaPvals], method = "fdr")
-				
-				# Make the column headings we want using the factor name and
-				# the vector of factor values.
-				namesForCols <- make.names(paste(factorName,allFits[[factorName, exact=TRUE]]$factorValues,sep = "||"))
-				
-				# Set the column names for tStatistics and pValues.
-				colnames(tStatistics) <- namesForCols
-				colnames(pValues) <- namesForCols
+	# Run lmFit() on the data in eset using the design matrix.
+	# lmFit() fits a linear model for each probe set on the array:
+	#
+	# 	Y_{i} = b_{0} + b_{1}X_{i}
+	#
+	# In an example comparing 'normal' samples with 'tumor' samples:
+	# 	- Assuming X{i} = 0 for 'normal' samples: 
+	# 		Y_{N} = b_{0}
+	# 	- Assuming X{i} = 1 for 'tumor' samples:
+	# 		Y_{T} = b_{0} + b_{1}
+	# 	- The coefficient b_{0} is the average log-intensity for 'normal' samples;
+	# 	- The coefficient b_{1} is the change in average log-intensity
+	# 	associated with 'tumor' samples; i.e. the gradient of the line when you
+	# 	go from 'normal' log-intensity to 'tumor' log-intensity. If we want to
+	# 	see if there is a significant difference between 'normal' and 'tumor'
+	# 	expression, we are essentially going to ask if b_{1} is significantly
+	# 	different from 0. Is it just a flat line or is there a gradient?
+	# 
+	# This line is fit for every design element summarized on the array. For
+	# some genes the line's gradient will be positive, i.e. an increase in
+	# log-intensity i.e. expression. For other genes the line's gradient will
+	# be negative i.e. a decrease in log-intensity i.e. expression.
+	# The results are stored in 'fit', a limma MArrayLM object. 
+    fit = lmFit(eset, designMatrix)
 
-				# Now fill each column in tstat whose name matches a column in
-				# tStatistics with the contents of the matching column in tStatistics.
-				tstat[,which(colnames(tstat) %in% colnames(tStatistics))] <<- tStatistics[,colnames(tstat)[which(colnames(tstat) %in% colnames(tStatistics))]]
+	# Compute moderated t-test using eBayes().
+	# This is a robust version of the t-test which reduces the false discovery
+	# rate. Standard errors are moderated across genes (shrunk towards a common
+	# value). A gene that has a large variance is less likely to actually be
+	# differentially expressed. 
+    fit = eBayes(fit)
 
-				# Likewise, fill each column in pval whose name matches a column in
-				# pValues with the contents of the matching column in pValues.
-				pval[,which(colnames(pval) %in% colnames(pValues))] <<- pValues[,colnames(pval)[which(colnames(pval) %in% colnames(pValues))]]
-			
-
-				# Now we've stored the info we need, return "OK" for this factor.
-				return("OK")
-			}
-		)
-
-		
-		# Put the contents (transposed) of tstat and pval into the statistics
-		# ncdf file.
-		# Transposition of matrices for the NetCDFs is required because they are
-		# stored in the NetCDF with each row corresponding to each assay, but
-		# BioConductor packages output them so that each row corresponds to a
-		# design element.
-		print(paste("Writing t-statistic and p-value matrices to NetCDF:", ncol(tstat), "factor values and", nrow(tstat), "design elements"))
-		put.var.ncdf(statistics_nc, "TSTAT", t(tstat))
-		put.var.ncdf(statistics_nc, "PVAL", t(pval))
-		
-		# Get the factor names from the NetCDF.
-		factorNames = get.var.ncdf(data_nc, "EF")
-	
-		# Write the statistics NetCDF file.
-		sync.ncdf(statistics_nc)
-
-		# Update the ranking order of the genes based on the p-values and
-		# t-statistics, with most significantly differentially expressed gene
-		# first.
-		updateStatOrder(data_nc, statistics_nc)
-
-		# Close open files.
-		close.ncdf(data_nc)
-		close.ncdf(statistics_nc)
-
-		# Name the elements in the results vector with the factor names in efsc.
-		names(result) <- factorNames
-		
-		# Return the result vector. This looks like e.g.:
-    	# 
-		# compound disease_state 
-        #     "OK"         "NOK" 
-		#
-		return(result)
-	})
-	
-	# Return the result or a try-error.
-	return(e)
+    return(fit)
 }
 
 
 
 
 
-# updataStatOrder()
+# updateStatOrder()
 # 	- Computes and saves the order of design elements for each statfilter value.
 # ARGUMENTS:
 # 	- data_nc <- filename of NetCDF file with experiment data.
@@ -764,120 +727,6 @@ updateStatOrder <<- function(data_nc, statistics_nc) {
 	return("OK")
 }
 
-
-
-
-# replaceMissingValues()
-# 	- Replace placeholders for missing expression values in NetCDF with 'NA'.
-# ARGUMENTS:
-# 	- m <- a matrix (of either normalized summarized expressions or
-# 	t-statistics or p-values).
-replaceMissingValues <<- function(m) {
-
-	# Replace -1e6 with NA. At experiment loading, if we cannot parse an
-	# expression value from a data file in the load experiment as a float, we
-	# set it to an impossible expression value of -1000000 instead.
-	m[m <= -1e6] = NA
-
-	# set to NA the default float fill value
-	m[m == 9.969209968386869e36] = NA
-
-	return(m)
-}
-
-
-
-
-# transposeMatrix()
-# 	- Returns a matrix: if given a matrix, just transposes it with t(); if not,
-# 	creates a matrix with whatever it's given and returns that.
-# 	- Transposition of matrices from the NetCDFs is required because they are
-# 	stored in the NetCDF with each row corresponding to each assay, but for
-# 	analysis with BioConductor packages we require each row to correspond to a
-# 	design element.
-# ARGUMENTS:
-# 	- m <- a matrix (or vector).
-# 	- nCols <- number of columns the returned matrix should have.
-# 	- nRows <- number of rows the returned matrix should have.
-transposeMatrix <<- function(m, nCols, nRows) {
-	
-	# If we've got a matrix, send it back transposed.
-	if (is.matrix(m)) {
-	   return(t(m))
-	}
-
-	# Otherwise, if nCols>0, make a matrix with nCols columns.
-	# If nCols is 0, I guess we'll be given nRows instead, so make a matrix
-	# with nRows rows.
-	ifelse(nCols > 0, out <- matrix(m, ncol = nCols), out <- matrix(m, nrow = nRows))
-	# Return the new matrix.
-	return(out)
-}
-
-
-
-
-# fixMatrix()
-# 	- Returns a matrix: if given a matrix, just returns it again. If not,
-# 	creates a matrix with whatever it's given (probably a vector).
-# ARGUMENTS:
-# 	- m <- a matrix (or vector).
-# 	- nCols <- number of columns the returned matrix should have.
-# 	- nRows <- number of rows the returned matrix should have.
-fixMatrix <<- function(m, nCols, nRows) {
-     
-	# If we've got a matrix, send it back as is.
-	if (is.matrix(m)) {
-		return(m)
-	}
-
-	# Otherwise, if nCols>0, make a matrix with nCols columns.
-	# If nCols is 0, I guess we'll be given nRows instead, so make a matrix
-	# with nRows rows.
-	ifelse(nCols > 0, out <- matrix(m, ncol = nCols), out <- matrix(m, nrow = nRows))
-	# Return the new matrix.
-	return(out)
-}
-
-
-
-
-# filterMatrix()
-# 	- Returns a subset of a matrix based on the contents of the 'filter' vector
-# 	passed to it.
-# ARGUMENTS:
-# 	- m <- a matrix to take a subset of.
-# 	- direction <- 1 = by rows; 2 = by columns.
-# 	- filter <- a vector of numbers which will be used as row or column indices
-# 	to subset the matrix m.
-filterMatrix <<- function(m, direction = 1, filter) {
-	
-	# If direction is 1, byRows is TRUE and byColumns is FALSE. Vice versa if
-	# direction is 2. (though in this file it's only ever called with direction
-	# = 1).
-	byRows <- (direction == 1)
-	byColummns <- (direction == 2)
-	
-	# Get the number of rows and columns.
-	nCols <- ncol(m)
-	nRows <- nrow(m)
-
-	# Copy m to m2
-	m2 = m;
-
-	# Subset using the numbers in filter, either by rows or columns. Also send
-	# it to fixMatrix() to be made into a matrix if m2 is in fact a vector.
-	if (byRows) {
-		m2 <- m[filter, ]
-		m2 <- fixMatrix(m2, nCols = nCols)
-	} else if (byColummns) {
-		m2 <- m[ ,filter]
-		m2 <- fixMatrix(m2, nRows = nRows)
-	}
-
-	# Return the new matrix.
-	return(m2)
-}
 
 
 
@@ -1035,6 +884,166 @@ orderByStatfilter <- function(statfilter, tstat, pval) {
 }
 
 
+
+
+
+# log2.safe()
+#	- Log function that does not return NAs
+# ARGUMENTS:
+# 	- x <- matrix of normalized summarized expressions
+log2.safe <- function(x) {
+	
+	# Assumption is, expression levels are > 0 unless someone has _already_ applied log.
+	# If the levels are < 1000, we're fine without log: moreover, that may as well mean
+	# all the expression levels were > 1 (why not?), and someone has already applied log.
+	# If the values are more than 1000, then log definitely was not used before, as 2^1000
+	# is just way too much for expression level value.
+	if (min(x, na.rm = TRUE) < 0 || max(x, na.rm = TRUE) < 1000) { return(x) }
+
+	# Otherwise, log2 the normalized values
+	print("Taking log2 of the expression matrix")
+
+	# For most values, 1e-10 is far smaller than the precision expected, so we can add it and be (almost) sure
+	# we've got rid of zeros without disturbing the stats.
+	
+	# Make a new matrix with the log2'ed values in
+	tmp = log2(x + 1e-10)
+
+	# Replace any non-finite values produced during the log2() with 0.
+	# Keep NAs that were already present in normalized data matrix.
+	tmp[!(is.finite(tmp) | is.na(x))] <- 0
+
+	# return tmp
+	tmp
+}
+
+
+
+
+
+# isEmptyEFV()
+#	- function to check if factor value is empty.
+#	- returns TRUE if value is NULL.
+isEmptyEFV <- function(value) return (is.null(value))
+
+
+
+
+
+# replaceMissingValues()
+# 	- Replace placeholders for missing expression values in NetCDF with 'NA'.
+# ARGUMENTS:
+# 	- m <- a matrix (of either normalized summarized expressions or
+# 	t-statistics or p-values).
+replaceMissingValues <<- function(m) {
+
+	# Replace -1e6 with NA. At experiment loading, if we cannot parse an
+	# expression value from a data file in the load experiment as a float, we
+	# set it to an impossible expression value of -1000000 instead.
+	m[m <= -1e6] = NA
+
+	# set to NA the default float fill value
+	m[m == 9.969209968386869e36] = NA
+
+	return(m)
+}
+
+
+
+
+
+# transposeMatrix()
+# 	- Returns a matrix: if given a matrix, just transposes it with t(); if not,
+# 	creates a matrix with whatever it's given and returns that.
+# 	- Transposition of matrices from the NetCDFs is required because they are
+# 	stored in the NetCDF with each row corresponding to each assay, but for
+# 	analysis with BioConductor packages we require each row to correspond to a
+# 	design element.
+# ARGUMENTS:
+# 	- m <- a matrix (or vector).
+# 	- nCols <- number of columns the returned matrix should have.
+# 	- nRows <- number of rows the returned matrix should have.
+transposeMatrix <<- function(m, nCols, nRows) {
+	
+	# If we've got a matrix, send it back transposed.
+	if (is.matrix(m)) {
+	   return(t(m))
+	}
+
+	# Otherwise, if nCols>0, make a matrix with nCols columns.
+	# If nCols is 0, I guess we'll be given nRows instead, so make a matrix
+	# with nRows rows.
+	ifelse(nCols > 0, out <- matrix(m, ncol = nCols), out <- matrix(m, nrow = nRows))
+	# Return the new matrix.
+	return(out)
+}
+
+
+
+
+
+# fixMatrix()
+# 	- Returns a matrix: if given a matrix, just returns it again. If not,
+# 	creates a matrix with whatever it's given (probably a vector).
+# ARGUMENTS:
+# 	- m <- a matrix (or vector).
+# 	- nCols <- number of columns the returned matrix should have.
+# 	- nRows <- number of rows the returned matrix should have.
+fixMatrix <<- function(m, nCols, nRows) {
+     
+	# If we've got a matrix, send it back as is.
+	if (is.matrix(m)) {
+		return(m)
+	}
+
+	# Otherwise, if nCols>0, make a matrix with nCols columns.
+	# If nCols is 0, I guess we'll be given nRows instead, so make a matrix
+	# with nRows rows.
+	ifelse(nCols > 0, out <- matrix(m, ncol = nCols), out <- matrix(m, nrow = nRows))
+	# Return the new matrix.
+	return(out)
+}
+
+
+
+
+
+# filterMatrix()
+# 	- Returns a subset of a matrix based on the contents of the 'filter' vector
+# 	passed to it.
+# ARGUMENTS:
+# 	- m <- a matrix to take a subset of.
+# 	- direction <- 1 = by rows; 2 = by columns.
+# 	- filter <- a vector of numbers which will be used as row or column indices
+# 	to subset the matrix m.
+filterMatrix <<- function(m, direction = 1, filter) {
+	
+	# If direction is 1, byRows is TRUE and byColumns is FALSE. Vice versa if
+	# direction is 2. (though in this file it's only ever called with direction
+	# = 1).
+	byRows <- (direction == 1)
+	byColummns <- (direction == 2)
+	
+	# Get the number of rows and columns.
+	nCols <- ncol(m)
+	nRows <- nrow(m)
+
+	# Copy m to m2
+	m2 = m;
+
+	# Subset using the numbers in filter, either by rows or columns. Also send
+	# it to fixMatrix() to be made into a matrix if m2 is in fact a vector.
+	if (byRows) {
+		m2 <- m[filter, ]
+		m2 <- fixMatrix(m2, nCols = nCols)
+	} else if (byColummns) {
+		m2 <- m[ ,filter]
+		m2 <- fixMatrix(m2, nRows = nRows)
+	}
+
+	# Return the new matrix.
+	return(m2)
+}
 
 
 })()
