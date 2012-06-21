@@ -805,7 +805,7 @@ public class AtlasStructuredQueryService {
      */
     private boolean hasEmptyCondition(final AtlasStructuredQuery query) {
         if (query.getConditions().isEmpty())
-            createUnexpected("Query: " + query + " should have at least one condition (which could be empty)");
+            throw createUnexpected("Query: " + query + " should have at least one condition (which could be empty)");
        return query.getConditions().size() == 1 &&
                query.getConditions().iterator().next().isAnything();
     }
