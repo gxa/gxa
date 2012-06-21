@@ -1060,12 +1060,10 @@ public class AtlasStructuredQueryService {
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
         if (Constants.EFO_FACTOR_NAME.equals(factor)) {
             Efo efo = getEfo();
-            int i = 0;
             for (String v : efo.getRootIds()) {
                 condEfvs.put(Constants.EFO_FACTOR_NAME, v, true);
             }
         } else {
-            int i = 0;
             for (String v : efvService.listAllValues(factor)) {
                 condEfvs.put(factor, v, true);
             }
