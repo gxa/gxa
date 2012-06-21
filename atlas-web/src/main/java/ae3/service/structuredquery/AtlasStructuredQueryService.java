@@ -811,28 +811,30 @@ public class AtlasStructuredQueryService {
     }
 
     /**
-     *
      * @param query
      * @return If query did not contain an empty condition, return query.getConditions(); otherwise return a list of conditions,
-     * each containing one factor from atlasProperties.getDasFactors() and the expression type from the empty condition.
+     *         each containing one factor from atlasProperties.getDasFactors() and the expression type from the empty condition.
      */
-    private List<ExpFactorQueryCondition> getQueryConditions(final AtlasStructuredQuery query) {
+    private Collection<ExpFactorQueryCondition> getQueryConditions(final AtlasStructuredQuery query) {
         if (hasEmptyCondition(query)) {
-            QueryExpression expression =  query.getConditions().iterator().next().getExpression();
-            List<ExpFactorQueryCondition> queryConditions = Lists.newArrayList();
-            for (String factor : atlasProperties.getDasFactors()) {
-                ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
-                condition.setExpression(expression);
-                condition.setFactor(factor);
-                condition.setFactorValues(Collections.<String>emptyList());
-                condition.setMinExperiments(1);
-                queryConditions.add(condition);
-            }
+            return addDasFactorsToConditions(query);
         }
-        return new ArrayList(query.getConditions());
 
+        return query.getConditions();
+    }
 
-
+    private Collection<ExpFactorQueryCondition> addDasFactorsToConditions(AtlasStructuredQuery query) {
+        QueryExpression expression = query.getConditions().iterator().next().getExpression();
+        List<ExpFactorQueryCondition> queryConditions = Lists.newArrayList();
+        for (String factor : atlasProperties.getDasFactors()) {
+            ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
+            condition.setExpression(expression);
+            condition.setFactor(factor);
+            condition.setFactorValues(Collections.<String>emptyList());
+            condition.setMinExperiments(1);
+            queryConditions.add(condition);
+        }
+        return queryConditions;
     }
 
     /**
