@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.service.export.ChEbiXrefExporter;
 import uk.ac.ebi.gxa.service.export.CompoundExporter;
+import uk.ac.ebi.gxa.service.export.EnsemblOrganismExporter;
 
 /**
  * User: nsklyar
@@ -44,9 +45,14 @@ public class DataExporterController {
     @Autowired
     private CompoundExporter compoundExporter;
 
+    @Autowired
+    private EnsemblOrganismExporter organismExporter;
+
     public static final String COMPOUND = "compound";
 
     public static final String CHEBI = "chebi";
+
+    public static final String ORGANISMS = "organisms";
 
     @RequestMapping(value = "/dataExport/{type}")
     public String getAnnotationSourceList(@PathVariable("type") String type,
@@ -56,6 +62,8 @@ public class DataExporterController {
             model.addAttribute("exportText", compoundExporter.generateDataAsString());
         } else if (CHEBI.equalsIgnoreCase(type)) {
             model.addAttribute("exportText", chEbiExporter.generateDataAsString());
+        } else if (ORGANISMS.equalsIgnoreCase(type)) {
+            model.addAttribute("exportText", organismExporter.generateDataAsString());
         } else {
             throw new ResourceNotFoundException("Cannot export data of type " + type);
         }
