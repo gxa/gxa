@@ -45,6 +45,11 @@ public class ExperimentIndexViewController extends AtlasViewController {
         ExperimentSolrDAO.AtlasExperimentsResult experiments =
                 experimentSolrDAO.getExperimentsByQuery(queryForSearch(query),
                         (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
+
+        if (experiments.getTotalResults() == 1) {
+            return "redirect:/experiment/" + experiments.getExperiments().get(0).getAccession();
+        }
+
         model.addAttribute("experiments", transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
             @Override
             public ExperimentIndexLine apply(@Nullable Experiment experiment) {
