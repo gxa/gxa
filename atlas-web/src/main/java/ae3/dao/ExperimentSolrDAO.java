@@ -164,6 +164,8 @@ public class ExperimentSolrDAO {
     /**
      * Search experiments by SOLR query
      *
+     * It seems this method is used only by API
+     *
      * @param query SOLR query string
      * @return experiments matching the query
      */

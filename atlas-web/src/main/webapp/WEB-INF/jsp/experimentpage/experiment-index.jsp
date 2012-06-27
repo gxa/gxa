@@ -69,7 +69,7 @@
                     <table>
                         <tr>
                             <td><input type="text" class="value" id="expFilter" name="q" value="${query}"/></td>
-                            <td><input type="submit" value="SEARCH" onclick="function searchSubmit() {
+                            <td><input type="submit" value="Search" onclick="function searchSubmit() {
                                  experimentFilterForm.submit();
                             }
                             searchSubmit()"/></td>
