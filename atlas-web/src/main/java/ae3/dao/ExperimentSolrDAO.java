@@ -173,7 +173,7 @@ public class ExperimentSolrDAO {
         return getExperimentsByQuery(toSolrQuery(query, "accession", SolrQuery.ORDER.asc));
     }
 
-    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) {
+    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) throws DAOException{
         return getExperimentsByQuery(toSolrQuery(query, start, rows, sort, order));
     }
 
@@ -191,7 +191,9 @@ public class ExperimentSolrDAO {
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), query.getStart());
         } catch (SolrServerException e) {
-            throw createUnexpected("Error querying for experiments", e);
+            //ToDo: try to find a way to validate query.
+            log.error("Error querying for experiments", e);
+            throw new DAOException("Error querying for experiments", e);
         }
     }
 
