@@ -28,7 +28,7 @@
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="query" type="java.lang.String" scope="request"/>
-<jsp:useBean id="invalidquery" type="java.lang.Integer" scope="request"/>
+<jsp:useBean id="invalidquery" type="java.lang.Boolean" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -79,11 +79,11 @@
                 </form>
             </div>
 
-            <c:if test="${invalidquery > 0}">
-                <div style="margin-top:30px;margin-bottom:20px;font-weight:bold;">Query ${query} is invalid</div>
+            <c:if test="${invalidquery}">
+                <div style="margin-top:30px;margin-bottom:20px;font-weight:bold;">Query ${query} is not valid</div>
             </c:if>
 
-           <c:if test="${invalidquery == 0}">
+           <c:if test="${!invalidquery}">
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
                            defaultsort="2" defaultorder="descending"
                            requestURIcontext="false" id="experiment"

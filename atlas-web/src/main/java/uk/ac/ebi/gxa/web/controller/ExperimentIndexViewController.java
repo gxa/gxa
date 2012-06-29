@@ -65,7 +65,7 @@ public class ExperimentIndexViewController extends AtlasViewController {
         model.addAttribute("total", experiments.getTotalResults());
         model.addAttribute("count", PAGE_SIZE);
         model.addAttribute("query", queryForView(query));
-        model.addAttribute("invalidquery", 0);
+        model.addAttribute("invalidquery", false);
         return "experimentpage/experiment-index";
     }
 
@@ -74,7 +74,7 @@ public class ExperimentIndexViewController extends AtlasViewController {
     }
 
     private String invalidQuery(String query, Model model) {
-        model.addAttribute("invalidquery", 1);
+        model.addAttribute("invalidquery", true);
         model.addAttribute("query", queryForView(query));
         model.addAttribute("experiments", new ArrayList<ExperimentIndexLine>());
         model.addAttribute("total", 0);
@@ -117,12 +117,4 @@ public class ExperimentIndexViewController extends AtlasViewController {
         }
         return query;
     }
-
-//    private void processInvalidQuery(){
-//        model.addAttribute("invalidquery", 1);
-//        model.addAttribute("total", experiments.getTotalResults());
-//        model.addAttribute("count", PAGE_SIZE);
-//        model.addAttribute("query", queryForView(query));
-//        model.addAttribute("invalidquery", 0);
-//    }
 }
