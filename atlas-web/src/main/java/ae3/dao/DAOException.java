@@ -28,18 +28,18 @@ package ae3.dao;
  */
 public class DAOException extends RuntimeException{
     public DAOException() {
-        super();    //To change body of overridden methods use File | Settings | File Templates.
+        super();
     }
 
     public DAOException(String s) {
-        super(s);    //To change body of overridden methods use File | Settings | File Templates.
+        super(s);
     }
 
     public DAOException(String s, Throwable throwable) {
-        super(s, throwable);    //To change body of overridden methods use File | Settings | File Templates.
+        super(s, throwable);
     }
 
     public DAOException(Throwable throwable) {
-        super(throwable);    //To change body of overridden methods use File | Settings | File Templates.
+        super(throwable);
     }
 }
