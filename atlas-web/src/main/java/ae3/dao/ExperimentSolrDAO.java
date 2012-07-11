@@ -26,6 +26,7 @@ import ae3.model.AtlasExperiment;
 import ae3.service.experiment.AtlasExperimentQuery;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Multimap;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -41,7 +42,9 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.google.common.collect.Lists.transform;
 import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
@@ -161,6 +164,8 @@ public class ExperimentSolrDAO {
     /**
      * Search experiments by SOLR query
      *
+     * It seems this method is used only by API
+     *
      * @param query SOLR query string
      * @return experiments matching the query
      */
@@ -168,7 +173,7 @@ public class ExperimentSolrDAO {
         return getExperimentsByQuery(toSolrQuery(query, "accession", SolrQuery.ORDER.asc));
     }
 
-    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) {
+    public AtlasExperimentsResult getExperimentsByQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) throws DAOException{
         return getExperimentsByQuery(toSolrQuery(query, start, rows, sort, order));
     }
 
@@ -186,7 +191,9 @@ public class ExperimentSolrDAO {
 
             return new AtlasExperimentsResult(result, documentList == null ? 0 : (int) documentList.getNumFound(), query.getStart());
         } catch (SolrServerException e) {
-            throw createUnexpected("Error querying for experiments", e);
+            //ToDo: try to find a way to validate query.
+            log.error("Error querying for experiments", e);
+            throw new DAOException("Error querying for experiments", e);
         }
     }
 
@@ -227,12 +234,30 @@ public class ExperimentSolrDAO {
     }
 
     static SolrQuery toSolrQuery(String query, int start, int rows, String sort, SolrQuery.ORDER order) {
+
         SolrQuery q = new SolrQuery();
-        q.setQuery(query);
+
+        q.setQuery(appendAccession(query));
         q.setRows(rows);
         q.setStart(start);
         q.setFields("*");
         q.setSortField(sort, order);
         return q;
+    }
+
+    static String appendAccession(String query) {
+        Pattern pattern = Pattern.compile("[eE]-\\w{4}-\\d+");
+        List<String> accessions = new LinkedList<String>();
+        final Iterable<String> items = Splitter.on(" ").split(query);
+        for (String item : items) {
+            if(pattern.matcher(item).matches()) {
+                accessions.add(item);
+            }
+        }
+        for (String accession : accessions) {
+            query = query.concat(" accession:" + accession);
+        }
+        
+        return query;
     }
 }
