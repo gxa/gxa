@@ -376,26 +376,26 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# is stated that "each EFV should be tested in at least two
 			# replicates". Benilton Carvalho (biostatistician and contributor
 			# to BioConductor) recommends at least four replicates per factor.
-			# We will go with a minimum of 3 replicates per factor value for
+			# We will go with a minimum of 2 replicates per factor value for
 			# now.
 
 			# Vector of factor values
 			factorValues = levels(esetForVariable[[fName, exact = TRUE]])
 			
-			# Set this to true if any factor values have less than 3 replicates.
+			# Set this to true if any factor values have less than 2 replicates.
 			notEnoughReps = FALSE
 			
 			# A list to put info for values with too few replicates in
 			notEnoughList = list()
 
 			# For each factor value, test if the number of samples with that
-			# factor value is less than 3. If so, log that it has too few
+			# factor value is less than 2. If so, log that it has too few
 			# replicates and set notEnoughReps to TRUE. We can only proceed with
-			# this factor as long as ALL values have >=3 replicates, so even if
-			# just one value has <3 we have to leave it.
+			# this factor as long as ALL values have >=2 replicates, so even if
+			# just one value has <2 we have to leave it.
 			for(fValue in factorValues) {
 				
-				if(length(which(pData(esetForVariable)[[fName, exact = TRUE]] == fValue)) < 3) {
+				if(length(which(pData(esetForVariable)[[fName, exact = TRUE]] == fValue)) < 2) {
 					
 					# Add a string to notEnoughList containing experiment and
 					# array design accessions, factor name and factor value.
@@ -413,7 +413,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# ones they are and skip to the next factor in the eset.
 			if(notEnoughReps) {
 				
-				print(paste("The following factor values have fewer than three replicates:"))
+				print(paste("The following factor values have fewer than two replicates:"))
 				
 				for(i in names(notEnoughList)) { print(notEnoughList[[i]]) }
 
