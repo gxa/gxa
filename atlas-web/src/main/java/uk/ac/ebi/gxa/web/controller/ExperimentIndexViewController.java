@@ -1,7 +1,9 @@
 package uk.ac.ebi.gxa.web.controller;
 
+import ae3.dao.DAOException;
 import ae3.dao.ExperimentSolrDAO;
 import com.google.common.base.Function;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.displaytag.tags.TableTagParameters;
 import org.displaytag.util.ParamEncoder;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 
 import static com.google.common.collect.Lists.transform;
 
@@ -27,20 +30,32 @@ public class ExperimentIndexViewController extends AtlasViewController {
     // TODO: 4alf: migrate it to ExperimentDAO?
     private final ExperimentSolrDAO experimentSolrDAO;
 
+    private static final String SEARCH_ALL = "*:*";
+
     @Autowired
     public ExperimentIndexViewController(ExperimentSolrDAO experimentSolrDAO) {
         this.experimentSolrDAO = experimentSolrDAO;
     }
 
     @RequestMapping(value = "/experimentIndex", method = RequestMethod.GET)
-    public String getGeneIndex(@RequestParam(value = "q", defaultValue = "*:*") String query,
+    public String getGeneIndex(@RequestParam(value = "q", defaultValue = SEARCH_ALL) String query,
                                @RequestParam(value = PAGE_PARAM, defaultValue = "1") int page,
                                @RequestParam(value = SORT_PARAM, defaultValue = "loaddate") String sort,
                                @RequestParam(value = DIR_PARAM, defaultValue = "2") int dir,
                                Model model) {
-        ExperimentSolrDAO.AtlasExperimentsResult experiments =
-                experimentSolrDAO.getExperimentsByQuery(query,
-                        (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
+
+        ExperimentSolrDAO.AtlasExperimentsResult experiments = null;
+        try {
+            experiments = experimentSolrDAO.getExperimentsByQuery(queryForSearch(query),
+                    (page - 1) * PAGE_SIZE, PAGE_SIZE, sort, displayTagSortToSolr(dir));
+        } catch (DAOException e) {
+            return invalidQuery(query, model);
+        }
+
+        if (experiments.getTotalResults() == 1) {
+            return singleResult(experiments);
+        }
+
         model.addAttribute("experiments", transform(experiments.getExperiments(), new Function<Experiment, ExperimentIndexLine>() {
             @Override
             public ExperimentIndexLine apply(@Nullable Experiment experiment) {
@@ -48,6 +63,21 @@ public class ExperimentIndexViewController extends AtlasViewController {
             }
         }));
         model.addAttribute("total", experiments.getTotalResults());
+        model.addAttribute("count", PAGE_SIZE);
+        model.addAttribute("query", queryForView(query));
+        model.addAttribute("invalidquery", false);
+        return "experimentpage/experiment-index";
+    }
+
+    private String singleResult(ExperimentSolrDAO.AtlasExperimentsResult experiments) {
+        return "redirect:/experiment/" + experiments.getExperiments().get(0).getAccession();
+    }
+
+    private String invalidQuery(String query, Model model) {
+        model.addAttribute("invalidquery", true);
+        model.addAttribute("query", queryForView(query));
+        model.addAttribute("experiments", new ArrayList<ExperimentIndexLine>());
+        model.addAttribute("total", 0);
         model.addAttribute("count", PAGE_SIZE);
         return "experimentpage/experiment-index";
     }
@@ -72,5 +102,19 @@ public class ExperimentIndexViewController extends AtlasViewController {
         assert PAGE_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_PAGE));
         assert SORT_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_SORT));
         assert DIR_PARAM.equals(encoder.encodeParameterName(TableTagParameters.PARAMETER_ORDER));
+    }
+
+    private static String queryForSearch(String query) {
+        if (StringUtils.EMPTY.equals(query)) {
+            query = SEARCH_ALL;
+        }
+        return query;
+    }
+
+    private static String queryForView(String query) {
+        if (SEARCH_ALL.equals(query)) {
+            query = StringUtils.EMPTY;
+        }
+        return query;
     }
 }

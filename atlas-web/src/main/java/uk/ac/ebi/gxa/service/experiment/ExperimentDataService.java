@@ -31,6 +31,7 @@ import ae3.service.structuredquery.GeneQueryCondition;
 import ae3.service.structuredquery.QueryCondition;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,7 +171,7 @@ public class ExperimentDataService {
         try {
             ewd = getExperimentWithData(expAcc);
 
-            List<String> genesConditionsArr = (geneConditions == null ? Collections.<String>emptyList() : Arrays.asList(geneConditions.split(",")));
+            List<String> genesConditionsArr = (Strings.isNullOrEmpty(geneConditions) ? Collections.<String>emptyList() : Arrays.asList(geneConditions.split(",")));
             List<QueryCondition> geneQueryConditions = Lists.newArrayList();
 
             if (genesConditionsArr.size() % 2 != 0) {
