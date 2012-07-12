@@ -924,7 +924,7 @@ log2.safe <- function(x) {
 # isEmptyEFV()
 #	- function to check if factor value is empty.
 #	- returns TRUE if value is NULL.
-isEmptyEFV <- function(value) return (is.null(value) || value = "")
+isEmptyEFV <- function(value) return (is.null(value) || value == "")
 
 
 
