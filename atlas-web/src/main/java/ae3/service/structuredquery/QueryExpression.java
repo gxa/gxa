@@ -22,6 +22,8 @@
 
 package ae3.service.structuredquery;
 
+import com.google.common.base.Strings;
+
 /**
  * Gene expression option
  */
@@ -50,6 +52,9 @@ public enum QueryExpression {
     }
 
     static public QueryExpression parseFuzzyString(String s) {
+        if (Strings.isNullOrEmpty(s)) {
+            return UP_DOWN;
+        }
         s = s.toLowerCase();
         if (s.contains("non")) {
             return NON_D_E;
