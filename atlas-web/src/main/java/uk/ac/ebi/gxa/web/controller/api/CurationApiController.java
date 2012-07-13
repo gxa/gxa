@@ -220,6 +220,44 @@ public class CurationApiController extends AtlasViewController {
                 experimentAccession + "' and assay: '" + assayAccession + "' : " + gson.toJson(assayProperties));
     }
 
+    @RequestMapping(value = "/experiments/{experimentAccession}/assays/properties", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void putAllAssaysProperties(@PathVariable("v") ApiVersionType version,
+                                   @PathVariable(value = "experimentAccession") String experimentAccession,
+                                   @RequestBody ApiProperty[] properties,
+                                   HttpServletRequest request,
+                                   HttpServletResponse response) throws ResourceNotFoundException {
+        curationService.putAllAssaysProperties(experimentAccession, properties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties for all assays in experiment: '" +
+                experimentAccession + "' : " + gson.toJson(properties));
+    }
+
+    @RequestMapping(value = "/experiments/{experimentAccession}/samples/properties", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void putAllSamplesProperties(@PathVariable("v") ApiVersionType version,
+                                       @PathVariable(value = "experimentAccession") String experimentAccession,
+                                       @RequestBody ApiProperty[] properties,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) throws ResourceNotFoundException {
+        curationService.putAllSamplesProperties(experimentAccession, properties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties for all samples in experiment: '" +
+                experimentAccession + "' : " + gson.toJson(properties));
+    }
+
+    @RequestMapping(value = "/experiments/properties", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.CREATED)
+    public void putAllExperimentsProperties(@PathVariable("v") ApiVersionType version,
+                                       @RequestBody ApiProperty[] properties,
+                                       HttpServletRequest request,
+                                       HttpServletResponse response) throws ResourceNotFoundException {
+        curationService.putAllExperimentsProperties(properties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' added/updated the following properties for all assays and samples in all the experiments : " + gson.toJson(properties));
+    }
+
+
     @RequestMapping(value = "/experiments/{experimentAccession}/assays/{assayAccession}/properties",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
@@ -231,8 +269,47 @@ public class CurationApiController extends AtlasViewController {
                                       HttpServletResponse response) throws ResourceNotFoundException {
         curationService.deleteAssayProperties(experimentAccession, assayAccession, assayProperties);
         log.info("User: '" + request.getRemoteUser() +
-                "' deleted the following properties-values from experiment: '" +
+                "' deleted the following properties from experiment: '" +
                 experimentAccession + "' and assay: '" + assayAccession + "' : " + gson.toJson(assayProperties));
+    }
+
+
+    @RequestMapping(value = "/experiments/{experimentAccession}/assays/properties", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteAllAssaysProperties(@PathVariable("v") ApiVersionType version,
+                                               @PathVariable(value = "experimentAccession") String experimentAccession,
+                                               @RequestBody ApiProperty[] properties,
+                                               HttpServletRequest request,
+                                               HttpServletResponse response) throws ResourceNotFoundException {
+        curationService.deleteAllAssaysProperties(experimentAccession,properties);
+        log.info("User: '" + request.getRemoteUser() + "' deleted the following properties for all assays in experiment: '" +
+                experimentAccession + "' : " + gson.toJson(properties));
+    }
+
+
+    @RequestMapping(value = "/experiments/{experimentAccession}/samples/properties", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteAllSamplesProperties(@PathVariable("v") ApiVersionType version,
+                                          @PathVariable(value = "experimentAccession") String experimentAccession,
+                                          @RequestBody ApiProperty[] properties,
+                                          HttpServletRequest request,
+                                          HttpServletResponse response) throws ResourceNotFoundException {
+        curationService.deleteAllSamplesProperties(experimentAccession,properties);
+        log.info("User: '" + request.getRemoteUser() + "' deleted the following properties for all samples in experiment: '" +
+                experimentAccession + "' : " + gson.toJson(properties));
+    }
+
+
+    @RequestMapping(value = "/experiments/properties",
+            method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteAllExperimentsProperties(@PathVariable("v") ApiVersionType version,
+                                      @RequestBody ApiProperty[] properties,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) throws ResourceNotFoundException {
+        curationService.deleteAllExperimentsProperties(properties);
+        log.info("User: '" + request.getRemoteUser() +
+                "' deleted the following properties for all assays and samples for all the experiments : " + gson.toJson(properties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",
