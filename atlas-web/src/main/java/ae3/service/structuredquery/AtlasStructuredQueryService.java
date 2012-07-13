@@ -1383,7 +1383,7 @@ public class AtlasStructuredQueryService {
             }
         };
 
-        boolean geneConditionOnlyQuery = query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything() || query.isFullHeatmap();
+        boolean geneConditionOnlyQuery = query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything();
 
         // timing collection variables
         long overallBitStatsProcessingTime = 0;
