@@ -828,8 +828,9 @@ public class AtlasStructuredQueryService {
      *         condition if present or UP_DOWN condition, otherwise return query.getConditions().
      */
     private Collection<ExpFactorQueryCondition> getQueryConditions(final AtlasStructuredQuery query) {
-        if (query.getConditions().isEmpty() || query.getConditions().size() == 1 &&
-               query.getConditions().iterator().next().isAnything()) {
+        if (query.getConditions().isEmpty() ||
+                (query.getConditions().size() == 1 &&
+               query.getConditions().iterator().next().isAnything())) {
             return addDasFactorsToConditions(query);
         }
 
@@ -838,8 +839,11 @@ public class AtlasStructuredQueryService {
 
     private Collection<ExpFactorQueryCondition> addDasFactorsToConditions(AtlasStructuredQuery query) {
         QueryExpression expression = QueryExpression.UP_DOWN;
+        int minExperiments = 1;
         if (!query.getConditions().isEmpty()) {
-            expression = query.getConditions().iterator().next().getExpression();
+            ExpFactorQueryCondition cond = query.getConditions().iterator().next();
+            expression = cond.getExpression();
+            minExperiments = cond.getMinExperiments();
         }
         List<ExpFactorQueryCondition> queryConditions = Lists.newArrayList();
         for (String factor : atlasProperties.getDasFactors()) {
@@ -847,7 +851,7 @@ public class AtlasStructuredQueryService {
             condition.setExpression(expression);
             condition.setFactor(factor);
             condition.setFactorValues(Collections.<String>emptyList());
-            condition.setMinExperiments(1);
+            condition.setMinExperiments(minExperiments);
             queryConditions.add(condition);
         }
         return queryConditions;
