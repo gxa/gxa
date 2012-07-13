@@ -31,6 +31,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
+import uk.ac.ebi.gxa.dao.PropertyDAO;
+import uk.ac.ebi.gxa.dao.PropertyValueDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
@@ -44,9 +46,12 @@ import uk.ac.ebi.gxa.statistics.EfvAttribute;
 import uk.ac.ebi.gxa.statistics.StatisticsStorage;
 import uk.ac.ebi.gxa.statistics.StatisticsType;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
+import uk.ac.ebi.microarray.atlas.model.Property;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,10 +95,47 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         AtlasStatisticsQueryService atlasStatisticsQueryService = new AtlasBitIndexQueryService(bitIndexResourceName);
         atlasStatisticsQueryService.setStatisticsStorage(statisticsStorage);
 
+        Property prop1 = Property.createProperty("organism_part");
+        Property prop2 = Property.createProperty("disease_state");
+        Property prop3 = Property.createProperty("cell_type");
+        Property prop4 = Property.createProperty("cell_line");
+        Property prop5 = Property.createProperty("compound");
+        Property prop6 = Property.createProperty("developmental_stage");
+        Property prop7 = Property.createProperty("infect");
+        Property prop8 = Property.createProperty("phenotype");
+
+
+        PropertyDAO propertyDAO = createMock(PropertyDAO.class);
+
+        // Set DAS factors and example values
+        expect(propertyDAO.getAll()).andReturn(Arrays.asList(prop1, prop2, prop3, prop4, prop5, prop6, prop7, prop8)).anyTimes();
+        expect(propertyDAO.getByName("organism_part")).andReturn(prop1).anyTimes();
+        expect(propertyDAO.getByName("disease_state")).andReturn(prop2).anyTimes();
+        expect(propertyDAO.getByName("cell_type")).andReturn(prop2).anyTimes();
+        expect(propertyDAO.getByName("cell_line")).andReturn(prop2).anyTimes();
+        expect(propertyDAO.getByName("compound")).andReturn(prop2).anyTimes();
+        expect(propertyDAO.getByName("developmental_stage")).andReturn(prop2).anyTimes();
+        expect(propertyDAO.getByName("infect")).andReturn(prop2).anyTimes();
+        expect(propertyDAO.getByName("phenotype")).andReturn(prop2).anyTimes();
+        replay(propertyDAO);
+
+        PropertyValueDAO propertyValueDAO = createMock(PropertyValueDAO.class);
+        expect(propertyValueDAO.findValuesForProperty("organism_part")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "heart"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("disease_state")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "breast carcinoma"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("cell_type")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "hematopoietic stem cell"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("cell_line")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "HeLa"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("compound")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "tamoxifen"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("developmental_stage")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "embryo"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("infect")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "uninfected"))).anyTimes();
+        expect(propertyValueDAO.findValuesForProperty("phenotype")).andReturn(Collections.singletonList(new PropertyValue(1L, prop1, "not specified"))).anyTimes();
+        replay(propertyValueDAO);
+
         AtlasEfvService efvService = new AtlasEfvService();
         efvService.setAtlasStatisticsQueryService(atlasStatisticsQueryService);
         efvService.setSolrServerProp(serverProp);
         efvService.setAtlasProperties(atlasProperties);
+        efvService.setPropertyDAO(propertyDAO);
+        efvService.setPropertyValueDAO(propertyValueDAO);
 
         AtlasEfoService efoService = new AtlasEfoService();
         efoService.setEfo(efo);
@@ -141,7 +183,30 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
 
 
     @Test
-    public void test_doStructuredAtlasQuery() {
+    public void test_doStructuredAtlasQueryWithCondition() {
+        AtlasStructuredQuery query = new AtlasStructuredQueryBuilder()
+                .andGene("ENSMUSG00000020275")
+                .query(1);
+        appendCondition(query);
+        AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(query);
+
+        assertNotNull(result);
+        assertTrue(result.getSize() > 0);
+    }
+
+    @Test(expected = UnexpectedException.class)
+    public void test_doStructuredAtlasQueryWithNoConditions() {
+        AtlasStructuredQuery query = new AtlasStructuredQueryBuilder()
+                .andGene("ENSMUSG00000020275")
+                .query(1);
+        AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(query);
+
+        assertNotNull(result);
+        assertTrue(result.getSize() > 0);
+    }
+
+    @Test
+    public void test_doStructuredAtlasQueryWithEmptyCondition() {
         AtlasStructuredQuery query = new AtlasStructuredQueryBuilder()
                 .andGene("ENSMUSG00000020275")
                 .query(1);
@@ -152,15 +217,7 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         assertTrue(result.getSize() > 0);
     }
 
-    @Test(expected = UnexpectedException.class)
-    public void test_doStructuredAtlasQuery1() {
-        AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
-                .andGene("ENSMUSG00000020275")
-                .query(1));
 
-        assertNotNull(result);
-        assertTrue(result.getSize() > 0);
-    }
 
     @Test
     public void test_getStats() {
@@ -182,11 +239,20 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         assertTrue(upCounts.entrySet().size() > 0 || downCounts.entrySet().size() > 0 || nonDECounts.entrySet().size() > 0);
     }
 
-    private void appendEmptyCondition(AtlasStructuredQuery query) {
+    private void appendCondition(AtlasStructuredQuery query) {
         ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
         cond.setFactor("organism_part");
         cond.setExpression(QueryExpression.UP_DOWN);
         cond.setFactorValues(Collections.singletonList("heart"));
+        cond.setMinExperiments(1);
+        query.setConditions(Collections.singletonList(cond));
+    }
+
+    private void appendEmptyCondition(AtlasStructuredQuery query) {
+        ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
+        cond.setFactor("");
+        cond.setExpression(QueryExpression.UP_DOWN);
+        cond.setFactorValues(Collections.<String>emptyList());
         cond.setMinExperiments(1);
         query.setConditions(Collections.singletonList(cond));
     }

@@ -2,8 +2,7 @@ package ae3.service.structuredquery;
 
 import org.junit.Test;
 
-import static ae3.service.structuredquery.QueryExpression.parseFuzzyString;
-import static ae3.service.structuredquery.QueryExpression.valueOf;
+import static ae3.service.structuredquery.QueryExpression.*;
 import static org.junit.Assert.assertEquals;
 
 public class QueryExpressionTest {
@@ -13,6 +12,11 @@ public class QueryExpressionTest {
             final String name = qe.name();
             assertEquals("valueOf(" + qe + ")", valueOf(name), parseFuzzyString(name));
         }
+    }
+
+    @Test
+    public void testFuzzyLogicCompatibleWithValueOfEmpty() {
+        assertEquals(UP_DOWN, parseFuzzyString(""));
     }
 
     @Test

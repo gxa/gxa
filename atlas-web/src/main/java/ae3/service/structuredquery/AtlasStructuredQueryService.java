@@ -822,26 +822,15 @@ public class AtlasStructuredQueryService {
     }
 
     /**
-     * At least one experimental condition is always passed with the query. It could be empty, i.e. contain no factor or
-     * factor values, but will always contain the required expression type. An empty experimental condition is used to
-     * pass expression type for gene condition-only queries.
      * @param query
-     * @return true if query contains only one empty condition
-     */
-    private boolean hasEmptyCondition(final AtlasStructuredQuery query) {
-        if (query.getConditions().isEmpty())
-            throw createUnexpected("Query: " + query + " should have at least one condition (which could be empty)");
-       return query.getConditions().size() == 1 &&
-               query.getConditions().iterator().next().isAnything();
-    }
-
-    /**
-     * @param query
-     * @return If query did not contain an empty condition, return query.getConditions(); otherwise return a list of conditions,
-     *         each containing one factor from atlasProperties.getDasFactors() and the expression type from the empty condition.
+     * @return If query contains no conditions or a single condition without factor/factor value, create a list of conditions,
+     *         each containing one factor from atlasProperties.getDasFactors() and the expression type from the empty
+     *         condition if present or UP_DOWN condition, otherwise return query.getConditions().
      */
     private Collection<ExpFactorQueryCondition> getQueryConditions(final AtlasStructuredQuery query) {
-        if (hasEmptyCondition(query)) {
+        if (query.getConditions().isEmpty() ||
+                (query.getConditions().size() == 1 &&
+               query.getConditions().iterator().next().isAnything())) {
             return addDasFactorsToConditions(query);
         }
 
@@ -849,14 +838,20 @@ public class AtlasStructuredQueryService {
     }
 
     private Collection<ExpFactorQueryCondition> addDasFactorsToConditions(AtlasStructuredQuery query) {
-        QueryExpression expression = query.getConditions().iterator().next().getExpression();
+        QueryExpression expression = QueryExpression.UP_DOWN;
+        int minExperiments = 1;
+        if (!query.getConditions().isEmpty()) {
+            ExpFactorQueryCondition cond = query.getConditions().iterator().next();
+            expression = cond.getExpression();
+            minExperiments = cond.getMinExperiments();
+        }
         List<ExpFactorQueryCondition> queryConditions = Lists.newArrayList();
         for (String factor : atlasProperties.getDasFactors()) {
             ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
             condition.setExpression(expression);
             condition.setFactor(factor);
             condition.setFactorValues(Collections.<String>emptyList());
-            condition.setMinExperiments(1);
+            condition.setMinExperiments(minExperiments);
             queryConditions.add(condition);
         }
         return queryConditions;
@@ -1225,35 +1220,22 @@ public class AtlasStructuredQueryService {
      * C.f. call to this method in processResultGenes().
      *
      * @param bioEntityIdRestrictionSet gene set of interest
-     * @param geneOnlyQuery             true if this is a gene-only query; false otherwise
      * @param qstate                    QueryState
      * @param statisticType             chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
      *                                  this statistic type will be used to find out scoring Attributes for that statistic type)
      */
     private void populateScoringAttributes(
             final Set<Integer> bioEntityIdRestrictionSet,
-            boolean geneOnlyQuery,
             QueryState qstate,
             StatisticsType statisticType
     ) {
         List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, efvService.getAllFactors());
 
-        Set<String> autoFactors = Sets.newHashSet();
-        if (geneOnlyQuery &&
-                !Sets.intersection(
-                        Sets.newHashSet(atlasProperties.getDasFactors()),
-                        Sets.newHashSet(getEfs(attrCountsSortedDescByExperimentCounts)))
-                        .isEmpty()) {
-            // For gene only queries display DAS factors only unless none of the scoring factors for the query
-            // are in fact DAS factors. In that case display all scoring factors.
-            autoFactors.addAll(atlasProperties.getDasFactors());
-        }
-
         Multiset<EfAttribute> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {
             EfvAttribute attr = attrCount.getElement();
-            if ((autoFactors.isEmpty() || autoFactors.contains(attr.getEf())) && !Strings.isNullOrEmpty(attr.getEfv())) {
+            if (!Strings.isNullOrEmpty(attr.getEfv())) {
                 EfAttribute efAttr = new EfAttribute(attr.getEf());
                 qstate.addEfv(attr.getEf(), attr.getEfv(), 1, qstate.getQueryExpression());
                 efAttrCounts.add(efAttr);
@@ -1392,8 +1374,6 @@ public class AtlasStructuredQueryService {
             }
         };
 
-        boolean geneConditionOnlyQuery = query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything() || query.isFullHeatmap();
-
         // timing collection variables
         long overallBitStatsProcessingTime = 0;
         long overallDataAccessTimeForListView = 0;
@@ -1404,7 +1384,7 @@ public class AtlasStructuredQueryService {
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(bioEntityIdRestrictionSet, geneConditionOnlyQuery, qstate, statisticsQuery.getStatisticsType());
+            populateScoringAttributes(bioEntityIdRestrictionSet, qstate, statisticsQuery.getStatisticsType());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             List<EfvTree.EfEfv<ColumnInfo>> scoringEfvs = qstate.getEfvs().getValueSortedList();
