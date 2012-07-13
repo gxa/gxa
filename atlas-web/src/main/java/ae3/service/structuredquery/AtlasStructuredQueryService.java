@@ -1220,35 +1220,22 @@ public class AtlasStructuredQueryService {
      * C.f. call to this method in processResultGenes().
      *
      * @param bioEntityIdRestrictionSet gene set of interest
-     * @param geneOnlyQuery             true if this is a gene-only query; false otherwise
      * @param qstate                    QueryState
      * @param statisticType             chosen by the user in the simple query screen (if the user has no chosen any efv/efo conditions,
      *                                  this statistic type will be used to find out scoring Attributes for that statistic type)
      */
     private void populateScoringAttributes(
             final Set<Integer> bioEntityIdRestrictionSet,
-            boolean geneOnlyQuery,
             QueryState qstate,
             StatisticsType statisticType
     ) {
         List<Multiset.Entry<EfvAttribute>> attrCountsSortedDescByExperimentCounts =
                 atlasStatisticsQueryService.getSortedScoringAttributesForBioEntities(bioEntityIdRestrictionSet, statisticType, efvService.getAllFactors());
 
-        Set<String> autoFactors = Sets.newHashSet();
-        if (geneOnlyQuery &&
-                !Sets.intersection(
-                        Sets.newHashSet(atlasProperties.getDasFactors()),
-                        Sets.newHashSet(getEfs(attrCountsSortedDescByExperimentCounts)))
-                        .isEmpty()) {
-            // For gene only queries display DAS factors only unless none of the scoring factors for the query
-            // are in fact DAS factors. In that case display all scoring factors.
-            autoFactors.addAll(atlasProperties.getDasFactors());
-        }
-
         Multiset<EfAttribute> efAttrCounts = HashMultiset.create();
         for (Multiset.Entry<EfvAttribute> attrCount : attrCountsSortedDescByExperimentCounts) {
             EfvAttribute attr = attrCount.getElement();
-            if ((autoFactors.isEmpty() || autoFactors.contains(attr.getEf())) && !Strings.isNullOrEmpty(attr.getEfv())) {
+            if (!Strings.isNullOrEmpty(attr.getEfv())) {
                 EfAttribute efAttr = new EfAttribute(attr.getEf());
                 qstate.addEfv(attr.getEf(), attr.getEfv(), 1, qstate.getQueryExpression());
                 efAttrCounts.add(efAttr);
@@ -1387,8 +1374,6 @@ public class AtlasStructuredQueryService {
             }
         };
 
-        boolean geneConditionOnlyQuery = query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything();
-
         // timing collection variables
         long overallBitStatsProcessingTime = 0;
         long overallDataAccessTimeForListView = 0;
@@ -1399,7 +1384,7 @@ public class AtlasStructuredQueryService {
 
         if (!hasQueryEfoEfvs) {
             long timeStart = System.currentTimeMillis();
-            populateScoringAttributes(bioEntityIdRestrictionSet, geneConditionOnlyQuery, qstate, statisticsQuery.getStatisticsType());
+            populateScoringAttributes(bioEntityIdRestrictionSet, qstate, statisticsQuery.getStatisticsType());
             long diff = System.currentTimeMillis() - timeStart;
             overallBitStatsProcessingTime += diff;
             List<EfvTree.EfEfv<ColumnInfo>> scoringEfvs = qstate.getEfvs().getValueSortedList();
