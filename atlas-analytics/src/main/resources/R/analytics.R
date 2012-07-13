@@ -358,9 +358,17 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			
 			print(paste("Checking for sufficient factor values and replicates for", fName))
 			
+			# Find out the samples in eset for which this factor is not
+			# NULL. Using isEmptyEFV() function.
+			nonEmptyFactorValues = which(!sapply(eset[[fName, exact = TRUE]], isEmptyEFV))
+			
+			# Take a subset of eset containing only the samples with non-NULL
+			# factor values.
+			esetForVariable = eset[, nonEmptyFactorValues]
+			
 			# Encode this factor as a 'factor' object. Now the factor values
 			# are 'levels'.
-			eset[[fName, exact = TRUE]] = factor(eset[[fName, exact = TRUE]])
+			esetForVariable[[fName, exact = TRUE]] = factor(esetForVariable[[fName, exact = TRUE]])
 
 
 			# In Kapushesky et al. 2010
@@ -372,7 +380,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# now.
 
 			# Vector of factor values
-			factorValues = levels(eset[[fName, exact = TRUE]])
+			factorValues = levels(esetForVariable[[fName, exact = TRUE]])
 			
 			# Set this to true if any factor values have less than 2 replicates.
 			notEnoughReps = FALSE
@@ -387,7 +395,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# just one value has <2 we have to leave it.
 			for(fValue in factorValues) {
 				
-				if(length(which(pData(eset)[[fName, exact = TRUE]] == fValue)) < 2) {
+				if(length(which(pData(esetForVariable)[[fName, exact = TRUE]] == fValue)) < 2) {
 					
 					# Add a string to notEnoughList containing experiment and
 					# array design accessions, factor name and factor value.
@@ -399,7 +407,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 
 
 			# Count the number of levels i.e. distinct factor values.
-			numVariableFactorLevels <- nlevels(eset[[fName, exact=TRUE]])
+			numVariableFactorLevels <- nlevels(esetForVariable[[fName, exact=TRUE]])
 			
 			# If there are't enough replicates for any factor values, log which
 			# ones they are and skip to the next factor in the eset.
@@ -427,7 +435,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			print(paste("Fitting linear model and calculating differential expression statistics for", fName))
 			# Fit the linear model for this factor and calculate moderated
 			# t-statistics using limma.
-			thisFit = fstat.eset(eset, factorName = fName)
+			thisFit = fstat.eset(esetForVariable, factorName = fName)
 			
 			# Create the contrasts matrix. This is a matrix describing the
 			# comparisons (contrasts) we want to make between the samples.
@@ -908,6 +916,15 @@ log2.safe <- function(x) {
 	# return tmp
 	tmp
 }
+
+
+
+
+
+# isEmptyEFV()
+#	- function to check if factor value is empty.
+#	- returns TRUE if value is NULL.
+isEmptyEFV <- function(value) return (is.null(value) || value == "")
 
 
 
