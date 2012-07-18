@@ -1,0 +1,23 @@
+[
+    {
+        "propertyValue": {
+            "property": {
+                "name": "sex"
+            },
+            "value": "female"
+        },
+        "terms": [
+            {
+                "description": null,
+                "term": null,
+                "accession": "EFO_0001265",
+                "ontology": {
+                    "name": "EFO",
+                    "version": "Thu Oct 02 2008",
+                    "description": "ArrayExpress Experimental Factor Ontology",
+                    "sourceUri": null
+                }
+            }
+        ]
+    }
+]
