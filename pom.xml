@@ -75,6 +75,9 @@
                 <configuration>
                     <testFailureIgnore>true</testFailureIgnore>
                     <argLine>-Xmx2g -Djava.library.path=${jri.libs}</argLine>
+                    <includes>
+                        <include>${test.inclusion.pattern}</include>
+                    </includes>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -300,10 +303,34 @@
     <dependencyManagement>
         <dependencies>
             <!-- testing -->
+            <!-- for acceptance testing on REST Services -->
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>1.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.restassured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>1.6.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.8.5</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.9</version>
+                <artifactId>junit-dep</artifactId>
+                <version>4.10</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>3.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -431,14 +458,17 @@
 
         <!-- testing -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>3.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -493,4 +523,26 @@
             <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>junit</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <test.inclusion.pattern>**/*Test.java</test.inclusion.pattern>
+            </properties>
+        </profile>
+        <!-- This can be used to run acceptance tests (fitnesse, rest, selenium, etc...) against a server.
+             As part of the build lifecycle a mvn test -P acceptance task can be configured in the Continuous Integration server,
+             obviously executed after a previous build task runs a maven deploy on the sever. -->
+        <profile>
+            <id>acceptance</id>
+            <properties>
+                <test.inclusion.pattern>**/*TestExternal.java</test.inclusion.pattern>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>
