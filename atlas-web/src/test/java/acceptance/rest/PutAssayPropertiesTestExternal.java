@@ -23,6 +23,7 @@
 package acceptance.rest;
 
 import com.jayway.jsonassert.JsonAssert;
+import com.jayway.jsonpath.JsonPath;
 import com.jayway.restassured.RestAssured;
 import org.junit.After;
 import org.junit.Test;
@@ -31,9 +32,7 @@ import org.springframework.http.HttpStatus;
 import java.io.File;
 
 import static com.jayway.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
 
 public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
@@ -42,14 +41,23 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
     private static final String E_TABM_1007 = "E-TABM-1007";
 
-    private static final String AN_ASSAY = "caquinof_20080327_fis2_2-v4";
+    private static final String A_SPECIFIC_ASSAY = "caquinof_20080327_fis2_2-v4";
 
-    private static final String PUT_PROPERTIES_TO_ASSAY_URI = "experiments/" + E_TABM_1007 + "/assays/" + AN_ASSAY + "/properties";
+    private static final String PUT_PROPERTIES_TO_ASSAY_URI = "experiments/" + E_TABM_1007 + "/assays/" + A_SPECIFIC_ASSAY + "/properties";
 
     private static final String MODIFIED_EXPERIMENT_URI = "experiments/" + E_TABM_1007 + ".json";
 
     private static final String JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY =
             "$.apiShallowExperiment.assays[?(@.accession=='caquinof_20080327_fis2_2-v4')].properties[?(@.name=='sex')]";
+
+    private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_ASSAYS = "$..assays.properties[?(@.name=='sex')]";
+
+    private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_ASSAYS = "$..assays.properties[?(@.name=='genotype')]";
+
+    private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_SAMPLES = "$..samples.properties[?(@.name=='sex')]";
+
+    private static final String JSONPATH_FOR_ALL_PROPERTIES_IN_SAMPLES = "$..samples.properties";
+
 
 
     @After
@@ -63,7 +71,61 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
 
     @Test
-    public void shouldAddThePropertiesToTheSpecifiedAssay() throws Exception {
+    public void shouldAddThePropertiesToTheSpecifiedAssayOnly() throws Exception {
+
+        putAssayProperties();
+
+        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+
+        JsonAssert.with(jsonString)
+                .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".value", hasItem("female"))
+                .and()
+                .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".terms", hasItem("EFO_0001265"));
+
+    }
+
+
+    @Test
+    public void shouldAddThePropertiesOnlyToOneAssay() throws Exception {
+
+        putAssayProperties();
+
+        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+
+        JsonAssert.with(jsonString)
+                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_ASSAYS, hasSize(1));
+
+    }
+
+
+    @Test
+    public void shouldNotReplaceOtherExistingPropertiesInAssays() throws Exception {
+
+        putAssayProperties();
+
+        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+
+        JsonAssert.with(jsonString)
+                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_ASSAYS, hasSize(6));
+
+    }
+
+
+    @Test
+    public void shouldNotAddPropertiesToSamples() throws Exception {
+
+        putAssayProperties();
+
+        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+
+        JsonAssert.with(jsonString)
+                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_SAMPLES, is(empty()))
+                .and()
+                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_IN_SAMPLES, hasSize(24));
+    }
+
+
+    private void putAssayProperties(){
 
         given().header("Content-Type", "application/json")
                 .body(JSON_PROPERTIES)
@@ -72,13 +134,6 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
                 .body(isEmptyString())
                 .when()
                 .put(PUT_PROPERTIES_TO_ASSAY_URI);
-
-        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
-
-        JsonAssert.with(jsonString)
-                .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".value", hasItem("female"))
-                .and()
-                .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + "terms", hasItem("EFO_0001265"));
 
     }
 
