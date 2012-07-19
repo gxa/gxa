@@ -23,14 +23,11 @@
 package acceptance.rest;
 
 import com.jayway.jsonassert.JsonAssert;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.restassured.RestAssured;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
-import java.io.File;
-
+import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
@@ -43,7 +40,7 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
     private static final String A_SPECIFIC_ASSAY = "caquinof_20080327_fis2_2-v4";
 
-    private static final String PUT_PROPERTIES_TO_ASSAY_URI = "experiments/" + E_TABM_1007 + "/assays/" + A_SPECIFIC_ASSAY + "/properties";
+    private static final String PROPERTIES_FOR_A_SPECIFIC_ASSAY_URI = "experiments/" + E_TABM_1007 + "/assays/" + A_SPECIFIC_ASSAY + "/properties";
 
     private static final String MODIFIED_EXPERIMENT_URI = "experiments/" + E_TABM_1007 + ".json";
 
@@ -61,10 +58,15 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
 
     @After
-    public void removeProperties() throws Exception {
+    public void deletePropertiesFromSpecificAssay() throws Exception {
         given().header("Content-Type", "application/json")
-                .body(JSON_PROPERTIES)
-                .delete(PUT_PROPERTIES_TO_ASSAY_URI);
+           .body(JSON_PROPERTIES)
+           .delete(PROPERTIES_FOR_A_SPECIFIC_ASSAY_URI);
+
+        String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
+
+        with(modifiedExperiment)
+            .assertThat("$..assays.properties", hasSize(6));
 
     }
 
@@ -75,12 +77,12 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
         putAssayProperties();
 
-        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+        String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
-        JsonAssert.with(jsonString)
-                .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".value", hasItem("female"))
-                .and()
-                .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".terms", hasItem("EFO_0001265"));
+        with(modifiedExperiment)
+            .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".value", hasItem("female"))
+            .and()
+            .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".terms", hasItem("EFO_0001265"));
 
     }
 
@@ -90,10 +92,10 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
         putAssayProperties();
 
-        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+        String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
-        JsonAssert.with(jsonString)
-                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_ASSAYS, hasSize(1));
+        with(modifiedExperiment)
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_ASSAYS, hasSize(1));
 
     }
 
@@ -103,10 +105,10 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
         putAssayProperties();
 
-        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+        String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
-        JsonAssert.with(jsonString)
-                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_ASSAYS, hasSize(6));
+        with(modifiedExperiment)
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_ASSAYS, hasSize(6));
 
     }
 
@@ -116,24 +118,24 @@ public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
         putAssayProperties();
 
-        String jsonString = get(MODIFIED_EXPERIMENT_URI).asString();
+        String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
-        JsonAssert.with(jsonString)
-                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_SAMPLES, is(empty()))
-                .and()
-                .assertThat(JSONPATH_FOR_ALL_PROPERTIES_IN_SAMPLES, hasSize(24));
+        with(modifiedExperiment)
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_SAMPLES, is(empty()))
+            .and()
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_IN_SAMPLES, hasSize(24));
     }
 
 
     private void putAssayProperties(){
 
         given().header("Content-Type", "application/json")
-                .body(JSON_PROPERTIES)
-                .expect().statusCode(HttpStatus.CREATED.value())
-                .and()
-                .body(isEmptyString())
-                .when()
-                .put(PUT_PROPERTIES_TO_ASSAY_URI);
+            .body(JSON_PROPERTIES)
+            .expect().statusCode(HttpStatus.CREATED.value())
+            .and()
+            .body(isEmptyString())
+            .when()
+            .put(PROPERTIES_FOR_A_SPECIFIC_ASSAY_URI);
 
     }
 

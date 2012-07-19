@@ -24,7 +24,6 @@ package acceptance.rest;
 
 import com.jayway.restassured.RestAssured;
 import org.junit.Before;
-
 import static com.jayway.restassured.RestAssured.basic;
 
 public class CuratorApiTestExternal {
@@ -38,7 +37,8 @@ public class CuratorApiTestExternal {
         RestAssured.authentication = basic("curator", "password");
 
         RestAssured.rootPath = "apiShallowExperiment" ;
-        RestAssured.given().log();
+
     }
+
 
 }

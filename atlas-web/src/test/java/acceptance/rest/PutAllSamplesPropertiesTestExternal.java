@@ -22,7 +22,6 @@
 
 package acceptance.rest;
 
-import com.jayway.jsonassert.JsonAssert;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -31,38 +30,35 @@ import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
 
-public class PutAllAssaysPropertiesTestExternal extends CuratorApiTestExternal {
+public class PutAllSamplesPropertiesTestExternal extends CuratorApiTestExternal {
 
     private static final String JSON_PROPERTIES = new TestData().readJSon("sex_property.json");
 
     private static final String E_TABM_1007 = "E-TABM-1007";
 
-    private static final String PROPERTIES_FOR_ALL_ASSAYS_URI = "experiments/" + E_TABM_1007 + "/assays/properties";
+    private static final String PROPERTIES_FOR_ALL_SAMPLES_URI = "experiments/" + E_TABM_1007 + "/samples/properties";
 
     private static final String MODIFIED_EXPERIMENT_URI = "experiments/" + E_TABM_1007 + ".json";
 
+    private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_SAMPLES = "$..samples.properties[?(@.name=='genotype')]";
+
     private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_ASSAYS = "$..assays.properties[?(@.name=='sex')]";
 
-    private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_ASSAYS = "$..assays.properties[?(@.name=='genotype')]";
-
-    private static final String JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_SAMPLES = "$..samples.properties[?(@.name=='sex')]";
-
-    private static final String JSONPATH_FOR_ALL_PROPERTIES_IN_SAMPLES = "$..samples.properties";
+    private static final String JSONPATH_FOR_ALL_PROPERTIES_IN_ASSAYS = "$..assays.properties";
 
 
     @After
-    public void deleteAllAssaysProperties() throws Exception {
+    public void deleteAllSamplesProperties() throws Exception {
         given().header("Content-Type", "application/json")
            .body(JSON_PROPERTIES)
-           .delete(PROPERTIES_FOR_ALL_ASSAYS_URI);
+           .delete(PROPERTIES_FOR_ALL_SAMPLES_URI);
 
         String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
         with(modifiedExperiment)
-            .assertThat("$..assays.properties", hasSize(6));
+            .assertThat("$..samples.properties", hasSize(24));
 
     }
 
@@ -71,51 +67,51 @@ public class PutAllAssaysPropertiesTestExternal extends CuratorApiTestExternal {
     public void shouldAddThePropertiesToAllTheAssays() throws Exception {
 
 
-        putAllAssaysProperties();
+        putAllSamplesProperties();
 
         String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
         for (int i = 0; i <= 5; i++){ //E_TABM_1007 contains 6 assays
 
             with(modifiedExperiment)
-                .assertThat("$..assays["+i+"].properties[?(@.name=='sex')].value", hasItem("female"))
+                .assertThat("$..samples[" + i + "].properties[?(@.name=='sex')].value", hasItem("female"))
                 .and()
-                .assertThat("$..assays["+i+"].properties[?(@.name=='sex')].terms", hasItem("EFO_0001265"))
+                .assertThat("$..samples[" + i + "].properties[?(@.name=='sex')].terms", hasItem("EFO_0001265"))
                 .and()
-                .assertThat("$..assays.properties", hasSize(12));
+                .assertThat("$..samples.properties", hasSize(30));
 
         }
     }
 
 
     @Test
-    public void shouldNotReplaceOtherExistingPropertiesInAssays() throws Exception {
+    public void shouldNotReplaceOtherExistingPropertiesInSamples() throws Exception {
 
-        putAllAssaysProperties();
+        putAllSamplesProperties();
 
         String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
         with(modifiedExperiment)
-            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_ASSAYS, hasSize(6));
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_GENOTYPE_IN_SAMPLES, hasSize(6));
 
     }
 
 
     @Test
-    public void shouldNotAddPropertiesToSamples() throws Exception {
+    public void shouldNotAddPropertiesToArrays() throws Exception {
 
-        putAllAssaysProperties();
+        putAllSamplesProperties();
 
         String modifiedExperiment = get(MODIFIED_EXPERIMENT_URI).asString();
 
         with(modifiedExperiment)
-            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_SAMPLES, is(empty()))
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_WITH_NAME_SEX_IN_ASSAYS, is(empty()))
             .and()
-            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_IN_SAMPLES, hasSize(24));
+            .assertThat(JSONPATH_FOR_ALL_PROPERTIES_IN_ASSAYS, hasSize(6));
     }
 
 
-    private void putAllAssaysProperties(){
+    private void putAllSamplesProperties(){
 
         given().header("Content-Type", "application/json")
             .body(JSON_PROPERTIES)
@@ -123,7 +119,7 @@ public class PutAllAssaysPropertiesTestExternal extends CuratorApiTestExternal {
             .and()
             .body(isEmptyString())
             .when()
-            .put(PROPERTIES_FOR_ALL_ASSAYS_URI);
+            .put(PROPERTIES_FOR_ALL_SAMPLES_URI);
 
     }
 

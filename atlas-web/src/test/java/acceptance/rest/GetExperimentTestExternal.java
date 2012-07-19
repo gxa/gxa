@@ -27,7 +27,10 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
-import static com.jayway.restassured.RestAssured.*;
+import static com.jayway.jsonassert.JsonAssert.with;
+import static com.jayway.restassured.RestAssured.expect;
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.fail;
@@ -50,7 +53,7 @@ public class GetExperimentTestExternal extends CuratorApiTestExternal {
     public void statusCodeShouldBeNotFoundWhenExperimentIsNotFound() throws Exception {
 
         given().expect().statusCode(HttpStatus.NOT_FOUND.value())
-                .when().get(A_NON_EXISTING_EXPERIMENT_URI);
+            .when().get(A_NON_EXISTING_EXPERIMENT_URI);
 
     }
 
@@ -58,7 +61,7 @@ public class GetExperimentTestExternal extends CuratorApiTestExternal {
     public void statusCodeShuldBeOkWhenExperimentExists() throws Exception {
 
         expect().statusCode(HttpStatus.OK.value())
-                .when().get(EXPERIMENT_URI);
+            .when().get(EXPERIMENT_URI);
 
     }
 
@@ -66,7 +69,7 @@ public class GetExperimentTestExternal extends CuratorApiTestExternal {
     public void bodyShouldContainAccessionWhenExperimentExists() throws Exception {
 
         expect().body("accession", equalTo(E_TABM_1007))
-                .when().get(EXPERIMENT_URI);
+            .when().get(EXPERIMENT_URI);
 
     }
 
@@ -74,9 +77,9 @@ public class GetExperimentTestExternal extends CuratorApiTestExternal {
     public void experimentShouldContainSomeSamplesAndSomeAssays() throws Exception {
 
         expect().body("samples", not(empty()))
-                .and()
-                .body("assays", not(empty()))
-                .when().get(EXPERIMENT_URI);
+            .and()
+            .body("assays", not(empty()))
+            .when().get(EXPERIMENT_URI);
 
     }
 
@@ -84,23 +87,23 @@ public class GetExperimentTestExternal extends CuratorApiTestExternal {
     public void samplesShouldContainSomeProperties() throws Exception {
 
         expect().body("samples[0].properties[0].name", is("organism_part"))
-                .and()
-                .body("samples[0].properties[0].value", is("seed"))
-                .when().get(EXPERIMENT_URI);
+            .and()
+            .body("samples[0].properties[0].value", is("seed"))
+            .when().get(EXPERIMENT_URI);
 
     }
 
     private static final String JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY =
-                                    "$.apiShallowExperiment.assays[?(@.accession=='caquinof_20080327_fis2_1-v4')]" +
-                                    ".properties[?(@.name=='genotype')]";
+                                "$.apiShallowExperiment.assays[?(@.accession=='caquinof_20080327_fis2_1-v4')]" +
+                                ".properties[?(@.name=='genotype')]";
 
     @Test
     public void aSpecificAssaysShouldContainAGenotypePropertyWithAGivenValue() throws Exception {
 
-        String jsonString = get(EXPERIMENT_URI).asString();
+        String modifiedExperiment = get(EXPERIMENT_URI).asString();
 
-        JsonAssert.with(jsonString)
-            .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY+".value", hasItem("fis2"))
+        with(modifiedExperiment)
+            .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY + ".value", hasItem("fis2"))
             .and()
             .assertThat(JSONPATH_FOR_A_SPECIFIC_PROPERTY_OF_A_SPECIFIC_ASSAY+".terms", is(empty()));
 

@@ -34,7 +34,7 @@ public class BasicAuthenticationTestExternal extends CuratorApiTestExternal {
     public void shuldBeOkWhenCredentialsAreOk() throws Exception {
 
         given().auth().basic("curator", "password")
-               .expect().statusCode(HttpStatus.OK.value()).when().get("properties.json");
+            .expect().statusCode(HttpStatus.OK.value()).when().get("properties.json");
 
     }
 
@@ -42,7 +42,7 @@ public class BasicAuthenticationTestExternal extends CuratorApiTestExternal {
     public void shouldReturnUnauthorizedStatusWhenCredentialsAreUnknown() throws Exception {
 
         given().auth().basic("bad", "guy")
-                .expect().statusCode(HttpStatus.UNAUTHORIZED.value()).when().get("properties.json");
+            .expect().statusCode(HttpStatus.UNAUTHORIZED.value()).when().get("properties.json");
 
     }
 }
