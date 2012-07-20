@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.service.CurationService;
+import uk.ac.ebi.gxa.web.controller.AtlasViewController;
 import uk.ac.ebi.microarray.atlas.api.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +23,7 @@ import java.util.Collection;
  */
 @Controller
 @RequestMapping("/api/curators/v1")
-public class CurationApiController {
+public class CurationApiController extends AtlasViewController {
 
     final private Logger log = LoggerFactory.getLogger(this.getClass());
     Gson gson = new Gson();
