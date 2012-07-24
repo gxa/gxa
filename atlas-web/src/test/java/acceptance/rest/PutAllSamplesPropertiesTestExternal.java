@@ -25,6 +25,7 @@ package acceptance.rest;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import uk.ac.ebi.gxa.test.TestData;
 
 import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.get;

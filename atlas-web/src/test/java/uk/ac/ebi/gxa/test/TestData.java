@@ -21,6 +21,8 @@ package uk.ac.ebi.gxa.test;/*
  */
 
 import com.google.common.io.Files;
+import com.google.gson.Gson;
+import uk.ac.ebi.microarray.atlas.api.ApiProperty;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +55,19 @@ public class TestData {
             throw new AssertionError(e);
 
         }
+
+    }
+
+
+    public ApiProperty[] readJSonProperties(String filename) {
+
+        String json = readJSon(filename);
+
+        Gson gson = new Gson();
+
+        ApiProperty[] properties = gson.fromJson(json, ApiProperty[].class);
+
+        return properties;
 
     }
 

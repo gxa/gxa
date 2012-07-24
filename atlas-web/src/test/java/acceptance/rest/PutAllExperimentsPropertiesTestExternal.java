@@ -22,12 +22,10 @@
 
 package acceptance.rest;
 
-import com.jayway.jsonpath.JsonPath;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-
-import java.util.List;
+import uk.ac.ebi.gxa.test.TestData;
 
 import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.get;

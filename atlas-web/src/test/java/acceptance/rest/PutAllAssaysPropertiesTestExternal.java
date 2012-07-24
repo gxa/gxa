@@ -22,10 +22,10 @@
 
 package acceptance.rest;
 
-import com.jayway.jsonassert.JsonAssert;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import uk.ac.ebi.gxa.test.TestData;
 
 import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.get;
@@ -78,9 +78,9 @@ public class PutAllAssaysPropertiesTestExternal extends CuratorApiTestExternal {
         for (int i = 0; i <= 5; i++){ //E_TABM_1007 contains 6 assays
 
             with(modifiedExperiment)
-                .assertThat("$..assays["+i+"].properties[?(@.name=='sex')].value", hasItem("female"))
+                .assertThat("$..assays[" + i + "].properties[?(@.name=='sex')].value", hasItem("female"))
                 .and()
-                .assertThat("$..assays["+i+"].properties[?(@.name=='sex')].terms", hasItem("EFO_0001265"))
+                .assertThat("$..assays[" + i + "].properties[?(@.name=='sex')].terms", hasItem("EFO_0001265"))
                 .and()
                 .assertThat("$..assays.properties", hasSize(12));
 
