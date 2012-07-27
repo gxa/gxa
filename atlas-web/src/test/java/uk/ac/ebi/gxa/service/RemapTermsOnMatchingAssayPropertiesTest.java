@@ -57,7 +57,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PutAllAssaysPropertiesTest {
+public class RemapTermsOnMatchingAssayPropertiesTest {
 
     private static final String FAKE_EXPERIMENT_ACCESSION = "FAKE-ACCESSION";
 
@@ -66,31 +66,31 @@ public class PutAllAssaysPropertiesTest {
     private CurationService subject = new CurationService();
 
     @Mock
-    private AssayDAO assayDAO;
+    private AssayDAO assayDAOMock;
 
     @Mock
-    private AtlasDAO atlasDAO;
+    private AtlasDAO atlasDAOMock;
 
     @Mock
-    private PropertyValueDAO propertyValueDAO;
+    private PropertyValueDAO propertyValueDAOMock;
 
     @Mock
-    private PropertyDAO propertyDAO;
+    private PropertyDAO propertyDAOMock;
 
     @Mock
-    private OntologyTermDAO ontologyTermDAO;
+    private OntologyTermDAO ontologyTermDAOMock;
 
     @Mock
-    private OntologyDAO ontologyDAO;
+    private OntologyDAO ontologyDAOMock;
 
     @Mock
-    private Experiment experiment;
+    private Experiment experimentMock;
 
     @Mock
-    private Assay assayOne;
+    private Assay assayOneMock;
 
     @Mock
-    private Assay assayTwo;
+    private Assay assayTwoMock;
 
 
     @Before
@@ -103,26 +103,26 @@ public class PutAllAssaysPropertiesTest {
     @Before
     public void setupMocks(){
 
-        //BAD, private field injection requiring me to use a reflection tool to instrument my subject
-        //BAD, 5 different service providers required to test one single flow of execution for one method
-        ReflectionTestUtils.setField(subject, "atlasDAO", atlasDAO);
-        ReflectionTestUtils.setField(subject, "assayDAO", assayDAO);
-        ReflectionTestUtils.setField(subject, "propertyValueDAO", propertyValueDAO);
-        ReflectionTestUtils.setField(subject, "ontologyDAO", ontologyDAO);
-        ReflectionTestUtils.setField(subject, "ontologyTermDAO", ontologyTermDAO);
+        //B: private field injection requiring me to use a reflection tool to instrument my subject
+        //B: 5 different service providers required to test one single flow of execution for one method
+        ReflectionTestUtils.setField(subject, "atlasDAO", atlasDAOMock);
+        ReflectionTestUtils.setField(subject, "assayDAO", assayDAOMock);
+        ReflectionTestUtils.setField(subject, "propertyValueDAO", propertyValueDAOMock);
+        ReflectionTestUtils.setField(subject, "ontologyDAO", ontologyDAOMock);
+        ReflectionTestUtils.setField(subject, "ontologyTermDAO", ontologyTermDAOMock);
 
-        when(experiment.getAssays()) //BAD some lack of encapsulation, Demeter violation
-            .thenReturn(Lists.newArrayList(assayOne, assayTwo));
+        when(experimentMock.getAssays()) //BAD some lack of encapsulation, Demeter violation
+            .thenReturn(Lists.newArrayList(assayOneMock, assayTwoMock));
 
-        when(assayOne.getProperties())
+        when(assayOneMock.getProperties())
             .thenReturn(new ArrayList<AssayProperty>());
 
-        when(assayTwo.getProperties())
+        when(assayTwoMock.getProperties())
             .thenReturn(new ArrayList<AssayProperty>());
 
     }
 
-    //BAD, If things were KISS I wouldn't need to capture arguments in order to test subject behavior
+    //B: If things were KISS I wouldn't need to capture arguments in order to test subject behavior
     @Captor
     private ArgumentCaptor<List<OntologyTerm>> termsArgument;
 
@@ -134,13 +134,13 @@ public class PutAllAssaysPropertiesTest {
     public void shouldAddTwoNewPropertiesToAllTheAssaysOfAGivenExperiment() throws ResourceNotFoundException, RecordNotFoundException {
 
         //given
-        given(atlasDAO.getExperimentByAccession(FAKE_EXPERIMENT_ACCESSION))
-            .willReturn(experiment);
+        given(atlasDAOMock.getExperimentByAccession(FAKE_EXPERIMENT_ACCESSION))
+            .willReturn(experimentMock);
 
-        given(ontologyTermDAO.getByName(anyString()))
+        given(ontologyTermDAOMock.getByName(anyString()))
             .willThrow(new RecordNotFoundException()); //none of the ontology terms is found in the database
 
-        given(propertyValueDAO.getOrCreatePropertyValue(anyString(), anyString()))
+        given(propertyValueDAOMock.getOrCreatePropertyValue(anyString(), anyString()))
             .will(new Answer<PropertyValue>() {
 
                         @Override
@@ -149,9 +149,9 @@ public class PutAllAssaysPropertiesTest {
                             String propertyValue = (String)invocationOnMock.getArguments()[1];
                             return new PropertyValue(
                                                     null,
-                                                    Property.createProperty(null,    //BAD, Property nested in PropertyValue and not viceversa?
+                                                    Property.createProperty(null,    //B: property nested in PropertyValue and not viceversa?
                                                                                      // Looks like a typical case of Abstraction Inversion.
-                                                                            propertyName, //BAD, property second param is a 'sanitized' version of the third param. So it should not be passed at all, the Property class should simply derive it.
+                                                                            propertyName, //B: property second param is a 'sanitized' version of the third param. So it should not be passed at all, the Property class should simply derive it.
                                                                             propertyName)
                                                     , propertyValue);
 
@@ -160,52 +160,31 @@ public class PutAllAssaysPropertiesTest {
             });
 
         //when
-        subject.putAllAssaysProperties(FAKE_EXPERIMENT_ACCESSION, testProperties);
+        subject.remapTermsOnMatchingAssayProperties(FAKE_EXPERIMENT_ACCESSION, testProperties);
 
 
         //then verify that propertyValueDAO is being used properly
-        verify(propertyValueDAO, times(2))
+        verify(propertyValueDAOMock, times(2))
             .getOrCreatePropertyValue(testProperties[0].getPropertyValue().getProperty().getName()
                 ,testProperties[0].getPropertyValue().getValue());
 
-        verify(propertyValueDAO, times(2))
+        verify(propertyValueDAOMock, times(2))
             .getOrCreatePropertyValue(testProperties[1].getPropertyValue().getProperty().getName()
                 ,testProperties[1].getPropertyValue().getValue());
 
         //and... (the same kind of expectation should be defined also for OntologyDAO and OntologyTermDAO)
 
         //and that each assay is being used properly...
-        for (Assay assay: experiment.getAssays()) {
+        for (Assay assayMock: experimentMock.getAssays()) {
 
-            verify(assay, times(2)).addOrUpdateProperty(propertyValueArgument.capture(), termsArgument.capture());
+            verify(assayMock, times(2))
+                .getProperty(any(PropertyValue.class));
 
-            PropertyValue firstPropertyValue = propertyValueArgument.getAllValues().get(0);
+            verify(propertyValueDAOMock, times(2))
+                .getOrCreatePropertyValue(testProperties[1].getPropertyValue().getProperty().getName()
+                    ,testProperties[1].getPropertyValue().getValue());
 
-            assertThat(firstPropertyValue.getId(), is(nullValue()));
-            assertThat(firstPropertyValue.getDisplayValue(), is("PROPERTY_VALUE_1")); //BAD, PropertyValue has a private attribute DisplayValue that is never set, getDisplayValue always returns Value
-            assertThat(firstPropertyValue.getValue(), is("PROPERTY_VALUE_1"));
-            assertThat(firstPropertyValue.getDefinition().getId(), is(nullValue()));
-            assertThat(firstPropertyValue.getDefinition().getName(), is("PROPERTY_NAME_1"));
-            assertThat(firstPropertyValue.getDefinition().getDisplayName(), is("PROPERTY_NAME_1")); //BAD, it is being set to the same value as Name
-            assertThat(firstPropertyValue.getDefinition().getValues(), is(empty())); //BAD, there is no way to set Values but there is a getValues() method exposed that always returns an empty list
-
-            PropertyValue secondPropertyValue = propertyValueArgument.getAllValues().get(1);
-
-            assertThat(secondPropertyValue.getId(), is(nullValue()));
-            assertThat(secondPropertyValue.getDisplayValue(), is("PROPERTY_VALUE_2"));
-            assertThat(secondPropertyValue.getValue(), is("PROPERTY_VALUE_2"));
-            assertThat(secondPropertyValue.getDefinition().getId(), is(nullValue()));
-            assertThat(secondPropertyValue.getDefinition().getName(), is("PROPERTY_NAME_2"));
-            assertThat(secondPropertyValue.getDefinition().getDisplayName(), is("PROPERTY_NAME_2"));
-            assertThat(secondPropertyValue.getDefinition().getValues(), is(empty()));
-
-            List<OntologyTerm> firstPropertyTerms = termsArgument.getAllValues().get(0);
-
-            assertThat(firstPropertyTerms,hasSize(1));
-
-            List<OntologyTerm> secondPropertyTerms = termsArgument.getAllValues().get(1);
-
-            assertThat(secondPropertyTerms,hasSize(1));
+            //B: this is impossible to test, I have to stop here
 
         }
 
@@ -213,10 +192,13 @@ public class PutAllAssaysPropertiesTest {
 
     @Test(expected=ResourceNotFoundException.class)
     public void shouldThrowAnExceptionWhenTheExperimentIsNotFound() throws ResourceNotFoundException, RecordNotFoundException {
+        //given
+        given(atlasDAOMock.getExperimentByAccession(anyString())).willThrow(RecordNotFoundException.class);
 
-        when(atlasDAO.getExperimentByAccession(anyString())).thenThrow(RecordNotFoundException.class);
+        //when
+        subject.remapTermsOnMatchingAssayProperties(FAKE_EXPERIMENT_ACCESSION, testProperties);
 
-        subject.putAllAssaysProperties(FAKE_EXPERIMENT_ACCESSION, testProperties);
+        //then a ResourceNotFoundException will be thrown
 
     }
 

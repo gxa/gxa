@@ -34,7 +34,7 @@ import static org.hamcrest.text.IsEmptyString.isEmptyString;
 
 public class PutAssayPropertiesTestExternal extends CuratorApiTestExternal {
 
-    private static final String JSON_PROPERTIES = new TestData().readJSon("sex_property.json");
+    private static final String JSON_PROPERTIES = new TestData().readJSon("sex_and_organism_part_properties.json");
 
     private static final String E_TABM_1007 = "E-TABM-1007";
 

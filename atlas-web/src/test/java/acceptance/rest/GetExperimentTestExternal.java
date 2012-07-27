@@ -52,7 +52,7 @@ public class GetExperimentTestExternal extends CuratorApiTestExternal {
     @Test
     public void statusCodeShouldBeNotFoundWhenExperimentIsNotFound() throws Exception {
 
-        given().expect().statusCode(HttpStatus.NOT_FOUND.value())
+        expect().statusCode(HttpStatus.NOT_FOUND.value())
             .when().get(A_NON_EXISTING_EXPERIMENT_URI);
 
     }
