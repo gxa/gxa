@@ -547,7 +547,8 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <test.inclusion.pattern>**/*Test.java</test.inclusion.pattern>
+                <test.inclusion.pattern>a3/**</test.inclusion.pattern>
+                <test.inclusion.pattern>uk/**</test.inclusion.pattern>
             </properties>
         </profile>
         <!-- This can be used to run acceptance tests (fitnesse, rest, selenium, etc...) against a server.
@@ -556,7 +557,7 @@
         <profile>
             <id>acceptance</id>
             <properties>
-                <test.inclusion.pattern>**/*TestExternal.java</test.inclusion.pattern>
+                <test.inclusion.pattern>acceptance/**/*TestExternal.java</test.inclusion.pattern>
             </properties>
         </profile>
     </profiles>
