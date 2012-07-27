@@ -30,7 +30,7 @@ import java.nio.charset.Charset;
 
 public class TestData {
 
-    private static final String TEST_DATA_RELATIVE_PATH = "atlas-web/src/test/resources/testdata/" ;
+    private static final String TEST_DATA_RELATIVE_PATH = "src/test/resources/acceptance/rest/" ;
 
 
 
