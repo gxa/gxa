@@ -86,6 +86,10 @@ public final class SampleProperty {
         return propertyValue;
     }
 
+    public boolean removeTerm(OntologyTerm ontologyTerm) {
+        return this.terms.remove(ontologyTerm);
+    }
+
     public List<OntologyTerm> getTerms() {
         return unmodifiableList(terms);
     }
