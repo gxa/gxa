@@ -22,13 +22,11 @@
 
 package uk.ac.ebi.microarray.atlas.api;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -37,14 +35,12 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
-import static org.hamcrest.Matcher.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,31 +49,34 @@ import static org.mockito.Mockito.when;
 
 public class ApiPropertyTest {
 
-
-    private ApiProperty nonInitializedSubject = new ApiProperty(); //B: ambiguous/generic name, what is an ApiProperty? A property of the APIs? What is it representing?
-
-    private ApiProperty subject = new ApiProperty();
+    private ApiProperty subject; //B: ambiguous/generic name, what is an ApiProperty? A property of the APIs? What is it representing?
 
     @Mock
     private ApiPropertyValue apiPropertyValueMock;
 
-   @Mock
+    @Mock
+    private ApiPropertyName apiPropertyNameMock;
+
+    @Mock
     private ApiOntologyTerm ontologyTermMock;
 
     private PropertyValue propertyValueMock;
 
-    private AssayProperty assayPropertyMock;
-
-    private SampleProperty samplePropertyMock;
-
     private Property propertyMock;
 
-    private Set<ApiOntologyTerm> mockOntologyTerms;
+    private Set<ApiOntologyTerm> ontologyTermsMock;
 
     //B: 7 mock objects required to test a simple javabean (well it looks like a bean but is not)
 
     @Before
-    public void setUp() throws Exception {
+    public void initializeTestSubject(){
+
+        subject = new ApiProperty(apiPropertyValueMock, ontologyTermsMock);
+
+    }
+
+    @Before
+    public void initializePropertyValueMock() throws Exception {
 
         propertyValueMock = PowerMockito.mock(PropertyValue.class); //B: PowerMock extension required because PropertyValue class is final
 
@@ -99,81 +98,126 @@ public class ApiPropertyTest {
     }
 
     @Test
-    public void testPropertyValueAndTermsConstructor(){
+    public void constructorThatAcceptsPropertyValueAndTermsShouldSimplySetThem(){
 
-        ApiProperty apiProperty = new ApiProperty(apiPropertyValueMock, mockOntologyTerms);
+        //when
+        ApiProperty apiProperty = new ApiProperty(apiPropertyValueMock, ontologyTermsMock);
 
+        //then
         assertThat(apiProperty.getPropertyValue(), equalTo(apiPropertyValueMock));
-
-        assertThat(apiProperty.getTerms(), equalTo(mockOntologyTerms));
+        assertThat(apiProperty.getTerms(), equalTo(ontologyTermsMock));
 
     }
 
     //B: too many constructors, another symptom of data mapping galore
 
     @Test
-    public void testAssayPropertyConstructor(){
+    public void constructorThatAcceptsAssayPropertyShouldSetTheRightPropertyValue(){
 
-        assayPropertyMock = PowerMockito.mock(AssayProperty.class); //B: PowerMock extension required because AssayProperty class is final
+        AssayProperty assayPropertyMock = PowerMockito.mock(AssayProperty.class); //B: PowerMock extension required because AssayProperty class is final
 
-        when(assayPropertyMock.getPropertyValue()).thenReturn(propertyValueMock);
+        //given
+        given(assayPropertyMock.getPropertyValue()).willReturn(propertyValueMock);
 
+        //when
         ApiProperty apiProperty = new ApiProperty(assayPropertyMock);
 
+        //then
         assertThat(apiProperty.getPropertyValue().getValue(), equalTo(assayPropertyMock.getPropertyValue().getValue()));
-
-        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(assayPropertyMock.getPropertyValue().getValue())); //B: 4 level of delegation to get to a property name
+        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(assayPropertyMock.getPropertyValue().getDefinition().getName())); //B: 4 level of delegation to get to a property name
 
     }
 
     @Test
-    public void testSamplePropertyConstructor(){
+    public void constructorThatAcceptsSamplePropertyShouldSetTheRightPropertyValue(){
 
-        samplePropertyMock = PowerMockito.mock(SampleProperty.class); //B: PowerMock extension required because SampleProperty class is final
+        SampleProperty samplePropertyMock = PowerMockito.mock(SampleProperty.class); //B: PowerMock extension required because SampleProperty class is final
 
-        when(samplePropertyMock.getPropertyValue()).thenReturn(propertyValueMock);
+        //given
+        given(samplePropertyMock.getPropertyValue()).willReturn(propertyValueMock);
 
+        //when
         ApiProperty apiProperty = new ApiProperty(samplePropertyMock);
 
+        //then
         assertThat(apiProperty.getPropertyValue().getValue(), equalTo(samplePropertyMock.getPropertyValue().getValue()));
-
-        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(samplePropertyMock.getPropertyValue().getValue()));
+        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(samplePropertyMock.getPropertyValue().getDefinition().getName()));
 
     }
 
     @Test
     public void getPropertyValueShouldReturnNullWhenThePropertyIsNotInitialized() throws Exception {
 
-        assertThat(nonInitializedSubject.getPropertyValue(), is(nullValue()));
+        //given
+        subject = new ApiProperty();
+
+        //when
+        ApiPropertyValue propertyValue = subject.getPropertyValue();
+
+        //then
+        assertThat(propertyValue, is(nullValue()));
 
     }
 
     @Test
     public void setPropertyValueShouldDoWhatItSays() throws Exception {
 
-        nonInitializedSubject.setPropertyValue(apiPropertyValueMock);
+        //when
+        subject.setPropertyValue(apiPropertyValueMock);
 
-        assertThat(nonInitializedSubject.getPropertyValue(),equalTo(apiPropertyValueMock));
+        //then
+        assertThat(subject.getPropertyValue(), equalTo(apiPropertyValueMock));
 
     }
 
     @Test
     public void getTermsShouldReturnNullWhenThePropertyIsNotInitialized() throws Exception { //B:exposing structure, why not simply exposing terms by being an Iterable<ApiOntologyTerms>
 
-        assertThat(nonInitializedSubject.getTerms(), is(nullValue())); //B: why not return an empty set? Calling for a NullPointer
+        //given
+        subject = new ApiProperty();
+
+        //when
+        Set<ApiOntologyTerm> terms = subject.getTerms();
+
+        //then
+        assertThat(terms, is(nullValue())); //B: why not return an empty set? Calling for a NullPointer
 
     }
 
     @Test
-    public void testSetTermsShouldDoWhatItSays() throws Exception {
+    public void setTermsShouldDoWhatItSays() throws Exception {
 
-        Set<ApiOntologyTerm> mockTerms = new HashSet<ApiOntologyTerm>();
+        //when
+        subject.setTerms(ontologyTermsMock);
 
-        mockTerms.add(ontologyTermMock);
-
-        nonInitializedSubject.setTerms(mockTerms);
-
-        assertThat(nonInitializedSubject.getTerms(), equalTo(mockTerms));
+        //then
+        assertThat(subject.getTerms(), equalTo(ontologyTermsMock));
 
     }
+
+    @Test
+    public void getNameShouldGoThroughTheNastyDelegationChainToRetrieveItsOwnName(){ //B: too bad
+
+        //given
+        given(apiPropertyValueMock.getProperty()).willReturn(apiPropertyNameMock);
+
+        //when
+        subject.getName();
+
+        //then
+        verify(apiPropertyValueMock.getProperty()).getName();
+    }
+
+    @Test
+    public void getValueShouldGoThroughTheNastyDelegationChainToRetrieveItsOwnName(){ //B: too bad
+
+        //when
+        subject.getValue();
+
+        //then
+        verify(apiPropertyValueMock).getValue();
+    }
+
+
+
 }

@@ -43,6 +43,14 @@ public class ApiProperty {
                         instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
     }
 
+    public String getName(){
+        return propertyValue.getProperty().getName();
+    }
+
+    public String getValue(){
+        return propertyValue.getValue();
+    }
+
     public ApiPropertyValue getPropertyValue() {
         return propertyValue;
     }
