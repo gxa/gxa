@@ -1,7 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import com.google.common.base.Objects;
-import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import uk.ac.ebi.gxa.Temporary;
