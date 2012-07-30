@@ -7,7 +7,7 @@ import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import java.util.List;
 
 public abstract class AbstractDAO<T> {
-    protected final HibernateTemplate template;
+    protected HibernateTemplate template;
     private final Class<T> clazz;
 
     /**

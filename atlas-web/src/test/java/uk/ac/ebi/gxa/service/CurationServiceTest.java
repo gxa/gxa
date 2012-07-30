@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
  * @author Robert Petryszak
  */
 @ContextConfiguration
-public class TestCurationService extends AtlasDAOTestCase {
+public class CurationServiceTest extends AtlasDAOTestCase {
 
     private static final String CELL_TYPE = "cell_type";
     private static final String PROP3 = "prop3";

@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Objects;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import uk.ac.ebi.gxa.Temporary;
@@ -68,6 +70,19 @@ public class OntologyTerm {
 
     public void setTerm(String term) {
         this.term = term;
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hashCode(accession);
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(accession != null && other !=null && other instanceof OntologyTerm){
+            return Objects.equal(accession, ((OntologyTerm) other).getAccession());
+        }
+        return false;
     }
 
     // TODO: 4alf: so far it's a String replacement, must be done properly as soon as we have all the values in place

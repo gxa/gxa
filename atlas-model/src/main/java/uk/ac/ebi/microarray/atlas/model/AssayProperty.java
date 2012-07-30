@@ -92,6 +92,10 @@ public final class AssayProperty {
         this.terms = terms;
     }
 
+    public boolean removeTerm(OntologyTerm ontologyTerm) {
+        return this.terms.remove(ontologyTerm);
+    }
+
     @Deprecated
     public String getEfoTerms() {
         return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
