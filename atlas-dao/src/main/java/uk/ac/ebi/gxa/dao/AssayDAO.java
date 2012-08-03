@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
@@ -49,23 +50,38 @@ public class AssayDAO extends AbstractDAO<Assay> {
 
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propName, @Nonnull String propValue, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propValue)) {
-            throw LogUtil.createUnexpected("propertyValue has not been passed as an argument");
+    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch, boolean caseInsensitive) {
+
+
+        findPropertiesQueryBuilder.setParentEntityName("Assay")
+            .setCaseInsensitive(caseInsensitive)
+            .setExactMatch(exactMatch);
+
+        if (caseInsensitive) {
+            propertyValue = propertyValue.toUpperCase();
         }
 
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyValueColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.value" + (caseInsensitive ? ") " : "");
-        String propertyValue = caseInsensitive ? propValue.toUpperCase() : propValue;
-
-        if (!Strings.isNullOrEmpty(propName)) {
-            String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-            return template.find("select p from Assay t left join t.properties p " +
-                    "where " + propertyNameColumn + " = '" + propertyName + "' " +
-                    "and " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
+        if (!exactMatch) {
+            propertyValue = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyValue);
         }
-        return template.find("select p from Assay t  left join t.properties p " +
-                "where " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
+
+        if (!Strings.isNullOrEmpty(propertyName)) {
+
+            if (caseInsensitive) {
+                propertyName = propertyName.toUpperCase();
+            }
+
+            String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
+
+            return template.find(queryString, propertyValue, propertyName);
+
+        }
+
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByValue();
+
+
+        return template.find(queryString, propertyValue);
+
     }
 
     @SuppressWarnings("unchecked")
@@ -89,4 +105,5 @@ public class AssayDAO extends AbstractDAO<Assay> {
     public String getNameColumn() {
         return NAME_COL;
     }
+
 }

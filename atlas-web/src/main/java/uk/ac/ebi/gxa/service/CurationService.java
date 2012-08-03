@@ -175,41 +175,46 @@ public class CurationService {
 
     /**
      * @param propertyName String
-     * @param exactValueMatch boolean, if true, only experiments with assays/samples containing a property matching propertyName exactly will be considered;
+     * @param exactMatch boolean, if true, only experiments with assays/samples containing a property matching propertyName exactly will be considered;
      *                        otherwise all experiments with assays/samples containing a property of which propertyName is a substring will be considered.
      * @return List of ApiShallowProperty's containing propertyName-propertyValue
      */
-    public Collection<ApiShallowProperty> getOntologyMappingsByProperty(final String propertyName, boolean exactValueMatch) {
+    public Collection<ApiShallowProperty> getOntologyMappingsByProperty(final String propertyName, boolean exactMatch) {
         boolean caseInsensitive = true;
-        ApiPropertyValueMappings pvMappings = new ApiPropertyValueMappings(propertyName, null, caseInsensitive, exactValueMatch);
-        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByProperty(propertyName, exactValueMatch, caseInsensitive)) {
+        ApiPropertyValueMatcher pvMappings = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
+                                                                          .setNameMatcher(propertyName);
+        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByProperty(propertyName, exactMatch, caseInsensitive)) {
             pvMappings.add(new ApiProperty(assayProperty));
         }
-        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByProperty(propertyName, exactValueMatch, caseInsensitive)) {
+        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByProperty(propertyName, exactMatch, caseInsensitive)) {
             pvMappings.add(new ApiProperty(sampleProperty));
         }
 
-        return pvMappings.getAll();
+        return pvMappings.getMatchingProperties();
     }
 
     /**
      * @param propertyName String
      * @param propertyValue String
-     * @param exactValueMatch boolean, if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
+     * @param exactMatch boolean, if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
      *                        otherwise all experiments with assays/samples containing a property value of which propertyValue is a substring will be considered.
      * @return List of ApiShallowProperty's containing propertyName-propertyValue
      */
-    public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValue(final String propertyName, @Nonnull final String propertyValue, boolean exactValueMatch) {
+    public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValue(final String propertyName, @Nonnull final String propertyValue, boolean exactMatch) {
+        ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
+                                                                                    .setValueMatcher(propertyValue)
+                                                                                    .setNameMatcher(propertyName);
         boolean caseInsensitive = true;
-        ApiPropertyValueMappings pvMappings = new ApiPropertyValueMappings(propertyName, propertyValue, caseInsensitive, exactValueMatch);
-        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
-            pvMappings.add(new ApiProperty(assayProperty));
+        List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactMatch, caseInsensitive);
+        for (AssayProperty assayProperty : assayProperties) {
+            propertyValueMatcher.add(new ApiProperty(assayProperty));
         }
-        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue, exactValueMatch, caseInsensitive)) {
-            pvMappings.add(new ApiProperty(sampleProperty));
+        List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue, exactMatch, caseInsensitive);
+        for (SampleProperty sampleProperty : sampleProperties) {
+            propertyValueMatcher.add(new ApiProperty(sampleProperty));
         }
 
-        return pvMappings.getAll();
+        return propertyValueMatcher.getMatchingProperties();
     }
 
 
@@ -217,15 +222,15 @@ public class CurationService {
      * @return List of ApiShallowProperty's containing propertyName-propertyValue
      */
     public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@Nonnull final String ontologyTerm) {
-        ApiPropertyValueMappings pvMappings = new ApiPropertyValueMappings(null, null, true, false);
+        ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(false);
         for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByOntologyTerm(ontologyTerm)) {
-            pvMappings.add(new ApiProperty(assayProperty));
+            propertyValueMatcher.add(new ApiProperty(assayProperty));
         }
         for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByOntologyTerm(ontologyTerm)) {
-            pvMappings.add(new ApiProperty(sampleProperty));
+            propertyValueMatcher.add(new ApiProperty(sampleProperty));
         }
 
-        return pvMappings.getAll();
+        return propertyValueMatcher.getMatchingProperties();
     }
 
     /**

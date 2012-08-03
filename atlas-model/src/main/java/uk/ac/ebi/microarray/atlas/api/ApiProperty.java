@@ -1,5 +1,7 @@
 package uk.ac.ebi.microarray.atlas.api;
 
+import com.google.common.base.Objects;
+import org.apache.commons.lang.ObjectUtils;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
@@ -13,9 +15,8 @@ import static uk.ac.ebi.gxa.utils.TransformerUtil.instanceTransformer;
 /**
  * Class to represent API representations of Sample or Assay properties
  *
- * @author Misha Kapushesky
  */
-public class ApiProperty {
+public class ApiProperty implements Comparable<ApiProperty>{
     private ApiPropertyValue propertyValue;
     private Set<ApiOntologyTerm> terms;
 
@@ -66,4 +67,34 @@ public class ApiProperty {
     public void setTerms(Set<ApiOntologyTerm> terms) {
         this.terms = terms;
     }
+
+    @Override
+    public int compareTo(ApiProperty otherApiProperty) {
+
+        int result = ObjectUtils.compare(this.getName()
+                                            , otherApiProperty.getName());
+
+        if (result != 0) {
+
+            return result;
+        }
+
+        return ObjectUtils.compare(this.getValue(), otherApiProperty.getValue());
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hashCode(this.getName(),this.getValue());
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(other !=null && other instanceof ApiProperty){
+            return Objects.equal(getName(), ((ApiProperty) other).getName())
+                    && Objects.equal(getValue(), ((ApiProperty) other).getValue());
+        }
+        return false;
+    }
+
+
 }

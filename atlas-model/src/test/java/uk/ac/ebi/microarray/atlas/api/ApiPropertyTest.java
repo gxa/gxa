@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.microarray.atlas.api;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,10 +38,13 @@ import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +53,13 @@ import static org.mockito.Mockito.when;
 
 public class ApiPropertyTest {
 
+    public static final String PROPERTY_NAME = "PROPERTY_NAME";
+    public static final String PROPERTY_VALUE = "PROPERTY_VALUE";
+
     private ApiProperty subject; //B: ambiguous/generic name, what is an ApiProperty? A property of the APIs? What is it representing?
+
+    @Mock
+    private ApiProperty apiPropertyMock;
 
     @Mock
     private ApiPropertyValue apiPropertyValueMock;
@@ -71,6 +81,16 @@ public class ApiPropertyTest {
     @Before
     public void initializeTestSubject(){
 
+        when(apiPropertyNameMock.getName()).thenReturn(PROPERTY_NAME);
+
+        when(apiPropertyValueMock.getProperty()).thenReturn(apiPropertyNameMock);
+
+        when(apiPropertyValueMock.getValue()).thenReturn(PROPERTY_VALUE);
+
+        when(apiPropertyMock.getValue()).thenReturn(PROPERTY_VALUE);
+
+        when(apiPropertyMock.getName()).thenReturn(PROPERTY_NAME);
+
         subject = new ApiProperty(apiPropertyValueMock, ontologyTermsMock);
 
     }
@@ -82,11 +102,13 @@ public class ApiPropertyTest {
 
         propertyMock = PowerMockito.mock(Property.class); //B: PowerMock extension required because PropertyValue class is final
 
+        when(propertyMock.getName()).thenReturn(PROPERTY_NAME);
+
         when(propertyValueMock.getDefinition()).thenReturn(propertyMock);
 
-        when(propertyValueMock.getValue()).thenReturn("A_VALUE");
+        when(propertyValueMock.getValue()).thenReturn(PROPERTY_VALUE);
 
-        when(propertyValueMock.getDisplayValue()).thenReturn("A_DISPLAY_VALUE");
+        when(propertyValueMock.getDisplayValue()).thenReturn("DISPLAY_VALUE");
 
         when(propertyValueMock.getId()).thenReturn(0L);
 
@@ -219,5 +241,99 @@ public class ApiPropertyTest {
     }
 
 
+    @Test
+    public void comparisonShouldReturnZeroIfNameAndValueAreEquals(){
 
+        //given
+        given(apiPropertyMock.getName()).willReturn(PROPERTY_NAME);
+        given(apiPropertyMock.getValue()).willReturn(PROPERTY_VALUE);
+
+        //then
+        assertThat(subject.compareTo(apiPropertyMock), is(0));
+
+    }
+
+
+    @Test
+    public void comparisonShouldBePrioritizedOnPropertyName(){
+
+        //given
+        String propertyName = apiPropertyMock.getName();
+        String propertyValue = apiPropertyMock.getValue();
+        given(apiPropertyMock.getName()).willReturn("AROPERTY_NAME"); // P > A
+        given(apiPropertyMock.getValue()).willReturn("PROPERTY_VALUE");
+
+        //then
+        assertThat(subject.compareTo(apiPropertyMock), greaterThan(0));
+
+        //given
+        given(apiPropertyMock.getName()).willReturn("ZROPERTY_NAME"); // P < Z
+        given(apiPropertyMock.getValue()).willReturn("AROPERTY_VALUE");
+
+        //then
+        assertThat(subject.compareTo(apiPropertyMock), lessThan(0));
+
+    }
+
+
+    @Test
+    public void comparisonShouldBeBasedOnPropertyValueIfPropertyNamesAreEqual(){
+
+        //given
+        String propertyName = apiPropertyMock.getName();
+        String propertyValue = apiPropertyMock.getValue();
+        given(apiPropertyMock.getName()).willReturn("PROPERTY_NAME");
+        given(apiPropertyMock.getValue()).willReturn("AROPERTY_VALUE"); // P > A
+
+        //then
+        assertThat(subject.compareTo(apiPropertyMock), greaterThan(0));
+
+        //given
+        given(apiPropertyMock.getName()).willReturn("PROPERTY_NAME");
+        given(apiPropertyMock.getValue()).willReturn("ZROPERTY_VALUE"); // Z > A
+
+        //then
+        assertThat(subject.compareTo(apiPropertyMock), lessThan(0));
+
+    }
+
+
+    @Test
+    public void propertiesShouldBeOrderedAutomaticallyWhenAddedToASortedSet(){
+
+        //given
+        ApiPropertyName apiPropertyName1 = mock(ApiPropertyName.class);
+        ApiPropertyValue apiPropertyValue1 = mock(ApiPropertyValue.class);
+        given(apiPropertyName1.getName()).willReturn("A");
+        given(apiPropertyValue1.getValue()).willReturn("NOT_RELEVANT");
+        given(apiPropertyValue1.getProperty()).willReturn(apiPropertyName1);
+        ApiProperty apiProperty1 = new ApiProperty(apiPropertyValue1,ontologyTermsMock);
+        //given
+        ApiPropertyName apiPropertyName2 = mock(ApiPropertyName.class);
+        ApiPropertyValue apiPropertyValue2 = mock(ApiPropertyValue.class);
+        given(apiPropertyName2.getName()).willReturn("B");
+        given(apiPropertyValue2.getValue()).willReturn("NOT_RELEVANT");
+        given(apiPropertyValue2.getProperty()).willReturn(apiPropertyName2);
+        ApiProperty apiProperty2 = new ApiProperty(apiPropertyValue2,ontologyTermsMock);
+        //given
+        ApiPropertyName apiPropertyName3 = mock(ApiPropertyName.class);
+        ApiPropertyValue apiPropertyValue3 = mock(ApiPropertyValue.class);
+        given(apiPropertyName3.getName()).willReturn("C");
+        given(apiPropertyValue3.getValue()).willReturn("NOT_RELEVANT");
+        given(apiPropertyValue3.getProperty()).willReturn(apiPropertyName3);
+        ApiProperty apiProperty3 = new ApiProperty(apiPropertyValue3,ontologyTermsMock);
+        //given
+        SortedSet<ApiProperty> apiProperties = new TreeSet<ApiProperty>();
+
+        //when
+        apiProperties.add(apiProperty3);
+        apiProperties.add(apiProperty2);
+        apiProperties.add(apiProperty1);
+
+        //then
+        assertThat(apiProperties.first(), is(apiProperty1));
+        //and
+        assertThat(apiProperties.last(), is(apiProperty3));
+
+    }
 }
