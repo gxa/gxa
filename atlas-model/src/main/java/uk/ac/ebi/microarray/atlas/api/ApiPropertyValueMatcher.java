@@ -4,12 +4,9 @@ import com.google.common.base.Function;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newTreeSet;
-
-import java.util.*;
 
 /**
  * Utility class to store mappings between property values and ontology terms across all experiment assays/samples

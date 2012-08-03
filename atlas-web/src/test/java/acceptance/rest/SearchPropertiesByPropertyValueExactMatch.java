@@ -22,7 +22,6 @@
 
 package acceptance.rest;
 
-import com.jayway.restassured.RestAssured;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;

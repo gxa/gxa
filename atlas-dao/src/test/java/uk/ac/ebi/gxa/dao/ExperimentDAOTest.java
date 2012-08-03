@@ -28,20 +28,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.InOrder;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.microarray.atlas.api.ApiProperty;
-import uk.ac.ebi.microarray.atlas.api.ApiPropertyName;
-import uk.ac.ebi.microarray.atlas.api.ApiPropertyValue;
 
-import java.util.ArrayList;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.any;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

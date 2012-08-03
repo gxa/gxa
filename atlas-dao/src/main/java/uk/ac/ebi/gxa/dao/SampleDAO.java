@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
 import uk.ac.ebi.microarray.atlas.model.Sample;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
@@ -13,6 +12,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
+ *
  * @author Robert Petryszak
  */
 public class SampleDAO extends AbstractDAO<Sample> {

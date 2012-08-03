@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.api;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,17 +35,14 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 import uk.ac.ebi.microarray.atlas.model.SampleProperty;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({PropertyValue.class, AssayProperty.class, SampleProperty.class, Property.class})
