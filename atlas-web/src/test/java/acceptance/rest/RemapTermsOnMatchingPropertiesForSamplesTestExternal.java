@@ -51,8 +51,8 @@ public class RemapTermsOnMatchingPropertiesForSamplesTestExternal extends Curato
     private static final String URI_THAT_SELECTS_THE_EXPERIMENT_UNDER_TEST = "experiments/" + E_TABM_1007 + ".json";
 
 
-    @Before //let's add one temporary property (we will remove it in the teardown) with one term to a specific sample,
-            //we will then base our test on this temporary property
+    @Before //let's add two temporary properties (we will remove them in the teardown), one with one ontology term and the other without any term,
+            //we will then base our test on these temporary property, to avoid corrupting pre-existing data
     public void addProperty2And3ToASpecificSample() {
         given().header("Content-Type", "application/json")
             .body(JSON_PROPERTIES_TO_BE_ADDED_BEFORE_THE_TEST)
@@ -66,7 +66,7 @@ public class RemapTermsOnMatchingPropertiesForSamplesTestExternal extends Curato
             .assertThat("$..samples.properties.terms", hasSize(13));
     }
 
-    @After //we must remove the temporary property that we added in the test fixture
+    @After //we must remove the temporary properties that we added in the test fixture
     public void deleteProperty2And3FromASpecificSample() throws Exception {
         given().header("Content-Type", "application/json")
            .body(JSON_PROPERTIES_TO_BE_ADDED_BEFORE_THE_TEST)
