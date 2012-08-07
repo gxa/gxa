@@ -181,16 +181,20 @@ public class CurationService {
      */
     public Collection<ApiShallowProperty> getOntologyMappingsByProperty(final String propertyName, boolean exactMatch) {
         boolean caseInsensitive = true;
-        ApiPropertyValueMatcher pvMappings = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
+        ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
                                                                           .setNameMatcher(propertyName);
-        for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByProperty(propertyName, exactMatch, caseInsensitive)) {
-            pvMappings.add(new ApiProperty(assayProperty));
-        }
-        for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByProperty(propertyName, exactMatch, caseInsensitive)) {
-            pvMappings.add(new ApiProperty(sampleProperty));
+
+        List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByProperty(propertyName, exactMatch, caseInsensitive);
+        for (AssayProperty assayProperty : assayProperties) {
+            propertyValueMatcher.add(new ApiProperty(assayProperty));
         }
 
-        return pvMappings.getMatchingProperties();
+        List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByProperty(propertyName, exactMatch, caseInsensitive);
+        for (SampleProperty sampleProperty : sampleProperties) {
+            propertyValueMatcher.add(new ApiProperty(sampleProperty));
+        }
+
+        return propertyValueMatcher.getMatchingProperties();
     }
 
     /**

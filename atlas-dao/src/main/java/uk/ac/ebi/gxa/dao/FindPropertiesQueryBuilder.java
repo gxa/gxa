@@ -27,7 +27,7 @@ public class FindPropertiesQueryBuilder {
     static final String PROPERTY_NAME_SELECTOR = "p.propertyValue.property.name";
     static final String PROPERTY_VALUE_SELECTOR = "p.propertyValue.value";
 
-    private String parentEntityName;
+    private String propertyEntityName;
 
     private boolean exactMatch = true;
 
@@ -39,26 +39,46 @@ public class FindPropertiesQueryBuilder {
     }
 
 
-    public FindPropertiesQueryBuilder setParentEntityName(String parentEntityName) {
-        this.parentEntityName = parentEntityName;
+    public FindPropertiesQueryBuilder setPropertyEntityName(String propertyEntityName) {
+        this.propertyEntityName = propertyEntityName;
         return this;
     }
 
 
     public String getQueryThatSelectsPropertiesByValue(){
-        return "select p from " + parentEntityName + " t left join t.properties p where "
-                        + getMatcherCondition(PROPERTY_VALUE_SELECTOR, exactMatch, caseInsensitive);
+        return getQueryThatSelectsPropertiesByAGivenJavabeanProperty(PROPERTY_VALUE_SELECTOR, exactMatch);
 
     }
 
 
     public String getQueryThatSelectsPropertiesByNameAndValue(){
 
-        return getQueryThatSelectsPropertiesByValue()
-                        + " and " + getMatcherCondition(PROPERTY_NAME_SELECTOR, true , caseInsensitive);
+        return getQueryThatSelectsPropertiesByName(true)
+                        + " and " + getMatcherCondition(PROPERTY_VALUE_SELECTOR, exactMatch , caseInsensitive);
 
     }
 
+
+    public String getQueryThatSelectsPropertiesByName(){
+
+        return getQueryThatSelectsPropertiesByName(exactMatch);
+
+    }
+
+
+    private String getQueryThatSelectsPropertiesByName(boolean exactMatch){
+
+        return getQueryThatSelectsPropertiesByAGivenJavabeanProperty(PROPERTY_NAME_SELECTOR, exactMatch);
+
+    }
+
+
+    String getQueryThatSelectsPropertiesByAGivenJavabeanProperty(String beanProperty, boolean exactMatch){
+
+        return "select p from " + propertyEntityName + " p where "
+                        + getMatcherCondition(beanProperty, exactMatch, caseInsensitive);
+
+    }
 
 
     String getMatcherCondition(String selectorExpression, boolean exactMatch, boolean caseInsensitive) {
@@ -117,8 +137,8 @@ public class FindPropertiesQueryBuilder {
 
     }
 
-    public String getParentEntityName(){
-        return parentEntityName;
+    public String getPropertyEntityName(){
+        return propertyEntityName;
     }
 
 }

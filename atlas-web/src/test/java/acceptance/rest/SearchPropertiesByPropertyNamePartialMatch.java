@@ -31,11 +31,9 @@ import static com.jayway.restassured.RestAssured.expect;
 import static com.jayway.restassured.RestAssured.get;
 import static org.hamcrest.Matchers.*;
 
-public class SearchPropertiesByPropertyValueWildcard extends CuratorApiTestExternal {
+public class SearchPropertiesByPropertyNamePartialMatch extends CuratorApiTestExternal {
 
     private static final String BASE_URI_FOR_PARTIAL_MATCH = "propertyvaluemappings/partialmatch";
-
-    private static final String URI_THAT_SELECTS_NOT_EXISTING_PROPERTIES = BASE_URI_FOR_PARTIAL_MATCH + "/unknown*propertyvalue.json";
 
     @After
     public void tearDown() throws Exception {
@@ -44,40 +42,9 @@ public class SearchPropertiesByPropertyValueWildcard extends CuratorApiTestExter
 
 
     @Test
-    public void statusCodeShouldStillBeOkWhenNoPropertyIsFound() throws Exception {
+    public void searchShouldReturnAllPropertiesWhosePropertyNameMatchesTheGivenWildcardValue() throws Exception {
         //given
-        expect().statusCode(HttpStatus.OK.value())
-            .when().get(URI_THAT_SELECTS_NOT_EXISTING_PROPERTIES);
-
-    }
-
-    @Test
-    public void bodyShouldContainAnEmptyPropertyListWhenIsNotFound() throws Exception {
-        //given
-        String notExistingProperties = get(URI_THAT_SELECTS_NOT_EXISTING_PROPERTIES).asString();
-
-        //then
-        with(notExistingProperties)
-            .assertThat("$.apiShallowPropertyList", is(empty()));
-
-    }
-
-    @Test
-    public void statusCodeShuldBeOkWhenPropertiesExists() throws Exception {
-        //given
-        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/organism_part.json?propertyValue=R*t";
-
-        //then
-        expect().statusCode(HttpStatus.OK.value())
-            .when().get(uriThatSelectsSomeProperties);
-
-    }
-
-
-    @Test
-    public void searchShouldReturnAllPropertiesWhosePropertyNameMatchesTheGivenPropertyNameAndWhosePropertyValueMatchesTheGivenWildcardValue() throws Exception {
-        //given
-        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/orgaNisM_part.json?propertyValue=R*t"; //* is the wildcard character
+        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/orga*art.json"; //* is the wildcard character
 
         //when
         String properties = get(uriThatSelectsSomeProperties).asString();
@@ -93,27 +60,9 @@ public class SearchPropertiesByPropertyValueWildcard extends CuratorApiTestExter
 
 
     @Test
-    public void searchShouldReturnAllPropertiesWhosePropertyValueMatchesTheGivenWildcardValue() throws Exception {
+    public void searchShouldReturnAllPropertiesWhosePropertyNameMatchesTheGivenPropertyNameA() throws Exception {
         //given
-        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + ".json?propertyValue=R*t"; //* is the wildcard character
-
-        //when
-        String properties = get(uriThatSelectsSomeProperties).asString();
-
-        //then
-        with(properties).assertThat("$.apiShallowPropertyList", hasSize(greaterThan(1)))
-            .and()
-            .assertThat("$..name", hasItem("organism_part"))
-            .and()
-            .assertThat("$..value", hasItem("root"));
-
-    }
-
-
-    @Test
-    public void searchShouldReturnAllPropertiesWhosePropertyNameMatchesTheGivenPropertyNameAndWhosePropertyValueContainsTheGivenPropertyValue() throws Exception {
-        //given
-        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/orgaNisM_part.json?propertyValue=RoO";
+        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/orgaNisM_part.json";
 
         //when
         String properties = get(uriThatSelectsSomeProperties).asString();
@@ -131,7 +80,7 @@ public class SearchPropertiesByPropertyValueWildcard extends CuratorApiTestExter
     @Test
     public void searchShouldReturnAllPropertiesWhosePropertyValueContainsTheGivenPropertyValue() throws Exception {
         //given
-        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/orgaNisM_part.json?propertyValue=RoO";
+        String uriThatSelectsSomeProperties = BASE_URI_FOR_PARTIAL_MATCH + "/aNisM.json";
 
         //when
         String properties = get(uriThatSelectsSomeProperties).asString();

@@ -41,22 +41,33 @@ public class SampleDAO extends AbstractDAO<Sample> {
         return template.find("select s " + COMMON_HQL + " and p.propertyValue.value = ?", propertyName, propertyValue);
     }
 
-    @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByProperty(@Nonnull String propName, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propName))
-            throw LogUtil.createUnexpected("PropertyName has not been passed as an argument");
 
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-        return template.find("select p from Sample t left join t.properties p " +
-                "where " + propertyNameColumn + (exactValueMatch ? " = '" + propertyName + "' " : " like '%" + propertyName + "%' "));
+    @SuppressWarnings("unchecked")
+    public List<SampleProperty> getSamplePropertiesByProperty(@Nonnull String propertyName, boolean exactMatch, boolean caseInsensitive) {
+
+        findPropertiesQueryBuilder.setPropertyEntityName("SampleProperty")
+            .setCaseInsensitive(caseInsensitive)
+            .setExactMatch(exactMatch);
+
+        if (caseInsensitive) {
+            propertyName = propertyName.toUpperCase();
+        }
+
+        if (!exactMatch) {
+            propertyName = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyName);
+        }
+
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByName();
+
+        return template.find(queryString, propertyName);
+
     }
 
 
     @SuppressWarnings("unchecked")
     public List<SampleProperty> getSamplePropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch, boolean caseInsensitive) {
 
-        findPropertiesQueryBuilder.setParentEntityName("Sample")
+        findPropertiesQueryBuilder.setPropertyEntityName("SampleProperty")
                                 .setCaseInsensitive(caseInsensitive)
                                 .setExactMatch(exactMatch);
 
@@ -76,7 +87,7 @@ public class SampleDAO extends AbstractDAO<Sample> {
 
             String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
 
-            return template.find(queryString, propertyValue, propertyName);
+            return template.find(queryString, propertyName, propertyValue);
 
         }
 

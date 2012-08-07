@@ -30,6 +30,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Mockito.*;
 
@@ -63,7 +64,7 @@ public class FindPropertiesQueryBuilderTest {
     @Before
     public void initializeSubject() throws Exception {
 
-        subject = new FindPropertiesQueryBuilder().setParentEntityName(PARENT_ENTITY_NAME);
+        subject = new FindPropertiesQueryBuilder().setPropertyEntityName(PARENT_ENTITY_NAME);
 
         subjectSpy = spy(subject);
     }
@@ -110,13 +111,29 @@ public class FindPropertiesQueryBuilderTest {
 
 
     @Test
+    public void queryStringForSelectPropertiesByNameShouldUseHqlBuilderAndShouldNotContainTheAndKeyword(){
+
+        //when
+        String queryString = subjectSpy.getQueryThatSelectsPropertiesByName();
+
+        //then
+        assertThat(queryString, startsWith("select p from " + PARENT_ENTITY_NAME + " p where "));
+        //and
+        assertThat(queryString, not(containsString(" and ")));
+        //and
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true, true);
+
+    }
+
+
+    @Test
     public void queryStringForSelectPropertiesByNameAndValueShouldUseHqlBuilderTwiceAndShouldContainTheAndKeyword(){
 
         //when
         String queryString = subjectSpy.getQueryThatSelectsPropertiesByNameAndValue();
 
         //then
-        assertThat(queryString, startsWith("select p from " + PARENT_ENTITY_NAME + " t left join t.properties p where "));
+        assertThat(queryString, startsWith("select p from " + PARENT_ENTITY_NAME + " p where "));
         //and
         assertThat(queryString, containsString(" and "));
         //and
@@ -135,10 +152,10 @@ public class FindPropertiesQueryBuilderTest {
         //when
         String queryString = subjectSpy.getQueryThatSelectsPropertiesByNameAndValue();
 
-        //then
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, false, true);
-        //and getMatcherCondition for property name will be invoked with exact match true anyway, because we don't want to apply an HQL like on property name
+        //then getMatcherCondition for property name will be invoked with exact match true anyway, because we don't want to apply an HQL like on property name
         verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true, true);
+        //and
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, false, true);
 
     }
 
@@ -161,8 +178,16 @@ public class FindPropertiesQueryBuilderTest {
         String queryString = subject.getQueryThatSelectsPropertiesByNameAndValue();
 
         //then
-        assertThat(queryString, containsString(" where upper("+ subject.PROPERTY_VALUE_SELECTOR +") = ? and upper("
-                                                                        + subject.PROPERTY_NAME_SELECTOR + ") = ?"));
+        assertThat(queryString, containsString(" where upper(" + subject.PROPERTY_NAME_SELECTOR +") = ? and upper("
+                                                                        + subject.PROPERTY_VALUE_SELECTOR + ") = ?"));
+
+
+        //when
+        queryString = subject.setCaseInsensitive(false).getQueryThatSelectsPropertiesByNameAndValue();
+
+        //then
+        assertThat(queryString, containsString(" where " + subject.PROPERTY_NAME_SELECTOR +" = ? and "
+            + subject.PROPERTY_VALUE_SELECTOR + " = ?"));
 
     }
 

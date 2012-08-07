@@ -1,7 +1,12 @@
 package uk.ac.ebi.gxa.dao;
 
 import com.google.common.base.Strings;
+import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.SimpleExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -37,14 +42,24 @@ public class AssayDAO extends AbstractDAO<Assay> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propName, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propName))
-            throw LogUtil.createUnexpected("PropertyName has not been passed as an argument");
+    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propertyName, boolean exactMatch, boolean caseInsensitive) {
 
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-        return template.find("select p from Assay t left join t.properties p " +
-                "where " + propertyNameColumn + (exactValueMatch ? " = '" + propertyName + "' " : " like '%" + propertyName + "%' "));
+        findPropertiesQueryBuilder.setPropertyEntityName("AssayProperty")
+            .setCaseInsensitive(caseInsensitive)
+            .setExactMatch(exactMatch);
+
+        if (caseInsensitive) {
+            propertyName = propertyName.toUpperCase();
+        }
+
+        if (!exactMatch) {
+            propertyName = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyName);
+        }
+
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByName();
+
+        return template.find(queryString, propertyName);
+
     }
 
 
@@ -52,7 +67,7 @@ public class AssayDAO extends AbstractDAO<Assay> {
     public List<AssayProperty> getAssayPropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch, boolean caseInsensitive) {
 
 
-        findPropertiesQueryBuilder.setParentEntityName("Assay")
+        findPropertiesQueryBuilder.setPropertyEntityName("AssayProperty")
             .setCaseInsensitive(caseInsensitive)
             .setExactMatch(exactMatch);
 
@@ -72,7 +87,7 @@ public class AssayDAO extends AbstractDAO<Assay> {
 
             String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
 
-            return template.find(queryString, propertyValue, propertyName);
+            return template.find(queryString, propertyName, propertyValue);
 
         }
 

@@ -68,7 +68,7 @@ public class GetAssayPropertiesByPropertyValueTest {
 
         when(queryBuilderMock.setCaseInsensitive(anyBoolean())).thenReturn(queryBuilderMock);
         when(queryBuilderMock.setExactMatch(anyBoolean())).thenReturn(queryBuilderMock);
-        when(queryBuilderMock.setParentEntityName(anyString())).thenReturn(queryBuilderMock);
+        when(queryBuilderMock.setPropertyEntityName(anyString())).thenReturn(queryBuilderMock);
 
     }
 
@@ -90,7 +90,7 @@ public class GetAssayPropertiesByPropertyValueTest {
         subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true, true);
 
         //then
-        verify(queryBuilderMock).setParentEntityName("Assay");
+        verify(queryBuilderMock).setPropertyEntityName("AssayProperty");
     }
 
 
@@ -143,7 +143,7 @@ public class GetAssayPropertiesByPropertyValueTest {
         subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true, true);
 
         //then
-        verify(queryBuilderMock).setParentEntityName("Assay");
+        verify(queryBuilderMock).setPropertyEntityName("AssayProperty");
         verify(queryBuilderMock).setExactMatch(true);
         verify(queryBuilderMock).setCaseInsensitive(true);
         verify(queryBuilderMock).getQueryThatSelectsPropertiesByValue();
@@ -169,8 +169,8 @@ public class GetAssayPropertiesByPropertyValueTest {
 
         //then
         verify(hibernateTemplateMock).find(queryStringCaptor.capture(), valueOneCaptor.capture(), valueTwoCaptor.capture());
-        assertThat(valueOneCaptor.getValue(), is(VALUE_TWO.toUpperCase()));
-        assertThat(valueTwoCaptor.getValue(), is(VALUE_ONE.toUpperCase()));
+        assertThat(valueOneCaptor.getValue(), is(VALUE_ONE.toUpperCase()));
+        assertThat(valueTwoCaptor.getValue(), is(VALUE_TWO.toUpperCase()));
 
     }
 
@@ -182,8 +182,8 @@ public class GetAssayPropertiesByPropertyValueTest {
 
         //then
         verify(hibernateTemplateMock).find(queryStringCaptor.capture(), valueOneCaptor.capture(), valueTwoCaptor.capture());
-        assertThat(valueOneCaptor.getValue(), is(VALUE_TWO));
-        assertThat(valueTwoCaptor.getValue(), is(VALUE_ONE));
+        assertThat(valueOneCaptor.getValue(), is(VALUE_ONE));
+        assertThat(valueTwoCaptor.getValue(), is(VALUE_TWO));
 
     }
 
