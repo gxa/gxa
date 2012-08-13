@@ -1,12 +1,7 @@
 package uk.ac.ebi.gxa.dao;
 
 import com.google.common.base.Strings;
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.SimpleExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
@@ -42,15 +37,13 @@ public class AssayDAO extends AbstractDAO<Assay> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propertyName, boolean exactMatch, boolean caseInsensitive) {
+    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propertyName, boolean exactMatch) {
 
         findPropertiesQueryBuilder.setPropertyEntityName("AssayProperty")
-            .setCaseInsensitive(caseInsensitive)
-            .setExactMatch(exactMatch);
+                .setExactMatch(exactMatch);
 
-        if (caseInsensitive) {
-            propertyName = propertyName.toUpperCase();
-        }
+        propertyName = propertyName.toUpperCase();
+
 
         if (!exactMatch) {
             propertyName = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyName);
@@ -64,16 +57,13 @@ public class AssayDAO extends AbstractDAO<Assay> {
 
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch, boolean caseInsensitive) {
+    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch) {
 
 
         findPropertiesQueryBuilder.setPropertyEntityName("AssayProperty")
-            .setCaseInsensitive(caseInsensitive)
-            .setExactMatch(exactMatch);
+                .setExactMatch(exactMatch);
 
-        if (caseInsensitive) {
-            propertyValue = propertyValue.toUpperCase();
-        }
+        propertyValue = propertyValue.toUpperCase();
 
         if (!exactMatch) {
             propertyValue = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyValue);
@@ -81,9 +71,7 @@ public class AssayDAO extends AbstractDAO<Assay> {
 
         if (!Strings.isNullOrEmpty(propertyName)) {
 
-            if (caseInsensitive) {
-                propertyName = propertyName.toUpperCase();
-            }
+            propertyName = propertyName.toUpperCase();
 
             String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
 

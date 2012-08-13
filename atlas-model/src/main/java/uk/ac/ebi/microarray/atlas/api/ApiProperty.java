@@ -2,10 +2,10 @@ package uk.ac.ebi.microarray.atlas.api;
 
 import com.google.common.base.Objects;
 import org.apache.commons.lang.ObjectUtils;
-import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
-import uk.ac.ebi.microarray.atlas.model.SampleProperty;
+import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static com.google.common.collect.Collections2.transform;
@@ -20,28 +20,13 @@ public class ApiProperty implements Comparable<ApiProperty>{
     private ApiPropertyValue propertyValue;
     private Set<ApiOntologyTerm> terms;
 
-    public ApiProperty() {
-    }
 
-    public ApiProperty(final ApiPropertyValue apiPropertyValue, final Set<ApiOntologyTerm> terms) {
-        this.propertyValue = apiPropertyValue;
-        this.terms = terms;
-    }
-
-    public ApiProperty(final AssayProperty assayProperty) {
-        this.propertyValue = new ApiPropertyValue(assayProperty.getPropertyValue());
-
+    public ApiProperty(PropertyValue propertyValue, Collection<OntologyTerm> terms) {
+        this.propertyValue = new ApiPropertyValue(propertyValue);
         this.terms = newHashSet(
-                transform(assayProperty.getTerms(),
-                        instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
-    }
+                        transform(terms,
+                                instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
 
-    public ApiProperty(final SampleProperty assayProperty) {
-        this.propertyValue = new ApiPropertyValue(assayProperty.getPropertyValue());
-
-        this.terms = newHashSet(
-                transform(assayProperty.getTerms(),
-                        instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
     }
 
     public String getName(){
@@ -62,10 +47,6 @@ public class ApiProperty implements Comparable<ApiProperty>{
 
     public Set<ApiOntologyTerm> getTerms() {
         return terms;
-    }
-
-    public void setTerms(Set<ApiOntologyTerm> terms) {
-        this.terms = terms;
     }
 
     @Override

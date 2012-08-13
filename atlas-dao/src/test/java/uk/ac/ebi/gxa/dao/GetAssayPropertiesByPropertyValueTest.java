@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,6 @@ public class GetAssayPropertiesByPropertyValueTest {
     @Before
     public void initializeQueryBuilderMock() throws Exception {
 
-        when(queryBuilderMock.setCaseInsensitive(anyBoolean())).thenReturn(queryBuilderMock);
         when(queryBuilderMock.setExactMatch(anyBoolean())).thenReturn(queryBuilderMock);
         when(queryBuilderMock.setPropertyEntityName(anyString())).thenReturn(queryBuilderMock);
 
@@ -87,7 +86,7 @@ public class GetAssayPropertiesByPropertyValueTest {
     @Test
     public void shouldInitializeQueryBuilderWithTheRightEntityName() throws Exception {
         //when
-        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true, true);
+        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true);
 
         //then
         verify(queryBuilderMock).setPropertyEntityName("AssayProperty");
@@ -97,25 +96,23 @@ public class GetAssayPropertiesByPropertyValueTest {
     @Test
     public void shouldPropagateRequestParametersToQueryBuilder() throws Exception {
         //when
-        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true, true);
+        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true);
 
         //then
         verify(queryBuilderMock).setExactMatch(true);
-        verify(queryBuilderMock).setCaseInsensitive(true);
 
         //when
-        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, false, false);
+        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, false);
 
         //then
         verify(queryBuilderMock).setExactMatch(false);
-        verify(queryBuilderMock).setCaseInsensitive(false);
 
     }
 
     @Test
     public void shouldGetAQueryThatSelectsPropertiesByValueWhenPropertyNameIsNull() throws Exception {
         //when
-        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true, true);
+        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true);
 
         //then
         verify(queryBuilderMock).getQueryThatSelectsPropertiesByValue();
@@ -128,7 +125,7 @@ public class GetAssayPropertiesByPropertyValueTest {
     public void shouldGetAQueryThatSelectsPropertiesByNameAndValueWhenPropertyNameIsNotNull() throws Exception {
 
         //when
-        subject.getAssayPropertiesByPropertyValue(VALUE_ONE, VALUE_TWO, true, true);
+        subject.getAssayPropertiesByPropertyValue(VALUE_ONE, VALUE_TWO, true);
 
         //then
         verify(queryBuilderMock, times(1)).getQueryThatSelectsPropertiesByNameAndValue();
@@ -140,12 +137,11 @@ public class GetAssayPropertiesByPropertyValueTest {
     @Test
     public void shouldPropagateRequestParametersToQueryBuilderAndThenGetAQueryThatSelectsPropertiesByValueWhenPropertyNameIsNull() throws Exception {
         //when
-        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true, true);
+        subject.getAssayPropertiesByPropertyValue(null, VALUE_TWO, true);
 
         //then
         verify(queryBuilderMock).setPropertyEntityName("AssayProperty");
         verify(queryBuilderMock).setExactMatch(true);
-        verify(queryBuilderMock).setCaseInsensitive(true);
         verify(queryBuilderMock).getQueryThatSelectsPropertiesByValue();
         //and
         verify(queryBuilderMock, never()).getQueryThatSelectsPropertiesByNameAndValue();
@@ -165,25 +161,12 @@ public class GetAssayPropertiesByPropertyValueTest {
     public void shouldInvokeFindPassingUppercaseParametersWhenCaseInsensitiveIsTrue() throws Exception {
 
         //when
-        subject.getAssayPropertiesByPropertyValue(VALUE_ONE, VALUE_TWO, true, true);
+        subject.getAssayPropertiesByPropertyValue(VALUE_ONE, VALUE_TWO, true);
 
         //then
         verify(hibernateTemplateMock).find(queryStringCaptor.capture(), valueOneCaptor.capture(), valueTwoCaptor.capture());
         assertThat(valueOneCaptor.getValue(), is(VALUE_ONE.toUpperCase()));
         assertThat(valueTwoCaptor.getValue(), is(VALUE_TWO.toUpperCase()));
-
-    }
-
-    @Test
-    public void shouldInvokeFindPassingParametersInTheirOriginalCasingWhenCaseInsensitiveIsFalse() throws Exception {
-
-        //when
-        subject.getAssayPropertiesByPropertyValue(VALUE_ONE, VALUE_TWO, true, false);
-
-        //then
-        verify(hibernateTemplateMock).find(queryStringCaptor.capture(), valueOneCaptor.capture(), valueTwoCaptor.capture());
-        assertThat(valueOneCaptor.getValue(), is(VALUE_ONE));
-        assertThat(valueTwoCaptor.getValue(), is(VALUE_TWO));
 
     }
 

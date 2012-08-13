@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Mockito.*;
 
@@ -38,21 +37,16 @@ import static org.mockito.Mockito.*;
 public class FindPropertiesQueryBuilderTest {
 
     private static final String SELECTOR_ONE_EXPRESSION = "selector_one";
-    private static final String SELECTOR_TWO_EXPRESSION = "selector_two";
-    private static final String VALUE_WITH_WILDCARD = "value*three";
     private static final String PARENT_ENTITY_NAME = "parent_entity";
 
 
-    private static final String EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_TRUE_AND_CASE_INSENSITIVE_FALSE =
-        SELECTOR_ONE_EXPRESSION + " = ?";
+    private static final String EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_TRUE =
+            "upper(" +SELECTOR_ONE_EXPRESSION + ") = ?";
 
     private static final String EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_TRUE_AND_CASE_INSENSITIVE_TRUE =
         "upper(" + SELECTOR_ONE_EXPRESSION + ") = ?";
 
-    private static final String EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_FALSE_AND_CASE_INSENSITIVE_FALSE =
-        SELECTOR_ONE_EXPRESSION + " like ?";
-
-    private static final String EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_FALSE_AND_CASE_INSENSITIVE_TRUE =
+    private static final String EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_FALSE =
         "upper(" + SELECTOR_ONE_EXPRESSION + ") like ?";
 
 
@@ -70,45 +64,35 @@ public class FindPropertiesQueryBuilderTest {
     }
 
     @Test
-    public void defaultValueForExactMatchAndCaseInsensitiveShouldBeTrue() throws Exception {
+    public void defaultValueForExactMatchAShouldBeTrue() throws Exception {
         subject = new FindPropertiesQueryBuilder();
-        assertThat(subject.isCaseInsensitive(), is(true));
         assertThat(subject.isExactMatch(), is(true));
 
     }
 
     @Test
-    public void matcherConditionShouldBeEqualityWhenExactMatchIsTrueAndCaseInsensitiveIsFalse(){
+    public void matcherConditionShouldBeEqualityWhenExactMatchIsTrue(){
 
-        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, true, false)
-            , is(EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_TRUE_AND_CASE_INSENSITIVE_FALSE));
+        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, true)
+            , is(EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_TRUE));
 
     }
 
     @Test
-    public void matcherConditionShouldBeUppercaseEqualityWhenExactMatchIsTrueAndCaseInsensitiveIsTrue(){
+    public void matcherConditionShouldBeUppercaseEqualityWhenExactMatchIsTrue(){
 
-        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, true, true)
+        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, true)
             , is(EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_TRUE_AND_CASE_INSENSITIVE_TRUE));
 
     }
 
     @Test
-    public void matcherConditionShouldBeALeftAndRightLikeWhenExactMatchIsFalseAndCaseInsensitiveIsFalse(){
+    public void matcherConditionShouldBeALeftAndRightLikeWhenExactMatchIsFalse(){
 
-        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, false, false)
-            , is(EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_FALSE_AND_CASE_INSENSITIVE_FALSE));
-
-    }
-
-    @Test
-    public void matcherConditionShouldBeAnUppercaseLeftAndRightWhenExactMatchIsFalseAndCaseInsensitiveIsTrue(){
-
-        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, false, true)
-            , is(EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_FALSE_AND_CASE_INSENSITIVE_TRUE));
+        assertThat(subject.getMatcherCondition(SELECTOR_ONE_EXPRESSION, false)
+            , is(EXPECTED_MATCHER_CONDITION_FOR_EXACT_MATCH_FALSE));
 
     }
-
 
     @Test
     public void queryStringForSelectPropertiesByNameShouldUseHqlBuilderAndShouldNotContainTheAndKeyword(){
@@ -121,7 +105,7 @@ public class FindPropertiesQueryBuilderTest {
         //and
         assertThat(queryString, not(containsString(" and ")));
         //and
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true, true);
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true);
 
     }
 
@@ -137,9 +121,9 @@ public class FindPropertiesQueryBuilderTest {
         //and
         assertThat(queryString, containsString(" and "));
         //and
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, true, true);
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, true);
         //and the match condition for property name must be NOT case insensitive
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true, true);
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true);
 
     }
 
@@ -153,9 +137,9 @@ public class FindPropertiesQueryBuilderTest {
         String queryString = subjectSpy.getQueryThatSelectsPropertiesByNameAndValue();
 
         //then getMatcherCondition for property name will be invoked with exact match true anyway, because we don't want to apply an HQL like on property name
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true, true);
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_NAME_SELECTOR, true);
         //and
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, false, true);
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, false);
 
     }
 
@@ -166,13 +150,13 @@ public class FindPropertiesQueryBuilderTest {
         String queryString = subjectSpy.getQueryThatSelectsPropertiesByValue();
 
         //then
-        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, true, true);
+        verify(subjectSpy, times(1)).getMatcherCondition(subject.PROPERTY_VALUE_SELECTOR, true);
 
     }
 
 
     @Test
-    public void queryStringForSelectPropertiesByNameAndValueShouldContainUpperHqlFunctionWhenCaseInsensitiveIsTrueAndViceversa(){
+    public void queryStringForSelectPropertiesByNameAndValueShouldContainUpperHqlFunction(){
 
         //when
         String queryString = subject.getQueryThatSelectsPropertiesByNameAndValue();
@@ -180,14 +164,6 @@ public class FindPropertiesQueryBuilderTest {
         //then
         assertThat(queryString, containsString(" where upper(" + subject.PROPERTY_NAME_SELECTOR +") = ? and upper("
                                                                         + subject.PROPERTY_VALUE_SELECTOR + ") = ?"));
-
-
-        //when
-        queryString = subject.setCaseInsensitive(false).getQueryThatSelectsPropertiesByNameAndValue();
-
-        //then
-        assertThat(queryString, containsString(" where " + subject.PROPERTY_NAME_SELECTOR +" = ? and "
-            + subject.PROPERTY_VALUE_SELECTOR + " = ?"));
 
     }
 

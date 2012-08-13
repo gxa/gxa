@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,8 @@ public class FindPropertiesQueryBuilder {
 
     private boolean exactMatch = true;
 
-    private boolean caseInsensitive = true;
 
-
-    public FindPropertiesQueryBuilder(){
+    public FindPropertiesQueryBuilder() {
 
     }
 
@@ -45,53 +43,51 @@ public class FindPropertiesQueryBuilder {
     }
 
 
-    public String getQueryThatSelectsPropertiesByValue(){
+    public String getQueryThatSelectsPropertiesByValue() {
         return getQueryThatSelectsPropertiesByAGivenJavabeanProperty(PROPERTY_VALUE_SELECTOR, exactMatch);
 
     }
 
 
-    public String getQueryThatSelectsPropertiesByNameAndValue(){
+    public String getQueryThatSelectsPropertiesByNameAndValue() {
 
         return getQueryThatSelectsPropertiesByName(true)
-                        + " and " + getMatcherCondition(PROPERTY_VALUE_SELECTOR, exactMatch , caseInsensitive);
+                + " and " + getMatcherCondition(PROPERTY_VALUE_SELECTOR, exactMatch);
 
     }
 
 
-    public String getQueryThatSelectsPropertiesByName(){
+    public String getQueryThatSelectsPropertiesByName() {
 
         return getQueryThatSelectsPropertiesByName(exactMatch);
 
     }
 
 
-    private String getQueryThatSelectsPropertiesByName(boolean exactMatch){
+    private String getQueryThatSelectsPropertiesByName(boolean exactMatch) {
 
         return getQueryThatSelectsPropertiesByAGivenJavabeanProperty(PROPERTY_NAME_SELECTOR, exactMatch);
 
     }
 
 
-    String getQueryThatSelectsPropertiesByAGivenJavabeanProperty(String beanProperty, boolean exactMatch){
+    String getQueryThatSelectsPropertiesByAGivenJavabeanProperty(String beanProperty, boolean exactMatch) {
 
         return "select p from " + propertyEntityName + " p where "
-                        + getMatcherCondition(beanProperty, exactMatch, caseInsensitive);
+                + getMatcherCondition(beanProperty, exactMatch);
 
     }
 
 
-    String getMatcherCondition(String selectorExpression, boolean exactMatch, boolean caseInsensitive) {
+    String getMatcherCondition(String selectorExpression, boolean exactMatch) {
 
-        if (caseInsensitive) {
 
-            selectorExpression = "upper(" + selectorExpression + ")" ;
+        selectorExpression = "upper(" + selectorExpression + ")";
 
-        }
 
         if (exactMatch) {
 
-            return selectorExpression +  " = ?";
+            return selectorExpression + " = ?";
 
         }
 
@@ -101,7 +97,7 @@ public class FindPropertiesQueryBuilder {
 
     public String addHqlLikeSymbols(String value) {
 
-        if (value.contains("*")){
+        if (value.contains("*")) {
 
             return org.apache.commons.lang.StringUtils.replace(value, "*", "%");
 
@@ -124,20 +120,7 @@ public class FindPropertiesQueryBuilder {
 
     }
 
-    public boolean isCaseInsensitive() {
-
-        return caseInsensitive;
-
-    }
-
-    public FindPropertiesQueryBuilder setCaseInsensitive(boolean caseInsensitive) {
-
-        this.caseInsensitive = caseInsensitive;
-        return this;
-
-    }
-
-    public String getPropertyEntityName(){
+    public String getPropertyEntityName() {
         return propertyEntityName;
     }
 

@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
- *
  * @author Robert Petryszak
  */
 public class SampleDAO extends AbstractDAO<Sample> {
@@ -43,15 +42,14 @@ public class SampleDAO extends AbstractDAO<Sample> {
 
 
     @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByProperty(@Nonnull String propertyName, boolean exactMatch, boolean caseInsensitive) {
+    public List<SampleProperty> getSamplePropertiesByProperty(@Nonnull String propertyName, boolean exactMatch) {
 
         findPropertiesQueryBuilder.setPropertyEntityName("SampleProperty")
-            .setCaseInsensitive(caseInsensitive)
-            .setExactMatch(exactMatch);
+                .setExactMatch(exactMatch);
 
-        if (caseInsensitive) {
-            propertyName = propertyName.toUpperCase();
-        }
+
+        propertyName = propertyName.toUpperCase();
+
 
         if (!exactMatch) {
             propertyName = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyName);
@@ -65,15 +63,14 @@ public class SampleDAO extends AbstractDAO<Sample> {
 
 
     @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch, boolean caseInsensitive) {
+    public List<SampleProperty> getSamplePropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch) {
 
         findPropertiesQueryBuilder.setPropertyEntityName("SampleProperty")
-                                .setCaseInsensitive(caseInsensitive)
-                                .setExactMatch(exactMatch);
+                .setExactMatch(exactMatch);
 
-        if (caseInsensitive) {
-            propertyValue = propertyValue.toUpperCase();
-        }
+
+        propertyValue = propertyValue.toUpperCase();
+
 
         if (!exactMatch) {
             propertyValue = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyValue);
@@ -81,9 +78,9 @@ public class SampleDAO extends AbstractDAO<Sample> {
 
         if (!Strings.isNullOrEmpty(propertyName)) {
 
-            if (caseInsensitive) {
-                propertyName = propertyName.toUpperCase();
-            }
+
+            propertyName = propertyName.toUpperCase();
+
 
             String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
 

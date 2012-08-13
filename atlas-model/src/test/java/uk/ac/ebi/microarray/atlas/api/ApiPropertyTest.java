@@ -30,11 +30,9 @@ import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import uk.ac.ebi.microarray.atlas.model.AssayProperty;
-import uk.ac.ebi.microarray.atlas.model.Property;
-import uk.ac.ebi.microarray.atlas.model.PropertyValue;
-import uk.ac.ebi.microarray.atlas.model.SampleProperty;
+import uk.ac.ebi.microarray.atlas.model.*;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -70,29 +68,12 @@ public class ApiPropertyTest {
 
     private Property propertyMock;
 
-    private Set<ApiOntologyTerm> ontologyTermsMock;
+    private Set<OntologyTerm> ontologyTermsMock;
 
     //B: 7 mock objects required to test a simple javabean (well it looks like a bean but is not)
 
     @Before
     public void initializeTestSubject(){
-
-        when(apiPropertyNameMock.getName()).thenReturn(PROPERTY_NAME);
-
-        when(apiPropertyValueMock.getProperty()).thenReturn(apiPropertyNameMock);
-
-        when(apiPropertyValueMock.getValue()).thenReturn(PROPERTY_VALUE);
-
-        when(apiPropertyMock.getValue()).thenReturn(PROPERTY_VALUE);
-
-        when(apiPropertyMock.getName()).thenReturn(PROPERTY_NAME);
-
-        subject = new ApiProperty(apiPropertyValueMock, ontologyTermsMock);
-
-    }
-
-    @Before
-    public void initializePropertyValueMock() throws Exception {
 
         propertyValueMock = PowerMockito.mock(PropertyValue.class); //B: PowerMock extension required because PropertyValue class is final
 
@@ -108,6 +89,18 @@ public class ApiPropertyTest {
 
         when(propertyValueMock.getId()).thenReturn(0L);
 
+        when(apiPropertyValueMock.getProperty()).thenReturn(apiPropertyNameMock);
+
+        when(apiPropertyValueMock.getValue()).thenReturn(PROPERTY_VALUE);
+
+        when(apiPropertyMock.getValue()).thenReturn(PROPERTY_VALUE);
+
+        when(apiPropertyMock.getName()).thenReturn(PROPERTY_NAME);
+
+        ontologyTermsMock = new HashSet<OntologyTerm>();
+
+        subject = new ApiProperty(propertyValueMock, ontologyTermsMock);
+
     }
 
     @After
@@ -115,67 +108,20 @@ public class ApiPropertyTest {
 
     }
 
-    @Test
-    public void constructorThatAcceptsPropertyValueAndTermsShouldSimplySetThem(){
-
-        //when
-        ApiProperty apiProperty = new ApiProperty(apiPropertyValueMock, ontologyTermsMock);
-
-        //then
-        assertThat(apiProperty.getPropertyValue(), equalTo(apiPropertyValueMock));
-        assertThat(apiProperty.getTerms(), equalTo(ontologyTermsMock));
-
-    }
-
     //B: too many constructors, another symptom of data mapping galore
 
     @Test
-    public void constructorThatAcceptsAssayPropertyShouldSetTheRightPropertyValue(){
-
-        AssayProperty assayPropertyMock = PowerMockito.mock(AssayProperty.class); //B: PowerMock extension required because AssayProperty class is final
-
-        //given
-        given(assayPropertyMock.getPropertyValue()).willReturn(propertyValueMock);
+    public void constructorThatAcceptsPropertyValueShouldSetTheRightNameAndValue(){
 
         //when
-        ApiProperty apiProperty = new ApiProperty(assayPropertyMock);
+        ApiProperty apiProperty = new ApiProperty(propertyValueMock, ontologyTermsMock);
 
         //then
-        assertThat(apiProperty.getPropertyValue().getValue(), equalTo(assayPropertyMock.getPropertyValue().getValue()));
-        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(assayPropertyMock.getPropertyValue().getDefinition().getName())); //B: 4 level of delegation to get to a property name
+        assertThat(apiProperty.getPropertyValue().getValue(), equalTo(propertyValueMock.getValue()));
+        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(propertyValueMock.getDefinition().getName())); //B: 4 level of delegation to get to a property name
 
     }
 
-    @Test
-    public void constructorThatAcceptsSamplePropertyShouldSetTheRightPropertyValue(){
-
-        SampleProperty samplePropertyMock = PowerMockito.mock(SampleProperty.class); //B: PowerMock extension required because SampleProperty class is final
-
-        //given
-        given(samplePropertyMock.getPropertyValue()).willReturn(propertyValueMock);
-
-        //when
-        ApiProperty apiProperty = new ApiProperty(samplePropertyMock);
-
-        //then
-        assertThat(apiProperty.getPropertyValue().getValue(), equalTo(samplePropertyMock.getPropertyValue().getValue()));
-        assertThat(apiProperty.getPropertyValue().getProperty().getName(), equalTo(samplePropertyMock.getPropertyValue().getDefinition().getName()));
-
-    }
-
-    @Test
-    public void getPropertyValueShouldReturnNullWhenThePropertyIsNotInitialized() throws Exception {
-
-        //given
-        subject = new ApiProperty();
-
-        //when
-        ApiPropertyValue propertyValue = subject.getPropertyValue();
-
-        //then
-        assertThat(propertyValue, is(nullValue()));
-
-    }
 
     @Test
     public void setPropertyValueShouldDoWhatItSays() throws Exception {
@@ -188,36 +134,14 @@ public class ApiPropertyTest {
 
     }
 
-    @Test
-    public void getTermsShouldReturnNullWhenThePropertyIsNotInitialized() throws Exception { //B:exposing structure, why not simply exposing terms by being an Iterable<ApiOntologyTerms>
-
-        //given
-        subject = new ApiProperty();
-
-        //when
-        Set<ApiOntologyTerm> terms = subject.getTerms();
-
-        //then
-        assertThat(terms, is(nullValue())); //B: why not return an empty set? Calling for a NullPointer
-
-    }
 
     @Test
-    public void setTermsShouldDoWhatItSays() throws Exception {
-
-        //when
-        subject.setTerms(ontologyTermsMock);
-
-        //then
-        assertThat(subject.getTerms(), equalTo(ontologyTermsMock));
-
-    }
-
-    @Test
-    public void getNameShouldGoThroughTheNastyDelegationChainToRetrieveItsOwnName(){ //B: too bad
+    public void getNameShouldGoThroughTheDelegationChainToRetrieveItsOwnName(){ //B: too bad
 
         //given
         given(apiPropertyValueMock.getProperty()).willReturn(apiPropertyNameMock);
+        //given
+        subject.setPropertyValue(apiPropertyValueMock);
 
         //when
         subject.getName();
@@ -227,7 +151,10 @@ public class ApiPropertyTest {
     }
 
     @Test
-    public void getValueShouldGoThroughTheNastyDelegationChainToRetrieveItsOwnName(){ //B: too bad
+    public void getValueShouldGoThroughTheDelegationChainToRetrieveItsOwnName(){ //B: too bad
+
+        //given
+        subject.setPropertyValue(apiPropertyValueMock);
 
         //when
         subject.getValue();
@@ -298,26 +225,11 @@ public class ApiPropertyTest {
     public void propertiesShouldBeOrderedAutomaticallyWhenAddedToASortedSet(){
 
         //given
-        ApiPropertyName apiPropertyName1 = mock(ApiPropertyName.class);
-        ApiPropertyValue apiPropertyValue1 = mock(ApiPropertyValue.class);
-        given(apiPropertyName1.getName()).willReturn("A");
-        given(apiPropertyValue1.getValue()).willReturn("NOT_RELEVANT");
-        given(apiPropertyValue1.getProperty()).willReturn(apiPropertyName1);
-        ApiProperty apiProperty1 = new ApiProperty(apiPropertyValue1,ontologyTermsMock);
+        ApiProperty apiProperty1 = buildApiProperty("A", "NOT_RELEVANT", ontologyTermsMock);
         //given
-        ApiPropertyName apiPropertyName2 = mock(ApiPropertyName.class);
-        ApiPropertyValue apiPropertyValue2 = mock(ApiPropertyValue.class);
-        given(apiPropertyName2.getName()).willReturn("B");
-        given(apiPropertyValue2.getValue()).willReturn("NOT_RELEVANT");
-        given(apiPropertyValue2.getProperty()).willReturn(apiPropertyName2);
-        ApiProperty apiProperty2 = new ApiProperty(apiPropertyValue2,ontologyTermsMock);
+        ApiProperty apiProperty2 = buildApiProperty("B", "NOT_RELEVANT", ontologyTermsMock);
         //given
-        ApiPropertyName apiPropertyName3 = mock(ApiPropertyName.class);
-        ApiPropertyValue apiPropertyValue3 = mock(ApiPropertyValue.class);
-        given(apiPropertyName3.getName()).willReturn("C");
-        given(apiPropertyValue3.getValue()).willReturn("NOT_RELEVANT");
-        given(apiPropertyValue3.getProperty()).willReturn(apiPropertyName3);
-        ApiProperty apiProperty3 = new ApiProperty(apiPropertyValue3,ontologyTermsMock);
+        ApiProperty apiProperty3 = buildApiProperty("C", "NOT_RELEVANT", ontologyTermsMock);
         //given
         SortedSet<ApiProperty> apiProperties = new TreeSet<ApiProperty>();
 
@@ -330,6 +242,17 @@ public class ApiPropertyTest {
         assertThat(apiProperties.first(), is(apiProperty1));
         //and
         assertThat(apiProperties.last(), is(apiProperty3));
+
+    }
+
+    private ApiProperty buildApiProperty(String name, String value, Set<OntologyTerm> terms){
+
+        Property property1 = mock(Property.class);
+        PropertyValue propertyValue1 = mock(PropertyValue.class);
+        when(propertyValue1.getDefinition()).thenReturn(property1);
+        given(property1.getName()).willReturn(name);
+        given(propertyValue1.getValue()).willReturn(value);
+        return new ApiProperty(propertyValue1,terms);
 
     }
 }

@@ -184,14 +184,14 @@ public class CurationService {
         ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
                                                                           .setNameMatcher(propertyName);
 
-        List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByProperty(propertyName, exactMatch, caseInsensitive);
+        List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByProperty(propertyName, exactMatch);
         for (AssayProperty assayProperty : assayProperties) {
-            propertyValueMatcher.add(new ApiProperty(assayProperty));
+            propertyValueMatcher.add(new ApiProperty(assayProperty.getPropertyValue(), assayProperty.getTerms()));
         }
 
-        List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByProperty(propertyName, exactMatch, caseInsensitive);
+        List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByProperty(propertyName, exactMatch);
         for (SampleProperty sampleProperty : sampleProperties) {
-            propertyValueMatcher.add(new ApiProperty(sampleProperty));
+            propertyValueMatcher.add(new ApiProperty(sampleProperty.getPropertyValue(), sampleProperty.getTerms()));
         }
 
         return propertyValueMatcher.getMatchingProperties();
@@ -209,13 +209,13 @@ public class CurationService {
                                                                                     .setValueMatcher(propertyValue)
                                                                                     .setNameMatcher(propertyName);
         boolean caseInsensitive = true;
-        List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactMatch, caseInsensitive);
+        List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactMatch);
         for (AssayProperty assayProperty : assayProperties) {
-            propertyValueMatcher.add(new ApiProperty(assayProperty));
+            propertyValueMatcher.add(new ApiProperty(assayProperty.getPropertyValue(), assayProperty.getTerms()));
         }
-        List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue, exactMatch, caseInsensitive);
+        List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(propertyName, propertyValue, exactMatch);
         for (SampleProperty sampleProperty : sampleProperties) {
-            propertyValueMatcher.add(new ApiProperty(sampleProperty));
+            propertyValueMatcher.add(new ApiProperty(sampleProperty.getPropertyValue(), sampleProperty.getTerms()));
         }
 
         return propertyValueMatcher.getMatchingProperties();
@@ -228,10 +228,10 @@ public class CurationService {
     public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@Nonnull final String ontologyTerm) {
         ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(false);
         for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByOntologyTerm(ontologyTerm)) {
-            propertyValueMatcher.add(new ApiProperty(assayProperty));
+            propertyValueMatcher.add(new ApiProperty(assayProperty.getPropertyValue(), assayProperty.getTerms()));
         }
         for (SampleProperty sampleProperty : sampleDAO.getSamplePropertiesByOntologyTerm(ontologyTerm)) {
-            propertyValueMatcher.add(new ApiProperty(sampleProperty));
+            propertyValueMatcher.add(new ApiProperty(sampleProperty.getPropertyValue(), sampleProperty.getTerms()));
         }
 
         return propertyValueMatcher.getMatchingProperties();
