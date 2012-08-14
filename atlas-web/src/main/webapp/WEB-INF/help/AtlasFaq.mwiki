@@ -2,12 +2,10 @@
 
 == Searching ==
 
- === How can I search for differential gene expression ===
- === What gene identifiers can I use in searches? ===
- 
-* How can I search for particular experiment?
- * How can search for a particular condition such as lung cancer?
- *  
+=== How can I search for differential gene expression ===
+=== What gene identifiers can I use in searches? ===
+=== How can I search for particular experiment? ===
+=== How can search for a particular condition such as lung cancer? ===
 
 == Results ==
  * What does a heat map mean?
@@ -28,34 +26,6 @@
  * Who do I contact if I need more information?
 
 
-== Searching ==
- * How can I search for gene differential expression ?
- * What gene identifiers can I use in searches?
-The following identifiers can be used to search for differential expression of genes in particular conditions:
-
-    * 
-
- * How can I search for particular experiment?
- * How can search for a particular condition such as lung cancer?
- *  
-
-== Results ==
- * What does a heat map mean?
- * How are the genes ranked?
- * What does the P-value mean?
- * Can I save my search results?
- * How can I obtain the original data?
- * Why do I get different results ...
-
-
-== Content ==
- * How are experiments chosen to be in the Gene Expression Atlas?
- * How often are the data updated?
- * How can I found about changes in the latest release?
-
-== Other ==
- * What is the Gene Expression Atlas?
- * Who do I contact if I need more information?
 
 
 
