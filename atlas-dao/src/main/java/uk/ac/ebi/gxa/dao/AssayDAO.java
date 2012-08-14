@@ -108,4 +108,8 @@ public class AssayDAO extends AbstractDAO<Assay> {
         return NAME_COL;
     }
 
+    public void saveAssayProperty(AssayProperty assayProperty) {
+        template.saveOrUpdate(assayProperty);
+        template.flush();
+    }
 }

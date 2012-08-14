@@ -35,7 +35,7 @@ import static org.hamcrest.text.IsEmptyString.isEmptyString;
 
 public class DeleteTermsFromMatchingPropertiesOnAllAssaysTestExternal extends CuratorApiTestExternal {
 
-    private static final String JSON_PROPERTIES_TO_BE_REMAPPED = new TestData().readJSon("terms_to_be_deleted_from_property_2_and_3.json");
+    private static final String JSON_PROPERTIES_TO_BE_DELETED = new TestData().readJSon("terms_to_be_deleted_from_property_2_and_3.json");
 
     private static final String JSON_PROPERTIES_TO_BE_ADDED_BEFORE_THE_TEST = new TestData().readJSon("four_test_properties.json");
 
@@ -111,7 +111,7 @@ public class DeleteTermsFromMatchingPropertiesOnAllAssaysTestExternal extends Cu
 
     private void deleteTermsFromMatchingPropertiesForAllAssays() throws Exception {
         given().header("Content-Type", "application/json")
-            .body(JSON_PROPERTIES_TO_BE_REMAPPED)
+            .body(JSON_PROPERTIES_TO_BE_DELETED)
             .delete(URI_THAT_SELECTS_PROPERTIES_FOR_ALL_ASSAYS);
 
     }

@@ -1,19 +1,14 @@
 package uk.ac.ebi.gxa.dao;
 
-import com.google.common.base.Function;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.LogUtil;
-import uk.ac.ebi.microarray.atlas.api.ApiProperty;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 
-import javax.annotation.Nullable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -50,29 +45,6 @@ public class ExperimentDAO extends AbstractDAO<Experiment> {
     @SuppressWarnings("unchecked")
     public List<Experiment> getExperimentsByAssayPropertyValue(String propertyName, String propertyValue) {
         return template.find("select e from Experiment e left join e.assays a left join a.properties p where p.propertyValue.property.name = ?  and p.propertyValue.value = ?", propertyName, propertyValue);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<Experiment> getExperimentsByProperties(ApiProperty[] properties) {
-
-        String propertyMatchingQuery =
-            new StringBuilder().append("select e from Experiment e left join e.assays a left join a.properties p where ")
-                                .append(StringUtils.repeat("(p.propertyValue.property.name = ?  and p.propertyValue.value = ?)", " or ", properties.length))
-                                .toString();
-
-        log.debug("propertyMatchingQuery: " + propertyMatchingQuery);
-
-        return template.find( propertyMatchingQuery, getPropertyMatchingArguments(properties));
-
-    }
-
-    Object[] getPropertyMatchingArguments(ApiProperty[] apiProperties) {
-        List<Object> arguments = new ArrayList<Object>();
-        for (ApiProperty property : apiProperties){
-            arguments.add(property.getName());
-            arguments.add(property.getValue());
-        }
-        return arguments.toArray();
     }
 
     long getTotalCount() {

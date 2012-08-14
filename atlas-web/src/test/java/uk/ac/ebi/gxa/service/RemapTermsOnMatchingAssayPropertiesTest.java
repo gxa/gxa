@@ -154,29 +154,11 @@ public class RemapTermsOnMatchingAssayPropertiesTest {
         //when
         subject.remapTermsOnMatchingAssayProperties(FAKE_EXPERIMENT_ACCESSION, testProperties);
 
-
-        //then verify that propertyValueDAO is being used properly
-        verify(propertyValueDAOMock, times(2))
-            .getOrCreatePropertyValue(testProperties[0].getPropertyValue().getProperty().getName()
-                ,testProperties[0].getPropertyValue().getValue());
-
-        verify(propertyValueDAOMock, times(2))
-            .getOrCreatePropertyValue(testProperties[1].getPropertyValue().getProperty().getName()
-                ,testProperties[1].getPropertyValue().getValue());
-
-        //and... (the same kind of expectation should be defined also for OntologyDAO and OntologyTermDAO)
-
         //and that each assay is being used properly...
         for (Assay assayMock: experimentMock.getAssays()) {
 
             verify(assayMock, times(2))
                 .getProperty(any(PropertyValue.class));
-
-            verify(propertyValueDAOMock, times(2))
-                .getOrCreatePropertyValue(testProperties[1].getPropertyValue().getProperty().getName()
-                    ,testProperties[1].getPropertyValue().getValue());
-
-            //B: this is impossible to test, I have to stop here
 
         }
 

@@ -207,11 +207,11 @@ public class CurationApiController extends AtlasViewController {
 
     @RequestMapping(value = "/experiments/properties", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.CREATED)
-    public void remapTermsOnMatchingPropertiesForAllAllExperiments(@RequestBody ApiProperty[] properties,
+    public void remapTermsOnMatchingPropertiesForAllExperiments(@RequestBody ApiProperty[] properties,
                                        HttpServletRequest request) throws ResourceNotFoundException {
-        curationService.remapTermsOnMatchingPropertiesForAllAllExperiments(properties);
+        curationService.remapTermsOnMatchingPropertiesForAllExperiments(properties);
         log.info("User: '" + request.getRemoteUser() +
-                "' remapTermsOnMatchingPropertiesForAllAllExperiments invoked with input : " + gson.toJson(properties));
+                "' remapTermsOnMatchingPropertiesForAllExperiments invoked with input : " + gson.toJson(properties));
     }
 
 
@@ -254,11 +254,11 @@ public class CurationApiController extends AtlasViewController {
     @RequestMapping(value = "/experiments/properties",
             method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    public void deleteTermsFromMatchingPropertiesForAllAllExperiments(@RequestBody ApiProperty[] properties,
+    public void deleteTermsFromMatchingPropertiesForAllExperiments(@RequestBody ApiProperty[] properties,
                                       HttpServletRequest request) throws ResourceNotFoundException {
-        curationService.deleteTermsFromMatchingPropertiesForAllAllExperiments(properties);
+        curationService.deleteTermsFromMatchingPropertiesForAllExperiments(properties);
         log.info("User: '" + request.getRemoteUser() +
-                "', deleteTermsFromMatchingPropertiesForAllAllExperiments invoked with input: " + gson.toJson(properties));
+                "', deleteTermsFromMatchingPropertiesForAllExperiments invoked with input: " + gson.toJson(properties));
     }
 
     @RequestMapping(value = "/experiments/{experimentAccession}/samples/{sampleAccession}/properties",

@@ -118,4 +118,9 @@ public class SampleDAO extends AbstractDAO<Sample> {
         return NAME_COL;
     }
 
+    public void saveSampleProperty(SampleProperty sampleProperty) {
+        template.saveOrUpdate(sampleProperty);
+        template.flush();
+
+    }
 }

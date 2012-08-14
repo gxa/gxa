@@ -161,7 +161,7 @@ public class CurationService {
     }
 
     /**
-     * @param propertyName String
+     * @param propertyName  String
      * @param propertyValue String
      * @return Collection of ApiShallowExperiment's containing propertyName-propertyValue pairs
      */
@@ -175,14 +175,14 @@ public class CurationService {
 
     /**
      * @param propertyName String
-     * @param exactMatch boolean, if true, only experiments with assays/samples containing a property matching propertyName exactly will be considered;
-     *                        otherwise all experiments with assays/samples containing a property of which propertyName is a substring will be considered.
+     * @param exactMatch   boolean, if true, only experiments with assays/samples containing a property matching propertyName exactly will be considered;
+     *                     otherwise all experiments with assays/samples containing a property of which propertyName is a substring will be considered.
      * @return List of ApiShallowProperty's containing propertyName-propertyValue
      */
     public Collection<ApiShallowProperty> getOntologyMappingsByProperty(final String propertyName, boolean exactMatch) {
         boolean caseInsensitive = true;
         ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
-                                                                          .setNameMatcher(propertyName);
+                .setNameMatcher(propertyName);
 
         List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByProperty(propertyName, exactMatch);
         for (AssayProperty assayProperty : assayProperties) {
@@ -198,16 +198,16 @@ public class CurationService {
     }
 
     /**
-     * @param propertyName String
+     * @param propertyName  String
      * @param propertyValue String
-     * @param exactMatch boolean, if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
-     *                        otherwise all experiments with assays/samples containing a property value of which propertyValue is a substring will be considered.
+     * @param exactMatch    boolean, if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
+     *                      otherwise all experiments with assays/samples containing a property value of which propertyValue is a substring will be considered.
      * @return List of ApiShallowProperty's containing propertyName-propertyValue
      */
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValue(final String propertyName, @Nonnull final String propertyValue, boolean exactMatch) {
         ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
-                                                                                    .setValueMatcher(propertyValue)
-                                                                                    .setNameMatcher(propertyName);
+                .setValueMatcher(propertyValue)
+                .setNameMatcher(propertyName);
         boolean caseInsensitive = true;
         List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(propertyName, propertyValue, exactMatch);
         for (AssayProperty assayProperty : assayProperties) {
@@ -268,7 +268,7 @@ public class CurationService {
      * If propertyValue is not null and non-empty, delete propertyName:propertyValue from PropertyValue table (thus deleting it from all assays/samples it occurs in);
      * otherwise remove propertyName (with all its values)
      *
-     * @param propertyName String
+     * @param propertyName  String
      * @param propertyValue String
      * @throws ResourceNotFoundException
      */
@@ -303,8 +303,8 @@ public class CurationService {
      * assigned to oldValue and newValue.
      *
      * @param propertyName String
-     * @param oldValue String
-     * @param newValue String
+     * @param oldValue     String
+     * @param newValue     String
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
     @Transactional
@@ -338,8 +338,8 @@ public class CurationService {
      * In cases when a given assay contains both oldValue and newValue, oldValue assay property is simply deleted
      *
      * @param propertyName String
-     * @param oldValue String
-     * @param newValue String
+     * @param oldValue     String
+     * @param newValue     String
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
     @Transactional
@@ -374,8 +374,8 @@ public class CurationService {
      * In cases when a given assay contains both oldValue and newValue, oldValue sample property is simply deleted
      *
      * @param propertyName String
-     * @param oldValue String
-     * @param newValue String
+     * @param oldValue     String
+     * @param newValue     String
      * @throws ResourceNotFoundException if property: propertyName and/or its value: oldValue don't exist
      */
     @Transactional
@@ -506,7 +506,7 @@ public class CurationService {
 
     /**
      * @param experimentAccession String
-     * @param assayAccession String
+     * @param assayAccession      String
      * @return Collection of ApiAssayProperty for assay: assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
@@ -522,8 +522,8 @@ public class CurationService {
      * Adds (or updates mapping to efo terms for) assayProperties to assay: assayAccession in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param assayAccession String
-     * @param assayProperties ApiProperty[]
+     * @param assayAccession      String
+     * @param assayProperties     ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
     @Transactional
@@ -550,15 +550,21 @@ public class CurationService {
      * Adds or updates mapping to efo terms for matching assayProperties to all assays in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param properties ApiProperty[]
+     * @param apiProperties          ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession in that experiment are not found
      */
     @Transactional
-    public void remapTermsOnMatchingAssayProperties(String experimentAccession, ApiProperty[] properties) throws ResourceNotFoundException {
+    public void remapTermsOnMatchingAssayProperties(String experimentAccession, ApiProperty[] apiProperties) throws ResourceNotFoundException {
         try {
             Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            for (ApiProperty apiProperty : apiProperties) {
+                for (Assay assay : experiment.getAssays()) {
 
-            remapTermsOnMatchingAssayProperties(experiment, properties);
+                    final Collection<AssayProperty> assayProperties = assay.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    remapTermsOnMatchingAssayProperties(assayProperties, apiProperty.getTerms());
+
+                }
+            }
 
         } catch (RecordNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -573,51 +579,32 @@ public class CurationService {
      * @throws ResourceNotFoundException if experiment: experimentAccession in that experiment are not found
      */
     @Transactional
-    public void remapTermsOnMatchingPropertiesForAllAllExperiments(ApiProperty[] properties) throws ResourceNotFoundException {
+    public void remapTermsOnMatchingPropertiesForAllExperiments(ApiProperty[] properties) throws ResourceNotFoundException {
 
-        List<Experiment> experiments = experimentDAO.getExperimentsByProperties(properties);
+        for (ApiProperty apiProperty : properties) {
+              final List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+              remapTermsOnMatchingAssayProperties(assayProperties, apiProperty.getTerms());
 
-        for (Experiment experiment: experiments) {
-
-            remapTermsOnMatchingAssayProperties(experiment, properties);
-
-            remapTermsOnMatchingSampleProperties(experiment, properties);
-
+              final List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+              remapTermsOnMatchingSampleProperties(sampleProperties, apiProperty.getTerms());
         }
+
     }
 
 
-    private void remapTermsOnMatchingAssayProperties(Experiment experiment, ApiProperty[] properties) {
+    private void remapTermsOnMatchingAssayProperties(Collection<AssayProperty> assayProperties, Collection<ApiOntologyTerm> apiTerms) {
 
-        for (Assay assay: experiment.getAssays()) {
+        for (AssayProperty assayProperty : assayProperties) {
 
-            boolean hasChanged = false;
+            List<OntologyTerm> ontologyTerms = new ArrayList<OntologyTerm>();
 
-            for (ApiProperty apiProperty: properties) {
-
-                PropertyValue propertyValue= getOrCreatePropertyValue(apiProperty.getPropertyValue());
-
-                AssayProperty property = assay.getProperty(propertyValue);
-
-                if (property != null){
-
-                    List<OntologyTerm> ontologyTerms = new ArrayList<OntologyTerm>();
-
-                    for (ApiOntologyTerm apiTerm: apiProperty.getTerms()){
-                        ontologyTerms.add(getOrCreateOntologyTerm(apiTerm));
-                    }
-
-                    property.setTerms(ontologyTerms);
-
-                    hasChanged = true;
-                }
+            for (ApiOntologyTerm apiTerm : apiTerms) {
+                ontologyTerms.add(getOrCreateOntologyTerm(apiTerm));
             }
 
-            if (hasChanged) {
+            assayProperty.setTerms(ontologyTerms);
 
-                assayDAO.save(assay);
-
-            }
+            assayDAO.saveAssayProperty(assayProperty);
         }
 
     }
@@ -627,8 +614,8 @@ public class CurationService {
      * Removes assayProperties from assay: assayAccession in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param assayAccession String
-     * @param assayProperties ApiProperty[]
+     * @param assayAccession      String
+     * @param assayProperties     ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession in that experiment are not found
      */
     @Transactional
@@ -653,21 +640,23 @@ public class CurationService {
      * @throws ResourceNotFoundException if experiment: experimentAccession is not found
      */
     @Transactional
-    public void deleteTermsFromMatchingPropertiesForAllAllExperiments(ApiProperty[] properties) throws ResourceNotFoundException {
+    public void deleteTermsFromMatchingPropertiesForAllExperiments(ApiProperty[] properties) throws ResourceNotFoundException {
+        for (ApiProperty apiProperty : properties) {
+            final List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+            deleteTermsFromMatchingAssayProperties(assayProperties, apiProperty.getTerms());
 
-            for (Experiment experiment: experimentDAO.getExperimentsByProperties(properties)) {
+            final List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+            deleteTermsFromMatchingSampleProperties(sampleProperties, apiProperty.getTerms());
+        }
 
-                deleteTermsFromMatchingPropertiesForAllAssays(experiment, properties);
-                deleteTermsFromMatchingPropertiesForAllSamples(experiment, properties);
 
-            }
     }
 
     /**
      * Removes terms from matching assayProperties for all assays in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param properties ApiProperty[]
+     * @param properties          ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession is not found
      */
     @Transactional
@@ -675,58 +664,79 @@ public class CurationService {
         try {
             Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
 
-            deleteTermsFromMatchingPropertiesForAllAssays(experiment, properties);
+            for (final ApiProperty apiProperty : properties) {
+
+                for (Assay assay : experiment.getAssays()) {
+
+                    final Collection<AssayProperty> filteredProperites = assay.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    deleteTermsFromMatchingAssayProperties(filteredProperites, apiProperty.getTerms());
+                }
+            }
 
         } catch (RecordNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
     }
 
-    private void deleteTermsFromMatchingPropertiesForAllAssays(Experiment experiment, ApiProperty[] apiProperties) {
+    /**
+     * Deletes properties from all samples in experiment: experimentAccession
+     *
+     * @param experimentAccession String
+     * @param properties          ApiProperty[]
+     * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
+     *                                   in that experiment are not found
+     */
+    @Transactional
+    public void deleteTermsFromMatchingPropertiesForAllSamples(String experimentAccession,
+                                                               ApiProperty[] properties) throws ResourceNotFoundException {
+        try {
+            Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
 
-        for (Assay assay: experiment.getAssays()) {
+            for (ApiProperty apiProperty : properties) {
 
-            if (deleteTermsFromMatchingProperties(assay, apiProperties)){
-
-                assayDAO.save(assay);
-
+                for (Sample sample : experiment.getSamples()) {
+                    final Collection<SampleProperty> filteredProperties = sample.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    deleteTermsFromMatchingSampleProperties(filteredProperties, apiProperty.getTerms());
+                }
             }
 
+        } catch (RecordNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+    }
+
+    private void deleteTermsFromMatchingSampleProperties(Collection<SampleProperty> sampleProperties, Set<ApiOntologyTerm> apiOntologyTerms) {
+
+        for (SampleProperty sampleProperty : sampleProperties) {
+            for (ApiOntologyTerm apiTerm : apiOntologyTerms) {
+
+                OntologyTerm ontologyTerm = apiTerm.toOntologyTerm();
+
+                sampleProperty.removeTerm(ontologyTerm);
+                sampleDAO.saveSampleProperty(sampleProperty);
+            }
         }
 
     }
 
-    private boolean deleteTermsFromMatchingProperties(Assay assay, ApiProperty[] apiProperties){
 
-        boolean hasChanged = false;
+    private void deleteTermsFromMatchingAssayProperties(Collection<AssayProperty> assayProperties, Set<ApiOntologyTerm> apiOntologyTerms) {
 
-        for (ApiProperty apiProperty: apiProperties) {
+        for (AssayProperty assayProperty : assayProperties) {
+            for (ApiOntologyTerm apiTerm : apiOntologyTerms) {
 
-            PropertyValue propertyValue = getOrCreatePropertyValue(apiProperty.getPropertyValue());
+                OntologyTerm ontologyTerm = apiTerm.toOntologyTerm();
 
-            AssayProperty property = assay.getProperty(propertyValue);
-
-            if (property != null){
-
-                for (ApiOntologyTerm apiTerm: apiProperty.getTerms()){
-                    OntologyTerm ontologyTerm = getOrCreateOntologyTerm(apiTerm);
-
-                    property.removeTerm(ontologyTerm);
-
-                    hasChanged = true;
-                }
-
+                assayProperty.removeTerm(ontologyTerm);
+                assayDAO.saveAssayProperty(assayProperty);
             }
         }
-
-        return hasChanged;
-
     }
 
 
     /**
      * @param experimentAccession String
-     * @param sampleAccession String
+     * @param sampleAccession     String
      * @return Collection of ApiSampleProperty from sample: sampleAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
@@ -744,8 +754,8 @@ public class CurationService {
      * Adds (or updates mapping to efo terms for) sampleProperties to sample: sampleAccession in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param sampleAccession String
-     * @param sampleProperties ApiProperty[]
+     * @param sampleAccession     String
+     * @param sampleProperties    ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
@@ -774,68 +784,50 @@ public class CurationService {
      * Adds (or updates mapping to efo terms for) properties for all samples in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param properties ApiProperty[]
+     * @param apiProperties          ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
     @Transactional
-    public void remapTermsOnMatchingSampleProperties(String experimentAccession, ApiProperty[] properties) throws ResourceNotFoundException {
-
-        try{
+    public void remapTermsOnMatchingSampleProperties(String experimentAccession, ApiProperty[] apiProperties) throws ResourceNotFoundException {
+        try {
             Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+            for (ApiProperty apiProperty : apiProperties) {
+                for (Sample sample : experiment.getSamples()) {
 
-            remapTermsOnMatchingSampleProperties(experiment, properties);
+                    final Collection<SampleProperty> sampleProperties = sample.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    remapTermsOnMatchingSampleProperties(sampleProperties, apiProperty.getTerms());
+
+                }
+            }
 
         } catch (RecordNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-
     }
 
-    private void remapTermsOnMatchingSampleProperties(Experiment experiment, ApiProperty[] properties){
+    private void remapTermsOnMatchingSampleProperties(Collection<SampleProperty> sampleProperties, Collection<ApiOntologyTerm> apiTerms) {
 
-        for (Sample sample: experiment.getSamples()) {
+        for (SampleProperty sampleProperty : sampleProperties) {
 
-            boolean hasChanged = false;
+            List<OntologyTerm> ontologyTerms = new ArrayList<OntologyTerm>();
 
-            for (ApiProperty apiProperty: properties) {
-
-                PropertyValue propertyValue= getOrCreatePropertyValue(apiProperty.getPropertyValue());
-
-                SampleProperty property = sample.getProperty(propertyValue);
-
-                if (property != null){
-
-                    List<OntologyTerm> ontologyTerms = new ArrayList<OntologyTerm>();
-
-                    for (ApiOntologyTerm apiTerm: apiProperty.getTerms()){
-                        ontologyTerms.add(getOrCreateOntologyTerm(apiTerm));
-                    }
-
-                    property.setTerms(ontologyTerms);
-
-                    hasChanged = true;
-                }
-
+            for (ApiOntologyTerm apiTerm : apiTerms) {
+                ontologyTerms.add(getOrCreateOntologyTerm(apiTerm));
             }
 
-            if (hasChanged) {
+            sampleProperty.setTerms(ontologyTerms);
 
-                sampleDAO.save(sample);
-
-            }
-
+            sampleDAO.saveSampleProperty(sampleProperty);
         }
-
-
     }
 
     /**
      * Deletes sampleProperties from sample: sampleAccession in experiment: experimentAccession
      *
      * @param experimentAccession String
-     * @param sampleAccession String
-     * @param sampleProperties ApiProperty[]
+     * @param sampleAccession     String
+     * @param sampleProperties    ApiProperty[]
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
      */
@@ -854,36 +846,12 @@ public class CurationService {
         sampleDAO.save(sample);
     }
 
-    /**
-     * Deletes properties from all samples in experiment: experimentAccession
-     *
-     * @param experimentAccession String
-     * @param properties ApiProperty[]
-     * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
-     *                                   in that experiment are not found
-     */
-    @Transactional
-    public void deleteTermsFromMatchingPropertiesForAllSamples(String experimentAccession,
-                                                               ApiProperty[] properties) throws ResourceNotFoundException {
 
-        try{
+    private void deleteTermsFromMatchingPropertiesForAllSamples(Experiment experiment, ApiProperty[] apiProperties) {
 
-            Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+        for (Sample sample : experiment.getSamples()) {
 
-            deleteTermsFromMatchingPropertiesForAllSamples(experiment, properties);
-
-        } catch (RecordNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
-
-    }
-
-
-    private void deleteTermsFromMatchingPropertiesForAllSamples(Experiment experiment, ApiProperty[] apiProperties){
-
-        for (Sample sample: experiment.getSamples()) {
-
-            if (deleteTermsFromMatchingProperties(sample, apiProperties)){
+            if (deleteTermsFromMatchingProperties(sample, apiProperties)) {
 
                 sampleDAO.save(sample);
 
@@ -894,19 +862,19 @@ public class CurationService {
     }
 
 
-    private boolean deleteTermsFromMatchingProperties(Sample sample, ApiProperty[] apiProperties){
+    private boolean deleteTermsFromMatchingProperties(Sample sample, ApiProperty[] apiProperties) {
 
         boolean hasChanged = false;
 
-        for (ApiProperty apiProperty: apiProperties) {
+        for (ApiProperty apiProperty : apiProperties) {
 
             PropertyValue propertyValue = getOrCreatePropertyValue(apiProperty.getPropertyValue());
 
             SampleProperty property = sample.getProperty(propertyValue);
 
-            if (property != null){
+            if (property != null) {
 
-                for (ApiOntologyTerm apiTerm: apiProperty.getTerms()){
+                for (ApiOntologyTerm apiTerm : apiProperty.getTerms()) {
                     OntologyTerm ontologyTerm = getOrCreateOntologyTerm(apiTerm);
 
                     property.removeTerm(ontologyTerm);
@@ -976,7 +944,7 @@ public class CurationService {
 
     /**
      * @param experimentAccession String
-     * @param assayAccession String
+     * @param assayAccession      String
      * @return Assay corresponding to assayAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or assay: assayAccession
      *                                   in that experiment are not found
@@ -992,7 +960,7 @@ public class CurationService {
 
     /**
      * @param experimentAccession String
-     * @param sampleAccession String
+     * @param sampleAccession     String
      * @return Sample corresponding to sampleAccession in experiment: experimentAccession
      * @throws ResourceNotFoundException if experiment: experimentAccession or sample: sampleAccession
      *                                   in that experiment are not found
