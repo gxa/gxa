@@ -22,14 +22,11 @@
 
 package uk.ac.ebi.gxa.service;
 
+import acceptance.rest.TestData;
 import com.google.common.collect.Lists;
-import org.codehaus.jackson.map.ser.PropertyBuilder;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kohsuke.args4j.Argument;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -40,20 +37,15 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.ac.ebi.gxa.dao.*;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
-import uk.ac.ebi.gxa.test.TestData;
 import uk.ac.ebi.microarray.atlas.api.ApiProperty;
 import uk.ac.ebi.microarray.atlas.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

@@ -1,4 +1,4 @@
-package uk.ac.ebi.gxa.test;/*
+package acceptance.rest;/*
  * Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +20,14 @@ package uk.ac.ebi.gxa.test;/*
  * http://gxa.github.com/gxa
  */
 
-import com.google.common.io.Files;
 import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
 import uk.ac.ebi.microarray.atlas.api.ApiProperty;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.StringWriter;
+import java.net.URL;
 
 public class TestData {
 
@@ -40,21 +41,25 @@ public class TestData {
 
     }
 
-
+//    public File getDataFile1(String filename) {
+//
+//
+//        return TestData.class.getResource(filename)
+//                 new File(TEST_DATA_RELATIVE_PATH + filename);
+//
+//     }
 
     public String readJSon(String filename) {
-
         try {
+                    final URL resource = TestData.class.getResource(filename);
 
-            File testFile = getDataFile(filename);
+                    StringWriter writer = new StringWriter();
+                    IOUtils.copy(resource.openStream(), writer, "UTF-8");
 
-            return Files.toString(testFile, Charset.forName("UTF-8"));
-
-        } catch (IOException e) {
-
-            throw new AssertionError(e);
-
-        }
+                    return writer.toString();
+                } catch (IOException e) {
+                    throw new AssertionError(e);
+                }
 
     }
 

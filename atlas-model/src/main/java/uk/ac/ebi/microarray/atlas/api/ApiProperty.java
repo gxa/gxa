@@ -14,26 +14,27 @@ import static uk.ac.ebi.gxa.utils.TransformerUtil.instanceTransformer;
 
 /**
  * Class to represent API representations of Sample or Assay properties
- *
  */
-public class ApiProperty implements Comparable<ApiProperty>{
+public class ApiProperty implements Comparable<ApiProperty> {
     private ApiPropertyValue propertyValue;
     private Set<ApiOntologyTerm> terms;
 
+    protected ApiProperty() {
+    }
 
     public ApiProperty(PropertyValue propertyValue, Collection<OntologyTerm> terms) {
         this.propertyValue = new ApiPropertyValue(propertyValue);
         this.terms = newHashSet(
-                        transform(terms,
-                                instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
+                transform(terms,
+                        instanceTransformer(OntologyTerm.class, ApiOntologyTerm.class)));
 
     }
 
-    public String getName(){
+    public String getName() {
         return propertyValue.getProperty().getName();
     }
 
-    public String getValue(){
+    public String getValue() {
         return propertyValue.getValue();
     }
 
@@ -41,8 +42,14 @@ public class ApiProperty implements Comparable<ApiProperty>{
         return propertyValue;
     }
 
+    //Needed to create objects from Json
     public void setPropertyValue(ApiPropertyValue propertyValue) {
         this.propertyValue = propertyValue;
+    }
+
+    //Needed to create objects from Json
+    public void setTerms(Set<ApiOntologyTerm> terms) {
+        this.terms = terms;
     }
 
     public Set<ApiOntologyTerm> getTerms() {
@@ -53,7 +60,7 @@ public class ApiProperty implements Comparable<ApiProperty>{
     public int compareTo(ApiProperty otherApiProperty) {
 
         int result = ObjectUtils.compare(this.getName()
-                                            , otherApiProperty.getName());
+                , otherApiProperty.getName());
 
         if (result != 0) {
 
@@ -64,13 +71,13 @@ public class ApiProperty implements Comparable<ApiProperty>{
     }
 
     @Override
-    public int hashCode(){
-        return Objects.hashCode(this.getName(),this.getValue());
+    public int hashCode() {
+        return Objects.hashCode(this.getName(), this.getValue());
     }
 
     @Override
-    public boolean equals(Object other){
-        if(other !=null && other instanceof ApiProperty){
+    public boolean equals(Object other) {
+        if (other != null && other instanceof ApiProperty) {
             return Objects.equal(getName(), ((ApiProperty) other).getName())
                     && Objects.equal(getValue(), ((ApiProperty) other).getValue());
         }

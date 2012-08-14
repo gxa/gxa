@@ -26,14 +26,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import uk.ac.ebi.gxa.test.TestData;
 
 import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
-import static org.junit.Assert.fail;
 
 public class DeleteTermsFromMatchingPropertiesOnAllExperimentsTestExternal extends CuratorApiTestExternal {
 
@@ -61,8 +59,11 @@ public class DeleteTermsFromMatchingPropertiesOnAllExperimentsTestExternal exten
     @Before
     public void addFourTestPropertiesToASpecificAssayAndSample(){
 
+
+        final String jsonPropertiesToBeAddedBeforeTheTest = JSON_PROPERTIES_TO_BE_ADDED_BEFORE_THE_TEST;
+
         given().header("Content-Type", "application/json")
-            .body(JSON_PROPERTIES_TO_BE_ADDED_BEFORE_THE_TEST)
+            .body(jsonPropertiesToBeAddedBeforeTheTest)
             .expect().statusCode(HttpStatus.CREATED.value())
             .and()
             .body(isEmptyString())
