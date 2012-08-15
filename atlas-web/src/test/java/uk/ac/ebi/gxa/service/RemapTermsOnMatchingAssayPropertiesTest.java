@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -154,12 +153,20 @@ public class RemapTermsOnMatchingAssayPropertiesTest {
         //when
         subject.remapTermsOnMatchingAssayProperties(FAKE_EXPERIMENT_ACCESSION, testProperties);
 
+        //then
+        verify(atlasDAOMock).getExperimentByAccession(FAKE_EXPERIMENT_ACCESSION);
         //and that each assay is being used properly...
-        for (Assay assayMock: experimentMock.getAssays()) {
+        for (ApiProperty property: testProperties){
+            for (Assay assayMock: experimentMock.getAssays()) {
 
-            verify(assayMock, times(2))
-                .getProperty(any(PropertyValue.class));
+                verify(assayMock).getProperties(property.getName(), property.getValue());
 
+                for (AssayProperty assayProperty: assayMock.getProperties()){
+                    verify(assayProperty).setTerms(anyListOf(OntologyTerm.class));
+                    verify(assayDAOMock).saveAssayProperty(assayProperty);
+                }
+
+            }
         }
 
     }
