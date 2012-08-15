@@ -24,10 +24,8 @@ package acceptance.rest;
 
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 
 import static com.jayway.jsonassert.JsonAssert.with;
-import static com.jayway.restassured.RestAssured.expect;
 import static com.jayway.restassured.RestAssured.get;
 import static org.hamcrest.Matchers.*;
 

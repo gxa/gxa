@@ -22,7 +22,6 @@
 
 package acceptance.rest;
 
-import com.jayway.jsonassert.JsonAssert;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -30,10 +29,7 @@ import org.springframework.http.HttpStatus;
 import static com.jayway.jsonassert.JsonAssert.with;
 import static com.jayway.restassured.RestAssured.expect;
 import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.empty;
-import static org.junit.Assert.fail;
 
 public class GetExperimentTestExternal extends CuratorApiTestExternal {
 

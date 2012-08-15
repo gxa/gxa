@@ -841,22 +841,6 @@ public class CurationService {
         sampleDAO.save(sample);
     }
 
-
-    private void deleteTermsFromMatchingPropertiesForAllSamples(Experiment experiment, ApiProperty[] apiProperties) {
-
-        for (Sample sample : experiment.getSamples()) {
-
-            if (deleteTermsFromMatchingProperties(sample, apiProperties)) {
-
-                sampleDAO.save(sample);
-
-            }
-
-        }
-
-    }
-
-
     private boolean deleteTermsFromMatchingProperties(Sample sample, ApiProperty[] apiProperties) {
 
         boolean hasChanged = false;

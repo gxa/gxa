@@ -22,7 +22,6 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
-import com.google.common.base.Objects;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,10 +29,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OntologyTermEqualityAndHashCodeTest {
@@ -61,8 +58,6 @@ public class OntologyTermEqualityAndHashCodeTest {
         //when
         int hashCode = subject.hashCode();
 
-        int otherHashcode = "ACCESSION_VALUE".hashCode();
-
         //then
         assertThat(hashCode, is("ACCESSION_VALUE".hashCode()));
 
@@ -78,6 +73,8 @@ public class OntologyTermEqualityAndHashCodeTest {
 
         //then
         assertThat(subject.equals(other), is(true));
+        //and
+        assertThat(other.equals(subject), is(true));
 
     }
 
@@ -135,6 +132,21 @@ public class OntologyTermEqualityAndHashCodeTest {
 
         //then
         assertThat(subject.equals(other), is(true));
+
+    }
+
+
+    @Test
+    public void equalityTransitivity() throws Exception {
+
+        //given
+        OntologyTerm other1 = new OntologyTerm(null, ontologyMock, null, "ACCESSION_VALUE", "DESCRIPTION_VALUE_A");
+        OntologyTerm other2 = new OntologyTerm(null, ontologyMock, null, "ACCESSION_VALUE",  "DESCRIPTION_VALUE_B");
+
+        //then
+        assertThat(subject.equals(other1), is(true));
+        assertThat(other2.equals(other1), is(true));
+        assertThat(other2.equals(subject), is(true));
 
     }
 

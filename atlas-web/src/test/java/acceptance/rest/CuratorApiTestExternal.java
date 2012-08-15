@@ -24,6 +24,7 @@ package acceptance.rest;
 
 import com.jayway.restassured.RestAssured;
 import org.junit.Before;
+
 import static com.jayway.restassured.RestAssured.basic;
 
 public class CuratorApiTestExternal {
