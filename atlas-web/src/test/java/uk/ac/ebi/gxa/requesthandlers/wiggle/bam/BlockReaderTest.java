@@ -29,7 +29,7 @@ import java.io.File;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-public class TestBlockReader {
+public class BlockReaderTest {
     @Test
     public void test0() {
         runTest("bam/accepted_hits.sorted.bam", "3", 1, 7381, answer0);
@@ -50,7 +50,7 @@ public class TestBlockReader {
     public static void runTest(String fileName, String chromosomeName, long start, long end, String answer) {
         try {
             final StringBuilder builder = new StringBuilder();
-            final File file = new File(TestBlockReader.class.getClassLoader().getResource(fileName).toURI());
+            final File file = new File(BlockReaderTest.class.getClassLoader().getResource(fileName).toURI());
             final BAMReader reader = new BAMReader(file);
             for (BAMBlock b : reader.readBAMBlocks(chromosomeName, start, end)) {
                 builder.append(b.buffer.length).append(":").append(b.from).append(":").append(b.to).append("\n");

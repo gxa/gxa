@@ -70,6 +70,23 @@ public class OntologyTerm {
         this.term = term;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof OntologyTerm)) return false;
+
+        OntologyTerm that = (OntologyTerm) o;
+
+        if (accession != null ? !accession.equals(that.accession) : that.accession != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return accession != null ? accession.hashCode() : 0;
+    }
+
     // TODO: 4alf: so far it's a String replacement, must be done properly as soon as we have all the values in place
     @Temporary
     @Override

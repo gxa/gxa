@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
 
-public class TestAtlasSolrDAO extends AbstractOnceIndexTest {
+public class AtlasSolrDAOTest extends AbstractOnceIndexTest {
     private static final String E_MEXP_2058 = "E-MEXP-2058";
     private static final long EXPERIMENT_ID = 1036804999L;
     private GeneSolrDAO geneSolrDAO;

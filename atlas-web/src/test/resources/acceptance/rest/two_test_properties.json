@@ -1,0 +1,45 @@
+[
+    {
+        "propertyValue": {
+            "property": {
+                "name": "PROPERTY_NAME_1"
+            },
+            "value": "PROPERTY_VALUE_1"
+        },
+        "terms": [
+            {
+                "description": "DESCRIPTION_1",
+                "term": "TERM_1",
+                "accession": "TERM_ACCESSION_1",
+                "ontology": {
+                    "name": "ONTOLOGY_TERM_NAME_1",
+                    "version": "Thu Oct 02 2008",
+                    "description": "ONTOLOGY_DESCRIPTION_1",
+                    "sourceUri": "ONTOLOGY_SOURCE_URI_1"
+                }
+            }
+        ]
+    },
+    {
+        "propertyValue": {
+            "property": {
+                "name": "PROPERTY_NAME_2"
+            },
+            "value": "PROPERTY_VALUE_2"
+        },
+        "terms": [
+            {
+                "description": "TERM_DESCRIPTION_2",
+                "term": "TERM_2",
+                "accession": "TERM_ACCESSION_2",
+                "ontology": {
+                    "name": "ONTOLOGY_TERM_NAME_2",
+                    "version": "Thu Oct 02 2008",
+                    "description": "ONTOLOGY_DESCRIPTION_2",
+                    "sourceUri": "ONTOLOGY_SOURCE_URI_2"
+                }
+            }
+        ]
+    }
+
+]

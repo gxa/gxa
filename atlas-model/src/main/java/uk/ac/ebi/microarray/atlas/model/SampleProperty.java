@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.microarray.atlas.model;
 
+import com.google.common.base.Objects;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
@@ -86,6 +87,10 @@ public final class SampleProperty {
         return propertyValue;
     }
 
+    public boolean removeTerm(OntologyTerm ontologyTerm) {
+        return this.terms.remove(ontologyTerm);
+    }
+
     public List<OntologyTerm> getTerms() {
         return unmodifiableList(terms);
     }
@@ -104,5 +109,19 @@ public final class SampleProperty {
 
     public Property getDefinition() {
         return propertyValue.getDefinition();
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hashCode(this.getName(), this.getValue());
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(other !=null && other instanceof SampleProperty){
+            return Objects.equal(getName(), ((SampleProperty) other).getName())
+                && Objects.equal(getValue(), ((SampleProperty) other).getValue());
+        }
+        return false;
     }
 }

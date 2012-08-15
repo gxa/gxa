@@ -25,14 +25,13 @@ package uk.ac.ebi.gxa.requesthandlers.wiggle.bam;
 import org.junit.Test;
 import static org.junit.Assert.fail;
 
-import java.util.*;
 import java.io.*;
 import java.net.*;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
 
-public class TestChunkReader {
+public class ChunkReaderTest {
         @Test
     public void test0() {
         runTest("bam/accepted_hits.sorted.bam", "3", 1, 7381, answer0);
@@ -57,8 +56,8 @@ public class TestChunkReader {
 
     public static void runTest(String fileName, String chromosomeName, long start, long end, String answer) {
         try {
-                   final File bamFile = new File(TestChunkReader.class.getClassLoader().getResource(fileName).toURI());
-                   final File baiFile = new File(TestChunkReader.class.getClassLoader().getResource(fileName + ".bai").toURI());
+                   final File bamFile = new File(ChunkReaderTest.class.getClassLoader().getResource(fileName).toURI());
+                   final File baiFile = new File(ChunkReaderTest.class.getClassLoader().getResource(fileName + ".bai").toURI());
             final BAMHeaderReader headerReader = new BAMHeaderReader(bamFile);
             final int chromosomeIndex = headerReader.getChromosomeIndex(chromosomeName);
             assertTrue("Chromosome " + chromosomeName + " not found", chromosomeIndex != -1);
