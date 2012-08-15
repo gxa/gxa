@@ -139,21 +139,8 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         assertTrue(containsString(gprops, "goterm"));
     }
 
-
     @Test
     public void test_doStructuredAtlasQuery() {
-        AtlasStructuredQuery query = new AtlasStructuredQueryBuilder()
-                .andGene("ENSMUSG00000020275")
-                .query(1);
-        appendEmptyCondition(query);
-        AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(query);
-
-        assertNotNull(result);
-        assertTrue(result.getSize() > 0);
-    }
-
-    @Test(expected = UnexpectedException.class)
-    public void test_doStructuredAtlasQuery1() {
         AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
                 .andGene("ENSMUSG00000020275")
                 .query(1));
@@ -180,14 +167,5 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         Multiset<Integer> downCounts = service.getScoresFromCache(scoresCache, DOWN, hematopoieticStemCellEfv.getValue());
         Multiset<Integer> nonDECounts = service.getScoresFromCache(scoresCache, NON_D_E, hematopoieticStemCellEfv.getValue());
         assertTrue(upCounts.entrySet().size() > 0 || downCounts.entrySet().size() > 0 || nonDECounts.entrySet().size() > 0);
-    }
-
-    private void appendEmptyCondition(AtlasStructuredQuery query) {
-        ExpFactorQueryCondition cond = new ExpFactorQueryCondition();
-        cond.setFactor("organism_part");
-        cond.setExpression(QueryExpression.UP_DOWN);
-        cond.setFactorValues(Collections.singletonList("heart"));
-        cond.setMinExperiments(1);
-        query.setConditions(Collections.singletonList(cond));
     }
 }

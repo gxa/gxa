@@ -821,46 +821,7 @@ public class AtlasStructuredQueryService {
         return StatisticsType.valueOf(expression.toString());
     }
 
-    /**
-     * At least one experimental condition is always passed with the query. It could be empty, i.e. contain no factor or
-     * factor values, but will always contain the required expression type. An empty experimental condition is used to
-     * pass expression type for gene condition-only queries.
-     * @param query
-     * @return true if query contains only one empty condition
-     */
-    private boolean hasEmptyCondition(final AtlasStructuredQuery query) {
-        if (query.getConditions().isEmpty())
-            throw createUnexpected("Query: " + query + " should have at least one condition (which could be empty)");
-       return query.getConditions().size() == 1 &&
-               query.getConditions().iterator().next().isAnything();
-    }
 
-    /**
-     * @param query
-     * @return If query did not contain an empty condition, return query.getConditions(); otherwise return a list of conditions,
-     *         each containing one factor from atlasProperties.getDasFactors() and the expression type from the empty condition.
-     */
-    private Collection<ExpFactorQueryCondition> getQueryConditions(final AtlasStructuredQuery query) {
-        if (hasEmptyCondition(query)) {
-            return addDasFactorsToConditions(query);
-        }
-
-        return query.getConditions();
-    }
-
-    private Collection<ExpFactorQueryCondition> addDasFactorsToConditions(AtlasStructuredQuery query) {
-        QueryExpression expression = query.getConditions().iterator().next().getExpression();
-        List<ExpFactorQueryCondition> queryConditions = Lists.newArrayList();
-        for (String factor : atlasProperties.getDasFactors()) {
-            ExpFactorQueryCondition condition = new ExpFactorQueryCondition();
-            condition.setExpression(expression);
-            condition.setFactor(factor);
-            condition.setFactorValues(Collections.<String>emptyList());
-            condition.setMinExperiments(1);
-            queryConditions.add(condition);
-        }
-        return queryConditions;
-    }
 
     /**
      * Appends conditions part of the query to query state. Finds matching EFVs/EFOs and appends them to SOLR query string.
@@ -874,7 +835,7 @@ public class AtlasStructuredQueryService {
         final List<ExpFactorResultCondition> conds = new ArrayList<ExpFactorResultCondition>();
         // TODO SolrQueryBuilder solrq = qstate.getSolrq();
 
-        for (ExpFactorQueryCondition c : getQueryConditions(query)) {
+        for (ExpFactorQueryCondition c : query.getConditions()) {
             if (statsQuery.getStatisticsType() == null) {
                 // statsQuery.getStatisticsType() dictates the way in which bit index will be searched;
                 // qstate.getQueryExpression() represents expression type chosen by the user on the search page and is
@@ -885,7 +846,7 @@ public class AtlasStructuredQueryService {
             }
 
             List<Attribute> orAttributes = null;
-            if (c.isAnything()) {
+            if (c.isAnything() || c.isAnyValue()) {
                 // do nothing if neither factor nor factor value where specified
             } else if (c.isOnly() && !c.isAnyFactor()
                     && !Constants.EFO_FACTOR_NAME.equals(c.getFactor())) {
