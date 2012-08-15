@@ -38,6 +38,7 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -51,13 +52,13 @@ public class AssayPropertyTest {
     private PropertyValue propertyValueMock;
 
     @Mock
-    private OntologyTerm term1Mock;
+    private OntologyTerm term1;
 
     @Mock
-    private OntologyTerm term2Mock;
+    private OntologyTerm term2;
 
     @Mock
-    private OntologyTerm term3Mock;
+    private OntologyTerm term3;
 
     private List<OntologyTerm> ontologyTermsMock;
 
@@ -66,17 +67,16 @@ public class AssayPropertyTest {
     @Before
     public void initializeMocks() throws Exception {
         propertyValueMock = PowerMockito.mock(PropertyValue.class); //B: required because the class is final :(
-
-        when(term1Mock.getAccession()).thenReturn("TERM_ACCESSION_1");
-        when(term2Mock.getAccession()).thenReturn("TERM_ACCESSION_2");
-        when(term3Mock.getAccession()).thenReturn("TERM_ACCESSION_3");
-
     }
 
     @Before
     public void initializeSubject() throws Exception {
 
-        subject = new AssayProperty(assayMock, propertyValueMock, Lists.newArrayList(term1Mock, term2Mock, term3Mock));
+        term1 = new OntologyTerm(1L, mock(Ontology.class), "TERM_1", "TERM_ACCESSION_1", "DESCRIPTION_1");
+        term2 = new OntologyTerm(2L, mock(Ontology.class), "TERM_2", "TERM_ACCESSION_2", "DESCRIPTION_2");
+        term3 = new OntologyTerm(3L, mock(Ontology.class), "TERM_3", "TERM_ACCESSION_3", "DESCRIPTION_3");
+
+        subject = new AssayProperty(assayMock, propertyValueMock, Lists.newArrayList(term1, term2, term3));
 
     }
 
@@ -92,7 +92,7 @@ public class AssayPropertyTest {
         //then
         assertThat(subject.getTerms(), hasSize(2));
         assertThat(subject.getTerms(), not(hasItem(term)));
-        assertThat(subject.getTerms(), hasItems(term1Mock, term3Mock));
+        assertThat(subject.getTerms(), hasItems(term1, term3));
 
     }
 

@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OntologyTermEqualityAndHashCodeTest {
@@ -57,7 +58,13 @@ public class OntologyTermEqualityAndHashCodeTest {
     @Test
     public void hashCodeShouldBeTheSameAsAccessionHashCode() throws Exception {
 
-        assertThat(subject.hashCode(), equalTo(Objects.hashCode("ACCESSION_VALUE")));
+        //when
+        int hashCode = subject.hashCode();
+
+        int otherHashcode = "ACCESSION_VALUE".hashCode();
+
+        //then
+        assertThat(hashCode, is("ACCESSION_VALUE".hashCode()));
 
     }
 
@@ -66,11 +73,11 @@ public class OntologyTermEqualityAndHashCodeTest {
     public void equalsShouldSimplyMatchTheAccessionValue() throws Exception {
 
         //given
-        given(ontologyTermMock.getAccession())
-             .willReturn("ACCESSION_VALUE");
+        OntologyTerm other = new OntologyTerm(null, ontologyMock, "--", "ACCESSION_VALUE", "--");
+
 
         //then
-        assertThat(subject.equals(ontologyTermMock), is(true));
+        assertThat(subject.equals(other), is(true));
 
     }
 
@@ -92,33 +99,42 @@ public class OntologyTermEqualityAndHashCodeTest {
     public void equalsShouldFailWhenComparedObjectsIsNull() throws Exception {
 
         //given
-        given(ontologyTermMock).willReturn(null);
+        OntologyTerm other = null;
 
         //then
-        assertThat(subject.equals(ontologyTermMock), is(false));
+        assertThat(subject.equals(other), is(false));
 
     }
 
 
     @Test
-    public void equalsShouldFailWhenEitherObjectsHasANullAccession() throws Exception {
+    public void equalityTestShouldFailWhenEitherObjectsHasANullAccession() throws Exception {
 
         //given
-        given(ontologyTermMock.getAccession())
-            .willReturn("ACCESSION");
+        OntologyTerm other = new OntologyTerm(null, ontologyMock, "TERM_VALUE_X", "ACCESSION_VALUE", "DESCRIPTION_VALUE_X");
 
-        //and
+        //when
         subject.setAccession(null);
 
         //then
-        assertThat(subject.equals(ontologyTermMock), is(false));
+        assertThat(subject.equals(other), is(false));
+        //and
+        assertThat(other.equals(subject), is(false));
+
+    }
+
+
+    @Test
+    public void equalityTestShouldSucceedWhenBothObjectsHaveANullAccession() throws Exception {
 
         //given
-        given(ontologyTermMock.getAccession())
-            .willReturn(null);
+        OntologyTerm other = new OntologyTerm(null, ontologyMock, "TERM_VALUE_X", null, "DESCRIPTION_VALUE_X");
+
+        //when
+        subject.setAccession(null);
 
         //then
-        assertThat(subject.equals(ontologyTermMock), is(false));
+        assertThat(subject.equals(other), is(true));
 
     }
 
