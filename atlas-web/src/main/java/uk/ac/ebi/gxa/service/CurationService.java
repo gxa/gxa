@@ -21,11 +21,6 @@ import java.util.*;
 
 import static com.google.common.collect.Collections2.transform;
 
-/**
- * This class handles all Curation API requests, delegated from CurationApiController
- *
- * @author Misha Kapushesky
- */
 @Service
 public class CurationService {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -560,8 +555,8 @@ public class CurationService {
             for (ApiProperty apiProperty : apiProperties) {
                 for (Assay assay : experiment.getAssays()) {
 
-                    final Collection<AssayProperty> assayProperties = assay.getProperties(apiProperty.getName(), apiProperty.getValue());
-                    remapTermsOnMatchingAssayProperties(assayProperties, apiProperty.getTerms());
+                    Collection<AssayProperty> assayProperties = assay.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    remapTermsOnAssayProperties(assayProperties, apiProperty.getTerms());
 
                 }
             }
@@ -582,17 +577,17 @@ public class CurationService {
     public void remapTermsOnMatchingPropertiesForAllExperiments(ApiProperty[] properties) throws ResourceNotFoundException {
 
         for (ApiProperty apiProperty : properties) {
-              final List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
-              remapTermsOnMatchingAssayProperties(assayProperties, apiProperty.getTerms());
+              List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+              remapTermsOnAssayProperties(assayProperties, apiProperty.getTerms());
 
-              final List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
-              remapTermsOnMatchingSampleProperties(sampleProperties, apiProperty.getTerms());
+              List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+              remapTermsOnSampleProperties(sampleProperties, apiProperty.getTerms());
         }
 
     }
 
 
-    private void remapTermsOnMatchingAssayProperties(Collection<AssayProperty> assayProperties, Collection<ApiOntologyTerm> apiTerms) {
+    private void remapTermsOnAssayProperties(Collection<AssayProperty> assayProperties, Collection<ApiOntologyTerm> apiTerms) {
 
         for (AssayProperty assayProperty : assayProperties) {
 
@@ -642,10 +637,10 @@ public class CurationService {
     @Transactional
     public void deleteTermsFromMatchingPropertiesForAllExperiments(ApiProperty[] properties) throws ResourceNotFoundException {
         for (ApiProperty apiProperty : properties) {
-            final List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+            List<AssayProperty> assayProperties = assayDAO.getAssayPropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
             deleteTermsFromMatchingAssayProperties(assayProperties, apiProperty.getTerms());
 
-            final List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
+            List<SampleProperty> sampleProperties = sampleDAO.getSamplePropertiesByPropertyValue(apiProperty.getName(), apiProperty.getValue(), true);
             deleteTermsFromMatchingSampleProperties(sampleProperties, apiProperty.getTerms());
         }
 
@@ -664,11 +659,11 @@ public class CurationService {
         try {
             Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
 
-            for (final ApiProperty apiProperty : properties) {
+            for (ApiProperty apiProperty : properties) {
 
                 for (Assay assay : experiment.getAssays()) {
 
-                    final Collection<AssayProperty> filteredProperites = assay.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    Collection<AssayProperty> filteredProperites = assay.getProperties(apiProperty.getName(), apiProperty.getValue());
                     deleteTermsFromMatchingAssayProperties(filteredProperites, apiProperty.getTerms());
                 }
             }
@@ -695,7 +690,7 @@ public class CurationService {
             for (ApiProperty apiProperty : properties) {
 
                 for (Sample sample : experiment.getSamples()) {
-                    final Collection<SampleProperty> filteredProperties = sample.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    Collection<SampleProperty> filteredProperties = sample.getProperties(apiProperty.getName(), apiProperty.getValue());
                     deleteTermsFromMatchingSampleProperties(filteredProperties, apiProperty.getTerms());
                 }
             }
@@ -795,8 +790,8 @@ public class CurationService {
             for (ApiProperty apiProperty : apiProperties) {
                 for (Sample sample : experiment.getSamples()) {
 
-                    final Collection<SampleProperty> sampleProperties = sample.getProperties(apiProperty.getName(), apiProperty.getValue());
-                    remapTermsOnMatchingSampleProperties(sampleProperties, apiProperty.getTerms());
+                    Collection<SampleProperty> sampleProperties = sample.getProperties(apiProperty.getName(), apiProperty.getValue());
+                    remapTermsOnSampleProperties(sampleProperties, apiProperty.getTerms());
 
                 }
             }
@@ -806,7 +801,7 @@ public class CurationService {
         }
     }
 
-    private void remapTermsOnMatchingSampleProperties(Collection<SampleProperty> sampleProperties, Collection<ApiOntologyTerm> apiTerms) {
+    private void remapTermsOnSampleProperties(Collection<SampleProperty> sampleProperties, Collection<ApiOntologyTerm> apiTerms) {
 
         for (SampleProperty sampleProperty : sampleProperties) {
 
