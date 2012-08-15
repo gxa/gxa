@@ -46,6 +46,8 @@
 
     <bean name="hibernateNamingStrategy" class="uk.ac.ebi.gxa.dao.hibernate.AtlasNamingStrategy"/>
 
+    <bean name="findPropertiesQueryBuilder" class="uk.ac.ebi.gxa.dao.FindPropertiesQueryBuilder"/>
+
     <bean name="atlasDAO" class="uk.ac.ebi.gxa.dao.AtlasDAO">
         <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="arrayDesignDAO"/>
@@ -103,10 +105,12 @@
 
     <bean name="assayDAO" class="uk.ac.ebi.gxa.dao.AssayDAO">
         <constructor-arg ref="sessionFactory"/>
+        <property name="findPropertiesQueryBuilder" ref="findPropertiesQueryBuilder"/>
     </bean>
 
     <bean name="sampleDAO" class="uk.ac.ebi.gxa.dao.SampleDAO">
         <constructor-arg ref="sessionFactory"/>
+        <property name="findPropertiesQueryBuilder" ref="findPropertiesQueryBuilder"/>
     </bean>
 
     <bean name="softwareDAO" class="uk.ac.ebi.gxa.dao.SoftwareDAO">

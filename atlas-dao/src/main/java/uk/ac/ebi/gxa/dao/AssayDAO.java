@@ -37,35 +37,53 @@ public class AssayDAO extends AbstractDAO<Assay> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propName, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propName))
-            throw LogUtil.createUnexpected("PropertyName has not been passed as an argument");
+    public List<AssayProperty> getAssayPropertiesByProperty(@Nonnull String propertyName, boolean exactMatch) {
 
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-        return template.find("select p from Assay t left join t.properties p " +
-                "where " + propertyNameColumn + (exactValueMatch ? " = '" + propertyName + "' " : " like '%" + propertyName + "%' "));
+        findPropertiesQueryBuilder.setPropertyEntityName("AssayProperty")
+                .setExactMatch(exactMatch);
+
+        propertyName = propertyName.toUpperCase();
+
+
+        if (!exactMatch) {
+            propertyName = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyName);
+        }
+
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByName();
+
+        return template.find(queryString, propertyName);
+
     }
 
 
     @SuppressWarnings("unchecked")
-    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propName, @Nonnull String propValue, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propValue)) {
-            throw LogUtil.createUnexpected("propertyValue has not been passed as an argument");
+    public List<AssayProperty> getAssayPropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch) {
+
+
+        findPropertiesQueryBuilder.setPropertyEntityName("AssayProperty")
+                .setExactMatch(exactMatch);
+
+        propertyValue = propertyValue.toUpperCase();
+
+        if (!exactMatch) {
+            propertyValue = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyValue);
         }
 
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyValueColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.value" + (caseInsensitive ? ") " : "");
-        String propertyValue = caseInsensitive ? propValue.toUpperCase() : propValue;
+        if (!Strings.isNullOrEmpty(propertyName)) {
 
-        if (!Strings.isNullOrEmpty(propName)) {
-            String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-            return template.find("select p from Assay t left join t.properties p " +
-                    "where " + propertyNameColumn + " = '" + propertyName + "' " +
-                    "and " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
+            propertyName = propertyName.toUpperCase();
+
+            String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
+
+            return template.find(queryString, propertyName, propertyValue);
+
         }
-        return template.find("select p from Assay t  left join t.properties p " +
-                "where " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
+
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByValue();
+
+
+        return template.find(queryString, propertyValue);
+
     }
 
     @SuppressWarnings("unchecked")
@@ -88,5 +106,10 @@ public class AssayDAO extends AbstractDAO<Assay> {
     @Override
     public String getNameColumn() {
         return NAME_COL;
+    }
+
+    public void saveAssayProperty(AssayProperty assayProperty) {
+        template.saveOrUpdate(assayProperty);
+        template.flush();
     }
 }

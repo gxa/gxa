@@ -408,6 +408,11 @@
             PROPERTYVALUEID="11"
             />
 
+    <A2_ASSAYPV
+                ASSAYPVID="12"
+                ASSAYID="1"
+                PROPERTYVALUEID="2"
+            />
     <A2_SAMPLEPV
             SAMPLEPVID="1"
             SAMPLEID="1"

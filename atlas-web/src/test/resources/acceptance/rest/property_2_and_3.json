@@ -1,0 +1,32 @@
+[
+    {
+        "propertyValue": {
+            "property": {
+                "name": "PROPERTY_NAME_2"
+            },
+            "value": "PROPERTY_VALUE_2"
+        },
+        "terms": [
+            {
+                "description": null,
+                "term": null,
+                "accession": "EFO_0001215",
+                "ontology": {
+                    "name": "EFO",
+                    "version": "Thu Oct 02 2008",
+                    "description": "ArrayExpress Experimental Factor Ontology",
+                    "sourceUri": null
+                }
+            }
+        ]
+    },{
+        "propertyValue": {
+            "property": {
+            "name": "PROPERTY_NAME_3"
+            },
+            "value": "PROPERTY_VALUE_3"
+        },
+        "terms": []
+    }
+
+]

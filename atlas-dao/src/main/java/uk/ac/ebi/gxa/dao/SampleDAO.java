@@ -15,9 +15,10 @@ import java.util.List;
  * @author Robert Petryszak
  */
 public class SampleDAO extends AbstractDAO<Sample> {
+
     public static final String NAME_COL = "accession";
 
-    private static String COMMON_HQL = "from Sample s left join s.properties p where p.propertyValue.property.name = ? ";
+    private static final String COMMON_HQL = "from Sample s left join s.properties p where p.propertyValue.property.name = ? ";
 
     public static final Logger log = LoggerFactory.getLogger(SampleDAO.class);
 
@@ -39,36 +40,61 @@ public class SampleDAO extends AbstractDAO<Sample> {
         return template.find("select s " + COMMON_HQL + " and p.propertyValue.value = ?", propertyName, propertyValue);
     }
 
-    @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByProperty(@Nonnull String propName, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propName))
-            throw LogUtil.createUnexpected("PropertyName has not been passed as an argument");
-
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-        return template.find("select p from Sample t left join t.properties p " +
-                "where " + propertyNameColumn + (exactValueMatch ? " = '" + propertyName + "' " : " like '%" + propertyName + "%' "));
-    }
 
     @SuppressWarnings("unchecked")
-    public List<SampleProperty> getSamplePropertiesByPropertyValue(String propName, @Nonnull String propValue, boolean exactValueMatch, boolean caseInsensitive) {
-        if (Strings.isNullOrEmpty(propValue)) {
-            throw LogUtil.createUnexpected("propertyValue has not been passed as an argument");
+    public List<SampleProperty> getSamplePropertiesByProperty(@Nonnull String propertyName, boolean exactMatch) {
+
+        findPropertiesQueryBuilder.setPropertyEntityName("SampleProperty")
+                .setExactMatch(exactMatch);
+
+
+        propertyName = propertyName.toUpperCase();
+
+
+        if (!exactMatch) {
+            propertyName = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyName);
         }
 
-        String propertyNameColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.property.name" + (caseInsensitive ? ") " : "");
-        String propertyValueColumn = (caseInsensitive ? "upper(" : "") + "p.propertyValue.value" + (caseInsensitive ? ") " : "");
-        String propertyValue = caseInsensitive ? propValue.toUpperCase() : propValue;
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByName();
 
-        if (!Strings.isNullOrEmpty(propName)) {
-            String propertyName = caseInsensitive ? propName.toUpperCase() : propName;
-            return template.find("select p from Sample t left join t.properties p " +
-                    "where " + propertyNameColumn + " = '" + propertyName + "' " +
-                    "and " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
-        }
-        return template.find("select p from Sample t  left join t.properties p " +
-                "where " + propertyValueColumn + (exactValueMatch ? " = '" + propertyValue + "' " : " like '%" + propertyValue + "%' "));
+        return template.find(queryString, propertyName);
+
     }
+
+
+    @SuppressWarnings("unchecked")
+    public List<SampleProperty> getSamplePropertiesByPropertyValue(String propertyName, @Nonnull String propertyValue, boolean exactMatch) {
+
+        findPropertiesQueryBuilder.setPropertyEntityName("SampleProperty")
+                .setExactMatch(exactMatch);
+
+
+        propertyValue = propertyValue.toUpperCase();
+
+
+        if (!exactMatch) {
+            propertyValue = findPropertiesQueryBuilder.addHqlLikeSymbols(propertyValue);
+        }
+
+        if (!Strings.isNullOrEmpty(propertyName)) {
+
+
+            propertyName = propertyName.toUpperCase();
+
+
+            String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByNameAndValue();
+
+            return template.find(queryString, propertyName, propertyValue);
+
+        }
+
+        String queryString = findPropertiesQueryBuilder.getQueryThatSelectsPropertiesByValue();
+
+
+        return template.find(queryString, propertyValue);
+
+    }
+
 
     @SuppressWarnings("unchecked")
     public List<SampleProperty> getSamplePropertiesByOntologyTerm(@Nonnull String ontologyTerm) {
@@ -90,5 +116,11 @@ public class SampleDAO extends AbstractDAO<Sample> {
     @Override
     public String getNameColumn() {
         return NAME_COL;
+    }
+
+    public void saveSampleProperty(SampleProperty sampleProperty) {
+        template.saveOrUpdate(sampleProperty);
+        template.flush();
+
     }
 }

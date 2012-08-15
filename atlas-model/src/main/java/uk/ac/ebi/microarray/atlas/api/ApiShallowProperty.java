@@ -31,8 +31,8 @@ public class ApiShallowProperty {
     private String value;
     private List<String> terms;
 
-    public ApiShallowProperty(final ApiPropertyValue pv, Set<String> terms) {
-        name = pv.getProperty().getName();
+    public ApiShallowProperty(final ApiProperty pv, Set<String> terms) {
+        name = pv.getName();
         value = pv.getValue();
         this.terms = Lists.newArrayList(terms);
     }
