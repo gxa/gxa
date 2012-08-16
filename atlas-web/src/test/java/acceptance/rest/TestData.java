@@ -24,42 +24,23 @@ import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import uk.ac.ebi.microarray.atlas.api.ApiProperty;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
 
 public class TestData {
 
-    private static final String TEST_DATA_RELATIVE_PATH = "src/test/resources/acceptance/rest/" ;
-
-
-
-    public File getDataFile(String filename) {
-
-        return new File(TEST_DATA_RELATIVE_PATH + filename);
-
-    }
-
-//    public File getDataFile1(String filename) {
-//
-//
-//        return TestData.class.getResource(filename)
-//                 new File(TEST_DATA_RELATIVE_PATH + filename);
-//
-//     }
-
     public String readJSon(String filename) {
         try {
-                    final URL resource = TestData.class.getResource(filename);
+            final URL resource = TestData.class.getResource(filename);
 
-                    StringWriter writer = new StringWriter();
-                    IOUtils.copy(resource.openStream(), writer, "UTF-8");
+            StringWriter writer = new StringWriter();
+            IOUtils.copy(resource.openStream(), writer, "UTF-8");
 
-                    return writer.toString();
-                } catch (IOException e) {
-                    throw new AssertionError(e);
-                }
+            return writer.toString();
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
 
     }
 
