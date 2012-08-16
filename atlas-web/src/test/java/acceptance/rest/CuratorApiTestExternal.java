@@ -31,14 +31,21 @@ public class CuratorApiTestExternal {
 
 
     @Before
-    public void initRestAssured(){
+    public void initRestAssured() {
 
         RestAssured.basePath = "/gxa/api/curators/v1";
 
         RestAssured.authentication = basic("curator", "password");
 
-        RestAssured.rootPath = "apiShallowExperiment" ;
+        RestAssured.rootPath = "apiShallowExperiment";
 
+        String baseURI = System.getProperty("acceptance.rest.baseURI");
+
+        if (baseURI != null) {
+
+            RestAssured.baseURI = baseURI;
+
+        }
     }
 
 

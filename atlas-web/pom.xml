@@ -416,6 +416,7 @@
                     <groupId>org.hamcrest</groupId>
                 </exclusion>
             </exclusions>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

@@ -37,6 +37,7 @@
         <spring.version>3.1.1.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
         <jri.libs>${env.R_HOME}/library/rJava/jri</jri.libs>
+        <test.inclusion.pattern.acceptance>acceptance/**/*TestExternal.java</test.inclusion.pattern.acceptance>
     </properties>
 
     <scm>
@@ -78,6 +79,13 @@
                     <includes>
                         <include>${test.inclusion.pattern}</include>
                     </includes>
+
+                    <systemProperties>
+                        <property>
+                            <name>acceptance.rest.baseURI</name>
+                            <value>${acceptance.rest.baseURI}</value>
+                        </property>
+                    </systemProperties>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -540,6 +548,7 @@
         </snapshotRepository>
     </distributionManagement>
 
+
     <profiles>
         <profile>
             <id>junit</id>
@@ -557,7 +566,14 @@
         <profile>
             <id>acceptance</id>
             <properties>
-                <test.inclusion.pattern>acceptance/**/*TestExternal.java</test.inclusion.pattern>
+                <test.inclusion.pattern>${test.inclusion.pattern.acceptance}</test.inclusion.pattern>
+            </properties>
+        </profile>
+        <profile>
+            <id>acceptance-lime</id>
+            <properties>
+                <test.inclusion.pattern>${test.inclusion.pattern.acceptance}</test.inclusion.pattern>
+                <acceptance.rest.baseURI>http://lime:14044</acceptance.rest.baseURI>
             </properties>
         </profile>
     </profiles>
