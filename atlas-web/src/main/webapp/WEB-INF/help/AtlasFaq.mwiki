@@ -63,13 +63,17 @@ See the Archive query help [[http://www.ebi.ac.uk/training/online/course/arrayex
 
 == Results ==
 
-=== What does a heat map mean? ===
+=== What does the heat map show? ===
 
 If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the
  remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell)
  or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document for more detail.  
 
 === What do the T-statistic and P-values mean? ===
+
+The T-statistic is a value produced by the statistical tests used to determine if a gene is differentially expressed in a given condition.  If the value is positive
+ the gene is over-expressed, if negative the gene is under-expressed compared the to the average expression of that gene over all conditions. Genes with the highest T-score are shown first. 
+The P-value gives the  
 
 
 === How are the genes ranked? ===
