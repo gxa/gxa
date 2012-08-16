@@ -1,9 +1,11 @@
 == Additional Resources ==
 
-* [[AtlasConstructionDetails|Details about the construction of the Atlas]]
+* [[AtlasConstructionDetails|How the Atlas is constructed]]
 * [[AtlasApis|Programmatic access to the Atlas]]
 * [[AtlasFaq|Frequently asked questions]]
+* [https://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Learn] how to search and interpret Atlas data via [https://www.ebi.ac.uk/training/online/ Train online].
+* [http://nar.oxfordjournals.org/content/38/suppl_1/D690.full Atlas publication]
 
-* Mailing list. The Atlas mailing list is arrayexpress-atlas@ebi.ac.uk. You can send email with help requests, comments or improvement suggestions to this address. To subscribe or view list archives go to http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.
-* Blog. Read the Atlas blog at http://arrayexpress-atlas.blogspot.com for the latest news and views from the cockpit.
-* [http://www.ebi.ac.uk/microarray/about.html About the microarray team]
+* [mailto:arrayexpress-atlas.ebi.ac.uk Email] the mailing list. To subscribe or view archives go [http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas here].
+
+* [http://www.ebi.ac.uk/fg/ Functional Genomics home]
