@@ -1,61 +1,19 @@
 = Frequently Asked Questions =
 
-== Searching ==
-
-  * [[#How can I search for differential gene expression|How can I search for differential gene expression]] 
-
-=== What gene identifiers can I use in searches? ===
-
-=== How can I search for particular experiment? ===
-=== How can search for a particular condition such as lung cancer? ===
-
-== Results ==
-
-=== What does a heat map mean? ===
-=== How are the genes ranked? ===
-=== What does the P-value mean? ===
-=== Can I save my search results? ===
-=== How can I obtain the original data? ===
-=== Why do I get different results ... ===
-
-
-== Content ==
-=== Where can I find out more information about the Atlas? ===
-=== Who do I contact if I have a question? ===
-
-
-----
-
-== Searching ==
-
-=== How can I search for differential gene expression ===
-
-Differential expression can be searched for by gene (e.g. Saa4), gene attributes (e.g. p53 binding) or by condition (e.g. liver). Searching for a gene will identify in 
-which conditions it is differentially expressed. A condition search will tell you which genes are differential expressed in that condition. 
-Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered
-into the query boxes in the [www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document. 
-
-=== What gene identifiers can I use in searches? ===
-=== How can I search for particular experiment? ===
-
-
-== Results ==
-
-=== What does a heat map mean? ===
-=== How are the genes ranked? ===
-=== What does the P-value mean? ===
-=== Can I save my search results? ===
-=== How can I obtain the original data? ===
-=== Why do I get different results ... ===
-
-
 == Content ==
 
-=== How are experiments chosen to be in the Gene Expression Atlas? ===
+=== What is the Gene Expression Atlas? ===
 
-Experiments are chosen on the basis of several criteria including type of experiment (e.g. those concerning gene expression), number of replicates to allow robust statistical analysis,
-and whether the array design used is re-annotated vs. Ensembl or Uniprot. Selected experiments may be futher curated to 
-improve quality of the sample and factor annotation.
+The Gene Expression Atlas database provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes 
+measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions.
+The content of this database is derived from re-annotation and statistical analysis of selected datasets from the ArrayExpress Archive.
+
+=== How are experiments chosen to be in the Gene Expression Atlas? 
+
+Several criteria are used in selecting experiments from the Archive to be included in the Atlas including type of experiment (i.e. those concerning gene expression), number of replicates to allow robust statistical analysis,
+and whether the array design used is re-annotated vs. Ensembl or Uniprot. Selected experiments may be futher curated to improve quality of the sample and factor 
+annotation and to link [[http://www.ebi.ac.uk/efo/ Experimental Factor Ontology]] terms to the annotation to improve searching.
+
 
 === How often are the data updated? ===
 
@@ -65,21 +23,70 @@ There is a data release approximately every month.
 
 For every release we provide [[https://github.com/gxa/gxa/wiki/Release-Notes release notes]] providing information about interface and data content changes. You can
 also subscribe to the Atlas mailing list to recieve an email at each Atlas release.  To subscribe or view list archives http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.
-The [http://www.ebi.ac.uk/gxa Atlas home page], http://www.ebi.ac.uk/gxa, also specifies the release version, and how many new experiments are in the release along with the total
-number of experiments and genes 
+The [http://www.ebi.ac.uk/gxa Atlas home page] also specifies the release version, and how many new experiments are in the release along with the current total
+number of experiments and genes. 
 
 === Can I download and install a version of the Atlas myself? ===
 
 Yes, you can download the data and set up a version of the Atlas database (using an Oracle server). The downloadable files and instructions on how to 
 do this can be found on the [https://github.com/gxa/gxa/wiki/Release-Notes release notes] page.
 
-== Other ==
 
-=== What is the Gene Expression Atlas? ===
+== Searching ==
 
-The Gene Expression Atlas database provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes 
-measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions.
-The content of this database is derived from re-annotation and statistical analysis of selected datasets from the ArrayExpress Archive.
+=== How do I search for differential gene expression ===
+
+Differential expression can be searched for by gene (e.g. Saa4), gene attributes (e.g. p53 binding) or by condition (e.g. liver). Searching for a gene will identify in 
+which conditions it is differentially expressed. A condition search will tell you which genes are differential expressed in that condition. 
+Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered
+into the query boxes in the [www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document. 
+
+=== What gene identifiers can I use in searches? ===
+
+A list of which gene fields/identifiers can be used in gene searches can be found in the [[www.ebi.ac.uk/gxa/help/ search help page]]. 
+
+
+=== How can I find a particular experiment? ===
+
+All the experiments in the Atlas can be found on the [[http://www.ebi.ac.uk/gxa/experiment/index.html experiments list]] page. This page is searchable so you can filter which experiments are 
+show e.g. search for hippocampus for example. 
+
+Alternatively, experiments can be searched for in the [[http://www.ebi.ac.uk/arrayexpress/browse.html ArrayExpress Archive], which contains a wider set of 
+functional genomics data including gene expression studies. Experiments can be filtered by species, platform, key word etc and sorted by those present in the Atlas by clicking on the Atlas column
+title on the right hand side, or by including the term 'gxa:true' in the search query box. Clicking on the green tick will take you to the experiment data in the Atlas. 
+See the Archive query help [[http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-functional-genomics-data-ar train online]] document or the
+[[http://www.ebi.ac.uk/fg/doc/help/ae_help.html#AdvancedSearchesNewInterface Archive advanced search help]] for more information on searching the Archive.   
+
+||[[Image:AtlasColumnHeading.png|link=]]||[[Image:SearchExample.png|link=]]||
+||Atlas column heading in the Archive||Archive search example||
+
+
+== Results ==
+
+=== What does a heat map mean? ===
+
+If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the
+ remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell)
+ or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document for more detail.  
+
+=== What do the T-statistic and P-values mean? ===
+
+
+=== How are the genes ranked? ===
+ 
+=== Can I save my search results? ===
+
+=== How can I obtain the original data? ===
+
+The original data files from which the differential expression statistics are calculated from are held in the 
+[[http://www.ebi.ac.uk/arrayexpress/ ArrayExpress Archive]].  You can link to the original data for any experiment by clicking on the experiment accession number e.g. E-TABM-1216 from the
+experiment page in the Atlas.
+
+[[Image:AtlasColumnHeading.png|link=]]
+
+
+== More information ==
+
 
 === Where can I find out more information about the Atlas? ===
 
