@@ -4,10 +4,6 @@
 
   * [[#How can I search for differential gene expression|How can I search for differential gene expression]] 
 
-Differential gene expression can be searched for by creating queries based on genes, 
-gene properties (e.g. GO terms), or conditions such as 'breast cancer'.
-
-
 === What gene identifiers can I use in searches? ===
 
 === How can I search for particular experiment? ===
@@ -67,8 +63,8 @@ There is a data release approximately every month.
 
 === How can I found about changes in the latest release? ===
 
-The release notes can be found here https://github.com/gxa/gxa/wiki/Release-Notes. You can subscribe to the Atlas mailing list to recieve an email
- giving information about interface and data content changes at each Atlas release.  To subscribe or view list archives http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.
+For every release we provide [[https://github.com/gxa/gxa/wiki/Release-Notes release notes]] providing information about interface and data content changes. You can
+also subscribe to the Atlas mailing list to recieve an email at each Atlas release.  To subscribe or view list archives http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.
 The [http://www.ebi.ac.uk/gxa Atlas home page], http://www.ebi.ac.uk/gxa, also specifies the release version, and how many new experiments are in the release along with the total
 number of experiments and genes 
 
