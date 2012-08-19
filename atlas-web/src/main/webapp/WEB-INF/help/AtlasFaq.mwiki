@@ -72,13 +72,26 @@ If your search matches more than one gene, the results will be displayed in a he
 === What do the T-statistic and P-values mean? ===
 
 The T-statistic is a value produced by the statistical tests used to determine if a gene is differentially expressed in a given condition.  If the value is positive
- the gene is over-expressed, if negative the gene is under-expressed compared the to the average expression of that gene over all conditions. Genes with the highest T-score are shown first. 
-The P-value gives the  
+ the gene is over-expressed, if negative the gene is under-expressed compared to the average expression of that gene over all conditions. Genes with the highest
+ T-statistic are shown first. 
+
+The P-value gives the probability that the T-statistic is due to chance. A low P value means the T-statistic is not likely to have occurred by chance and the gene is mean expression level in a particular condition is considered
+significantly over or under expressed compared to the average expression of the gene over all conditions. The p-value indicates the strength of differential expression.   
 
 
 === How are the genes ranked? ===
+
+The genes are ranked by T-statistic.
+
+=== Why is there sometimes more than one result for the same gene in an experiment? ===
+
+In some cases more than one design element (probe or reporter) on the array chip maps to the same gene (perhaps in different exons).  The results are shown by design element so the same gene name may be listed for more than one design element.   
  
 === Can I save my search results? ===
+
+Yes, query results can be saved as a tab-delimited table by clicking on the 'Download all results' link above the heatmap or table of genes (list view).  The experiment design (sample and assay annotation), expression values and 
+analytics results for any experiment can be downloaded in tab-delimited form by clicking on the links to the right of the expression profile diagram on an experiments page. 
+
 
 === How can I obtain the original data? ===
 
