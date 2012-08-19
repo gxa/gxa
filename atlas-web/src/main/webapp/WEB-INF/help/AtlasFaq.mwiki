@@ -95,16 +95,16 @@ analytics results for any experiment can be downloaded in tab-delimited form by 
 XXXX ADD BIT ABOUT XML OR JSON
 
 
-=== How can I access the Atlas programmatically? ===
+=== Can the Atlas be accessed programmatically? ===
 
 
 XXXXX
 
-=== How can I obtain the original data? ===
+=== How can I obtain the original data for an experiment? ===
 
 The original data files from which the differential expression statistics are calculated from are held in the 
 [[http://www.ebi.ac.uk/arrayexpress/ ArrayExpress Archive]].  You can link to the original data for any experiment by clicking on the experiment accession number e.g. E-TABM-1216 from the
-experiment page in the Atlas.
+experiment page in the Atlas. From here you can access all information about the experiment including protocols and raw and processed data.
 
 [[Image:AtlasColumnHeading.png|link=]]
 
@@ -119,7 +119,7 @@ You can find detailed information about the construction of the Gene Expression 
 
 === Who do I contact if I have a question? ===
 
-You can contact the Atlas team by emailing us on arrayexpress-atlas@ebi.ac.uk. To subscribe or view list archives go to http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.  
+You can contact the Atlas team by emailing us at arrayexpress-atlas@ebi.ac.uk. To subscribe or view list archives go to http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.  
 
 
 
