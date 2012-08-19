@@ -92,6 +92,13 @@ In some cases more than one design element (probe or reporter) on the array chip
 Yes, query results can be saved as a tab-delimited table by clicking on the 'Download all results' link above the heatmap or table of genes (list view).  The experiment design (sample and assay annotation), expression values and 
 analytics results for any experiment can be downloaded in tab-delimited form by clicking on the links to the right of the expression profile diagram on an experiments page. 
 
+XXXX ADD BIT ABOUT XML OR JSON
+
+
+=== How can I access the Atlas programmatically? ===
+
+
+XXXXX
 
 === How can I obtain the original data? ===
 
