@@ -1,11 +1,13 @@
-== Additional Resources ==
+== Atlas Resources ==
 
-* [[AtlasConstructionDetails|How the Atlas is constructed]]
+* [[AboutAtlas|About the Atlas]]
+* [[AtlasHelp|Searching the Atlas]]
 * [[AtlasApis|Programmatic access to the Atlas]]
+* [[AtlasLinking|Linking to the Atlas]]
 * [[AtlasFaq|Frequently asked questions]]
-* [https://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Learn] how to search and interpret Atlas data via [https://www.ebi.ac.uk/training/online/ Train online].
+
+
+* [https://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Train online] course on the Atlas
+* [mailto:arrayexpress-atlas@ebi.ac.uk Email] the mailing list. To subscribe or view archives go [http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas here]
 * [http://nar.oxfordjournals.org/content/38/suppl_1/D690.full Atlas publication]
-
-* [mailto:arrayexpress-atlas.ebi.ac.uk Email] the mailing list. To subscribe or view archives go [http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas here].
-
 * [http://www.ebi.ac.uk/fg/ Functional Genomics home]

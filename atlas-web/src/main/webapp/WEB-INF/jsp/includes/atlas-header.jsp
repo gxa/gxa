@@ -43,12 +43,10 @@
             <a href="${pageContext.request.contextPath}/help/AboutAtlas">about the project</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasFaq">faq</a> |
             <a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks"
-                                                                                         style="font-weight: bold; display: none">thanks!</span>
-            |
-            <a target="_blank" href="http://arrayexpress-atlas.blogspot.com">blog</a> |
+                                                                                         style="font-weight: bold; display: none">thanks!</span> |
             <a href="${pageContext.request.contextPath}/help/AtlasDasSource">das</a> |
             <a href="${pageContext.request.contextPath}/help/AtlasApis">api</a> |
-            <a href="${pageContext.request.contextPath}/help">help</a>
+            <a href="${pageContext.request.contextPath}/help/HelpHome">help</a>
         </td>
     </tr>
 </table>
