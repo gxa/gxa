@@ -40,13 +40,13 @@ Yes, you can download the data and set up a version of the Atlas database (using
 
 Differential expression can be searched for by gene (e.g. Saa4), gene attributes (e.g. p53 binding) or by condition (e.g. liver). Searching for a gene will identify in which conditions it is differentially expressed. A condition search will tell you which genes are differential expressed in that condition. 
 
-Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered into the query boxes in the [http://www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] documentation. 
+Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered into the query boxes in the [http://www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] documentation or the [http://ww.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page]. 
 <br>
 <br>
 
 === What gene identifiers can I use in searches? ===
 
-A list of which gene fields/identifiers can be used in gene searches can be found in the [http://www.ebi.ac.uk/gxa/help/ search help page]. 
+A list of which gene fields/identifiers can be used in gene searches can be found in the [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page]. 
 <br>
 <br>
 
@@ -70,7 +70,7 @@ See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-func
 <br>
 === What does the heat map show? ===
 
-If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document for more detail.  
+If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document or [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page] for more details.  
 <br>
 <br>
 
