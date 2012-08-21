@@ -57,16 +57,16 @@ title on the right hand side, or by including the term 'gxa:true' in the search 
 See the Archive query help [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-functional-genomics-data-ar train online] document or the
 [http://www.ebi.ac.uk/fg/doc/help/ae_help.html#AdvancedSearchesNewInterface Archive advanced search help]] for more information on searching the Archive.   
 
-||[[Image:AtlasColumnHeading.png|link=]]||[[Image:SearchExample.png|link=]]||
-||Atlas column heading in the Archive||Archive search example||
+{|-[[File:AtlasColumnHeading.png|border|link=]]|[[File:SearchExample.png|link=]]
+|-Atlas column heading in the Archive|Archive search example
+|}
 
 
 == Results ==
 
 === What does the heat map show? ===
 
-If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell)
- or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document for more detail.  
+If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document for more detail.  
 
 === What do the t-statistic and p-values mean? ===
 
@@ -100,9 +100,7 @@ See the [http://www.ebi.ac.uk/gxa/help/AtlasApis API help page] for details.
 
 === How can I obtain the original data for an experiment? ===
 
-The original data files from which the differential expression statistics are calculated from are held in the 
-[http://www.ebi.ac.uk/arrayexpress/ ArrayExpress Archive].  You can link to the original data for any experiment by clicking on the experiment accession number e.g. E-TABM-1216 from the
-experiment page in the Atlas. From here you can access all information about the experiment including protocols and raw and processed data.
+The original data files from which the differential expression statistics are calculated from are held in the [http://www.ebi.ac.uk/arrayexpress/ ArrayExpress Archive].  You can link to the original data for any experiment by clicking on the experiment accession number e.g. E-TABM-1216 from the experiment page in the Atlas. From here you can access all information about the experiment including protocols and raw and processed data.
 
 [[Image:AtlasColumnHeading.png|link=]]
 
