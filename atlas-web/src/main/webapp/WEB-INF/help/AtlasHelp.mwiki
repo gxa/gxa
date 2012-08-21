@@ -1,20 +1,17 @@
 = Searching the Gene Expression Atlas =
 
+The Gene Expression Atlas provides information on gene expression patterns within different biological conditions.
+ It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, 
+disease states, and many other biological/experimental conditions.
+
 The Gene Expression Atlas is essentially a two-dimensional matrix where rows correspond to genes, and the columns
 correspond to conditions such as compound or disease state. The matrix entries are p-values together with a sign,
-indicating the significance and direction of differential expression. See
+indicating the significance and direction of differential expression (up or down compared to the average expression level
+over all conditions). See
 [[AtlasConstructionDetails|details of Atlas construction]] for further information about the meaning of "up" and "down"
 in the atlas context.
 
-A complete [http://www.ebi.ac.uk/microarray-srv/tutorials/Atlas%20v4.pdf step-by-step tutorial] - 0.6MB is available.
-
-== Atlas data statistics ==
-
-Statistics of the Atlas data content is updated monthly and shown on the homepage in the following box.
-
-[[Image:atlasStats.png|link=]]
-
-Counts for assays, samples and new experiments (experiments added since the previous data release) is shown. Clicking on "total experiments" will link to a page with hyperlinks to all experiments available in the Atlas. Similarly, clicking on "total genes" will open a page where you can alphabetically navigate across all the genes available in the atlas.
+A complete [[http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 on-line tutorial]] about searching the Atlas is available. 
 
 
 == Simple Searches ==
@@ -44,7 +41,7 @@ in the conditions box will find genes expressed in liver OR kidney.
 
 The gene and condition boxes have autocomplete functions. The gene autocomplete lists hits matching all gene annotations such as gene names, uniprot ids, GO terms...etc. To select one of the suggested values click on the value
 in the list. If you do not want to select any suggested value click on 'Hide suggestions'. The condition box uses a
-controlled vocabulary called EFO to expand queries, query synonyms and to suggest query terms. EFO conditions can be browsed by clicking the "plus" sign and navigate down the tree of conditions. Once a suggested entry is clicked it will be added to the search box with the ability to add/remove more terms.
+controlled vocabulary called [[http://www.ebi.ac.uk/efo/ EFO]] to expand queries, query synonyms and to suggest query terms. EFO conditions can be browsed by clicking the "plus" sign and navigate down the tree of conditions. Once a suggested entry is clicked it will be added to the search box with the ability to add/remove more terms.
 
 ==== Gene Autocomplete ====
 
