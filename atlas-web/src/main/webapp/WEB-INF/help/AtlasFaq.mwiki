@@ -1,6 +1,6 @@
 = Frequently Asked Questions =
 
-== Content ==
+== General Questions ==
 
 === What is the Gene Expression Atlas? ===
 
@@ -8,11 +8,11 @@ The Gene Expression Atlas database provides information on gene expression patte
 measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions.
 The content of this database is derived from re-annotation and statistical analysis of selected datasets from the ArrayExpress Archive.
 
-=== How are experiments chosen to be in the Gene Expression Atlas? 
+=== How are experiments chosen to be in the Gene Expression Atlas? ===
 
 Several criteria are used in selecting experiments from the Archive to be included in the Atlas including type of experiment (i.e. those concerning gene expression), number of replicates to allow robust statistical analysis,
 and whether the array design used is re-annotated vs. Ensembl or Uniprot. Selected experiments may be futher curated to improve quality of the sample and factor 
-annotation and to link [[http://www.ebi.ac.uk/efo/ Experimental Factor Ontology]] terms to the annotation to improve searching.
+annotation and to link [http://www.ebi.ac.uk/efo/ Experimental Factor Ontology] terms to the annotation to improve searching.
 
 
 === How often are the data updated? ===
@@ -21,7 +21,7 @@ There is a data release approximately every month.
 
 === How can I found about changes in the latest release? ===
 
-For every release we provide [[https://github.com/gxa/gxa/wiki/Release-Notes release notes]] providing information about interface and data content changes. You can
+For every release we provide [https://github.com/gxa/gxa/wiki/Release-Notes release notes] providing information about interface and data content changes. You can
 also subscribe to the Atlas mailing list to recieve an email at each Atlas release.  To subscribe or view list archives http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas.
 The [http://www.ebi.ac.uk/gxa Atlas home page] also specifies the release version, and how many new experiments are in the release along with the current total
 number of experiments and genes. 
@@ -48,14 +48,14 @@ A list of which gene fields/identifiers can be used in gene searches can be foun
 
 === How can I find a particular experiment? ===
 
-All the experiments in the Atlas can be found on the [[http://www.ebi.ac.uk/gxa/experiment/index.html experiments list]] page. This page is searchable so you can filter which experiments are 
+All the experiments in the Atlas can be found on the [http://www.ebi.ac.uk/gxa/experiment/index.html experiments list] page. This page is searchable so you can filter which experiments are 
 show e.g. search for hippocampus for example. Experiments can be linked to directly if you know the accession number using the format http://www.ebi.ac.uk/gxa/experiment/E-GEOD-27948.
 
-Alternatively, experiments can be searched for in the [[http://www.ebi.ac.uk/arrayexpress/browse.html ArrayExpress Archive], which contains a wider set of 
+Alternatively, experiments can be searched for in the [http://www.ebi.ac.uk/arrayexpress/browse.html ArrayExpress Archive], which contains a wider set of 
 functional genomics data including gene expression studies. Experiments can be filtered by species, platform, key word etc and sorted by those present in the Atlas by clicking on the Atlas column
 title on the right hand side, or by including the term 'gxa:true' in the search query box. Clicking on the green tick will take you to the experiment data in the Atlas. 
-See the Archive query help [[http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-functional-genomics-data-ar train online]] document or the
-[[http://www.ebi.ac.uk/fg/doc/help/ae_help.html#AdvancedSearchesNewInterface Archive advanced search help]] for more information on searching the Archive.   
+See the Archive query help [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-functional-genomics-data-ar train online] document or the
+[http://www.ebi.ac.uk/fg/doc/help/ae_help.html#AdvancedSearchesNewInterface Archive advanced search help]] for more information on searching the Archive.   
 
 ||[[Image:AtlasColumnHeading.png|link=]]||[[Image:SearchExample.png|link=]]||
 ||Atlas column heading in the Archive||Archive search example||
@@ -65,14 +65,12 @@ See the Archive query help [[http://www.ebi.ac.uk/training/online/course/arrayex
 
 === What does the heat map show? ===
 
-If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the
- remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell)
+If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell)
  or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document for more detail.  
 
 === What do the t-statistic and p-values mean? ===
 
-The t-statistic is a value produced by the statistical tests used to determine if a gene is differentially expressed in a given condition.  If the value is positive
- the gene is over-expressed, if negative the gene is under-expressed compared to the average expression of that gene over all conditions.  
+The t-statistic is a value produced by the statistical tests used to determine if a gene is differentially expressed in a given condition.  If the value is positive the gene is over-expressed, if negative the gene is under-expressed compared to the average expression of that gene over all conditions.  
 
 The p-value gives the probability that the t-statistic is due to chance. A low P value means the t-statistic is not likely to have occurred by chance and the gene is mean expression level in a particular condition is considered
 significantly over or under expressed compared to the average expression of the gene over all conditions. The p-value indicates the strength of differential expression.   
@@ -90,21 +88,20 @@ In some cases more than one design element (probe or reporter) on the array chip
  
 === Can I save my search results? ===
 
-Query results can be saved as a tab-delimited table by clicking on the 'Download all results' link above the heatmap or table of genes (list view),
- or on the JSON or XML icons to obtain URIs to the results in machine readable formats. The experiment design (sample and assay annotation), expression values and 
+Query results can be saved as a tab-delimited table by clicking on the 'Download all results' link above the heatmap or table of genes (list view), or on the JSON or XML icons to obtain URIs to the results in machine readable formats. The experiment design (sample and assay annotation), expression values and 
 analytics results for any experiment can be downloaded in tab-delimited form by clicking on the links to the right of the expression profile diagram on an experiments page. 
 
 
 === Can the Atlas be accessed programmatically? ===
 
 The Atlas REST API provides all the results available in the main web application through simple HTTP GET queries. The output is in either JSON or XML formats.
-See the [[http://www.ebi.ac.uk/gxa/help/AtlasApis API help page]] for details.
+See the [http://www.ebi.ac.uk/gxa/help/AtlasApis API help page] for details.
 
 
 === How can I obtain the original data for an experiment? ===
 
 The original data files from which the differential expression statistics are calculated from are held in the 
-[[http://www.ebi.ac.uk/arrayexpress/ ArrayExpress Archive]].  You can link to the original data for any experiment by clicking on the experiment accession number e.g. E-TABM-1216 from the
+[http://www.ebi.ac.uk/arrayexpress/ ArrayExpress Archive].  You can link to the original data for any experiment by clicking on the experiment accession number e.g. E-TABM-1216 from the
 experiment page in the Atlas. From here you can access all information about the experiment including protocols and raw and processed data.
 
 [[Image:AtlasColumnHeading.png|link=]]
@@ -115,7 +112,7 @@ experiment page in the Atlas. From here you can access all information about the
 
 === Where can I find out more information about the Atlas? ===
 
-You can find detailed information about the construction of the Gene Expression Atlas, and how to query it in the [[http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online]] document here
+You can find detailed information about the construction of the Gene Expression Atlas, and how to query it in the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 train online] document here
 
 
 === Who do I contact if I have a question? ===
