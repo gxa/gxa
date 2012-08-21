@@ -1,7 +1,7 @@
 = Frequently Asked Questions =
 
 == General Questions ==
-
+<br>
 === What is the Gene Expression Atlas? ===
 
 The Gene Expression Atlas database provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions. The content of this database is derived from re-annotation and statistical analysis of selected datasets from the ArrayExpress Archive.
@@ -35,7 +35,7 @@ Yes, you can download the data and set up a version of the Atlas database (using
 <br>
 
 == Searching ==
-
+<br>
 === How do I search for differential gene expression ===
 
 Differential expression can be searched for by gene (e.g. Saa4), gene attributes (e.g. p53 binding) or by condition (e.g. liver). Searching for a gene will identify in which conditions it is differentially expressed. A condition search will tell you which genes are differential expressed in that condition. 
@@ -67,7 +67,7 @@ See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-func
 <br>
 
 == Results ==
-
+<br>
 === What does the heat map show? ===
 
 If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document for more detail.  
@@ -116,7 +116,7 @@ The original data files from which the differential expression statistics are ca
 <br>
 
 == More information ==
-
+<br>
 === Where can I find out more information about the Atlas? ===
 
 You can find detailed information about the construction of the Gene Expression Atlas, and how to query it in the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document.
