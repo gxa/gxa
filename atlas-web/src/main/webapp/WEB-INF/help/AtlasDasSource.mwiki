@@ -1,15 +1,11 @@
 = Gene Expression Atlas DAS Source =
 
-The Gene Expression Atlas provides gene-level expression analytics annotation
-data as a Distributed Annotation System (DAS) source that can be accessed with
-specialized DAS clients or viewed through DAS-enabled genome browsers, like
-[http://www.ensembl.org Ensembl]. 
+The Gene Expression Atlas provides gene-level expression results as a Distributed Annotation System (DAS) source that can be accessed with specialized DAS clients or viewed through DAS-enabled genome browsers, like [http://www.ensembl.org Ensembl]. This allows you to link to gene expression data in the Atlas from the genome browser. 
 
 == Distributed Annotation System ==
 
 The <b>Distributed Annotation System</b> (DAS) defines a communication protocol
-used to exchange [http://en.wikipedia.org/wiki/Genome_project#Genome_annotation annotations] on
-genomic or protein sequences. 
+used to exchange [http://en.wikipedia.org/wiki/Genome_project#Genome_annotation annotations] on genomic or protein sequences. 
 
 DAS is a client-server system in which a single client integrates information from 
 multiple servers. It allows a single machine to gather up sequence annotation 
@@ -22,29 +18,28 @@ More information about DAS can be found at
 == Enabling the Atlas DAS Source in the Ensembl Genome Browser ==
 
 It is easy to enable the display of Gene Expression Atlas gene expression
-analytics annotations in the Ensembl Genome Browser, by adding/enabling the
-Atlas DAS source in the http://www.ensembl.org portal:
+analytics annotations in the Ensembl Genome Browser:
 
-1. Go to http://www.ensembl.org and navigate to a gene page by searching for a
+ # Go to http://www.ensembl.org and navigate to a gene page by searching for a
 gene or via a direct link, for example, for human gene BRCA2:
 http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618  
 
-2. Click on the 'External data' link on the left hand side in the 'Gene-based displays' menu to select this display.
+ # Click on the 'External data' link on the left hand side in the 'Gene-based displays' menu to select this display.
 
-[[Image:das/EnsemblBRCA2GenePage.png]]
+[[File:das/EnsemblBRCA2GenePage.png|border|link=]]
 
-3. Then click on the 'Configure this page' button below the menu.
+ # Then click on the 'Configure this page' button below the menu.
 
-[[Image:ConfigureThisPage.png]]
+ [[Image:das/ConfigureThisPage.png|link=]]
 
 
-4. A window will appear listing the DAS sources available. Check the box for the Gene Expression Atlas. Then click on the 'tick' icon in the top right hand corner of the window to save this selection. 
+# A window will appear listing the DAS sources available. Check the box for the Gene Expression Atlas. Then click on the 'tick' icon in the top right hand corner of the window to save this selection. 
 
-[[Image:das/EnsemblDASSources.png]]
+[[File:das/EnsemblDASSources.png|link=]]
 
-5. The gene page will now have a section with Gene Exrpression Atlas results for the selected gene.
+# The gene page will now have a section with Gene Exrpression Atlas results for the selected gene.
 
-[[Image:das/EnsemblBRCA2GenePageWithGXA_DAS.png]]
+[[File:das/EnsemblBRCA2GenePageWithGXA_DAS.png|border|link=]]
 
 
 
@@ -52,30 +47,30 @@ http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618
 
 This section explains the information you see in the Atlas DAS source. For every gene three types of expression annotations are displayed:
 
-1. Differential expression summary
+# '''Differential expression summary'''
 
 Click on the link to the Gene page in the Gene Expression Atlas.
 
-2. Sites or conditions where the gene is differentially expressed.
+# '''Conditions where the gene is differentially expressed'''
 
 These list the differential expression results (if any) for the following experimental factors (conditions)
 
- * organism part
- * disease
- * cell type
- * cell line
- * compound treatment
- * developmental stage
- * infection
- * phenotype
+* organism part
+* disease
+* cell type
+* cell line
+* compound treatment
+* developmental stage
+* infection
+* phenotype
 
 Clicking on a 'View all' link in the notes section of these conditions will take you to the Gene Expression Atlas gene page showing all the results for that condition.
 
-3. Image 
+# '''Image''' 
 
 A link to an anatomogram showing heatmaps of the number of studies where the gene is over/under-expressed compared to the genes' overall mean expression level in the study. Anatomograms are available for human, mouse, rat and fly genes.
 
-3. Provenance
+# '''Provenance'''
 
 This section gives information about the Gene Expression Atlas and which version the results shown are coming from.
 
