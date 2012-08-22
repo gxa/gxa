@@ -46,7 +46,21 @@ Advanced searches can be created combining multiple search terms e.g. gene Saa4 
 
 === What gene identifiers can I use in searches? ===
 
-A list of which gene fields/identifiers can be used in gene searches can be found in the [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page]. 
+The following fields/identifiers can be used to search for genes in the Gene Expression Atlas. These can be typed directly into the web interface. 
+   * EMBL e.g. AC000015
+   * Ensembl Gene e.g. ENSG00000171658
+   * Ensembl Protein e.g. ENSP00000000233
+   * Ensembl Transcript e.g. ENST00000000233
+   * Gene Ontology e.g. GO:0008134
+   * Interpro e.g. IPR017892
+   * RefSeq e.g. NM_212505
+   * UniProt e.g. Q8IZT6
+   * UniProt Metabolic Enzyme e.g. O15269
+   * gene or protein name e.g. WNT1 or Wnt-1
+   * go term e.g. transcription factor binding
+   * keyword e.g. transcription
+   * synonym e.g. Calmbp1
+
 <br>
 <br>
 
@@ -70,7 +84,7 @@ See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-func
 <br>
 === What does the heat map show? ===
 
-If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document or [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page] for more details.  
+If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document or [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page].  
 <br>
 <br>
 
