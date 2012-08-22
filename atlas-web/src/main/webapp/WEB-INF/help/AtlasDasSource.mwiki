@@ -20,38 +20,32 @@ More information about DAS can be found at
 It is easy to enable the display of Gene Expression Atlas gene expression
 analytics annotations in the Ensembl Genome Browser:
 
- # Go to http://www.ensembl.org and navigate to a gene page by searching for a
+'''1. Go to http://www.ensembl.org and navigate to a gene page by searching for a
 gene or via a direct link, for example, for human gene BRCA2:
-http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618  
+http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618 ''' 
 
- # Click on the 'External data' link on the left hand side in the 'Gene-based displays' menu to select this display.
+'''2. Click on the 'External data' link on the left hand side in the 'Gene-based displays' menu to select this display.'''
 
 [[File:das/EnsemblBRCA2GenePage.png|border|link=]]
 
- # Then click on the 'Configure this page' button below the menu.
+'''3. Then click on the 'Configure this page' button below the menu.'''
 
- [[Image:das/ConfigureThisPage.png|link=]]
-
-
-# A window will appear listing the DAS sources available. Check the box for the Gene Expression Atlas. Then click on the 'tick' icon in the top right hand corner of the window to save this selection. 
+'''4. A window will appear listing the DAS sources available. Check the box for the Gene Expression Atlas. Then click on the 'tick' icon in the top right hand corner of the window to save this selection. '''
 
 [[File:das/EnsemblDASSources.png|link=]]
 
-# The gene page will now have a section with Gene Exrpression Atlas results for the selected gene.
-
-[[File:das/EnsemblBRCA2GenePageWithGXA_DAS.png|border|link=]]
-
+'''5. The gene page will now have a section with Gene Expression Atlas results for the selected gene.'''
 
 
 == Atlas DAS Source Details ==
 
 This section explains the information you see in the Atlas DAS source. For every gene three types of expression annotations are displayed:
 
-# '''Differential expression summary'''
+'''1. Differential expression summary'''
 
 Click on the link to the Gene page in the Gene Expression Atlas.
 
-# '''Conditions where the gene is differentially expressed'''
+'''2. Conditions where the gene is differentially expressed'''
 
 These list the differential expression results (if any) for the following experimental factors (conditions)
 
@@ -66,12 +60,14 @@ These list the differential expression results (if any) for the following experi
 
 Clicking on a 'View all' link in the notes section of these conditions will take you to the Gene Expression Atlas gene page showing all the results for that condition.
 
-# '''Image''' 
+'''3. Image''' 
 
 A link to an anatomogram showing heatmaps of the number of studies where the gene is over/under-expressed compared to the genes' overall mean expression level in the study. Anatomograms are available for human, mouse, rat and fly genes.
 
-# '''Provenance'''
+'''4. Provenance'''
 
 This section gives information about the Gene Expression Atlas and which version the results shown are coming from.
+
+[[File:das/EnsemblBRCA2GenePageWithGXA_DAS.png|border|link=]]
 
 {{AtlasLinks}}
