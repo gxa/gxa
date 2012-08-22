@@ -47,19 +47,20 @@ Advanced searches can be created combining multiple search terms e.g. gene Saa4 
 === What gene identifiers can I use in searches? ===
 
 The following fields/identifiers can be used to search for genes in the Gene Expression Atlas. These can be typed directly into the web interface. 
-   * EMBL e.g. AC000015
-   * Ensembl Gene e.g. ENSG00000171658
-   * Ensembl Protein e.g. ENSP00000000233
-   * Ensembl Transcript e.g. ENST00000000233
-   * Gene Ontology e.g. GO:0008134
-   * Interpro e.g. IPR017892
-   * RefSeq e.g. NM_212505
-   * UniProt e.g. Q8IZT6
-   * UniProt Metabolic Enzyme e.g. O15269
-   * gene or protein name e.g. WNT1 or Wnt-1
-   * go term e.g. transcription factor binding
-   * keyword e.g. transcription
-   * synonym e.g. Calmbp1
+
+* EMBL e.g. AC000015
+* Ensembl Gene e.g. ENSG00000171658
+* Ensembl Protein e.g. ENSP00000000233
+* Ensembl Transcript e.g. ENST00000000233
+* Gene Ontology e.g. GO:0008134
+* Interpro e.g. IPR017892
+* RefSeq e.g. NM_212505
+* UniProt e.g. Q8IZT6
+* UniProt Metabolic Enzyme e.g. O15269
+* gene or protein name e.g. WNT1 or Wnt-1
+* go term e.g. transcription factor binding
+* keyword e.g. transcription
+* synonym e.g. Calmbp1
 
 <br>
 <br>
