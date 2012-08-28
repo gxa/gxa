@@ -40,7 +40,7 @@ Yes, you can download the data and set up a version of the Atlas database (using
 
 Differential expression can be searched for by gene (e.g. Saa4), gene attributes (e.g. p53 binding) or by condition (e.g. liver). Searching for a gene will identify in which conditions it is differentially expressed. A condition search will tell you which genes are differential expressed in that condition. 
 
-Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered into the query boxes in the [http://www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] documentation or the [http://ww.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page]. 
+Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered into the query boxes in the [http://www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] documentation or the [[AtlasHelp| Atlas search help page]]. 
 <br>
 <br>
 
@@ -95,7 +95,7 @@ Yes, the bar and line charts show normalized expression values. RMA is used to n
 <br>
 <br>
 
-=== What values are shown on the y-axis of the bar and line charts?
+=== What are the values shown on the y-axis of the bar and line charts? ===
 
 The bar and line charts show normalized expression values. In the case of Affymetrix experiments, these values are calculated from the raw data submitted for the experiment, in all other cases they are obtained from the normalized data provided by the submitter. You can see information about the protocols used in normalizing the data in the P'Protocols' section in the experiment's entry in the [http://www.ebi.ac.uk/arrayexpress ArrayExpress Archive] (search by experiment accession).  
 
