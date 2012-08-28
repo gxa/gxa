@@ -318,6 +318,10 @@ public class AtlasGenePropertyService implements AutoCompleter,
         for (GeneAutoCompleteItem item : items) {
             result.add(new GeneAutoCompleteItem(item, geneRanking.getRank(item)));
         }
+
+        //Need to sort results to keep high ranked items on top and not to discard them when extracting sub-list.
+        Collections.sort(result);
+
         return result.subList(0, Math.min(limit >= 0 ? limit : result.size(), result.size()));
     }
 
