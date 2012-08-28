@@ -91,7 +91,7 @@ If your search matches more than one gene, the results will be displayed in a he
 
 === Are the expression values normalized? ===
 
-Yes, the bar and line charts show normalized expression values. RMA is used to normalize the values in Affymetrix experiments with CEL files available. In all other cases, submitter supplied normalized values are used. Normalization is on a per experiment (study) basis. 
+Yes, the bar and line charts show normalized expression values. RMA is used to normalize the values in Affymetrix experiments with CEL files available. In all other cases, submitter supplied normalized values are used. Normalization is on a per experiment (study) basis. There is more information about how the expression values in the [[AboutAtlas#About_the_Gene_Expression_Atlas|About the Gene Expression Atlas]] page.
 <br>
 <br>
 
@@ -100,6 +100,8 @@ Yes, the bar and line charts show normalized expression values. RMA is used to n
 The bar and line charts show normalized expression values. In the case of Affymetrix experiments, these values are calculated from the raw data submitted for the experiment, in all other cases they are obtained from the normalized data provided by the submitter. You can see information about the protocols used in normalizing the data in the P'Protocols' section in the experiment's entry in the [http://www.ebi.ac.uk/arrayexpress ArrayExpress Archive] (search by experiment accession).  
 
 Normalized expression values can be compared for different genes within and experiment, but are not necessarily comparable for the same gene in different experiments.  
+
+There is more information about how the expression values in the [[AboutAtlas#About_the_Gene_Expression_Atlas|About the Gene Expression Atlas]] page.
 <br>
 <br>
 
@@ -134,7 +136,7 @@ Query results can be saved as a tab-delimited table by clicking on the 'Download
 === Can the Atlas be accessed programmatically? ===
 
 The Atlas REST API provides all the results available in the main web application through simple HTTP GET queries. The output is in either JSON or XML formats.
-See the [http://www.ebi.ac.uk/gxa/help/AtlasApis API help page] for details.
+See the [[AtlasApis|API help page]] for details.
 <br>
 <br>
 
