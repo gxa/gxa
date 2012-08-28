@@ -1,6 +1,6 @@
 = Searching the Atlas =
 
-The Gene Expression Atlas provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions. For example you might want to find which genes are [http://www.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000887&view=hm&searchMode=simple up-regulated in the liver in humans, or in which tissues or diseases is the gene [http://www.ebi.ac.uk/gxa/gene/ENSG00000151224 MAT1A over-expressed]. 
+The Gene Expression Atlas provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions. For example you might want to find which genes are [http://www.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000887&view=hm&searchMode=simple up-regulated in the liver in humans], or in which tissues or diseases is the gene [http://www.ebi.ac.uk/gxa/gene/ENSG00000151224 MAT1A over-expressed]. 
 
 More information about how the Atlas is constructed and the meaning of "up" and "down" in the Atlas context can be found on the 
 [[AboutAtlas|Construction of the Gene Expression Atlas]] web page
@@ -13,15 +13,17 @@ An [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-
 You can search the Atlas by:
 
 * which genes you are interested in
+* what conditions (assay and sample attributes that are experimental variables)
+
+and you can further filter the results by:
 * the direction of differential expression: up, down or both
 * which organism the gene belongs to
-* what conditions (assay and sample attributes that are experimental variables)
 
 [[File:SearchBox.png|link=]]
 
 
-* Any of the genes, organism or conditions boxes can be left blank but not all three. 
-* Leaving the gene selection blank will apply your condition query to all genes in the Atlas; leaving the conditions text box blank will rank the genes found for differential expression across all conditions in the Atlas. 
+* Leaving the gene selection blank will apply your condition query to all genes in the Atlas
+* Leaving the conditions text box blank will rank the genes found for differential expression across all conditions in the Atlas. 
 * Multiple values can be entered into the gene and condition search boxes. Separate each by a space: this will be treated as an 'OR'. For instance entering 'liver kidney' in the conditions box will find genes expressed in liver OR kidney.
 <br>
 <br>
@@ -77,11 +79,14 @@ Each row of the result table corresponds to one gene's (or probe) differential e
 |'''Gene'''
 |The gene name. These are clickable entries and take you to a one page summary of Atlas information about that gene. 
 |-
+|-
 |'''Organism'''
 |This lists the organism the gene is associated with.
 |-
+|-
 |'''Key words'''
 |The text above the heatmap shows the condition (experimental factor and factor value) in which the gene is significantly differentially expressed. The [http://www.ebi.ac.uk/EFO EFO ontology] is used to order the experimental factors into groups, for example all the cell lines are shown together.
+|-
 |-
 |'''Heatmap cells'''
 |Each heatmap cell displays the number of studies where a gene is observed signficantly up-/down-regulated. Clicking on the cell will show more information about the expression of that gene in the experiment. The heatmap cell colour can be red - for up, or blue - for down. Cells that are half red and half blue indicate that there are experiments that show both up and down regulation of the gene.
@@ -92,6 +97,7 @@ Each row of the result table corresponds to one gene's (or probe) differential e
 === Heatmap cells ===
 
 Clicking on a cell in the heatmap will show more information about the expression of the gene in the experiment(s). For example a search for gene MAT1A in experiments with condition = liver gives the following result and clicking on the cell with for the organism Bos taurus gives the following window:
+<br>
 <br>
 [[File:SelectExperiment.png|link=]]
 <br>
@@ -109,7 +115,9 @@ will open this experiment in the ArrayExpress Archive. Clicking on the thumbnail
 == Downloading results ==
 
 You can download the results into a tab-delimited format by clicking on "Download all results". A pop up window will open showing the progress of all download requests. Once download is complete click on "Get file" to store the file on your computer.
-You can also retrieve the same results using [[AtlasApis| REST API]].  
+You can also retrieve the same results using [[AtlasApis| REST API]].
+<br>
+<br>  
 
 [[File:DownloadProgressBar.png|link=]]
 <br>
@@ -129,6 +137,8 @@ Clicking on the graph or the  "expression profile" link under the plot will take
 
 The [[AtlasApis|REST API]] is also available for the gene expression summary. 
 
+<br>
+<br>
 [[File:GeneView.png|link=]]
 <br>
 
@@ -136,6 +146,7 @@ The [[AtlasApis|REST API]] is also available for the gene expression summary.
 
 The experiment view provides the ability to explore expression of genes in a selected experiment. Arriving at this page from list view, heatmap view or gene view will show a plot of the gene selected.
 However, you can directly link to this page if you know the accession of the experiment (www.ebi.ac.uk/gxa/experiment/E-MEXP-1014). In this case, the top 3 differentially expressed genes in this experiment will be added to the plot and the top 10 genes are shown on the first page of the search results table. The [[AtlasApis|REST API]] is also available for the experiment expression summary. 
+<br>
 <br>
 [[File:ExperimentView.png|link=]]
 <br>
