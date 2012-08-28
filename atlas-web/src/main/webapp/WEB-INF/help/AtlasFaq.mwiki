@@ -20,7 +20,7 @@ There is a data release approximately every month.
 <br>
 <br>
 
-=== How can I found about changes in the latest release? ===
+=== How can I find out about changes in the latest release? ===
 
 For every release we provide [https://github.com/gxa/gxa/wiki/Release-Notes release notes] providing information about interface and data content changes. You can subscribe to the [http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas Atlas mailing list] to recieve an email at each Atlas release.  
 
@@ -86,6 +86,20 @@ See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-func
 === What does the heat map show? ===
 
 If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document or [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page].  
+<br>
+<br>
+
+=== Are the expression values normalized? ===
+
+Yes, the bar and line charts show normalized expression values. RMA is used to normalize the values in Affymetrix experiments with CEL files available. In all other cases, submitter supplied normalized values are used. Normalization is on a per experiment (study) basis. 
+<br>
+<br>
+
+=== What values are shown on the y-axis of the bar and line charts?
+
+The bar and line charts show normalized expression values. In the case of Affymetrix experiments, these values are calculated from the raw data submitted for the experiment, in all other cases they are obtained from the normalized data provided by the submitter. You can see information about the protocols used in normalizing the data in the P'Protocols' section in the experiment's entry in the [http://www.ebi.ac.uk/arrayexpress ArrayExpress Archive] (search by experiment accession).  
+
+Normalized expression values can be compared for different genes within and experiment, but are not necessarily comparable for the same gene in different experiments.  
 <br>
 <br>
 
