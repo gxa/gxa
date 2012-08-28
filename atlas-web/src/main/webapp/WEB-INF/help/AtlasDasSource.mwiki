@@ -16,7 +16,6 @@ More information about DAS can be found at
 [http://www.biodas.org/wiki/Everything_DAS BioDas.org: Everything DAS].
 
 <br>
-<br>
 
 
 == Enabling the Atlas DAS Source in the Ensembl Genome Browser ==
@@ -39,7 +38,7 @@ http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618
 
 '''5. The gene page will now have a section with Gene Expression Atlas results for the selected gene.'''
 
-<br>
+
 <br>
 
 == Atlas DAS Source Details ==
