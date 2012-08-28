@@ -15,14 +15,17 @@ to the user in a single view.
 More information about DAS can be found at
 [http://www.biodas.org/wiki/Everything_DAS BioDas.org: Everything DAS].
 
+<br>
+<br>
+
+
 == Enabling the Atlas DAS Source in the Ensembl Genome Browser ==
 
 It is easy to enable the display of Gene Expression Atlas gene expression
 analytics annotations in the Ensembl Genome Browser:
 
-'''1. Go to http://www.ensembl.org and navigate to a gene page by searching for a
-gene or via a direct link, for example, for human gene BRCA2:
-http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618 ''' 
+'''1. Go to http://www.ensembl.org and navigate to a gene page ''' by searching for a gene or via a direct link, for example, for human gene BRCA2:
+http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618 
 
 '''2. Click on the 'External data' link on the left hand side in the 'Gene-based displays' menu to select this display.'''
 
@@ -36,6 +39,8 @@ http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618 '''
 
 '''5. The gene page will now have a section with Gene Expression Atlas results for the selected gene.'''
 
+<br>
+<br>
 
 == Atlas DAS Source Details ==
 
