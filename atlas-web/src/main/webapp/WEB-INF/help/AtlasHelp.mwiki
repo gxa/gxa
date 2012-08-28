@@ -1,18 +1,16 @@
-= Searching the Gene Expression Atlas =
+= Searching the Atlas =
 
-The Gene Expression Atlas provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, 
-disease states, and many other biological/experimental conditions.
+The Gene Expression Atlas provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions. For example you might want to find which genes are [http://www.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000887&view=hm&searchMode=simple up-regulated in the liver in humans, or in which tissues or diseases is the gene [http://www.ebi.ac.uk/gxa/gene/ENSG00000151224 MAT1A over-expressed]. 
 
-The Gene Expression Atlas is essentially a two-dimensional matrix where rows correspond to genes, and the columns correspond to conditions such as compound or disease state. The matrix entries are p-values together with a sign, indicating the significance and direction of differential expression (up or down compared to the average expression level over all conditions). See
-[[AboutAtlas|Construction of the Gene Expression Atlas]] for further information about the meaning of "up" and "down"
-in the atlas context.
+More information about how the Atlas is constructed and the meaning of "up" and "down" in the Atlas context can be found on the 
+[[AboutAtlas|Construction of the Gene Expression Atlas]] web page
 
-A complete [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 online tutorial] about searching the Atlas is available. 
+An [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 online tutorial] about searching the Atlas is available. 
 
 
 == Simple Searches ==
 
-When you search the atlas, you provide some general query terms:
+You can search the Atlas by:
 
 * which genes you are interested in
 * the direction of differential expression: up, down or both
@@ -22,8 +20,9 @@ When you search the atlas, you provide some general query terms:
 [[File:SearchBox.png|link=]]
 
 
-Any of the genes, organism or conditions boxes can be left blank but not all three. Leaving the gene selection blank will apply your condition query to all genes in the Atlas; leaving the conditions text box blank will rank the genes found for differential expression across all conditions in the Atlas. Multiple values can be entered into the gene and condition search boxes. Separate each by a space: this will be treated as an 'OR'. For instance entering 'liver kidney'
-in the conditions box will find genes expressed in liver OR kidney.
+* Any of the genes, organism or conditions boxes can be left blank but not all three. 
+* Leaving the gene selection blank will apply your condition query to all genes in the Atlas; leaving the conditions text box blank will rank the genes found for differential expression across all conditions in the Atlas. 
+* Multiple values can be entered into the gene and condition search boxes. Separate each by a space: this will be treated as an 'OR'. For instance entering 'liver kidney' in the conditions box will find genes expressed in liver OR kidney.
 <br>
 <br>
 
@@ -69,25 +68,23 @@ If your query matches more than one gene then the results will be displayed in a
 <br>
 [[File:HeatMapView.png|link=]]
 <br>
+<br>
 Each row of the result table corresponds to one gene's (or probe) differential expression from the Atlas. The complete description of all displayed fields is as follows:
 <br>
 <br>
 
 {|
 |'''Gene'''
-|The gene name. These are clickable entries and take you to a one page summary of Atlas information about that gene. Each gene name has a mouse-over tooltip displaying attributes of the gene.
+|The gene name. These are clickable entries and take you to a one page summary of Atlas information about that gene. 
 |-
 |'''Organism'''
 |This lists the organism the gene is associated with.
 |-
 |'''Key words'''
-|The text above the heatmap shows the condition (experimental factor and factor value) in which the gene is significantly differentially expressed. 
-An ontology is used to order the experimental factors into groups, for example all the cell lines are shown together.
+|The text above the heatmap shows the condition (experimental factor and factor value) in which the gene is significantly differentially expressed. The [http://www.ebi.ac.uk/EFO EFO ontology] is used to order the experimental factors into groups, for example all the cell lines are shown together.
 |-
 |'''Heatmap cells'''
-|Each heatmap cell displays the number of studies where a gene is observed signficantly up-/down-regulated. 
-Each cell has a mouse-over tooltip giving summary information for the cell. 
-Clicking on the cell will show more information about the expression of that gene in the experiment. The heatmap cell colour can be red - for up, or blue - for down. Cells that are half red and half blue indicate that there are experiments that show both up and down regulation of the gene.
+|Each heatmap cell displays the number of studies where a gene is observed signficantly up-/down-regulated. Clicking on the cell will show more information about the expression of that gene in the experiment. The heatmap cell colour can be red - for up, or blue - for down. Cells that are half red and half blue indicate that there are experiments that show both up and down regulation of the gene.
 |}
 <br>
 <br>
@@ -103,7 +100,7 @@ Clicking on a cell in the heatmap will show more information about the expressio
 === List View ===
 
 The same search results can be viewed in a list by choosing "List view" from the top of the page and clicking on "Search Atlas". The results are presented in a collapsed view. 
-Each row corresponds to a summary expression of a single gene in a single condition (Factor Value) across all experiments. Similar to heatmap view, a heatmap cell summarizes all expression results and the lowest p-value is shown. Clicking on the "plus" sign next to the gene name will expand the row to show all experiments available for that gene-condition pair. A small thumbnail plot for each experiment is shown highlighting samples with the specified condition and its p-value. Clicking on the experiment accession (e.g. E-GEOD-5824) 
+Each row corresponds to a summary expression of a single gene in a single condition (Factor Value) across all experiments. Similar to heatmap view, a heatmap cell summarizes all expression results and the lowest p-value is shown. Clicking on the "plus" sign next to the gene name will expand the row to show all experiments available for that gene-condition pair. A small thumbnail plot for each experiment is shown highlighting samples with the specified condition and its p-value. Clicking on the experiment accession (e.g. E-GEOD-4262) 
 will open this experiment in the ArrayExpress Archive. Clicking on the thumbnail will open [[AtlasHelp#Atlas_Experiment_View|Atlas Experiment View]] for a detailed view of gene expression in this experiment.
 <br>
 [[File:ListViewLiver.png|link=]]
@@ -112,7 +109,7 @@ will open this experiment in the ArrayExpress Archive. Clicking on the thumbnail
 == Downloading results ==
 
 You can download the results into a tab-delimited format by clicking on "Download all results". A pop up window will open showing the progress of all download requests. Once download is complete click on "Get file" to store the file on your computer.
-You can also retrieve the same results using REST API. Click [[AtlasApis|here]] for details. 
+You can also retrieve the same results using [[AtlasApis| REST API]].  
 
 [[File:DownloadProgressBar.png|link=]]
 <br>
@@ -126,9 +123,9 @@ If your search returns hits for one gene only, or you click on one gene from the
 * expression heatmap by factor 
 * thumbnail plots of gene expression for the studies where this gene is found.
 
-E.g. the human gene MAT1A shows overexpression in liver and billary system in 12 experiments. Clicking on any of the heat map cells will show experiments the selected experiments in the right hand panel. 
+E.g. the human gene MAT1A shows overexpression in liver and billary system in 12 experiments. Clicking on any of the heat map cells will show the selected experiments in the right hand panel. 
 
-Clicking on the graph or the  "expression profile" link under the plot will take you to the [[AtlasHelp#Atlas_Experiment_View|Atlas Experiment View]] showing a detailed expression view of this gene with the ability to plot more genes in this experiment.
+Clicking on the graph or the  "expression profile" link under the plot will take you to the [[AtlasHelp#Atlas_Experiment_View|Atlas Experiment View]].
 
 The [[AtlasApis|REST API]] is also available for the gene expression summary. 
 
