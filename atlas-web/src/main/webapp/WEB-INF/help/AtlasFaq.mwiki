@@ -99,7 +99,7 @@ Yes, the bar and line charts show normalized expression values. RMA is used to n
 
 The bar and line charts show normalized expression values. In the case of Affymetrix experiments, these values are calculated from the raw data submitted for the experiment, in all other cases they are obtained from the normalized data provided by the submitter. You can see information about the protocols used in normalizing the data in the P'Protocols' section in the experiment's entry in the [http://www.ebi.ac.uk/arrayexpress ArrayExpress Archive] (search by experiment accession).  
 
-Normalized expression values can be compared for different genes within and experiment, but are not necessarily comparable for the same gene in different experiments.  
+Normalized expression values can be compared for different genes within an experiment, but are not necessarily comparable for the same gene in different experiments. P-values can be compared between different experiments. 
 
 There is more information about how the expression values in the [[AboutAtlas#About_the_Gene_Expression_Atlas|About the Gene Expression Atlas]] page.
 <br>
@@ -115,9 +115,9 @@ Genes with the lowest p-value are shown at the top of the results table for each
 <br>
 <br>
 
-=== How are the genes ranked? ===
+=== How are the results ranked? ===
 
-The genes are ranked by p-value and then absolute t-statistic (ignoring + or - sign).
+In the experiment view, the genes are ranked by absolute t-statistic (ignoring + or - sign) and then p-value.
 <br>
 <br>
 
