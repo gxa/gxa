@@ -1,19 +1,49 @@
-= Details of Construction of the Gene Expression Atlas =
+= Construction of the Gene Expression Atlas =
 
-An overview of the construction of the Gene Expression Atlas is given here. For further details a forthcoming publication will be available here soon.
+== Curation ==
 
-# ArrayExpress Archive provides the original source of microarray data
-# The ArrayExpress Production Team (curators) select experiments from the archive to populate the Gene Expression Atlas,
-improving sample annotation by use of ontologies and performing gene re-annotation based on the latest genome builds in
-the process.
-# Every experiment is treated individually as follows:
-## Data is taken as normalized by original submitters/authors.
-## For every experimental variable ("factor") a set of gene-wise linear models is constructed, coefficients are moderated and one-way multiple comparisons with the mean (MCM) contrasts are computed. <ref>The statistical models and computations are performed primarily with the aid of the [[http://www.bioconductor.org|Bioconductor]] package ''limma''. Smyth, G. K. (2005). Limma: Linear Models for microarray data. In: Bioinformatics and Computational Biology Solutions using R and Bioconductor, R. Gentleman, V. Carey, S. Dudoit, R. Irizarry, W. Huber (eds.), Springer, New York, pages 397-420.</ref>
-## Post-hoc tests are used to compute and identify contrasts of interest with respective t-statistics and globally adjusted p-values.
+The [http://www.ebi.ac.uk/gxa/ Gene Expression Atlas] (GXA) is based on data
+from a subset of gene expression experiments from the
+[http://www.ebi.ac.uk/arrayexpress/ ArrayExpress] archive.
+[http://www.ebi.ac.uk/fgpt/ Production Team] curators select eligible
+experiments and annotate samples to a high standard using the
+[http://www.ebi.ac.uk/efo/ Experimental Factor Ontology] (EFO). Gene-specific
+annotations are automatically obtained from the latest release of
+[http://ensembl.org Ensembl].
 
-Thus for each experiment-condition pair we have, for each gene in the experiment, a direction and a p-value indicating
-the strength of differential expression in contrast to groups defined by the experimental variable that the condition
-belongs to.
+== Differential Expression ==
+
+Differential expression is assessed for each experiment separately. Below is
+an outline of the major steps in the process.
+
+=== Data pre-processing ===
+
+Raw expression data from each [http://www.affymetrix.com Affymetrix] microarray
+experiment is pre-processed in [http://www.r-project.org/ R] using RMA (Robust
+Multichip Averaging)
+<ref>[http://biostatistics.oxfordjournals.org/content/4/2/249 Irizarry et al. (2003)] Biostatistics 4:249-264.</ref>, via the
+[http://www.bioconductor.org/packages/release/bioc/html/oligo.html oligo]
+<ref>[http://bioinformatics.oxfordjournals.org/content/26/19/2363 Carvalho and Irizarry (2010)] Bioinformatics 26:2363-2367.</ref>
+package from
+[http://www.bioconductor.org Bioconductor]. This generates a table of
+normalized expression values for each gene (or probe set), where each row
+corresponds to a gene and each column to an RNA sample. For experiments using
+microarrays from other manufacturers, this table is provided by the submitter
+of the experiment.
+
+=== Differential expression statistics ===
+
+The [http://www.bioconductor.org/packages/release/bioc/html/limma.html limma]
+<ref>Smyth, G. K. (2005). In: 'Bioinformatics and Computational Biology Solutions using R and Bioconductor'. R. Gentleman et al. (eds), Springer, New York, pp. 397-420.</ref>
+Bioconductor package is used to discover differentially expressed genes. For each experimental factor, we ask whether
+each gene's expression level in each factor value is significantly different
+from the mean expression for all factor values. For example, in an experiment
+with samples from tumors and healthy tissue, we ask whether the expression
+level in the tumor samples is significantly up or down compared with the mean
+expression level for all samples. To read about the statistical methodology
+employed by GXA, please refer to the
+[http://nar.oxfordjournals.org/content/38/suppl_1/D690.full GXA publication].
+<ref>[http://nar.oxfordjournals.org/content/38/suppl_1/D690.full Kapushesky et al. (2010)] Nucleic Acids Research 38:D690-D698.</ref>
 
 == References ==
 
