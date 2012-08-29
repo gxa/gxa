@@ -1,18 +1,69 @@
 = About the Gene Expression Atlas =
 
-The Gene Expression Atlas is a semantically enriched database of meta-analysis based summary statistics which serves queries for condition-specific gene expression patterns (e.g. genes over-expressed in a particular tissue or disease state) as well as broader exploratory searches for biologically interesting genes/samples. It is based on a subset of the ArrayExpress data.
+The [http://www.ebi.ac.uk/gxa/ Gene Expression Atlas] (GXA) is a semantically
+enriched database of publicly available gene expression data. The data is
+re-analysed in-house to detect genes showing interesting expression patterns
+under the conditions of the original experiment.
 
-Gene Expression Atlas goals:
-# Provision of a statistically robust framework for integration of gene expression experiment results across different platforms at a meta-analytical level
-# A simple interface for identifying strong differential expression candidate genes in conditions of interest
-# Integration of ontologies for high quality annotation of gene and sample attributes
-# Construction of new gene expression summarized views, with a view to analysis of putative signalling pathway targets, discovery of correlated gene expression patterns and the identification of condition/tissue-specific patterns of gene expression.
+Users can search GXA to discover up- and down-regulated genes in numerous experimental conditions, from
+[http://www.ebi.ac.uk/gxa/qrs?gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=diabetes&view=hm&searchMode=simple diabetes] to
+[http://www.ebi.ac.uk/gxa/qrs?gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=spaceflight&view=hm&searchMode=simple spaceflight].
+Searching for a condition 
+(e.g. [http://www.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=%22breast+cancer%22&view=hm&searchMode=simple breast cancer])
+will return genes displaying interesting expression patterns under that
+condition. Searching for 
+[http://www.ebi.ac.uk/gxa/gene/FBgn0086687 a gene]
+will show experimental conditions in which
+that gene is up- or down-regulated. Users can also search for 
+[http://www.ebi.ac.uk/gxa/qrs?gprop_0=gene&gnot_0=&gval_0=ENSG00000141510&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000311&view=hm&searchMode=simple a combination]
+of genes and conditions, to find analyses in which the specified genes have
+been found to show interesting expression in the specified conditions. Further
+details on how to search and interpret GXA data can be found
+[[AtlasHelp|here]] and in [https://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 this online training course].
 
-Additional help for the Gene Expression Atlas is available:
 
-* [[AtlasHelp|Help searching the database and interpreting the results]]
-* [[AtlasConstructionDetails|Details about the construction of the Atlas]]
-* [[AtlasApis|Programmatic access to the Atlas]]
-* [[AtlasFaq|Frequently asked questions]]
+== Construction of the Gene Expression Atlas ==
+
+GXA is
+based on data from a subset of gene expression experiments from
+the [http://www.ebi.ac.uk/arrayexpress/ ArrayExpress] archive.
+[http://www.ebi.ac.uk/fgpt/ Production Team] curators select eligible
+experiments and annotate samples to a high standard using the
+[http://www.ebi.ac.uk/efo/ Experimental Factor Ontology] (EFO). Gene-specific
+annotations are automatically obtained from the latest release of
+[http://ensembl.org Ensembl].
+
+
+Raw expression data from each [http://www.affymetrix.com Affymetrix] microarray
+experiment is pre-processed in [http://www.r-project.org/ R] using RMA (Robust
+Multichip Averaging)
+<ref>[http://biostatistics.oxfordjournals.org/content/4/2/249 Irizarry et al. (2003)] Biostatistics 4:249-264.</ref>, via the
+[http://www.bioconductor.org/packages/release/bioc/html/oligo.html oligo]
+<ref>[http://bioinformatics.oxfordjournals.org/content/26/19/2363 Carvalho and Irizarry (2010)] Bioinformatics 26:2363-2367.</ref>
+package from
+[http://www.bioconductor.org Bioconductor]. This generates a table of
+normalized expression values for each gene (or probe set), where each row
+corresponds to a gene and each column to an RNA sample. For experiments using
+microarrays from other manufacturers, this table is provided by the submitter
+of the experiment.
+
+The [http://www.bioconductor.org/packages/release/bioc/html/limma.html limma]
+<ref>Smyth, G. K. (2005). In: 'Bioinformatics and Computational Biology Solutions using R and Bioconductor'. R. Gentleman et al. (eds), Springer, New York, pp. 397-420.</ref>
+Bioconductor package is used to discover differentially expressed genes. For each experimental factor, we ask whether
+each gene's expression level in each condition is significantly different
+from the mean expression for all conditions. For example, in an experiment
+with samples from tumors and healthy tissue, we ask whether the expression
+level in the tumor samples is significantly up or down compared with the mean
+expression level for all samples. To read more about the statistical methodology
+employed by GXA, please see the
+[http://nar.oxfordjournals.org/content/38/suppl_1/D690.full GXA publication].
+<ref>[http://nar.oxfordjournals.org/content/38/suppl_1/D690.full Kapushesky et al. (2010)] Nucleic Acids Research 38:D690-D698.</ref>
+
+== References ==
+
+<references/>
+
+
+
 
 {{AtlasLinks}}
