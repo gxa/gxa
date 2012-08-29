@@ -27,6 +27,8 @@
              scope="request"/>
 <jsp:useBean id="count" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="total" type="java.lang.Integer" scope="request"/>
+<jsp:useBean id="query" type="java.lang.String" scope="request"/>
+<jsp:useBean id="invalidquery" type="java.lang.Boolean" scope="request"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
@@ -63,6 +65,25 @@
                 Experiments loaded in the Gene Expression Atlas
             </div>
 
+            <div class="expSearch">
+                <form id="experimentFilterForm" name="experimentFilterForm" action="index.html" method="get">
+                    <table>
+                        <tr>
+                            <td><input type="text" class="value" id="expFilter" name="q" value="${query}"/></td>
+                            <td><input type="submit" value="Search" onclick="function searchSubmit() {
+                                 experimentFilterForm.submit();
+                            }
+                            searchSubmit()"/></td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+
+            <c:if test="${invalidquery}">
+                <div style="margin-top:30px;margin-bottom:20px;font-weight:bold;">Query ${query} is not valid</div>
+            </c:if>
+
+           <c:if test="${!invalidquery}">
             <display:table name="${experiments}" sort="external" requestURI="./index.html"
                            defaultsort="2" defaultorder="descending"
                            requestURIcontext="false" id="experiment"
@@ -108,6 +129,7 @@
                     </c:forEach>
                 </display:column>
             </display:table>
+           </c:if>
         </div>
     </div>
 

@@ -1,10 +1,11 @@
 package uk.ac.ebi.microarray.atlas.api;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import uk.ac.ebi.gxa.utils.TransformerUtil;
 import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -21,8 +22,13 @@ public class ApiAssay {
     public ApiAssay(final Assay assay) {
         this.accession = assay.getAccession();
         this.arrayDesign = new ApiArrayDesign(assay.getArrayDesign());
-        this.properties = Collections2.transform(assay.getProperties(),
-                TransformerUtil.instanceTransformer(AssayProperty.class, ApiProperty.class));
+
+        this.properties = Collections2.transform(assay.getProperties(), new Function<AssayProperty, ApiProperty>() {
+            @Override
+            public ApiProperty apply(@Nullable AssayProperty assayProperty) {
+                return new ApiProperty(assayProperty.getPropertyValue(), assayProperty.getTerms());
+            }
+        });
     }
 
     public String getAccession() {

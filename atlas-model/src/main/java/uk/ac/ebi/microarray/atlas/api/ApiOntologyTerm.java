@@ -1,5 +1,6 @@
 package uk.ac.ebi.microarray.atlas.api;
 
+import uk.ac.ebi.microarray.atlas.model.Ontology;
 import uk.ac.ebi.microarray.atlas.model.OntologyTerm;
 
 /**
@@ -76,5 +77,14 @@ public class ApiOntologyTerm {
                 ", ontology=" + getOntology() +
                 ", term=" + getTerm() +
                 '}';
+    }
+
+    public OntologyTerm toOntologyTerm() {
+        final Ontology ontology = new Ontology(null, this.ontology.getName(),
+                this.ontology.getSourceUri(), this.
+                ontology.getDescription(),
+                this.ontology.getVersion());
+
+        return new OntologyTerm(null, ontology, this.term, this.accession, this.description);
     }
 }

@@ -1,19 +1,22 @@
 package uk.ac.ebi.gxa.dao;
 
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.HibernateTemplate;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 
 import java.util.List;
 
 public abstract class AbstractDAO<T> {
-    protected final HibernateTemplate template;
+    protected HibernateTemplate template;
     private final Class<T> clazz;
 
     /**
      * @return the name of column used as name for {@link #getByName} method
      */
     protected abstract String getNameColumn();
+
+    protected FindPropertiesQueryBuilder findPropertiesQueryBuilder;
 
     /**
      * @return false by default - case should match as is by default in getByName() queries
@@ -25,6 +28,15 @@ public abstract class AbstractDAO<T> {
     protected AbstractDAO(SessionFactory sessionFactory, Class<T> clazz) {
         this.clazz = clazz;
         this.template = new HibernateTemplate(sessionFactory);
+    }
+
+    @Autowired
+    public void setFindPropertiesQueryBuilder(FindPropertiesQueryBuilder findPropertiesQueryBuilder){
+        this.findPropertiesQueryBuilder = findPropertiesQueryBuilder ;
+    }
+
+    public FindPropertiesQueryBuilder getFindPropertiesQueryBuilder(){
+        return findPropertiesQueryBuilder ;
     }
 
     public T getById(long id) {
@@ -75,4 +87,6 @@ public abstract class AbstractDAO<T> {
         else
             throw new RecordNotFoundException(clazz.getName() + ": " + objects.size() + " objects returned; expected 1)");
     }
+
+
 }

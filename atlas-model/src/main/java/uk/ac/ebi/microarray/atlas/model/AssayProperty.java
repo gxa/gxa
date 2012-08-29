@@ -23,6 +23,7 @@
 package uk.ac.ebi.microarray.atlas.model;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
@@ -92,6 +93,10 @@ public final class AssayProperty {
         this.terms = terms;
     }
 
+    public boolean removeTerm(OntologyTerm ontologyTerm) {
+        return this.terms.remove(ontologyTerm);
+    }
+
     @Deprecated
     public String getEfoTerms() {
         return on(',').join(transform(terms, new Function<OntologyTerm, Object>() {
@@ -112,5 +117,19 @@ public final class AssayProperty {
 
     public Property getDefinition() {
         return getPropertyValue().getDefinition();
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hashCode(this.getName(), this.getValue());
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(other !=null && other instanceof AssayProperty){
+            return Objects.equal(getName(), ((AssayProperty) other).getName())
+                && Objects.equal(getValue(), ((AssayProperty) other).getValue());
+        }
+        return false;
     }
 }

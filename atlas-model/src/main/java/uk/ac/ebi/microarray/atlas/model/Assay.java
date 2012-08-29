@@ -182,12 +182,23 @@ public class Assay {
         return on(",").join(transform(getProperties(propName), PROPERTY_VALUE));
     }
 
-    public Collection<AssayProperty> getProperties(final String type) {
-        return filter(properties, new PropertyValuePredicate(type, null));
+    public Collection<AssayProperty> getProperties(final String name) {
+        return filter(properties, new Predicate<AssayProperty>() {
+                            @Override
+                            public boolean apply(@Nullable AssayProperty assayProperty) {
+                                return assayProperty.getName().equals(name);
+                            }
+                        });
     }
 
-    public Collection<AssayProperty> getProperties(final String type, final String value) {
-        return filter(properties, new PropertyValuePredicate(type, value));
+    public Collection<AssayProperty> getProperties(final String name, final String value) {
+        return filter(properties, new Predicate<AssayProperty>() {
+                    @Override
+                    public boolean apply(@Nullable AssayProperty assayProperty) {
+                        return assayProperty.getName().equals(name)
+                                && assayProperty.getValue().equals(value);
+                    }
+                });
     }
 
     public Collection<AssayProperty> getProperties(final Property property) {
@@ -269,21 +280,6 @@ public class Assay {
             result.addAll(sample.getPropertyValues(property));
         }
         return result;
-    }
-
-    private static class PropertyValuePredicate implements Predicate<AssayProperty> {
-        private final String type;
-        private final String value;
-
-        public PropertyValuePredicate(String type, @Nullable String value) {
-            this.type = type;
-            this.value = value;
-        }
-
-        @Override
-        public boolean apply(@Nonnull AssayProperty input) {
-            return input.getName().equals(type) && (value == null || input.getPropertyValue().getValue().equals(value));
-        }
     }
 
     private static class PropertyPredicate implements Predicate<AssayProperty> {

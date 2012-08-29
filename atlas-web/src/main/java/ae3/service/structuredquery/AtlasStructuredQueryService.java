@@ -29,10 +29,7 @@ import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -824,6 +821,8 @@ public class AtlasStructuredQueryService {
         return StatisticsType.valueOf(expression.toString());
     }
 
+
+
     /**
      * Appends conditions part of the query to query state. Finds matching EFVs/EFOs and appends them to SOLR query string.
      *
@@ -848,7 +847,7 @@ public class AtlasStructuredQueryService {
 
             List<Attribute> orAttributes = null;
             if (c.isAnything() || c.isAnyValue()) {
-                // do nothing
+                // do nothing if neither factor nor factor value where specified
             } else if (c.isOnly() && !c.isAnyFactor()
                     && !Constants.EFO_FACTOR_NAME.equals(c.getFactor())) {
                 try {
@@ -1047,20 +1046,12 @@ public class AtlasStructuredQueryService {
         EfvTree<Boolean> condEfvs = new EfvTree<Boolean>();
         if (Constants.EFO_FACTOR_NAME.equals(factor)) {
             Efo efo = getEfo();
-            int i = 0;
             for (String v : efo.getRootIds()) {
                 condEfvs.put(Constants.EFO_FACTOR_NAME, v, true);
-                if (++i >= MAX_EFV_COLUMNS) {
-                    break;
-                }
             }
         } else {
-            int i = 0;
             for (String v : efvService.listAllValues(factor)) {
                 condEfvs.put(factor, v, true);
-                if (++i >= MAX_EFV_COLUMNS) {
-                    break;
-                }
             }
         }
         return condEfvs;

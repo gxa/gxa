@@ -34,6 +34,7 @@ import uk.ac.ebi.gxa.dao.ExperimentDAO;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.efo.Efo;
 import uk.ac.ebi.gxa.efo.EfoImpl;
+import uk.ac.ebi.gxa.exceptions.UnexpectedException;
 import uk.ac.ebi.gxa.index.AbstractOnceIndexTest;
 import uk.ac.ebi.gxa.index.StatisticsStorageFactory;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -138,14 +139,11 @@ public class AtlasStructuredQueryServiceTest extends AbstractOnceIndexTest {
         assertTrue(containsString(gprops, "goterm"));
     }
 
-
     @Test
     public void test_doStructuredAtlasQuery() {
-        AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(
-                new AtlasStructuredQueryBuilder()
-                        .andGene("ENSMUSG00000020275")
-                        .query(1)
-        );
+        AtlasStructuredQueryResult result = service.doStructuredAtlasQuery(new AtlasStructuredQueryBuilder()
+                .andGene("ENSMUSG00000020275")
+                .query(1));
 
         assertNotNull(result);
         assertTrue(result.getSize() > 0);

@@ -27,7 +27,7 @@
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.15-SNAPSHOT</version>
+    <version>2.0.16-SNAPSHOT</version>
     <name>Gene Expression Atlas</name>
     <url>http://www.ebi.ac.uk/gxa/</url>
 
@@ -37,6 +37,7 @@
         <spring.version>3.1.1.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
         <jri.libs>${env.R_HOME}/library/rJava/jri</jri.libs>
+        <test.inclusion.pattern.acceptance>acceptance/**/*TestExternal.java</test.inclusion.pattern.acceptance>
     </properties>
 
     <scm>
@@ -75,6 +76,16 @@
                 <configuration>
                     <testFailureIgnore>true</testFailureIgnore>
                     <argLine>-Xmx2g -Djava.library.path=${jri.libs}</argLine>
+                    <includes>
+                        <include>${test.inclusion.pattern}</include>
+                    </includes>
+
+                    <systemProperties>
+                        <property>
+                            <name>acceptance.rest.baseURI</name>
+                            <value>${acceptance.rest.baseURI}</value>
+                        </property>
+                    </systemProperties>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -99,13 +110,6 @@
                 <configuration>
                     <snapshot>${user.home}/.clover/atlassian-plugins-clover.snapshot</snapshot>
                     <singleCloverDatabase>true</singleCloverDatabase>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>
@@ -300,10 +304,47 @@
     <dependencyManagement>
         <dependencies>
             <!-- testing -->
+            <!-- for acceptance testing on REST Services -->
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>1.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.restassured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>1.6.2</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.9.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>1.4.12</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>1.4.12</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.9</version>
+                <artifactId>junit-dep</artifactId>
+                <version>4.10</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>3.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -403,7 +444,7 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </dependency>
 
         <!-- Spring dependency for jdbc and webapp support -->
@@ -431,15 +472,28 @@
 
         <!-- testing -->
         <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <artifactId>junit-dep</artifactId>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>3.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.java</groupId>
@@ -493,4 +547,35 @@
             <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
+
+
+    <profiles>
+        <profile>
+            <id>junit</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <test.inclusion.pattern>a3/**</test.inclusion.pattern>
+                <test.inclusion.pattern>uk/**</test.inclusion.pattern>
+            </properties>
+        </profile>
+        <!-- This can be used to run acceptance tests (fitnesse, rest, selenium, etc...) against a server.
+             As part of the build lifecycle a mvn test -P acceptance task can be configured in the Continuous Integration server,
+             obviously executed after a previous build task runs a maven deploy on the sever. -->
+        <profile>
+            <id>acceptance</id>
+            <properties>
+                <test.inclusion.pattern>${test.inclusion.pattern.acceptance}</test.inclusion.pattern>
+            </properties>
+        </profile>
+        <profile>
+            <id>acceptance-lime</id>
+            <properties>
+                <test.inclusion.pattern>${test.inclusion.pattern.acceptance}</test.inclusion.pattern>
+                <acceptance.rest.baseURI>http://lime:14044</acceptance.rest.baseURI>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>
