@@ -97,7 +97,7 @@ Yes, the bar and line charts show normalized expression values. RMA is used to n
 
 === What are the values shown on the y-axis of the bar and line charts? ===
 
-The bar and line charts show normalized expression values. In the case of Affymetrix experiments, these values are calculated from the raw data submitted for the experiment, in all other cases they are obtained from the normalized data provided by the submitter. You can see information about the protocols used in normalizing the data in the P'Protocols' section in the experiment's entry in the [http://www.ebi.ac.uk/arrayexpress ArrayExpress Archive] (search by experiment accession).  
+The bar and line charts show normalized expression values. In the case of Affymetrix experiments, these values are calculated from the raw data submitted for the experiment, in all other cases they are obtained from the normalized data provided by the submitter. You can see information about the protocols used in normalizing the data in the 'Protocols' section in the experiment's entry in the [http://www.ebi.ac.uk/arrayexpress ArrayExpress Archive] (search by experiment accession).  
 
 Normalized expression values can be compared for different genes within an experiment, but are not necessarily comparable for the same gene in different experiments. P-values can be compared between different experiments. 
 
