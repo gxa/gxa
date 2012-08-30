@@ -458,7 +458,8 @@ public class NetCDFDataCreator {
         if (!geneMapped)
             warnings.add("No gene mappings were found");
         if(unmappedDeCount > 0) {
-            log.info("There were " + unmappedDeCount + " unmapped design elements out of " + i);
+            long p = Math.round(((double )unmappedDeCount/(double)i)*100);
+            warnings.add(p + "% of unmapped design elements");
         }
     }
 
