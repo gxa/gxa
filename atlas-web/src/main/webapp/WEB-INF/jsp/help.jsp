@@ -21,6 +21,8 @@
   --%>
 <%@include file="includes/global-inc.jsp" %>
 
+<jsp:include page="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
