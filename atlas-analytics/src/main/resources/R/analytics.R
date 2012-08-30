@@ -478,8 +478,7 @@ allupdn <- function (eset, factorNames = varLabels(eset) ) {
 			# This is a robust version of the t-test which reduces the false discovery
 			# rate. Standard errors are moderated across genes (shrunk towards a common
 			# value). A gene that has a large variance is less likely to actually be
-			# differentially expressed. The moderated t-statistic is also known
-			# as the B-statistic.
+			# differentially expressed.
 			contr.fit = eBayes(contr.fit)
 			
 			
