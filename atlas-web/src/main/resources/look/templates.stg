@@ -13,6 +13,8 @@ pageHead(pageTitle, contextPath) ::= <<
     <link rel="stylesheet" href="http://www.ebi.ac.uk/inc/css/userstyles.css" type="text/css"/>
     <link rel="stylesheet" href="$contextPath$/atlas-ebi.css" type="text/css" type="text/css"/>
     <script src="http://www.ebi.ac.uk/inc/js/contents.js" type="text/javascript"></script>
+    <script src="http://www.ebi.ac.uk/gxa/scripts/feedback.js" type="text/javascript"></script>
+
     <link rel="SHORTCUT ICON" href="http://www.ebi.ac.uk/bookmark.ico"/>
 >>
 
