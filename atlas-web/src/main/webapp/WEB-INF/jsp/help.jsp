@@ -28,6 +28,7 @@
 <head>
     <tmpl:stringTemplate name="helpPageHead"/>
     <wro4j:all name="bundle-jquery" />
+    <wro4j:all name="bundle-common-libs" />
     <wro4j:all name="bundle-gxa" />
 
 <style type="text/css">
