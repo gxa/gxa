@@ -197,9 +197,9 @@ public class CurationService {
      * @param propertyValue String
      * @param exactMatch    boolean, if true, only experiments with assays/samples containing a property value matching propertyValue exactly will be considered;
      *                      otherwise all experiments with assays/samples containing a property value of which propertyValue is a substring will be considered.
-     * @return List of ApiShallowProperty's containing propertyName-propertyValue
+     * @return Set of unique ApiShallowProperty's containing propertyName-propertyValue
      */
-    public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValue(final String propertyName, @Nonnull final String propertyValue, boolean exactMatch) {
+    public Set<ApiShallowProperty> getOntologyMappingsByPropertyValue(final String propertyName, @Nonnull final String propertyValue, boolean exactMatch) {
         ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(exactMatch)
                 .setValueMatcher(propertyValue)
                 .setNameMatcher(propertyName);
@@ -218,9 +218,9 @@ public class CurationService {
 
 
     /**
-     * @return List of ApiShallowProperty's containing propertyName-propertyValue
+     * @return Set of unique ApiShallowProperty's containing propertyName-propertyValue
      */
-    public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@Nonnull final String ontologyTerm) {
+    public Set<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@Nonnull final String ontologyTerm) {
         ApiPropertyValueMatcher propertyValueMatcher = new ApiPropertyValueMatcher().setExactMatch(false);
         for (AssayProperty assayProperty : assayDAO.getAssayPropertiesByOntologyTerm(ontologyTerm)) {
             propertyValueMatcher.add(new ApiProperty(assayProperty.getPropertyValue(), assayProperty.getTerms()));

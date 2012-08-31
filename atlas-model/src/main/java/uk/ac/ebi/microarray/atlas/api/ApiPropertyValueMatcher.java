@@ -4,9 +4,8 @@ import com.google.common.base.Function;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-
-import static com.google.common.collect.Collections2.transform;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Utility class to store mappings between property values and ontology terms across all experiment assays/samples
@@ -14,7 +13,8 @@ import static com.google.common.collect.Collections2.transform;
  */
 public class ApiPropertyValueMatcher {
 
-    private SortedMap<ApiProperty, SortedSet<String>> propertyTerms;
+    SortedSet<ApiShallowProperty> matchingProperties;
+
     private String nameMatcher;
     private String valueMatcher;
 
@@ -24,7 +24,7 @@ public class ApiPropertyValueMatcher {
 
     public ApiPropertyValueMatcher() {
 
-        propertyTerms = new TreeMap<ApiProperty, SortedSet<String>>();
+        matchingProperties = new TreeSet<ApiShallowProperty>();
 
         caseInsensitive = true;
 
@@ -73,27 +73,11 @@ public class ApiPropertyValueMatcher {
             };
 
 
-    private static final Function<Map.Entry<ApiProperty, SortedSet<String>>, ApiShallowProperty> MAPPINGS =
-            new Function<Map.Entry<ApiProperty, SortedSet<String>>, ApiShallowProperty>() {
-                public ApiShallowProperty apply(@Nonnull Map.Entry<ApiProperty, SortedSet<String>> entry) {
-                    return new ApiShallowProperty(entry.getKey(), entry.getValue());
-                }
-            };
-
-
     public void add(ApiProperty property) {
 
         if (match(property)) {
 
-            SortedSet<String> terms = propertyTerms.get(property);
-
-            if (terms == null) {
-                terms = new TreeSet<String>();
-                terms.addAll(transform(property.getTerms(), ONTOLOGY_TERM));
-
-                propertyTerms.put(property, terms);
-
-            }
+            matchingProperties.add(new ApiShallowProperty(property));
 
         }
 
@@ -157,9 +141,10 @@ public class ApiPropertyValueMatcher {
     }
 
 
-    public Collection<ApiShallowProperty> getMatchingProperties() {
-        return transform(propertyTerms.entrySet(), MAPPINGS);
+    public SortedSet<ApiShallowProperty> getMatchingProperties() {
+        return matchingProperties;
     }
+
 
 
     public boolean isCaseInsensitive() {

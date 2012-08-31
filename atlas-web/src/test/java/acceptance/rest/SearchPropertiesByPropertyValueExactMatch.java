@@ -62,7 +62,7 @@ public class SearchPropertiesByPropertyValueExactMatch extends CuratorApiTestExt
 
 
     @Test
-    public void shouldReturnOneOnlyPropertyWhenThereIsAnExactMatch() throws Exception {
+    public void shouldReturnOneOnlyPropertyWhenThereIsOneOnlyExactMatch() throws Exception {
         //given
         String response = get(BASE_URI_FOR_PARTIAL_MATCH + "/orGanIsm_part.json?propertyValue=rOOt").asString();
 
