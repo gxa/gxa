@@ -59,7 +59,7 @@ pageHeader(contextPath) ::= <<
                 <!-- <p>EMBL-EBI &diams;</p> -->
                 <p id="logo">
                     <!--This has to be one line and no newline characters-->
-                    <a href="/" title="Go to the EMBL-EBI homepage">
+                    <a href="" title="Go to the EMBL-EBI homepage">
                         <img src="$contextPath$/images/logos/EMBL-EBI/logo.png" alt="European Bioinformatics Institute">
                     </a>
                 </p>
@@ -93,7 +93,9 @@ pageHeader(contextPath) ::= <<
 
                     <h1>[Title]</h1>
                     <p class="grid_">
-                        <img src="$contextPath$/images/atlas-logo.png" alt="" width="" height="" class="logo">
+                        <a href="$contextPath$" title="Home" style="border:none">
+                            <img src="$contextPath$/images/ATLAS_web.png" alt="Gene Expression Atlas" width="" height="" class="logo">
+                        </a>
                         <!--
                         <span class="strapline">[Strapline]</span>
                         -->
@@ -129,12 +131,12 @@ pageHeader(contextPath) ::= <<
                 <nav>
                     <ul class="grid_24" id="local-nav">
                         <li class="first"><a href="$contextPath$" title="">Home</a></li>
-                        <li><a href="$contextPath$/help/AtlasFaq">faq</a></li>
-                        <li><a id="feedback_href" href="javascript:showFeedbackForm()">feedback</a><span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span> </li>
-                        <li><a href="$contextPath$/help/AtlasDasSource">das</a></li>
-                        <li><a href="$contextPath$/help/AtlasApis">api</a></li>
-                        <li><a href="$contextPath$/help/HelpHome">help</a></li>
-                        <li class="last"><a href="$contextPath$/help/AboutAtlas">about the project</a></li>
+                        <li><a href="$contextPath$/help/AtlasFaq">Faq</a></li>
+                        <li><a id="feedback_href" href="javascript:showFeedbackForm()">Feedback</a><span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span> </li>
+                        <li><a href="$contextPath$/help/AtlasDasSource">Das</a></li>
+                        <li><a href="$contextPath$/help/AtlasApis">Api</a></li>
+                        <li><a href="$contextPath$/help/HelpHome">Help</a></li>
+                        <li class="last"><a href="$contextPath$/help/AboutAtlas">About Gene Expression Atlas</a></li>
                     </ul>
 
                 </nav>
