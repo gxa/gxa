@@ -44,7 +44,7 @@ td {
 	padding-left: 20px;
 	padding-top: 0;
 	padding-right: 20px;
-	margin-bottom: 50px;
+	margin-bottom: 150px; /* was 50px */
 }
 
 .ae_pagecontainer, .ae_pagecontainer input, .ae_pagecontainer select, .ae_pagecontainer td, .ae_pagecontainer th {
