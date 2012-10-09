@@ -8,6 +8,8 @@
 */
 .contents {
     position: relative !important;
-    top: 57px !important;
+
+    top: 20px !important; /* was 57px */
+
 }
 
