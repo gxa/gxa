@@ -36,7 +36,6 @@ import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.mydas.configuration.DataSourceConfiguration;
 import uk.ac.ebi.mydas.configuration.PropertyType;
-import uk.ac.ebi.mydas.controller.CacheManager;
 import uk.ac.ebi.mydas.datasource.AnnotationDataSource;
 import uk.ac.ebi.mydas.exceptions.BadReferenceObjectException;
 import uk.ac.ebi.mydas.exceptions.DataSourceException;
@@ -393,21 +392,6 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     }
 
     /**
-     * The mydas DAS server implements caching within the server.  This method passes your datasource a reference to a
-     * {@link uk.ac.ebi.mydas.controller.CacheManager} object.  To implement this method, you should simply retain a
-     * reference to this object. In your code you can then make use of this object to manipulate caching in the mydas
-     * servlet.
-     * <p/>
-     * At present the {@link uk.ac.ebi.mydas.controller.CacheManager} class provides you with a single method public
-     * void emptyCache() that you can call if (for example) the underlying data source has changed.
-     *
-     * @param cacheManager a reference to a {@link uk.ac.ebi.mydas.controller.CacheManager} object that the data source
-     *                     can use to empty the cache for this data source.
-     */
-    public void registerCacheManager(CacheManager cacheManager) {
-    }
-
-    /**
      * This method returns a URL, based upon a request built as part of the DAS 'link' command. The nature of this URL
      * is entirely up to the data source implementor.
      * <p/>
@@ -467,5 +451,23 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     public int getTotalEntryPoints() throws uk.ac.ebi.mydas.exceptions.UnimplementedFeatureException, uk.ac.ebi.mydas.exceptions.DataSourceException {
         throw new UnimplementedFeatureException("No implemented");
+    }
+
+    @Override
+    public DasAnnotatedSegment getFeatures(String s, Integer integer, Range range) throws BadReferenceObjectException, DataSourceException, UnimplementedFeatureException {
+        return getFeatures(s);
+    }
+
+    @Override
+    public Collection<DasAnnotatedSegment> getFeatures(Collection<String> strings, Integer integer, Range range) throws UnimplementedFeatureException, DataSourceException {
+        Collection<DasAnnotatedSegment> segments = new ArrayList<DasAnnotatedSegment>();
+        try {
+            for (String string : strings) {
+                segments.add(getFeatures(string));
+            }
+        } catch (BadReferenceObjectException e) {
+            throw new IllegalStateException(e);
+        }
+        return segments;
     }
 }
