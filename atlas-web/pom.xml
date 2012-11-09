@@ -21,7 +21,8 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
@@ -131,11 +132,21 @@
                 </executions>
                 <configuration>
                     <wroManagerFactory>uk.ac.ebi.gxa.web.wro4j.HashNamingYUIManagerFactory</wroManagerFactory>
-                    <cssDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.css.path}</cssDestinationFolder>
-                    <jsDestinationFolder>${project.build.directory}/${project.build.finalName}${wro4j.aggregation.js.path}</jsDestinationFolder>
+                    <cssDestinationFolder>
+                        ${project.build.directory}/${project.build.finalName}${wro4j.aggregation.css.path}
+                    </cssDestinationFolder>
+                    <jsDestinationFolder>
+                        ${project.build.directory}/${project.build.finalName}${wro4j.aggregation.js.path}
+                    </jsDestinationFolder>
                     <contextFolder>${basedir}/src/main/webapp/</contextFolder>
                     <minimize>true</minimize>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.lazerycode.jmeter</groupId>
+                <artifactId>jmeter-maven-plugin</artifactId>
+                <version>1.6.0</version>
             </plugin>
         </plugins>
     </build>
@@ -457,7 +468,7 @@
     <properties>
         <netbeans.hint.deploy.server>J2EE</netbeans.hint.deploy.server>
         <atlas.software.version>${project.version}</atlas.software.version>
-        <atlas.googleanalytics.script />
+        <atlas.googleanalytics.script/>
         <wro4j.aggregation.js.path>/scripts/aggregated</wro4j.aggregation.js.path>
         <wro4j.aggregation.css.path>/css</wro4j.aggregation.css.path>
     </properties>
