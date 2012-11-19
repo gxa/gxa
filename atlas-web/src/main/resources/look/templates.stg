@@ -94,7 +94,7 @@ pageHeader(contextPath) ::= <<
                     <h1>[Title]</h1>
                     <p class="grid_">
                         <a href="$contextPath$" title="Home" style="border:none">
-                            <img src="$contextPath$/images/ATLAS_web.png" alt="Gene Expression Atlas" width="" height="" class="logo">
+                            <img src="$contextPath$/images/ATLAS_web.png" alt="Gene Expression Atlas" class="logo">
                         </a>
                         <!--
                         <span class="strapline">[Strapline]</span>
