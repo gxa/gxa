@@ -221,6 +221,7 @@ public class Experiment {
                 ", description='" + getDescription() + '\'' +
                 ", performer='" + getPerformer() + '\'' +
                 ", lab='" + getLab() + '\'' +
+                ", pmid='" + getPubmedId() + '\'' +
                 '}';
     }
 

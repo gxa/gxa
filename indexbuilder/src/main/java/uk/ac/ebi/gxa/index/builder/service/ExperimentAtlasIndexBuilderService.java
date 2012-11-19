@@ -25,6 +25,8 @@ package uk.ac.ebi.gxa.index.builder.service;
 import com.google.common.base.Function;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.gxa.dao.ExperimentDAO;
@@ -50,6 +52,9 @@ import static com.google.common.collect.Sets.*;
  * @author Tony Burdett
  */
 public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private ExperimentDAO experimentDAO;
 
     public void setExperimentDAO(ExperimentDAO experimentDAO) {
@@ -67,12 +72,18 @@ public class ExperimentAtlasIndexBuilderService extends IndexBuilderService {
             final int total = experiments.size();
             int num = 0;
             for (Experiment experiment : experiments) {
-                processExperiment(experiment);
+                try{
+
+                    processExperiment(experiment);
+
+                }catch (SolrServerException e) {
+                    log.error("SolrServerException thrown while processing experiment " + e);
+
+                    throw new IndexBuilderException(e);
+                }
                 progressUpdater.update(++num + "/" + total);
             }
         } catch (IOException e) {
-            throw new IndexBuilderException(e);
-        } catch (SolrServerException e) {
             throw new IndexBuilderException(e);
         }
     }
