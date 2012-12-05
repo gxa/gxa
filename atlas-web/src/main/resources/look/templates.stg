@@ -1,7 +1,7 @@
 group simple;
 
 pageHead(pageTitle, contextPath) ::= <<
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta name="author" content="EBI Microarray Informatics Team"/>
     <meta http-equiv="Content-Language" content="en-GB"/>
     <meta http-equiv="Window-target" content="_top"/>
@@ -14,6 +14,10 @@ pageHead(pageTitle, contextPath) ::= <<
     <link rel="stylesheet" href="$contextPath$/atlas-ebi.css" type="text/css" type="text/css"/>
     <script src="http://www.ebi.ac.uk/inc/js/contents.js" type="text/javascript"></script>
     <link rel="SHORTCUT ICON" href="http://www.ebi.ac.uk/bookmark.ico"/>
+    <!-- fronteer css -->
+    <link type="text/css" rel="stylesheet" href="$contextPath$/css/ebi-mitigation.css"/>
+    <link type="text/css" rel="stylesheet" href="$contextPath$/css/embl-petrol-colours.css"/>
+
 >>
 
 indexPageHead(contextPath) ::= <<
@@ -48,15 +52,102 @@ errorPageHead(contextPath) ::= <<
     $pageHead(pageTitle="Gene Expression Atlas", contextPath=contextPath)$
 >>
 
-pageHeader() ::= <<
-    <div class="headerdiv" id="headerdiv" style="position:absolute; z-index: 1;">
-        <iframe src="http://www.ebi.ac.uk/inc/head.html" name="head" id="head" frameborder="0" marginwidth="0px" marginheight="0px" scrolling="no"  width="100%" style="position:absolute; z-index: 1; height: 57px;"></iframe>
+pageHeader(contextPath) ::= <<
+    <div class="headerdiv" id="headerdiv">
+        <header>
+            <div id="global-masthead" class="masthead grid_24">
+                <!-- <p>EMBL-EBI &diams;</p> -->
+                <p id="logo">
+                    <!--This has to be one line and no newline characters-->
+                    <a href="" title="Go to the EMBL-EBI homepage">
+                        <img src="$contextPath$/images/logos/EMBL-EBI/logo.png" alt="European Bioinformatics Institute">
+                    </a>
+                </p>
+
+                <nav>
+                    <ul id="global-nav">
+                        <li class="first" id="services">
+                            <a href="/services" title="">Services</a>
+                        </li>
+                        <li id="research">
+                            <a href="/research" title="">Research</a>
+                        </li>
+                        <li id="training">
+                            <a href="/training" title="">Training</a>
+                        </li>
+                        <li id="funding">
+                            <a href="/funding" title="">Funding</a>
+                        </li>
+                        <li id="about" class="last">
+                            <a href="/about-us" title="">About us</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div id="local-masthead" class="masthead grid_24 _nomenu">
+
+                <!-- CHOOSE -->
+
+                <div class="grid_12 alpha" id="local-title-logo">
+
+                    <h1>[Title]</h1>
+                    <p class="grid_">
+                        <a href="$contextPath$" title="Home" style="border:none">
+                            <img src="$contextPath$/images/ATLAS_web.png" alt="Gene Expression Atlas" class="logo">
+                        </a>
+                        <!--
+                        <span class="strapline">[Strapline]</span>
+                        -->
+                    </p>
+
+                </div>
+
+
+                <!-- OR... -->
+
+                <!--
+                    <div class="grid_12 alpha" id="local-title">
+                        <h1>[Title]</h1>
+                    </div>
+                -->
+                <!-- -->
+                <!--
+                <div class="grid_12 omega">
+                    <form id="local-search" name="local-search" action="#" method="post">
+
+                        <fieldset>
+
+                            <label>
+                                <input type="text" name="first" id="local-searchbox">
+                            </label>
+
+                            <input type="submit" name="submit" value="Search" class="submit">
+                        </fieldset>
+
+                    </form>
+                </div>
+                -->
+                <nav>
+                    <ul class="grid_24" id="local-nav">
+                        <li class="first"><a href="$contextPath$" title="">Home</a></li>
+                        <li><a href="$contextPath$/help/AtlasFaq">Faq</a></li>
+                        <li><a id="feedback_href" href="javascript:showFeedbackForm()">Feedback</a><span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span> </li>
+                        <li><a href="$contextPath$/help/AtlasDasSource">Das</a></li>
+                        <li><a href="$contextPath$/help/AtlasApis">Api</a></li>
+                        <li><a href="$contextPath$/help/HelpHome">Help</a></li>
+                        <li class="last"><a href="$contextPath$/help/AboutAtlas">About Gene Expression Atlas</a></li>
+                    </ul>
+
+                </nav>
+            </div>
+        </header>
     </div>
 >>
 
-page_Begin() ::= <<
+page_Begin(contextPath) ::= <<
     <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
-    $pageHeader()$
+    $pageHeader(contextPath)$
 >>
 
 page_End(atlasProperties) ::= <<
@@ -65,20 +156,31 @@ page_End(atlasProperties) ::= <<
 >>
 
 pageFooter(atlasProperties) ::= <<
-    <div style="height:57px;">&nbsp;</div>
-    <table class="footerpane" id="footerpane" summary="The main footer pane of the page" style="position:fixed; bottom: 0; z-index:10;">
-        <tr>
-            <td class="footerrow" width="90%">
-                <iframe src="http://www.ebi.ac.uk/inc/foot.html" name="foot" frameborder="0" marginwidth="0px"
-                         marginheight="0px" scrolling="no" height="22px" width="100%" style="z-index:2;"></iframe>
-             </td>
-             <td style="text-align:right;width:10%;white-space:nowrap;padding-right:10px;" id="divFooter">
-                 Gene Expression Atlas $atlasProperties.softwareVersion$ $atlasProperties.softwareDate$
-             </td>
-        </tr>
-    </table>
+    <div class="footerdiv" id="footerdiv">
+        <footer>
+            <!-- Optional local footer (insert citation / project-specific copyright / etc here -->
+            <!--
+            <div id="local-footer" class="grid_24 clearfix">
 
-    <script src="http://www.ebi.ac.uk/inc/js/footer.js" type="text/javascript"></script>
+            </div>
+            -->
+            <!-- End optional local footer -->
+
+            <div id="global-footer" class="grid_24 clearfix">
+
+                <section id="global-nav-expanded"><div class="grid_4 alpha"> <h3 class="explore">Explore</h3> <ul> <li class="first"><a href="#" title="">News</a></li> <li><a href="#">Publications</a></li> <li><a href="#">Blogs</a></li> <li><a href="#">RSS feeds</a></li> <li class="last"><a href="#">Stories</a></li> </ul> </div>  <div class="grid_4"> <h3 class="services"><a href="#" title="">Services</a></h3> <ul> <li class="first"><a href="#" title="">By topic</a></li> <li><a href="#">By name (A-Z)</a></li> <li class="last"><a href="#">Get help</a></li> </ul> </div>  <div class="grid_4"> <h3 class="research"><a href="#" title="">Research</a></h3> <ul> <li class="first"><a href="#">Overview</a></li> <li><a href="#">Research groups</a></li> <li><a href="#">Publications</a></li> <li class="last"><a href="#">Postdocs &amp; PhDs</a></li> </ul> </div>  <div class="grid_4"> <h3 class="training"><a href="#" title="">Training</a></h3> <ul> <li class="first"><a href="#">Train online</a></li> <li><a href="#">Hands-on courses</a></li> <li><a href="#">Events on campus</a></li> <li><a href="#">Bioinformatics Roadshow</a></li> <li class="last"><a href="#">Contact organisers</a></li> </ul>  </div>  <div class="grid_4"> <h3 class="funding"><a href="#" title="">Funding</a></h3> <ul> <li class="first"><a href="#">How we are funded</a></li> <li><a href="#">How money is spent</a></li> <li class="last"><a href="#">Fund our work</a></li> </ul>  </div>  <div class="grid_4 omega"> <h3 class="about"><a href="#" title="">About us</a></h3> <ul> <li class="first"><a href="#">Overview</a></li> <li><a href="#">History</a></li> <li><a href="#">People</a></li> <li><a href="#">Funding</a></li> <li><a href="#" title="">News</a></li> <li id="jobs"><a href="#" title="Jobs, postdocs, PhDs...">Jobs</a></li> <li><a href="#" title="e.g. EBI Open Day; exhibitions...">Events</a></li> <li><a href="#">Visit us</a></li> <li class="last"><a href="#">Intranet</a></li> </ul> </div></section>
+                <script src="/web_guidelines/js/foot.js"></script>
+            </div>
+
+            <div class="grid_24">
+                <section id="ebi-footer-meta">
+                    <p> © EMBL-EBI European Bioinformatics Institute | <a href="#" title="">Privacy</a> | <a href="#" title="">Cookies</a> | <a href="#" title="">Terms of use</a></p>
+                </section>
+            </div>
+
+        </footer>
+
+    </div>
 
     <script type="text/javascript">
         var _gaq = _gaq || [];

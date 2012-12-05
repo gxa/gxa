@@ -23,7 +23,7 @@
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
     <tmpl:stringTemplate name="errorPageHead"/>
@@ -46,8 +46,9 @@
 
 <tmpl:stringTemplateWrap name="page">
 
-    <div class="ae_pagecontainer">
-        <div style="width:740px;margin-left:auto;margin-right:auto;margin-top:120px;">
+    <div id="contents" class="contents">
+        <div id="centeredMain">
+
              <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
                 <jsp:param name="isHomePage" value="true"/>
             </jsp:include>
@@ -57,7 +58,7 @@
         </div>
     </div>
 
-    <div align="center" style="color:red;font-weight:bold;margin-top:150px">
+    <div align="center" style="color:red;font-weight:bold;margin-bottom:50px">
         <c:choose>
             <c:when test="${!empty errorMessage}">
                 <c:out value="${errorMessage}"/>
