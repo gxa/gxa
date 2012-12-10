@@ -82,7 +82,7 @@ pageHeader(contextPath) ::= <<
                 </div>
             </div>
 
-            <div id="local-masthead" class="masthead grid_24">
+            <div id="local-masthead" class="masthead grid_24" style="background-color: #C7DDD5">
 
                 <!-- local-title -->
                 <!-- NB: for additional title style patterns, see http://frontier.ebi.ac.uk/web/style/patterns -->
@@ -91,7 +91,7 @@ pageHeader(contextPath) ::= <<
                     <a href="$contextPath$" title="Back to Expression Atlas homepage">
                         <img src="$contextPath$/images/ExpressionAtlas_logo_web.png"
                                  alt="Expression Atlas logo" width="64" height="64">
-                    </a><span><h1>Expression Atlas</h1></span>
+                    </a><span style="padding-top: 5px"><h1 style="color: #000000; text-shadow: 0px 0px #C7DDD5">Expression Atlas</h1></span>
                 </div>
 
                 <!-- /local-title -->
@@ -99,10 +99,10 @@ pageHeader(contextPath) ::= <<
                 <nav>
                     <ul class="grid_24" id="local-nav">
                         <li class="first"><a href="$contextPath$" title="Go to the Expression Atlas homepage">Home</a></li>
-                        <li><a href="$contextPath$/help/AtlasFaq">Faq</a></li>
-                        <li><a href="$contextPath$/help/AtlasDasSource">Das</a></li>
-                        <li><a href="$contextPath$/help/AtlasApis">Api</a></li>
+                        <li><a href="$contextPath$/help/AtlasDasSource">DAS</a></li>
+                        <li><a href="$contextPath$/help/AtlasApis">API</a></li>
                         <li><a href="$contextPath$/help/HelpHome">Help</a></li>
+                        <li><a href="$contextPath$/help/AtlasFaq">FAQ</a></li>
                         <li class="last"><a href="$contextPath$/help/AboutAtlas">About Expression Atlas</a></li>
                         <li class="functional last">
                         <a id="feedback_href" class="icon icon-static" data-icon="\" href="javascript:showFeedbackForm()">Feedback</a>
