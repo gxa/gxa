@@ -99,6 +99,7 @@ pageHeader(contextPath) ::= <<
                 <nav>
                     <ul class="grid_24" id="local-nav">
                         <li class="first"><a href="$contextPath$" title="Go to the Expression Atlas homepage">Home</a></li>
+                        <li><a href="$contextPath$/help/ReleaseNotes">Release Notes</a></li>
                         <li><a href="$contextPath$/help/AtlasDasSource">DAS</a></li>
                         <li><a href="$contextPath$/help/AtlasApis">API</a></li>
                         <li><a href="$contextPath$/help/HelpHome">Help</a></li>
