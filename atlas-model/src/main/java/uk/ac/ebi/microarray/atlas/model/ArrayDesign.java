@@ -41,7 +41,6 @@ public class ArrayDesign {
     private String name;
     private String provider;
     private String type;
-    private String synonyms;
 
     @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
@@ -82,14 +81,6 @@ public class ArrayDesign {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getSynonyms() {
-        return synonyms;
-    }
-
-    public void setSynonyms(String synonyms) {
-        this.synonyms = synonyms;
     }
 
     public Long getArrayDesignID() {

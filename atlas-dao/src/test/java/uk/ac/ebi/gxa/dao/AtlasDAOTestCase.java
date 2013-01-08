@@ -182,7 +182,6 @@ public abstract class AtlasDAOTestCase {
                         "NAME VARCHAR(255), " +
                         "PROVIDER VARCHAR(255), " +
                         "MAPPINGSWID bigint, " +
-                        "SYNONYMS VARCHAR(4000), " +
                         "CONSTRAINT SYS_C008062 PRIMARY KEY (ARRAYDESIGNID))");
 
         runStatement(conn,

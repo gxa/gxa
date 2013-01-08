@@ -837,8 +837,7 @@ function compileTemplates() {
             'ad <- arraydesigns': {
                 '.accession': 'ad.accession',
                 '.provider': 'ad.provider',
-                '.description': 'ad.description',
-                '.synonyms': 'ad.synonyms'
+                '.description': 'ad.description'
             }
         },
         '.total' : function (r) { return r.context.arraydesigns.length; }
