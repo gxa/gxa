@@ -178,7 +178,7 @@
 
 </script>
 
-<div id = "result_cont" style="margin-top:30px">
+<div id = "result_cont" style="margin-top:30px;overflow: auto">
 <table class="two-column-layout">
 <tr class="top">
 <c:if test="${result.total >= atlasProperties.queryDrilldownMinGenes}">

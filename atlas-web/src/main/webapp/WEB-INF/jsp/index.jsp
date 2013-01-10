@@ -136,7 +136,8 @@
                                         value="${atlasQueryService.efo.version}"/></td>
                             </tr>
                             <tr>
-                                <td class="atlastable" align="left"><a href="http://www.ensembl.org" target="_blank">Ensembl</a> version
+                                <td class="atlastable" align="left"><a href="http://www.ensembl.org" target="_blank"
+                                        >Ensembl</a> version
                                 </td>
                                 <td class="atlastable" align="right"><c:out
                                         value="${atlasStatistics.ensemblVersion}"/></td>

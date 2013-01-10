@@ -358,3 +358,14 @@ padding: 0;
     background: url(images/cancel.png) no-repeat;
     cursor: pointer;
 }
+
+/*
+Set sensible minimum heights for small and large screens
+*/
+@media screen and (min-height: 600px) {
+div#contents { min-height: 250px; }
+}
+
+@media screen and (min-height: 1000px) {
+div#contents { min-height: 450px; }
+}
