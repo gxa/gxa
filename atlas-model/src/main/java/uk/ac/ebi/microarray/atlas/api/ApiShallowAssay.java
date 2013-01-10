@@ -15,6 +15,7 @@ import java.util.Collection;
 public class ApiShallowAssay {
 
     private String accession;
+    private ApiArrayDesign arrayDesign;
     private Collection<ApiShallowProperty> properties;
 
     public ApiShallowAssay() {
@@ -22,6 +23,8 @@ public class ApiShallowAssay {
 
     public ApiShallowAssay(final Assay assay) {
         this.accession = assay.getAccession();
+        this.arrayDesign = new ApiArrayDesign(assay.getArrayDesign());
+
         this.properties = Collections2.transform(assay.getProperties(),
                 TransformerUtil.instanceTransformer(AssayProperty.class, ApiShallowProperty.class));
 
@@ -33,6 +36,10 @@ public class ApiShallowAssay {
 
     public void setAccession(String accession) {
         this.accession = accession;
+    }
+
+    public ApiArrayDesign getArrayDesign() {
+        return arrayDesign;
     }
 
     public Collection<ApiShallowProperty> getProperties() {

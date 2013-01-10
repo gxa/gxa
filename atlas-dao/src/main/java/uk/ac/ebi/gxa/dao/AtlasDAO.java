@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.util.StringUtils;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.microarray.atlas.export.ChEbiEntry;
@@ -176,12 +177,13 @@ public class AtlasDAO {
                 "  join a2_assaypv apv on apv.ASSAYPVID = apo.ASSAYPVID\n" +
                 "  join a2_assay a on apv.ASSAYID = a.ASSAYID\n" +
                 "  JOIN A2_EXPERIMENT E ON A.EXPERIMENTID = E.EXPERIMENTID\n" +
-                "  where ot.accession like 'CHEBI:%' order by OT.ACCESSION",
+                "  where ot.accession like 'CHEBI_%' order by OT.ACCESSION",
                 new RowCallbackHandler(){
 
                     @Override
                     public void processRow(ResultSet rs) throws SQLException {
-                        final String chebiAcc = rs.getString(1);
+                        // Note the translation from ChEBI notation in EFO (CHEBI_<number>) to the notation in ChEBI itself (CHEBI:<number>)
+                        final String chebiAcc = StringUtils.replace(rs.getString(1), "_", ":");
                         if (entries.containsKey(chebiAcc)) {
                             final ChEbiEntry chEbiEntry = entries.get(chebiAcc);
                             chEbiEntry.addExperimentInfo(rs.getString(2), rs.getString(3));
