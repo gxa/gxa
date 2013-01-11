@@ -61,7 +61,6 @@ class ArrayExpressConnection {
     private String name = StringUtils.EMPTY;
     private String provider = StringUtils.EMPTY;
     private String type = StringUtils.EMPTY;
-    private String accessionMaster = StringUtils.EMPTY;
 
     public ArrayExpressConnection(String accession) {
         this.accession = accession;
