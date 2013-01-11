@@ -253,6 +253,7 @@ public class AdminRequestHandler extends AbstractRestRequestHandler {
                 if (total >= from && total < from + num)
                     results.add(makeMap(
                             "accession", arrayDesign.getAccession(),
+                            "accessionMaster", arrayDesign.getAccessionMaster(),
                             "provider", arrayDesign.getProvider(),
                             "description", arrayDesign.getName()
                     ));

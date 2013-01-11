@@ -836,6 +836,7 @@ function compileTemplates() {
         'tbody tr' : {
             'ad <- arraydesigns': {
                 '.accession': 'ad.accession',
+                '.accession-master': 'ad.accessionMaster',
                 '.provider': 'ad.provider',
                 '.description': 'ad.description'
             }

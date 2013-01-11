@@ -38,6 +38,8 @@ public class ArrayDesign {
     @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ", allocationSize = 1)
     private Long arrayDesignID;
     private String accession;
+    @Column(name = "ACCESSION_MASTER")
+    private String accessionMaster;
     private String name;
     private String provider;
     private String type;
@@ -57,6 +59,14 @@ public class ArrayDesign {
 
     public String getAccession() {
         return accession;
+    }
+
+    public String getAccessionMaster() {
+        return accessionMaster;
+    }
+
+    public void setAccessionMaster(String accessionMaster) {
+        this.accessionMaster = accessionMaster;
     }
 
     public String getName() {

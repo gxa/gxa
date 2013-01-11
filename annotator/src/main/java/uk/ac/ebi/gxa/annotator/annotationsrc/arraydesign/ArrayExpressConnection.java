@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
 
 import au.com.bytecode.opencsv.CSVReader;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ class ArrayExpressConnection {
     private String name = StringUtils.EMPTY;
     private String provider = StringUtils.EMPTY;
     private String type = StringUtils.EMPTY;
+    private String accessionMaster = StringUtils.EMPTY;
 
     public ArrayExpressConnection(String accession) {
         fetchArrayDesignData(accession);
@@ -59,6 +61,10 @@ class ArrayExpressConnection {
 
     public String getName() {
         return name;
+    }
+
+    public String getAccessionMaster() {
+        return accessionMaster;
     }
 
     public String getProvider() {
@@ -94,6 +100,9 @@ class ArrayExpressConnection {
                 }
                 //We don't need to read more then 10 line to find data we are interested in
                 if (count++ > 10) break;
+
+                //ToDo: this is just to temporary Mock... will be removed!
+                accessionMaster = RandomStringUtils.randomAlphanumeric(8);
             }
         } catch (FileNotFoundException e) {
             log.warn("Cannot fetch ADF for array design " + accession, e.getMessage());

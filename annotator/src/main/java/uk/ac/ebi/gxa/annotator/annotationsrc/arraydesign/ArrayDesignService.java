@@ -44,6 +44,7 @@ public class ArrayDesignService {
         if (arrayDesign == null) {
             ArrayExpressConnection aeConnection = new ArrayExpressConnection(accession);
             arrayDesign = createNew(accession,
+                    aeConnection.getAccessionMaster(),
                     aeConnection.getName(),
                     aeConnection.getProvider(),
                     aeConnection.getType());
@@ -54,9 +55,10 @@ public class ArrayDesignService {
         return arrayDesign;
     }
 
-    private ArrayDesign createNew(String accession, String name, String provider, String type) {
+    private ArrayDesign createNew(String accession, String accessionMaster, String name, String provider, String type) {
         ArrayDesign arrayDesign = new ArrayDesign(accession);
         arrayDesign.setName(name);
+        arrayDesign.setAccessionMaster(accessionMaster);
         arrayDesign.setProvider(provider);
         arrayDesign.setType(type);
         return arrayDesign;

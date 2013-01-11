@@ -178,6 +178,7 @@ public abstract class AtlasDAOTestCase {
                 "CREATE TABLE A2_ARRAYDESIGN " +
                         "(ARRAYDESIGNID bigint not null, " +
                         "ACCESSION VARCHAR(255), " +
+                        "ACCESSION_MASTER VARCHAR(255), " +
                         "TYPE VARCHAR(255), " +
                         "NAME VARCHAR(255), " +
                         "PROVIDER VARCHAR(255), " +

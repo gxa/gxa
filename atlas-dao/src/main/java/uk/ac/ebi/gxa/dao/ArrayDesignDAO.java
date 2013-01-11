@@ -123,15 +123,16 @@ public class ArrayDesignDAO {
     }
 
     private static class ArrayDesignMapper implements RowMapper<ArrayDesign> {
-        private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid";
+        private static final String FIELDS = "ad.accession, ad.accession_master, ad.type, ad.name, ad.provider, ad.arraydesignid";
 
         public ArrayDesign mapRow(ResultSet resultSet, int i) throws SQLException {
             ArrayDesign array = new ArrayDesign(resultSet.getString(1));
 
-            array.setType(resultSet.getString(2));
-            array.setName(resultSet.getString(3));
-            array.setProvider(resultSet.getString(4));
-            array.setArrayDesignID(resultSet.getLong(5));
+            array.setAccessionMaster(resultSet.getString(2));
+            array.setType(resultSet.getString(3));
+            array.setName(resultSet.getString(4));
+            array.setProvider(resultSet.getString(5));
+            array.setArrayDesignID(resultSet.getLong(6));
 
             return array;
         }

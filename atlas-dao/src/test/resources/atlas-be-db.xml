@@ -36,6 +36,16 @@
             />
 
     <A2_ARRAYDESIGN
+            ARRAYDESIGNID="3"
+            ACCESSION="A-GEOD-123"
+            ACCESSION_MASTER="A-AFFY-45"
+            TYPE="some_type"
+            NAME="Hello I Am An A-GEOD"
+            PROVIDER="Some Company, Somewhere"
+            />
+
+
+    <A2_ARRAYDESIGN
             ARRAYDESIGNID="2"
             ACCESSION="A-WXYZ-6789"
             TYPE="some_other_type"
