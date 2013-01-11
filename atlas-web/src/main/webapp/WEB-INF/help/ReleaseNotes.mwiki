@@ -1,0 +1,135 @@
+= What's new? =
+
+== Latest release note ==
+
+=== 2.0.18 ===
+
+* '''Data:'''
+** Ensembl 69 annotations and array design probe set mappings
+** EFO release 2.31
+** 3596 experiments (including 80 new or re-curated and re-loaded experiments)
+
+* '''Features:'''
+** The links accessible on the right-hand side of the experiment page are now also accessible programmatically, e.g.
+*** http://www.ebi.ac.uk/gxa/directDownload/experimentAnalytics?eacc=E-MEXP-3566
+*** http://www.ebi.ac.uk/gxa/directDownload/experimentExpressions?eacc=E-MEXP-3566
+*** http://www.ebi.ac.uk/gxa/directDownload/experimentDesign?eacc=E-MEXP-3566
+
+Downloadable data and software information is available from https://github.com/gxa/gxa/wiki/Release-Notes.
+
+== Previous releases ==
+
+=== 2.0.17 ===
+* '''Data:'''
+** Ensembl 69 annotations and array design probe set mappings
+** EFO release 2.29
+** 3558 experiments (including 261 new or re-curated and re-loaded experiments)
+
+* '''Features:'''
+** This mainly data release contains some robustness fixes for the Atlas Distributed Annotation Source (DAS) service.
+
+
+=== 2.0.16 ===
+* '''Data:'''
+** Ensembl 68 annotations and array design probe set mappings
+** EFO release 2.27
+** 3384 experiments (including 98 new or re-curated and re-loaded experiments)
+
+* '''Features:'''
+** We restricted our statistics calculation to factors with at least two replicates per each value (as reported in http://nar.oxfordjournals.org/content/38/suppl_1/D690.full). In previous releases, incorrectly, one replicate in at least one value (rather than all values) per factor was stipulated. This fix aims to improve the accuracy of the differential expression calls made in Atlas.
+** Minor bug fixes to autocomplete, search and feedback mechanisms
+
+=== 2.0.15 ===
+* '''Data:'''
+** Ensembl 67 annotations and array design probe set mappings
+** EFO release 2.25
+** 3476 experiments
+
+* '''Features:'''
+** New search for experiments functionality e.g. http://www.ebi.ac.uk/gxa/experiment/index.html?q=homo+sapiens
+
+=== 2.0.14 ===
+* '''Data:'''
+** Ensembl 67 annotations and array design probe set mappings
+** EFO release 2.24
+** 3364 experiments (including 262 new or re-curated and re-loaded experiments)
+** Affymetrix microarray data is now pre-processed with the oligo package from BioConductor (Carvalho and Irizarry, 2010; http://bioinformatics.oxfordjournals.org/content/26/19/2363.full). This package is better able to interpret and process data from arrays such as the Gene and Exon ST arrays from Affymetrix. 48 experiments using these arrays have been reloaded:
+*** 2 Human Gene 1.0 ST array experiments
+*** 43 Mouse Gene 1.0 ST array experiments
+*** 3 Rat Exon 1.0 ST array experiments
+
+* '''Features:'''
+** New links for downloading experiment design, raw expression values and differential expression analytics on the experiment page, e.g. http://www.ebi.ac.uk/gxa/experiment/E-AFMX-5 (see right-hand side)
+** Re-designed interface, including gene conditions autocomplete, for searching the experiment for best differential expression analytics, e.g. http://www.ebi.ac.uk/gxa/experiment/E-AFMX-5 (see below the plot)
+** Bug fixes to gene condition autocomplete on the man Atlas search page, to the heatmap search result display and experiment page plots.
+
+=== 2.0.13 ===
+* '''Data:'''
+** Ensembl 66 annotations and array design probe set mappings
+** EFO release 2.23
+** 371 new or re-curated and re-loaded experiments. This is due to an on-going major effort in Atlas data clean-up, including:
+*** merging similar factors, sample characteristics and their values
+*** merging compound treatments, doses and units into a single value for factor ‘compound treatment’ – to make intra-experiment expression comparisons easier (e.g. http://www.ebi.ac.uk/gxa/experiment/E-TABM-12). All newly loaded units are now part of EFO ontology – in order to remove ambiguity in data interpretation.
+
+* '''Features:'''
+** New links for tab-delimited experiment analytics and experiment design data download. see 'Export to TSV' links on e.g.
+*** http://www.ebi.ac.uk/gxa/experiment/E-MEXP-3493 and
+*** http://www.ebi.ac.uk/gxa/experimentDesign/E-MEXP-3493
+** Simplifications to the Condition autocomplete functionality in both the simple and the advanced Atlas search interfaces
+** Links to EMAGE database (http://www.emouseatlas.org/emage) for Mouse genes
+** Bug fixes to the Atlas API output
+
+=== 2.0.12 ===
+* '''Data:'''
+** Contains 443 new or re-curated and re-loaded experiments. This is due to an on-going major effort in Atlas data clean-up, including:
+*** merging similar factors, sample characteristics and their values
+*** merging compound treatments, doses and units into a single value for factor ‘compound treatment’ – to make intra-experiment expression comparisons easier (e.g. http://www.ebi.ac.uk/gxa/experiment/E-TABM-12). All newly loaded units are now part of EFOontology – to remove ambiguity in data interpretation.
+** Contains 53 RNA-seq experiments
+** Updated with Ensembl 66 annotations and design element mappings
+
+* '''Features:'''
+** Allows searching using gene signatures from GeneSigDB Data Release 4 (http://compbio.dfci.harvard.edu/genesigdb/)
+** Includes bug fixes to experiment page, main search page and minor improvements to the API functionality.
+
+=== 2.0.11 and before ===
+* Please see: https://github.com/gxa/gxa/wiki/Release-Notes
+
+== Future Plans ==
+
+=== Baseline Expression Prototype ===
+
+{|
+| [[File:baseline_human.png|border|link=]] || Majority of our effort from Autumn 2012 onwards has been spent on putting together the [http://www-test.ebi.ac.uk/gxa Baseline Atlas prototype]
+(still under heavy development), due to be released in the first quarter of 2013.
+<p />
+Baseline Atlas aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type).
+In the first instance Baseline Atlas will consist of individual well understood and curated RNA-Seq experiments, such as:
+* [http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-513 Illumina Body Map]
+* [http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-599 Transcriptome of DBAxC57BL/6J mice]
+* [http://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-26284 RNA-seq of long coding and long non coding RNAs from ENCODE cell lines]
+* [http://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-30352 RNA-seq of 6 tissues from 10 species to investigate the evolution of gene expression levels in mammalian organs]
+
+Baseline Atlas will allow the user to explore gene signatures for normal conditions and combinations of conditions, at different levels abundance cutoffs
+(where all expression on or below a chosen cutoff will be considered ''background'').
+
+|}
+
+=== Differential Expression Atlas for Individual Contrasts ===
+
+{|
+| [[File:mva_plot.png|border|link=]] ||  Current Atlas reports differential expression for each gene by quantifying statistical
+significance of the difference between that gene's expression in a given condition (single value of an experiment value, measured in a number of assays)
+and its mean expression across ''all'' other values for that same experimental factor.
+<p />
+However, many users would prefer to see differential expression information for specific contrasts, for example disease_state: cancer vs normal.
+<p />
+We are responding to this feedback by focusing our curation, statistical analysis methods as well as search and reporting functionality
+development to provide such contrast-based differential expression data to our users as soon as possible.
+|}
+
+
+=== Multi-omics Atlas ===
+
+We are working closely with the EBI's PRIDE and Metabolights teams on idientifying data sets, statistical analysis methods and
+visual integration methods aiming to bring transcriptomics, proteomics and metabolomics data into a single searchable user interface. We will be providing more detail as our work progresses.
+
