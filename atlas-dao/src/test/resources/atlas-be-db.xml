@@ -33,7 +33,6 @@
             TYPE="some_type"
             NAME="Hello I Am An Array Name"
             PROVIDER="Some Company, Somewhere"
-            SYNONYMS="A-GEOD-8001 "
             />
 
     <A2_ARRAYDESIGN
@@ -42,7 +41,6 @@
             TYPE="some_other_type"
             NAME="Hello I Am Another Array Name"
             PROVIDER="Another Company"
-            SYNONYMS=""
             />
 
     <A2_PROPERTY
