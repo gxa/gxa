@@ -23,20 +23,15 @@
 package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
 
 import au.com.bytecode.opencsv.CSVReader;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.text.MessageFormat;
 
 import static com.google.common.io.Closeables.closeQuietly;
 
@@ -50,8 +45,6 @@ class ArrayExpressConnection {
     private static final String ACC_TEML = "$ACC";
     //ToDo: test if this services is also accessible from peaches, if so replace the host with peaches...
     private static final String ADF_URL_TEMPLATE = "http://www.ebi.ac.uk/arrayexpress/files/" + ACC_TEML + "/" + ACC_TEML + ".adf.txt";
-
-    private static final String ARRAYDESIGN_SYNONYMS_URL_TEMPLATE = "http://peach.ebi.ac.uk:8480/api/arrays-secondary-accessions.txt?acc={0}";
 
     private static final String AD_NAME = "Array Design Name";
     private static final String PROVIDER = "Provider";
@@ -71,8 +64,8 @@ class ArrayExpressConnection {
         return name;
     }
 
-    public String getAccessionMaster() {
-        return fetchSynonym();
+    public String getSynonym() {
+        return new SynonymsServiceClient().fetchSynonym(accession);
     }
 
     public String getProvider() {
@@ -81,38 +74,6 @@ class ArrayExpressConnection {
 
     public String getType() {
         return type;
-    }
-
-    String fetchSynonym() {
-        InputStream inputStream = null;
-        try {
-            URL arrayDesignSynonymsServiceURL = new URL(MessageFormat.format(ARRAYDESIGN_SYNONYMS_URL_TEMPLATE, accession));
-            URLConnection urlConnection = arrayDesignSynonymsServiceURL.openConnection();
-            inputStream = urlConnection.getInputStream();
-            String encoding = urlConnection.getContentEncoding();
-            encoding = encoding == null ? "UTF-8" : encoding;
-            String body = IOUtils.toString(inputStream, encoding);
-
-            log.debug("<fetchSynonym> " + body);
-
-            if (StringUtils.isNotBlank(body)){
-                String[] accessions = body.trim().split("\\s");
-                if (accessions.length > 1){
-                    return accessions[1];
-                }
-            }
-
-            return StringUtils.EMPTY;
-
-        } catch (MalformedURLException e){
-            log.error(e.getMessage(), e);
-            throw new IllegalStateException(e);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            return "UNKNOWN";
-        }finally{
-            closeQuietly(inputStream);
-        }
     }
 
     private void fetchArrayDesignData() {

@@ -44,7 +44,7 @@ public class ArrayDesignService {
         if (arrayDesign == null) {
             ArrayExpressConnection aeConnection = new ArrayExpressConnection(accession);
             arrayDesign = createNew(accession,
-                    aeConnection.getAccessionMaster(),
+                    aeConnection.getSynonym(),
                     aeConnection.getName(),
                     aeConnection.getProvider(),
                     aeConnection.getType());
