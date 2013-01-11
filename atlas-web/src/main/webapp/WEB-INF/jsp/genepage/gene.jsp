@@ -29,7 +29,7 @@
 <%-- TODO: 4alf: The line below doesn't work, as Property isn't technically a Bean. Replace it with a wrapper. --%>
 <%-- jsp:useBean id="ef" type="uk.ac.ebi.microarray.atlas.model.Property" scope="request" / --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
 
