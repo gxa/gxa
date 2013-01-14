@@ -33,6 +33,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.CharacteristicsAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.UnitAttribute;
+import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -73,7 +74,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        arrayDesignServiceMock = mock(ArrayDesignService.class);
+        arrayDesignServiceMock = new ArrayDesignService(mockArrayDesignDAO());
 
         cache = new AtlasLoadCache();
         parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790.idf.txt");
@@ -260,6 +261,19 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         replay(dao);
         return dao;
     }
+
+    private ArrayDesignDAO mockArrayDesignDAO() {
+        final ArrayDesignDAO dao = createMock(ArrayDesignDAO.class);
+        expect(dao.getArrayDesignShallowByAccession("A-AFFY-33"))
+                .andReturn(new ArrayDesign("A-AFFY-33"))
+                .anyTimes();
+        expect(dao.getArrayDesignShallowByAccession("A-AFFY-34"))
+                .andReturn(new ArrayDesign("A-AFFY-34"))
+                .anyTimes();
+        replay(dao);
+        return dao;
+    }
+
 
     private CharacteristicsAttribute mockSampleCharacteristicValueAttribute(String characteristicAttributeValue, String unit) {
         final CharacteristicsAttribute characteristicsAttribute = createMock(CharacteristicsAttribute.class);
