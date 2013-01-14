@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -84,6 +85,14 @@ public class ArrayDesignDAO {
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
 
+        Long arrayDesignId = arrayDesign.getArrayDesignID();
+
+        String accessionMaster = arrayDesign.getAccessionMaster();
+
+        if (StringUtils.isNotBlank(accessionMaster)){
+            arrayDesignId = getArrayDesignShallowByAccession(accessionMaster).getArrayDesignID();
+        }
+
         if (!arrayDesign.hasGenes()) {
             template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
                     " FROM a2_designelement de\n" +
@@ -94,10 +103,11 @@ public class ArrayDesignDAO {
                     "  where sw.isactive = 'T'\n" +
                     "  AND BETYPE.ID_FOR_INDEX = 1\n" +
                     "  and de.arraydesignid = ?",
-                    new Object[]{arrayDesign.getArrayDesignID()},
+                    new Object[]{arrayDesignId},
                     new ArrayDesignElementCallback(arrayDesign));
         }
     }
+
 
     ////////////////////////////////////////
     // Mappers

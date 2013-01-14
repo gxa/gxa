@@ -33,6 +33,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
+import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.cache.ExperimentBuilder;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
@@ -43,6 +44,7 @@ import uk.ac.ebi.microarray.atlas.model.Assay;
 import uk.ac.ebi.microarray.atlas.model.AssayProperty;
 import uk.ac.ebi.microarray.atlas.model.Property;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,21 +65,22 @@ public class AssayAndHybridizationStep {
         return "Processing assay and hybridization nodes";
     }
 
-    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
+    public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao
+                            , ArrayDesignService arrayDesignService, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
-                writeScanNode(scanNode, cache, investigation, dao, propertyValueMergeService);
+                writeScanNode(scanNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService);
             }
         }
 
         if (!isHTS(investigation)) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
-                writeHybridizationNode(hybridizationNode, cache, investigation, dao, propertyValueMergeService);
+                writeHybridizationNode(hybridizationNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService);
             }
 
             for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
-                writeHybridizationNode(assayNode, cache, investigation, dao, propertyValueMergeService);
+                writeHybridizationNode(assayNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService);
             }
         }
     }
@@ -87,6 +90,7 @@ public class AssayAndHybridizationStep {
             ExperimentBuilder cache,
             MAGETABInvestigation investigation,
             LoaderDAO dao,
+            ArrayDesignService arrayDesignService,
             PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         assert !isHTS(investigation);
 
@@ -106,7 +110,7 @@ public class AssayAndHybridizationStep {
                     "count now = " + cache.fetchAllAssays().size());
         }
 
-        populateArrayDesign(node, assay, dao);
+        populateArrayDesign(node, assay, arrayDesignService);
 
         // now record any properties
         writeAssayProperties(investigation, assay, node, dao, propertyValueMergeService);
@@ -126,6 +130,7 @@ public class AssayAndHybridizationStep {
             ExperimentBuilder cache,
             MAGETABInvestigation investigation,
             LoaderDAO dao,
+            ArrayDesignService arrayDesignService,
             PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         String enaRunName = node.comments.get("ENA_RUN");
 
@@ -167,7 +172,7 @@ public class AssayAndHybridizationStep {
         }
 
         if (!isHTS(investigation)) {
-            populateArrayDesign(assayNode, assay, dao);
+            populateArrayDesign(assayNode, assay, arrayDesignService);
         }
 
         // now record any properties
@@ -183,7 +188,7 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    private void populateArrayDesign(HybridizationNode assayNode, Assay assay, LoaderDAO dao) throws AtlasLoaderException {
+    private void populateArrayDesign(HybridizationNode assayNode, Assay assay, ArrayDesignService arrayDesignService) throws AtlasLoaderException {
         // add array design accession
         if (assayNode.arrayDesigns.size() > 1) {
             throw new AtlasLoaderException(assayNode.arrayDesigns.size() == 0 ?
@@ -195,13 +200,14 @@ public class AssayAndHybridizationStep {
                 assayNode.arrayDesigns.get(0).getNodeName()
                 : StringUtils.EMPTY;
 
-        // only one, so set the accession
         if (assay.getArrayDesign() == null) {
-            final ArrayDesign ad = dao.getArrayDesignShallow(arrayDesignAccession);
-            if (ad == null) {
-                throw new AtlasLoaderException("There is no array design with accession " + arrayDesignAccession + " in Atlas database");
+            try {
+                ArrayDesign arrayDesign = arrayDesignService.findOrCreateArrayDesignShallow(arrayDesignAccession, false);
+                assay.setArrayDesign(arrayDesign);
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                throw new AtlasLoaderException(e);
             }
-            assay.setArrayDesign(ad);
         } else if (!assay.getArrayDesign().getAccession().equals(arrayDesignAccession)) {
             throw new AtlasLoaderException("The same assay in the SDRF references two different array designs");
         } else {

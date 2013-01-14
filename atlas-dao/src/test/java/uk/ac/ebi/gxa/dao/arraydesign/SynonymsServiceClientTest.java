@@ -20,29 +20,24 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
+package uk.ac.ebi.gxa.dao.arraydesign;
+
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
 
-public class SynonymsServiceClientTestIT {
-
-    private static final String ARRAY_DESIGN_ACCESSION = "A-GEOD-9419";
+public class SynonymsServiceClientTest {
 
     private SynonymsServiceClient subject = new SynonymsServiceClient();
 
     @Test
-    public void rightAccessionMasterShouldBeReturnedInCaseOfKnownSynonym() throws Exception {
-        String accessionMaster = subject.fetchSynonym(ARRAY_DESIGN_ACCESSION);
-        assertThat(accessionMaster, is("A-AFFY-44"));
-    }
+    public void testSynonymsServiceURL() throws Exception {
+        //when
+        String url = subject.synonymsServiceURL("XYZ");
 
-    @Test
-    public void accessionMasterShouldBeEmptyStringInCaseOfUnknownSynonym() throws Exception {
-        String accessionMaster = subject.fetchSynonym("XYZ");
-        assertThat(accessionMaster, is(""));
+        //then
+        assertThat(url, endsWith("?acc=XYZ"));
     }
-
 }

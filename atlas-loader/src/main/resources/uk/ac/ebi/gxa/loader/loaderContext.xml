@@ -10,6 +10,8 @@
         <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
+
+
     <bean name="atlasLoader" class="uk.ac.ebi.gxa.loader.DefaultAtlasLoader">
         <!-- DAO for data access, ready-to-use -->
         <property name="magetabLoader" ref="MAGETABLoader"/>
@@ -34,6 +36,7 @@
         <property name="atlasComputeService" ref="atlasComputeService"/>
         <property name="unloaderService" ref="experimentUnloaderService"/>
         <property name="loaderDAO" ref="loaderDAO"/>
+        <property name="arrayDesignService" ref="arrayDesignService"/>
         <property name="propertyValueMergeService" ref="propertyValueMergeService"/>
     </bean>
 

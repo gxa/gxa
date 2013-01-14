@@ -22,8 +22,8 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="annotatorHibernateClasses" parent="hibernateClasses">
         <property name="sourceList">
@@ -45,10 +45,6 @@
     <bean name="annSrcDAO" class="uk.ac.ebi.gxa.annotator.dao.AnnotationSourceDAO">
         <constructor-arg ref="sessionFactory"/>
         <constructor-arg ref="atlasJdbcTemplate"/>
-    </bean>
-
-    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign.ArrayDesignService">
-        <constructor-arg ref="arrayDesignDAO"/>
     </bean>
 
     <!-- annotation source managers -->

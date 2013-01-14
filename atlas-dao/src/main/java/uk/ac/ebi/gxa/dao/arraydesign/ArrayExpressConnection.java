@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
+package uk.ac.ebi.gxa.dao.arraydesign;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
@@ -63,11 +63,11 @@ class ArrayExpressConnection {
     public String getName() {
         return name;
     }
-
+/*
     public String getSynonym() {
-        return new SynonymsServiceClient().fetchSynonym(accession);
+        return new SynonymsServiceClient().fetchAccessionMaster(accession);
     }
-
+*/
     public String getProvider() {
         return provider;
     }

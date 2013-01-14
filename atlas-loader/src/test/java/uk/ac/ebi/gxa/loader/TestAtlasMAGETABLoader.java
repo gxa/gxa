@@ -34,6 +34,7 @@ import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.Characteris
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.UnitAttribute;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
+import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
 import uk.ac.ebi.gxa.loader.dao.LoaderDAO;
 import uk.ac.ebi.gxa.loader.service.PropertyValueMergeService;
@@ -48,16 +49,22 @@ import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
     private static Logger log = LoggerFactory.getLogger(TestAtlasMAGETABLoader.class);
 
-    PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
+    private PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
+
+    private ArrayDesignService arrayDesignServiceMock;
 
     private AtlasLoadCache cache;
 
@@ -65,6 +72,8 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
 
     public void setUp() throws Exception {
         super.setUp();
+
+        arrayDesignServiceMock = mock(ArrayDesignService.class);
 
         cache = new AtlasLoadCache();
         parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790.idf.txt");
@@ -97,7 +106,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(expt);
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, arrayDesignServiceMock, propertyValueMergeService);
 
         log.debug("experiment.getAccession() = " + expt.getAccession());
         assertNotNull("Experiment is null", expt);
@@ -119,7 +128,7 @@ public class TestAtlasMAGETABLoader extends AtlasDAOTestCase {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = mockLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, arrayDesignServiceMock, propertyValueMergeService);
 
 
         // parsing finished, look in our cache...

@@ -20,16 +20,14 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
+package uk.ac.ebi.gxa.dao.arraydesign;
 
 import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.ArrayDesignDAO;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
-/**
- * User: nsklyar
- * Date: 02/09/2011
- */
+import java.io.IOException;
+
 @Service
 public class ArrayDesignService {
 
@@ -40,20 +38,34 @@ public class ArrayDesignService {
     }
 
     public ArrayDesign findOrCreateArrayDesignShallow(String accession) {
-        ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignShallowByAccession(accession);
-        if (arrayDesign == null) {
-            ArrayExpressConnection aeConnection = new ArrayExpressConnection(accession);
-            arrayDesign = createNew(accession,
-                    aeConnection.getSynonym(),
-                    aeConnection.getName(),
-                    aeConnection.getProvider(),
-                    aeConnection.getType());
-
-            arrayDesignDAO.save(arrayDesign);
+        try {
+            return findOrCreateArrayDesignShallow(accession, true);
+        } catch (IOException e) {
+            //this should never happen because isMaster == true, so the SynonymsServiceClient is not being used
+            throw new IllegalStateException(e);
         }
+    }
 
+    public ArrayDesign findOrCreateArrayDesignShallow(String accession, boolean isMaster) throws IOException{
+        ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignShallowByAccession(accession);
+        if (arrayDesign != null) {
+            return arrayDesign;
+        }
+        return loadFromArrayExpress(accession, isMaster);
+    }
+
+    private ArrayDesign loadFromArrayExpress(String accession, boolean isMaster) throws IOException{
+        ArrayExpressConnection aeConnection = new ArrayExpressConnection(accession);
+        ArrayDesign arrayDesign = createNew(accession,
+                                            isMaster ? null : new SynonymsServiceClient().fetchAccessionMaster(accession),
+                                            aeConnection.getName(),
+                                            aeConnection.getProvider(),
+                                            aeConnection.getType());
+
+        arrayDesignDAO.save(arrayDesign);
         return arrayDesign;
     }
+
 
     private ArrayDesign createNew(String accession, String accessionMaster, String name, String provider, String type) {
         ArrayDesign arrayDesign = new ArrayDesign(accession);
