@@ -1,0 +1,1 @@
+alter table A2_ARRAYDESIGN drop column SYNONYMS;

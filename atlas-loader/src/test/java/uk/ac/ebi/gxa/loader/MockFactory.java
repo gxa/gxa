@@ -10,11 +10,12 @@ import uk.ac.ebi.microarray.atlas.model.Organism;
 import uk.ac.ebi.microarray.atlas.model.Property;
 import uk.ac.ebi.microarray.atlas.model.PropertyValue;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 import static org.easymock.EasyMock.*;
+import static uk.ac.ebi.microarray.atlas.model.Property.createProperty;
 
 public class MockFactory {
     public static LoaderDAO createLoaderDAO() {

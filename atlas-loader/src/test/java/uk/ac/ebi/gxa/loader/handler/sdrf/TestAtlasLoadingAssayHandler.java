@@ -28,6 +28,7 @@ import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -43,14 +44,19 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import static org.mockito.Mockito.mock;
+
 public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
-    PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
+    private PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
+
+    private ArrayDesignService arrayDesignServiceMock;
 
     private URL parseURL;
 
     public void setUp() {
         cache = new AtlasLoadCache();
 
+        arrayDesignServiceMock = mock(ArrayDesignService.class);
         parseURL = this.getClass().getClassLoader().getResource("E-GEOD-3790B.idf.txt");
     }
 
@@ -109,7 +115,7 @@ public class TestAtlasLoadingAssayHandler extends TestAssayHandler {
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
         new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, arrayDesignServiceMock, MockFactory.createPropertyValueMergeService());
 
         System.out.println("Parsing done");
         checkAssaysInCache();

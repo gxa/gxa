@@ -62,6 +62,11 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
+    <bean name="arrayDesignService" class="uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService">
+        <constructor-arg ref="arrayDesignDAO"/>
+    </bean>
+
+
     <bean name="bioEntityDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO">
         <constructor-arg ref="softwareDAO"/>
         <constructor-arg ref="atlasJdbcTemplate"/>

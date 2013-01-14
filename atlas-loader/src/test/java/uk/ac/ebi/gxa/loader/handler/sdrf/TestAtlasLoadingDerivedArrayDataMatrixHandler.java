@@ -29,6 +29,7 @@ import org.mged.magetab.error.ErrorItem;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.listener.ErrorItemListener;
 import uk.ac.ebi.arrayexpress2.magetab.parser.MAGETABParser;
+import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
 import uk.ac.ebi.gxa.loader.MockFactory;
 import uk.ac.ebi.gxa.loader.cache.AtlasLoadCache;
@@ -41,6 +42,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
+
+import static org.mockito.Mockito.mock;
 
 public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
     PropertyValueMergeService propertyValueMergeService = MockFactory.createPropertyValueMergeService();
@@ -106,8 +109,9 @@ public class TestAtlasLoadingDerivedArrayDataMatrixHandler extends TestCase {
         final MAGETABInvestigation investigation = new ParsingStep().parse(parseURL);
         cache.setExperiment(new CreateExperimentStep().readExperiment(investigation, HashMultimap.<String, String>create()));
         final LoaderDAO dao = MockFactory.createLoaderDAO();
+        final ArrayDesignService arrayDesignService = mock(ArrayDesignService.class);
         new SourceStep().readSamples(investigation, cache, dao, propertyValueMergeService);
-        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, MockFactory.createPropertyValueMergeService());
+        new AssayAndHybridizationStep().readAssays(investigation, cache, dao, arrayDesignService, MockFactory.createPropertyValueMergeService());
         new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
 
         System.out.println("Parsing done");

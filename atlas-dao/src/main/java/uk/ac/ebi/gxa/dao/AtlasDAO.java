@@ -117,11 +117,10 @@ public class AtlasDAO {
 
     /**
      * @param accession Array design accession
-     * @param searchSynonyms if true, check if accession is a synonym of another existing array design
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
-    public ArrayDesign getArrayDesignShallowByAccession(String accession, boolean searchSynonyms) {
-        return arrayDesignDAO.getArrayDesignShallowByAccession(accession,  searchSynonyms);
+    public ArrayDesign getArrayDesignShallowByAccession(String accession) {
+        return arrayDesignDAO.getArrayDesignShallowByAccession(accession);
     }
 
     // TODO: 4alf: experiment-property value to ontology term mapping. Can as well be a part of Experiment

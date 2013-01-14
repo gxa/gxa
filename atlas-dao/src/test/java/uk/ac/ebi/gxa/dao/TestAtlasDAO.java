@@ -171,17 +171,6 @@ public class TestAtlasDAO extends AtlasDAOTestCase {
     }
 
     @Test
-    public void testGetArrayDesignBySynonymAccession() throws Exception {
-        assertNull(arrayDesignDAO.getArrayDesignByAccession("A-GEOD-8001"));
-        assertNull(arrayDesignDAO.getArrayDesignShallowByAccession("A-GEOD-8001", false));
-        ArrayDesign arrayDesign = arrayDesignDAO.getArrayDesignShallowByAccession("A-GEOD-8001", true);
-        assertNotNull(arrayDesign);
-        assertTrue("Retrieved array design does not contain the searched synonym", arrayDesign.getSynonyms().contains("A-GEOD-8001 "));
-        assertTrue("Incorrect array design retrieved", arrayDesign.getAccession().equals("A-AFFY-45"));
-    }
-
-
-    @Test
     public void testGetOntologyMappingsForOntology() {
         String ontologyName = "EFO";
 
