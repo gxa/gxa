@@ -150,7 +150,7 @@
             <a class="export2TsvLink" target="_blank" rel="nofollow"
                href="${pageContext.request.contextPath}/experimentDesignTable?format=tsv&eacc=${exp.accession}">Export Experiment Design as Tab-Delimited file</a>
         </div>
-        <div id="expDesignTable"></div>
+        <div id="expDesignTable" style="overflow: auto;position: relative;"></div>
     </div>
 </div>
 
