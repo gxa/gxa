@@ -1,5 +1,6 @@
 package uk.ac.ebi.gxa.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -17,6 +18,7 @@ import static com.google.common.collect.Iterables.getFirst;
  * @author Nataliya Sklyar
  */
 public class ArrayDesignDAO {
+
     private static final String ARRAY_DESIGN_SELECT =
             "SELECT " + ArrayDesignMapper.FIELDS + " FROM a2_arraydesign ad ORDER BY ad.accession";
 
@@ -26,7 +28,7 @@ public class ArrayDesignDAO {
     private JdbcTemplate template;
     private HibernateTemplate ht;
 
-    public ArrayDesignDAO(JdbcTemplate template,  SessionFactory sessionFactory) {
+    public ArrayDesignDAO(JdbcTemplate template, SessionFactory sessionFactory) {
         this.template = template;
         this.ht = new HibernateTemplate(sessionFactory);
     }
@@ -43,12 +45,8 @@ public class ArrayDesignDAO {
     }
 
     public ArrayDesign getArrayDesignByAccession(String accession) {
-        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
-                new Object[]{accession},
-                new ArrayDesignMapper());
 
-        // get first result only
-        ArrayDesign arrayDesign = getFirst(results, null);
+        ArrayDesign arrayDesign = getArrayDesign(accession);
 
         if (arrayDesign != null) {
             fillOutArrayDesigns(arrayDesign);
@@ -57,26 +55,28 @@ public class ArrayDesignDAO {
         return arrayDesign;
     }
 
-    /**
-     * @param accession Array design accession
-     * @param searchSynonyms if true, check if accession is a synonym of another existing array design
-     * @return Array design (with no design element and gene ids filled in) corresponding to accession
-     */
-    public ArrayDesign getArrayDesignShallowByAccession(String accession, boolean searchSynonyms) {
-        @SuppressWarnings("unchecked")
-        List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
-        if (results.isEmpty() && searchSynonyms)
-            results = getArrayDesignShallowBySynonymAccession(accession);
+    private ArrayDesign getArrayDesign(String accession) {
+        List<ArrayDesign> results = template.query(ARRAY_DESIGN_BY_ACC_SELECT,
+                new Object[]{accession},
+                new ArrayDesignMapper());
+
+        // get first result only
         return getFirst(results, null);
     }
 
     /**
-     * @param accession Array design accession
-     * @return Array design (with no design element and gene ids filled in) that accession is a synonym of
+     * @param accession      Array design accession
+     * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
-    public List<ArrayDesign> getArrayDesignShallowBySynonymAccession(String accession) {
-         return ht.find("from ArrayDesign where synonyms like '%" + accession + " %'");
+    public ArrayDesign getArrayDesignShallowByAccession(String accession) {
+        @SuppressWarnings("unchecked")
+
+        //ToDo: create new array design if one doesn't exists and if it has as synonym existing array design
+        List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
+
+        return getFirst(results, null);
     }
+
 
     public void save(ArrayDesign ad) {
         ht.saveOrUpdate(ad);
@@ -84,6 +84,14 @@ public class ArrayDesignDAO {
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
+
+        Long arrayDesignId = arrayDesign.getArrayDesignID();
+
+        String accessionMaster = arrayDesign.getAccessionMaster();
+
+        if (StringUtils.isNotBlank(accessionMaster)){
+            arrayDesignId = getArrayDesignShallowByAccession(accessionMaster).getArrayDesignID();
+        }
 
         if (!arrayDesign.hasGenes()) {
             template.query("SELECT " + ArrayDesignElementCallback.FIELDS +
@@ -95,10 +103,11 @@ public class ArrayDesignDAO {
                     "  where sw.isactive = 'T'\n" +
                     "  AND BETYPE.ID_FOR_INDEX = 1\n" +
                     "  and de.arraydesignid = ?",
-                    new Object[]{arrayDesign.getArrayDesignID()},
+                    new Object[]{arrayDesignId},
                     new ArrayDesignElementCallback(arrayDesign));
         }
     }
+
 
     ////////////////////////////////////////
     // Mappers
@@ -124,16 +133,16 @@ public class ArrayDesignDAO {
     }
 
     private static class ArrayDesignMapper implements RowMapper<ArrayDesign> {
-        private static final String FIELDS = "ad.accession, ad.type, ad.name, ad.provider, ad.arraydesignid, ad.synonyms";
+        private static final String FIELDS = "ad.accession, ad.accession_master, ad.type, ad.name, ad.provider, ad.arraydesignid";
 
         public ArrayDesign mapRow(ResultSet resultSet, int i) throws SQLException {
             ArrayDesign array = new ArrayDesign(resultSet.getString(1));
 
-            array.setType(resultSet.getString(2));
-            array.setName(resultSet.getString(3));
-            array.setProvider(resultSet.getString(4));
-            array.setArrayDesignID(resultSet.getLong(5));
-            array.setSynonyms(resultSet.getString(6));
+            array.setAccessionMaster(resultSet.getString(2));
+            array.setType(resultSet.getString(3));
+            array.setName(resultSet.getString(4));
+            array.setProvider(resultSet.getString(5));
+            array.setArrayDesignID(resultSet.getLong(6));
 
             return array;
         }

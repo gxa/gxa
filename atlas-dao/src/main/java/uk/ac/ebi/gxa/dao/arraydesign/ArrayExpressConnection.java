@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
+package uk.ac.ebi.gxa.dao.arraydesign;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.commons.lang.StringUtils;
@@ -43,24 +43,31 @@ class ArrayExpressConnection {
     final private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final String ACC_TEML = "$ACC";
+    //ToDo: test if this services is also accessible from peaches, if so replace the host with peaches...
     private static final String ADF_URL_TEMPLATE = "http://www.ebi.ac.uk/arrayexpress/files/" + ACC_TEML + "/" + ACC_TEML + ".adf.txt";
 
     private static final String AD_NAME = "Array Design Name";
     private static final String PROVIDER = "Provider";
     private static final String TYPE = "Technology Type";
 
+    private String accession;
     private String name = StringUtils.EMPTY;
     private String provider = StringUtils.EMPTY;
     private String type = StringUtils.EMPTY;
 
     public ArrayExpressConnection(String accession) {
-        fetchArrayDesignData(accession);
+        this.accession = accession;
+        fetchArrayDesignData();
     }
 
     public String getName() {
         return name;
     }
-
+/*
+    public String getSynonym() {
+        return new SynonymsServiceClient().fetchAccessionMaster(accession);
+    }
+*/
     public String getProvider() {
         return provider;
     }
@@ -69,7 +76,7 @@ class ArrayExpressConnection {
         return type;
     }
 
-    private void fetchArrayDesignData(String accession) {
+    private void fetchArrayDesignData() {
         log.info("Fetching Array Design data from ArrayExpress " + accession);
 
         CSVReader csvReader = null;
@@ -94,6 +101,7 @@ class ArrayExpressConnection {
                 }
                 //We don't need to read more then 10 line to find data we are interested in
                 if (count++ > 10) break;
+
             }
         } catch (FileNotFoundException e) {
             log.warn("Cannot fetch ADF for array design " + accession, e.getMessage());

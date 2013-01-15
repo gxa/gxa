@@ -38,10 +38,11 @@ public class ArrayDesign {
     @SequenceGenerator(name = "arrayDesignSeq", sequenceName = "A2_ARRAYDESIGN_SEQ", allocationSize = 1)
     private Long arrayDesignID;
     private String accession;
+    @Column(name = "ACCESSION_MASTER")
+    private String accessionMaster;
     private String name;
     private String provider;
     private String type;
-    private String synonyms;
 
     @Transient
     private Map<String, Long> designElements = new HashMap<String, Long>();
@@ -58,6 +59,14 @@ public class ArrayDesign {
 
     public String getAccession() {
         return accession;
+    }
+
+    public String getAccessionMaster() {
+        return accessionMaster;
+    }
+
+    public void setAccessionMaster(String accessionMaster) {
+        this.accessionMaster = accessionMaster;
     }
 
     public String getName() {
@@ -82,14 +91,6 @@ public class ArrayDesign {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getSynonyms() {
-        return synonyms;
-    }
-
-    public void setSynonyms(String synonyms) {
-        this.synonyms = synonyms;
     }
 
     public Long getArrayDesignID() {

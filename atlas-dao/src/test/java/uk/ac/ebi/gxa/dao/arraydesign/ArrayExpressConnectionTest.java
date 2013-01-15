@@ -20,7 +20,7 @@
  * http://gxa.github.com/gxa
  */
 
-package uk.ac.ebi.gxa.annotator.annotationsrc.arraydesign;
+package uk.ac.ebi.gxa.dao.arraydesign;
 
 import org.junit.Test;
 

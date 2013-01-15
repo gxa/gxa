@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
 import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
+import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
@@ -71,7 +72,7 @@ public class AtlasMAGETABLoader {
     private AtlasDataDAO atlasDataDAO;
     private LoaderDAO dao;
     private PropertyValueMergeService propertyValueMergeService;
-
+    private ArrayDesignService arrayDesignService;
     private AtlasExperimentUnloaderService unloaderService;
 
     /**
@@ -128,7 +129,7 @@ public class AtlasMAGETABLoader {
 
                 // Assays
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
-                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, propertyValueMergeService);
+                new AssayAndHybridizationStep().readAssays(investigation, cache, dao, arrayDesignService, propertyValueMergeService);
 
                 boolean arrayDataRead = false;
                 //use raw data
@@ -311,6 +312,10 @@ public class AtlasMAGETABLoader {
 
     public void setLoaderDAO(LoaderDAO dao) {
         this.dao = dao;
+    }
+
+    public void setArrayDesignService(ArrayDesignService arrayDesignService) {
+        this.arrayDesignService = arrayDesignService;
     }
 
     public void setAtlasComputeService(AtlasComputeService atlasComputeService) {
