@@ -74,6 +74,15 @@ load_data() {
     fi
 
     TARGET_ATLAS_USER=`echo ${ATLAS_INDEX_TABLESPACE} | awk -F'_' '{print $1}'`
+    echo "Creating table synonyms for user: ${TARGET_ATLAS_USER}_ro"
+    for TABLE in $TABLE_NAMES_SET
+       do
+         echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_${TABLE} for ${TARGET_ATLAS_USER}.A2_${TABLE};" | sqlplus -L -S $ATLAS_CONNECTION
+         echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_${TABLE} for ${TARGET_ATLAS_USER}.A2_${TABLE};"
+       done
+    echo "Done creating table synonyms for user: ${TARGET_ATLAS_USER}_ro"
+
+
     echo "Granting permissions to ${TARGET_ATLAS_USER}_select_role"
     for TABLE in $TABLE_NAMES_SET
       do
