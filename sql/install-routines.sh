@@ -73,13 +73,14 @@ load_data() {
       TABLE_NAMES_SET=$TABLE_NAMES_SCHEMA
     fi
 
-    echo "Granting permissions to ${ATLAS_INDEX_TABLESPACE}_select_role"
+    TARGET_ATLAS_USER=`echo ${ATLAS_INDEX_TABLESPACE} | awk -F'_' '{print $1}'`
+    echo "Granting permissions to ${TARGET_ATLAS_USER}_select_role"
     for TABLE in $TABLE_NAMES_SET
       do
-        echo "grant select on $TABLE to ${ATLAS_INDEX_TABLESPACE}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
-        echo "grant select on $TABLE to ${ATLAS_INDEX_TABLESPACE}_select_role"
+        echo "grant select on A2_${TABLE} to ${TARGET_ATLAS_USER}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
+        echo "grant select on A2_${TABLE} to ${TARGET_ATLAS_USER}_select_role"
       done
-    echo "Done granting select permissions to ${ATLAS_INDEX_TABLESPACE}_select_role"
+    echo "Done granting select permissions to ${TARGET_ATLAS_USER}_select_role"
 
     for LDR_CTL in $TABLE_NAMES_SET 
       do
