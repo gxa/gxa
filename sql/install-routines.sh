@@ -73,13 +73,11 @@ load_data() {
       TABLE_NAMES_SET=$TABLE_NAMES_SCHEMA
     fi
 
-    echo "Granting permissions to select only role"
+    echo "Granting permissions to ${ATLAS_INDEX_TABLESPACE}_select_role"
     for TABLE in $TABLE_NAMES_SET
       do
-      sqlplus -L -S $ATLAS_CONNECTION /nolog <<EOF
-        grant select on $TABLE to ${ATLAS_INDEX_TABLESPACE}_select_role;
-      EOF
-      echo "grant select on $TABLE to ${ATLAS_INDEX_TABLESPACE}_select_role"
+        echo "grant select on $TABLE to ${ATLAS_INDEX_TABLESPACE}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
+        echo "grant select on $TABLE to ${ATLAS_INDEX_TABLESPACE}_select_role"
       done
     echo "Done granting select permissions to ${ATLAS_INDEX_TABLESPACE}_select_role"
 
