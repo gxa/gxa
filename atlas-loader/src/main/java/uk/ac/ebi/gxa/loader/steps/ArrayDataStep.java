@@ -192,13 +192,6 @@ public class ArrayDataStep {
                 final String dataFileName = node.getNodeName();
                 final String scanName = scanNode != null ? scanNode.getNodeName() : assayNode.getNodeName();
 
-                // TODO: use better way to check this if such way exists
-                if (!arrayDesignName.toLowerCase().contains("affy") /*&&!dao.isArrayDesignSynonym(arrayDesignName) */) {
-                    log.warn("Array design " + arrayDesignName + " is not an Affymetrix or a synonym of an existing array design");
-                    // For non-Affymetrics chip we don't throw and exception but allow the experiment loading logic
-                    // to silently move to using the processed files instead.
-                    return false;
-                }
 
                 if (dataFileName == null || dataFileName.length() == 0) {
                     continue;
