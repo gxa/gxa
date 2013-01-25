@@ -29,29 +29,37 @@
     if (window.atlas) {
         window.atlas.applicationContext(ATLAS_APPLICATION_CONTEXTPATH);
     }
+
+    function clearLocalNav() {
+        var listItems = $("#local-nav li");
+        listItems.each(function (idx, li) {
+            var item = $(li);
+            item.removeClass("active");
+        });
+    }
 </script>
 
 <!--[if lt IE 7]>
 <script type="text/javascript">
-    function fixpng(i) {
-        var width = i.width;
-        var height = i.height;
-        i.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=scale, src="' + i.src + '")';
-        i.onload = null;
-        i.src = 'images/1.gif';
-        i.width = width;
-        i.height = height;
-    }
+function fixpng(i) {
+var width = i.width;
+var height = i.height;
+i.style.filter = 'progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=scale, src="' + i.src + '")';
+i.onload = null;
+i.src = 'images/1.gif';
+i.width = width;
+i.height = height;
+}
 </script>
 <![endif]-->
 
 <!--[if IE]>
 <style type="text/css">
-    input {
-        margin-top:-1px;
-        margin-bottom:-1px;
-        padding:1px;
-    }
+input {
+margin-top:-1px;
+margin-bottom:-1px;
+padding:1px;
+}
 </style>
 <![endif]-->
 

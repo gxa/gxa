@@ -46,7 +46,7 @@
 
     <jsp:include page="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
     <wro4j:all name="bundle-jquery"/>
-    <wro4j:all name="bundle-common-libs" />
+    <wro4j:all name="bundle-common-libs"/>
     <wro4j:all name="bundle-gxa"/>
     <wro4j:all name="bundle-gxa-searchform-support"/>
     <wro4j:all name="bundle-gxa-page-index"/>
@@ -67,6 +67,9 @@
             <script type="text/javascript">
                 $(document).ready(function () {
                     $("div.roundCorner").corner();
+
+                    clearLocalNav();
+                    $("#local-nav-home").addClass("active");
                 });
             </script>
 

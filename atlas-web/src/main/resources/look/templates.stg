@@ -102,13 +102,13 @@ pageHeader(contextPath) ::= <<
 
                 <nav>
                     <ul class="grid_24" id="local-nav">
-                        <li class="first"><a href="$contextPath$" title="Go to the Expression Atlas homepage">Home</a></li>
-                        <li><a href="$contextPath$/help/ReleaseNotes">Release Notes</a></li>
-                        <li><a href="$contextPath$/help/AtlasDasSource">DAS</a></li>
-                        <li><a href="$contextPath$/help/AtlasApis">API</a></li>
-                        <li><a href="$contextPath$/help/HelpHome">Help</a></li>
-                        <li><a href="$contextPath$/help/AtlasFaq">FAQ</a></li>
-                        <li class="last"><a href="$contextPath$/help/AboutAtlas">About Expression Atlas</a></li>
+                        <li id="local-nav-home" class="first"><a href="$contextPath$" title="Go to the Expression Atlas homepage">Home</a></li>
+                        <li id="local-nav-notes"><a href="$contextPath$/help/ReleaseNotes">Release Notes</a></li>
+                        <li id="local-nav-das"><a href="$contextPath$/help/AtlasDasSource">DAS</a></li>
+                        <li id="local-nav-api"><a href="$contextPath$/help/AtlasApis">API</a></li>
+                        <li id="local-nav-help"><a href="$contextPath$/help/HelpHome">Help</a></li>
+                        <li id="local-nav-faq"><a href="$contextPath$/help/AtlasFaq">FAQ</a></li>
+                        <li id="local-nav-about" class="last"><a href="$contextPath$/help/AboutAtlas">About Expression Atlas</a></li>
                         <li class="functional last">
                         <a id="feedback_href" class="icon icon-static" data-icon="\" href="javascript:showFeedbackForm()">Feedback</a>
                         <span id="feedback_thanks" style="font-weight: bold; display: none">thanks!</span>

@@ -29,60 +29,81 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
     <tmpl:stringTemplate name="helpPageHead"/>
-    <wro4j:all name="bundle-jquery" />
-    <wro4j:all name="bundle-common-libs" />
-    <wro4j:all name="bundle-gxa" />
+    <wro4j:all name="bundle-jquery"/>
+    <wro4j:all name="bundle-common-libs"/>
+    <wro4j:all name="bundle-gxa"/>
 
-<style type="text/css">
-    /* TODO: display contents appropriately */
+    <style type="text/css">
+            /* TODO: display contents appropriately */
 
-    .ae_pagecontainer  .toc {
-        position:absolute;
-        top:0;
-        right: 0;
-        width: 30%;
-        background-color:white;
-    }
-
-
-    .toc ul {
-        margin-left: 0;
-        padding-left: 1.5em;
-        text-indent: -0.5em;
-    }
-
-    .ae_pagecontainer .toc td {
-        vertical-align:top;
-        padding:0 0 0 20px;
-        margin:0;
-    }
-
-    #toctitle h2 { margin-top:0; }
-
-</style>
-
-<script type="text/javascript">
-    $(document).ready(function () {
-        var toc = $('.toc');
-        $('.toc ~ hr').hide();
-
-        var parentY = toc.offset().top;
-        $(window).scroll(function () {
-            var scrolltop = $(window).scrollTop();
-            var offset = scrolltop - parentY + 10;
-            if(offset <0)
-                offset =  0;
-            toc.animate({top:offset+"px"},{duration:500,queue:false});
-        });
-    });
-</script>
-
-<style type="text/css">
-    @media print {
-        body, .contents, .header, .contentsarea, .head {
-            position: relative;
+        .ae_pagecontainer  .toc {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 30%;
+            background-color: white;
         }
-    }
+
+        .toc ul {
+            margin-left: 0;
+            padding-left: 1.5em;
+            text-indent: -0.5em;
+        }
+
+        .ae_pagecontainer .toc td {
+            vertical-align: top;
+            padding: 0 0 0 20px;
+            margin: 0;
+        }
+
+        #toctitle h2 {
+            margin-top: 0;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            clearLocalNav();
+            if (document.URL.indexOf("ReleaseNotes") > -1) {
+                $("#local-nav-notes").addClass("active");
+            }
+            if (document.URL.indexOf("AtlasDasSource") > -1) {
+                $("#local-nav-das").addClass("active");
+            }
+            if (document.URL.indexOf("AtlasApis") > -1) {
+                $("#local-nav-api").addClass("active");
+            }
+            if (document.URL.indexOf("HelpHome") > -1) {
+                $("#local-nav-help").addClass("active");
+            }
+            if (document.URL.indexOf("AtlasFaq") > -1) {
+                $("#local-nav-faq").addClass("active");
+            }
+            if (document.URL.indexOf("AboutAtlas") > -1) {
+                $("#local-nav-about").addClass("active");
+            }
+
+            var toc = $('.toc');
+            $('.toc ~ hr').hide();
+
+            var parentY = toc.offset().top;
+            $(window).scroll(function () {
+                var scrolltop = $(window).scrollTop();
+                var offset = scrolltop - parentY + 10;
+                if (offset < 0)
+                    offset = 0;
+                toc.animate({top:offset + "px"}, {duration:500, queue:false});
+            });
+        });
+    </script>
+
+    <style type="text/css">
+        @media print {
+            body, .contents, .header, .contentsarea, .head {
+                position: relative;
+            }
+        }
     </style>
 </head>
 
