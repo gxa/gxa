@@ -57,6 +57,10 @@ helpPageHead(contextPath) ::= <<
     $pageHead(pageTitle="Gene Expression Atlas - Help", contextPath=contextPath)$
 >>
 
+adminPageHead(contextPath) ::= <<
+    $pageHead(pageTitle="Gene Expression Atlas - Admin", contextPath=contextPath)$
+>>
+
 errorPageHead(contextPath) ::= <<
     $pageHead(pageTitle="Gene Expression Atlas", contextPath=contextPath)$
 >>

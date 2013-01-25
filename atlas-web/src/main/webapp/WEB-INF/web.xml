@@ -151,6 +151,17 @@
     </servlet-mapping>
 
     <servlet>
+        <display-name>Admin Servlet</display-name>
+        <servlet-name>admin</servlet-name>
+        <jsp-file>/WEB-INF/jsp/admin.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>admin</servlet-name>
+        <url-pattern>/admin.html</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <display-name>Table Header Servlet</display-name>
         <servlet-name>thead</servlet-name>
         <servlet-class>uk.ac.ebi.gxa.requesthandlers.query.TableHeaderServlet</servlet-class>

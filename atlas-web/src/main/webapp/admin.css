@@ -19,38 +19,78 @@
  *
  * http://gxa.github.com/gxa
  */
-body { padding:0;margin:0; }
 
-.ae_pagecontainer { font-size: 9pt;margin:10px 20px 150px 20px; }
+.ae_pagecontainer {
+    font-size: 9pt;
+    margin: 10px 10px 10px 10px;
+}
 
-#menu { border:none; margin-bottom:5px; }
-#menu td { padding: 0; vertical-align:bottom; }
-#menu img { position:relative;top:1px; }
+#menu {
+    border: none;
+    margin-bottom: 5px;
+}
 
-#footer { border-top: 1px solid #bfbfbf;
+#menu td {
+    padding: 0;
+    vertical-align: bottom;
+}
+
+#menu img {
+    position: relative;
+    top: 1px;
+}
+
+#footer {
+    border-top: 1px solid #bfbfbf;
     border-bottom: 1px solid #bfbfbf;
-    border-left: 0; border-right: 0;
+    border-left: 0;
+    border-right: 0;
     background-color: #dedede;
     height: 22px;
     text-align: left;
-    padding:0 15px;
-    font-size:12px;
-    position:fixed;
-    bottom:0;
-    width:100% }
+    padding: 0 15px;
+    font-size: 12px;
+    position: fixed;
+    bottom: 0;
+    width: 100%
+}
 
 #tabs {
 }
 
-fieldset { border:1px solid #DEDEDE; margin:10px 0 0 0; padding: 10px; }
-fieldset table { border: none;margin:0;padding:0; }
-fieldset table td { border: none;padding:2px; }
+fieldset {
+    border: 1px solid #DEDEDE;
+    margin: 10px 0 0 0;
+    padding: 10px;
+}
 
-input.date { width: 70px; }
-#tab-exp form .label { text-align: right; }
-#tab-exp form .label2 { text-align: right;padding-left:20px; }
+fieldset table {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
 
-#experimentBrowseForm { margin: 0; }
+fieldset table td {
+    border: none;
+    padding: 2px;
+}
+
+input.date {
+    width: 70px;
+}
+
+#tab-exp form .label {
+    text-align: right;
+}
+
+#tab-exp form .label2 {
+    text-align: right;
+    padding-left: 20px;
+}
+
+#experimentBrowseForm {
+    margin: 0;
+}
 
 div.none, #taskLog tr.none td {
     padding: 20px 3px;
@@ -59,77 +99,74 @@ div.none, #taskLog tr.none td {
 }
 
 #experimentList table.results,
-    #taskList table,
-    #taskLog table,
-    #propList table,
-    #adList table,
-    #experimentList .expTaskLog table,
-    #aboutSystem
-{
-    border-collapse:collapse;
+#taskList table,
+#taskLog table,
+#propList table,
+#adList table,
+#experimentList .expTaskLog table,
+#aboutSystem {
+    border-collapse: collapse;
     margin: 10px 0;
     width: 100%;
 }
 
 #experimentList .expTaskLog table, #adList .expTaskLog table {
-    margin:0;
+    margin: 0;
 }
 
 #experimentList .expTaskLog, #adList .expTaskLog {
-    max-height:250px;
+    max-height: 250px;
     overflow-y: auto;
     border: 2px solid #cdcdcd;
 }
 
 #experimentList table.results td,
-    #taskList td,
-    #taskLog td,
-    #adList td,
-    #propList td,
-    #propList th,
-    #aboutSystem td
-{
+#taskList td,
+#taskLog td,
+#adList td,
+#propList td,
+#propList th,
+#aboutSystem td {
     border: 1px solid #cdcdcd;
     padding: 3px 7px;
-    vertical-align:top;
+    vertical-align: top;
 }
 
 #experimentList table.results td.expLog, #adList td.expLog {
-    padding:0;
+    padding: 0;
 }
 
 a.history {
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 .expTaskLog .none {
-    padding:10px;
+    padding: 10px;
 }
 
-#experimentList table.results td.sel
-{
+#experimentList table.results td.sel {
     border-right: none;
 }
 
-#experimentList table.results td.accession
-{
+#experimentList table.results td.accession {
     padding-left: 10px;
-    border-right: none; border-left: none;
+    border-right: none;
+    border-left: none;
     font-weight: bold;
     color: #005555;
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 #adList tbody td.accession {
     font-weight: bold;
     color: #005555;
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 #adList tfoot td {
     color: #aaaaaa;
-    padding-top:10px;
-    padding-bottom:10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     font-weight: bold;
 }
 
@@ -142,7 +179,7 @@ a.history {
 }
 
 #experimentList table.results td.analytics, #experimentList table.results td.loaddate {
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 #experimentList table.results td.selall {
@@ -170,7 +207,7 @@ a.history {
     border-left: none;
     font-weight: bold;
     color: #005555;
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 #taskList td.state {
@@ -193,40 +230,83 @@ a.history {
 }
 
 #taskList tr.stateWORKING td.state {
-    color: #005555; font-weight: bold;
+    color: #005555;
+    font-weight: bold;
 }
 
 #taskList tr.statePENDING td.state {
-    color: #aaaaaa; font-weight: bold;
+    color: #aaaaaa;
+    font-weight: bold;
 }
 
 #taskList td.progress {
     width: 50%;
 }
-#taskList .type { white-space:nowrap; }
 
-td.event {
-    font-weight: bold; white-space:nowrap;
+#taskList .type {
+    white-space: nowrap;
 }
 
-#taskLog td.message { border-right: none; }
-#taskLog td.retry { border-left:none; }
+td.event {
+    font-weight: bold;
+    white-space: nowrap;
+}
 
-fieldset legend { font-weight: bold; }
+#taskLog td.message {
+    border-right: none;
+}
 
-thead td { font-weight:bold;text-align:left;white-space:nowrap; }
-#propList td input.value { width: 90%; }
+#taskLog td.retry {
+    border-left: none;
+}
 
-#logout { display: none; }
-#userName { font-weight: bold; }
+fieldset legend {
+    font-weight: bold;
+}
 
-#loginMessage { font-weight: bold; color: firebrick; white-space:nowrap; }
-#loginUser { width: 100px; }
-#loginPassword { width: 100px; }
-#loginForm { width: 400px; }
+thead td {
+    font-weight: bold;
+    text-align: left;
+    white-space: nowrap;
+}
 
-#numWorking { font-weight: bold; }
-#numPending { font-weight: bold; }
+#propList td input.value {
+    width: 90%;
+}
+
+#logout {
+    display: none;
+}
+
+#userName {
+    font-weight: bold;
+}
+
+#loginMessage {
+    font-weight: bold;
+    color: firebrick;
+    white-space: nowrap;
+}
+
+#loginUser {
+    width: 100px;
+}
+
+#loginPassword {
+    width: 100px;
+}
+
+#loginForm {
+    width: 400px;
+}
+
+#numWorking {
+    font-weight: bold;
+}
+
+#numPending {
+    font-weight: bold;
+}
 
 #loadUrl {
     width: 750px;
@@ -240,35 +320,35 @@ textarea#loadUrl {
     width: 70px;
 }
 
-.eventFAILED td.event, .eventFAILED td.message, .rebuildIndex .false
-{
+.eventFAILED td.event, .eventFAILED td.message, .rebuildIndex .false {
     color: firebrick;
 }
 
-.eventWARNING td.event, .eventWARNING td.message
-{
+.eventWARNING td.event, .eventWARNING td.message {
     color: goldenrod;
 }
 
-.eventFINISHED td.event, .eventFINISHED td.message, .rebuildIndex .true
-{
+.eventFINISHED td.event, .eventFINISHED td.message, .rebuildIndex .true {
     color: #055555;
 }
 
 #experimentList table.results .expTaskLog td.accession {
-    font-weight:normal;
+    font-weight: normal;
     color: black;
 }
 
 td.time {
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
 .rebuildIndex {
-    float:right;
+    float: right;
 }
 
-.rebuildIndex td { margin:0;padding:0; }
+.rebuildIndex td {
+    margin: 0;
+    padding: 0;
+}
 
 .rebuildIndex .label {
     font-weight: bold;
@@ -336,7 +416,7 @@ td.time {
 }
 
 .annotSourceList table tr.obsolete {
-    color:#999;
+    color: #999;
 }
 
 .annotSourceList table tr td {
@@ -349,7 +429,7 @@ td.time {
 }
 
 .msg {
-    font-style:italic;
+    font-style: italic;
     padding: 5px;
     color: #aaa;
 }
