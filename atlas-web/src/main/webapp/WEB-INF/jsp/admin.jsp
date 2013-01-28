@@ -31,7 +31,7 @@
     <tmpl:stringTemplate name="adminPageHead"/>
 
     <script type="text/javascript" src="scripts/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="scripts/jquery-ui/jquery-ui-1.7.2.atlas.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-ui/jquery-ui-1.8.18.custom.min.js"></script>
     <script type="text/javascript" src="scripts/jquery.pagination.js"></script>
     <script type="text/javascript" src="scripts/jquery.tmpl.min.js"></script>
     <script type="text/javascript" src="scripts/pure2.js"></script>
