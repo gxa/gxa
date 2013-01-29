@@ -21,14 +21,15 @@
  */
 
 .logo {
-	font: bold 330%/100% "Lucida Grande", Arial, sans-serif;
-	position: relative;
-	color: #E33E3E;
+    font: bold 330%/100% "Lucida Grande", Arial, sans-serif;
+    position: relative;
+    color: #E33E3E;
 }
 
 input.value, textarea.value {
     border: solid 1px #5E9E9E;
-    margin:0; padding:1px;
+    margin: 0;
+    padding: 1px;
 }
 
 body {
@@ -41,10 +42,11 @@ td {
 }
 
 .ae_pagecontainer {
-	padding-left: 20px;
-	padding-top: 0;
-	padding-right: 20px;
-	margin-bottom: 150px; /* was 50px */
+    padding-left: 20px;
+    padding-top: 10px; /* was 0px */
+    padding-right: 20px;
+    /* margin-bottom: 150px; was 50px */
+    background-color: white;
 }
 
 .ae_pagecontainer, .ae_pagecontainer input, .ae_pagecontainer select, .ae_pagecontainer td, .ae_pagecontainer th {
@@ -52,17 +54,17 @@ td {
 }
 
 a:link, a:visited, .ae_pagecontainer a:link, .ae_pagecontainer a:visited {
-	text-decoration: none;
-	color: #006666;
-	cursor: pointer;
+    text-decoration: none;
+    color: #006666;
+    cursor: pointer;
     font-family: Verdana, helvetica, arial, sans-serif;
 }
 
 a:hover, .ae_pagecontainer a:hover {
-	text-decoration: underline;
-	color: #e33e3e;
-	cursor: pointer;
-	font-family: Verdana, helvetica, arial, sans-serif;
+    text-decoration: underline;
+    color: #e33e3e;
+    cursor: pointer;
+    font-family: Verdana, helvetica, arial, sans-serif;
 }
 
 a.external {
@@ -76,9 +78,9 @@ a.external {
     margin: 0;
     padding: 0 10px 0 0;
     color: #005555;
-	text-align: left;
-	font-size: 20pt;
-	font-weight: bold;
+    text-align: left;
+    font-size: 20pt;
+    font-weight: bold;
     vertical-align: text-bottom;
 }
 
@@ -86,7 +88,7 @@ a.external {
     font-family: Verdana, helvetica, arial, sans-serif;
     font-size: 11pt;
     font-weight: bold;
-	color: #005555;
+    color: #005555;
 }
 
 .section-header-2 {
@@ -137,48 +139,48 @@ a.external {
     margin: 1em 0;
 }
 
-.pagination_ie a:link, .pagination_ie a:visited,.pagination_ie a {
+.pagination_ie a:link, .pagination_ie a:visited, .pagination_ie a {
     text-decoration: none;
-	border: solid 1px #5E9E9E;
-	color: #006666;
-	cursor: pointer;
+    border: solid 1px #5E9E9E;
+    color: #006666;
+    cursor: pointer;
 }
 
 .pagination_ie a:hover, .pagination_ie a:active {
     text-decoration: underline;
-	border: solid 1px #5E9E9E;
-	color: #e33e3e;
-	cursor: pointer;
+    border: solid 1px #5E9E9E;
+    color: #e33e3e;
+    cursor: pointer;
 }
 
 .pagination_ie a, .pagination_ie span {
     white-space: nowrap;
     padding: 0.1em 0.3em;
     margin-right: 5px;
-	margin-bottom: 5px;
+    margin-bottom: 5px;
 }
 
 .pagination_ie .current {
     background: #006666;
     color: #fff;
-	border: solid 1px #5E9E9E;
+    border: solid 1px #5E9E9E;
 }
 
-.pagination_ie .current.prev, .pagination_ie .current.next{
-	color:#999;
-	border-color:#999;
-	background:#fff;
+.pagination_ie .current.prev, .pagination_ie .current.next {
+    color: #999;
+    border-color: #999;
+    background: #fff;
 }
 
 .pagination_ie a.prev, .pagination_ie a.next {
     color: #408c8c;
     border: solid 1px #5E9E9E;
-    background:#fff;
+    background: #fff;
     float: none;
     height: auto;
     padding: 0.1em 0.3em;
     margin-right: 5px;
-	margin-bottom: 5px;
+    margin-bottom: 5px;
 }
 
 .alignRight {
@@ -186,7 +188,7 @@ a.external {
 }
 
 td.atlastable {
-		padding: 0px;
+    padding: 0px;
 }
 
 td.legendLabel {
@@ -199,34 +201,34 @@ td.legendColorBox {
 }
 
 .hrClear hr {
-width: 100%;
-height: 0;
-margin: 0;
-padding: 0;
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .errorMessage {
-    color:red;
-    visibility:hidden;
+    color: red;
+    visibility: hidden;
 }
 
 /* api links styles */
 
-#apilinks  {
+#apilinks {
     color: black;
     font-size: 12px;
     font-weight: normal;
-    position:relative;
-    display:none;
-    line-height:normal;
-    z-index:10;
+    position: relative;
+    display: none;
+    line-height: normal;
+    z-index: 10;
 }
 
 #apilinks div.abs {
-    position:absolute;
+    position: absolute;
     padding: 10px;
-    margin:0;
-    z-index:1000;
+    margin: 0;
+    z-index: 1000;
     width: 600px;
     border: 1px solid #5E9E9E;
     background-color: #EEF5F5;
@@ -257,7 +259,7 @@ padding: 0;
     top: 0;
     font-weight: bold;
     font-size: 10px;
-    background-color:white;
+    background-color: white;
     padding: 4px 8px 4px 8px;
     text-align: center;
     border-left: 1px solid #5E9E9E;
@@ -353,8 +355,8 @@ padding: 0;
 /*icons*/
 
 .cancel-icon {
-    padding-left:16px;
-    padding-top:16px;
+    padding-left: 16px;
+    padding-top: 16px;
     background: url(images/cancel.png) no-repeat;
     cursor: pointer;
 }
@@ -363,9 +365,13 @@ padding: 0;
 Set sensible minimum heights for small and large screens
 */
 @media screen and (min-height: 600px) {
-div#contents { min-height: 250px; }
+    div#contents {
+        min-height: 250px;
+    }
 }
 
 @media screen and (min-height: 1000px) {
-div#contents { min-height: 450px; }
+    div#contents {
+        min-height: 450px;
+    }
 }

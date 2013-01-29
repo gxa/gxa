@@ -42,6 +42,7 @@
             right: 0;
             width: 30%;
             background-color: white;
+            z-index: 100;
         }
 
         .toc ul {
@@ -109,19 +110,16 @@
 
 <tmpl:stringTemplateWrap name="page">
 
-    <div class="contents" id="contents">
-        <div class="ae_pagecontainer">
+    <div class="ae_pagecontainer">
 
-            <div style="position:relative;width:100%;">
-                <div style="padding-bottom:50px;width:70%">
-                    <u:renderWiki/>
-                </div>
+        <div style="position:relative;width:100%;">
+            <div style="padding-bottom:50px;width:70%">
+                <u:renderWiki/>
             </div>
-
         </div>
-        <!-- ae_pagecontainer -->
+
     </div>
-    <!-- /id="contents" -->
+    <!-- ae_pagecontainer -->
 
 </tmpl:stringTemplateWrap>
 </html>

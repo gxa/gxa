@@ -123,7 +123,7 @@ pageHeader(contextPath) ::= <<
 page_Begin(contextPath) ::= <<
     <body onLoad="if(navigator.userAgent.indexOf('MSIE') != -1) {document.getElementById('head').allowTransparency = true;}">
     $pageHeader(contextPath)$
-    <div id="contents" class="grid_24">
+    <div id="contents" class="grid_24, contents">
 >>
 
 page_End(atlasProperties) ::= <<
