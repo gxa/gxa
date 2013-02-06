@@ -22,16 +22,8 @@
 
 package uk.ac.ebi.gxa.efo;
 
-import net.sourceforge.fluxion.utils.OWLUtils;
-import net.sourceforge.fluxion.utils.ReasonerSession;
-import net.sourceforge.fluxion.utils.ReasonerSessionManager;
-import net.sourceforge.fluxion.utils.ReasonerType;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.reasoner.Node;
-import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerException;
 import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +41,6 @@ import static uk.ac.ebi.gxa.exceptions.LogUtil.createUnexpected;
  * Ontology loader class reading OWL files
  */
 class Loader {
-    private static final String OBOFOUNDRY_PARTOF = "http://www.obofoundry.org/ro/ro.owl#part_of";
     final private Logger log = LoggerFactory.getLogger(getClass());
     private OWLOntology ontology;
     private Map<String, EfoNode> efomap;
@@ -113,8 +104,8 @@ class Loader {
      * @param uri URI to load ontology from
      */
     void load(Efo efo, URI uri) {
-        ReasonerSessionManager sessionManager = ReasonerSessionManager.createManager();
-        sessionManager.setRecycleAfter(0);
+        System.setProperty("entityExpansionLimit", "100000000");
+
 
         try {
             OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
@@ -123,7 +114,8 @@ class Loader {
                     uri = getClass().getClassLoader().getResource(uri.getSchemeSpecificPart()).toURI();
                 }
                 log.info("Loading ontology from " + uri.toString());
-                ontology = manager.loadOntology(IRI.create(uri));
+
+                ontology = manager.loadOntologyFromOntologyDocument((IRI.create(uri)));
 
                 efo.setVersion("unknown");
 
@@ -149,78 +141,19 @@ class Loader {
                 log.info("EFO version " + efo.getVersion() + " (" + efo.getVersionInfo() + ")");
 
             } catch (OWLOntologyCreationException e) {
-                throw createUnexpected("Can't load EF Ontology", e);
+                throw createUnexpected("Can't load EFO Ontology", e);
             }
 
-            // acquire a reasoner session and use fluxion utils to build the partonomy
-            ReasonerSession session = null;
-            OWLReasoner reasoner = null;
-            try {
-                session = sessionManager.acquireReasonerSession(ontology, ReasonerType.HERMIT);
-                reasoner = session.getReasoner();
-                // first, load each class
-                this.efomap = efo.getEfomap();
-                for (OWLClass cls : ontology.getClassesInSignature(true)) {
-                    loadClass(reasoner, cls);
-                }
-
-                buildPartonomy();
-            } finally {
-                if (reasoner != null)
-                    reasoner.dispose();
-                if (session != null)
-                    session.releaseSession();
+            //get map and call each class to add it to the map
+            this.efomap = efo.getEfomap();
+            for (OWLClass cls : ontology.getClassesInSignature(true)){
+                addClassToMap(cls);
             }
 
+            System.out.println("Ontology loaded");
             log.info("Loading ontology done");
         } catch (URISyntaxException e) {
             throw LogUtil.createUnexpected("Can't get resource URI for " + uri);
-        } catch (OWLReasonerException e) {
-            throw createUnexpected(e.getClass() + ": " + e.getMessage(), e);
-        } finally {
-            sessionManager.destroy();
-        }
-    }
-
-    private OWLObjectProperty getProperty(final String iri) {
-        IRI propertyIRI = IRI.create(iri);
-
-        OWLObjectProperty result = null;
-        for (OWLObjectProperty prpt : ontology.getObjectPropertiesInSignature(true)) {
-            if (prpt.getIRI().equals(propertyIRI)) {
-                result = prpt;
-                break;
-            }
-        }
-        return result;
-    }
-
-
-    private void buildPartonomy() {
-        OWLObjectProperty partOfProperty = getProperty(OBOFOUNDRY_PARTOF);
-
-        if (partOfProperty != null) {
-            ArrayList<OWLClass> classes = new ArrayList<OWLClass>(ontology.getClassesInSignature(true));
-            for (OWLClass cls : classes) {
-                Set<OWLClass> partOfs = OWLUtils.getReferencedRestrictedClasses(ontology, cls, partOfProperty);
-
-                String partId = getId(cls);
-                for (OWLClass partOf : partOfs) {
-                    String parentId = getId(partOf);
-
-                    if (parentId.equals(partId))
-                        continue;
-
-                    EfoNode parentNode = efomap.get(parentId);
-                    EfoNode node = efomap.get(partId);
-                    if (parentNode != null && node != null) {
-                        parentNode.children.add(node);
-                        node.parents.add(parentNode);
-
-                        log.debug("Partonomy: " + node.term + " part_of " + parentNode.term);
-                    }
-                }
-            }
         }
     }
 
@@ -228,24 +161,37 @@ class Loader {
         return cls.getIRI().toString().replaceAll("^.*?([^#/=?]+)$", "$1");
     }
 
-    private Collection<EfoNode> loadClass(OWLReasoner reasoner, OWLClass cls) throws OWLReasonerException {
-        if (reasoner.isSatisfiable(cls)) {
-            String id = getId(cls);
-            EfoNode en = efomap.get(id);
-            if (en == null) {
-                ClassAnnoVisitor cannov = new ClassAnnoVisitor();
-                for (OWLAnnotation annotation : cls.getAnnotations(ontology)) {
-                    annotation.accept(cannov);
-                }
-                String term = cannov.getTerm();
-                if (term == null)
-                    term = "undefined";
-                en = new EfoNode(id, term, cannov.isBranchRoot(), cannov.alternativeTerms);
-                NodeSet<OWLClass> children = reasoner.getSubClasses(cls, true);
-                for (Node<OWLClass> setOfClasses : children) {
-                    for (OWLClass child : setOfClasses) {
-                        if (!child.equals(cls)) {
-                            Collection<EfoNode> cnc = loadClass(reasoner, child);
+    private Collection<EfoNode> addClassToMap(OWLClass cls){
+
+        //get class ID
+        String id = getId(cls);
+        //try to get node corresponding to this class from map
+        EfoNode en = efomap.get(id);
+        //if this node is not already in the map then add it and subclass information
+        if (en == null) {
+            ClassAnnoVisitor cannov = new ClassAnnoVisitor();
+            for (OWLAnnotation annotation : cls.getAnnotations(ontology)) {
+                annotation.accept(cannov);
+            }
+            String term = cannov.getTerm();
+            if (term == null)
+                term = "undefined";
+            en = new EfoNode(id, term, cannov.isBranchRoot(), cannov.alternativeTerms);
+
+            //get all asserted subclasses
+            Set<OWLClassExpression> childClassExpressions = cls.getSubClasses(ontology);
+            //for each of this child classes
+            for (OWLClassExpression childClass : childClassExpressions) {
+                    //check that child class is not same as one we are considering
+                    if (!childClass.equals(cls)) {
+
+                        //check to make sure we can cast the child class as an OWLClass
+                        if(childClass instanceof OWLClass){
+                            //cast it as such
+                            OWLClass childAsOWLClass = childClass.asOWLClass();
+
+                            //iteratively call to get rest of subclasses of this child
+                            Collection<EfoNode> cnc = addClassToMap(childAsOWLClass);
                             for (EfoNode cn : cnc) {
                                 en.children.add(cn);
                                 if (!cannov.isOrganizational()) {
@@ -254,15 +200,15 @@ class Loader {
                             }
                         }
                     }
-                }
-                if (cannov.isOrganizational()) {
-                    return en.children;
-                } else {
-                    efomap.put(id, en);
-                }
             }
-            return Collections.singletonList(en);
+            if (cannov.isOrganizational()) {
+                return en.children;
+            } else {
+                efomap.put(id, en);
+            }
+
         }
-        return new ArrayList<EfoNode>();
+        return Collections.singletonList(en) ;
+
     }
 }

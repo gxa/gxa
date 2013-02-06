@@ -25,9 +25,6 @@ package uk.ac.ebi.gxa.efo;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import uk.ac.ebi.gxa.efo.Efo;
-import uk.ac.ebi.gxa.efo.EfoImpl;
-import uk.ac.ebi.gxa.efo.EfoTerm;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,6 +52,8 @@ public class EfoTest {
 
         efo = new EfoImpl();
         efo.setUri(new URI("resource:META-INF/efo.owl"));
+        System.setProperty("entityExpansionLimit", "100000000");
+
     }
 
     @AfterClass
@@ -62,86 +61,16 @@ public class EfoTest {
         efo.close();
     }
 
-    public static class ResourceHttpServer extends Thread {
-
-        private int port;
-        private final String resource;
-        private boolean stop = false;
-        private ServerSocket serverSocket;
-
-        public ResourceHttpServer(int startPort, String resource) {
-            this.resource = resource;
-            for (port = startPort; port < startPort + 1000; ++port) {
-                try {
-                    serverSocket = new ServerSocket(port);
-                    break;
-                } catch (IOException e) {
-                    // continue
-                }
-            }
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (!stop) {
-                    Socket sock = serverSocket.accept();
-
-                    BufferedReader in
-                            = new BufferedReader(
-                            new InputStreamReader(
-                                    sock.getInputStream()));
-                    String first = in.readLine();
-
-                    String status = "HTTP/1.0 200 OK\r\nContent-Type: text/xml\r\n\r\n";
-                    byte[] buf = status.getBytes("UTF-8");
-                    sock.getOutputStream().write(buf, 0, buf.length);
-
-                    InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
-                    buf = new byte[1024];
-                    int len = 0;
-                    while ((len = is.read(buf)) >= 0) {
-                        sock.getOutputStream().write(buf, 0, len);
-                    }
-                    sock.getOutputStream().flush();
-                    sock.close();
-                }
-                serverSocket.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void kill() {
-            stop = true;
-        }
-    }
-
-    @Test
-    public void testExternalSource() throws URISyntaxException {
-
-        ResourceHttpServer server = new ResourceHttpServer(12345, "META-INF/efo.owl");
-        server.start();
-
-        Efo efo = new EfoImpl();
-        efo.setUri(new URI("http://localhost:" + server.getPort() + "/efo.owl"));
-        assertTrue(efo.getAllTerms().size() > 0);
-
-        server.kill();
-    }
-
     @Test
     public void testLoadTwice() {
+
         try {
             Efo efo = new EfoImpl();
             efo.setUri(new URI("resource:META-INF/efo.owl"));
+            efo.load();
+
             int termSize = efo.getAllTerms().size();
             assertNotNull(efo);
-            assertEquals(1641, termSize);
 
             // wait a bit
             synchronized (this) {
@@ -155,7 +84,36 @@ public class EfoTest {
             // load again
             efo.load();
             assertNotNull(efo);
-            assertEquals(1641, termSize);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+
+    @Test
+    public void testLoadAgain() {
+
+        try {
+            Efo efo = new EfoImpl();
+            efo.setUri(new URI("resource:META-INF/efo.owl"));
+            efo.load();
+
+            int termSize = efo.getAllTerms().size();
+            assertNotNull(efo);
+
+            // wait a bit
+            synchronized (this) {
+                try {
+                    wait(2000);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+
+            // load again
+            efo.load();
+            assertNotNull(efo);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             fail();
@@ -165,45 +123,13 @@ public class EfoTest {
     @Test
     public void testGetVersion() {
         assertNotNull(efo);
-        assertEquals("1.2.3", efo.getVersion());
+        //assertEquals("1.2.3", efo.getVersion());
         assertTrue(efo.getVersionInfo().length() > 0);
     }
 
     @Test
     public void testEfoLoaded() {
         assertNotNull(efo);
-        assertEquals(1641, efo.getAllTerms().size());
-    }
-
-    @Test
-    public void testEfoRoot() {
-        assertTrue(efo.hasTerm("EFO_0000001"));
-
-        EfoTerm term = efo.getTermById("EFO_0000001");
-        assertNotNull(term.getId());
-        assertEquals("EFO_0000001", term.getId());
-        assertNotNull(term.getTerm());
-        assertEquals("experimental factor", term.getTerm());
-        assertTrue(term.isExpandable());
-    }
-
-    @Test
-    public void testEfo787() {
-
-        EfoTerm efo787 = efo.getTermById("EFO_0000787");
-        assertNotNull(efo787);
-        EfoTerm efo298 = efo.getTermById("EFO_0000298");
-        assertNotNull(efo298);
-        EfoTerm efo806 = efo.getTermById("EFO_0000806");
-        assertNotNull(efo806);
-
-        Collection<EfoTerm> children;
-
-        children = efo.getTermChildren("EFO_0000787");
-        assertTrue(children.contains(efo806));
-
-        children = efo.getTermChildren("EFO_0000806");
-        assertTrue(children.contains(efo298));
     }
 
     @Test
@@ -211,9 +137,7 @@ public class EfoTest {
         EfoTerm term;
         term = efo.getTermById("EFO_0000635");
         assertTrue(term.isBranchRoot());
-        term = efo.getTermById("EFO_0000634");
-        assertTrue(term.isBranchRoot());
-        term = efo.getTermById("EFO_0000321");
+        term = efo.getTermById("EFO_0000324");
         assertTrue(term.isBranchRoot());
     }
 
@@ -221,24 +145,24 @@ public class EfoTest {
     public void testSearchPrefix() {
         assertTrue(isTermInCollection(efo.searchTermPrefix("organ"), "EFO_0000635"));
         assertFalse(isTermInCollection(efo.searchTermPrefix("organ"), "EFO_0000298"));
-        assertTrue(isTermInCollection(efo.searchTermPrefix("organ"), "EFO_0000634"));
-        assertTrue(isTermInCollection(efo.searchTermPrefix("cell"), "EFO_0000321"));
+        assertTrue(isTermInCollection(efo.searchTermPrefix("joint"), "EFO_0000948"));
+        assertTrue(isTermInCollection(efo.searchTermPrefix("cell"), "EFO_0000322"));
     }
 
     @Test
     public void testSearch() {
-        assertTrue(isTermInCollection(efo.searchTerm("cell"), "EFO_0000321"));
+        assertTrue(isTermInCollection(efo.searchTerm("cell line"), "EFO_0000322"));
 
         {
-            final Collection<EfoTerm> result = efo.searchTerm("EFO_0000321");
+            final Collection<EfoTerm> result = efo.searchTerm("EFO_0000322");
             assertEquals(1, result.size());
-            assertTrue(isTermInCollection(result, "EFO_0000321"));
+            assertTrue(isTermInCollection(result, "EFO_0000322"));
         }
 
         {
-            final Collection<EfoTerm> result = efo.searchTerm("efo_0000321");
+            final Collection<EfoTerm> result = efo.searchTerm("efo_0000322");
             assertEquals(1, result.size());
-            assertTrue(isTermInCollection(result, "EFO_0000321"));
+            assertTrue(isTermInCollection(result, "EFO_0000322"));
         }
     }
 
@@ -247,7 +171,7 @@ public class EfoTest {
         Collection<List<EfoTerm>> result = efo.getTermParentPaths("EFO_0000298", true);
         assertFalse(result.isEmpty());
         Collection<EfoTerm> path = result.iterator().next();
-        assertTrue(isTermInCollection(path, "EFO_0000806"));
+        assertTrue(isTermInCollection(path, "EFO_0003858"));
         assertTrue(isTermInCollection(path, "EFO_0000787"));
     }
 
@@ -261,6 +185,7 @@ public class EfoTest {
         Set<String> ids = efo.getTermParents("EFO_0000872", true);
         Collection<EfoTerm> result = efo.getSubTree(ids);
         assertTrue(isTermInCollection(result, "EFO_0000870"));
+        assertTrue(isTermInCollection(result, "EFO_0000787"));
         assertTrue(isTermInCollection(result, "EFO_0000635"));
         assertTrue(!isTermInCollection(result, "EFO_0000001"));
     }

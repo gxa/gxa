@@ -36,16 +36,10 @@
     </parent>
 
     <dependencies>
-       <dependency>
-            <groupId>net.sourceforge.fluxion</groupId>
-            <artifactId>fluxion-utils</artifactId>
-            <version>1.0-beta</version>
-             <exclusions>
-                <exclusion>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>org.mortbay.jetty</artifactId>
-                </exclusion>
-            </exclusions>
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-distribution</artifactId>
+            <version>3.4</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.gxa</groupId>
