@@ -34,7 +34,7 @@ http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000139618
 
 '''4. A window will appear listing the DAS sources available. Check the box for the Gene Expression Atlas. Then click on the 'tick' icon in the top right hand corner of the window to save this selection. '''
 
-[[File:das/EnsemblDASSources.png|link=]]
+[[File:das/EnsemblDASsources.png|link=]]
 
 '''5. The gene page will now have a section with Gene Expression Atlas results for the selected gene.'''
 
