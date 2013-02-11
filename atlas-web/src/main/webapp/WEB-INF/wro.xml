@@ -111,5 +111,10 @@
         <css>/experiment-index-view.css</css>
     </group>
 
+    <group name="bundle-gxa-admin">
+        <js>/scripts/admin.js</js>
+        <css>/admin.css</css>
+    </group>
+
 </groups>
 

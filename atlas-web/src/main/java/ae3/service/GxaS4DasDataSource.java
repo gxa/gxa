@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import uk.ac.ebi.gxa.anatomogram.AnatomogramFactory;
 import uk.ac.ebi.gxa.dao.PropertyDAO;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -72,7 +73,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
     private static final String EXPERIMENTAL_FACTOR = "ExperimentalFactor";
     private static final String SUMMARY = "summary";
     private static final String IMAGE = "image";
-
+    private AnatomogramFactory anatomogramFactory;
     private AtlasStatisticsQueryService atlasStatisticsQueryService;
 
     protected String getDasBaseUrl() {
@@ -90,7 +91,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     "calculated as a summary across subsets of the underlying ArrayExpress " +
                     "Archive.  With GXA you can perform targeted searching, for example to find " +
                     "condition-specific gene expression patterns as well as broader exploratory " +
-                    "searches for biologically interesting genes/samples. About GXA: ";
+                    "searches for biologically interesting genes/samples.";
     private static final String PROVENANCE_UC = "Provenance";
     private static final String PROVENANCE_LC = PROVENANCE_UC.toLowerCase();
 
@@ -125,6 +126,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
         propertyDAO = context.getBean(PropertyDAO.class);
         atlasProperties = context.getBean(AtlasProperties.class);
         atlasStatisticsQueryService = context.getBean(AtlasStatisticsQueryService.class);
+        anatomogramFactory =  context.getBean(AnatomogramFactory.class);
     }
 
     /**
@@ -233,6 +235,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
 
     public DasFeature getProvenanceDasFeature() throws DataSourceException {
         try {
+            String aboutAtlas = getDasBaseUrl() + "/../help/AboutAtlas";
             List<String> notes = new ArrayList<String>();
             String dataRelease = atlasProperties.getDataRelease();
             String releaseDate = atlasProperties.getLastReleaseDate();
@@ -249,7 +252,7 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
                     DasFeatureOrientation.ORIENTATION_NOT_APPLICABLE,
                     DasPhase.PHASE_NOT_APPLICABLE,
                     notes,
-                    Collections.singletonMap(new URL(getDasBaseUrl()), getDasBaseUrl()),
+                    Collections.singletonMap(new URL(aboutAtlas), "About GXA"),
                     null,
                     null,
                     null
@@ -337,7 +340,8 @@ public class GxaS4DasDataSource implements AnnotationDataSource {
             feat.add(getFactorDasFeature(atlasGene, factor, heatmaps));
         }
 
-        feat.add(getImageDasFeature(atlasGene));
+        if (!anatomogramFactory.getAnatomogram(AnatomogramFactory.AnatomogramType.Das, atlasGene).getAreaMap().isEmpty())
+            feat.add(getImageDasFeature(atlasGene));
 
         feat.add(getProvenanceDasFeature());
 
