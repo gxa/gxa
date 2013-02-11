@@ -65,6 +65,7 @@
             width: 660px;
         }
 
+        /* jQuery Stickem - side menu - inline css start */
         .aside{
             float:right;
             width:300px;
@@ -86,6 +87,8 @@
             position: absolute;
             right: 0;
         }
+        /* jQuery Stickem - inline side menu - end */
+
     </style>
 
     <script type="text/javascript">
@@ -110,9 +113,9 @@
                 $("#local-nav-about").addClass("active");
             }
 
-            $("pre").css("overflow-x","auto");
-
             $('.toc ~ hr').hide();
+
+            /* jQuery Stickem - side menu - inline javascript start */
 
             $('.toc').wrap("<div class='aside stickem'/>");
 
@@ -120,17 +123,10 @@
 
             $('.container').stickem();
 
-            /*
-            var toc = $('.toc');
-            var parentY = toc.offset().top;
-            $(window).scroll(function () {
-                var scrolltop = $(window).scrollTop();
-                var offset = scrolltop - parentY + 10;
-                if (offset < 0)
-                    offset = 0;
-                toc.animate({top:offset + "px"}, {duration:500, queue:false});
-            });
-            */
+            $("pre").css("overflow-x","auto");
+
+            /* jQuery Stickem - side menu - inline javascript end */
+
         });
     </script>
 
