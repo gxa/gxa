@@ -54,7 +54,6 @@
 
 <tmpl:stringTemplateWrap name="page">
 
-    <div id="contents" class="contents">
         <div id="centeredMain">
 
             <jsp:include page="/WEB-INF/jsp/includes/atlas-header.jsp">
@@ -172,7 +171,6 @@
                 </form>
             </div>
         </div>
-    </div>
 
 </tmpl:stringTemplateWrap>
 </html>

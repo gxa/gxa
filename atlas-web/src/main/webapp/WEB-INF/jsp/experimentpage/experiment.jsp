@@ -395,7 +395,7 @@
             onclick="expPage.clearQuery(); return false;" href="#">no restrictions</a>.
     </div>
 
-    <div style="float:left; margin: 5px;">
+    <div style="margin: 5px;">
         <a class="export2TsvLink" target="_blank" rel="nofollow"
            href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export Search Results Page as Tab-Delimited file</a>
     </div>

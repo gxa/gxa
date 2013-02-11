@@ -32,6 +32,7 @@
         <js>/scripts/jquery.tooltip.js</js>
         <js>/scripts/jquery.cookie.js</js>
         <js>/scripts/jquery.tmpl.min.js</js>
+        <js>/scripts/jquery.stickem.js</js>
         <js>/scripts/pure2.js</js>
     </group>
 
