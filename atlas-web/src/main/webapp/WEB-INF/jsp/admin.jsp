@@ -19,15 +19,17 @@
   ~
   ~ http://gxa.github.com/gxa
   --%>
-<%@include file="includes/global-inc.jsp" %>
 
-<jsp:include page="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+<%@include file="includes/global-inc.jsp" %>
 
 <jsp:useBean id="atlasProperties" type="uk.ac.ebi.gxa.properties.AtlasProperties" scope="application"/>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
+
+    <jsp:include page="/WEB-INF/jsp/includes/global-inc-head.jsp"/>
+
     <tmpl:stringTemplate name="adminPageHead"/>
 
     <script type="text/javascript" src="scripts/jquery-1.7.1.min.js"></script>
@@ -47,6 +49,7 @@
             }
         }
     </style>
+
 </head>
 
 <tmpl:stringTemplateWrap name="page">
@@ -250,11 +253,11 @@
     {{if softwareGroups }}
 
     {{each(key, group) softwareGroups}}
-    <div id="software_group_${group.id}" class="softwareGroup">
+    <div id="software_group_\${group.id}" class="softwareGroup">
         <div class="softwareVersions">
-            <div><b>${group.name}</b><br/> versions:</div>
+            <div><b>\${group.name}</b><br/> versions:</div>
             {{each group.versions}}
-            <div class="version" id="software_${id}">${version}
+            <div class="version" id="software_\${id}">\${version}
                 {{if isActive}}
                 <br/><span class="active" title="The currently used version">active</span>
                 {{/if}}
@@ -296,15 +299,15 @@
 
 <script id="annotSourceListTmpl" type="text/x-jQuery-tmpl">
     {{if software}}
-    <div class="softwareInfo">${software.name} &raquo; ${software.version} &raquo;
+    <div class="softwareInfo">\${software.name} &raquo; \${software.version} &raquo;
         {{if software.isActive}}
         currently used
         {{else}}
-        <a href="#" id="activateSoftware_${software.id}" class="activateSoftware"
+        <a href="#" id="activateSoftware_\${software.id}" class="activateSoftware"
            title="Start using this version and rebuild the index">start using this version</a>
         {{if software.isObsolete}}
         &raquo;
-        <a href="#" id="deleteSoftware_${software.id}" class="deleteSoftware" title="Delete this version">delete</a>
+        <a href="#" id="deleteSoftware_\${software.id}" class="deleteSoftware" title="Delete this version">delete</a>
         {{/if}}
         {{/if}}
     </div>
@@ -325,22 +328,22 @@
         {{each annotSources}}
         <tr
         {{if isObsolete}} class="obsolete" {{/if}}>
-        <td><input id="annot_batch_${id}" class="annotCheckbox" type="checkbox"/></td>
-        <td>${type}</td>
-        <td>${organism}</td>
-        <td>${bioEntityTypes}</td>
-        <td>${annotLoaded}</td>
-        <td>${mappingsLoaded}</td>
-        <td><a href="#" id="annot_edit_${id}" data-type="${type}" class="edit"
+        <td><input id="annot_batch_\${id}" class="annotCheckbox" type="checkbox"/></td>
+        <td>\${type}</td>
+        <td>\${organism}</td>
+        <td>\${bioEntityTypes}</td>
+        <td>\${annotLoaded}</td>
+        <td>\${mappingsLoaded}</td>
+        <td><a href="#" id="annot_edit_\${id}" data-type="\${type}" class="edit"
                title="View annotation source properties">view/edit</a></td>
         {{if isObsolete}}
         <td>obsolete</td>
         {{else}}
-        <td><a href="#" id="annot_test_${id}" data-type="${type}" class="test"
+        <td><a href="#" id="annot_test_\${id}" data-type="\${type}" class="test"
                title="Test if annotations could be loaded">test</a></td>
         {{/if}}
         </td>
-        <td id="annot_test_results_${id}">
+        <td id="annot_test_results_\${id}">
             <div class="inlineValidation"></div>
         </td>
         </tr>
@@ -354,18 +357,18 @@
 <script id="annotSourceEditTmpl" type="text/x-jQuery-tmpl">
     <div class="annotSourceForm">
         <form action="#" id="editAnnotSourceForm" onSubmit="return false">
-            <input type="hidden" name="annotSourceId" value="${id}"/>
-            <input type="hidden" name="typeName" value="${type}"/>
+            <input type="hidden" name="annotSourceId" value="\${id}"/>
+            <input type="hidden" name="typeName" value="\${type}"/>
             <table cellspacing="5">
                 <tr>
-                    <td><label>Type:&nbsp;</label>${type}</td>
+                    <td><label>Type:&nbsp;</label>\${type}</td>
                 </tr>
                 <tr>
                     <td><label>Annotation Source:</label></td>
                 </tr>
                 <tr>
                     <td>
-                        <textarea rows="20" cols="100" name="body" class="value">${body}</textarea>
+                        <textarea rows="20" cols="100" name="body" class="value">\${body}</textarea>
                     </td>
                 </tr>
                 <tr>
@@ -390,7 +393,7 @@
     <p>Errors:</p>
     <ul>
         {{each(i, value) errors}}
-        <li>${value}</li>
+        <li>\${value}</li>
         {{/each}}
     </ul>
 </script>
@@ -401,7 +404,7 @@
         <span>there are failures:</span>
         <ul>
             {{each(i, value) errors}}
-            <li>${value}</li>
+            <li>\${value}</li>
             {{/each}}
         </ul>
     </div>
