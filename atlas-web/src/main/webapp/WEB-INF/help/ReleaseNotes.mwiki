@@ -7,7 +7,7 @@
 * '''Data:'''
 ** Ensembl 70 annotations and array design probe set mappings
 ** EFO release 2.33
-** ?? experiments (including 80 new or re-curated and re-loaded experiments)
+** 3571 experiments (including 69 new or re-curated and re-loaded experiments)
 
 * '''Features:'''
 ** The links accessible on the right-hand side of the experiment page are now also accessible programmatically, e.g.
