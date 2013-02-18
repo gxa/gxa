@@ -2,6 +2,21 @@
 
 == Latest release note ==
 
+=== 2.0.19 ===
+
+* '''Data:'''
+** Ensembl 70 annotations and array design probe set mappings
+** EFO release 2.33
+** ?? experiments (including 80 new or re-curated and re-loaded experiments)
+
+* '''Features:'''
+** The links accessible on the right-hand side of the experiment page are now also accessible programmatically, e.g.
+
+* '''News:'''
+** We have released our new [http://www-test.ebi.ac.uk/gxa Baseline Expression Atlas prototype], that aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type). Please&nbsp;check&nbsp;it&nbsp;out&nbsp;-&nbsp;we&nbsp;would&nbsp;love&nbsp;to&nbsp;get&nbsp;your&nbsp;feedback! [[File:baseline_atlas_link.png|border|center|link=]]
+
+Downloadable data and software information is available from https://github.com/gxa/gxa/wiki/Release-Notes.
+
 === 2.0.18 ===
 
 * '''Data:'''
@@ -96,7 +111,7 @@ Downloadable data and software information is available from https://github.com/
 
 == Future Plans ==
 
-=== Baseline Expression Prototype ===
+=== Baseline Expression Atlas Prototype ===
 
 {|
 | [[File:baseline_human.png|border|link=]] || Majority of our effort from Autumn 2012 onwards has been spent on putting together the [http://www-test.ebi.ac.uk/gxa Baseline Atlas prototype]

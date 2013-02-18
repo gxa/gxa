@@ -162,10 +162,10 @@
 
                 <div style="float:right;width:530px;margin-left:10px;">
                     <div style="padding:10px">
-                        <div style="float:right;font-weight:bold;margin-bottom:5px;><img src="images/new.png">
+                        <div style="float:right;font-weight:bold;margin-bottom:5px;"><img src="images/help/new.png" >
                             <a href="http://www-test.ebi.ac.uk/gxa">Try out our brand new Baseline Atlas Prototype!</a>
                         </div>
-                        <div style="float:right"><a href="http://www-test.ebi.ac.uk/gxa"><img src="images/baseline_atlas_link.png"></a></div>
+                        <div style="float:right"><a href="http://www-test.ebi.ac.uk/gxa"><img src="images/help/baseline_atlas_link.png"></a></div>
                     </div>
                 </div>
 
