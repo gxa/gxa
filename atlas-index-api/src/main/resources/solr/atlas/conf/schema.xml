@@ -254,27 +254,27 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
         <fieldType class="solr.TextField" name="text_auto">
             <analyzer>
-                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <tokenizer class="solr.StandardTokenizerFactory"/>
                 <filter class="solr.LowerCaseFilterFactory"/>
             </analyzer>
             <analyzer type="query">
-                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <tokenizer class="solr.StandardTokenizerFactory"/>
                 <filter class="solr.LowerCaseFilterFactory"/>
             </analyzer>
         </fieldType>
 
         <!--<fieldType name="text_auto" class="solr.TextField" positionIncrementGap="100" omitNorms="true">-->
-            <!--<analyzer type="index">-->
-                <!--<tokenizer class="solr.KeywordTokenizerFactory"/>-->
-                <!--<filter class="solr.LowerCaseFilterFactory"/>-->
-                <!--<filter class="solr.PatternReplaceFilterFactory" pattern="\s+" replacement=" " replace="all"/>-->
-                <!--<filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="15" side="front"/>-->
-            <!--</analyzer>-->
-            <!--<analyzer type="query">-->
-                <!--<tokenizer class="solr.KeywordTokenizerFactory"/>-->
-                <!--<filter class="solr.LowerCaseFilterFactory"/>-->
-                <!--<filter class="solr.PatternReplaceFilterFactory" pattern="\s+" replacement=" " replace="all"/>-->
-            <!--</analyzer>-->
+        <!--<analyzer type="index">-->
+        <!--<tokenizer class="solr.KeywordTokenizerFactory"/>-->
+        <!--<filter class="solr.LowerCaseFilterFactory"/>-->
+        <!--<filter class="solr.PatternReplaceFilterFactory" pattern="\s+" replacement=" " replace="all"/>-->
+        <!--<filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="15" side="front"/>-->
+        <!--</analyzer>-->
+        <!--<analyzer type="query">-->
+        <!--<tokenizer class="solr.KeywordTokenizerFactory"/>-->
+        <!--<filter class="solr.LowerCaseFilterFactory"/>-->
+        <!--<filter class="solr.PatternReplaceFilterFactory" pattern="\s+" replacement=" " replace="all"/>-->
+        <!--</analyzer>-->
         <!--</fieldType>-->
     </types>
 
@@ -303,7 +303,6 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <field name="species_id" type="integer" indexed="true" stored="true"/>
 
         <field name="name" type="text" indexed="true" stored="true"/>
-        <field name="genename" type="string" indexed="true" stored="true"/>
         <field name="name_f" type="string" indexed="true" stored="false"/>
 
         <field name="orthologs" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -315,8 +314,8 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
         <field name="alltext" type="text" indexed="true" stored="false" multiValued="true"/>
 
-        <field name="autocomplete" type="text_auto" indexed="true" stored="true" multiValued="true"/>
-        <field name="autocomplete1" type="text_auto" indexed="true" stored="true" multiValued="true"/>
+        <field name="autocomplete_genename" type="text_auto" indexed="true" stored="false" multiValued="true"/>
+        <field name="autocomplete_properties" type="text_auto" indexed="true" stored="false" multiValued="true"/>
     </fields>
 
     <uniqueKey>id</uniqueKey>
@@ -339,12 +338,9 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
     <copyField source="name" dest="name_f"/>
 
-    <copyField source="name" dest="autocomplete"/>
-    <copyField source="property_*" dest="autocomplete"/>
-    <copyField source="genename" dest="autocomplete"/>
+    <copyField source="name" dest="autocomplete_genename"/>
 
-    <copyField source="property_f_*" dest="autocomplete1"/>
-    <copyField source="genename" dest="autocomplete1"/>
-
+    <copyField source="identifier" dest="autocomplete_properties"/>
+    <copyField source="property_*" dest="autocomplete_properties"/>
 
 </schema>
