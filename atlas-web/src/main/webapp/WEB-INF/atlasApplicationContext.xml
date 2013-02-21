@@ -166,6 +166,14 @@ http://www.springframework.org/schema/context/spring-context.xsd">
         <property name="executor" ref="threadPool"/>
     </bean>
 
+    <bean name="newIndexBuilderServiceGenes" class="uk.ac.ebi.gxa.index.builder.service.NewGeneAtlasIndexBuilderService">
+        <property name="atlasDAO" ref="atlasDAO"/>
+        <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="solrServer" ref="solrServerAtlas"/>
+        <property name="atlasProperties" ref="atlasProperties"/>
+        <property name="executor" ref="threadPool"/>
+    </bean>
+
     <bean name="bitIndexBuilderServiceGenes"
           class="uk.ac.ebi.gxa.index.builder.service.GeneAtlasBitIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
@@ -177,10 +185,10 @@ http://www.springframework.org/schema/context/spring-context.xsd">
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <property name="services">
             <util:list>
-                <ref bean="indexBuilderServiceProperties"/>
-                <ref bean="indexBuilderServiceExperiments"/>
-                <ref bean="indexBuilderServiceGenes"/>
-                <ref bean="bitIndexBuilderServiceGenes"/>
+                <!--<ref bean="indexBuilderServiceProperties"/>-->
+                <!--<ref bean="indexBuilderServiceExperiments"/>-->
+                <ref bean="newIndexBuilderServiceGenes"/>
+                <!--<ref bean="bitIndexBuilderServiceGenes"/>-->
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
