@@ -89,7 +89,7 @@ lexicographic ordering isn't equal to the numeric ordering) ]]> -->
              a string value that isn't human-readable in its internal form,
              but with a lexicographic ordering the same as the numeric ordering,
              so that range queries work correctly. ]]> -->
-        <fieldType name="tint" class="solr.TrieField" type="integer" omitNorms="true" positionIncrementGap="0" />
+        <fieldType name="tint" class="solr.TrieField" type="integer" omitNorms="true" positionIncrementGap="0"/>
         <fieldtype name="sint" class="solr.SortableIntField" sortMissingLast="true" omitNorms="true"/>
         <fieldtype name="slong" class="solr.SortableLongField" sortMissingLast="true" omitNorms="true"/>
         <fieldtype name="sfloat" class="solr.SortableFloatField" sortMissingLast="true" omitNorms="true"/>
@@ -159,7 +159,8 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
                      <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
                      ]]> -->
                 <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
-                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1"
+                        catenateWords="1" catenateNumbers="1" catenateAll="0"/>
                 <filter class="solr.LowerCaseFilterFactory"/>
                 <filter class="solr.EnglishPorterFilterFactory" protected="protwords.txt"/>
                 <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -168,7 +169,8 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
                 <tokenizer class="solr.WhitespaceTokenizerFactory"/>
                 <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
                 <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
-                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0"/>
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1"
+                        catenateWords="0" catenateNumbers="0" catenateAll="0"/>
                 <filter class="solr.LowerCaseFilterFactory"/>
                 <filter class="solr.EnglishPorterFilterFactory" protected="protwords.txt"/>
                 <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -178,12 +180,13 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
         <!-- <![CDATA[ Less flexible matching, but less false matches.  Probably not ideal for product names,
              but may be good for SKUs.  Can insert dashes in the wrong place and still match. ]]> -->
-        <fieldtype name="textTight" class="solr.TextField" positionIncrementGap="100" >
+        <fieldtype name="textTight" class="solr.TextField" positionIncrementGap="100">
             <analyzer>
                 <tokenizer class="solr.WhitespaceTokenizerFactory"/>
                 <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
                 <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
-                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="0" generateNumberParts="0"
+                        catenateWords="1" catenateNumbers="1" catenateAll="0"/>
                 <filter class="solr.LowerCaseFilterFactory"/>
                 <filter class="solr.EnglishPorterFilterFactory" protected="protwords.txt"/>
                 <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -203,9 +206,9 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
                 <!-- <![CDATA[ The LowerCase TokenFilter does what you expect, which can be
                      when you want your sorting to be case insensitive
                      ]]> -->
-                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.LowerCaseFilterFactory"/>
 
-                <filter class="solr.TrimFilterFactory" />
+                <filter class="solr.TrimFilterFactory"/>
                 <!-- <![CDATA[ The PatternReplaceFilter gives you the flexibility to use
                      Java Regular expression to replace any sequence of characters
                      matching a pattern with an arbitrary replacement string, 
@@ -225,30 +228,40 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
         <fieldType name="prefix_full" class="solr.TextField" positionIncrementGap="1">
             <analyzer type="index">
-                <tokenizer class="solr.KeywordTokenizerFactory" />
-                <filter class="solr.LowerCaseFilterFactory" />
+                <tokenizer class="solr.KeywordTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
                 <filter class="solr.EdgeNGramFilterFactory"
-                        minGramSize="1" maxGramSize="50" />
+                        minGramSize="1" maxGramSize="50"/>
             </analyzer>
             <analyzer type="query">
-                <tokenizer class="solr.KeywordTokenizerFactory" />
-                <filter class="solr.LowerCaseFilterFactory" />
+                <tokenizer class="solr.KeywordTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
             </analyzer>
         </fieldType>
 
         <fieldType name="prefix_token" class="solr.TextField" positionIncrementGap="1">
             <analyzer type="index">
-                <tokenizer class="solr.WhitespaceTokenizerFactory" />
-                <filter class="solr.LowerCaseFilterFactory" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
                 <filter class="solr.EdgeNGramFilterFactory"
-                        minGramSize="1" maxGramSize="50" />
+                        minGramSize="1" maxGramSize="50"/>
             </analyzer>
             <analyzer type="query">
-                <tokenizer class="solr.WhitespaceTokenizerFactory" />
-                <filter class="solr.LowerCaseFilterFactory" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
             </analyzer>
         </fieldType>
 
+        <fieldType class="solr.TextField" name="text_auto">
+            <analyzer type="index">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.StandardTokenizerFactory"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+        </fieldType>
 
     </types>
 
@@ -276,17 +289,20 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         <field name="species" type="string" indexed="true" stored="true"/>
         <field name="species_id" type="integer" indexed="true" stored="true"/>
 
-        <field name="name" type="text" indexed="true" stored="true" />
-        <field name="name_f" type="string" indexed="true" stored="false" />
+        <field name="name" type="text" indexed="true" stored="true"/>
+        <field name="name_f" type="string" indexed="true" stored="false"/>
 
         <field name="orthologs" type="string" indexed="true" stored="true" multiValued="true"/>
         <field name="arraydesigns" type="string" indexed="true" stored="true" multiValued="true"/>
 
-        <field name="properties" type="string" indexed="true" stored="true" multiValued="true" />
-        <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true" />
-        <dynamicField name="property_f_*" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="properties" type="string" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="property_*" type="text" indexed="true" stored="true" multiValued="true"/>
+        <dynamicField name="property_f_*" type="string" indexed="true" stored="false" multiValued="true"/>
 
-        <field name="alltext" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="alltext" type="text" indexed="true" stored="false" multiValued="true"/>
+
+        <field name="autocomplete_genename" type="text_auto" indexed="true" stored="false" multiValued="true"/>
+        <field name="autocomplete_properties" type="text_auto" indexed="true" stored="false" multiValued="true"/>
     </fields>
 
     <uniqueKey>id</uniqueKey>
@@ -309,5 +325,8 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
 
     <copyField source="name" dest="name_f"/>
 
+    <copyField source="name" dest="autocomplete_genename"/>
 
+    <copyField source="identifier" dest="autocomplete_properties"/>
+    <copyField source="property_*" dest="autocomplete_properties"/>
 </schema>
