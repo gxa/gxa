@@ -253,7 +253,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
         </fieldType>
 
         <fieldType class="solr.TextField" name="text_auto">
-            <analyzer>
+            <analyzer type="index">
                 <tokenizer class="solr.StandardTokenizerFactory"/>
                 <filter class="solr.LowerCaseFilterFactory"/>
             </analyzer>
@@ -263,19 +263,6 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
             </analyzer>
         </fieldType>
 
-        <!--<fieldType name="text_auto" class="solr.TextField" positionIncrementGap="100" omitNorms="true">-->
-        <!--<analyzer type="index">-->
-        <!--<tokenizer class="solr.KeywordTokenizerFactory"/>-->
-        <!--<filter class="solr.LowerCaseFilterFactory"/>-->
-        <!--<filter class="solr.PatternReplaceFilterFactory" pattern="\s+" replacement=" " replace="all"/>-->
-        <!--<filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="15" side="front"/>-->
-        <!--</analyzer>-->
-        <!--<analyzer type="query">-->
-        <!--<tokenizer class="solr.KeywordTokenizerFactory"/>-->
-        <!--<filter class="solr.LowerCaseFilterFactory"/>-->
-        <!--<filter class="solr.PatternReplaceFilterFactory" pattern="\s+" replacement=" " replace="all"/>-->
-        <!--</analyzer>-->
-        <!--</fieldType>-->
     </types>
 
 
