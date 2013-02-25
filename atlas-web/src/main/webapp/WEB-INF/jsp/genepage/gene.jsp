@@ -121,6 +121,13 @@ $(document).ready(function() {
                     </td>
                 </tr>
 
+                <c:if test="${!empty gene.baselineAtlasLink}">
+                    <tr>
+                        <td ><img src="${pageContext.request.contextPath}/images/help/new.png" /></td>
+                        <td align="left"><a href="${gene.baselineAtlasLink}${gene.geneIdentifier}">View gene in Baseline Expression Atlas Prototype</a></td>
+                    </tr>
+                </c:if>
+
                 <c:if test="${!empty gene.synonyms}">
                     <tr>
                         <td class="propname">Synonyms</td>

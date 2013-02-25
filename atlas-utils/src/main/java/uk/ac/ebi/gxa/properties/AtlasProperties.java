@@ -286,6 +286,10 @@ public class AtlasProperties {
         };
     }
 
+    public String getBaselineAtlasLink(String organism) {
+        return getProperty("atlas.baseline."+organism);
+    }
+
     public List<String> getGeneApiIgnoreFields() {
         return getListProperty("atlas.gene.properties.api.ignore");
     }

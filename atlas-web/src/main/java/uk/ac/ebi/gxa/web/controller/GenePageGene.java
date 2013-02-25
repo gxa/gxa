@@ -41,13 +41,15 @@ public class GenePageGene {
     private final Collection<String> synonyms;
     private final Collection<AtlasGene> orthologs;
     private final Collection<GeneField> geneFields;
+    private final String baselineAtlasLink;
 
-    private GenePageGene(AtlasGene atlasGene, String geneDescription, Collection<String> synonyms, Collection<AtlasGene> orthologs, Collection<GeneField> geneFields) {
+    private GenePageGene(AtlasGene atlasGene, String geneDescription, Collection<String> synonyms, Collection<AtlasGene> orthologs, Collection<GeneField> geneFields, String baselineAtlasLink) {
         this.atlasGene = atlasGene;
         this.geneDescription = geneDescription;
         this.synonyms = synonyms;
         this.orthologs = orthologs;
         this.geneFields = geneFields;
+        this.baselineAtlasLink = baselineAtlasLink;
     }
 
     public static GenePageGene create(AtlasGene atlasGene, AtlasProperties atlasProperties, GeneSolrDAO geneSolrDAO, AtlasStatisticsQueryService atlasStatisticsQueryService) {
@@ -55,13 +57,16 @@ public class GenePageGene {
         Collection<String> synonyms = findSynonyms(atlasGene, atlasProperties);
         Collection<AtlasGene> orthologs = findOrthologs(atlasGene, geneSolrDAO);
         Collection<GeneField> geneFields = findGeneFields(atlasGene, atlasProperties);
+        String baselineAtlasLink = !Strings.isNullOrEmpty(atlasGene.getGeneSpecies()) ?
+                atlasProperties.getBaselineAtlasLink(atlasGene.getGeneSpecies().toLowerCase().replaceAll(" ", "_")) : null;
 
         return new GenePageGene(
                 atlasGene,
                 geneDescription,
                 synonyms,
                 orthologs,
-                geneFields);
+                geneFields,
+                baselineAtlasLink);
     }
 
     public String getGeneName() {
@@ -70,6 +75,11 @@ public class GenePageGene {
 
     public String getGeneSpecies() {
         return atlasGene.getGeneSpecies();
+    }
+
+
+    public String getBaselineAtlasLink() {
+        return baselineAtlasLink;
     }
 
     public String getGeneIdentifier() {
