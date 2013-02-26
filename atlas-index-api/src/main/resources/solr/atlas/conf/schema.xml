@@ -326,6 +326,7 @@ http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
     <copyField source="name" dest="name_f"/>
 
     <copyField source="name" dest="autocomplete_genename"/>
+    <copyField source="species" dest="autocomplete_genename"/>
 
     <copyField source="identifier" dest="autocomplete_properties"/>
     <copyField source="property_*" dest="autocomplete_properties"/>
