@@ -5,12 +5,12 @@
     <parent>
         <groupId>uk.ac.ebi.gxa</groupId>
         <artifactId>atlas</artifactId>
-        <version>2.0.19-SNAPSHOT</version>
+        <version>2.0.19</version>
     </parent>
 
     <groupId>uk.ac.ebi.gxa</groupId>
     <artifactId>atlas-updates</artifactId>
-    <version>2.0.19-SNAPSHOT</version>
+    <version>2.0.19</version>
     <name>Gene Expression Atlas DB updates</name>
 
     <dependencies>
