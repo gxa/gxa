@@ -175,6 +175,9 @@ public class ExperimentAnalyticsGeneratorService {
         final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
         if (arrayDesigns.isEmpty()) {
             throw new AnalyticsGeneratorException("No array designs present for " + experiment);
+        } else if (arrayDesigns.size() == 1 && arrayDesigns.iterator().next().getAccession().equals("A-ENST-X")) {
+            listener.buildWarning("No analytics were computed for " + experimentAccession + " as this is an RNA-seq experiment.");
+            return;
         }
         final List<String> analysedEFs = new ArrayList<String>();
         int count = 0;
@@ -191,7 +194,6 @@ public class ExperimentAnalyticsGeneratorService {
                     listener.buildWarning("No analytics were computed for " + experimentAccession + "/" + ad.getAccession() + " as it contained no factors or characteristics!");
                     return;
                 }
-
                 final String dataPathForR = ewd.getDataPathForR(ad);
                 final String statisticsPathForR = ewd.getStatisticsPathForR(ad);
                 ComputeTask<Void> computeAnalytics = new ComputeTask<Void>() {
