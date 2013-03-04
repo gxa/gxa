@@ -2033,7 +2033,16 @@
                 updatePagination(tableSize);
 
                 var ef = tableItems.length > 0 ? tableItems[0].ef : "";
-                updatePlot(_designElements.slice(0, 3), ef, arrayDesign);
+
+                var uniqueDesignElements = [];
+                var deIndexesSoFar = [];
+                $.each(_designElements.slice(0, 3), function(i, el){
+                    if($.inArray(el.deIndex, deIndexesSoFar) === -1) {
+                        uniqueDesignElements.push(el);
+                        deIndexesSoFar.push(el.deIndex);
+                    }
+                });
+                updatePlot(uniqueDesignElements, ef, arrayDesign);
             }
         }
 
