@@ -7,13 +7,13 @@
 * '''Data:'''
 ** Ensembl 70 annotations and array design probe set mappings
 ** EFO release 2.33
-** 3571 experiments (including 69 new or re-curated and re-loaded experiments)
+** 3168 experiments (including 68 new or re-curated and re-loaded experiments)
+** Please note that as part of our ongoing effort to improve the accuracy of the differential expression calls made in Atlas, we have also unloaded over the remaining 400 experiments that did not satisfy the 'at least three replicates per each factor value' criterion. This criterion is now also used for all new experiments being loaded into Atlas.
 
-* '''Features:'''
-** The links accessible on the right-hand side of the experiment page are now also accessible programmatically, e.g.
 
 * '''News:'''
 ** We have released our new [http://www-test.ebi.ac.uk/gxa Baseline Expression Atlas prototype], that aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type). Please&nbsp;check&nbsp;it&nbsp;out&nbsp;-&nbsp;we&nbsp;would&nbsp;love&nbsp;to&nbsp;get&nbsp;your&nbsp;feedback! [[File:baseline_atlas_link.png|border|center|link=]]
+** We have also started the process of careful assessment of experimental intent and identification of contrasts for all existing experiments in Gene Expression Atlas, in preparation for their inclusion in the new contrast-based Differential Expression Atlas prototype (to be released later in 2013 - c.f. 'Future Plans' section below.)
 
 Downloadable data and software information is available from https://github.com/gxa/gxa/wiki/Release-Notes.
 

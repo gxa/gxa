@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataException;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 
 /**
@@ -18,8 +19,8 @@ import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
 public class ExperimentDesignViewController extends ExperimentViewControllerBase {
 
     @Autowired
-    public ExperimentDesignViewController(ExperimentDataService expDataService) {
-        super(expDataService);
+    public ExperimentDesignViewController(ExperimentDataService expDataService, AtlasProperties atlasProperties) {
+        super(expDataService, atlasProperties);
     }
 
     @RequestMapping(value = "/experimentDesign", method = RequestMethod.GET)
@@ -27,7 +28,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
             @RequestParam("eacc") String accession,
             Model model) throws RecordNotFoundException, AtlasDataException {
 
-        ExperimentPage expPage = createExperimentPage(accession);
+        ExperimentPage expPage = createExperimentPage(accession, null);
         expPage.enhance(model);
         return "experimentpage/experiment-design";
     }
@@ -39,7 +40,7 @@ public class ExperimentDesignViewController extends ExperimentViewControllerBase
             @RequestParam(value = "offset", required = false, defaultValue = "-1") int offset,
             Model model) throws RecordNotFoundException, AtlasDataException {
 
-        ExperimentPage expPage = createExperimentPage(accession);
+        ExperimentPage expPage = createExperimentPage(accession, null);
         model.addAttribute("experimentDesign", new ExperimentDesignUI(expPage.getExperiment(), offset, limit));
         return "experimentDesignTable";
     }

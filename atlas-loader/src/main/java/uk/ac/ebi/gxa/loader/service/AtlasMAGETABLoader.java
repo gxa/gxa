@@ -114,6 +114,7 @@ public class AtlasMAGETABLoader {
                 }
             }
 
+            boolean isHts = false;
             try {
                 // Parsing itself
                 logProgress(listener, 1, ParsingStep.displayName());
@@ -154,13 +155,15 @@ public class AtlasMAGETABLoader {
 
                 //load RNA-seq experiment
                 //ToDo: add condition based on "getUserData"
-                if (isHTS(investigation)) {
-                    logProgress(listener, 7, HTSArrayDataStep.displayName());
-                    new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
-                    logProgress(listener, 8, HTSAnnotationStep.displayName());
-                    HTSAnnotationStep hTSAnnotationStep = new HTSAnnotationStep();
-                    hTSAnnotationStep.populateAnnotationsForSpecies(investigation, cache.fetchExperiment(), atlasDataDAO);
-                    hTSAnnotationStep.populateBams(investigation, cache.fetchExperiment(), atlasDataDAO);
+                isHts = isHTS(investigation);
+                if (isHts) {
+                      // Only experimental meta data for RNA-seq experiments are currently loaded into gxa
+//                    logProgress(listener, 7, HTSArrayDataStep.displayName());
+//                    new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
+//                    logProgress(listener, 8, HTSAnnotationStep.displayName());
+//                    HTSAnnotationStep hTSAnnotationStep = new HTSAnnotationStep();
+//                    hTSAnnotationStep.populateAnnotationsForSpecies(investigation, cache.fetchExperiment(), atlasDataDAO);
+//                    hTSAnnotationStep.populateBams(investigation, cache.fetchExperiment(), atlasDataDAO);
                 }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
@@ -171,7 +174,7 @@ public class AtlasMAGETABLoader {
             if (listener != null) {
                 listener.setProgress("Storing experiment to DB");
             }
-            write(listener, cache);
+            write(listener, cache, isHts);
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             // TODO: 4alf: proper handling!!!
@@ -188,10 +191,10 @@ public class AtlasMAGETABLoader {
         log.info(progress);
     }
 
-    private void write(AtlasLoaderServiceListener listener, AtlasLoadCache cache) throws AtlasLoaderException {
+    private void write(AtlasLoaderServiceListener listener, AtlasLoadCache cache, boolean isHts) throws AtlasLoaderException {
         // parsing completed, so now write the objects in the cache
         try {
-            writeObjects(cache, listener);
+            writeObjects(cache, listener, isHts);
 
             if (listener != null) {
                 listener.setProgress("Done");
@@ -206,12 +209,21 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener) throws AtlasLoaderException {
+    void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener, boolean isHts) throws AtlasLoaderException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
+        if (isHts) {
+            // For RNA-seq experiment, assing a placeholder 'array design' for all their runs (assays)
+            for (Assay assay : cache.fetchAllAssays()) {
+                if (assay.getArrayDesign() == null) {
+                    assay.setArrayDesign(dao.getArrayDesignShallow("A-ENST-X"));
+                }
+            }
+        }
+
         // validate the load(s)
-        validateLoad(cache);
+        validateLoad(cache, isHts);
 
 
         // check experiment exists in database, and not just in the loadmonitor
@@ -238,8 +250,9 @@ public class AtlasMAGETABLoader {
             log.info("Writing experiment " + experimentAccession);
 
             dao.save(cache.fetchExperiment());
-            writeExperimentNetCDF(cache, listener);
-
+            if (!isHts) {
+                writeExperimentNetCDF(cache, listener);
+            }
             // and return true - everything loaded ok
             log.info("Writing " + numOfObjects + " objects completed successfully");
         } catch (Throwable t) {
@@ -279,7 +292,7 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private void validateLoad(AtlasLoadCache cache) throws AtlasLoaderException {
+    private void validateLoad(AtlasLoadCache cache, boolean isHts) throws AtlasLoaderException {
         try {
             if (cache.fetchExperiment() == null)
                 throw new AtlasLoaderException("Cannot load without an experiment");
@@ -291,7 +304,7 @@ public class AtlasMAGETABLoader {
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
 
-                if (!cache.getAssayDataMap().containsKey(assay.getAccession()))
+                if (!isHts && !cache.getAssayDataMap().containsKey(assay.getAccession()))
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " contains no data! All assays need some.");
 
                 if (assay.getSamples().isEmpty())
