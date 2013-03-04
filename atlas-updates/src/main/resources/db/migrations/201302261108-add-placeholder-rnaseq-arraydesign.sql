@@ -1,0 +1,2 @@
+insert into A2_arraydesign (arraydesignid, accession, accession_master, type, name, provider, loaddate) 
+values (default, 'A-ENST-X', null, null, 'Placeholder for new RNA-seq experiments', null, current_date);

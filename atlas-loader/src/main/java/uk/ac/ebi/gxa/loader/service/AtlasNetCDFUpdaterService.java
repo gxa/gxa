@@ -37,10 +37,17 @@ public class AtlasNetCDFUpdaterService {
             listener.setAccession(experiment.getAccession());
             // we cannot use this method; see comment in ExperimentWithData class
             //ewd.updateAllData();
+            boolean rnaSeqExperiment = false;
             for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-                ewd.updateData(atlasDAO.getArrayDesignByAccession(arrayDesign.getAccession()));
+                rnaSeqExperiment = arrayDesign.getAccession().equals("A-ENST-X");
+                if (!rnaSeqExperiment) {
+                    ewd.updateData(atlasDAO.getArrayDesignByAccession(arrayDesign.getAccession()));
+                } else {
+                    listener.setProgress("No NetCDFs were updated for " + experiment.getAccession() + " as this is an RNA-seq experiment.");
+                }
             }
-            listener.setProgress("Successfully updated the NetCDFs");
+            if (!rnaSeqExperiment)
+                listener.setProgress("Successfully updated the NetCDFs");
         } catch (AtlasDataException e) {
             listener.setProgress("Failed NetCDF update");
             throw new AtlasLoaderException(e);

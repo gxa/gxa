@@ -161,6 +161,17 @@
                         target="_blank" class="external">PubMed ${exp.pubmedId}</a>)</c:if>
                 </p>
 
+                <c:if test="${!empty expressionAtlasLink}">
+                    <div style="padding-bottom:5px;"><span class="section-header-2">
+                        <img src="${pageContext.request.contextPath}/images/help/new.png" />&nbsp;&nbsp;
+                        <a href="${expressionAtlasLink}">View experiment data in contrast-based Differential Expression Atlas Prototype</a></span></div>
+                </c:if>
+
+            <c:choose>
+                <c:when test="${hideGxaContent}">
+                </c:when>
+            <c:otherwise>
+
                 <c:choose>
                     <c:when test="${isRNASeq}">
                         <h3>High-throughput sequencing experiment, analyzed with the <a
@@ -228,7 +239,15 @@
                     </div>
                 </div>
 
+            </c:otherwise>
+            </c:choose>  <!-- hideGxaContent -->
+
             </div>
+
+            <c:choose>
+            <c:when test="${hideGxaContent}">
+            </c:when>
+            <c:otherwise>
 
             <div class="right-column">
                 <div style="float:right">
@@ -399,7 +418,11 @@
         <a class="export2TsvLink" target="_blank" rel="nofollow"
            href="${pageContext.request.contextPath}/experimentTable?format=tsv&eacc=${exp.accession}">Export Search Results Page as Tab-Delimited file</a>
     </div>
+
 </div>
+
+        </c:otherwise>
+        </c:choose>  <!-- hideGxaContent -->
 
 </div>
 <!-- ae_pagecontainer -->

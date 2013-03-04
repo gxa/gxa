@@ -58,7 +58,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Joiner.on;
@@ -94,7 +93,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     public ExperimentViewController(ExperimentDataService expDataService,
                                     PropertyDAO propertyDAO,
                                     AtlasProperties atlasProperties) {
-        super(expDataService);
+        super(expDataService, atlasProperties);
         this.propertyDAO = propertyDAO;
         this.atlasProperties = atlasProperties;
         this.expDataService = expDataService;
@@ -219,7 +218,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
             @RequestParam(value = "assayPropertiesRequired", required = false, defaultValue = "false") Boolean assayPropertiesRequired,
             Model model
     ) throws RecordNotFoundException, AtlasDataException {
-        final ExperimentPage page = createExperimentPage(accession);
+        final ExperimentPage page = createExperimentPage(accession, null);
         final ArrayDesign ad = page.getExperiment().getArrayDesign(adAcc);
         if (ad == null) {
             throw new RecordNotFoundException("Unknown array design accession: " + adAcc + " (in " + accession + " experiment)");
@@ -322,7 +321,7 @@ public class ExperimentViewController extends ExperimentViewControllerBase {
     private String getExperiment(Model model, String accession, @Nullable final String gid, @Nullable final String ef) throws RecordNotFoundException {
         JsMapModel jsMapModel = JsMapModel.wrap(model);
 
-        ExperimentPage page = createExperimentPage(accession);
+        ExperimentPage page = createExperimentPage(accession, gid);
         page.enhance(jsMapModel);
 
         jsMapModel

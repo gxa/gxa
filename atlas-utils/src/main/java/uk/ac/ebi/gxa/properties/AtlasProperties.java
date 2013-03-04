@@ -515,4 +515,20 @@ public class AtlasProperties {
     public List<String> getExportExcludeCompoundsMatch() {
         return getListProperty("atlas.export.exclude.compound.exact");
     }
+
+    public String getBaselineAtlasLink(String organism) {
+        return getProperty("atlas.baseline."+organism);
+    }
+
+    public List<String> getDifferentialExpressionAtlasExperiments() {
+        return getListProperty("differential.expression.atlas.experiments");
+    }
+
+    public List<String> getHideGxaContentExperiments() {
+        return getListProperty("hide.gxa.content.experiments");
+    }
+
+    public String getDifferentialExpressionAtlasLink() {
+        return getProperty("differential.expression.atlas.link");
+    }
 }
