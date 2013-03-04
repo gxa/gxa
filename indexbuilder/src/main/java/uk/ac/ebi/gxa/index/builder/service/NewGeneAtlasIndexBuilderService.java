@@ -1,39 +1,37 @@
 /*
-* Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-*
-* For further details of the Gene Expression Atlas project, including source code,
-* downloads and documentation, please see:
-*
-* http://gxa.github.com/gxa
-*/
+ * Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ *
+ * For further details of the Gene Expression Atlas project, including source code,
+ * downloads and documentation, please see:
+ *
+ * http://gxa.github.com/gxa
+ */
 
 package uk.ac.ebi.gxa.index.builder.service;
 
-import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
-import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -201,7 +199,6 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
                 solrInputDoc.addField("orthologs", pv);
             } else if (p.toLowerCase().equals("symbol")) {
                 solrInputDoc.addField("name", pv);
-                solrInputDoc.addField("genename", pv);
                 nameSet = true;
             } else {
                 getLog().trace("Updating index, gene property " + p + " = " + pv);
