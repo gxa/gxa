@@ -22,17 +22,21 @@
 
 package uk.ac.ebi.gxa.index.builder.service;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -83,6 +87,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         final int total = bioEntities.size();
         getLog().info("Found " + total + " genes to index");
 
+        final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAO.getAllDesignElementsForGene();
+        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
+
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
 
@@ -91,7 +98,6 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
         getLog().info("Using {} chunk size, committing every {} genes", chunksize, commitfreq);
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(bioEntities.size());
-
 
         // index all genes in parallel
         for (final List<BioEntity> genelist : partition(bioEntities, chunksize)) {
@@ -106,7 +112,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         for (BioEntity gene : genelist) {
-                            List<SolrInputDocument> solrInputDocs = createGeneSolrInputDocument(gene);
+                            List<SolrInputDocument> solrInputDocs = createGeneSolrInputDocument(gene, allDesignElementsForGene);
 
                             solrDocs.addAll(solrInputDocs);
 
@@ -170,30 +176,17 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         return System.currentTimeMillis() - timeTaskStart;
     }
 
-    private List<SolrInputDocument> createGeneSolrInputDocument(final BioEntity bioEntity) throws IndexBuilderException, IOException {
+    private List<SolrInputDocument> createGeneSolrInputDocument(final BioEntity bioEntity, ArrayListMultimap<Long, DesignElement> allDesignElementsForGene) throws IndexBuilderException, IOException {
 
         getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
 
         List<SolrInputDocument> results = new ArrayList<SolrInputDocument>();
 
-        // add the gene id field
-        int bioEntityId;
-        if (bioEntity.getId() <= Integer.MAX_VALUE) {
-            bioEntityId = bioEntity.getId().intValue();
-        } else {
+        if (bioEntity.getId() > Integer.MAX_VALUE) {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
         }
 
-        Set<String> propNames = new HashSet<String>();
-        boolean nameSet = false;
         for (BEPropertyValue prop : bioEntity.getProperties()) {
-
-            // create a new solr document for this gene
-            SolrInputDocument solrInputDoc = new SolrInputDocument();
-
-            solrInputDoc.addField("id", bioEntityId);
-            solrInputDoc.addField("identifier", bioEntity.getIdentifier());
-            solrInputDoc.addField("species", bioEntity.getOrganism().getName());
 
             String pv = prop.getValue();
             String p = prop.getProperty().getName();
@@ -201,15 +194,32 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
                 continue;
 
             getLog().trace("Updating index, gene property " + p + " = " + pv);
-            solrInputDoc.addField("property", pv);
-            solrInputDoc.addField("property_type", p);
 
-            results.add(solrInputDoc);
+            results.add(newSolrInputDocument(bioEntity, pv, p));
+        }
+
+        for (DesignElement de : allDesignElementsForGene.get(bioEntity.getId())) {
+            results.add(newSolrInputDocument(bioEntity, de.getName(), "designelement_name"));
+            results.add(newSolrInputDocument(bioEntity, de.getAccession(), "designelement_accession"));
         }
 
         getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
         return results;
+    }
+
+    private SolrInputDocument newSolrInputDocument(BioEntity bioEntity, String propertyValue, String propertyType) {
+        // create a new solr document for this gene
+        SolrInputDocument solrInputDoc = new SolrInputDocument();
+
+        solrInputDoc.addField("id", bioEntity.getId().intValue());
+        solrInputDoc.addField("identifier", bioEntity.getIdentifier());
+        solrInputDoc.addField("species", bioEntity.getOrganism().getName());
+
+        solrInputDoc.addField("property", propertyValue);
+        solrInputDoc.addField("property_type", propertyType);
+
+        return solrInputDoc;
     }
 
     public String getName() {
