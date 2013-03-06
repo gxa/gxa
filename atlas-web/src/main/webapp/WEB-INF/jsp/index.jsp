@@ -86,11 +86,27 @@
                 </c:if>
                 <div style="float:left; width:200px;" class="roundCorner">
                     <div style="padding:10px">
-                        <div style="font-weight:bold;margin-bottom:5px">Atlas Data Release <c:out
-                                value="${atlasStatistics.dataRelease}"/>:
+                        <div style="font-weight:bold;margin-bottom:5px">
+                            Atlas Release:
                         </div>
                         <table cellpadding="0" cellspacing="0" width="100%">
                             <c:if test="${atlasStatistics.newExperimentCount > 0}">
+                                <tr>
+                                    <td class="atlastable" align="left">
+                                        data
+                                    </td>
+                                    <td class="atlastable" align="right">
+                                        <c:out value="${atlasStatistics.dataRelease}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="atlastable" align="left">
+                                        software
+                                    </td>
+                                    <td class="atlastable" align="right">
+                                        <c:out value="${atlasProperties.softwareVersion}"/>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td class="atlastable" align="left">
                                         <fmt:parseDate var="releaseDate" pattern="MM-yyyy"
