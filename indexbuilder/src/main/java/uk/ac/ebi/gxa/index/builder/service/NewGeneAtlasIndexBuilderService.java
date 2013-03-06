@@ -106,9 +106,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         for (BioEntity gene : genelist) {
-                            SolrInputDocument solrInputDoc = createGeneSolrInputDocument(gene);
+                            List<SolrInputDocument> solrInputDocs = createGeneSolrInputDocument(gene);
 
-                            solrDocs.add(solrInputDoc);
+                            solrDocs.addAll(solrInputDocs);
 
                             int processedNow = processed.incrementAndGet();
                             if (processedNow % commitfreq == 0 || processedNow == total) {
@@ -170,10 +170,11 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         return System.currentTimeMillis() - timeTaskStart;
     }
 
-    private SolrInputDocument createGeneSolrInputDocument(final BioEntity bioEntity) throws IndexBuilderException, IOException {
-        // create a new solr document for this gene
-        SolrInputDocument solrInputDoc = new SolrInputDocument();
+    private List<SolrInputDocument> createGeneSolrInputDocument(final BioEntity bioEntity) throws IndexBuilderException, IOException {
+
         getLog().debug("Updating index with properties for " + bioEntity.getIdentifier());
+
+        List<SolrInputDocument> results = new ArrayList<SolrInputDocument>();
 
         // add the gene id field
         int bioEntityId;
@@ -183,40 +184,32 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
         }
 
-        solrInputDoc.addField("id", bioEntityId);
-        solrInputDoc.addField("species", bioEntity.getOrganism().getName());
-        solrInputDoc.addField("identifier", bioEntity.getIdentifier());
-
         Set<String> propNames = new HashSet<String>();
         boolean nameSet = false;
         for (BEPropertyValue prop : bioEntity.getProperties()) {
+
+            // create a new solr document for this gene
+            SolrInputDocument solrInputDoc = new SolrInputDocument();
+
+            solrInputDoc.addField("id", bioEntityId);
+            solrInputDoc.addField("identifier", bioEntity.getIdentifier());
+            solrInputDoc.addField("species", bioEntity.getOrganism().getName());
 
             String pv = prop.getValue();
             String p = prop.getProperty().getName();
             if (pv == null)
                 continue;
-            if (p.toLowerCase().contains("ortholog")) {
-                solrInputDoc.addField("orthologs", pv);
-            } else if (p.toLowerCase().equals("symbol")) {
-                solrInputDoc.addField("name", pv);
-                nameSet = true;
-            } else {
-                getLog().trace("Updating index, gene property " + p + " = " + pv);
-                solrInputDoc.addField("property_" + p, pv);
-                propNames.add(p);
 
-            }
-        }
-        if (!propNames.isEmpty())
-            solrInputDoc.setField("properties", propNames);
+            getLog().trace("Updating index, gene property " + p + " = " + pv);
+            solrInputDoc.addField("property", pv);
+            solrInputDoc.addField("property_type", p);
 
-        //To avoid empty "name" field, use identifier if beproperty, corresponding to "name" is missing
-        if (!nameSet) {
-            solrInputDoc.addField("name", bioEntity.getIdentifier());
+            results.add(solrInputDoc);
         }
+
         getLog().debug("Properties for " + bioEntity.getIdentifier() + " updated");
 
-        return solrInputDoc;
+        return results;
     }
 
     public String getName() {
