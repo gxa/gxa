@@ -1,6 +1,5 @@
-<?xml version="1.0"?>
 <!--
-  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+  ~ Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,11 +20,17 @@
   ~ http://gxa.github.com/gxa
   -->
 
-<solr persistent="true" sharedLib="lib">
-    <cores adminPath="/admin/cores">
-        <core name="expt" instanceDir="expt"/>
-        <core name="atlas" instanceDir="atlas"/>
-        <core name="properties" instanceDir="properties"/>
-        <core name="newatlas" instanceDir="newatlas"/>
-    </cores>
-</solr>
+<!-- The content of this page will be statically included into the top
+of the admin page.  Uncomment this as an example to see there the content
+will show up.
+
+<hr>
+<i>This line will appear before the first table</i>
+<tr>
+<td colspan="2">
+This row will be appended to the end of the first table
+</td>
+</tr>
+<hr>
+
+-->
