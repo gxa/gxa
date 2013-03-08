@@ -29,7 +29,10 @@ import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.*;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -1353,7 +1356,7 @@ public class AtlasStructuredQueryService {
             }
         };
 
-        boolean geneConditionOnlyQuery = query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything() || query.isFullHeatmap();
+        boolean geneConditionOnlyQuery = (query.getConditions().isEmpty() || query.getConditions().iterator().next().isAnything()) && !query.isFullHeatmap();
 
         // timing collection variables
         long overallBitStatsProcessingTime = 0;
