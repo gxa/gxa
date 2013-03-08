@@ -26,8 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.download.DownloadTaskResult;
 import uk.ac.ebi.gxa.download.TaskProgressListener;
-import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 import uk.ac.ebi.gxa.utils.dsv.DsvDocumentWriter;
+import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,8 +41,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.google.common.io.Closeables.closeQuietly;
-import static java.io.File.createTempFile;
-import static java.lang.Math.min;
 import static uk.ac.ebi.gxa.download.DownloadTaskResult.error;
 import static uk.ac.ebi.gxa.download.DownloadTaskResult.success;
 import static uk.ac.ebi.gxa.utils.dsv.DsvFormat.tsv;
@@ -93,9 +91,13 @@ public class DsvDownloadTask implements Callable<DownloadTaskResult> {
             MultiDocProgressListener listener = new MultiDocProgressListener(creators.size());
 
             for (DsvDocumentCreator docCreator : creators) {
+                log.info("Creating " + docCreator.getName() + "...");
+                long start = System.currentTimeMillis();
                 DsvRowIterator doc = docCreator.create();
+                long dur = (int) (System.currentTimeMillis() - start)/1000;
+                if (dur > 0)
+                    log.info("Created " + docCreator.getName() + " in: " + dur + " s");
                 zout.putNextEntry(new ZipEntry(docCreator.getName() + ".tab"));
-
                 (new DsvDocumentWriter(tsv().newWriter(new OutputStreamWriter(zout)), listener.next())).write(doc);
             }
             zout.closeEntry();

@@ -60,14 +60,14 @@ public class AtlasExperimentAnalyticsViewService {
 
         List<StatisticsSnapshot> result = newArrayList();
         while (stats.nextBioEntity()) {
-            Best<StatisticsSnapshot> bestDE = Best.create();
             while (stats.nextEFV()) {
+                Best<StatisticsSnapshot> bestDE = Best.create();
                 if (upDownPredicate.apply(stats.getExpression())) {
                     bestDE.offer(stats.getSnapshot());
                 }
+                if (bestDE.isFound())
+                    result.add(bestDE.get());
             }
-            if (bestDE.isFound())
-                result.add(bestDE.get());
         }
         sort(result);
 

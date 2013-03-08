@@ -30,13 +30,14 @@ import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExpressionDataCursor;
 import uk.ac.ebi.gxa.data.StatisticsNotFoundException;
 import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
+import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.export.dsv.ExperimentDesignTableDsv;
 import uk.ac.ebi.gxa.export.dsv.ExperimentExpressionDataTableDsv;
+import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.service.experiment.ExperimentAnalytics;
 import uk.ac.ebi.gxa.service.experiment.ExperimentDataService;
-import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreator;
-import uk.ac.ebi.gxa.export.dsv.ExperimentTableDsv;
 import uk.ac.ebi.gxa.utils.dsv.DsvRowIterator;
 import uk.ac.ebi.gxa.web.controller.ExperimentDesignUI;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
@@ -56,26 +57,40 @@ public class ExperimentDownloadData {
     protected final static Logger log = LoggerFactory.getLogger(ExperimentDownloadData.class);
 
     private final ExperimentDataService expDataService;
+    private final AtlasProperties atlasProperties;
 
     @Autowired
-    public ExperimentDownloadData(ExperimentDataService expDataService) {
+    public ExperimentDownloadData(ExperimentDataService expDataService, AtlasProperties atlasProperties) {
         this.expDataService = expDataService;
+        this.atlasProperties = atlasProperties;
     }
 
-    public Collection<? extends DsvDocumentCreator> newDsvCreatorForAnalytics(final String expAcc) throws RecordNotFoundException {
-        Experiment exp  = expDataService.getExperiment(expAcc);
+    public Collection<? extends DsvDocumentCreator> newDsvCreatorForAnalytics(final String expAcc) throws RecordNotFoundException, DsvDocumentCreateException {
+        Experiment exp = expDataService.getExperiment(expAcc);
         List<DsvDocumentCreator> creators = new ArrayList<DsvDocumentCreator>();
-        for(final ArrayDesign ad: exp.getArrayDesigns()) {
-           log.debug("new ExperimentAnalyticsDocCreator(eacc=" + expAcc + ", ad=" + ad.getAccession() + ")");
-           creators.add(new ExperimentAnalyticsDocCreator(expAcc, ad.getAccession()));
+        for (final ArrayDesign ad : exp.getArrayDesigns()) {
+            log.debug("new ExperimentAnalyticsDocCreator(eacc=" + expAcc + ", ad=" + ad.getAccession() + ")");
+            int maxTotalAcrossFactors = getMaxTotalAcrossFactors(expAcc, ad.getAccession());
+
+            if (maxTotalAcrossFactors == -1) { // Analytics data can be downloaded in one chunk
+                creators.add(new ExperimentAnalyticsDocCreator(expAcc, ad.getAccession(), 0, -1));
+            } else {
+                int chunkSize = atlasProperties.getTotalAnalyticsPerFactorMaximum();
+                int numOfChunks = maxTotalAcrossFactors / chunkSize;
+                for (int i = 0; i <= numOfChunks; i++) {
+                    int offset = i * chunkSize;
+                    int limit = chunkSize;
+                    creators.add(new ExperimentAnalyticsDocCreator(expAcc, ad.getAccession(), offset, limit));
+                }
+            }
         }
         return creators;
     }
 
     public Collection<? extends DsvDocumentCreator> newDsvCreatorForExpressions(String expAcc) throws RecordNotFoundException {
-        Experiment exp  = expDataService.getExperiment(expAcc);
+        Experiment exp = expDataService.getExperiment(expAcc);
         List<DsvDocumentCreator> creators = new ArrayList<DsvDocumentCreator>();
-        for(final ArrayDesign ad: exp.getArrayDesigns()) {
+        for (final ArrayDesign ad : exp.getArrayDesigns()) {
             log.debug("new ExperimentExpressionsDocCreator(eacc=" + expAcc + ", ad=" + ad.getAccession() + ")");
             creators.add(new ExperimentExpressionsDocCreator(expAcc, ad.getAccession()));
         }
@@ -87,9 +102,9 @@ public class ExperimentDownloadData {
         return asList(new ExperimentDesignDocCreator(expAcc));
     }
 
-    private ExperimentAnalytics getExperimentAnalytics(String expAcc, String adAcc)
+    private ExperimentAnalytics getExperimentAnalytics(String expAcc, String adAcc, int offset, int limit)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
-        return expDataService.getExperimentAnalytics(expAcc, adAcc);
+        return expDataService.getExperimentAnalytics(expAcc, adAcc, offset, limit);
     }
 
     private ExperimentDesignUI getExperimentDesignUI(String expAcc) throws RecordNotFoundException {
@@ -132,20 +147,26 @@ public class ExperimentDownloadData {
         private final String expAcc;
         private final String adAcc;
 
-        private ExperimentAnalyticsDocCreator(String expAcc, String adAcc) {
+        private final int offset;
+        private final int limit;
+
+        private ExperimentAnalyticsDocCreator(String expAcc, String adAcc, int offset, int limit) {
             this.adAcc = adAcc;
             this.expAcc = expAcc;
+            this.offset = offset;
+            this.limit = limit;
         }
 
         @Override
         public String getName() {
-            return "ExpAnalysedData-" + expAcc + "-" + adAcc;
+            int chunkSize = atlasProperties.getTotalAnalyticsPerFactorMaximum();
+            return "ExpAnalysedData-" + expAcc + "-" + adAcc + (limit != -1 ? "-" + (offset/chunkSize) : "");
         }
 
         @Override
         public DsvRowIterator create() throws DsvDocumentCreateException {
             try {
-                return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc));
+                return ExperimentTableDsv.createDsvDocument(getExperimentAnalytics(expAcc, adAcc, offset, limit));
             } catch (AtlasDataException e) {
                 throw documentCreateException(e);
             } catch (RecordNotFoundException e) {
@@ -189,6 +210,31 @@ public class ExperimentDownloadData {
 
         private DsvDocumentCreateException documentCreateException(Throwable e) {
             return new DsvDocumentCreateException("Can't create experiment expression data dsv doc: acc = " + expAcc + ", ad = " + adAcc, e);
+        }
+    }
+
+    /**
+     *
+     * @param expAcc Experiment accession
+     * @param adAcc ArrayDesign accession
+     * @return total number of differential expression data for this experiment/array design
+     * @throws DsvDocumentCreateException
+     * @throws RecordNotFoundException
+     */
+    private Integer getMaxTotalAcrossFactors(String expAcc, String adAcc)
+            throws DsvDocumentCreateException, RecordNotFoundException {
+        try {
+            int max = -1;
+            long start = System.currentTimeMillis();
+            int factorTotal = getExperimentAnalytics(expAcc, adAcc, 0, 1).getTotalSize();
+            if (factorTotal > atlasProperties.getTotalAnalyticsPerFactorMaximum() && factorTotal > max)
+                max = factorTotal;
+            log.info("Found total across all factors in: " + (int) (System.currentTimeMillis() - start)/1000 + " s");
+            return max;
+        } catch (AtlasDataException e) {
+            throw new DsvDocumentCreateException("Failed to retrieve total analytics number for : acc = " + expAcc + ", ad = " + adAcc, e);
+        } catch (StatisticsNotFoundException e) {
+            throw new DsvDocumentCreateException("Failed to retrieve total analytics number for : acc = " + expAcc + ", ad = " + adAcc, e);
         }
     }
 

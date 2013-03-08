@@ -28,7 +28,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
-import uk.ac.ebi.gxa.download.*;
+import uk.ac.ebi.gxa.download.DownloadQueue;
+import uk.ac.ebi.gxa.download.DownloadTaskResult;
+import uk.ac.ebi.gxa.download.ExperimentDownloadData;
+import uk.ac.ebi.gxa.download.TaskExecutionException;
+import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
 
 import java.io.IOException;
 
@@ -57,7 +61,7 @@ public class DownloadDataService {
         this.downloadQueue = downloadQueue;
     }
 
-    public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException, IOException {
+    public String addExperimentAnalyticsTask(String expAcc, String cookie) throws RecordNotFoundException, IOException, DsvDocumentCreateException {
         String token = newToken(EXPERIMENT_ANALYTICS, "_", expAcc, "_", cookie);
         log.info("addExperimentAnalyticsTask(token={})", token);
         downloadQueue.addDsvDownloadTask(
