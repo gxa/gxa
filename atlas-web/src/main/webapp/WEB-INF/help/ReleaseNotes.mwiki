@@ -2,7 +2,7 @@
 
 == Latest release note ==
 
-=== 2.0.19 ===
+=== 2.0.19.1 ===
 
 * '''Data:'''
 ** Ensembl 70 annotations and array design probe set mappings
@@ -10,6 +10,10 @@
 ** 3168 experiments (including 68 new or re-curated and re-loaded experiments)
 ** Please note that as part of our ongoing effort to improve the accuracy of the differential expression calls made in Atlas, we have also unloaded over the remaining 400 experiments that did not satisfy the 'at least three replicates per each factor value' criterion. This criterion is now also used for all new experiments being loaded into Atlas.
 
+* '''Features:'''
+** Bug fix for pagination on heatmap results page - for queries containing apostrophy
+** Bug fix to experiment page results - affecting both best design elements table in the default experiment view and analytics downloads. Previously, for each design element only one best analytic was returned - across all factors and their values. Now, for each design element the best analytic is returned for ''each'' factor/value. This fix increases the amount of analytics data returned dramatically.
+** In view of the above bug fix, the analytics download functionality on the experiment page had to be memory-optimized. Namely, for very large experiments the data in the downloaded analytics zip file is split into chunks.
 
 * '''News:'''
 ** We have released our new [http://www-test.ebi.ac.uk/gxa Baseline Expression Atlas prototype], that aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type). Please&nbsp;check&nbsp;it&nbsp;out&nbsp;-&nbsp;we&nbsp;would&nbsp;love&nbsp;to&nbsp;get&nbsp;your&nbsp;feedback! [[File:baseline_atlas_link.png|border|center|link=]]
