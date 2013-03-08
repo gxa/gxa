@@ -76,7 +76,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        getLog().info("Indexing all genes...");
+        String status = "Indexing all genes...";
+        getLog().info(status);
+        progressUpdater.update(status);
         indexGenes(progressUpdater, bioEntityDAO.getAllGenesFast());
     }
 
@@ -85,10 +87,14 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         shuffle(bioEntities);
 
         final int total = bioEntities.size();
-        getLog().info("Found " + total + " genes to index");
+        String status = "Found " + total + " genes to index";
+        getLog().info(status);
+        progressUpdater.update(status);
 
         final ArrayListMultimap<Long, DesignElement> allDesignElementsForGene = bioEntityDAO.getAllDesignElementsForGene();
-        getLog().info("Found " + allDesignElementsForGene.asMap().size() + " genes with de");
+        status = "Found " + allDesignElementsForGene.asMap().size() + " genes with de";
+        getLog().info(status);
+        progressUpdater.update(status);
 
         final AtomicInteger processed = new AtomicInteger(0);
         final long timeStart = System.currentTimeMillis();
@@ -96,7 +102,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         final int chunksize = atlasProperties.getGeneAtlasIndexBuilderChunksize();
         final int commitfreq = atlasProperties.getGeneAtlasIndexBuilderCommitfreq();
 
-        getLog().info("Using {} chunk size, committing every {} genes", chunksize, commitfreq);
+        status = "Using " + chunksize + " chunk size, committing every " + commitfreq + " genes";
+        getLog().info(status);
+        progressUpdater.update(status);
         List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(bioEntities.size());
 
         // index all genes in parallel
@@ -109,6 +117,8 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
                         long start = System.currentTimeMillis();
 
                         bioEntityDAO.getPropertiesForGenes(genelist);
+
+                        String status;
 
                         List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(genelist.size());
                         for (BioEntity gene : genelist) {
@@ -123,18 +133,26 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
                                 double speed = (processedNow / (elapsed / (double) commitfreq)); // (item/s)
                                 double estimated = (total - processedNow) / (speed * 60);
 
-                                getLog().info(
+                                status =
                                         String.format("Processed %d/%d genes %d%%, %.1f genes/sec overall, estimated %.1f min remaining",
-                                                processedNow, total, (processedNow * 100 / total), speed, estimated));
+                                                processedNow, total, (processedNow * 100 / total), speed, estimated);
 
-                                progressUpdater.update(processedNow + "/" + total);
+                                getLog().info(status);
+                                progressUpdater.update(status);
                             }
                             gene.clearProperties();
                         }
 
-                        log(sblog, start, "adding genes to Solr index...");
+                        status = "adding genes to Solr index...";
+                        progressUpdater.update(status);
+
+                        log(sblog, start, status);
                         getSolrServer().add(solrDocs);
-                        log(sblog, start, "... batch complete.");
+
+                        status = "... batch complete.";
+                        progressUpdater.update(status);
+
+                        log(sblog, start, status);
                         getLog().debug("Gene chunk done:\n" + sblog);
 
                         return true;
@@ -223,7 +241,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     }
 
     public String getName() {
-        return "genes";
+        return "newgenes";
     }
 
     public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {

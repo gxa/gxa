@@ -191,10 +191,10 @@ http://www.springframework.org/schema/context/spring-context.xsd">
     <bean name="indexBuilder" class="uk.ac.ebi.gxa.index.builder.DefaultIndexBuilder">
         <property name="services">
             <util:list>
-                <!--<ref bean="indexBuilderServiceProperties"/>-->
-                <!--<ref bean="indexBuilderServiceExperiments"/>-->
-                <ref bean="newIndexBuilderServiceGenes"/>
-                <!--<ref bean="bitIndexBuilderServiceGenes"/>-->
+                <ref bean="indexBuilderServiceProperties"/>
+                <ref bean="indexBuilderServiceExperiments"/>
+                <ref bean="indexBuilderServiceGenes"/>
+                <ref bean="bitIndexBuilderServiceGenes"/>
             </util:list>
         </property>
         <!-- configures behaviour of indexBuilder, whether we want genes and experiments -->
