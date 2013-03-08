@@ -143,16 +143,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
                             gene.clearProperties();
                         }
 
-                        status = "adding genes to Solr index...";
-                        progressUpdater.update(status);
-
-                        log(sblog, start, status);
+                        log(sblog, start, "adding genes to Solr index...");
                         getSolrServer().add(solrDocs);
-
-                        status = "... batch complete.";
-                        progressUpdater.update(status);
-
-                        log(sblog, start, status);
+                        log(sblog, start, "... batch complete.");
                         getLog().debug("Gene chunk done:\n" + sblog);
 
                         return true;

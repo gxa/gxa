@@ -26,5 +26,6 @@
         <meta HTTP-EQUIV="REFRESH" content="0; url=newGeneAtlasIndexBuild/status"/>
     </head>
     <body>
+        If you were not redirected please click<a href="newGeneAtlasIndexBuild/status">here</a>.
     </body>
 </html>
