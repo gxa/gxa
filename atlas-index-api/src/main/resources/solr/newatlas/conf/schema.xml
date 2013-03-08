@@ -166,8 +166,7 @@ http://wiki.apache.org/solr/SchemaXml
 
     </fields>
 
-    <defaultSearchField>property_autocomplete</defaultSearchField>
-
+    <defaultSearchField>property_search</defaultSearchField>
 
     <solrQueryParser defaultOperator="OR"/>
 

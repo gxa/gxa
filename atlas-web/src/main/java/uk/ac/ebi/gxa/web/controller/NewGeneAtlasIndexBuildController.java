@@ -52,11 +52,12 @@ public class NewGeneAtlasIndexBuildController {
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                builder.processCommand(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
+                builder.build(new IndexAllCommand(), new IndexBuilderService.ProgressUpdater() {
                     public void update(String progress) {
                         statusText = progress;
                     }
                 });
+                statusText = "Finished building index.";
             }
         });
 
