@@ -160,7 +160,7 @@ public class ExperimentDownloadData {
         @Override
         public String getName() {
             int chunkSize = atlasProperties.getTotalAnalyticsPerFactorMaximum();
-            return "ExpAnalysedData-" + expAcc + "-" + adAcc + (limit != -1 ? "-" + (offset/chunkSize) : "");
+            return "ExpAnalysedData-" + expAcc + "-" + adAcc + (limit != -1 ? "-" + (offset / chunkSize) : "");
         }
 
         @Override
@@ -192,7 +192,7 @@ public class ExperimentDownloadData {
 
         @Override
         public String getName() {
-            return "ExpRawData-"+ expAcc + "-" + adAcc;
+            return "ExpRawData-" + expAcc + "-" + adAcc;
         }
 
         @Override
@@ -214,9 +214,8 @@ public class ExperimentDownloadData {
     }
 
     /**
-     *
      * @param expAcc Experiment accession
-     * @param adAcc ArrayDesign accession
+     * @param adAcc  ArrayDesign accession
      * @return total number of differential expression data for this experiment/array design
      * @throws DsvDocumentCreateException
      * @throws RecordNotFoundException
@@ -229,7 +228,7 @@ public class ExperimentDownloadData {
             int factorTotal = getExperimentAnalytics(expAcc, adAcc, 0, 1).getTotalSize();
             if (factorTotal > atlasProperties.getTotalAnalyticsPerFactorMaximum() && factorTotal > max)
                 max = factorTotal;
-            log.info("Found total across all factors in: " + (int) (System.currentTimeMillis() - start)/1000 + " s");
+            log.info("Found total: " + factorTotal + " for " + expAcc + "-" + adAcc + " in: " + (int) (System.currentTimeMillis() - start) / 1000 + " s");
             return max;
         } catch (AtlasDataException e) {
             throw new DsvDocumentCreateException("Failed to retrieve total analytics number for : acc = " + expAcc + ", ad = " + adAcc, e);
