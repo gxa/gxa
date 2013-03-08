@@ -134,7 +134,7 @@ public class BioEntityDAO {
     }
 
     public ArrayListMultimap<Long, String> getAllArrayDesignsByGene() {
-         ArrayListMultimap<Long, String> arrayDesignsByBeID = ArrayListMultimap.create(550000, 200);
+        ArrayListMultimap<Long, String> arrayDesignsByBeID = ArrayListMultimap.create(550000, 200);
 
         GeneArrayDesignMapper mapper = new GeneArrayDesignMapper(arrayDesignsByBeID);
 
@@ -373,7 +373,7 @@ public class BioEntityDAO {
 
     private <T> int writeBatchInChunks(String query,
                                        final Collection<T> entityList,
-                                       ListStatementSetter<T> statementSetter, 
+                                       ListStatementSetter<T> statementSetter,
                                        int batchSize) throws DataAccessException {
         int loadedRecordsNumber = 0;
 

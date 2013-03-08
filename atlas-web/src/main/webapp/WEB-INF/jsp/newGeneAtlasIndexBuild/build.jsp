@@ -1,6 +1,5 @@
-<?xml version="1.0"?>
-<!--
-  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+<%--
+  ~ Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,13 +18,14 @@
   ~ downloads and documentation, please see:
   ~
   ~ http://gxa.github.com/gxa
-  -->
+  --%>
 
-<solr persistent="true" sharedLib="lib">
-    <cores adminPath="/admin/cores">
-        <core name="expt" instanceDir="expt"/>
-        <core name="atlas" instanceDir="atlas"/>
-        <core name="properties" instanceDir="properties"/>
-        <core name="newatlas" instanceDir="newatlas"/>
-    </cores>
-</solr>
+<%@ page contentType="html" %>
+<html>
+    <head>
+        <meta HTTP-EQUIV="REFRESH" content="0; url=newGeneAtlasIndexBuild/status"/>
+    </head>
+    <body>
+        If you were not redirected please click<a href="newGeneAtlasIndexBuild/status">here</a>.
+    </body>
+</html>

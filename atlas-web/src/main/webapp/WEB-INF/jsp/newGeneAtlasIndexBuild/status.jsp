@@ -1,6 +1,5 @@
-<?xml version="1.0"?>
-<!--
-  ~ Copyright 2008-2010 Microarray Informatics Team, EMBL-European Bioinformatics Institute
+<%--
+  ~ Copyright 2008-2012 Microarray Informatics Team, EMBL-European Bioinformatics Institute
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,13 +18,23 @@
   ~ downloads and documentation, please see:
   ~
   ~ http://gxa.github.com/gxa
-  -->
+  --%>
 
-<solr persistent="true" sharedLib="lib">
-    <cores adminPath="/admin/cores">
-        <core name="expt" instanceDir="expt"/>
-        <core name="atlas" instanceDir="atlas"/>
-        <core name="properties" instanceDir="properties"/>
-        <core name="newatlas" instanceDir="newatlas"/>
-    </cores>
-</solr>
+<jsp:useBean id="statusText" type="java.lang.String" scope="request"/>
+<%@ page contentType="html" %>
+<html>
+    <head>
+        <script type="text/JavaScript">
+
+            function timedRefresh(timeoutPeriod) {
+            setTimeout("location.reload(true);",timeoutPeriod);
+            }
+
+        </script>
+    </head>
+    <body onload="JavaScript:timedRefresh(1000);">
+        <h2>Current index build status</h2>
+        <p>${statusText}</p>
+        <p>This page refreshes every second.</p>
+    </body>
+</html>
