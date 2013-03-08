@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.download.DownloadTaskResult;
 import uk.ac.ebi.gxa.download.TaskExecutionException;
+import uk.ac.ebi.gxa.download.dsv.DsvDocumentCreateException;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.service.DownloadDataService;
@@ -73,7 +74,7 @@ public class DownloadDataViewController extends AtlasViewController {
     public String downloadExperimentAnalytics(
             @RequestParam("eacc") String expAcc,
             @CookieValue("JSESSIONID") String cookie,
-            Model model) throws RecordNotFoundException {
+            Model model) throws RecordNotFoundException, DsvDocumentCreateException {
         try {
             return taskToken(downloadService.addExperimentAnalyticsTask(expAcc, cookie), model);
         } catch (IOException e) {

@@ -145,9 +145,9 @@ public class ExperimentDataService {
     }
 
     @Transactional
-    public ExperimentAnalytics getExperimentAnalytics(String expAcc, String adAcc)
+    public ExperimentAnalytics getExperimentAnalytics(String expAcc, String adAcc, int offset, int limit)
             throws AtlasDataException, RecordNotFoundException, StatisticsNotFoundException {
-        return getExperimentAnalytics(expAcc, adAcc, null, null, null, UpDownCondition.CONDITION_ANY, 0, -1);
+        return getExperimentAnalytics(expAcc, adAcc, null, null, null, UpDownCondition.CONDITION_ANY , offset, limit);
     }
 
     @Transactional

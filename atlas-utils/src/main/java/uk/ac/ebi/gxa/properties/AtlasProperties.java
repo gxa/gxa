@@ -531,4 +531,8 @@ public class AtlasProperties {
     public String getDifferentialExpressionAtlasLink() {
         return getProperty("differential.expression.atlas.link");
     }
+
+    public Integer getTotalAnalyticsPerFactorMaximum() {
+        return getIntProperty("total.analytics.per.factor.maximum");
+    }
 }
