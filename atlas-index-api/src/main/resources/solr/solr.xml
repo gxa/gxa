@@ -26,5 +26,6 @@
         <core name="expt" instanceDir="expt"/>
         <core name="atlas" instanceDir="atlas"/>
         <core name="properties" instanceDir="properties"/>
+        <core name="newatlas" instanceDir="newatlas"/>
     </cores>
 </solr>
