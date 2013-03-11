@@ -217,7 +217,8 @@
           <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="-513983640">ExpAnalysedData-E-MEXP-3566-A-AFFY-47.tab</stringProp>
+              <stringProp name="-109966517">ExpAnalysedData-E-MEXP-3566-A-AFFY-47-0.tab</stringProp>
+              <stringProp name="-109042996">ExpAnalysedData-E-MEXP-3566-A-AFFY-47-1.tab</stringProp>
             </collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
             <boolProp name="Assertion.assume_success">false</boolProp>
