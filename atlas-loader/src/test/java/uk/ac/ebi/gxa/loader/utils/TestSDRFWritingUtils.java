@@ -61,7 +61,7 @@ public class TestSDRFWritingUtils extends TestCase {
 
         final LoaderDAO dao = MockFactory.createLoaderDAO();
 
-        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode, dao, MockFactory.createPropertyValueMergeService());
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNode, dao, MockFactory.createPropertyValueMergeService(), 1);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);
@@ -109,7 +109,60 @@ public class TestSDRFWritingUtils extends TestCase {
         fva.setAttributeValue("specific factor value");
         hybridizationNode.factorValues.add(fva);
 
-        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, hybridizationNode, MockFactory.createLoaderDAO(), MockFactory.createPropertyValueMergeService());
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, hybridizationNode, MockFactory.createLoaderDAO(), MockFactory.createPropertyValueMergeService(), 1);
+
+        // now get properties of assay - we should have one matching our factor value
+        assertSame("Wrong number of properties", assay.getProperties().size(), 1);
+        for (AssayProperty p : assay.getProperties()) {
+            assertEquals("Wrong property name", p.getName(), TYPE);
+            assertEquals("Wrong property value", p.getValue(),
+                    "specific factor value");
+        }
+    }
+
+    public void testWrite2ColourAssayProperties() throws AtlasLoaderException {
+        // create investigation
+        MAGETABInvestigation investigation = new MAGETABInvestigation();
+        investigation.IDF.experimentalFactorType.add(TYPE);
+        investigation.IDF.experimentalFactorName.add(TYPE);
+
+        Assay assay = new Assay("TEST-ASSAY");
+
+        AssayNode assayNodeCy5 = new AssayNode();
+        FactorValueAttribute fva1 = new FactorValueAttribute();
+        fva1.type = TYPE;
+        fva1.scannerChannel = 2;
+        fva1.setAttributeValue("specific factor value for colour 2");
+        assayNodeCy5.factorValues.add(fva1);
+        assayNodeCy5.setNodeName("assay1.Cy5");
+
+        final LoaderDAO dao = MockFactory.createLoaderDAO();
+
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, assayNodeCy5, dao, MockFactory.createPropertyValueMergeService(), 2);
+
+        // now get properties of assay - we should have one matching our factor value
+        assertSame("Wrong number of properties", assay.getProperties().size(), 1);
+        for (AssayProperty p : assay.getProperties()) {
+            assertEquals("Wrong property name", p.getName(), TYPE);
+            assertEquals("Wrong property value", p.getValue(),
+                    "specific factor value for colour 2");
+        }
+    }
+
+    public void testWrite2ColourHybridizationProperties() throws AtlasLoaderException {
+        // create investigation
+        MAGETABInvestigation investigation = new MAGETABInvestigation();
+
+        Assay assay = new Assay("TEST-SAMPLE");
+
+        HybridizationNode hybridizationNodeCy5 = new HybridizationNode();
+        FactorValueAttribute fva1 = new FactorValueAttribute();
+        fva1.type = TYPE;
+        fva1.scannerChannel = 2;
+        fva1.setAttributeValue("specific factor value for colour 2");
+        hybridizationNodeCy5.factorValues.add(fva1);
+        hybridizationNodeCy5.setNodeName("assay1.Cy5");
+        AssayAndHybridizationStep.writeAssayProperties(investigation, assay, hybridizationNodeCy5, MockFactory.createLoaderDAO(), MockFactory.createPropertyValueMergeService(), 2);
 
         // now get properties of assay - we should have one matching our factor value
         assertSame("Wrong number of properties", assay.getProperties().size(), 1);

@@ -22,14 +22,12 @@
 
 package uk.ac.ebi.gxa.loader.steps;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ArrayDataNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.ArrayDesignAttribute;
 import uk.ac.ebi.gxa.R.compute.AtlasComputeService;
 import uk.ac.ebi.gxa.R.compute.ComputeTask;
@@ -167,13 +165,18 @@ public class ArrayDataStep {
                 log.info("Found array data matrix node '" + node.getNodeName() + "'");
 
                 final Collection<HybridizationNode> hybridizationNodes = GraphUtils.findUpstreamNodes(node, HybridizationNode.class);
+                final Collection<LabeledExtractNode> labeledExtractNodes = GraphUtils.findUpstreamNodes(node, LabeledExtractNode.class);
+                final String label = labeledExtractNodes.size() > 0 ? labeledExtractNodes.iterator().next().label.getAttributeValue() : null;
+
                 final Collection<AssayNode> assayNodes = GraphUtils.findUpstreamNodes(node, AssayNode.class);
                 if (hybridizationNodes.size() + assayNodes.size() != 1) {
                     throw new AtlasLoaderException("ArrayDataNode " + node.getNodeName() + " corresponds to " + (hybridizationNodes.size() + assayNodes.size()) + " assays");
                 }
                 final HybridizationNode assayNode =
                         hybridizationNodes.size() == 0 ? assayNodes.iterator().next() : hybridizationNodes.iterator().next();
-                Assay assay = cache.fetchAssay(assayNode.getNodeName());
+
+                String assayAcc = assayNode.getNodeName() + (!Strings.isNullOrEmpty(label) ? "." + label : "");
+                Assay assay = cache.fetchAssay(assayAcc);
                 if (assay == null) {
                     throw new AtlasLoaderException("Cannot fetch an assay for node " + assayNode.getNodeName());
                 }

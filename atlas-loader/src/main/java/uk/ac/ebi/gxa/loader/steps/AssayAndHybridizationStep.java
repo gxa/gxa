@@ -46,6 +46,7 @@ import uk.ac.ebi.microarray.atlas.model.Property;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class AssayAndHybridizationStep {
     }
 
     public void readAssays(MAGETABInvestigation investigation, ExperimentBuilder cache, LoaderDAO dao
-                            , ArrayDesignService arrayDesignService, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
+            , ArrayDesignService arrayDesignService, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
         Collection<ScanNode> scanNodes = investigation.SDRF.getNodes(ScanNode.class);
         for (ScanNode scanNode : scanNodes) {
             if ((scanNode.comments.keySet().contains("ENA_RUN") && scanNode.comments.containsKey("FASTQ_URI"))) {
@@ -74,15 +75,33 @@ public class AssayAndHybridizationStep {
             }
         }
 
+        int numberOfChannels = getNumberOfChannels(investigation);
         if (!isHTS(investigation)) {
             for (HybridizationNode hybridizationNode : investigation.SDRF.getNodes(HybridizationNode.class)) {
-                writeHybridizationNode(hybridizationNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService);
+                writeHybridizationNode(hybridizationNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService, numberOfChannels);
             }
 
             for (AssayNode assayNode : investigation.SDRF.getNodes(AssayNode.class)) {
-                writeHybridizationNode(assayNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService);
+                writeHybridizationNode(assayNode, cache, investigation, dao, arrayDesignService, propertyValueMergeService, numberOfChannels);
             }
         }
+    }
+
+    /**
+     *
+     * @param investigation
+     * @return the number of channels (colours) used in the experiment;
+     * @throws AtlasLoaderException if the number of channels > 2
+     */
+    private int getNumberOfChannels(MAGETABInvestigation investigation) throws AtlasLoaderException {
+        int numberOfChannels = investigation.SDRF.getNumberOfChannels();
+        if (numberOfChannels > 2) {
+            // many to one scan-to-assay, we can't load this generate error item and throw exception
+            throw new AtlasLoaderException(
+                    investigation.getAccession() + " could not be loaded as its number of channels: " + numberOfChannels + " is greater than the maximum allowed: 2"
+            );
+        }
+        return numberOfChannels;
     }
 
     private void writeHybridizationNode(
@@ -91,37 +110,50 @@ public class AssayAndHybridizationStep {
             MAGETABInvestigation investigation,
             LoaderDAO dao,
             ArrayDesignService arrayDesignService,
-            PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
+            PropertyValueMergeService propertyValueMergeService,
+            int numberOfChannels
+    ) throws AtlasLoaderException {
         assert !isHTS(investigation);
 
-        log.debug("Writing assay from hybridization node '" + node.getNodeName() + "'");
-
-        // create/retrieve the new assay
-        Assay assay = cache.fetchAssay(node.getNodeName());
-        if (assay != null) {
-            // get the existing sample
-            log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
-                    "count now = " + cache.fetchAllAssays().size());
-        } else {
-            // create a new assay and add it to the cache
-            assay = new Assay(node.getNodeName());
-            cache.addAssay(assay);
-            log.debug("Created new assay (" + assay.getAccession() + "), " +
-                    "count now = " + cache.fetchAllAssays().size());
+        // Assemble assay accession for each channel separately
+        List<Pair<String, Integer>> assayAccessions = new ArrayList<Pair<String, Integer>>();
+        for (int channelNo = 1; channelNo <= numberOfChannels; channelNo++) {
+            assayAccessions.add(0, Pair.create(node.getNodeName() + "." + investigation.SDRF.getLabelForChannel(channelNo), channelNo));
         }
 
-        populateArrayDesign(node, assay, arrayDesignService);
+        for (Pair<String, Integer> assayAccessionChannelNo : assayAccessions) {
 
-        // now record any properties
-        writeAssayProperties(investigation, assay, node, dao, propertyValueMergeService);
+            String assayAcc = assayAccessionChannelNo.getFirst();
+            int channelNo = assayAccessionChannelNo.getSecond();
+            log.debug("Writing assay from hybridization node '" + assayAcc + "'");
 
-        // finally, assays must be linked to their upstream samples
-        Collection<SourceNode> upstreamSources =
-                GraphUtils.findUpstreamNodes(node, SourceNode.class);
+            // create/retrieve the new assay
+            Assay assay = cache.fetchAssay(assayAcc);
+            if (assay != null) {
+                // get the existing sample
+                log.debug("Integrated assay with existing assay (" + assay.getAccession() + "), " +
+                        "count now = " + cache.fetchAllAssays().size());
+            } else {
+                // create a new assay and add it to the cache
+                assay = new Assay(assayAcc);
+                cache.addAssay(assay);
+                log.debug("Created new assay (" + assay.getAccession() + "), " +
+                        "count now = " + cache.fetchAllAssays().size());
+            }
 
-        for (SourceNode source : upstreamSources) {
-            // retrieve the samples with the matching accession
-            cache.linkAssayToSample(assay, source.getNodeName());
+            populateArrayDesign(node, assay, arrayDesignService);
+
+            // now record any properties
+            writeAssayProperties(investigation, assay, node, dao, propertyValueMergeService, channelNo);
+
+            // finally, assays must be linked to their upstream samples
+            Collection<SourceNode> upstreamSources =
+                    GraphUtils.findUpstreamNodes(node, SourceNode.class);
+
+            for (SourceNode source : upstreamSources) {
+                // retrieve the samples with the matching accession
+                cache.linkAssayToSample(assay, source.getNodeName());
+            }
         }
     }
 
@@ -176,7 +208,7 @@ public class AssayAndHybridizationStep {
         }
 
         // now record any properties
-        writeAssayProperties(investigation, assay, assayNode, dao, propertyValueMergeService);
+        writeAssayProperties(investigation, assay, assayNode, dao, propertyValueMergeService, 1);
 
         // finally, assays must be linked to their upstream samples
         Collection<SourceNode> upstreamSources =
@@ -221,16 +253,18 @@ public class AssayAndHybridizationStep {
      * to the name of the {@link uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode} provided (the property
      * value).
      *
-     * @param investigation the investigation being loaded
-     * @param assay         the assay you want to attach properties to
-     * @param assayNode     the assayNode being read
-     * @param dao           the LoaderDAO to consult for the objects necessary
-     * @param propertyValueMergeService           servce responsible for merging property values
+     * @param investigation             the investigation being loaded
+     * @param assay                     the assay you want to attach properties to
+     * @param assayNode                 the assayNode being read
+     * @param dao                       the LoaderDAO to consult for the objects necessary
+     * @param propertyValueMergeService service responsible for merging property values
+     * @param channelNo                 channel number used to identify which properties/values to assign to this assay
+     *                                  (in multi-channel experiments, assay will correspond to a single channel 'aspect' of the multi-channel hybridization
      * @throws uk.ac.ebi.gxa.loader.AtlasLoaderException
      *          if there is a problem creating the property object
      */
     public static void writeAssayProperties(MAGETABInvestigation investigation, Assay assay,
-                                            HybridizationNode assayNode, LoaderDAO dao, PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
+                                            HybridizationNode assayNode, LoaderDAO dao, PropertyValueMergeService propertyValueMergeService, int channelNo) throws AtlasLoaderException {
 
         List<Pair<String, FactorValueAttribute>> factorValueAttributes = new ArrayList<Pair<String, FactorValueAttribute>>();
         // fetch factor values of this assayNode
@@ -240,13 +274,23 @@ public class AssayAndHybridizationStep {
                 // generate error item and throw exception
                 throw new AtlasLoaderException("Factors and their values must NOT contain '||' - " +
                         "this is a special reserved character used as a delimiter in the database");
+            } else if (isValueForChannel(assayNode, factorValueAttribute.getAttributeValue(), channelNo)) {
+                factorValueAttributes.add(Pair.create(getFactor(investigation, factorValueAttribute), factorValueAttribute));
             }
-
-            factorValueAttributes.add(Pair.create(getFactor(investigation, factorValueAttribute), factorValueAttribute));
         }
 
         for (Pair<String, String> efEfv : propertyValueMergeService.getMergedFactorValues(factorValueAttributes))
-               tryAddPropertyToAssay(efEfv.getKey(), efEfv.getValue(), assay, dao);
+            tryAddPropertyToAssay(efEfv.getKey(), efEfv.getValue(), assay, dao);
+    }
+
+    /**
+     * @param assayNode
+     * @param value
+     * @param channelNo
+     * @return true if a value for one of the properties describing assayNode belongs to channelNo
+     */
+    private static boolean isValueForChannel(HybridizationNode assayNode, String value, int channelNo) {
+        return Arrays.asList(assayNode.values(channelNo)).contains(value);
     }
 
     /**
