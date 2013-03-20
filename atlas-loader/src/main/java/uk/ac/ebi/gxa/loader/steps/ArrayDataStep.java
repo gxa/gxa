@@ -145,6 +145,7 @@ public class ArrayDataStep {
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
         final HashMap<String, File> zipFiles = new HashMap<String, File>();
+        Boolean multiChannelStatus = null;
 
         try {
             // set this variable to false to avoid attempts of load
@@ -179,6 +180,18 @@ public class ArrayDataStep {
                 Assay assay = cache.fetchAssay(assayAcc);
                 if (assay == null) {
                     throw new AtlasLoaderException("Cannot fetch an assay for node " + assayNode.getNodeName());
+                }
+
+                // Ensure that all assays are either single-channel or multi-channel - we cannot have both at the same time.
+                // Note that for now this restriction is enforced across all array designs in the experiments. If we come
+                // across experiments in which assays in one array design and single-channel and in another multi-channel we
+                // will re-think this strategy. Then we may have to restrict the checking to assays in each array design
+                // separately.
+                if (multiChannelStatus == null)
+                    multiChannelStatus = assay.isMultichannel();
+                else if (!multiChannelStatus.equals(assay.isMultichannel())) {
+                    throw new AtlasLoaderException("Assay: " + assay.getAccession() + " has different multichannel status from some previously processed assays in this experiment. " +
+                            "All assays should either be single-channel or multi-channel.");
                 }
 
                 final Collection<ScanNode> scanNodes = GraphUtils.findUpstreamNodes(node, ScanNode.class);
