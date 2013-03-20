@@ -118,11 +118,12 @@ public class AssayAndHybridizationStep {
         // Assemble assay accession for each channel separately
         List<Pair<String, Integer>> assayAccessions = new ArrayList<Pair<String, Integer>>();
         for (int channelNo = 1; channelNo <= numberOfChannels; channelNo++) {
-            assayAccessions.add(0, Pair.create(node.getNodeName() + "." + investigation.SDRF.getLabelForChannel(channelNo), channelNo));
+            assayAccessions.add(0, Pair.create(
+                    node.getNodeName() + (numberOfChannels > 1 ? "." + investigation.SDRF.getLabelForChannel(channelNo) : ""),
+                    channelNo));
         }
 
         for (Pair<String, Integer> assayAccessionChannelNo : assayAccessions) {
-
             String assayAcc = assayAccessionChannelNo.getFirst();
             int channelNo = assayAccessionChannelNo.getSecond();
             log.debug("Writing assay from hybridization node '" + assayAcc + "'");
@@ -136,6 +137,7 @@ public class AssayAndHybridizationStep {
             } else {
                 // create a new assay and add it to the cache
                 assay = new Assay(assayAcc);
+                assay.setMultichannel(numberOfChannels > 1);
                 cache.addAssay(assay);
                 log.debug("Created new assay (" + assay.getAccession() + "), " +
                         "count now = " + cache.fetchAllAssays().size());

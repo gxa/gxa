@@ -97,6 +97,9 @@ public class Assay {
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     private List<AssayProperty> properties = newArrayList();
 
+    @Column(name = "MULTICHANNEL")
+    private boolean ismultichannel;
+
     Assay() {
     }
 
@@ -144,6 +147,14 @@ public class Assay {
 
     public List<Sample> getSamples() {
         return samples;
+    }
+
+    public boolean isMultichannel() {
+        return ismultichannel;
+    }
+
+    public void setMultichannel(boolean ismultichannel) {
+        this.ismultichannel = ismultichannel;
     }
 
     @Override
