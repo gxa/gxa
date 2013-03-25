@@ -80,6 +80,8 @@ load_data() {
          echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_${TABLE} for ${TARGET_ATLAS_USER}.A2_${TABLE};" | sqlplus -L -S $ATLAS_CONNECTION
          echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_${TABLE} for ${TARGET_ATLAS_USER}.A2_${TABLE};"
        done
+    echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_CONFIG_PROPERTY for ${TARGET_ATLAS_USER}.A2_CONFIG_PROPERTY;" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_CONFIG_PROPERTY for ${TARGET_ATLAS_USER}.A2_CONFIG_PROPERTY;"
     echo "Done creating table synonyms for user: ${TARGET_ATLAS_USER}_ro"
 
 
@@ -89,6 +91,8 @@ load_data() {
         echo "grant select on A2_${TABLE} to ${TARGET_ATLAS_USER}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
         echo "grant select on A2_${TABLE} to ${TARGET_ATLAS_USER}_select_role"
       done
+    echo "grant select on A2_CONFIG_PROPERTY to ${TARGET_ATLAS_USER}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "grant select on A2_CONFIG_PROPERTY to ${TARGET_ATLAS_USER}_select_role"
     echo "Done granting select permissions to ${TARGET_ATLAS_USER}_select_role"
 
     for LDR_CTL in $TABLE_NAMES_SET 
