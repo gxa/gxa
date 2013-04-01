@@ -27,7 +27,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
+import uk.ac.ebi.gxa.service.export.ArrayDesignMappingExporter;
 import uk.ac.ebi.gxa.service.export.ChEbiXrefExporter;
 import uk.ac.ebi.gxa.service.export.CompoundExporter;
 import uk.ac.ebi.gxa.service.export.EnsemblOrganismExporter;
@@ -48,14 +50,20 @@ public class DataExporterController {
     @Autowired
     private EnsemblOrganismExporter organismExporter;
 
+    @Autowired
+    private ArrayDesignMappingExporter arrayDesignMappingExporter;
+
     public static final String COMPOUND = "compound";
 
     public static final String CHEBI = "chebi";
 
     public static final String ORGANISMS = "organisms";
 
+    public static final String ARRAY_DESIGN = "arraydesign";
+
     @RequestMapping(value = "/dataExport/{type}")
     public String getAnnotationSourceList(@PathVariable("type") String type,
+                                          @RequestParam(value = "accession", required = false) String arrayDesignAccession,
                                           Model model) throws ResourceNotFoundException {
 
         if (COMPOUND.equalsIgnoreCase(type)) {
@@ -64,6 +72,12 @@ public class DataExporterController {
             model.addAttribute("exportText", chEbiExporter.generateDataAsString());
         } else if (ORGANISMS.equalsIgnoreCase(type)) {
             model.addAttribute("exportText", organismExporter.generateDataAsString());
+        } else if (ARRAY_DESIGN.equalsIgnoreCase(type)) {
+            if (arrayDesignAccession != null) {
+                model.addAttribute("exportText", arrayDesignMappingExporter.generateDataAsString(arrayDesignAccession));
+            } else {
+                throw new ResourceNotFoundException("Array design accession is not specified!");
+            }
         } else {
             throw new ResourceNotFoundException("Cannot export data of type " + type);
         }

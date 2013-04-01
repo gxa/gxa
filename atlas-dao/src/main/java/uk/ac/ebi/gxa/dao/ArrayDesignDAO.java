@@ -10,7 +10,9 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Iterables.getFirst;
 
@@ -81,6 +83,29 @@ public class ArrayDesignDAO {
     public void save(ArrayDesign ad) {
         ht.saveOrUpdate(ad);
         ht.flush();
+    }
+
+    public Map<String, String> getDesignElementGeneAccMapping(String arrayDesignAcc) {
+        final Map<String, String> designElementGeneAccMapping = new HashMap<String, String>(50000);
+
+        String query = "SELECT DISTINCT DE.ACCESSION, INDEXEDBE.IDENTIFIER\n" +
+                " FROM A2_ARRAYDESIGN AD\n" +
+                " join a2_designelement de on de.ARRAYDESIGNID = AD.ARRAYDESIGNID\n" +
+                "  join a2_designeltbioentity debe on debe.designelementid = de.designelementid\n" +
+                "  JOIN A2_BIOENTITY INDEXEDBE ON INDEXEDBE.BIOENTITYID = DEBE.BIOENTITYID\n" +
+                "  join a2_bioentitytype betype on betype.bioentitytypeid = indexedbe.bioentitytypeid\n" +
+                "  JOIN A2_SOFTWARE SW ON SW.SOFTWAREID = DEBE.SOFTWAREID\n" +
+                "  where sw.isactive = 'T'\n" +
+                "  AND BETYPE.ID_FOR_INDEX = 1\n" +
+                "  AND ad.accession = ?";
+        template.query(query,  new Object[]{arrayDesignAcc}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet resultSet) throws SQLException {
+                designElementGeneAccMapping.put(resultSet.getString(1), resultSet.getString(2));
+            }
+        });
+
+        return designElementGeneAccMapping;
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {

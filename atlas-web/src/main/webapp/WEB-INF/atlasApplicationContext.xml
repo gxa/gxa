@@ -569,6 +569,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="chEbiExporter" class="uk.ac.ebi.gxa.service.export.ChEbiXrefExporter">
     </bean>
 
+    <bean name="arrayDesignMappingExporter" class="uk.ac.ebi.gxa.service.export.ArrayDesignMappingExporter">
+    </bean>
+
     <bean name="compoundExporter" class="uk.ac.ebi.gxa.service.export.CompoundExporter">
     </bean>
 
