@@ -1,5 +1,8 @@
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,7 +13,7 @@ import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -67,14 +70,14 @@ public class ArrayDesignDAO {
     }
 
     /**
-     * @param accession      Array design accession
+     * @param accession Array design accession
      * @return Array design (with no design element and gene ids filled in) corresponding to accession
      */
     public ArrayDesign getArrayDesignShallowByAccession(String accession) {
         @SuppressWarnings("unchecked")
 
         //ToDo: create new array design if one doesn't exists and if it has as synonym existing array design
-        List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
+                List<ArrayDesign> results = ht.find("from ArrayDesign where accession = ?", accession);
 
         return getFirst(results, null);
     }
@@ -86,7 +89,7 @@ public class ArrayDesignDAO {
     }
 
     public Map<String, String> getDesignElementGeneAccMapping(String arrayDesignAcc) {
-        final Map<String, String> designElementGeneAccMapping = new HashMap<String, String>(50000);
+        final Multimap<String, String> allMappings = ArrayListMultimap.create();
 
         String query = "SELECT DISTINCT DE.ACCESSION, INDEXEDBE.IDENTIFIER\n" +
                 " FROM A2_ARRAYDESIGN AD\n" +
@@ -98,14 +101,26 @@ public class ArrayDesignDAO {
                 "  where sw.isactive = 'T'\n" +
                 "  AND BETYPE.ID_FOR_INDEX = 1\n" +
                 "  AND ad.accession = ?";
-        template.query(query,  new Object[]{arrayDesignAcc}, new RowCallbackHandler() {
+        template.query(query, new Object[]{arrayDesignAcc}, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet resultSet) throws SQLException {
-                designElementGeneAccMapping.put(resultSet.getString(1), resultSet.getString(2));
+                allMappings.put(resultSet.getString(1), resultSet.getString(2));
             }
         });
 
-        return designElementGeneAccMapping;
+        return filterToKeepUniqueMappings(allMappings);
+
+    }
+
+    protected Map<String, String> filterToKeepUniqueMappings(Multimap<String, String> allMappings) {
+        final Map<String, String> result = Maps.newHashMap();
+        for (String deAcc : allMappings.asMap().keySet()) {
+            Collection<String> genes = allMappings.get(deAcc);
+            if (genes.size() == 1) {
+                result.put(deAcc, genes.iterator().next());
+            }
+        }
+        return result;
     }
 
     private void fillOutArrayDesigns(ArrayDesign arrayDesign) {
@@ -114,7 +129,7 @@ public class ArrayDesignDAO {
 
         String accessionMaster = arrayDesign.getAccessionMaster();
 
-        if (StringUtils.isNotBlank(accessionMaster)){
+        if (StringUtils.isNotBlank(accessionMaster)) {
             arrayDesignId = getArrayDesignShallowByAccession(accessionMaster).getArrayDesignID();
         }
 

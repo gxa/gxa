@@ -22,12 +22,14 @@
 
 package uk.ac.ebi.gxa.dao;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.Test;
 
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
 
 public class ArrayDesignDAOTest extends AtlasDAOTestCase {
 
@@ -37,5 +39,18 @@ public class ArrayDesignDAOTest extends AtlasDAOTestCase {
         assertEquals(1, designElementGeneAccMapping.size());
         assertTrue(designElementGeneAccMapping.containsKey("acc1"));
         assertTrue(designElementGeneAccMapping.containsValue("ENSMUSG00000020275"));
+    }
+
+    @Test
+    public void testFilterToKeepUniqueMappings() throws Exception {
+        Multimap<String, String> map = ArrayListMultimap.create();
+        map.put("de1", "g1");
+        map.put("de1", "g2");
+        map.put("de3", "g3");
+
+        Map<String, String> result = arrayDesignDAO.filterToKeepUniqueMappings(map);
+        assertThat(result.size(), is(1));
+        assertThat(result.containsKey("de3"), is(true));
+        assertThat(result.containsValue("g3"), is(true));
     }
 }
