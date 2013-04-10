@@ -223,12 +223,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     writeEndElement(writer);
                 }
 
-                AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene, atlasStatisticsQueryService);
-
-                writer.writeStartElement("description");
-                writer.writeCharacters(geneDescription.toStringExperimentCount());
-                writeEndElement(writer);
-
                 writer.writeStartElement("keywords");
                 writer.writeCharacters(gene.getPropertyValue("keyword", PIPE));
                 writeEndElement(writer);
@@ -276,14 +270,18 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
 
                 writeEndElement(writer); // xrefs
 
+                String ensemblGeneDescription = null;
                 writer.writeStartElement("additional_fields");
                 for (Map.Entry<String, Collection<String>> geneprop : geneprops.entrySet()) {
-                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey()) && // The field has not already been output above
-                            !atlasProperties.getDumpExcludeFields().contains(geneprop.getKey())) { // The field is not explicitly excluded
-                        writer.writeStartElement("field");
-                        writer.writeAttribute("name", geneprop.getKey().replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
-                        writer.writeCharacters(StringUtils.join(geneprop.getValue(), PIPE));
-                        writeEndElement(writer);
+                    if (!atlasProperties.getDumpGeneIdFields().contains(geneprop.getKey())) { // The field has not already been output above
+                        if (!atlasProperties.getDumpExcludeFields().contains(geneprop.getKey())) { // The field is not explicitly excluded
+                            writer.writeStartElement("field");
+                            writer.writeAttribute("name", geneprop.getKey().replaceAll(NON_ALPHANUMERIC_PATTERN, UNDERSCORE));
+                            writer.writeCharacters(StringUtils.join(geneprop.getValue(), PIPE));
+                            writeEndElement(writer);
+                        } else if (geneprop.getKey().equalsIgnoreCase("description")) {
+                            ensemblGeneDescription = StringUtils.join(geneprop.getValue(), ", ");
+                        }
                     }
 
                     /* TODO: this blows up the dump to gigabytes in size, need to rethink/redo
@@ -296,6 +294,12 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                     }
                     */
                 }
+
+                AtlasGeneDescription geneDescription = new AtlasGeneDescription(atlasProperties, gene, ensemblGeneDescription, atlasStatisticsQueryService);
+
+                writer.writeStartElement("description");
+                writer.writeCharacters(geneDescription.toStringExperimentCount());
+                writeEndElement(writer);
 
                 // The score field, along with EB-eye Lucene 'relevance' measure,
                 // will be used to determine the order of genes returned by the search.

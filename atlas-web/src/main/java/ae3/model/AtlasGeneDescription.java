@@ -24,6 +24,7 @@ package ae3.model;
 
 import ae3.service.AtlasStatisticsQueryService;
 import ae3.service.structuredquery.UpdownCounter;
+import com.google.common.base.Strings;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.gxa.utils.EfvTree;
 import uk.ac.ebi.gxa.utils.StringUtil;
@@ -192,7 +193,7 @@ public class AtlasGeneDescription {
             if (result.length() == 0)
                 return;
 
-            if (",;:".indexOf(lastChar(result)) >= 0)
+            if (",;:".indexOf(lastChar(result)) < 0)
                 result.append(",");
 
             if (lastChar(result) != ' ')
@@ -219,7 +220,7 @@ public class AtlasGeneDescription {
      *
      * @param gene <STRONG>must</STRONG> be initialized
      */
-    public AtlasGeneDescription(AtlasProperties atlasProp, AtlasGene gene, AtlasStatisticsQueryService atlasStatisticsQueryService) {
+    public AtlasGeneDescription(AtlasProperties atlasProp, AtlasGene gene, String ensemblGeneDescription, AtlasStatisticsQueryService atlasStatisticsQueryService) {
 
         this.atlasProperties = atlasProp;
 
@@ -264,7 +265,9 @@ public class AtlasGeneDescription {
         text = StringUtil.replaceLast(text, " ...", "...");
 
         totalExperiments = writer.getTotalExperiments();
-        experimentCountText = gene.getGeneName() + " is differentially expressed in " + totalExperiments + " experiment" +
+        experimentCountText = gene.getGeneName() +
+                (!Strings.isNullOrEmpty(ensemblGeneDescription) ? ", " + ensemblGeneDescription + ", ": "") +
+                " is differentially expressed in " + totalExperiments + " experiment" +
                 (totalExperiments > 1 ? "s" : "");
         //&lt;a href="http://www.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
         text = experimentCountText + ": " + text;
