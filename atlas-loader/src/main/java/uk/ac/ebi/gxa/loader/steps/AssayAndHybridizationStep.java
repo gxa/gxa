@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.getNumberOfChannels;
 import static uk.ac.ebi.gxa.loader.service.AtlasMAGETABLoader.isHTS;
 
 /**
@@ -87,22 +88,6 @@ public class AssayAndHybridizationStep {
         }
     }
 
-    /**
-     *
-     * @param investigation
-     * @return the number of channels (colours) used in the experiment;
-     * @throws AtlasLoaderException if the number of channels > 2
-     */
-    private int getNumberOfChannels(MAGETABInvestigation investigation) throws AtlasLoaderException {
-        int numberOfChannels = investigation.SDRF.getNumberOfChannels();
-        if (numberOfChannels > 2) {
-            // many to one scan-to-assay, we can't load this generate error item and throw exception
-            throw new AtlasLoaderException(
-                    investigation.getAccession() + " could not be loaded as its number of channels: " + numberOfChannels + " is greater than the maximum allowed: 2"
-            );
-        }
-        return numberOfChannels;
-    }
 
     private void writeHybridizationNode(
             HybridizationNode node,

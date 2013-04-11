@@ -115,10 +115,14 @@ public class AtlasMAGETABLoader {
             }
 
             boolean isHts = false;
+            boolean is2Colour = false;
             try {
                 // Parsing itself
                 logProgress(listener, 1, ParsingStep.displayName());
                 final MAGETABInvestigation investigation = new ParsingStep().parse(idfFileLocation);
+
+                // Record if experiment is 2 colour
+                is2Colour = getNumberOfChannels(investigation) == 2;
 
                 // Getting an experiment
                 logProgress(listener, 2, CreateExperimentStep.displayName());
@@ -132,25 +136,27 @@ public class AtlasMAGETABLoader {
                 logProgress(listener, 4, AssayAndHybridizationStep.displayName());
                 new AssayAndHybridizationStep().readAssays(investigation, cache, dao, arrayDesignService, propertyValueMergeService);
 
-                boolean arrayDataRead = false;
-                //use raw data
-                Collection<String> useRawData = cmd.getUserData().get("useRawData");
-                if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
-                    logProgress(listener, 5, ArrayDataStep.displayName());
-                    String normalizationMode;
-                    Collection<String> libs = cmd.getUserData().get("normalizationMode");
-                    if (libs == null || libs.isEmpty())
-                        normalizationMode = "oligo";
-                    else
-                        normalizationMode = libs.iterator().next();
-                    arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao, normalizationMode);
-                }
+                if (!is2Colour) {
+                    boolean arrayDataRead = false;
+                    //use raw data
+                    Collection<String> useRawData = cmd.getUserData().get("useRawData");
+                    if (useRawData != null && useRawData.size() == 1 && "true".equals(useRawData.iterator().next())) {
+                        logProgress(listener, 5, ArrayDataStep.displayName());
+                        String normalizationMode;
+                        Collection<String> libs = cmd.getUserData().get("normalizationMode");
+                        if (libs == null || libs.isEmpty())
+                            normalizationMode = "oligo";
+                        else
+                            normalizationMode = libs.iterator().next();
+                        arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao, normalizationMode);
+                    }
 
-                logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
-                if (arrayDataRead) {
-                    log.info("Raw data are used; processed data will not be processed");
-                } else {
-                    new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
+                    logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());
+                    if (arrayDataRead) {
+                        log.info("Raw data are used; processed data will not be processed");
+                    } else {
+                        new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
+                    }
                 }
 
                 //load RNA-seq experiment
@@ -174,7 +180,7 @@ public class AtlasMAGETABLoader {
             if (listener != null) {
                 listener.setProgress("Storing experiment to DB");
             }
-            write(listener, cache, isHts);
+            write(listener, cache, isHts, is2Colour);
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             // TODO: 4alf: proper handling!!!
@@ -191,10 +197,10 @@ public class AtlasMAGETABLoader {
         log.info(progress);
     }
 
-    private void write(AtlasLoaderServiceListener listener, AtlasLoadCache cache, boolean isHts) throws AtlasLoaderException {
+    private void write(AtlasLoaderServiceListener listener, AtlasLoadCache cache, boolean isHts, boolean is2Colour) throws AtlasLoaderException {
         // parsing completed, so now write the objects in the cache
         try {
-            writeObjects(cache, listener, isHts);
+            writeObjects(cache, listener, isHts, is2Colour);
 
             if (listener != null) {
                 listener.setProgress("Done");
@@ -209,12 +215,12 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener, boolean isHts) throws AtlasLoaderException {
+    void writeObjects(AtlasLoadCache cache, AtlasLoaderServiceListener listener, boolean isHts, boolean is2Colour) throws AtlasLoaderException {
         int numOfObjects = (cache.fetchExperiment() == null ? 0 : 1)
                 + cache.fetchAllSamples().size() + cache.fetchAllAssays().size();
 
         if (isHts) {
-            // For RNA-seq experiment, assing a placeholder 'array design' for all their runs (assays)
+            // For RNA-seq experiment, adding a placeholder 'array design' for all their runs (assays)
             for (Assay assay : cache.fetchAllAssays()) {
                 if (assay.getArrayDesign() == null) {
                     assay.setArrayDesign(dao.getArrayDesignShallow("A-ENST-X"));
@@ -223,7 +229,7 @@ public class AtlasMAGETABLoader {
         }
 
         // validate the load(s)
-        validateLoad(cache, isHts);
+        validateLoad(cache, isHts, is2Colour);
 
 
         // check experiment exists in database, and not just in the loadmonitor
@@ -250,7 +256,7 @@ public class AtlasMAGETABLoader {
             log.info("Writing experiment " + experimentAccession);
 
             dao.save(cache.fetchExperiment());
-            if (!isHts) {
+            if (!isHts && !is2Colour) {
                 writeExperimentNetCDF(cache, listener);
             }
             // and return true - everything loaded ok
@@ -292,7 +298,7 @@ public class AtlasMAGETABLoader {
         }
     }
 
-    private void validateLoad(AtlasLoadCache cache, boolean isHts) throws AtlasLoaderException {
+    private void validateLoad(AtlasLoadCache cache, boolean isHts, boolean is2Colour) throws AtlasLoaderException {
         try {
             if (cache.fetchExperiment() == null)
                 throw new AtlasLoaderException("Cannot load without an experiment");
@@ -304,7 +310,7 @@ public class AtlasMAGETABLoader {
                 if (assay.hasNoProperties())
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " has no properties! All assays need at least one.");
 
-                if (!isHts && !cache.getAssayDataMap().containsKey(assay.getAccession()))
+                if (!isHts && !is2Colour && !cache.getAssayDataMap().containsKey(assay.getAccession()))
                     throw new AtlasLoaderException("Assay " + assay.getAccession() + " contains no data! All assays need some.");
 
                 if (assay.getSamples().isEmpty())
@@ -361,5 +367,22 @@ public class AtlasMAGETABLoader {
             }
         }
         return true;
+    }
+
+    /**
+     *
+     * @param investigation
+     * @return the number of channels (colours) used in the experiment;
+     * @throws AtlasLoaderException if the number of channels > 2
+     */
+    public static int getNumberOfChannels(MAGETABInvestigation investigation) throws AtlasLoaderException {
+        int numberOfChannels = investigation.SDRF.getNumberOfChannels();
+        if (numberOfChannels > 2) {
+            // many to one scan-to-assay, we can't load this generate error item and throw exception
+            throw new AtlasLoaderException(
+                    investigation.getAccession() + " could not be loaded as its number of channels: " + numberOfChannels + " is greater than the maximum allowed: 2"
+            );
+        }
+        return numberOfChannels;
     }
 }
