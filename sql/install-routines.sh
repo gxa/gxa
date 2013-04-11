@@ -82,6 +82,14 @@ load_data() {
        done
     echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_CONFIG_PROPERTY for ${TARGET_ATLAS_USER}.A2_CONFIG_PROPERTY;" | sqlplus -L -S $ATLAS_CONNECTION
     echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.A2_CONFIG_PROPERTY for ${TARGET_ATLAS_USER}.A2_CONFIG_PROPERTY;"
+
+    # Alas, these two CUR_ views are still used in the public Atlas web service (e.g. for generating experiment_properties.txt file)
+    echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.CUR_OntologyMapping for ${TARGET_ATLAS_USER}.CUR_OntologyMapping;" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.CUR_OntologyMapping for ${TARGET_ATLAS_USER}.CUR_OntologyMapping;"
+
+    echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.CUR_AssayProperty for ${TARGET_ATLAS_USER}.CUR_AssayProperty;" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "create or replace synonym ${TARGET_ATLAS_USER}_ro.CUR_AssayProperty for ${TARGET_ATLAS_USER}.CUR_AssayProperty;"
+
     echo "Done creating table synonyms for user: ${TARGET_ATLAS_USER}_ro"
 
 
@@ -93,6 +101,14 @@ load_data() {
       done
     echo "grant select on A2_CONFIG_PROPERTY to ${TARGET_ATLAS_USER}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
     echo "grant select on A2_CONFIG_PROPERTY to ${TARGET_ATLAS_USER}_select_role"
+
+    # Alas, these two CUR_ views are still used in the public Atlas web service (e.g. for generating experiment_properties.txt file)
+    echo "grant select on CUR_OntologyMapping to ${TARGET_ATLAS_USER}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "grant select on CUR_OntologyMapping to ${TARGET_ATLAS_USER}_select_role"
+
+    echo "grant select on CUR_AssayProperty to ${TARGET_ATLAS_USER}_select_role;" | sqlplus -L -S $ATLAS_CONNECTION
+    echo "grant select on CUR_AssayProperty to ${TARGET_ATLAS_USER}_select_role"
+
     echo "Done granting select permissions to ${TARGET_ATLAS_USER}_select_role"
 
     for LDR_CTL in $TABLE_NAMES_SET 
