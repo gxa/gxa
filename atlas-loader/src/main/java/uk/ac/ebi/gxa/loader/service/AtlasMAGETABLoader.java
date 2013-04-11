@@ -148,7 +148,7 @@ public class AtlasMAGETABLoader {
                             normalizationMode = "oligo";
                         else
                             normalizationMode = libs.iterator().next();
-                        arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao, normalizationMode);
+                        arrayDataRead = new ArrayDataStep().readArrayData(atlasComputeService, investigation, listener, cache, dao, normalizationMode, is2Colour);
                     }
 
                     logProgress(listener, 6, DerivedArrayDataMatrixStep.displayName());

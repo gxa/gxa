@@ -140,7 +140,8 @@ public class ArrayDataStep {
                                  AtlasLoaderServiceListener listener,
                                  AtlasLoadCache cache,
                                  LoaderDAO dao,
-                                 @Nonnull String normalizationLibrary) throws AtlasLoaderException {
+                                 @Nonnull String normalizationLibrary,
+                                 boolean is2colour) throws AtlasLoaderException {
         final URL sdrfURL = investigation.SDRF.getLocation();
         final File sdrfDir = new File(sdrfURL.getFile()).getParentFile();
         final HashMap<String, RawData> dataByArrayDesign = new HashMap<String, RawData>();
@@ -176,10 +177,10 @@ public class ArrayDataStep {
                 final HybridizationNode assayNode =
                         hybridizationNodes.size() == 0 ? assayNodes.iterator().next() : hybridizationNodes.iterator().next();
 
-                String assayAcc = assayNode.getNodeName() + (!Strings.isNullOrEmpty(label) ? "." + label : "");
+                String assayAcc = assayNode.getNodeName() + (is2colour && !Strings.isNullOrEmpty(label) ? "." + label : "");
                 Assay assay = cache.fetchAssay(assayAcc);
                 if (assay == null) {
-                    throw new AtlasLoaderException("Cannot fetch an assay for node " + assayNode.getNodeName());
+                    throw new AtlasLoaderException("Cannot fetch an assay for node " + assayAcc);
                 }
 
                 // Ensure that all assays are either single-channel or multi-channel - we cannot have both at the same time.

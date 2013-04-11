@@ -28,10 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.MAGETABInvestigation;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.graph.utils.GraphUtils;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.AssayNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.HybridizationNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.ScanNode;
-import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.SourceNode;
+import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.*;
 import uk.ac.ebi.arrayexpress2.magetab.datamodel.sdrf.node.attribute.FactorValueAttribute;
 import uk.ac.ebi.gxa.dao.arraydesign.ArrayDesignService;
 import uk.ac.ebi.gxa.loader.AtlasLoaderException;
@@ -100,11 +97,12 @@ public class AssayAndHybridizationStep {
     ) throws AtlasLoaderException {
         assert !isHTS(investigation);
 
+        boolean is2Colour = numberOfChannels == 2;
         // Assemble assay accession for each channel separately
         List<Pair<String, Integer>> assayAccessions = new ArrayList<Pair<String, Integer>>();
         for (int channelNo = 1; channelNo <= numberOfChannels; channelNo++) {
             assayAccessions.add(0, Pair.create(
-                    node.getNodeName() + (numberOfChannels > 1 ? "." + investigation.SDRF.getLabelForChannel(channelNo) : ""),
+                    node.getNodeName() + (is2Colour ? "." + investigation.SDRF.getLabelForChannel(channelNo) : ""),
                     channelNo));
         }
 
@@ -122,7 +120,7 @@ public class AssayAndHybridizationStep {
             } else {
                 // create a new assay and add it to the cache
                 assay = new Assay(assayAcc);
-                assay.setMultichannel(numberOfChannels > 1);
+                assay.setMultichannel(is2Colour);
                 cache.addAssay(assay);
                 log.debug("Created new assay (" + assay.getAccession() + "), " +
                         "count now = " + cache.fetchAllAssays().size());
@@ -134,8 +132,24 @@ public class AssayAndHybridizationStep {
             writeAssayProperties(investigation, assay, node, dao, propertyValueMergeService, channelNo);
 
             // finally, assays must be linked to their upstream samples
-            Collection<SourceNode> upstreamSources =
-                    GraphUtils.findUpstreamNodes(node, SourceNode.class);
+
+            Collection<SourceNode> upstreamSources = null;
+
+            if (is2Colour) {
+                // Make sure that the upstream samples correspond to the same labelled extract as the this (single-channel) assayAcc
+                for (LabeledExtractNode labeledExtractNode : GraphUtils.findUpstreamNodes(node, LabeledExtractNode.class)) {
+                    if (investigation.SDRF.getLabelForChannel(channelNo).equals(labeledExtractNode.label.getAttributeValue())) {
+                        upstreamSources =
+                                GraphUtils.findUpstreamNodes(labeledExtractNode, SourceNode.class);
+                    }
+                }
+                if (upstreamSources == null) {
+                    throw new AtlasLoaderException("Unable to find the labeled extract: " + investigation.SDRF.getLabelForChannel(channelNo) + " for the assay: " + assayAcc);
+                }
+            } else {
+                upstreamSources =
+                        GraphUtils.findUpstreamNodes(node, SourceNode.class);
+            }
 
             for (SourceNode source : upstreamSources) {
                 // retrieve the samples with the matching accession
