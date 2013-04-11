@@ -27,6 +27,7 @@ import ae3.model.AtlasGene;
 import ae3.model.AtlasGeneDescription;
 import ae3.service.AtlasStatisticsQueryService;
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 
 import java.util.*;
@@ -53,10 +54,10 @@ public class GenePageGene {
     }
 
     public static GenePageGene create(AtlasGene atlasGene, AtlasProperties atlasProperties, GeneSolrDAO geneSolrDAO, AtlasStatisticsQueryService atlasStatisticsQueryService) {
-        String geneDescription = new AtlasGeneDescription(atlasProperties, atlasGene, atlasStatisticsQueryService).toString();
         Collection<String> synonyms = findSynonyms(atlasGene, atlasProperties);
         Collection<AtlasGene> orthologs = findOrthologs(atlasGene, geneSolrDAO);
         Collection<GeneField> geneFields = findGeneFields(atlasGene, atlasProperties);
+        String geneDescription = new AtlasGeneDescription(atlasProperties, atlasGene, getEnsemblDescription(geneFields), atlasStatisticsQueryService).toString();
         String baselineAtlasLink = !Strings.isNullOrEmpty(atlasGene.getGeneSpecies()) ?
                 atlasProperties.getBaselineAtlasLink(atlasGene.getGeneSpecies().toLowerCase().replaceAll(" ", "_")) : null;
 
@@ -143,6 +144,16 @@ public class GenePageGene {
         }
 
         return fields;
+    }
+
+    private static String getEnsemblDescription(Collection<GeneField> fields) {
+        String ensemblGeneDescription = null;
+        for (GeneField field : fields) {
+           if (field.getName().equalsIgnoreCase("description")) {
+               ensemblGeneDescription = StringUtils.join(field.getValues(), ", ");
+           }
+        }
+        return ensemblGeneDescription;
     }
 
     private static Collection<AtlasGene> findOrthologs(AtlasGene atlasGene, GeneSolrDAO geneSolrDAO) {

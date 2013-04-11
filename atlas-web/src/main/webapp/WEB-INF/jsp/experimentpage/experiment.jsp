@@ -149,10 +149,17 @@
                 <span class="section-header-1" style="vertical-align:baseline">${exp.description}</span>
 
                 <p>
-                    <c:import url="../includes/apilinks.jsp">
-                        <c:param name="apiUrl" value="experiment=${exp.accession}"/>
-                        <c:param name="callback" value="expPage.getApiLink"/>
-                    </c:import>
+                    <c:choose>
+                        <c:when test="${hideGxaContent}">
+                        </c:when>
+                    <c:otherwise>
+                        <c:import url="../includes/apilinks.jsp">
+                            <c:param name="apiUrl" value="experiment=${exp.accession}"/>
+                            <c:param name="callback" value="expPage.getApiLink"/>
+                        </c:import>
+                    </c:otherwise>
+                    </c:choose>  <!-- hideGxaContent -->
+
                 </p>
 
                 <p>
