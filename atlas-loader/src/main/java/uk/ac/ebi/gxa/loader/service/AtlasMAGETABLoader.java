@@ -152,19 +152,6 @@ public class AtlasMAGETABLoader {
                 } else {
                     new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
                 }
-
-                //load RNA-seq experiment
-                //ToDo: add condition based on "getUserData"
-                isHts = isHTS(investigation);
-                if (isHts) {
-                      // Only experimental meta data for RNA-seq experiments are currently loaded into gxa
-//                    logProgress(listener, 7, HTSArrayDataStep.displayName());
-//                    new HTSArrayDataStep().readHTSData(investigation, atlasComputeService, cache, dao);
-//                    logProgress(listener, 8, HTSAnnotationStep.displayName());
-//                    HTSAnnotationStep hTSAnnotationStep = new HTSAnnotationStep();
-//                    hTSAnnotationStep.populateAnnotationsForSpecies(investigation, cache.fetchExperiment(), atlasDataDAO);
-//                    hTSAnnotationStep.populateBams(investigation, cache.fetchExperiment(), atlasDataDAO);
-                }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
                 log.error("There was a problem whilst trying to build atlas model from " + idfFileLocation, e);
