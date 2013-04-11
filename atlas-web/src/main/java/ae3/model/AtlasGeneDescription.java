@@ -266,8 +266,8 @@ public class AtlasGeneDescription {
 
         totalExperiments = writer.getTotalExperiments();
         experimentCountText = gene.getGeneName() +
-                (!Strings.isNullOrEmpty(ensemblGeneDescription) ? ", " + ensemblGeneDescription + ", ": "") +
-                " is differentially expressed in " + totalExperiments + " experiment" +
+                (!Strings.isNullOrEmpty(ensemblGeneDescription) ? ", " + ensemblGeneDescription + ", ": " ") +
+                "is differentially expressed in " + totalExperiments + " experiment" +
                 (totalExperiments > 1 ? "s" : "");
         //&lt;a href="http://www.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
         text = experimentCountText + ": " + text;
