@@ -314,6 +314,7 @@
             ACCESSION="abc:ABCxyz:SomeThing:1234.ABC123"
             EXPERIMENTID="174501824"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -321,6 +322,7 @@
             ACCESSION="xyz:XYZabc:AnotherThing:6789.XYZ789"
             EXPERIMENTID="174501824"
             ARRAYDESIGNID="2"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -328,6 +330,7 @@
             ACCESSION="xyz:XYZabc:AnotherThing:6789.XYZ789"
             EXPERIMENTID="2"
             ARRAYDESIGNID="2"
+            MULTICHANNEL="0"
             />
 
     <A2_SAMPLE
@@ -452,6 +455,7 @@
             ACCESSION="one:ToMany:TestAssay1"
             ARRAYDESIGNID="1"
             EXPERIMENTID="174501824"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -459,6 +463,7 @@
             ACCESSION="one:ToMany:TestAssay2"
             ARRAYDESIGNID="1"
             EXPERIMENTID="174501824"
+            MULTICHANNEL="0"
             />
 
     <A2_SAMPLE
@@ -546,6 +551,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P5KO3_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -553,6 +559,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P5KO1_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -560,6 +567,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P5WT3_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -567,6 +575,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P0KO2_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -574,6 +583,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P0WT3_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -581,6 +591,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P5WT1_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -588,6 +599,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P5WT2_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -595,6 +607,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P5KO2_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -602,6 +615,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P0WT2_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -609,6 +623,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P0KO3_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -616,6 +631,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P0WT1_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_ASSAY
@@ -623,6 +639,7 @@
             ACCESSION="brain, hindbrain and spinal cord: P0KO1_e1_le1"
             EXPERIMENTID="3"
             ARRAYDESIGNID="1"
+            MULTICHANNEL="0"
             />
 
     <A2_SAMPLE
