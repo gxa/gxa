@@ -207,6 +207,7 @@ public abstract class AtlasDAOTestCase {
                         "ACCESSION VARCHAR(255), " +
                         "EXPERIMENTID bigint not null, " +
                         "ARRAYDESIGNID bigint not null, " +
+                        "MULTICHANNEL bit, " +
                         "CONSTRAINT SYS_C008055 PRIMARY KEY (ASSAYID), " +
                         "CONSTRAINT FKA2_ASSAY856724 FOREIGN KEY (ARRAYDESIGNID) " +
                         "REFERENCES A2_ARRAYDESIGN (ARRAYDESIGNID), " +

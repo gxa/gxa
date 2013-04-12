@@ -39,6 +39,7 @@ import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
 import uk.ac.ebi.gxa.data.AtlasDataException;
 import uk.ac.ebi.gxa.data.ExperimentWithData;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.Experiment;
 import uk.ac.ebi.rcloud.server.RServices;
@@ -68,17 +69,21 @@ public class ExperimentAnalyticsGeneratorService {
     private AtlasComputeService atlasComputeService;
     @Autowired
     private ExecutorService executor;
+    @Autowired
+    private AtlasProperties atlasProperties;
 
     // for CGLIB only
     ExperimentAnalyticsGeneratorService() {
     }
 
     public ExperimentAnalyticsGeneratorService(AtlasDAO atlasDAO, AtlasDataDAO atlasDataDAO,
-                                               AtlasComputeService atlasComputeService, ExecutorService executor) {
+                                               AtlasComputeService atlasComputeService, ExecutorService executor,
+                                               AtlasProperties atlasProperties) {
         this.atlasDAO = atlasDAO;
         this.atlasDataDAO = atlasDataDAO;
         this.atlasComputeService = atlasComputeService;
         this.executor = executor;
+        this.atlasProperties = atlasProperties;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -171,13 +176,15 @@ public class ExperimentAnalyticsGeneratorService {
         log.info("Generating analytics for experiment " + experimentAccession);
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
+
+        if (atlasProperties.getHideGxaContentExperiments().contains(experimentAccession)) {
+            listener.buildWarning("No analytics were computed for " + experimentAccession + " as this is an RNA-seq or 2-colour experiment.");
+            return;
+        }
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
         final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
         if (arrayDesigns.isEmpty()) {
             throw new AnalyticsGeneratorException("No array designs present for " + experiment);
-        } else if (arrayDesigns.size() == 1 && arrayDesigns.iterator().next().getAccession().equals("A-ENST-X")) {
-            listener.buildWarning("No analytics were computed for " + experimentAccession + " as this is an RNA-seq experiment.");
-            return;
         }
         final List<String> analysedEFs = new ArrayList<String>();
         int count = 0;

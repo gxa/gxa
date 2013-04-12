@@ -28,6 +28,8 @@ import uk.ac.ebi.gxa.analytics.generator.listener.AnalyticsGeneratorListener;
 import uk.ac.ebi.gxa.analytics.generator.service.ExperimentAnalyticsGeneratorService;
 import uk.ac.ebi.gxa.dao.AtlasDAOTestCase;
 import uk.ac.ebi.gxa.data.AtlasDataDAO;
+import uk.ac.ebi.gxa.properties.AtlasProperties;
+import uk.ac.ebi.gxa.properties.ResourceFileStorage;
 import uk.ac.ebi.gxa.utils.ResourceUtil;
 
 import java.io.IOException;
@@ -60,9 +62,17 @@ public class TestExperimentAnalyticsGeneratorService extends AtlasDAOTestCase {
         final ExperimentAnalyticsGeneratorService experimentAnalyticsGeneratorService =
                 new ExperimentAnalyticsGeneratorService(
                         atlasDAO, atlasDataDAO, atlasComputeService,
-                        createMock(ExecutorService.class));
+                        createMock(ExecutorService.class), getAtlasProperties());
 
         experimentAnalyticsGeneratorService.createAnalyticsForExperiment(E_GEOD_5035,
                 createMock(AnalyticsGeneratorListener.class));
+    }
+
+    private AtlasProperties getAtlasProperties() {
+        ResourceFileStorage storage = new ResourceFileStorage();
+        storage.setResourcePath("atlas.properties");
+        AtlasProperties atlasProperties = new AtlasProperties();
+        atlasProperties.setStorage(storage);
+        return  atlasProperties;
     }
 }

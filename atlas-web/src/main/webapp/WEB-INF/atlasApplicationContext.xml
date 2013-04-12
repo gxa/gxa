@@ -217,6 +217,7 @@ http://www.springframework.org/schema/context/spring-context.xsd">
         <constructor-arg ref="atlasDataDAO"/>
         <constructor-arg ref="atlasComputeService"/>
         <constructor-arg ref="threadPool"/>
+        <constructor-arg ref="atlasProperties"/>
     </bean>
 
     <bean name="analyticsGenerator" class="uk.ac.ebi.gxa.analytics.generator.DefaultAnalyticsGenerator"
