@@ -38,15 +38,18 @@ public class AtlasNetCDFUpdaterService {
             // we cannot use this method; see comment in ExperimentWithData class
             //ewd.updateAllData();
             boolean rnaSeqExperiment = false;
+            boolean twoColourExperiment = false;
             for (ArrayDesign arrayDesign : experiment.getArrayDesigns()) {
-                rnaSeqExperiment = arrayDesign.getAccession().equals("A-ENST-X");
-                if (!rnaSeqExperiment) {
+                String adAccession = arrayDesign.getAccession();
+                rnaSeqExperiment = adAccession.equals("A-ENST-X");
+                twoColourExperiment = adAccession.equals("A-AGIL-28");
+                if (!rnaSeqExperiment && !twoColourExperiment) {
                     ewd.updateData(atlasDAO.getArrayDesignByAccession(arrayDesign.getAccession()));
                 } else {
-                    listener.setProgress("No NetCDFs were updated for " + experiment.getAccession() + " as this is an RNA-seq experiment.");
+                    listener.setProgress("No NetCDFs were updated for " + experiment.getAccession() + " as this is an RNA-seq or 2-colour experiment.");
                 }
             }
-            if (!rnaSeqExperiment)
+            if (!rnaSeqExperiment && !twoColourExperiment)
                 listener.setProgress("Successfully updated the NetCDFs");
         } catch (AtlasDataException e) {
             listener.setProgress("Failed NetCDF update");
