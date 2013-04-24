@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.annotationsrc;
 
-import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -35,11 +35,11 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.*
  * User: nsklyar
  * Date: 21/03/2012
  */
-class GeneSigDBInputValidator extends AnnotationSourceInputValidator<GeneSigAnnotationSource> {
+class FileBasedInputValidator extends AnnotationSourceInputValidator<FileBasedAnnotationSource> {
 
 
     @Override
-    protected boolean isImmutableFieldsValid(GeneSigAnnotationSource annSrc, String text, ValidationReportBuilder reportBuilder) {
+    protected boolean isImmutableFieldsValid(FileBasedAnnotationSource annSrc, String text, ValidationReportBuilder reportBuilder) {
         AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
         Software software = softwareDAO.findOrCreate(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
         if (!annSrc.getSoftware().equals(software)) {
@@ -55,10 +55,10 @@ class GeneSigDBInputValidator extends AnnotationSourceInputValidator<GeneSigAnno
     }
 
     @Override
-    public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder) {
+    public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder, Class<FileBasedAnnotationSource> clazz) {
         AnnotationSourceProperties properties = new AnnotationSourceProperties();
         Software software = new Software(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
-        if (annSrcDAO.findGeneSigAnnotationSource(software.getName(), software.getVersion()) != null) {
+        if (annSrcDAO.findFileBasedAnnotationSource(software.getName(), software.getVersion(), clazz) != null) {
             reportBuilder.addMessage("Annotation source with software " + software.getName() + "/" +
                     software.getVersion() + " already exists. If you need to " +
                     "change it use Edit button");
@@ -70,5 +70,6 @@ class GeneSigDBInputValidator extends AnnotationSourceInputValidator<GeneSigAnno
     @Override
     protected void extraValidation(AnnotationSourceProperties properties, ValidationReportBuilder reportBuilder) {
     }
+
 
 }

@@ -152,6 +152,22 @@ public class BioEntityDAO {
         return arrayDesignsByBeID;
     }
 
+//    Map<String, String> getGeneNames(String organismName) {
+//        Map<String, String> result = new HashMap<String, String>();
+//
+//        template.query("SELECT " + GeneMapper.FIELDS + " \n" +
+//                        "FROM a2_bioentity be \n" +
+//                        "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+//                        "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+//                        "WHERE bet.id_for_index = 1", new RowCallbackHandler() {
+//            @Override
+//            public void processRow(ResultSet resultSet) throws SQLException {
+//
+//            }
+//        });
+//
+//        return result;
+//    }
 
     BioEntityType findOrCreateBioEntityType(final String name) {
         if (beTypeCache.containsKey(name)) {

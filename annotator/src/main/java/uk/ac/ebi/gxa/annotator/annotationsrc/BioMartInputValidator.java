@@ -70,7 +70,7 @@ class BioMartInputValidator extends AnnotationSourceInputValidator<BioMartAnnota
 
 
     @Override
-    public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder) {
+    public boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder, Class<BioMartAnnotationSource> clazz) {
         final AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
         Software software = new Software(properties.getProperty(SOFTWARE_NAME_PROPNAME), properties.getProperty(SOFTWARE_VERSION_PROPNAME));
         final String onlineVersion = fetchOnLineVersion(properties);
