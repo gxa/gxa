@@ -573,6 +573,9 @@ but it uses it to close searcher and clean cache to prevent OOMs -->
     <bean name="arrayDesignMappingExporter" class="uk.ac.ebi.gxa.service.export.ArrayDesignMappingExporter">
     </bean>
 
+    <bean name="geneNameMappingExporter" class="uk.ac.ebi.gxa.service.export.EnsemblIDGeneNameMappingExporter">
+    </bean>
+
     <bean name="compoundExporter" class="uk.ac.ebi.gxa.service.export.CompoundExporter">
     </bean>
 

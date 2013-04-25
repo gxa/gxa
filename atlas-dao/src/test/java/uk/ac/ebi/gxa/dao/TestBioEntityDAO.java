@@ -27,6 +27,7 @@ import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BioEntity;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 public class TestBioEntityDAO extends AtlasDAOTestCase {
     @Test
     public void testGetAllGenes() throws Exception {
-        int expected = 1;
+        int expected = 2;
 
         // get number of experiments from the DAO
         int actual = bioEntityDAO.getAllGenesFast().size();
@@ -80,4 +81,12 @@ public class TestBioEntityDAO extends AtlasDAOTestCase {
             }
         }
     }
+
+    @Test
+   public void testGetGeneNames() throws Exception {
+       Map<String,String> geneNames = bioEntityDAO.getGeneNames("homo sapiens");
+       assertEquals(1, geneNames.size());
+       assertTrue(geneNames.containsKey("identifier1"));
+       assertEquals("gene name", geneNames.get("identifier1"));
+   }
 }

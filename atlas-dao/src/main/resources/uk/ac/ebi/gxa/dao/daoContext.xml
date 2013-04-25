@@ -71,6 +71,7 @@
         <constructor-arg ref="softwareDAO"/>
         <constructor-arg ref="atlasJdbcTemplate"/>
         <constructor-arg ref="bioEntityTypeDAO"/>
+        <constructor-arg ref="bioEntityPropertyDAO"/>
     </bean>
 
     <bean name="bioEntityPropertyDAO" class="uk.ac.ebi.gxa.dao.bioentity.BioEntityPropertyDAO">

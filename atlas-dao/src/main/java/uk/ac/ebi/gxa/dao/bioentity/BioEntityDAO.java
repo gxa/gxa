@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import uk.ac.ebi.gxa.dao.SoftwareDAO;
+import uk.ac.ebi.gxa.dao.exceptions.RecordNotFoundException;
 import uk.ac.ebi.gxa.utils.Pair;
 import uk.ac.ebi.microarray.atlas.model.ArrayDesign;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
@@ -57,14 +58,16 @@ public class BioEntityDAO {
     private static Logger log = LoggerFactory.getLogger(BioEntityDAO.class);
     private SoftwareDAO softwareDAO;
     private BioEntityTypeDAO typeDAO;
+    private BioEntityPropertyDAO propertyDAO;
     private JdbcTemplate template;
 
     private static Map<String, BioEntityType> beTypeCache = new HashMap<String, BioEntityType>();
 
-    public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template, BioEntityTypeDAO typeDAO) {
+    public BioEntityDAO(SoftwareDAO softwareDAO, JdbcTemplate template, BioEntityTypeDAO typeDAO, BioEntityPropertyDAO propertyDAO) {
         this.template = template;
         this.softwareDAO = softwareDAO;
         this.typeDAO = typeDAO;
+        this.propertyDAO = propertyDAO;
     }
 
     /**
@@ -152,22 +155,58 @@ public class BioEntityDAO {
         return arrayDesignsByBeID;
     }
 
-//    Map<String, String> getGeneNames(String organismName) {
-//        Map<String, String> result = new HashMap<String, String>();
-//
-//        template.query("SELECT " + GeneMapper.FIELDS + " \n" +
-//                        "FROM a2_bioentity be \n" +
-//                        "JOIN a2_organism o ON o.organismid = be.organismid\n" +
-//                        "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
-//                        "WHERE bet.id_for_index = 1", new RowCallbackHandler() {
-//            @Override
-//            public void processRow(ResultSet resultSet) throws SQLException {
-//
-//            }
-//        });
-//
-//        return result;
-//    }
+    public Map<String, String> getGeneNames(String organismName) {
+        final Map<String, String> result = new HashMap<String, String>();
+
+        Set<Long> activeSoftwareIds = getActiveSoftwareIds();
+
+        Long geneNamePropertyId = getGeneNamePropertyId();
+
+        Long geneTypeId = getGeneTypeId();
+
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
+
+        MapSqlParameterSource propertyParams = new MapSqlParameterSource();
+        propertyParams.addValue("swid", activeSoftwareIds);
+        propertyParams.addValue("geneNamePropertyId", geneNamePropertyId);
+        propertyParams.addValue("geneTypeId", geneTypeId);
+        propertyParams.addValue("organism", organismName);
+
+        namedTemplate.query("SELECT BE.IDENTIFIER, BEPV.VALUE\n" +
+                "  FROM A2_BIOENTITY BE\n" +
+                "  JOIN A2_BIOENTITYBEPV BEBEPV ON BEBEPV.BIOENTITYID = BE.BIOENTITYID\n" +
+                "  JOIN A2_BIOENTITYPROPERTYVALUE BEPV ON BEPV.BEPROPERTYVALUEID = BEBEPV.BEPROPERTYVALUEID\n" +
+                "  JOIN A2_ORGANISM O ON O.ORGANISMID = BE.ORGANISMID\n" +
+                "  WHERE BEPV.BIOENTITYPROPERTYID = :geneNamePropertyId \n" +
+                "  AND BE.BIOENTITYTYPEID = :geneTypeId\n" +
+                "  AND BEBEPV.SOFTWAREID in (:swid)\n" +
+                "  AND o.name = :organism", propertyParams, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet resultSet) throws SQLException {
+                result.put(resultSet.getString(1), resultSet.getString(2));
+            }
+        });
+
+        return result;
+    }
+
+    private Long getGeneTypeId()  {
+        try {
+            BioEntityType ensgene = typeDAO.getByName("ensgene");
+            return ensgene.getId();
+        } catch (RecordNotFoundException e) {
+            throw new IllegalStateException("Cannot find bioentity type ensgene");
+        }
+    }
+
+    private Long getGeneNamePropertyId() {
+        try {
+            BioEntityProperty symbol = propertyDAO.getByName("symbol");
+            return symbol.getBioEntitypropertyId();
+        } catch (RecordNotFoundException e) {
+            throw new IllegalStateException("Cannot find property coresponding to gene name");
+        }
+    }
 
     BioEntityType findOrCreateBioEntityType(final String name) {
         if (beTypeCache.containsKey(name)) {
@@ -421,11 +460,7 @@ public class BioEntityDAO {
         NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(template);
 
         //find all recent software
-        List<Software> softwares = softwareDAO.getActiveSoftwares();
-        Set<Long> swIds = new HashSet<Long>(softwares.size());
-        for (Software software : softwares) {
-            swIds.add(software.getSoftwareid());
-        }
+        Set<Long> swIds = getActiveSoftwareIds();
 
         // if we have more than 'MAX_QUERY_PARAMS' genes, split into smaller queries
         List<Long> geneIDs = new ArrayList<Long>(genesByID.keySet());
@@ -442,6 +477,15 @@ public class BioEntityDAO {
                     "  where bebepv.softwareid in (:swid)  " +
                     "  and bebepv.bioentityid in (:geneids)", propertyParams, genePropertyMapper);
         }
+    }
+
+    private Set<Long> getActiveSoftwareIds() {
+        List<Software> softwares = softwareDAO.getActiveSoftwares();
+        Set<Long> swIds = new HashSet<Long>(softwares.size());
+        for (Software software : softwares) {
+            swIds.add(software.getSoftwareid());
+        }
+        return swIds;
     }
 
     public void setJdbcTemplate(JdbcTemplate template) {

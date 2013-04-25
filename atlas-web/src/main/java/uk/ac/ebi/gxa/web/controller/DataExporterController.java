@@ -29,10 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.ac.ebi.gxa.exceptions.ResourceNotFoundException;
-import uk.ac.ebi.gxa.service.export.ArrayDesignMappingExporter;
-import uk.ac.ebi.gxa.service.export.ChEbiXrefExporter;
-import uk.ac.ebi.gxa.service.export.CompoundExporter;
-import uk.ac.ebi.gxa.service.export.EnsemblOrganismExporter;
+import uk.ac.ebi.gxa.service.export.*;
 
 /**
  * User: nsklyar
@@ -53,6 +50,9 @@ public class DataExporterController {
     @Autowired
     private ArrayDesignMappingExporter arrayDesignMappingExporter;
 
+    @Autowired
+    private EnsemblIDGeneNameMappingExporter geneNameMappingExporter;
+
     public static final String COMPOUND = "compound";
 
     public static final String CHEBI = "chebi";
@@ -61,9 +61,12 @@ public class DataExporterController {
 
     public static final String ARRAY_DESIGN = "arraydesign";
 
+    public static final String GENE_NAMES = "genenames";
+
     @RequestMapping(value = "/dataExport/{type}")
     public String getAnnotationSourceList(@PathVariable("type") String type,
                                           @RequestParam(value = "accession", required = false) String arrayDesignAccession,
+                                          @RequestParam(value = "organism", required = false) String organism,
                                           Model model) throws ResourceNotFoundException {
 
         if (COMPOUND.equalsIgnoreCase(type)) {
@@ -77,6 +80,12 @@ public class DataExporterController {
                 model.addAttribute("exportText", arrayDesignMappingExporter.generateDataAsString(arrayDesignAccession));
             } else {
                 throw new ResourceNotFoundException("Array design accession is not specified!");
+            }
+        } else if (GENE_NAMES.equalsIgnoreCase(type)) {
+            if (organism != null) {
+                model.addAttribute("exportText", geneNameMappingExporter.generateDataAsString(organism));
+            } else {
+                throw new ResourceNotFoundException("Organism name is not specified!");
             }
         } else {
             throw new ResourceNotFoundException("Cannot export data of type " + type);
