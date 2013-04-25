@@ -124,6 +124,6 @@ public abstract class AnnotationSourceInputValidator<T extends AnnotationSource>
 
     protected abstract Collection<String> getRequiredProperties();
 
-    public abstract boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder);
+    public abstract boolean isNewAnnSrcUnique(String text, ValidationReportBuilder reportBuilder, Class<T> clazz);
 
 }

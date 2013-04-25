@@ -23,6 +23,7 @@
 package uk.ac.ebi.gxa.annotator.loader.util;
 
 import au.com.bytecode.opencsv.CSVReader;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,13 @@ public class CSVBasedReader implements Closeable {
         if (rowCount++ % 2000 == 0) {
             log.debug("Parsed [" + rowCount + "] rows");
         }
-        return line == null ? null : new Row(line);
+        if (line == null) {
+            return null;
+        } else if (line.length < Sets.newHashSet(columnIndexes).size()) {
+            return readNext();
+        } else {
+            return new Row(line);
+        }
     }
 
     @Override

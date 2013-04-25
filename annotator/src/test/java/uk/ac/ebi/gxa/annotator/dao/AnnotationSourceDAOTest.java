@@ -170,20 +170,11 @@ public class AnnotationSourceDAOTest extends AtlasDAOTestCase {
         assertNull(annotationSource);
     }
 
-    @Test
-    @Transactional
-    public void testFindAnnotationSourceGeneSig() throws Exception {
-        Software software = softwareDAO.findOrCreate("GeneSigDB", "4");
-
-        GeneSigAnnotationSource annotationSource = annSrcDAO.findGeneSigAnnotationSource(software);
-        assertNotNull(annotationSource);
-
-    }
 
     @Test
     public void testFindAnnotationSourceGeneSig1() throws Exception {
 
-        GeneSigAnnotationSource annotationSource = annSrcDAO.findGeneSigAnnotationSource("GeneSigDB", "4");
+        GeneSigAnnotationSource annotationSource = annSrcDAO.findFileBasedAnnotationSource("GeneSigDB", "4", GeneSigAnnotationSource.class);
         assertNotNull(annotationSource);
 
     }

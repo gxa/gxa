@@ -25,7 +25,7 @@ package uk.ac.ebi.gxa.annotator.loader;
 import org.apache.http.client.HttpClient;
 import uk.ac.ebi.gxa.annotator.AnnotationException;
 import uk.ac.ebi.gxa.annotator.loader.data.InvalidAnnotationDataException;
-import uk.ac.ebi.gxa.annotator.loader.genesig.GeneSigAnnotationLoader;
+import uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedAnnotationLoader;
 import uk.ac.ebi.gxa.annotator.loader.util.InvalidCSVColumnException;
 import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 
@@ -51,7 +51,7 @@ public class FileBasedAnnotator extends Annotator {
     public void updateAnnotations(int batchSize) {
         try {
             reportProgress("Loading properties from annotation source " + annSrc.getName());
-            GeneSigAnnotationLoader loader = new GeneSigAnnotationLoader(httpClient, annSrc);
+            FileBasedAnnotationLoader loader = new FileBasedAnnotationLoader(httpClient, annSrc);
             loader.loadPropertyValues();
 
             reportProgress("Writing properties from annotation source " + annSrc.getName());

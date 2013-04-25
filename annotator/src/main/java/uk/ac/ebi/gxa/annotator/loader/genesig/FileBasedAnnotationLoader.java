@@ -28,7 +28,7 @@ import static com.google.common.io.Closeables.closeQuietly;
  * @author Olga Melnichuk
  * @version 1/16/12 3:26 PM
  */
-public class GeneSigAnnotationLoader {
+public class FileBasedAnnotationLoader {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -38,7 +38,7 @@ public class GeneSigAnnotationLoader {
 
     private final HttpClient httpClient;
 
-    public GeneSigAnnotationLoader(HttpClient httpClient, FileBasedAnnotationSource annotSource) {
+    public FileBasedAnnotationLoader(HttpClient httpClient, FileBasedAnnotationSource annotSource) {
         this.httpClient  = httpClient;
         this.annotSource = annotSource;
     }

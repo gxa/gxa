@@ -131,7 +131,7 @@ abstract class AbstractAnnotationSourceManager<T extends AnnotationSource>{
     private T createNewAnnotationSource(String text, ValidationReportBuilder errors) throws AnnotationLoaderException {
         final AnnotationSourceInputValidator<T> inputValidator = getInputValidator();
 
-        if (!inputValidator.isNewAnnSrcUnique(text, errors)) return null;
+        if (!inputValidator.isNewAnnSrcUnique(text, errors, getClazz())) return null;
 
         T annSrc = getConverter().initAnnotationSource(text);
         getConverter().editAnnotationSource(annSrc, text);

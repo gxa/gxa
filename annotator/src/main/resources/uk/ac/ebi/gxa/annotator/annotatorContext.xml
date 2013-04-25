@@ -31,6 +31,7 @@
                 <value>uk.ac.ebi.gxa.annotator.model.AnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource</value>
+                <value>uk.ac.ebi.gxa.annotator.model.ReactomeAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource</value>
                 <value>uk.ac.ebi.gxa.annotator.model.ExternalBioEntityProperty</value>
                 <value>uk.ac.ebi.gxa.annotator.model.ExternalArrayDesign</value>
@@ -54,6 +55,9 @@
     <bean name="geneSigSourceManager"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceManager"/>
 
+    <bean name="reactomeSourceManager"
+             class="uk.ac.ebi.gxa.annotator.annotationsrc.ReactomeAnnotationSourceManager"/>
+
     <bean name="softwareManager"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.SoftwareManager"/>
 
@@ -64,6 +68,7 @@
             <list>
                 <ref bean="martSourceManager"/>
                 <ref bean="geneSigSourceManager"/>
+                <ref bean="reactomeSourceManager"/>
             </list>
         </constructor-arg>
     </bean>
@@ -75,12 +80,15 @@
     <bean name="fileBasedAnnotationSourceConverter"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigAnnotationSourceConverter"/>
 
+    <bean name="reactomeAnnotationSourceConverter"
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.ReactomeAnnotationSourceConverter"/>
+
     <!--Input text validator-->
     <bean name="bioMartInputValidator"
           class="uk.ac.ebi.gxa.annotator.annotationsrc.BioMartInputValidator"/>
 
     <bean name="fileBasedInputValidator"
-          class="uk.ac.ebi.gxa.annotator.annotationsrc.GeneSigDBInputValidator"/>
+          class="uk.ac.ebi.gxa.annotator.annotationsrc.FileBasedInputValidator"/>
 
     <!-- Validators -->
     <bean name="martValidator"
@@ -88,8 +96,8 @@
         <constructor-arg ref="httpClient"/>
     </bean>
 
-    <bean name="geneSigValidator"
-          class="uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedPropertiesValidator"/>
+    <!--<bean name="geneSigValidator"-->
+          <!--class="uk.ac.ebi.gxa.annotator.loader.genesig.FileBasedPropertiesValidator"/>-->
 
     <!-- Version finder -->
     <bean name="martVersionFinder"

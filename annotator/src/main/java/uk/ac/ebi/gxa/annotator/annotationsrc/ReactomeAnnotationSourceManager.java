@@ -24,7 +24,7 @@ package uk.ac.ebi.gxa.annotator.annotationsrc;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
-import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ReactomeAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 import uk.ac.ebi.microarray.atlas.model.bioentity.Software;
 
@@ -36,15 +36,16 @@ import static uk.ac.ebi.gxa.annotator.annotationsrc.AnnotationSourceProperties.S
 
 /**
  * User: nsklyar
- * Date: 23/01/2012
+ * Date: 24/04/2013
  */
-class GeneSigAnnotationSourceManager extends AbstractAnnotationSourceManager<GeneSigAnnotationSource> {
+class ReactomeAnnotationSourceManager extends AbstractAnnotationSourceManager<ReactomeAnnotationSource> {
 
     @Autowired
-    private GeneSigAnnotationSourceConverter geneSigAnnotationSourceConverter;
+    private ReactomeAnnotationSourceConverter reactomeAnnotationSourceConverter;
+
 
     @Autowired
-    private AnnotationSourceInputValidator<GeneSigAnnotationSource> fileBasedInputValidator;
+    private AnnotationSourceInputValidator<ReactomeAnnotationSource> fileBasedInputValidator;
 
     @Override
     public Collection<Software> getNewVersionSoftware() {
@@ -52,43 +53,44 @@ class GeneSigAnnotationSourceManager extends AbstractAnnotationSourceManager<Gen
     }
 
     @Override
-    protected UpdatedAnnotationSource<GeneSigAnnotationSource> createUpdatedAnnotationSource(GeneSigAnnotationSource annSrc) {
-        return new UpdatedAnnotationSource<GeneSigAnnotationSource>(annSrc, false);
+    protected UpdatedAnnotationSource<ReactomeAnnotationSource> createUpdatedAnnotationSource(ReactomeAnnotationSource annSrc) {
+        return new UpdatedAnnotationSource<ReactomeAnnotationSource>(annSrc, false);
     }
 
     @Override
-    protected AnnotationSourceConverter<GeneSigAnnotationSource> getConverter() {
-        return geneSigAnnotationSourceConverter;
+    protected AnnotationSourceConverter<ReactomeAnnotationSource> getConverter() {
+        return reactomeAnnotationSourceConverter;
     }
 
     @Override
-    public AnnotationSourceInputValidator<GeneSigAnnotationSource> getInputValidator() {
+    public AnnotationSourceInputValidator<ReactomeAnnotationSource> getInputValidator() {
         return fileBasedInputValidator;
     }
 
     @Override
-    protected Class<GeneSigAnnotationSource> getClazz() {
-        return GeneSigAnnotationSource.class;
+    protected Class<ReactomeAnnotationSource> getClazz() {
+        return ReactomeAnnotationSource.class;
     }
 
     @Override
     public void validateProperties(AnnotationSource annSrc, ValidationReportBuilder reportBuilder) {
+
     }
 
     @Override
-    protected GeneSigAnnotationSource fetchAnnSrcByProperties(String text) {
+    protected ReactomeAnnotationSource fetchAnnSrcByProperties(String text) {
         AnnotationSourceProperties properties = AnnotationSourceProperties.createPropertiesFromText(text);
         return annSrcDAO.findFileBasedAnnotationSource(properties.getProperty(SOFTWARE_NAME_PROPNAME),
-                properties.getProperty(SOFTWARE_VERSION_PROPNAME), GeneSigAnnotationSource.class);
+                properties.getProperty(SOFTWARE_VERSION_PROPNAME), ReactomeAnnotationSource.class);
     }
 
     @Override
-    protected Class<GeneSigAnnotationSource> getAnnSrcClass() {
-        return GeneSigAnnotationSource.class;
+    protected Class<ReactomeAnnotationSource> getAnnSrcClass() {
+        return ReactomeAnnotationSource.class;
     }
 
     @Override
     public boolean isForClass(Class<? extends AnnotationSource> annSrcClass) {
-        return annSrcClass.equals(GeneSigAnnotationSource.class);
+        return annSrcClass.equals(ReactomeAnnotationSource.class);
     }
 }

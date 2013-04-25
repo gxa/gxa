@@ -22,7 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.loader.genesig;
 
-import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.FileBasedAnnotationSource;
 import uk.ac.ebi.gxa.annotator.validation.AnnotationSourcePropertiesValidator;
 import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
 
@@ -30,10 +30,11 @@ import uk.ac.ebi.gxa.annotator.validation.ValidationReportBuilder;
  * User: nsklyar
  * Date: 20/01/2012
  */
-public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<GeneSigAnnotationSource> {
+public class FileBasedPropertiesValidator implements AnnotationSourcePropertiesValidator<FileBasedAnnotationSource> {
+
 
     @Override
-    public void validatePropertyNames(GeneSigAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
+    public void validatePropertyNames(FileBasedAnnotationSource annotationSource, ValidationReportBuilder reportBuilder) {
 
     }
 }

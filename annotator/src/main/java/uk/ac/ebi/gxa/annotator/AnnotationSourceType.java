@@ -27,6 +27,7 @@ import uk.ac.ebi.gxa.annotator.loader.AnnotatorFactory;
 import uk.ac.ebi.gxa.annotator.model.AnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.BioMartAnnotationSource;
 import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
+import uk.ac.ebi.gxa.annotator.model.ReactomeAnnotationSource;
 
 /**
  * User: nsklyar
@@ -34,7 +35,6 @@ import uk.ac.ebi.gxa.annotator.model.GeneSigAnnotationSource;
  */
 public enum AnnotationSourceType {
     BIOMART(BioMartAnnotationSource.class, "BioMart") {
-
         @Override
         public Annotator createAnnotator(AnnotatorFactory factory, AnnotationSource annSrc) {
             return factory.createBioMartAnnotator((BioMartAnnotationSource) annSrc);
@@ -47,8 +47,15 @@ public enum AnnotationSourceType {
             return factory.createFileBasedAnnotator((GeneSigAnnotationSource) annSrc);
         }
 
-    };
+    },
 
+    REACTOME(ReactomeAnnotationSource.class, "Reactome") {
+        @Override
+        public Annotator createAnnotator(AnnotatorFactory factory, AnnotationSource annSrc) {
+            return factory.createFileBasedAnnotator((ReactomeAnnotationSource) annSrc);
+        }
+
+    };
     private final Class<? extends AnnotationSource> clazz;
     private final String name;
 

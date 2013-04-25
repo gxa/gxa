@@ -287,6 +287,7 @@
             <select id="annotSourceType">
                 <option value="BioMart">BioMart</option>
                 <option value="GeneSigDB">GeneSigDB</option>
+                <option value="Reactome">Reactome</option>
             </select>
         </div>
         <div>
