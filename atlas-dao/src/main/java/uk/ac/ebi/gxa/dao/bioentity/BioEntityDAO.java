@@ -327,7 +327,7 @@ public class BioEntityDAO {
                 "  and pv.bioentitypropertyid = ?),\n" +
                 "  ? \n" +
                 "FROM  DUAL \n" +
-                "where (SELECT COUNT(BE.BIOENTITYID) FROM A2_BIOENTITY BE WHERE BE.IDENTIFIER = ? AND BE.BIOENTITYTYPEID = ?)!=0";
+                "where (SELECT COUNT(BE.BIOENTITYID) FROM A2_BIOENTITY BE WHERE BE.IDENTIFIER = ? AND BE.BIOENTITYTYPEID = ?) = 1";
 
         ListStatementSetter<Pair<String, BEPropertyValue>> statementSetter = new ListStatementSetter<Pair<String, BEPropertyValue>>() {
             long softwareId = software.getSoftwareid();
