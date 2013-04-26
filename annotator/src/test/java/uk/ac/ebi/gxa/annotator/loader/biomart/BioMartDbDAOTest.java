@@ -46,13 +46,13 @@ public class BioMartDbDAOTest {
 
     @Test
     public void testFindDBName() {
-        String dbName = validBioMartDao().findSynonymsDBName("homo_sapiens", "63");
-        assertEquals("homo_sapiens_core_63_37", dbName);
+        String dbName = validBioMartDao().findSynonymsDBName("homo_sapiens", "70");
+        assertEquals("homo_sapiens_core_70_37", dbName);
     }
 
     @Test
     public void testInvalidDbUrl() {
-        assertInvalidDbUrl("ensembldb.ensem", "xenopus_tropicalis", "66");
+        assertInvalidDbUrl("mysql-ensembl-mi", "xenopus_tropicalis", "66");
     }
 
     @Test
@@ -63,13 +63,13 @@ public class BioMartDbDAOTest {
 
     @Test
     public void testDbConnectionTest() {
-        assertInvalidDbConnection("ensembldb.ensem", "xenopus_tropicalis", "66");
-        assertInvalidDbConnection("ensembldb.ensembl.org:5306", "xenopus_tropis", "66");
-        assertInvalidDbConnection("ensembldb.ensembl.org:5306", "", "66");
+        assertInvalidDbConnection("mysql-ensembl-mi", "xenopus_tropicalis", "66");
+        assertInvalidDbConnection("mysql-ensembl-mirror.ebi.ac.uk:4240", "xenopus_tropis", "66");
+        assertInvalidDbConnection("mysql-ensembl-mirror.ebi.ac.uk:4240", "", "66");
     }
 
     private static BioMartDbDAO validBioMartDao() {
-        return new BioMartDbDAO("ensembldb.ensembl.org:5306");
+        return new BioMartDbDAO("mysql-ensembl-mirror.ebi.ac.uk:4240");
     }
 
     private static void assertInvalidDbUrl(String url, String dbName, String version) {

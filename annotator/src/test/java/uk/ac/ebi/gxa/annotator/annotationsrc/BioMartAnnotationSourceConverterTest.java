@@ -82,7 +82,7 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
         assertNotNull(annotationSource);
         assertTrue(reportBuilder.isEmpty());
         assertEquals("gallus gallus", annotationSource.getOrganism().getName());
-        assertEquals(new Software("Ensembl", "63"), annotationSource.getSoftware());
+        assertEquals(new Software("Ensembl", "60"), annotationSource.getSoftware());
         assertEquals(10, annotationSource.getExternalBioEntityProperties().size());
         assertEquals(1, annotationSource.getExternalArrayDesignNames().size());
     }
@@ -97,13 +97,13 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
 
     protected static final String ANN_SRC = "organism = gallus gallus\n" +
             "software.name = Ensembl\n" +
-            "software.version = 63\n" +
+            "software.version = 60\n" +
             "url = http://www.ensembl.org/biomart/martservice?\n" +
             "databaseName = ensembl\n" +
             "datasetName = ggallus_gene_ensembl\n" +
             "types = enstranscript,ensgene\n" +
             "mySqlDbName = mus_musculus\n" +
-            "mySqlDbUrl = ensembldb.ensembl.org:5306\n" +
+            "mySqlDbUrl = mysql-ensembl-mirror.ebi.ac.uk:4240\n" +
             "property.symbol = external_gene_id\n" +
             "property.ensgene = ensembl_gene_id\n" +
             "property.description_ = description\n" +
@@ -122,7 +122,7 @@ public class BioMartAnnotationSourceConverterTest extends AtlasDAOTestCase {
                     "databaseName = ensembl\n" +
                     "datasetName = hsapiens_gene_ensembl\n" +
                     "mySqlDbName = homo_sapiens\n" +
-                    "mySqlDbUrl = ensembldb.ensembl.org:5306\n" +
+                    "mySqlDbUrl = mysql-ensembl-mirror.ebi.ac.uk:4240\n" +
                     "types = enstranscript,ensgene\n" +
                     "property.ensgene = ensembl_gene_id\n" +
                     "property.enstranscript = ensembl_transcript_id\n" +
