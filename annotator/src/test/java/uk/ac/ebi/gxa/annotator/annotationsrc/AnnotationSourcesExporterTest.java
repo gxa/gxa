@@ -93,7 +93,7 @@ public class AnnotationSourcesExporterTest {
             "databaseName = metazoa\n" +
             "datasetName = agambiae_eg_gene\n" +
             "mySqlDbName = anopheles_gambiae\n" +
-            "mySqlDbUrl = mysql.ebi.ac.uk:4157\n" +
+            "mySqlDbUrl = mysql-eg-mirror.ebi.ac.uk:4205\n" +
             "types = enstranscript,ensgene\n" +
             "property.description = description\n" +
             "property.ensgene = ensembl_gene_id\n" +
@@ -118,7 +118,7 @@ public class AnnotationSourcesExporterTest {
             "databaseName = plants\n" +
             "datasetName = athaliana_eg_gene\n" +
             "mySqlDbName = arabidopsis_thaliana\n" +
-            "mySqlDbUrl = mysql.ebi.ac.uk:4157\n" +
+            "mySqlDbUrl = mysql-eg-mirror.ebi.ac.uk:4205\n" +
             "types = enstranscript,ensgene\n" +
             "property.description = description\n" +
             "property.ensgene = ensembl_gene_id\n" +
