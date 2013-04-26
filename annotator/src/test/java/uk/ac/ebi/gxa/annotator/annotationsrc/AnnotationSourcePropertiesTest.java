@@ -116,7 +116,7 @@ public class AnnotationSourcePropertiesTest {
             "databaseName = metazoa\n" +
             "datasetName = agambiae_eg_gene\n" +
             "mySqlDbName = anopheles_gambiae\n" +
-            "mySqlDbUrl = mysql.ebi.ac.uk:4157\n" +
+            "mySqlDbUrl = mysql-eg-mirror.ebi.ac.uk:4205\n" +
             "types = enstranscript,ensgene\n" +
             "property.symbol = external_gene_id\n" +
             "property.refseq = refseq_peptide\n" +
