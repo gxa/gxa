@@ -45,6 +45,14 @@ class ExperimentViewControllerBase extends AtlasViewController {
         if (atlasProperties.getHideGxaContentExperiments().contains(expAccession)) {
             hideGxaContent = true;
         }
+        boolean enableRDFLink = false;
+        if (atlasProperties.isRDFExperimentLinkEnabled()) {
+            enableRDFLink = true;
+        }
+        String rdfExperimentLink = null;
+        if (!Strings.isNullOrEmpty(atlasProperties.getRDFExperimentLink())) {
+            rdfExperimentLink = atlasProperties.getRDFExperimentLink();
+        }
 
         return new ExperimentPage(
                 exp,
@@ -57,7 +65,7 @@ class ExperimentViewControllerBase extends AtlasViewController {
                             }
                         }),
                 expressionAtlasLink,
-                hideGxaContent);
+                hideGxaContent, enableRDFLink, rdfExperimentLink);
     }
 
     public static class ExperimentPage {
@@ -67,14 +75,19 @@ class ExperimentViewControllerBase extends AtlasViewController {
         private final List<String> arrayDesigns = Lists.newArrayList();
         private final String expressionAtlasLink;
         private final boolean hideGxaContent;
+        private final boolean enableRDFLink;
+        private final String rdfExperimentLink;
 
-        public ExperimentPage(AtlasExperiment exp, boolean rnaSeq, List<String> species, Collection<String> arrayDesigns, String expressionAtlasLink, boolean hideGxaContent) {
+        public ExperimentPage(AtlasExperiment exp, boolean rnaSeq, List<String> species, Collection<String> arrayDesigns,
+                              String expressionAtlasLink, boolean hideGxaContent, boolean enableRDFLink, String rdfExperimentLink) {
             this.exp = exp;
             this.rnaSeq = rnaSeq;
             this.species.addAll(species);
             this.arrayDesigns.addAll(arrayDesigns);
             this.expressionAtlasLink = expressionAtlasLink;
             this.hideGxaContent = hideGxaContent;
+            this.enableRDFLink = enableRDFLink;
+            this.rdfExperimentLink = rdfExperimentLink;
         }
 
         public void enhance(Model model) {
@@ -82,7 +95,9 @@ class ExperimentViewControllerBase extends AtlasViewController {
                     .addAttribute("expSpecies", species)
                     .addAttribute("isRNASeq", rnaSeq)
                     .addAttribute("expressionAtlasLink", expressionAtlasLink)
-                    .addAttribute("hideGxaContent", hideGxaContent);
+                    .addAttribute("hideGxaContent", hideGxaContent)
+                    .addAttribute("enableRDFLink", enableRDFLink)
+                    .addAttribute("rdfExperimentLink", rdfExperimentLink);
         }
 
         public boolean isExperimentInCuration() {

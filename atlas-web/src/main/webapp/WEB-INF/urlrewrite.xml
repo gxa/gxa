@@ -81,6 +81,11 @@
         <to>/experimentDesign?eacc=$1</to>
     </rule>
 
+    <rule>
+        <condition name="Accept" type="header">application/rdf</condition>
+        <from>/experiment/(.*)</from>
+        <to type="redirect">http://rdf.ebi.ac.uk/dataset/atlas/experiment/$1.rdf</to>
+    </rule>
 
     <rule>
         <note>
@@ -103,7 +108,6 @@
         <from>/array/U133A</from>
         <to type="redirect">http://www.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
     </rule>
-
 
     <outbound-rule>
         <note>

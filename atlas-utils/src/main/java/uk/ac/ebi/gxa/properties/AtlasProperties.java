@@ -535,4 +535,12 @@ public class AtlasProperties {
     public Integer getTotalAnalyticsPerFactorMaximum() {
         return getIntProperty("total.analytics.per.factor.maximum");
     }
+
+    public String getRDFExperimentLink() {
+        return getProperty("rdf.experiment.link");
+    }
+
+    public boolean isRDFExperimentLinkEnabled() {
+        return getBoolProperty("enable.rdf.links");
+    }
 }

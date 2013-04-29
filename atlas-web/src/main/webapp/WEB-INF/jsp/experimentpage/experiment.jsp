@@ -156,6 +156,8 @@
                         <c:import url="../includes/apilinks.jsp">
                             <c:param name="apiUrl" value="experiment=${exp.accession}"/>
                             <c:param name="callback" value="expPage.getApiLink"/>
+                            <c:param name="rdfExperimentLink" value="${rdfExperimentLink}/${exp.accession}.rdf"/>
+                            <c:param name="enableRDFLink" value="${enableRDFLink}"/>
                         </c:import>
                     </c:otherwise>
                     </c:choose>  <!-- hideGxaContent -->
