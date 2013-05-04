@@ -200,9 +200,10 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         for (BEPropertyValue prop : bioEntity.getProperties()) {
 
             String pv = prop.getValue();
-            String p = prop.getProperty().getName();
             if (pv == null)
                 continue;
+
+            String p = prop.getProperty().getName();
 
             getLog().trace("Updating index, gene property " + p + " = " + pv);
 
