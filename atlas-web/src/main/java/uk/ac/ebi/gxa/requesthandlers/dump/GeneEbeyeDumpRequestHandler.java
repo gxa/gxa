@@ -306,10 +306,6 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 writer.writeCharacters(geneDescription.getTotalExperiments() + "");
                 writeEndElement(writer);
 
-                writer.writeStartElement("description");
-                writer.writeCharacters(geneDescription.toStringExperimentCount());
-                writeEndElement(writer);
-
                 // Output descriptive text relating to each experimmental factor
                 // in efToText.keySet() in a separate field
                 Map<String, String> efToIndexedText = geneDescription.getEfToEbeyeDumpText();
@@ -321,6 +317,10 @@ public class GeneEbeyeDumpRequestHandler implements HttpRequestHandler, IndexBui
                 }
 
                 writeEndElement(writer); // add'l fields
+
+                writer.writeStartElement("description");
+                writer.writeCharacters(geneDescription.toStringExperimentCount());
+                writeEndElement(writer);
 
                 writeEndElement(writer); // entry
 
