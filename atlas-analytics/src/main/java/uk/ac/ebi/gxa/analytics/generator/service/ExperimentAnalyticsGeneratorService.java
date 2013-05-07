@@ -51,6 +51,7 @@ import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -176,13 +177,14 @@ public class ExperimentAnalyticsGeneratorService {
         log.info("Generating analytics for experiment " + experimentAccession);
 
         final Experiment experiment = atlasDAO.getExperimentByAccession(experimentAccession);
-
-        if (atlasProperties.getHideGxaContentExperiments().contains(experimentAccession)) {
+        final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
+        Iterator<ArrayDesign> iter = arrayDesigns.iterator();
+        if (atlasProperties.getHideGxaContentExperiments().contains(experimentAccession) ||
+                iter.hasNext() && iter.next().getAccession().equals("A-ENST-X")) {
             listener.buildWarning("No analytics were computed for " + experimentAccession + " as this is an RNA-seq or 2-colour experiment.");
             return;
         }
         final ExperimentWithData ewd = atlasDataDAO.createExperimentWithData(experiment);
-        final Collection<ArrayDesign> arrayDesigns = experiment.getArrayDesigns();
         if (arrayDesigns.isEmpty()) {
             throw new AnalyticsGeneratorException("No array designs present for " + experiment);
         }
