@@ -54,6 +54,13 @@ public class BioEntityTypeDAO extends AbstractDAO<BioEntityType> {
         }
     }
 
+   public void setUseForIndexEnsprotein(boolean useForIndex) {
+       BioEntityType ensprotein = findOrCreate("ensprotein");
+       ensprotein.setUseForIndex(useForIndex?1:0);
+       save(ensprotein);
+       template.flush();
+   }
+
     @Override
     protected String getNameColumn() {
         return "name";

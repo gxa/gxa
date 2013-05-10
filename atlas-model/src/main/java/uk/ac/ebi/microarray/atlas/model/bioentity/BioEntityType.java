@@ -89,6 +89,10 @@ public class BioEntityType {
         return useForIndex;
     }
 
+    public void setUseForIndex(int useForIndex) {
+        this.useForIndex = useForIndex;
+    }
+
     @Override
     public String toString() {
         return name;

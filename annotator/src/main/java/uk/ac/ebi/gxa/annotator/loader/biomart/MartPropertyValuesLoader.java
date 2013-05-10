@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
@@ -74,7 +75,10 @@ class MartPropertyValuesLoader {
                 int col = 0;
                 BEPropertyValue propertyValue = new BEPropertyValue(property.getBioEntityProperty(), row.getLast());
                 for (BioEntityType type : name2Type.values()) {
-                    builder.addPropertyValue(row.get(col++), type, propertyValue);
+                    String beIdentifier = row.get(col++);
+                    if (!isNullOrEmpty(beIdentifier)) {
+                        builder.addPropertyValue(beIdentifier, type, propertyValue);
+                    }
                 }
             }
             return rc;

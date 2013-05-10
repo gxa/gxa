@@ -22,6 +22,7 @@
 
 package uk.ac.ebi.gxa.annotator.loader.biomart;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.gxa.annotator.loader.data.BioEntityData;
@@ -75,7 +76,11 @@ class MartBioEntitiesLoader {
                 rc ++;
                 int col = 0;
                 for (BioEntityType beType : name2Type.values()) {
-                    dataBuilder.addBioEntity(new BioEntity(row.get(col++), beType, annotSource.getOrganism()));
+                    String identifier = row.get(col++);
+
+                    if (!StringUtils.isBlank(identifier)) {
+                        dataBuilder.addBioEntity(new BioEntity(identifier, beType, annotSource.getOrganism()));
+                    }
                 }
             }
             return rc;

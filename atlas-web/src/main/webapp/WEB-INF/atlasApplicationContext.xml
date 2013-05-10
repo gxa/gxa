@@ -175,6 +175,7 @@ http://www.springframework.org/schema/context/spring-context.xsd">
           class="uk.ac.ebi.gxa.index.builder.service.NewGeneAtlasIndexBuilderService">
         <property name="atlasDAO" ref="atlasDAO"/>
         <property name="bioEntityDAO" ref="bioEntityDAO"/>
+        <property name="bioEntityTypeDAO" ref="bioEntityTypeDAO"/>
         <property name="solrServer" ref="solrServerNewAtlas"/>
         <property name="atlasProperties" ref="atlasProperties"/>
         <property name="executor" ref="threadPool"/>

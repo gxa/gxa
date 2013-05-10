@@ -26,6 +26,7 @@ import com.google.common.collect.ArrayListMultimap;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
+import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
@@ -61,6 +62,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     private AtlasProperties atlasProperties;
 
     private BioEntityDAO bioEntityDAO;
+    private BioEntityTypeDAO bioEntityTypeDAO;
     private ExecutorService executor;
 
 
@@ -79,7 +81,11 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         String status = "Indexing all genes...";
         getLog().info(status);
         progressUpdater.update(status);
-        indexGenes(progressUpdater, bioEntityDAO.getAllGenesFast());
+
+        bioEntityTypeDAO.setUseForIndexEnsprotein(true);
+        List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesFast();
+        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
+        indexGenes(progressUpdater, allIndexedBioEntities);
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -240,5 +246,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
     public void setBioEntityDAO(BioEntityDAO bioEntityDAO) {
         this.bioEntityDAO = bioEntityDAO;
+    }
+
+    public void setBioEntityTypeDAO(BioEntityTypeDAO bioEntityTypeDAO) {
+        this.bioEntityTypeDAO = bioEntityTypeDAO;
     }
 }
