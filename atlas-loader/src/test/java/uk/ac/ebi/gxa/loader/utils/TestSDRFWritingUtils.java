@@ -169,7 +169,7 @@ public class TestSDRFWritingUtils extends TestCase {
         for (AssayProperty p : assay.getProperties()) {
             assertEquals("Wrong property name", p.getName(), TYPE);
             assertEquals("Wrong property value", p.getValue(),
-                    "specific factor value");
+                    "specific factor value for colour 2");
         }
     }
 }

@@ -2,6 +2,39 @@
 
 == Latest release note ==
 
+=== 2.0.20 ===
+
+* '''Data:'''
+** Ensembl 71 gene annotations and array design probe set mappings
+** Reactome 44 gene annotations
+** EFO release 2.35
+** 2828 experiments (including 39 new or re-curated and re-loaded experiments)
+** As part of our ongoing effort to improve the accuracy of the differential expression calls made in Atlas, we have identified a further circa 400 experiments that cannot provide contrasts with sufficient amount of replicates per 'test' and 'reference' sample groups (where a contrast tests which genes are differentially expressed between a 'test' and a 'reference' condition). All experiments that could not be re-curated to satisfy the minimum replicates criterion were subsequently removed.
+** Expression Atlas no longer contains any RNA-seq experiments analyzed by [http://www.ebi.ac.uk/Tools/rwiki/Wiki.jsp?page=ArrayExpressHTS%20Main-%20Page ArrayExpressHTS] pipeline. All analyzed RNA-seq experiments that satisfy our quality control criteria can be viewed within the new Expression Atlas interface instead (please see for more details below).
+
+
+*  '''Features (New Expression Atlas Interface):'''
+** Expression Atlas (baseline expression) now provides an breakdown per transcript for each gene-factor value cell in the results heatmap. For example, click on any non-empty cell in [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-513 Illumina Body Map] experiment to view a pie chart showing an expression level breakdown for up to three top expressed transcripts (plus a slice for the remaining transcripts, if any), e.g. <br/>[[File:transcript_breakdown.png|border|center|link=]]
+** All Expression Atlas experiments are now searchable by [http://www.reactome.org/ REACTOME] pathway accessions and descriptions. For example, view [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-513?geneQuery=react_1619&cutoff=10 query for REACT_1619 (''Death Receptor Signalling, Homo sapiens'') in Illumina Body Map]. Expression Atlas covers almost all known genes for this pathway (14 genes matched in Ensembl).  The above example highlights leukocyte-specific expression of most genes in REACT_1619, its "tissue fingerprint". This is corroborated in literature, e.g. [http://www.ncbi.nlm.nih.gov/pubmed/12857993 Death receptor signaling and autoimmunity].
+** Various types of differential expression experiments are now available in the new Expression Atlas interface. We don't yet have a unified search interface, but we would be very grateful for any feedback on the user interface and data provided for each of the experiments below:
+*** [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-1066 Transcription profiling by array of '''Drosophila melanogaster''' CDK8 and Cyclin C homozygous mutants, determined using Affymetrix GeneChip Drosophila Genome 2.0 Array ('''1-colour microarray''')]
+*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-43049 Caco-2 cells: cultured in conventional vs apical anaerobic conditions ('''2-colour microarray''', '''Homo Sapiens''')]
+*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-38400 '''RNA-seq''' of '''Arabidopsis''' mutants with defects in long-non-coding-RNA-mediated transcriptional silencing]
+*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-22351 '''RNA-seq''' of '''mouse''' spinal cord expressing wild type human TDP-43 ]
+*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-21860 '''RNA-seq''' of pancreatic islets from pregnant '''mice''' ]
+*** [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-698 '''RNA-seq''' of vomeronasal tissue from adult male and female '''mice''']
+** Note that for the above experiments when you click on:
+*** a gene-contrast cell in the results heatmap you can see the full data behind this differential expression call, e.g.<br />[[File:analytics_popup.png|border|center|link=]]
+*** a [[File:maplot-button.png|border|center|link=]] button, shown next to the contrast label in the header of the results heatmap for default False Discovery cutoff only, an [http://en.wikipedia.org/wiki/MA_plot‎ MA] plot appears for that contrast, relating average expression intensity, fold change between the 'test' and the 'reference' part of that contrast, and the differentially expressed genes (shown as red dots in the plot), e.g. <br />[[File:mva_plot.png|border|link=]]
+** Full experimental data is now available for downloading for all differential experiments (see download buttons in the right-top corner of each experiment page)
+*** Normalized data for 1-colour microarray experiments
+*** Fold change data for 2-colour microarray experiments
+*** Raw expression counts for RNA-seq experiments
+*** Full analytics data for all differential experiments
+
+
+Downloadable data and software information is available from [https://github.com/gxa/gxa/wiki/Release-Notes github].
+
 === 2.0.19.1 ===
 
 * '''Data:'''
@@ -135,8 +168,7 @@ Baseline Atlas will allow the user to explore gene signatures for normal conditi
 
 === Differential Expression Atlas for Individual Contrasts ===
 
-{|
-| [[File:mva_plot.png|border|link=]] ||  Current Atlas reports differential expression for each gene by quantifying statistical
+{||  ||  Current Atlas reports differential expression for each gene by quantifying statistical
 significance of the difference between that gene's expression in a given condition (single value of an experiment value, measured in a number of assays)
 and its mean expression across ''all'' other values for that same experimental factor.
 <p />
