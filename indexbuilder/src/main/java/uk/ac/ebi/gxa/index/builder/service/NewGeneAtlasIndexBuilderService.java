@@ -202,7 +202,6 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         if (bioEntity.getId() > Integer.MAX_VALUE) {
             throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
         }
-
         for (BEPropertyValue prop : bioEntity.getProperties()) {
 
             String pv = prop.getValue();
