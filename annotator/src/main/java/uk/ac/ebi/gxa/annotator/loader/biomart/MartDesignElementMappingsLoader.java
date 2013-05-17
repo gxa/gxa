@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Closeables.closeQuietly;
 
 /**
@@ -67,11 +68,14 @@ class MartDesignElementMappingsLoader {
             int rc = 0;
             CSVBasedReader.Row row;
             while ((row = reader.readNext()) != null) {
-                rc ++;
+                rc++;
                 int col = 0;
                 String deAcc = row.getLast();
                 for (BioEntityType type : name2Type.values()) {
-                    builder.addBEDesignElementMapping(row.get(col++), type, deAcc);
+                    String beIdentifier = row.get(col++);
+                    if (!isNullOrEmpty(beIdentifier)) {
+                        builder.addBEDesignElementMapping(beIdentifier, type, deAcc);
+                    }
                 }
             }
             return rc;
