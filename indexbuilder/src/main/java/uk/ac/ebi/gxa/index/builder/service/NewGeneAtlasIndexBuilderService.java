@@ -82,9 +82,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info(status);
         progressUpdater.update(status);
 
-        bioEntityTypeDAO.setUseForIndexEnsprotein(true);
-        List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesFast();
-        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
+//        bioEntityTypeDAO.setUseForIndexEnsprotein(true);
+        List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesAndProteinsFast();
+//        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
         indexGenes(progressUpdater, allIndexedBioEntities);
     }
 
