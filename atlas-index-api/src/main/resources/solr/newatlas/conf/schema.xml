@@ -149,6 +149,8 @@ http://wiki.apache.org/solr/SchemaXml
 
         <field name="identifier" type="string" indexed="true" stored="true"/>
 
+        <field name="type" type="string" indexed="true" stored="true"/>
+
         <field name="species" type="string" indexed="true" stored="true"/>
 
         <field name="property" type="string" indexed="true" stored="true"/>

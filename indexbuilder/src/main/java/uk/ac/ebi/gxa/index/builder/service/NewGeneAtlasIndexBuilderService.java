@@ -230,6 +230,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         SolrInputDocument solrInputDoc = new SolrInputDocument();
 
         solrInputDoc.addField("id", bioEntity.getId().intValue());
+        solrInputDoc.addField("type", bioEntity.getType().getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
         solrInputDoc.addField("species", bioEntity.getOrganism().getName());
 
