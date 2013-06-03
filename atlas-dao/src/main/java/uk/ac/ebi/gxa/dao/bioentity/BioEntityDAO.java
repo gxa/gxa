@@ -85,6 +85,16 @@ public class BioEntityDAO {
                 new GeneMapper());
     }
 
+    public List<BioEntity> getAllGenesAndProteinsFast() {
+        // do the query to fetch genes without design elements
+        return template.query("SELECT " + GeneMapper.FIELDS + " \n" +
+                "FROM a2_bioentity be \n" +
+                "JOIN a2_organism o ON o.organismid = be.organismid\n" +
+                "JOIN a2_bioentitytype bet ON bet.bioentitytypeid = be.bioentitytypeid\n" +
+                "WHERE BET.NAME='ensprotein' OR BET.NAME='ensgene'",
+                new GeneMapper());
+    }
+
     public List<BioEntity> getGenes(String prefix, int offset, int limit) {
         final String pattern = "^" + (prefix.matches("\\d+") ? "\\d" : prefix);
         return template.query("SELECT " + GeneMapper.FIELDS_CLEAN + "\n" +
@@ -190,7 +200,7 @@ public class BioEntityDAO {
         return result;
     }
 
-    private Long getGeneTypeId()  {
+    private Long getGeneTypeId() {
         try {
             BioEntityType ensgene = typeDAO.getByName("ensgene");
             return ensgene.getId();

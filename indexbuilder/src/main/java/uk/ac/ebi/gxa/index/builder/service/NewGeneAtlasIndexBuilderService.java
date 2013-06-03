@@ -82,9 +82,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         getLog().info(status);
         progressUpdater.update(status);
 
-        bioEntityTypeDAO.setUseForIndexEnsprotein(true);
-        List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesFast();
-        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
+//        bioEntityTypeDAO.setUseForIndexEnsprotein(true);
+        List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesAndProteinsFast();
+//        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
         indexGenes(progressUpdater, allIndexedBioEntities);
     }
 
@@ -230,6 +230,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         SolrInputDocument solrInputDoc = new SolrInputDocument();
 
         solrInputDoc.addField("id", bioEntity.getId().intValue());
+        solrInputDoc.addField("type", bioEntity.getType().getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
         solrInputDoc.addField("species", bioEntity.getOrganism().getName());
 
