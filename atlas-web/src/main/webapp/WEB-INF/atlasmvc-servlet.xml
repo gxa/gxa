@@ -37,6 +37,7 @@
             <map>
                 <!--entry key="xml" value="application/xml"/-->
                 <entry key="json" value="application/json"/>
+                <entry key="jsonp" value="application/javascript"/>
                 <entry key="html" value="text/html"/>
                 <entry key="csv" value="text/csv" />
                 <entry key="tsv" value="text/tab-separated-values" />
@@ -72,6 +73,7 @@
                     </property>
                 </bean-->
                 <bean class="org.springframework.web.servlet.view.json.MappingJacksonJsonView"/>
+                <bean class="uk.ac.ebi.gxa.spring.view.jsonp.MappingJacksonJsonpView"/>
             </list>
         </property>
     </bean>
