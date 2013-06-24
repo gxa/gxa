@@ -152,7 +152,7 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
                 return new ErrorResult("No such experiments found for: " + query);
 
             final boolean experimentInfoOnly = (request.getParameter("experimentInfoOnly") != null);
-            final boolean experimentAnalytics = (request.getParameter("experimentAnalyticsOnly") != null);
+            final boolean experimentExpressions = (request.getParameter("experimentExpressionsOnly") != null);
 
             String s = request.getParameter("offset");
             final int genesStart = s == null ? 0 : Integer.parseInt(s);
@@ -162,8 +162,8 @@ public class ApiQueryRequestHandler extends AbstractRestRequestHandler implement
 
             setRestProfile(experimentInfoOnly ? ExperimentRestProfile.class : ExperimentFullRestProfile.class);
 
-            if (experimentAnalytics) {
-                setRestProfile(ExperimentAnalyticsRestProfile.class);
+            if (experimentExpressions) {
+                setRestProfile(ExperimentExpressionsRestProfile.class);
             }
 
             return new ExperimentResults(

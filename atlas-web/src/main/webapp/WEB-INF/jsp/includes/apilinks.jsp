@@ -20,7 +20,7 @@
   ~ http://gxa.github.com/gxa
   --%>
 <%@include file="../includes/global-inc.jsp" %>
-<c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/api/vx?${param.apiUrl}" var="apiUrl" />
+<c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/api/deprecated?${param.apiUrl}" var="apiUrl" />
 <a style="font-size: 12px;font-weight: normal;" title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks('${u:escapeJS(apiUrl)}', ${empty param.callback ? 'null' : param.callback});return false;">
     <img src="${pageContext.request.contextPath}/images/JSON.png" alt="REST API" border="none"/>
     <img src="${pageContext.request.contextPath}/images/XML.png" alt="REST API" border="none"/>
