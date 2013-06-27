@@ -3,10 +3,7 @@ package uk.ac.ebi.gxa.index.builder.service.mirbase;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,24 +19,24 @@ public class MirbaseFastaParser {
 
 
     public List<MiRNAEntity> parse() {
+        File file = new File(miRnaFastaLocation);
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(miRnaFastaLocation));
+            br = new BufferedReader(new FileReader(file));
             return readData(br);
 
         } catch (FileNotFoundException e) {
-            throw new IllegalStateException("Cannot find miRBase fasta file in " + miRnaFastaLocation, e);
+            throw new IllegalStateException("Cannot find miRBase fasta file in " + file.getAbsolutePath(), e);
         } catch (IOException e) {
-            throw new IllegalStateException("Cannot find miRBase fasta file in " + miRnaFastaLocation, e);
+            throw new IllegalStateException("Cannot find miRBase fasta file in " + file.getAbsolutePath(), e);
         } finally {
             try {
-                if(br != null) br.close();
+                if (br != null) br.close();
             } catch (IOException e) {
-                throw new IllegalStateException("Cannot close miRBase fasta file in " + miRnaFastaLocation, e);
+                throw new IllegalStateException("Cannot close miRBase fasta file in " + file.getAbsolutePath(), e);
             }
         }
     }
-
 
 
     protected List<MiRNAEntity> readData(BufferedReader br) throws IOException {

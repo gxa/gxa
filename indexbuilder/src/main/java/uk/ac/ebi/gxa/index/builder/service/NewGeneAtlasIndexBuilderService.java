@@ -81,7 +81,15 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        String status = "Indexing all genes...";
+        String status = "Indexing mirBase...";
+        getLog().info(status);
+        progressUpdater.update(status);
+
+        List<MiRNAEntity> entities = mirbaseParser.parse();
+        indexMirbase(progressUpdater, entities);
+
+
+        status = "Indexing all genes...";
         getLog().info(status);
         progressUpdater.update(status);
 
@@ -89,6 +97,45 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesAndProteinsFast();
 //        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
         indexGenes(progressUpdater, allIndexedBioEntities);
+
+    }
+
+    private void indexMirbase(final ProgressUpdater progressUpdater,
+                              final List<MiRNAEntity> entities) throws IndexBuilderException {
+        final int total = entities.size();
+        String status = "Found " + total + " mirBase entities to index";
+        getLog().info(status);
+        progressUpdater.update(status);
+
+        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(entities.size());
+        tasks.add(new Callable<Boolean>() {
+            public Boolean call() throws IOException, SolrServerException {
+                try {
+                    StringBuilder sblog = new StringBuilder();
+                    long start = System.currentTimeMillis();
+
+                    List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(entities.size());
+                    for (MiRNAEntity entity : entities) {
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getName(), "symbol"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getAccession(), "mirbase_accession"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getSequence(), "mirbase_sequence"));
+                    }
+
+                    log(sblog, start, "adding mirBase to Solr index...");
+                    getSolrServer().add(solrDocs);
+
+                    return true;
+                } catch (RuntimeException e) {
+                    getLog().error("Runtime exception occurred: " + e.getMessage(), e);
+                    return false;
+                }
+            }
+        });
+
+        entities.clear();
+
+        runTasks(tasks);
+
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -166,37 +213,13 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
             });
         }
 
-
         bioEntities.clear();
 
-        tasks.add(new Callable<Boolean>() {
-            public Boolean call() throws IOException, SolrServerException {
-                try {
-                    long start = System.currentTimeMillis();
+        runTasks(tasks);
 
-                    List<MiRNAEntity> entities = mirbaseParser.parse();
+    }
 
-                    List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(entities.size());
-                    for (MiRNAEntity entity : entities) {
-                        SolrInputDocument solrInputDoc = new SolrInputDocument();
-
-                        solrInputDoc.addField("type", "miRNA");
-                        solrInputDoc.addField("identifier", entity.getIdentifier());
-                        solrInputDoc.addField("species", entity.getOrganism());
-
-
-
-                    }
-
-                    getSolrServer().add(solrDocs);
-                    return true;
-                } catch (RuntimeException e) {
-                    getLog().error("Runtime exception occurred: " + e.getMessage(), e);
-                    return false;
-                }
-            }
-        });
-
+    private void runTasks(List<Callable<Boolean>> tasks) {
         try {
             List<Future<Boolean>> results = executor.invokeAll(tasks);
             Iterator<Future<Boolean>> iresults = results.iterator();
@@ -211,8 +234,19 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         } catch (ExecutionException e) {
             throw new IndexBuilderException("Error in indexing!", e.getCause());
         }
+    }
 
+    private SolrInputDocument createSolrInputDocumentForMiRNAEntity(MiRNAEntity entity, String propertyValue, String propertyType) {
+        SolrInputDocument solrInputDoc = new SolrInputDocument();
 
+        solrInputDoc.addField("type", "miRNA");
+        solrInputDoc.addField("identifier", entity.getIdentifier());
+        solrInputDoc.addField("species", entity.getOrganism());
+
+        solrInputDoc.addField("property", propertyValue);
+        solrInputDoc.addField("property_type", propertyType);
+
+        return solrInputDoc;
     }
 
     private void log(StringBuilder sblog, long start, String message) {
@@ -229,9 +263,6 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
         List<SolrInputDocument> results = new ArrayList<SolrInputDocument>();
 
-        if (bioEntity.getId() > Integer.MAX_VALUE) {
-            throw new IndexBuilderException("bioEntityId: " + bioEntity.getId() + " too large to be cast to int safely - unable to build Solr gene index");
-        }
         for (BEPropertyValue prop : bioEntity.getProperties()) {
 
             String pv = prop.getValue();
@@ -259,7 +290,6 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         // create a new solr document for this gene
         SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-        solrInputDoc.addField("id", bioEntity.getId().intValue());
         solrInputDoc.addField("type", bioEntity.getType().getName());
         solrInputDoc.addField("identifier", bioEntity.getIdentifier());
         solrInputDoc.addField("species", bioEntity.getOrganism().getName());
@@ -282,7 +312,8 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         this.bioEntityTypeDAO = bioEntityTypeDAO;
     }
 
-    public void setMirbaseParser(MirbaseFastaParser mirbaseParser) {this.mirbaseParser = mirbaseParser;}
+    public void setMirbaseParser(MirbaseFastaParser mirbaseParser) {
+        this.mirbaseParser = mirbaseParser;
+    }
 
-    public MirbaseFastaParser getMirbaseParser() { return mirbaseParser; }
 }
