@@ -116,8 +116,8 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
                     List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(entities.size());
                     for (MiRNAEntity entity : entities) {
-                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getName(), "symbol"));
-                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getAccession(), "mirbase_accession"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getAccession(), "symbol"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getName(), "mirbase_name"));
                         solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getSequence(), "mirbase_sequence"));
                     }
 
