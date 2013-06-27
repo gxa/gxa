@@ -73,7 +73,7 @@ public class ExperimentResultAdapter {
         return experiment;
     }
 
-    @RestOut(name = "experimentDesign", forProfile = ExperimentFullRestProfile.class)
+    @RestOut(name = "experimentDesign", forProfile = ExperimentExpressionsRestProfile.class)
     public ExperimentalData getExperimentalData() {
         return expData;
     }
@@ -243,7 +243,7 @@ public class ExperimentResultAdapter {
         }
     }
 
-    @RestOut(name = "geneExpressionStatistics", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentAnalyticsRestProfile.class)
+    @RestOut(name = "geneExpressionStatistics", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
     public Map<String, ArrayDesignStats> getExpressionStatistics() {
         Map<String, ArrayDesignStats> adExpMap = new HashMap<String, ArrayDesignStats>();
         if (expressionDataIsAvailable()) {
@@ -254,7 +254,7 @@ public class ExperimentResultAdapter {
         return adExpMap;
     }
 
-    @RestOut(name = "geneExpressions", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentFullRestProfile.class)
+    @RestOut(name = "geneExpressions", xmlItemName = "arrayDesign", xmlAttr = "accession", exposeEmpty = false, forProfile = ExperimentExpressionsRestProfile.class)
     public Map<String, ArrayDesignExpression> getExpression() {
 
         Map<String, ArrayDesignExpression> adExpMap = new HashMap<String, ArrayDesignExpression>();

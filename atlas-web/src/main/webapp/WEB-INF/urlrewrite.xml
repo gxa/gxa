@@ -84,7 +84,7 @@
     <rule>
         <condition name="Accept" type="header">application/rdf</condition>
         <from>/experiment/(.*)</from>
-        <to type="redirect">http://rdf.ebi.ac.uk/dataset/atlas/experiment/$1.rdf</to>
+        <to type="redirect">http://rdf.ebi.ac.uk/resource/atlas/$1</to>
     </rule>
 
     <rule>

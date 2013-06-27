@@ -31,14 +31,14 @@ public class CurationApiController extends AtlasViewController {
     @Autowired
     private CurationService curationService;
 
-    @RequestMapping(value = "/properties.json", method = RequestMethod.GET)
+    @RequestMapping(value = {"/properties.json", "/properties.jsonp"}, method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiPropertyName> getPropertyNames()
                                                         throws ResourceNotFoundException {
         return curationService.getPropertyNames();
     }
 
-    @RequestMapping(value = "/properties/{propertyName}.json",
+    @RequestMapping(value = {"/properties/{propertyName}.json", "/properties/{propertyName}.jsonp"},
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiPropertyValue> getPropertyValues(@PathVariable("propertyName") final String propertyName)
@@ -102,7 +102,7 @@ public class CurationApiController extends AtlasViewController {
         log.info("User: '" + request.getRemoteUser() + "' deleted property: '" + oldPropertyName);
     }
 
-    @RequestMapping(value = "/propertyvaluemappings/exactmatch/{propertyName}.json",
+    @RequestMapping(value = {"/propertyvaluemappings/exactmatch/{propertyName}.json", "/propertyvaluemappings/exactmatch/{propertyName}.jsonp"},
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValueExactMatch(@PathVariable("propertyName") final String propertyName,
@@ -113,7 +113,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getOntologyMappingsByPropertyValue(propertyName, propertyValue, true);
     }
 
-    @RequestMapping(value = "/propertyvaluemappings/partialmatch/{propertyName}.json",
+    @RequestMapping(value = {"/propertyvaluemappings/partialmatch/{propertyName}.json", "/propertyvaluemappings/partialmatch/{propertyName}.jsonp"},
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValuePartialMatch(@PathVariable("propertyName") final String propertyName,
@@ -124,28 +124,28 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getOntologyMappingsByPropertyValue(propertyName, propertyValue, false);
     }
 
-    @RequestMapping(value = "/propertyvaluemappings/exactmatch.json", method = RequestMethod.GET)
+    @RequestMapping(value = {"/propertyvaluemappings/exactmatch.json","/propertyvaluemappings/exactmatch.jsonp"}, method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValueExactMatch(@RequestParam(value = "propertyValue", required = true) String propertyValue)
                                                                                         throws ResourceNotFoundException {
         return curationService.getOntologyMappingsByPropertyValue(null, propertyValue, true);
     }
 
-    @RequestMapping(value = "/propertyvaluemappings/{ontologyTerm}.json", method = RequestMethod.GET)
+    @RequestMapping(value = {"/propertyvaluemappings/{ontologyTerm}.json","/propertyvaluemappings/{ontologyTerm}.jsonp"}, method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByOntologyTerm(@PathVariable("ontologyTerm") final String ontologyTerm)
                                                                             throws ResourceNotFoundException {
         return curationService.getOntologyMappingsByOntologyTerm(ontologyTerm);
     }
 
-    @RequestMapping(value = "/propertyvaluemappings/partialmatch.json", method = RequestMethod.GET)
+    @RequestMapping(value = {"/propertyvaluemappings/partialmatch.json","/propertyvaluemappings/partialmatch.jsonp"}, method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowProperty> getOntologyMappingsByPropertyValuePartialMatch(@RequestParam(value = "propertyValue", required = true) String propertyValue)
                                                                                             throws ResourceNotFoundException {
         return curationService.getOntologyMappingsByPropertyValue(null, propertyValue, false);
     }
 
-    @RequestMapping(value = "/experiments/{experimentAccession}.json",
+    @RequestMapping(value = {"/experiments/{experimentAccession}.json", "/experiments/{experimentAccession}.jsonp"},
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public ApiShallowExperiment getExperiment(@PathVariable("experimentAccession") final String experimentAccession)
@@ -153,7 +153,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperiment(experimentAccession);
     }
 
-    @RequestMapping(value = "/experiments/properties/{propertyName}.json", method = RequestMethod.GET)
+    @RequestMapping(value = {"/experiments/properties/{propertyName}.json", "/experiments/properties/{propertyName}.jsonp"}, method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getExperimentsByPropertyValue(@PathVariable("propertyName") final String propertyName,
                                                                           @RequestParam(value = "propertyValue", required = true) String propertyValue)
@@ -161,7 +161,7 @@ public class CurationApiController extends AtlasViewController {
         return curationService.getExperimentsByPropertyValue(propertyName, propertyValue);
     }
 
-    @RequestMapping(value = "/experiments/ontologyterms/{ontologyTerm}.json",
+    @RequestMapping(value = {"/experiments/ontologyterms/{ontologyTerm}.json", "/experiments/ontologyterms/{ontologyTerm}.jsonp"},
             method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public Collection<ApiShallowExperiment> getExperimentsByOntologyTerm(@PathVariable("ontologyTerm") final String ontologyTerm)
