@@ -29,6 +29,8 @@ import uk.ac.ebi.gxa.dao.bioentity.BioEntityDAO;
 import uk.ac.ebi.gxa.dao.bioentity.BioEntityTypeDAO;
 import uk.ac.ebi.gxa.index.builder.IndexAllCommand;
 import uk.ac.ebi.gxa.index.builder.IndexBuilderException;
+import uk.ac.ebi.gxa.index.builder.service.mirbase.MiRNAEntity;
+import uk.ac.ebi.gxa.index.builder.service.mirbase.MirbaseFastaParser;
 import uk.ac.ebi.gxa.properties.AtlasProperties;
 import uk.ac.ebi.microarray.atlas.model.DesignElement;
 import uk.ac.ebi.microarray.atlas.model.bioentity.BEPropertyValue;
@@ -64,6 +66,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     private BioEntityDAO bioEntityDAO;
     private BioEntityTypeDAO bioEntityTypeDAO;
     private ExecutorService executor;
+    private MirbaseFastaParser mirbaseParser;
 
 
     public void setAtlasProperties(AtlasProperties atlasProperties) {
@@ -166,6 +169,33 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
         bioEntities.clear();
 
+        tasks.add(new Callable<Boolean>() {
+            public Boolean call() throws IOException, SolrServerException {
+                try {
+                    long start = System.currentTimeMillis();
+
+                    List<MiRNAEntity> entities = mirbaseParser.parse();
+
+                    List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(entities.size());
+                    for (MiRNAEntity entity : entities) {
+                        SolrInputDocument solrInputDoc = new SolrInputDocument();
+
+                        solrInputDoc.addField("type", "miRNA");
+                        solrInputDoc.addField("identifier", entity.getIdentifier());
+                        solrInputDoc.addField("species", entity.getOrganism());
+
+
+
+                    }
+
+                    getSolrServer().add(solrDocs);
+                    return true;
+                } catch (RuntimeException e) {
+                    getLog().error("Runtime exception occurred: " + e.getMessage(), e);
+                    return false;
+                }
+            }
+        });
 
         try {
             List<Future<Boolean>> results = executor.invokeAll(tasks);
@@ -251,4 +281,8 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     public void setBioEntityTypeDAO(BioEntityTypeDAO bioEntityTypeDAO) {
         this.bioEntityTypeDAO = bioEntityTypeDAO;
     }
+
+    public void setMirbaseParser(MirbaseFastaParser mirbaseParser) {this.mirbaseParser = mirbaseParser;}
+
+    public MirbaseFastaParser getMirbaseParser() { return mirbaseParser; }
 }
