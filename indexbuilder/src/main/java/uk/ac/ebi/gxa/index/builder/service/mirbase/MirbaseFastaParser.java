@@ -4,25 +4,24 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 public class MirbaseFastaParser {
 
-    private String miRnaFastaLocation;
+    private String miRnaFastaLocation = "ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz";
 
     public static final String NEW_ENTRY_SYMBOL = ">";
 
-    public void setMiRnaFastaLocation(String miRnaFastaLocation) {
-        this.miRnaFastaLocation = miRnaFastaLocation;
-    }
 
 
     public List<MiRNAEntity> parse() {
         File file = new File(miRnaFastaLocation);
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(file));
+            br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new URL(miRnaFastaLocation).openConnection().getInputStream())));
             return readData(br);
 
         } catch (FileNotFoundException e) {

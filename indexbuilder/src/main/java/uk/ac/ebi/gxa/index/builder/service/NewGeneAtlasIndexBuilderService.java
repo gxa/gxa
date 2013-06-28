@@ -49,17 +49,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.shuffle;
 
-/**
- * An {@link uk.ac.ebi.gxa.index.builder.service.IndexBuilderService} that generates index documents from the genes in the Atlas database, and enriches the
- * data with expression values, links to EFO and other useful measurements.
- * <p/>
- * This is a heavily modified version of an original class first adapted to Atlas purposes by Pavel Kurnosov.
- * <p/>
- * Note that this implementation does NOT support updates - regardless of whether the update flag is set to true, this
- * will rebuild the index every time.
- *
- * @author Tony Burdett
- */
 public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     private AtlasProperties atlasProperties;
 
@@ -81,15 +70,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     public void processCommand(IndexAllCommand indexAll, ProgressUpdater progressUpdater) throws IndexBuilderException {
         super.processCommand(indexAll, progressUpdater);
 
-        String status = "Indexing mirBase...";
-        getLog().info(status);
-        progressUpdater.update(status);
-
-        List<MiRNAEntity> entities = mirbaseParser.parse();
-        indexMirbase(progressUpdater, entities);
-
-
-        status = "Indexing all genes...";
+        String status = "Indexing all genes...";
         getLog().info(status);
         progressUpdater.update(status);
 
@@ -97,45 +78,6 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
         List<BioEntity> allIndexedBioEntities = bioEntityDAO.getAllGenesAndProteinsFast();
 //        bioEntityTypeDAO.setUseForIndexEnsprotein(false);
         indexGenes(progressUpdater, allIndexedBioEntities);
-
-    }
-
-    private void indexMirbase(final ProgressUpdater progressUpdater,
-                              final List<MiRNAEntity> entities) throws IndexBuilderException {
-        final int total = entities.size();
-        String status = "Found " + total + " mirBase entities to index";
-        getLog().info(status);
-        progressUpdater.update(status);
-
-        List<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>(entities.size());
-        tasks.add(new Callable<Boolean>() {
-            public Boolean call() throws IOException, SolrServerException {
-                try {
-                    StringBuilder sblog = new StringBuilder();
-                    long start = System.currentTimeMillis();
-
-                    List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(entities.size());
-                    for (MiRNAEntity entity : entities) {
-                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getAccession(), "symbol"));
-                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getName(), "mirbase_name"));
-                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getSequence(), "mirbase_sequence"));
-                    }
-
-                    log(sblog, start, "adding mirBase to Solr index...");
-                    getSolrServer().add(solrDocs);
-
-                    return true;
-                } catch (RuntimeException e) {
-                    getLog().error("Runtime exception occurred: " + e.getMessage(), e);
-                    return false;
-                }
-            }
-        });
-
-        entities.clear();
-
-        runTasks(tasks);
-
     }
 
     private void indexGenes(final ProgressUpdater progressUpdater,
@@ -215,11 +157,32 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
 
         bioEntities.clear();
 
-        runTasks(tasks);
+        final List<MiRNAEntity> miRNAEntities = mirbaseParser.parse();
 
-    }
+        tasks.add(new Callable<Boolean>() {
+            public Boolean call() throws IOException, SolrServerException {
+                try {
+                    StringBuilder sblog = new StringBuilder();
+                    long start = System.currentTimeMillis();
 
-    private void runTasks(List<Callable<Boolean>> tasks) {
+                    List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(miRNAEntities.size());
+                    for (MiRNAEntity entity : miRNAEntities) {
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getAccession(), "symbol"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getName(), "mirbase_name"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getSequence(), "mirbase_sequence"));
+                    }
+
+                    log(sblog, start, "adding mirBase to Solr index...");
+                    getSolrServer().add(solrDocs);
+
+                    return true;
+                } catch (RuntimeException e) {
+                    getLog().error("Runtime exception occurred: " + e.getMessage(), e);
+                    return false;
+                }
+            }
+        });
+
         try {
             List<Future<Boolean>> results = executor.invokeAll(tasks);
             Iterator<Future<Boolean>> iresults = results.iterator();

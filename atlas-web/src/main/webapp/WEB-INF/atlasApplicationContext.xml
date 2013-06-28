@@ -183,7 +183,6 @@ http://www.springframework.org/schema/context/spring-context.xsd">
     </bean>
 
     <bean name="mirbaseParser" class="uk.ac.ebi.gxa.index.builder.service.mirbase.MirbaseFastaParser">
-        <property name="miRnaFastaLocation" value="LOCATION"/>
     </bean>
 
     <bean name="bitIndexBuilderServiceGenes"
