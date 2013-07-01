@@ -50,6 +50,7 @@ import static com.google.common.collect.Iterables.partition;
 import static java.util.Collections.shuffle;
 
 public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
+    public static final String BIOENTITIY_TYPE_MIRNA = "mirna";
     private AtlasProperties atlasProperties;
 
     private BioEntityDAO bioEntityDAO;
@@ -168,6 +169,7 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
                     List<SolrInputDocument> solrDocs = new ArrayList<SolrInputDocument>(miRNAEntities.size());
                     for (MiRNAEntity entity : miRNAEntities) {
                         solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getAccession(), "symbol"));
+                        solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getIdentifier(), "mirbase_id"));
                         solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getName(), "mirbase_name"));
                         solrDocs.add(createSolrInputDocumentForMiRNAEntity(entity, entity.getSequence(), "mirbase_sequence"));
                     }
@@ -202,9 +204,9 @@ public class NewGeneAtlasIndexBuilderService extends IndexBuilderService {
     private SolrInputDocument createSolrInputDocumentForMiRNAEntity(MiRNAEntity entity, String propertyValue, String propertyType) {
         SolrInputDocument solrInputDoc = new SolrInputDocument();
 
-        solrInputDoc.addField("type", "miRNA");
+        solrInputDoc.addField("type", BIOENTITIY_TYPE_MIRNA);
         solrInputDoc.addField("identifier", entity.getIdentifier());
-        solrInputDoc.addField("species", entity.getOrganism());
+        solrInputDoc.addField("species", entity.getOrganism().toLowerCase());
 
         solrInputDoc.addField("property", propertyValue);
         solrInputDoc.addField("property_type", propertyType);
