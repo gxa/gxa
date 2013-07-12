@@ -157,8 +157,7 @@ http://wiki.apache.org/solr/SchemaXml
 
         <field name="property_autocomplete" type="text_standard" indexed="true" stored="false"/>
 
-        <field name="property_edgengram" type="text_edgengram" indexed="true" stored="false" omitNorms="true"
-               omitTermFreqAndPositions="true"/>
+        <field name="property_edgengram" type="text_edgengram" indexed="true" stored="false" omitNorms="true"/>
 
         <field name="property_lower" type="text_lower" indexed="true" stored="false"/>
 
