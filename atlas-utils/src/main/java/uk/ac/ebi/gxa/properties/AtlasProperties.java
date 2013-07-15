@@ -540,6 +540,10 @@ public class AtlasProperties {
         return getProperty("rdf.experiment.link");
     }
 
+    public boolean areExperimentApiLinksEnabled() {
+        return getBoolProperty("enable.api.links");
+    }
+
     public boolean isRDFExperimentLinkEnabled() {
         return getBoolProperty("enable.rdf.links");
     }

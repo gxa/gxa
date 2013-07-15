@@ -2,6 +2,30 @@
 
 == Latest release note ==
 
+=== 2.0.21 ===
+
+* '''Data ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
+** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
+** EFO release 2.36
+** 2850 experiments (including 145 new or re-curated and re-loaded experiments)
+
+*  '''Features ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
+** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258.
+** As of this release, the REST API interface is deprecated. It will be replaced by a new interface when the new Expression Atlas goes live in Q4 2013. We urge all users of our current API to contact us via [mailto:atlas-feedback@ebi.ac.uk] so that we are able to consider their requirements when designing the new REST API. We would like to apologise for any inconvenience the transition to the new REST API causes.
+
+* '''Data ([http://www-test.ebi.ac.uk/gxa/experiments New Expression Atlas]):'''
+** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
+** Reactome 44 gene annotations
+** miRBase 20 release microRNA annotations and design element mappings
+** Over 100 experiments including 10 RNA-seq experiments and the first microRNA microarray experiment, http://www-test.ebi.ac.uk/gxa/experiments/E-TABM-713.
+
+*  '''Features ([http://www-test.ebi.ac.uk/gxa/experiments New Expression Atlas]):'''
+** http://www-test.ebi.ac.uk/gxa/experiments now shows all experiments loaded into the new Expression Atlas.
+** The [http://www-test.ebi.ac.uk/gxa/help.html help page] now contains help for both baseline and differential expression experiments.
+** The gene page, e.g. [http://www-test.ebi.ac.uk/gxa/genes/AT5G20250 DIN10], now provides referential information about a gene, as well as baseline and differential expression sections.
+** Similar pages are available for gene sets, e.g. REACTOME pathway [http://www-test.ebi.ac.uk/gxa/genesets/REACT_1258 Activation of the mRNA upon binding of the cap-binding complex and eIFs, and subsequent binding to 43S] and proteins, e.g. [http://www-test.ebi.ac.uk/gxa/proteins/ENSP00000355434 olfactory receptor]
+Downloadable data and software information is available from [https://github.com/gxa/gxa/wiki/Release-Notes github].
+
 === 2.0.20 ===
 
 * '''Data:'''

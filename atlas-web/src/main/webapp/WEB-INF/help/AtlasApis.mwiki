@@ -4,8 +4,8 @@
 
 == REST APIs ==
 
-=== Note: As of Expression Atlas release 2.0.21, the REST API interface as described below is deprecated. It will be replaced by a new interface when the new Expression Atlas goes live in Q1 2014. ===
-=== We urge all users of our current API to contact us via<br />[mailto:atlas-feedback@ebi.ac.uk]so that we can take their requirements into account when designing the new REST API. ===
+=== Note: As of Expression Atlas release 2.0.21, the REST API interface as described below is deprecated. It will be replaced by a new interface when the new Expression Atlas goes live in Q4 2013. ===
+=== We urge all users of our current API to contact us via [mailto:atlas-feedback@ebi.ac.uk] so that we are able to consider their requirements when designing the new REST API. ===
 === We would like to apologise for any inconvenience the transition to the new REST API causes. ===
 
 Atlas REST API provides all the results available in the main web application in a pragmatic, easy to use form - simple HTTP GET queries as input and either JSON or XML formats as output.

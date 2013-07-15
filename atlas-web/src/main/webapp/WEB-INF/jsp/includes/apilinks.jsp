@@ -22,12 +22,16 @@
 <%@include file="../includes/global-inc.jsp" %>
 <c:set value="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/api/deprecated?${param.apiUrl}" var="apiUrl" />
 <a style="font-size: 12px;font-weight: normal;" title="Get API URL for this result set in XML format" href="#" onclick="atlas.showApiLinks('${u:escapeJS(apiUrl)}', ${empty param.callback ? 'null' : param.callback});return false;">
-    <img src="${pageContext.request.contextPath}/images/JSON.png" alt="REST API" border="none"/>
-    <img src="${pageContext.request.contextPath}/images/XML.png" alt="REST API" border="none"/>
     <c:choose>
-        <c:when test="${enableRDFLink}">
-            <img src="${pageContext.request.contextPath}/images/RDF.png" alt="REST API" border="none"/>
+        <c:when test="${enableApiLinks}">
+             <img src="${pageContext.request.contextPath}/images/JSON.png" alt="REST API" border="none"/>
+             <img src="${pageContext.request.contextPath}/images/XML.png" alt="REST API" border="none"/>
         </c:when>
+    </c:choose>  <!-- enableApiLinks -->
+    <c:choose>
+       <c:when test="${enableRDFLink}">
+            <img src="${pageContext.request.contextPath}/images/RDF.png" alt="REST API" border="none"/>
+       </c:when>
     </c:choose>  <!-- enableRDFLink -->
 </a>
 
@@ -38,6 +42,8 @@
 
         <form action="#" onsubmit="return false;">
             <table>
+                <c:choose>
+                    <c:when test="${enableApiLinks}">
                 <tr>
                     <td width="80px"><label for="jsonapilink">for&nbsp;<a href="http://www.json.org">JSON</a></label></td>
                     <td><input id="jsonapilink" class="value" type="text" value="${apiUrl}&format=json"
@@ -48,15 +54,15 @@
                     <td><input id="xmlapilink" class="value" type="text" value="${apiUrl}&format=xml"
                                                  style="width:98%" onclick="atlas.copyText(this);"></td>
                 </tr>
-                <c:choose>
-                    <c:when test="${enableRDFLink}">
-                        <tr>
-                            <td width="80px"><label for="rdfapilink">for&nbsp;<a href="http://www.w3.org/RDF/">RDF&nbsp;</a></label></td>
-                            <td><input id="rdfapilink" class="value" type="text" value="${param.rdfExperimentLink}"
-                                       style="width:98%" onclick="atlas.copyText(this);"></td>
-                        </tr>
                     </c:when>
-                </c:choose>  <!-- enableRDFLink -->
+                </c:choose>  <!-- enableApiLinks -->
+
+                 <tr>
+                     <td width="80px"><label for="rdfapilink">for&nbsp;<a href="http://www.w3.org/RDF/">RDF&nbsp;</a></label></td>
+                     <td><input id="rdfapilink" class="value" type="text" value="${param.rdfExperimentLink}"
+                                       style="width:98%" onclick="atlas.copyText(this);"></td>
+                 </tr>
+
             </table>
         </form>
     </div>
