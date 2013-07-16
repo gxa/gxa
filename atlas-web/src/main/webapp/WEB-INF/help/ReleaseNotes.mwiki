@@ -7,7 +7,7 @@
 * '''Data ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
 ** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
 ** EFO release 2.36
-** 2850 experiments (including 145 new or re-curated and re-loaded experiments)
+** 2841 experiments (including 146 new or re-curated and re-loaded experiments)
 
 *  '''Features ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
 ** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258.
