@@ -222,10 +222,6 @@ public class ExperimentDataService {
                 });
     }
 
-    private List<Long> findGeneIds(Collection<String> geneQuery) {
-        return geneSolrDAO.findGeneIds(geneQuery);
-    }
-
     private static Predicate<Pair<String, String>> createFactorCriteria(final String ef, String efv) {
         if (isNullOrEmpty(ef)) {
             return alwaysTrue();
