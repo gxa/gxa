@@ -10,7 +10,7 @@
 ** 2841 experiments (including 146 new or re-curated and re-loaded experiments)
 
 *  '''Features ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
-** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258.
+** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to [http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258 http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258].
 ** As of this release, the REST API interface is deprecated. It will be replaced by a new interface when the new Expression Atlas goes live in Q4 2013. We urge all users of our current API to contact us via [mailto:atlas-feedback@ebi.ac.uk] so that we are able to consider their requirements when designing the new REST API. We would like to apologise for any inconvenience the transition to the new REST API causes.
 
 * '''Data ([http://www-test.ebi.ac.uk/gxa/experiments New Expression Atlas]):'''
