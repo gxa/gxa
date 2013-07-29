@@ -491,7 +491,7 @@ public class AtlasGene {
                     return 1;
                 else if (name.equals("cell_type"))
                     return 2;
-                else if (name.equals("disease_state"))
+                else if (name.equals("disease"))
                     return 3;
                 else if (name.equals("compound"))
                     return 4;
