@@ -125,7 +125,7 @@ or, more specifically:
 * Developmental_stage - Developmental stage
 * Disease_location - Disease location
 * Disease_staging - Disease staging
-* Disease_state - Disease state
+* Disease - Disease
 * Dose - Dose
 * Ecotype - Ecotype
 * Environmental_history - Environmental history
@@ -155,7 +155,7 @@ or, more specifically:
 * RNAi - RNAi
 * Sex - Sex
 * Source_provider - Source provider
-* Strain_or_line - Strain or line
+* Strain - Strain
 * T_cell_type - Target cell type
 * Temperature - Temperature
 * Test - Test

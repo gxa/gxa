@@ -196,7 +196,7 @@ Baseline Atlas will allow the user to explore gene signatures for normal conditi
 significance of the difference between that gene's expression in a given condition (single value of an experiment value, measured in a number of assays)
 and its mean expression across ''all'' other values for that same experimental factor.
 <p />
-However, many users would prefer to see differential expression information for specific contrasts, for example disease_state: cancer vs normal.
+However, many users would prefer to see differential expression information for specific contrasts, for example disease: cancer vs normal.
 <p />
 We are responding to this feedback by focusing our curation, statistical analysis methods as well as search and reporting functionality
 development to provide such contrast-based differential expression data to our users as soon as possible.

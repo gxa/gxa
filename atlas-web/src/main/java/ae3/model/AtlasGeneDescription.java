@@ -54,7 +54,7 @@ public class AtlasGeneDescription {
             return 1;
         } else if (val.equalsIgnoreCase("organism_part")) {
             return 2;
-        } else if (val.equalsIgnoreCase("disease_state")) {
+        } else if (val.equalsIgnoreCase("disease")) {
             return 3;
         } else if (val.equalsIgnoreCase("cell_type")) {
             return 4;
