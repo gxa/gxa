@@ -16,7 +16,6 @@ log="/tmp/gxa_bounces.log"
 
 # Nagios query
 responseTime=`curl -o /dev/null -X GET -s --max-time $MAXTIME -w %{time_total} "$ATLAS_NAGIOS_URL" | awk -F"." '{print $1}'`
-echo "responseTime = $responseTime"
 if [ "$responseTime" -ge "$MAXTIME" ]; then
     touch $log
     echo `eval date +%Y-%m-%d %k:%M:%S`" - Response time for $HOSTNAME exceeded $MAXTIME - bouncing $HOSTNAME..." >> $log
