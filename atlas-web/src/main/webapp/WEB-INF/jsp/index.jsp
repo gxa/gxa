@@ -185,6 +185,27 @@
                     </div>
                 </div>
 
+                <div style="float:left; width:200px; margin-top:10px;" class="roundCorner">
+                                    <div style="padding:10px">
+                                        <div style="font-weight:bold;margin-bottom:5px">
+                                            Publications:
+                                        </div>
+                                        <table cellpadding="0" cellspacing="0" width="100%">
+
+                                            <tr class="atlastable" align="left">
+                                                <td><a href="http://nar.oxfordjournals.org/content/40/D1/D1077.long">Kapushesky et al. (2012)</a></td>
+                                            </tr>
+
+                                            <tr class="atlastable" align="left">
+                                                <td><i>Nucleic Acids Research</i></td>
+                                            </tr>
+                                            <tr class="atlastable" align="left">
+                                                <td>40:D1077-D1081.</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
                 <div style="clear:both;"></div>
             </div>
             <div style="font-family: Verdana, helvetica, arial, sans-serif; color:#cdcdcd; margin-left: auto; margin-right: auto; width:100%; text-align:center; margin-top:50px; margin-bottom:50px">
