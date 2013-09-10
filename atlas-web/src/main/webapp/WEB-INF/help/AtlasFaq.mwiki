@@ -111,7 +111,8 @@ The t-statistic is a value produced by the statistical tests used to determine i
 
 The p-value gives the probability that the t-statistic is due to chance. A low p-value means the t-statistic is not likely to have occurred by chance and the gene's mean expression level in a particular condition is considered significantly over or under expressed compared to the average expression of the gene over all conditions. The p-value indicates the strength of differential expression.   
 
-Genes with the lowest p-value are shown at the top of the results table for each experiment. If there are several genes (or design elements) with the same p-value then they are sorted by absolute t-statistic.
+Genes with the highest absolute t-statistic (igoring + or - sign) are shown at the top of the results table for each experiment. If there are several genes (or design elements) with the same absolute t-statistic then they are sorted by p-value (lowest first). The p-values, with adjustment for multiple testing to control the False Discovery Rate at 5%, are used to identify differentially expressed genes.
+
 <br>
 <br>
 
