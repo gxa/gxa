@@ -87,7 +87,7 @@ public class DerivedArrayDataMatrixStep {
                     buffer = cache.getDataMatrixFileBuffer(dataMatrixURL, null);
                 } catch (AtlasLoaderException e) {
                     String zipUrl = node.comments != null ?
-                            node.comments.get("Derived ArrayExpress FTP file") : null;
+                            node.comments.get("Derived ArrayExpress FTP file").get(0) : null;
                     if (zipUrl != null) {
                         buffer = cache.getDataMatrixFileBuffer(new URL(zipUrl), node.getNodeName());
                     } else {

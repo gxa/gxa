@@ -165,7 +165,7 @@ public class AssayAndHybridizationStep {
             LoaderDAO dao,
             ArrayDesignService arrayDesignService,
             PropertyValueMergeService propertyValueMergeService) throws AtlasLoaderException {
-        String enaRunName = node.comments.get("ENA_RUN");
+        String enaRunName = node.comments.get("ENA_RUN").get(0);
 
         log.debug("Writing assay from scan node '" + node.getNodeName() + "'" + " ENA_RUN name: " + enaRunName);
 

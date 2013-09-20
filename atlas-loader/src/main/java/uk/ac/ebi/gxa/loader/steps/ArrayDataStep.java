@@ -245,7 +245,7 @@ public class ArrayDataStep {
                 }
                 if (!tempFile.exists() && node.comments != null) {
                     useLocalCopy = false;
-                    final String zipName = DataUtils.fixZipURL(node.comments.get("ArrayExpress FTP file"));
+                    final String zipName = DataUtils.fixZipURL(node.comments.get("ArrayExpress FTP file").get(0));
                     if (zipName != null) {
                         File localZipFile = zipFiles.get(zipName);
                         if (localZipFile == null) {
