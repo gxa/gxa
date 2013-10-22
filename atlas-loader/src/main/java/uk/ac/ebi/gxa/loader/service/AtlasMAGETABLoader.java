@@ -157,6 +157,7 @@ public class AtlasMAGETABLoader {
                     } else {
                         new DerivedArrayDataMatrixStep().readProcessedData(investigation, cache);
                     }
+                    isHts = isHTS(investigation);
                 }
             } catch (AtlasLoaderException e) {
                 // something went wrong - no objects have been created though
