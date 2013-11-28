@@ -178,7 +178,7 @@
 
                 <div style="float:right;width:530px;margin-left:10px;">
                     <div style="padding:10px">
-                        <div style="float:left;font-weight:bold;margin-bottom:5px;">
+                        <div style="float:center;font-weight:bold;margin-bottom:5px;">
                             <a href="http://www.ebi.ac.uk/gxa">Try out our new Expression Atlas interface</a>
                         </div>
 
