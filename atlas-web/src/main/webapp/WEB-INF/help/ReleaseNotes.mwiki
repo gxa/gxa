@@ -4,7 +4,9 @@
 
 === 2.0.21.4 ===
 
-[http://www.ebi.ac.uk/gxa The new Expression Atlas service] has now been deployed. [http://www-test.ebi.ac.uk/gxa This service] and the underlying data will no longer be updated or maintained, but limited support will be offered while the process of re-curating, re-analysis and transferring of experiments to the new Expression Atlas service is on-going. We would like to thank all our users for their continuous support and feedback, and encourage them to help us shape [http://www.ebi.ac.uk/gxa the new Expression Atlas service] by 
+[http://www.ebi.ac.uk/gxa The new Expression Atlas service] has now been deployed. [http://www-test.ebi.ac.uk/gxa This service] and the underlying data will no longer be updated or maintained, but limited support will be offered while the process of re-curating, re-analysis and transferring of experiments to the new Expression Atlas service is on-going. 
+
+We would like to thank all our users for their continuous support and feedback, and encourage them to help us shape [http://www.ebi.ac.uk/gxa the new Expression Atlas service] by: 
 * providing us with feedback via the [[File:feedback.png|border|center|link=]] button on the top right hand side of all Expression Atlas pages, or via [mailto:atlas-feedback@ebi.ac.uk];
 * contacting us if any experiments of interest are offered by [http://www-test.ebi.ac.uk/gxa this service], but have not yet made their way into the new Expression Atlas interface. We will then the prioritise their transfer.
 
