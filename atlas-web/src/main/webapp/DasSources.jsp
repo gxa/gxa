@@ -26,7 +26,7 @@
 <SOURCES>
     <SOURCE uri="<%= URLUtil.getDasUrl(request) %>"
          title="Gene Expression Atlas"
-         doc_href="http://www.ebi.ac.uk/gxa"
+         doc_href="http://www-test.ebi.ac.uk/gxa"
          description="Gene Expression Atlas DAS Server">
     <MAINTAINER email="ostolop@ebi.ac.uk" />
     <VERSION uri="gxa" created="2009-07-13">
@@ -39,7 +39,7 @@
 
     <SOURCE uri="<%= URLUtil.getDasS4Url(request) %>"
          title="Gene Expression Atlas"
-         doc_href="http://www.ebi.ac.uk/gxa"
+         doc_href="http://www-test.ebi.ac.uk/gxa"
          description="Gene Expression Atlas DAS Server v S4">
     <MAINTAINER email="ostolop@ebi.ac.uk" />
     <VERSION uri="gxa" created="2009-07-13">

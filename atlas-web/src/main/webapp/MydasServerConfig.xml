@@ -107,7 +107,7 @@
         <datasource uri="s4"
                     title="Gene Expression Atlas S4 Annotation Data Source"
                     description="Gene Expression Atlas S4 Annotation Data Source"
-                    doc_href="http://www.ebi.ac.uk/gxa"
+                    doc_href="http://www-test.ebi.ac.uk/gxa"
                     mapmaster="${atlas.dasbase}/s4">
 
             <maintainer email="rpetry@ebi.ac.uk" />

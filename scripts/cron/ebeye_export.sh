@@ -2,7 +2,7 @@
 
 # @author: rpetry
 # @date:   04 Nov 2010
-# This script tries to obtain www.ebi.ac.uk/gxa/download/ebeye_export.xml via curl. If the dump file is being generated 
+# This script tries to obtain www-test.ebi.ac.uk/gxa/download/ebeye_export.xml via curl. If the dump file is being generated 
 # from scratch, an EBI timeout will cause a retrieval failure and a non-zip formatted error file will be returned. If this 
 # is the case, the scripts reports an error and re-tries in 10 mins (up to 4 additional times) - at which time the dump 
 # file will hopefully have been generated and is just sitting in a temp directory ready to be served by Atlas.

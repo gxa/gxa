@@ -1,6 +1,6 @@
 = Searching the Atlas =
 
-The Gene Expression Atlas provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions. For example you might want to find which genes are [http://www.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000887&view=hm&searchMode=simple up-regulated in the liver in humans], or in which tissues or diseases is the gene [http://www.ebi.ac.uk/gxa/gene/ENSG00000151224 MAT1A over-expressed]. 
+The Gene Expression Atlas provides information on gene expression patterns within different biological conditions. It allows you to search for gene expression changes measured in various cell types, organism parts, developmental stages, disease states, and many other biological/experimental conditions. For example you might want to find which genes are [http://www-test.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000887&view=hm&searchMode=simple up-regulated in the liver in humans], or in which tissues or diseases is the gene [http://www-test.ebi.ac.uk/gxa/gene/ENSG00000151224 MAT1A over-expressed]. 
 
 More information about how the Atlas is constructed and the meaning of "up" and "down" in the Atlas context can be found on the 
 [[AboutAtlas|Construction of the Gene Expression Atlas]] web page
@@ -145,7 +145,7 @@ The [[AtlasApis|REST API]] is also available for the gene expression summary.
 == Atlas Experiment View ==
 
 The experiment view provides the ability to explore expression of genes in a selected experiment. Arriving at this page from list view, heatmap view or gene view will show a plot of the gene selected.
-However, you can directly link to this page if you know the accession of the experiment (www.ebi.ac.uk/gxa/experiment/E-MEXP-1014). In this case, the top 3 differentially expressed genes in this experiment will be added to the plot and the top 10 genes are shown on the first page of the search results table. The [[AtlasApis|REST API]] is also available for the experiment expression summary. 
+However, you can directly link to this page if you know the accession of the experiment (www-test.ebi.ac.uk/gxa/experiment/E-MEXP-1014). In this case, the top 3 differentially expressed genes in this experiment will be added to the plot and the top 10 genes are shown on the first page of the search results table. The [[AtlasApis|REST API]] is also available for the experiment expression summary. 
 <br>
 <br>
 [[File:ExperimentView.png|link=]]

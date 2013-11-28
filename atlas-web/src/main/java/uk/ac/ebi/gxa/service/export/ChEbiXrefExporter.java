@@ -47,7 +47,7 @@ public class ChEbiXrefExporter implements DataExporter{
             XMLBuilder xmlBuilder = XMLBuilder.create("doc")
                     .e("database_name").t("Gene Expression Atlas Database").up()
                     .e("database_description").t("The Gene Expression Atlas is a semantically enriched database of meta-analysis based summary statistics over a curated subset of ArrayExpress Archive, servicing queries for condition-specific gene expression patterns as well as broader exploratory searches for biologically interesting genes/samples.").up()
-                    .e("link_url").t("http://www.ebi.ac.uk/gxa/experiment/*").up()
+                    .e("link_url").t("http://www-test.ebi.ac.uk/gxa/experiment/*").up()
                     .e("entities");
 
             for (ChEbiEntry chEbiEntry : chEbiEntries) {

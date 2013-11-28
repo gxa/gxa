@@ -18,7 +18,7 @@ import static junit.framework.Assert.assertNotNull;
  */
 public class MydasGxaServletContextTest {
     private static final String SOURCE = "This is a test string with ${atlas.dasbase} placeholder in it.";
-    private static final String RESULT = "This is a test string with http://www.ebi.ac.uk/gxa/das placeholder in it.";
+    private static final String RESULT = "This is a test string with http://www-test.ebi.ac.uk/gxa/das placeholder in it.";
     AtlasProperties props;
     MydasGxaServletContext sc;
 

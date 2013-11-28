@@ -24,7 +24,7 @@ There is a data release approximately every month.
 
 For every release we provide [https://github.com/gxa/gxa/wiki/Release-Notes release notes] providing information about interface and data content changes. You can subscribe to the [http://listserver.ebi.ac.uk/mailman/listinfo/arrayexpress-atlas Atlas mailing list] to recieve an email at each Atlas release.  
 
-The [http://www.ebi.ac.uk/gxa Atlas home page] specifies the release version, and how many new experiments are in the release along with the current total number of experiments and genes. 
+The [http://www-test.ebi.ac.uk/gxa Atlas home page] specifies the release version, and how many new experiments are in the release along with the current total number of experiments and genes. 
 <br>
 <br>
 
@@ -40,7 +40,7 @@ Yes, you can download the data and set up a version of the Atlas database (using
 
 Differential expression can be searched for by gene (e.g. Saa4), gene attributes (e.g. p53 binding) or by condition (e.g. liver). Searching for a gene will identify in which conditions it is differentially expressed. A condition search will tell you which genes are differential expressed in that condition. 
 
-Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered into the query boxes in the [http://www.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] documentation or the [[AtlasHelp| Atlas search help page]]. 
+Advanced searches can be created combining multiple search terms e.g. gene Saa4 only in experiments with samples from liver. Search terms are entered into the query boxes in the [http://www-test.ebi.ac.uk/gxa Atlas search page] .  For more information about searching see the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] documentation or the [[AtlasHelp| Atlas search help page]]. 
 <br>
 <br>
 
@@ -67,7 +67,7 @@ The following fields/identifiers can be used to search for genes in the Gene Exp
 
 === How can I find a particular experiment? ===
 
-All the experiments in the Atlas can be found on the [http://www.ebi.ac.uk/gxa/experiment/index.html experiments list] page. This page is searchable so you can filter which experiments are show e.g. search for hippocampus for example. Experiments can be linked to directly if you know the accession number using the format [http://www.ebi.ac.uk/gxa/experiment/E-GEOD-27948 http://www.ebi.ac.uk/gxa/experiment/E-GEOD-27948].
+All the experiments in the Atlas can be found on the [http://www-test.ebi.ac.uk/gxa/experiment/index.html experiments list] page. This page is searchable so you can filter which experiments are show e.g. search for hippocampus for example. Experiments can be linked to directly if you know the accession number using the format [http://www-test.ebi.ac.uk/gxa/experiment/E-GEOD-27948 http://www-test.ebi.ac.uk/gxa/experiment/E-GEOD-27948].
 
 Alternatively, experiments can be searched for in the [http://www.ebi.ac.uk/arrayexpress/browse.html ArrayExpress Archive], which contains a wider set of functional genomics data including gene expression studies. Experiments can be filtered by species, platform, keyword etc and sorted by those present in the Atlas by clicking on the Atlas column title on the right hand side. Clicking on the green tick will take you to the experiment in the Atlas.
 
@@ -85,7 +85,7 @@ See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-exploring-func
 <br>
 === What does the heat map show? ===
 
-If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document or [http://www.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page].  
+If your search matches more than one gene, the results will be displayed in a heatmap. All the genes found are listed in the first column of the heatmap, the remaining columns show the conditions. The heatmap entries provide the number of experiments in which a gene was observed to be significantly over-expressed (red heatmap cell) or under-expressed (blue) in the corresponding condition.  See the [http://www.ebi.ac.uk/training/online/course/arrayexpress-investigating-gene-expression-pattern-0 Atlas train online] document or [http://www-test.ebi.ac.uk/gxa/help/AtlasHelp Atlas search help page].  
 <br>
 <br>
 

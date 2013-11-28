@@ -269,9 +269,9 @@ public class AtlasGeneDescription {
                 (!Strings.isNullOrEmpty(ensemblGeneDescription) ? ", " + ensemblGeneDescription + ", ": " ") +
                 "is differentially expressed in " + totalExperiments + " experiment" +
                 (totalExperiments > 1 ? "s" : "");
-        //&lt;a href="http://www.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
+        //&lt;a href="http://www-test.ebi.ac.uk/gxa">expressed&lt;/a> - was a test for ensemble portal
         text = experimentCountText + ": " + text;
-        //text += "<a href=\"http://www.ebi.ac.uk/gxa\">.</a>";
+        //text += "<a href=\"http://www-test.ebi.ac.uk/gxa\">.</a>";
     }
 
     /**

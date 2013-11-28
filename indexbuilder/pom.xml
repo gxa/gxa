@@ -32,7 +32,7 @@
     <version>2.0.22-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Gene Expression Atlas Indexbuilder</name>
-    <url>http://www.ebi.ac.uk/gxa/</url>
+    <url>http://www-test.ebi.ac.uk/gxa/</url>
 
 
     <dependencies>

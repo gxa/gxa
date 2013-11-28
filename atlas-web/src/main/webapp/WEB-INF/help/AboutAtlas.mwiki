@@ -1,21 +1,21 @@
 = About the Gene Expression Atlas =
 
-The [http://www.ebi.ac.uk/gxa/ Gene Expression Atlas] (GXA) is a semantically
+The [http://www-test.ebi.ac.uk/gxa/ Gene Expression Atlas] (GXA) is a semantically
 enriched database of publicly available gene expression data. The data is
 re-analysed in-house to detect genes showing interesting expression patterns
 under the conditions of the original experiment.
 
 Users can search GXA to discover up- and down-regulated genes in numerous experimental conditions, from
-[http://www.ebi.ac.uk/gxa/qrs?gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=diabetes&view=hm&searchMode=simple diabetes] to
-[http://www.ebi.ac.uk/gxa/qrs?gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=spaceflight&view=hm&searchMode=simple spaceflight].
+[http://www-test.ebi.ac.uk/gxa/qrs?gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=diabetes&view=hm&searchMode=simple diabetes] to
+[http://www-test.ebi.ac.uk/gxa/qrs?gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=spaceflight&view=hm&searchMode=simple spaceflight].
 Searching for a condition 
-(e.g. [http://www.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=%22breast+cancer%22&view=hm&searchMode=simple breast cancer])
+(e.g. [http://www-test.ebi.ac.uk/gxa/qrs?specie_0=homo+sapiens&gprop_0=&gnot_0=&gval_0=%28all+genes%29&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=%22breast+cancer%22&view=hm&searchMode=simple breast cancer])
 will return genes displaying interesting expression patterns under that
 condition. Searching for 
-[http://www.ebi.ac.uk/gxa/gene/FBgn0086687 a gene]
+[http://www-test.ebi.ac.uk/gxa/gene/FBgn0086687 a gene]
 will show experimental conditions in which
 that gene is up- or down-regulated. Users can also search for 
-[http://www.ebi.ac.uk/gxa/qrs?gprop_0=gene&gnot_0=&gval_0=ENSG00000141510&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000311&view=hm&searchMode=simple a combination]
+[http://www-test.ebi.ac.uk/gxa/qrs?gprop_0=gene&gnot_0=&gval_0=ENSG00000141510&fact_1=&fexp_1=UP_DOWN&fmex_1=&fval_1=EFO_0000311&view=hm&searchMode=simple a combination]
 of genes and conditions, to find analyses in which the specified genes have
 been found to show interesting expression in the specified conditions. Further
 details on how to search and interpret GXA data can be found

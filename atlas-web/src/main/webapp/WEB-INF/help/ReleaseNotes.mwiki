@@ -4,13 +4,20 @@
 
 === 2.0.21.3 ===
 
-* '''Data ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
+* '''Data ([http://www-test.ebi.ac.uk/gxa Current Expression Atlas]):'''
 ** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
 ** EFO release 2.36
 ** 2841 experiments (including 146 new or re-curated and re-loaded experiments)
 
-*  '''Features ([http://www.ebi.ac.uk/gxa Current Expression Atlas]):'''
-** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to [http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258 http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258].
+=== 2.0.21.3 ===
+
+* '''Data ([http://www-test.ebi.ac.uk/gxa Current Expression Atlas]):'''
+** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
+** EFO release 2.36
+** 2841 experiments (including 146 new or re-curated and re-loaded experiments)
+
+*  '''Features ([http://www-test.ebi.ac.uk/gxa Current Expression Atlas]):'''
+** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www-test.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to [http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258 http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258].
 ** As of this release, the REST API interface is deprecated. It will be replaced by a new interface when the new Expression Atlas goes live in Q4 2013. We urge all users of our current API to contact us via [mailto:atlas-feedback@ebi.ac.uk] so that we are able to consider their requirements when designing the new REST API. We would like to apologise for any inconvenience the transition to the new REST API causes.
 
 * '''Data ([http://www-test.ebi.ac.uk/gxa/experiments New Expression Atlas]):'''
@@ -87,9 +94,9 @@ Downloadable data and software information is available from https://github.com/
 
 * '''Features:'''
 ** The links accessible on the right-hand side of the experiment page are now also accessible programmatically, e.g.
-*** http://www.ebi.ac.uk/gxa/directDownload/experimentAnalytics?eacc=E-MEXP-3566
-*** http://www.ebi.ac.uk/gxa/directDownload/experimentExpressions?eacc=E-MEXP-3566
-*** http://www.ebi.ac.uk/gxa/directDownload/experimentDesign?eacc=E-MEXP-3566
+*** http://www-test.ebi.ac.uk/gxa/directDownload/experimentAnalytics?eacc=E-MEXP-3566
+*** http://www-test.ebi.ac.uk/gxa/directDownload/experimentExpressions?eacc=E-MEXP-3566
+*** http://www-test.ebi.ac.uk/gxa/directDownload/experimentDesign?eacc=E-MEXP-3566
 
 Downloadable data and software information is available from https://github.com/gxa/gxa/wiki/Release-Notes.
 
@@ -122,7 +129,7 @@ Downloadable data and software information is available from https://github.com/
 ** 3476 experiments
 
 * '''Features:'''
-** New search for experiments functionality e.g. http://www.ebi.ac.uk/gxa/experiment/index.html?q=homo+sapiens
+** New search for experiments functionality e.g. http://www-test.ebi.ac.uk/gxa/experiment/index.html?q=homo+sapiens
 
 === 2.0.14 ===
 * '''Data:'''
@@ -135,8 +142,8 @@ Downloadable data and software information is available from https://github.com/
 *** 3 Rat Exon 1.0 ST array experiments
 
 * '''Features:'''
-** New links for downloading experiment design, raw expression values and differential expression analytics on the experiment page, e.g. http://www.ebi.ac.uk/gxa/experiment/E-AFMX-5 (see right-hand side)
-** Re-designed interface, including gene conditions autocomplete, for searching the experiment for best differential expression analytics, e.g. http://www.ebi.ac.uk/gxa/experiment/E-AFMX-5 (see below the plot)
+** New links for downloading experiment design, raw expression values and differential expression analytics on the experiment page, e.g. http://www-test.ebi.ac.uk/gxa/experiment/E-AFMX-5 (see right-hand side)
+** Re-designed interface, including gene conditions autocomplete, for searching the experiment for best differential expression analytics, e.g. http://www-test.ebi.ac.uk/gxa/experiment/E-AFMX-5 (see below the plot)
 ** Bug fixes to gene condition autocomplete on the man Atlas search page, to the heatmap search result display and experiment page plots.
 
 === 2.0.13 ===
@@ -145,12 +152,12 @@ Downloadable data and software information is available from https://github.com/
 ** EFO release 2.23
 ** 371 new or re-curated and re-loaded experiments. This is due to an on-going major effort in Atlas data clean-up, including:
 *** merging similar factors, sample characteristics and their values
-*** merging compound treatments, doses and units into a single value for factor ‘compound treatment’ – to make intra-experiment expression comparisons easier (e.g. http://www.ebi.ac.uk/gxa/experiment/E-TABM-12). All newly loaded units are now part of EFO ontology – in order to remove ambiguity in data interpretation.
+*** merging compound treatments, doses and units into a single value for factor ‘compound treatment’ – to make intra-experiment expression comparisons easier (e.g. http://www-test.ebi.ac.uk/gxa/experiment/E-TABM-12). All newly loaded units are now part of EFO ontology – in order to remove ambiguity in data interpretation.
 
 * '''Features:'''
 ** New links for tab-delimited experiment analytics and experiment design data download. see 'Export to TSV' links on e.g.
-*** http://www.ebi.ac.uk/gxa/experiment/E-MEXP-3493 and
-*** http://www.ebi.ac.uk/gxa/experimentDesign/E-MEXP-3493
+*** http://www-test.ebi.ac.uk/gxa/experiment/E-MEXP-3493 and
+*** http://www-test.ebi.ac.uk/gxa/experimentDesign/E-MEXP-3493
 ** Simplifications to the Condition autocomplete functionality in both the simple and the advanced Atlas search interfaces
 ** Links to EMAGE database (http://www.emouseatlas.org/emage) for Mouse genes
 ** Bug fixes to the Atlas API output
@@ -159,7 +166,7 @@ Downloadable data and software information is available from https://github.com/
 * '''Data:'''
 ** Contains 443 new or re-curated and re-loaded experiments. This is due to an on-going major effort in Atlas data clean-up, including:
 *** merging similar factors, sample characteristics and their values
-*** merging compound treatments, doses and units into a single value for factor ‘compound treatment’ – to make intra-experiment expression comparisons easier (e.g. http://www.ebi.ac.uk/gxa/experiment/E-TABM-12). All newly loaded units are now part of EFOontology – to remove ambiguity in data interpretation.
+*** merging compound treatments, doses and units into a single value for factor ‘compound treatment’ – to make intra-experiment expression comparisons easier (e.g. http://www-test.ebi.ac.uk/gxa/experiment/E-TABM-12). All newly loaded units are now part of EFOontology – to remove ambiguity in data interpretation.
 ** Contains 53 RNA-seq experiments
 ** Updated with Ensembl 66 annotations and design element mappings
 

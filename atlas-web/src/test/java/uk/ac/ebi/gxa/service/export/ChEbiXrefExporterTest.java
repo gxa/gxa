@@ -67,7 +67,7 @@ public class ChEbiXrefExporterTest {
             "<doc>\n" +
             "    <database_name>Gene Expression Atlas Database</database_name>\n" +
             "    <database_description>The Gene Expression Atlas is a semantically enriched database of meta-analysis based summary statistics over a curated subset of ArrayExpress Archive, servicing queries for condition-specific gene expression patterns as well as broader exploratory searches for biologically interesting genes/samples.</database_description>\n" +
-            "    <link_url>http://www.ebi.ac.uk/gxa/experiment/*</link_url>\n" +
+            "    <link_url>http://www-test.ebi.ac.uk/gxa/experiment/*</link_url>\n" +
             "    <entities>\n" +
             "        <entity>\n" +
             "            <chebi_id>CHEBI:1</chebi_id>\n" +

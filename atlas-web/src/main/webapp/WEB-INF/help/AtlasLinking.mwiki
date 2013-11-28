@@ -6,28 +6,28 @@ and [http://www.ncbi.nlm.nih.gov/RefSeq/ RefSeq] identifiers.
 
 The format of a URL link to the Atlas is as follows:
 
-<pre>http://www.ebi.ac.uk/gxa/gene/IDENTIFIER</pre>
+<pre>http://www-test.ebi.ac.uk/gxa/gene/IDENTIFIER</pre>
 
-If the identifier matches one single gene (e.g. [http://www.ebi.ac.uk/gxa/gene/ENSMUSG00000000701 ENSMUSG00000000701]) then the gene view page for the gene will be returned. This provides a one-page summary of Atlas information about a given gene. If the identifier matches more than one gene (e.g. [http://www.ebi.ac.uk/gxa/gene/GO:0032094 GO:0032094]) then a heat map view of the results for all the genes that link to the identifier will be shown. See the [[AtlasHelp|help on searching Atlas]] for more information.
+If the identifier matches one single gene (e.g. [http://www-test.ebi.ac.uk/gxa/gene/ENSMUSG00000000701 ENSMUSG00000000701]) then the gene view page for the gene will be returned. This provides a one-page summary of Atlas information about a given gene. If the identifier matches more than one gene (e.g. [http://www-test.ebi.ac.uk/gxa/gene/GO:0032094 GO:0032094]) then a heat map view of the results for all the genes that link to the identifier will be shown. See the [[AtlasHelp|help on searching Atlas]] for more information.
 
-It is also possible to link using a gene identifier and an experimental factor, e.g. to show information for [http://www.ebi.ac.uk/gxa/gene/ENSG00000012048/organism_part "organism_part" for ENSG00000012048]:
+It is also possible to link using a gene identifier and an experimental factor, e.g. to show information for [http://www-test.ebi.ac.uk/gxa/gene/ENSG00000012048/organism_part "organism_part" for ENSG00000012048]:
 
-<pre>http://www.ebi.ac.uk/gxa/gene/IDENTIFIER/FACTOR</pre>
+<pre>http://www-test.ebi.ac.uk/gxa/gene/IDENTIFIER/FACTOR</pre>
 
 
 == Experiment links ==
-You can also link directly to an Atlas experiment with the experiment accession (e.g. [http://www.ebi.ac.uk/gxa/experiment/E-MEXP-1014 E-MEXP-1014]).
+You can also link directly to an Atlas experiment with the experiment accession (e.g. [http://www-test.ebi.ac.uk/gxa/experiment/E-MEXP-1014 E-MEXP-1014]).
 The format of a URL link to the Atlas Experiment View is as follows:
 
-<pre>http://www.ebi.ac.uk/gxa/experiment/ACCESSION</pre>
+<pre>http://www-test.ebi.ac.uk/gxa/experiment/ACCESSION</pre>
 
-Within an experiment it is possible to link using a gene identifier, e.g. [http://www.ebi.ac.uk/gxa/experiment/E-AFMX-5/GH2 GH2 in E-MEXP-1014]:
+Within an experiment it is possible to link using a gene identifier, e.g. [http://www-test.ebi.ac.uk/gxa/experiment/E-AFMX-5/GH2 GH2 in E-MEXP-1014]:
 
-<pre>http://www.ebi.ac.uk/gxa/experiment/ACCESSION/IDENTIFIER</pre>
+<pre>http://www-test.ebi.ac.uk/gxa/experiment/ACCESSION/IDENTIFIER</pre>
 
-...and also using a gene identifier and an experimental factor, e.g. [http://www.ebi.ac.uk/gxa/experiment/E-AFMX-5/GH2/cell_type cell_type for GH2 in E-MEXP-1014]:
+...and also using a gene identifier and an experimental factor, e.g. [http://www-test.ebi.ac.uk/gxa/experiment/E-AFMX-5/GH2/cell_type cell_type for GH2 in E-MEXP-1014]:
 
-<pre>http://www.ebi.ac.uk/gxa/experiment/ACCESSION/IDENTIFIER/FACTOR</pre>
+<pre>http://www-test.ebi.ac.uk/gxa/experiment/ACCESSION/IDENTIFIER/FACTOR</pre>
 
 == Programmatic Access==
 For information about creating complex queries of the Atlas programmatically see the [[AtlasApis|Atlas programmatic access help pages]].

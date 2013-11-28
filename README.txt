@@ -8,7 +8,7 @@ To cite the Atlas in your research or to learn more about it, please refer to Ka
 Expression Atlas at the European Bioinformatics Institute", Nucleic Acids Research Database Issue 2010,
 http://nar.oxfordjournals.org/cgi/content/full/gkp936?ijkey=zMCQ9oPVLrhe7zk&keytype=ref.
 
-The EBI Gene Expression Atlas is running at http://www.ebi.ac.uk/gxa.
+The EBI Gene Expression Atlas is running at http://www-test.ebi.ac.uk/gxa.
 
 * Features of ArrayExpress Gene Expression Atlas
 

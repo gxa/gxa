@@ -152,7 +152,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
                         log.info("Generating gene sitemap, geneSitemap" + (c / 50000) + ".xml.gz has been written");
                         if (c > 0) {
                             bfind.write(
-                                    ("<sitemap><loc>http://www.ebi.ac.uk/gxa/sitemap/geneSitemap" + (c / 50000 - 1) +
+                                    ("<sitemap><loc>http://www-test.ebi.ac.uk/gxa/sitemap/geneSitemap" + (c / 50000 - 1) +
                                             ".xml.gz</loc></sitemap>\n").getBytes("UTF-8"));
                         }
                     }
@@ -174,7 +174,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n".getBytes(
                                         "UTF-8"));
                     }
-                    gzout.write(("<url><loc>http://www.ebi.ac.uk/gxa/gene/" + t.text() + "</loc></url>\n").getBytes(
+                    gzout.write(("<url><loc>http://www-test.ebi.ac.uk/gxa/gene/" + t.text() + "</loc></url>\n").getBytes(
                             "UTF-8"));
                     c++;
                 }
@@ -182,7 +182,7 @@ public class GoogleSitemapXmlRequestHandler implements HttpRequestHandler, Index
 
             if (!footerWritten) {
                 gzout.write("</urlset>".getBytes("UTF-8"));
-                bfind.write(("<sitemap><loc>http://www.ebi.ac.uk/gxa/sitemap/geneSitemap" + (c / 50000) +
+                bfind.write(("<sitemap><loc>http://www-test.ebi.ac.uk/gxa/sitemap/geneSitemap" + (c / 50000) +
                         ".xml.gz</loc></sitemap>\n").getBytes("UTF-8"));
             }
 

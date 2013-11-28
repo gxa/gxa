@@ -106,7 +106,7 @@
             intact. Please do not remove.
         </note>
         <from>/array/U133A</from>
-        <to type="redirect">http://www.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
+        <to type="redirect">http://www-test.ebi.ac.uk/gxa/experiment/E-MTAB-62</to>
     </rule>
 
     <outbound-rule>

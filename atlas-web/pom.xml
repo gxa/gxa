@@ -33,7 +33,7 @@
     <version>2.0.22-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Gene Expression Atlas WebApp</name>
-    <url>http://www.ebi.ac.uk/gxa</url>
+    <url>http://www-test.ebi.ac.uk/gxa</url>
 
     <build>
         <resources>

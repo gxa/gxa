@@ -12,14 +12,14 @@ Atlas REST API provides all the results available in the main web application in
 
 All REST API URLs now have the following general form:
 
-<pre>http://www.ebi.ac.uk/gxa/api/deprecated?<query>[&format=<json|xml>][&indent]</pre>
+<pre>http://www-test.ebi.ac.uk/gxa/api/deprecated?<query>[&format=<json|xml>][&indent]</pre>
 
 * ''format'' parameter specifies output format and can be either ''xml'' or ''json'' for XML and JSON formats respectively.
 * ''indent'' option allows you to get a pretty-formatted source useful for debugging purposes, so that results can be viewed in text editor. DO NOT use this option in production as it increases bandwidth use and significantly increases response and processing time.
 
 JSON output format also supports JSONP-style callbacks, which should be specified with argument ''callback=callbackName''. In this case resulting JSON output wil be wrapped into a callback function call, ready to be evaluated bythe requesting client's <script> tag. For example:
 <pre>
-http://www.ebi.ac.uk/gxa/api/deprecated?<query>&format=json&callback=processResult
+http://www-test.ebi.ac.uk/gxa/api/deprecated?<query>&format=json&callback=processResult
 </pre>
 will render
 <source lang="javascript">
@@ -93,9 +93,9 @@ All fields are searched if <Property> is omitted.
 
 Examples:
 <pre>
-http://www.ebi.ac.uk/gxa/api/deprecated?geneGotermIs=spindle+pole&geneDisease=heart+disease
-http://www.ebi.ac.uk/gxa/api/deprecated?geneIs=ASPM
-http://www.ebi.ac.uk/gxa/api/deprecated?geneIs=ENSG00000012048
+http://www-test.ebi.ac.uk/gxa/api/deprecated?geneGotermIs=spindle+pole&geneDisease=heart+disease
+http://www-test.ebi.ac.uk/gxa/api/deprecated?geneIs=ASPM
+http://www-test.ebi.ac.uk/gxa/api/deprecated?geneIs=ENSG00000012048
 </pre>
 
 === Condition queries ===
@@ -184,22 +184,22 @@ of experiments in specified condition:
 
 Examples:
 <pre>
-http://www.ebi.ac.uk/gxa/api/deprecated?upIn=liver
-http://www.ebi.ac.uk/gxa/api/deprecated?updownInOrganism_part=heart
-http://www.ebi.ac.uk/gxa/api/deprecated?up3In=heart
-http://www.ebi.ac.uk/gxa/api/deprecated?down5InSex=male
-http://www.ebi.ac.uk/gxa/api/deprecated?downInOrganism_part=kidney&upInSex=male
-http://www.ebi.ac.uk/gxa/api/deprecated?geneIs=p53&downInOrganism_part=kidney&upInSex=male
-http://www.ebi.ac.uk/gxa/api/deprecated?geneIs=aspm&noneInOrganism_part=heart&upInSex=male
-http://www.ebi.ac.uk/gxa/api/deprecated?geneIs=aspm&anyInOrganism_part=heart&upInSex=male
+http://www-test.ebi.ac.uk/gxa/api/deprecated?upIn=liver
+http://www-test.ebi.ac.uk/gxa/api/deprecated?updownInOrganism_part=heart
+http://www-test.ebi.ac.uk/gxa/api/deprecated?up3In=heart
+http://www-test.ebi.ac.uk/gxa/api/deprecated?down5InSex=male
+http://www-test.ebi.ac.uk/gxa/api/deprecated?downInOrganism_part=kidney&upInSex=male
+http://www-test.ebi.ac.uk/gxa/api/deprecated?geneIs=p53&downInOrganism_part=kidney&upInSex=male
+http://www-test.ebi.ac.uk/gxa/api/deprecated?geneIs=aspm&noneInOrganism_part=heart&upInSex=male
+http://www-test.ebi.ac.uk/gxa/api/deprecated?geneIs=aspm&anyInOrganism_part=heart&upInSex=male
 </pre>
 
 === Organisms ===
 
 User can limit output genes to specified organisms using one or more ''species'' parameters. Examples:
 <pre>
-http://www.ebi.ac.uk/gxa/api/deprecated?upIn=liver&species=Mus+Musculus
-http://www.ebi.ac.uk/gxa/api/deprecated?upIn=liver+heart&species=Mus+Musculus&species=Homo+Sapiens
+http://www-test.ebi.ac.uk/gxa/api/deprecated?upIn=liver&species=Mus+Musculus
+http://www-test.ebi.ac.uk/gxa/api/deprecated?upIn=liver+heart&species=Mus+Musculus&species=Homo+Sapiens
 </pre>
 '''Note''': the above query is interpreted in Atlas as 'up either in liver or in heart' and genes in species 'either Mus Musculus or Homo Sapiens'.
 Atlas stores genes at species rather than sequence level, hence a query for genes in species 'both Mus Musculus and Homo Sapiens' would
@@ -230,13 +230,13 @@ query.
 
 Examples:
 <pre>
-http://www.ebi.ac.uk/gxa/api/deprecated?upIn=liver&start=200&rows=50
+http://www-test.ebi.ac.uk/gxa/api/deprecated?upIn=liver&start=200&rows=50
 </pre>
 
 === Output ===
 
 The query output structure is self-explanatory, and it can be tested using a plain web browser just pointing it to an API URL and adding an ''&indent'' argument.
-Here is an example of the result set rendered by the gene query ''http://www.ebi.ac.uk/gxa/api/deprecated?geneIs=ENSG00000159216&format=json&indent'':
+Here is an example of the result set rendered by the gene query ''http://www-test.ebi.ac.uk/gxa/api/deprecated?geneIs=ENSG00000159216&format=json&indent'':
 
 <source lang="javascript">
 {
@@ -511,15 +511,15 @@ query.
 
 Examples:
 <pre>
-http://www.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066
-http://www.ebi.ac.uk/gxa/api/deprecated?experiment=cell
-http://www.ebi.ac.uk/gxa/api/deprecated?experimentHasOrganism_part=lung
-http://www.ebi.ac.uk/gxa/api/deprecated?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1  kil
-http://www.ebi.ac.uk/gxa/api/deprecated?experimentHasFactor=cell_type&experiment=cycle
-http://www.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066&geneIs=FBgn0037534&geneIs=FBgn0004431&format=xml
-http://www.ebi.ac.uk/gxa/api/deprecated?experiment=listAll&experimentInfoOnly
-http://www.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066&offset=10&limit=8&format=xml
-http://www.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066&offset=10&limit=10&experimentExpressionsOnly&format=xml
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experiment=cell
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experimentHasOrganism_part=lung
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experimentHasDisease_state=normal&experiment=cancer&start=10&rows=1  kil
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experimentHasFactor=cell_type&experiment=cycle
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066&geneIs=FBgn0037534&geneIs=FBgn0004431&format=xml
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experiment=listAll&experimentInfoOnly
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066&offset=10&limit=8&format=xml
+http://www-test.ebi.ac.uk/gxa/api/deprecated?experiment=E-MTAB-1066&offset=10&limit=10&experimentExpressionsOnly&format=xml
 </pre>
 
 Output is the list of experiments' details. The ''geneExpressions'' section contains actual microarray expression values for all design elements for the specified gene(s).
