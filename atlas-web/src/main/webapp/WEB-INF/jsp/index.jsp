@@ -183,8 +183,8 @@
                         </div>
                         <div style="float:right"><a href="http://www-test.ebi.ac.uk/gxa"><img src="images/help/baseline_atlas_link.png"></a></div>
                     </div>
-                </div>
 -->
+                </div>
 
                 <div style="float:left; width:200px; margin-top:10px;" class="roundCorner">
                                     <div style="padding:10px">
