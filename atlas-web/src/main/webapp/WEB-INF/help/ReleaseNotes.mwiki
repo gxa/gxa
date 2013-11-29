@@ -12,26 +12,26 @@
 
 === 2.0.21.3 ===
 
-* '''Data ([http://www-test.ebi.ac.uk/gxa Current Expression Atlas]):'''
+* '''Data (Current Expression Atlas):'''
 ** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
 ** EFO release 2.36
 ** 2841 experiments (including 146 new or re-curated and re-loaded experiments)
 
-*  '''Features ([http://www-test.ebi.ac.uk/gxa Current Expression Atlas]):'''
+*  '''Features (Current Expression Atlas):'''
 ** On each experiment page, button [[File:RDF.png|border|center|link=]] reveals a link to [http://www.ebi.ac.uk/fgpt/atlasrdf/index.html Expression Atlas Linked Data]. For an example [http://www-test.ebi.ac.uk/gxa/experiment/E-GEOD-5258 E-GEOD-5258] contains a link to [http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258 http://rdf.ebi.ac.uk/resource/atlas/E-GEOD-5258].
 ** As of this release, the REST API interface is deprecated. It will be replaced by a new interface when the new Expression Atlas goes live in Q4 2013. We urge all users of our current API to contact us via [mailto:atlas-feedback@ebi.ac.uk] so that we are able to consider their requirements when designing the new REST API. We would like to apologise for any inconvenience the transition to the new REST API causes.
 
-* '''Data ([http://www-test.ebi.ac.uk/gxa/experiments New Expression Atlas]):'''
+* '''Data (New Expression Atlas):'''
 ** Ensembl 72 / Ensembl genomes 19 gene annotations and array design probe set mappings
 ** Reactome 44 gene annotations
 ** miRBase 20 release microRNA annotations and design element mappings
-** Over 100 experiments including 10 RNA-seq experiments and the first microRNA microarray experiment, http://www-test.ebi.ac.uk/gxa/experiments/E-TABM-713.
+** Over 100 experiments including 10 RNA-seq experiments and the first microRNA microarray experiment, http://www.ebi.ac.uk/gxa/experiments/E-TABM-713.
 
-*  '''Features ([http://www-test.ebi.ac.uk/gxa/experiments New Expression Atlas]):'''
-** http://www-test.ebi.ac.uk/gxa/experiments now shows all experiments loaded into the new Expression Atlas.
-** The [http://www-test.ebi.ac.uk/gxa/help.html help page] now contains help for both baseline and differential expression experiments.
-** The gene page, e.g. [http://www-test.ebi.ac.uk/gxa/genes/AT5G20250 DIN10], now provides referential information about a gene, as well as baseline and differential expression sections.
-** Similar pages are available for gene sets, e.g. REACTOME pathway [http://www-test.ebi.ac.uk/gxa/genesets/REACT_1258 Activation of the mRNA upon binding of the cap-binding complex and eIFs, and subsequent binding to 43S] and proteins, e.g. [http://www-test.ebi.ac.uk/gxa/proteins/ENSP00000355434 olfactory receptor]
+*  '''Features (New Expression Atlas):'''
+** http://www.ebi.ac.uk/gxa/experiments now shows all experiments loaded into the new Expression Atlas.
+** The [http://www.ebi.ac.uk/gxa/help.html help page] now contains help for both baseline and differential expression experiments.
+** The gene page, e.g. [http://www.ebi.ac.uk/gxa/genes/AT5G20250 DIN10], now provides referential information about a gene, as well as baseline and differential expression sections.
+** Similar pages are available for gene sets, e.g. REACTOME pathway [http://www.ebi.ac.uk/gxa/genesets/REACT_1258 Activation of the mRNA upon binding of the cap-binding complex and eIFs, and subsequent binding to 43S] and proteins, e.g. [http://www.ebi.ac.uk/gxa/proteins/ENSP00000355434 olfactory receptor]
 Downloadable data and software information is available from [https://github.com/gxa/gxa/wiki/Release-Notes github].
 
 === 2.0.20 ===
@@ -46,15 +46,15 @@ Downloadable data and software information is available from [https://github.com
 
 
 *  '''Features (New Expression Atlas Interface):'''
-** Expression Atlas (baseline expression) now provides an breakdown per transcript for each gene-factor value cell in the results heatmap. For example, click on any non-empty cell in [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-513 Illumina Body Map] experiment to view a pie chart showing an expression level breakdown for up to three top expressed transcripts (plus a slice for the remaining transcripts, if any), e.g. <br/>[[File:transcript_breakdown.png|border|center|link=]]
-** All Expression Atlas experiments are now searchable by [http://www.reactome.org/ REACTOME] pathway accessions and descriptions. For example, view [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-513?geneQuery=react_1619&cutoff=10 query for REACT_1619 (''Death Receptor Signalling, Homo sapiens'') in Illumina Body Map]. Expression Atlas covers almost all known genes for this pathway (14 genes matched in Ensembl).  The above example highlights leukocyte-specific expression of most genes in REACT_1619, its "tissue fingerprint". This is corroborated in literature, e.g. [http://www.ncbi.nlm.nih.gov/pubmed/12857993 Death receptor signaling and autoimmunity].
+** Expression Atlas (baseline expression) now provides an breakdown per transcript for each gene-factor value cell in the results heatmap. For example, click on any non-empty cell in [http://www.ebi.ac.uk/gxa/experiments/E-MTAB-513 Illumina Body Map] experiment to view a pie chart showing an expression level breakdown for up to three top expressed transcripts (plus a slice for the remaining transcripts, if any), e.g. <br/>[[File:transcript_breakdown.png|border|center|link=]]
+** All Expression Atlas experiments are now searchable by [http://www.reactome.org/ REACTOME] pathway accessions and descriptions. For example, view [http://www.ebi.ac.uk/gxa/experiments/E-MTAB-513?geneQuery=react_1619&cutoff=10 query for REACT_1619 (''Death Receptor Signalling, Homo sapiens'') in Illumina Body Map]. Expression Atlas covers almost all known genes for this pathway (14 genes matched in Ensembl).  The above example highlights leukocyte-specific expression of most genes in REACT_1619, its "tissue fingerprint". This is corroborated in literature, e.g. [http://www.ncbi.nlm.nih.gov/pubmed/12857993 Death receptor signaling and autoimmunity].
 ** Various types of differential expression experiments are now available in the new Expression Atlas interface. We don't yet have a unified search interface, but we would be very grateful for any feedback on the user interface and data provided for each of the experiments below:
-*** [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-1066 Transcription profiling by array of '''Drosophila melanogaster''' CDK8 and Cyclin C homozygous mutants, determined using Affymetrix GeneChip Drosophila Genome 2.0 Array ('''1-colour microarray''')]
-*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-43049 Caco-2 cells: cultured in conventional vs apical anaerobic conditions ('''2-colour microarray''', '''Homo Sapiens''')]
-*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-38400 '''RNA-seq''' of '''Arabidopsis''' mutants with defects in long-non-coding-RNA-mediated transcriptional silencing]
-*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-22351 '''RNA-seq''' of '''mouse''' spinal cord expressing wild type human TDP-43 ]
-*** [http://www-test.ebi.ac.uk/gxa/experiments/E-GEOD-21860 '''RNA-seq''' of pancreatic islets from pregnant '''mice''' ]
-*** [http://www-test.ebi.ac.uk/gxa/experiments/E-MTAB-698 '''RNA-seq''' of vomeronasal tissue from adult male and female '''mice''']
+*** [http://www.ebi.ac.uk/gxa/experiments/E-MTAB-1066 Transcription profiling by array of '''Drosophila melanogaster''' CDK8 and Cyclin C homozygous mutants, determined using Affymetrix GeneChip Drosophila Genome 2.0 Array ('''1-colour microarray''')]
+*** [http://www.ebi.ac.uk/gxa/experiments/E-GEOD-43049 Caco-2 cells: cultured in conventional vs apical anaerobic conditions ('''2-colour microarray''', '''Homo Sapiens''')]
+*** [http://www.ebi.ac.uk/gxa/experiments/E-GEOD-38400 '''RNA-seq''' of '''Arabidopsis''' mutants with defects in long-non-coding-RNA-mediated transcriptional silencing]
+*** [http://www.ebi.ac.uk/gxa/experiments/E-GEOD-22351 '''RNA-seq''' of '''mouse''' spinal cord expressing wild type human TDP-43 ]
+*** [http://www.ebi.ac.uk/gxa/experiments/E-GEOD-21860 '''RNA-seq''' of pancreatic islets from pregnant '''mice''' ]
+*** [http://www.ebi.ac.uk/gxa/experiments/E-MTAB-698 '''RNA-seq''' of vomeronasal tissue from adult male and female '''mice''']
 ** Note that for the above experiments when you click on:
 *** a gene-contrast cell in the results heatmap you can see the full data behind this differential expression call, e.g.<br />[[File:analytics_popup.png|border|center|link=]]
 *** a [[File:maplot-button.png|border|center|link=]] button, shown next to the contrast label in the header of the results heatmap for default False Discovery cutoff only, an [http://en.wikipedia.org/wiki/MA_plot‎ MA] plot appears for that contrast, relating average expression intensity, fold change between the 'test' and the 'reference' part of that contrast, and the differentially expressed genes (shown as red dots in the plot), e.g. <br />[[File:mva_plot.png|border|link=]]
@@ -81,7 +81,7 @@ Downloadable data and software information is available from [https://github.com
 ** In view of the above bug fix, the analytics download functionality on the experiment page had to be memory-optimized. Namely, for very large experiments the data in the downloaded analytics zip file is split into chunks.
 
 * '''News:'''
-** We have released our new [http://www-test.ebi.ac.uk/gxa Baseline Expression Atlas prototype], that aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type). Please&nbsp;check&nbsp;it&nbsp;out&nbsp;-&nbsp;we&nbsp;would&nbsp;love&nbsp;to&nbsp;get&nbsp;your&nbsp;feedback! [[File:baseline_atlas_link.png|border|center|link=]]
+** We have released our new [http://www.ebi.ac.uk/gxa Baseline Expression Atlas prototype], that aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type). Please&nbsp;check&nbsp;it&nbsp;out&nbsp;-&nbsp;we&nbsp;would&nbsp;love&nbsp;to&nbsp;get&nbsp;your&nbsp;feedback! [[File:baseline_atlas_link.png|border|center|link=]]
 ** We have also started the process of careful assessment of experimental intent and identification of contrasts for all existing experiments in Gene Expression Atlas, in preparation for their inclusion in the new contrast-based Differential Expression Atlas prototype (to be released later in 2013 - c.f. 'Future Plans' section below.)
 
 Downloadable data and software information is available from https://github.com/gxa/gxa/wiki/Release-Notes.
@@ -183,7 +183,7 @@ Downloadable data and software information is available from https://github.com/
 === Baseline Expression Atlas Prototype ===
 
 {|
-| [[File:baseline_human.png|border|link=]] || Majority of our effort from Autumn 2012 onwards has been spent on putting together the [http://www-test.ebi.ac.uk/gxa Baseline Atlas prototype]
+| [[File:baseline_human.png|border|link=]] || Majority of our effort from Autumn 2012 onwards has been spent on putting together the [http://www.ebi.ac.uk/gxa Baseline Atlas prototype]
 (still under heavy development), due to be released in the first quarter of 2013.
 <p />
 Baseline Atlas aims primarily at representing information about which gene product is present (and at what abundance) in which normal condition (e.g., tissue, cell type).
