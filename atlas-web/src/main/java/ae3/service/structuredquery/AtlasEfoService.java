@@ -23,6 +23,7 @@
 package ae3.service.structuredquery;
 
 import ae3.service.AtlasStatisticsQueryService;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -278,6 +279,62 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         }
         return result;
     }
+
+    /**
+     *
+     * @param text
+     * @return Collection of EfoTermCount - all children (recursively) of the term(s) matching text
+     */
+    public Collection<EfoTermCount> getAllTermChildren(String text) {
+        List<EfoTermCount> result = new ArrayList<EfoTermCount>();
+        Collection<EfoTerm> terms = Lists.newArrayList();
+        EfoTerm term = efo.getTermById(text);
+        if (term != null) {
+            terms.add(term);
+        } else {
+            terms.addAll(efo.searchTerm(text));
+        }
+        for (EfoTerm efoTerm : terms) {
+            result.addAll(getAllTermChildren(efoTerm));
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns all children of term, recursively
+     *
+     * @param term EfoTerm
+     * @return collection of EfoTermCount
+     */
+
+    private Collection<EfoTermCount> getAllTermChildren(EfoTerm term) {
+
+        List<EfoTermCount> result = new ArrayList<EfoTermCount>();
+        Collection<EfoTerm> children = efo.getTermChildren(term.getId());
+        if (children == null || children.isEmpty()) {
+            result.add(new EfoTermCount(term,0));
+        } else {
+            for (EfoTerm child : children) {
+                addAll(result, efo.getTermChildren(child.getId()));
+            }
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param efoTermCounts
+     * @param efoTerms
+     * @return
+     */
+    private Collection<EfoTermCount> addAll(Collection<EfoTermCount> efoTermCounts, Collection<EfoTerm> efoTerms) {
+        for (EfoTerm term : efoTerms) {
+            efoTermCounts.add(new EfoTermCount(term, 0));
+        }
+        return efoTermCounts;
+    }
+
 
     /**
      * Returns term parent paths with counts

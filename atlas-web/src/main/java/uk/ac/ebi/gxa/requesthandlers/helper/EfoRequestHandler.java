@@ -100,24 +100,29 @@ public class EfoRequestHandler extends AbstractRestRequestHandler {
             }
             log.info("EFO request for children of " + id);
         } else {
-            id = request.getParameter("downTo");
+            id = request.getParameter("allChildrenOf");
             if (id != null && id.length() != 0) {
-                result = efoService.getTreeDownToTerm(id);
-                log.info("EFO request for tree down to " + id);
-            } else if (id != null && id.length() == 0) {
-                // just show roots if nothing is down to
-                log.info("EFO request for tree root");
-                result = efoService.getTermChildren(null);
+               result = efoService.getAllTermChildren(id);
             } else {
-                id = request.getParameter("parentsOf");
+                id = request.getParameter("downTo");
                 if (id != null && id.length() != 0) {
-                    log.info("EFO request for parents of " + id);
-                    result = new ArrayList<AtlasEfoService.EfoTermCount>();
-                    for (List<AtlasEfoService.EfoTermCount> i : efoService.getTermParentPaths(id)) {
-                        result.addAll(i);
+                    result = efoService.getTreeDownToTerm(id);
+                    log.info("EFO request for tree down to " + id);
+                } else if (id != null && id.length() == 0) {
+                    // just show roots if nothing is down to
+                    log.info("EFO request for tree root");
+                    result = efoService.getTermChildren(null);
+                } else {
+                    id = request.getParameter("parentsOf");
+                    if (id != null && id.length() != 0) {
+                        log.info("EFO request for parents of " + id);
+                        result = new ArrayList<AtlasEfoService.EfoTermCount>();
+                        for (List<AtlasEfoService.EfoTermCount> i : efoService.getTermParentPaths(id)) {
+                            result.addAll(i);
+                        }
                     }
-                }
 
+                }
             }
         }
 
