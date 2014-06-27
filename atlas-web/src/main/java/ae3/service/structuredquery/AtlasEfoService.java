@@ -314,7 +314,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         Collection<EfoTerm> children = efo.getTermChildren(term.getId());
         result.add(new EfoTermCount(term, 0));
         for (EfoTerm child : children) {
-            addAll(result, efo.getTermChildren(child.getId()));
+            result.addAll(getAllTermChildren(child.getId()));
         }
         return result;
     }
