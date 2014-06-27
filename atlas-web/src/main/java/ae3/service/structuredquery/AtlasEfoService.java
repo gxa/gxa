@@ -247,7 +247,7 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
         /**
          * Returns alternative terms
          *
-         * @return list of ids
+         * @return list of ids                                                                                                            q
          */
         public List<String> getAlternativeTerms() {
             return term.getAlternativeTerms();
@@ -312,12 +312,9 @@ public class AtlasEfoService implements AutoCompleter, IndexBuilderEventHandler,
 
         List<EfoTermCount> result = new ArrayList<EfoTermCount>();
         Collection<EfoTerm> children = efo.getTermChildren(term.getId());
-        if (children == null || children.isEmpty()) {
-            result.add(new EfoTermCount(term,0));
-        } else {
-            for (EfoTerm child : children) {
-                addAll(result, efo.getTermChildren(child.getId()));
-            }
+        result.add(new EfoTermCount(term, 0));
+        for (EfoTerm child : children) {
+            addAll(result, efo.getTermChildren(child.getId()));
         }
         return result;
     }
