@@ -33,7 +33,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate.jpa.version>2.0-cr-1</hibernate.jpa.version>
-        <spring.version>3.1.1.RELEASE</spring.version>
+        <spring.version>5.2.0.RELEASE</spring.version>
         <wro4j.version>1.3.8</wro4j.version>
         <jri.libs>${env.R_HOME}/library/rJava/jri</jri.libs>
         <test.inclusion.pattern.acceptance>acceptance/**/*TestExternal.java</test.inclusion.pattern.acceptance>
